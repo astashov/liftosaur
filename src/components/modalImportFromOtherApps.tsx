@@ -1,9 +1,9 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Modal } from "./modal";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemWrapper } from "./menuItem";
 import { Importer } from "./importer";
-import { useCallback } from "preact/hooks";
+import { useCallback } from "react";
 import { ImportFromHevy } from "../utils/importFromHevy";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Account } from "../../components/account";
 import { FooterPage } from "../../components/footerPage";
 import { TopNavMenu } from "../../components/topNavMenu";

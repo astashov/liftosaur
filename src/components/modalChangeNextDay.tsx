@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Modal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { IProgram, IScreenMuscle, ISettings } from "../types";

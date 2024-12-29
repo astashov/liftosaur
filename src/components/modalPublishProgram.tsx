@@ -1,9 +1,9 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Button } from "./button";
 import { Modal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { Input } from "./input";
-import { useRef } from "preact/hooks";
+import { useRef } from "react";
 import { Thunk } from "../ducks/thunks";
 import { IProgram } from "../types";
 import { GroupHeader } from "./groupHeader";
@@ -17,12 +17,12 @@ interface IProps {
 
 export function ModalPublishProgram(props: IProps): JSX.Element {
   const { program, dispatch } = props;
-  const idRef = useRef<HTMLInputElement>();
-  const nameRef = useRef<HTMLInputElement>();
-  const shortDescriptionRef = useRef<HTMLInputElement>();
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const urlRef = useRef<HTMLInputElement>();
-  const authorRef = useRef<HTMLInputElement>();
+  const idRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const shortDescriptionRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const urlRef = useRef<HTMLInputElement>(null);
+  const authorRef = useRef<HTMLInputElement>(null);
   return (
     <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth={true}>
       <form>
@@ -60,12 +60,12 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
               props.onClose();
               dispatch(
                 Thunk.publishProgram({
-                  id: idRef.current.value,
-                  name: nameRef.current.value,
-                  shortDescription: shortDescriptionRef.current.value,
-                  description: descriptionRef.current.value,
-                  url: urlRef.current.value,
-                  author: authorRef.current.value,
+                  id: idRef.current!.value ?? "",
+                  name: nameRef.current!.value ?? "",
+                  shortDescription: shortDescriptionRef.current!.value,
+                  description: descriptionRef.current!.value ?? "",
+                  url: urlRef.current!.value ?? "",
+                  author: authorRef.current!.value ?? "",
                 })
               );
             }}

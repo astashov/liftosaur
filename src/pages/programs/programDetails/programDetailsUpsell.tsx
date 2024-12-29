@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 
 export function ProgramDetailsUpsell(): JSX.Element {
   return (
@@ -21,13 +21,13 @@ export function ProgramDetailsUpsell(): JSX.Element {
           <a
             href="https://apps.apple.com/app/apple-store/id1661880849?pt=126680920&mt=8"
             target="_blank"
-            style="display: inline-block; overflow: hidden; border-radius: 13px"
+            style={{ display: "inline-block", overflow: "hidden", borderRadius: "13px" }}
           >
             <img
               className="w-32"
               src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1673481600"
               alt="Download on the App Store"
-              style="border-radius: 13px"
+              style={{ borderRadius: "13px" }}
             />
           </a>
         </div>

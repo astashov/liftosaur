@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Page } from "../../components/page";
 import { IAccount } from "../../models/account";
 import { IStorage } from "../../types";

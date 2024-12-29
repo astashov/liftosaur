@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Page } from "../../components/page";
 import { IUserDashboardData, UserDashboardContent } from "./userDashboardContent";
 import { IEventPayload } from "../../api/service";

@@ -1,8 +1,8 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import micromark from "micromark";
 import gfm from "micromark-extension-gfm";
 import gfmHtml from "micromark-extension-gfm/html";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef } from "react";
 
 interface IProps {
   value: string;

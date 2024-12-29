@@ -1,11 +1,11 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { IPlannerState, IExportedPlannerProgram } from "./models/types";
 import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput";
 import { lb, lf } from "lens-shmens";
 import { HtmlUtils } from "../../utils/html";
 import { Encoder } from "../../utils/encoder";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState } from "react";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { ModalPlannerSettings } from "./components/modalPlannerSettings";
 import { ModalExercise } from "../../components/modalExercise";
@@ -155,15 +155,15 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
 
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
-      if (oldState.current.program !== newState.current.program) {
-        const exportedProgram = buildExportedProgram(newState.id, newState.current.program, settings, props.nextDay);
+      if (oldState.current!.program !== newState.current!.program) {
+        const exportedProgram = buildExportedProgram(newState.id, newState.current!.program, settings, props.nextDay);
         dispatch(lb<IPlannerState>().p("encodedProgram").record(JSON.stringify(exportedProgram)));
       }
     },
     async (action, oldState, newState) => {
       if (
         !("type" in action && action.type === "Update" && action.desc === "undo") &&
-        oldState.current.program !== newState.current.program
+        oldState.current!.program !== newState.current!.program
       ) {
         undoRedoMiddleware(dispatch, oldState);
       }
@@ -184,7 +184,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   useEffect(() => {
     setShowHelp(typeof window !== "undefined" && window.localStorage.getItem("hide-planner-help") !== "true");
     if (props.initialProgram) {
-      const exportedProgram = buildExportedProgram(state.id, state.current.program, settings, props.nextDay);
+      const exportedProgram = buildExportedProgram(state.id, state.current!.program, settings, props.nextDay);
       Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), window.location.href).then(() => {
         dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(JSON.stringify(exportedProgram)));
       });
@@ -215,10 +215,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const [clearHasChanges, setClearHasChanges] = useState<boolean>(false);
 
   const lbProgram = lb<IPlannerState>().p("current").p("program");
-  const program = state.current.program;
+  const program = state.current!.program;
 
   const modalExerciseUi = state.ui.modalExercise;
-  const isInvalid = !PlannerProgram.isValid(state.current.program, settings);
+  const isInvalid = !PlannerProgram.isValid(state.current!.program, settings);
 
   const script = "Squat / 3x3-5\nRomanian Deadlift / 3x8";
   const maxWidth = "1200px";
@@ -328,7 +328,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             isBannerLoading={isBannerLoading}
             account={props.account}
             onAddProgram={async () => {
-              const exportedProgram = buildExportedProgram(state.id, state.current.program, settings, props.nextDay);
+              const exportedProgram = buildExportedProgram(state.id, state.current!.program, settings, props.nextDay);
               const pg = exportedProgram.program;
               if (pg.planner && PlannerProgram.hasNonSelectedWeightUnit(pg.planner, settings)) {
                 const fromUnit = Weight.oppositeUnit(settings.units);
@@ -351,7 +351,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         <div className="flex-1 py-2 ">
           <h2 className="mr-2 text-2xl font-bold">
             <BuilderLinkInlineInput
-              value={state.current.program.name}
+              value={state.current!.program.name}
               onInputString={(v) => {
                 dispatch(lbProgram.p("name").record(v));
                 document.title = `Liftosaur: Weight Lifting Tracking App | ${HtmlUtils.escapeHtml(v)}`;
@@ -389,7 +389,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   try {
                     const exportedProgram = buildExportedProgram(
                       state.id,
-                      state.current.program,
+                      state.current!.program,
                       settings,
                       props.nextDay
                     );
@@ -532,7 +532,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             program={new PlannerToProgram(
               UidFactory.generateUid(8),
               1,
-              state.current.program,
+              state.current!.program,
               settings
             ).convertToProgram()}
             isMobile={false}
@@ -562,7 +562,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               }
               if (state.fulltext) {
                 const newProgram = {
-                  name: state.current.program.name,
+                  name: state.current!.program.name,
                   weeks: PlannerProgram.evaluateText(state.fulltext.text),
                 };
                 const newPlannerProgramResult = PlannerProgram.replaceExercise(
@@ -579,7 +579,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 }
               } else {
                 const newPlannerProgramResult = PlannerProgram.replaceExercise(
-                  state.current.program,
+                  state.current!.program,
                   modalExerciseUi.exerciseKey,
                   exerciseType,
                   settings

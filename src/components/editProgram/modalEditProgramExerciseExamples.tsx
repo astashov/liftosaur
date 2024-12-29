@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
 import { EditProgram } from "../../models/editProgram";
 import { IUnit } from "../../types";

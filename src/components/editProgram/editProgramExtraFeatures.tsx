@@ -1,5 +1,5 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { IDayData, IHistoryEntry, IProgramExercise, ISettings } from "../../types";
 import { GroupHeader } from "../groupHeader";
 import { MenuItemWrapper } from "../menuItem";

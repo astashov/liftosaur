@@ -16,8 +16,6 @@
     "pretty": true,
     "strict": true,
     "jsx": "react",
-    "jsxFactory": "h",
-    "jsxFragmentFactory": "Fragment",
     "skipLibCheck": true,
     "noEmit": true,
     "outDir": "out",

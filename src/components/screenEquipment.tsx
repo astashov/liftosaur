@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { ISettings, IEquipment, IAllEquipment } from "../types";
 import { ILoading, IState, updateState } from "../models/state";
@@ -9,7 +9,7 @@ import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { IScreen, Screen } from "../models/screen";
 import { HelpPlates } from "./help/helpPlates";
-import { useEffect } from "preact/hooks";
+import { useEffect } from "react";
 import { MenuItemEditable } from "./menuItemEditable";
 
 interface IProps {

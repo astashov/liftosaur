@@ -1,11 +1,11 @@
-import { ComponentChildren, h, JSX, Ref } from "preact";
-import { forwardRef } from "preact/compat";
+import React, { JSX, Ref } from "react";
+import { forwardRef } from "react";
 import { inputClassName } from "./input";
 
-interface ILabelAndSelectProps extends JSX.HTMLAttributes<HTMLSelectElement> {
+interface ILabelAndSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   identifier: string;
   label: string;
-  children: ComponentChildren;
+  children: React.ReactNode;
 }
 
 export const LabelAndSelect = forwardRef(
@@ -14,7 +14,7 @@ export const LabelAndSelect = forwardRef(
     const id = [props.id, identifier].filter((r) => r).join(" ");
     return (
       <div className="mb-4">
-        <label data-cy={`${identifier}-label`} for={identifier} className="block text-sm font-bold">
+        <label data-cy={`${identifier}-label`} htmlFor={identifier} className="block text-sm font-bold">
           {label}
         </label>
         <select ref={ref} data-cy={`${identifier}-select`} id={id} className={inputClassName} {...restProps}>

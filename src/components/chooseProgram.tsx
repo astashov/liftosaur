@@ -1,7 +1,7 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { ProgramListView } from "./programList";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { Program } from "../models/program";
 import { ModalCreateProgram } from "./modalCreateProgram";
 import { ModalProgramInfo } from "./modalProgramInfo";
@@ -49,7 +49,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
       }
       footer={noPrograms ? <></> : <Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
-        <Fragment>
+        <>
           {program != null && (
             <ModalProgramInfo
               settings={props.settings}
@@ -83,7 +83,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
               setShowImportFromLink(false);
             }}
           />
-        </Fragment>
+        </>
       }
     >
       <div className="pb-2 text-center">

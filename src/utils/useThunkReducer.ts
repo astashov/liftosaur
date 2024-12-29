@@ -1,4 +1,4 @@
-import { useRef, useCallback, Reducer, useState } from "preact/hooks";
+import { useRef, useCallback, Reducer, useState } from "react";
 import { IGDispatch, IGThunk, IReducerOnIGAction } from "../ducks/types";
 
 export function useThunkReducer<TState, TAction extends Record<string, unknown>, TEnv>(

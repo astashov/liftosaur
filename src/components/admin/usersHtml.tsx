@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { UsersContent, IProcessedUser } from "./usersContent";
 import { AdminHtml, renderAdminHtml } from "./adminHtml";
 

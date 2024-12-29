@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { CollectionUtils } from "../../utils/collection";
 import { DateUtils } from "../../utils/date";
 

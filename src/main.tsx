@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { MainContent } from "./pages/main/mainContent";
 import { IProgramContentSyncerProps } from "./pages/program/programContentSyncer";
 import { HydrateUtils } from "./utils/hydrate";

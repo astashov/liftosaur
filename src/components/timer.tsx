@@ -1,6 +1,6 @@
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { TimeUtils } from "../utils/time";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "react";
 import { IconPlay } from "./icons/iconPlay";
 import { IconPause } from "./icons/iconPause";
 import { IHistoryRecord } from "../types";

@@ -1,5 +1,5 @@
-import { JSX, h, Fragment } from "preact";
-import { memo, useState } from "preact/compat";
+import React, { JSX } from "react";
+import { memo, useState } from "react";
 import { ProgramExercise } from "../../../models/programExercise";
 import { Progress } from "../../../models/progress";
 import { Weight } from "../../../models/weight";

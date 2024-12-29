@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useRef } from "react";
 import QRCode from "qrcode";
 
 interface IProgramQrCodeProps {

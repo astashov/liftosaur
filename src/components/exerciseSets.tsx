@@ -1,5 +1,5 @@
-import { h, JSX, Fragment } from "preact";
-import { useCallback } from "preact/hooks";
+import React, { JSX } from "react";
+import { useCallback } from "react";
 import { IDispatch } from "../ducks/types";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { ProgramExercise } from "../models/programExercise";
@@ -16,6 +16,7 @@ import {
 } from "../types";
 import { ExerciseSetView } from "./exerciseSet";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
+import { Reps } from "../models/set";
 
 type IOnStartSetChanging = (
   isWarmup: boolean,
@@ -63,10 +64,11 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
   return (
     <>
       {(isEditMode || warmupSets?.length > 0) && (
-        <Fragment>
+        <>
           {warmupSets.map((set, setIndex) => {
             return (
               <ExerciseSetContainer
+                key={`${setIndex}-${Reps.display([set])}`}
                 size={props.size || "medium"}
                 mode="warmup"
                 label="Warmup"
@@ -122,11 +124,12 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
             }}
             className={`${props.size === "small" ? "h-8 mt-1 mr-1" : "h-10 mr-2"} bg-grayv2-400`}
           ></div>
-        </Fragment>
+        </>
       )}
       {props.entry.sets.map((set, setIndex) => {
         return (
           <ExerciseSetContainer
+            key={`${setIndex}-${Reps.display([set])}`}
             size={props.size || "medium"}
             mode="workout"
             label={set.label}

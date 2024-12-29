@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import "../../models/state";
 import { DateUtils } from "../../utils/date";
 import { IRecordResponse } from "../../api/service";
@@ -114,8 +114,8 @@ function Entry(props: IEntryProps): JSX.Element {
   return (
     <section className="p-4 my-2 bg-gray-100 border border-gray-600 rounded-lg">
       <h4 className="text-lg font-bold">{exercise.name}</h4>
-      <div class="flex flex-col sm:flex-row">
-        <div class="flex-1">
+      <div className="flex flex-col sm:flex-row">
+        <div className="flex-1">
           {prSet != null && (
             <div className="my-2 text-lg">
               <strong>🏆 New Personal Record</strong>: <SetView set={prSet} units={units} />

@@ -1,4 +1,4 @@
-import { JSX, h, ComponentChildren } from "preact";
+import React, { JSX } from "react";
 import { FooterPage } from "./footerPage";
 import { IAccount } from "../models/account";
 import { TopNavMenu } from "./topNavMenu";
@@ -9,7 +9,7 @@ export interface IPageWrapperProps {
   url?: string;
   maxWidth?: number;
   maxBodyWidth?: number;
-  children?: ComponentChildren;
+  children?: React.ReactNode;
   account?: IAccount;
   client: Window["fetch"];
 }

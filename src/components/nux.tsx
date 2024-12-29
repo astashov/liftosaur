@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { ComponentChildren, h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
 import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
@@ -9,7 +9,7 @@ interface IProps {
   id: string;
   helps: string[];
   className?: string;
-  children: ComponentChildren;
+  children: React.ReactNode;
 }
 
 export function Nux(props: IProps): JSX.Element | null {

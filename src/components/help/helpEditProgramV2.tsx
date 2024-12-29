@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import { IconGraphsE } from "../icons/iconGraphsE";
 import { IconMusclesD } from "../icons/iconMusclesD";

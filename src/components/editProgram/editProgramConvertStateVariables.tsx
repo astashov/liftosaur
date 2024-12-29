@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { ProgramExercise } from "../../models/programExercise";
 import { IProgramExercise, ISettings } from "../../types";
 import { IconInfo } from "../icons/iconInfo";

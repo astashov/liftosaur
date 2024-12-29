@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef } from "react";
 import { IDeload, IProgression, Progression } from "../../models/progression";
 import { ISettings, IUnit } from "../../types";
 import { ReactUtils } from "../../utils/react";
@@ -33,12 +33,12 @@ export function EditProgramExerciseSimpleProgression(props: IEditProgramExercise
     }
   );
 
-  const progressionIncrementRef = useRef<HTMLInputElement>();
-  const progressionUnitRef = useRef<HTMLSelectElement>();
-  const progressionAttemptsRef = useRef<HTMLInputElement>();
-  const deloadDecrementsRef = useRef<HTMLInputElement>();
-  const deloadUnitRef = useRef<HTMLSelectElement>();
-  const deloadFailuresRef = useRef<HTMLInputElement>();
+  const progressionIncrementRef = useRef<HTMLInputElement>(null);
+  const progressionUnitRef = useRef<HTMLSelectElement>(null);
+  const progressionAttemptsRef = useRef<HTMLInputElement>(null);
+  const deloadDecrementsRef = useRef<HTMLInputElement>(null);
+  const deloadUnitRef = useRef<HTMLSelectElement>(null);
+  const deloadFailuresRef = useRef<HTMLInputElement>(null);
 
   return (
     <section>
@@ -66,7 +66,7 @@ export function EditProgramExerciseSimpleProgression(props: IEditProgramExercise
               type={SendMessage.isIos() ? "number" : "tel"}
               value={progression.increment}
               onBlur={() => {
-                let value: number | undefined = parseFloat(progressionIncrementRef.current.value);
+                let value: number | undefined = parseFloat(progressionIncrementRef.current!.value ?? "0");
                 value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
                 if (value != null) {
                   setProgression({ ...progression, increment: value });
@@ -77,7 +77,7 @@ export function EditProgramExerciseSimpleProgression(props: IEditProgramExercise
               ref={progressionUnitRef}
               name="units"
               onChange={() => {
-                const unit = progressionUnitRef.current.value as IUnit | "%";
+                const unit = progressionUnitRef.current!.value as IUnit | "%";
                 if (unit != null) {
                   setProgression({ ...progression, unit });
                 }
@@ -98,7 +98,7 @@ export function EditProgramExerciseSimpleProgression(props: IEditProgramExercise
               type="tel"
               value={progression.attempts}
               onBlur={() => {
-                let value: number | undefined = parseInt(progressionAttemptsRef.current.value, 10);
+                let value: number | undefined = parseInt(progressionAttemptsRef.current!.value ?? "0", 10);
                 value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));
                 if (value != null) {
                   setProgression({ ...progression, attempts: value });
@@ -132,7 +132,7 @@ export function EditProgramExerciseSimpleProgression(props: IEditProgramExercise
               onFocus={selectInputOnFocus}
               value={deload.decrement}
               onBlur={() => {
-                let value: number | undefined = parseFloat(deloadDecrementsRef.current.value);
+                let value: number | undefined = parseFloat(deloadDecrementsRef.current!.value ?? "0");
                 value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
                 if (value != null) {
                   setDeload({ ...deload, decrement: value });
@@ -143,7 +143,7 @@ export function EditProgramExerciseSimpleProgression(props: IEditProgramExercise
               ref={deloadUnitRef}
               name="units"
               onChange={() => {
-                const unit = deloadUnitRef.current.value as IUnit | "%";
+                const unit = deloadUnitRef.current!.value as IUnit | "%";
                 if (unit != null) {
                   setDeload({ ...deload, unit });
                 }
@@ -164,7 +164,7 @@ export function EditProgramExerciseSimpleProgression(props: IEditProgramExercise
               value={deload.attempts}
               onFocus={selectInputOnFocus}
               onBlur={() => {
-                let value: number | undefined = parseInt(deloadFailuresRef.current.value, 10);
+                let value: number | undefined = parseInt(deloadFailuresRef.current!.value ?? "0", 10);
                 value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));
                 if (value != null) {
                   setDeload({ ...deload, attempts: value });

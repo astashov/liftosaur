@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { History } from "../models/history";
 import { Button } from "./button";
@@ -6,7 +6,7 @@ import { ScreenActions } from "../actions/screenActions";
 import { StringUtils } from "../utils/string";
 import { Weight } from "../models/weight";
 import { Exercise } from "../models/exercise";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { ModalShare } from "./modalShare";
 import { Confetti } from "./confetti";
 import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";

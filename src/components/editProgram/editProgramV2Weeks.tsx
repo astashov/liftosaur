@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { lb, LensBuilder } from "lens-shmens";
-import { h, JSX } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { Exercise } from "../../models/exercise";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
@@ -63,7 +63,18 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
               <section key={weekIndex} className="flex w-full px-2 py-1 text-left">
                 <div className="flex flex-col">
                   <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-                    <span onMouseDown={handleTouchStart} onTouchStart={handleTouchStart}>
+                    <span
+                      onMouseDown={(e) => {
+                        if (handleTouchStart) {
+                          handleTouchStart(e.nativeEvent);
+                        }
+                      }}
+                      onTouchStart={(e) => {
+                        if (handleTouchStart) {
+                          handleTouchStart(e.nativeEvent);
+                        }
+                      }}
+                    >
                       <IconHandle />
                     </span>
                   </div>
@@ -159,7 +170,18 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                           >
                             <div className="flex items-center">
                               <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-                                <span onMouseDown={handleTouchStart2} onTouchStart={handleTouchStart2}>
+                                <span
+                                  onMouseDown={(e) => {
+                                    if (handleTouchStart2) {
+                                      handleTouchStart2(e.nativeEvent);
+                                    }
+                                  }}
+                                  onTouchStart={(e) => {
+                                    if (handleTouchStart2) {
+                                      handleTouchStart2(e.nativeEvent);
+                                    }
+                                  }}
+                                >
                                   <IconHandle />
                                 </span>
                               </div>

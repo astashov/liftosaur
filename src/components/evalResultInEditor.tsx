@@ -1,5 +1,5 @@
 import { IEither } from "../utils/types";
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Weight } from "../models/weight";
 import { IPercentage, IWeight } from "../types";
 

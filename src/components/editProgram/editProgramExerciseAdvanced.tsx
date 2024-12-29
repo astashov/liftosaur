@@ -1,11 +1,11 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Program } from "../../models/program";
 import { GroupHeader } from "../groupHeader";
 import { IDispatch } from "../../ducks/types";
 import { MenuItemEditable } from "../menuItemEditable";
 import { Button } from "../button";
 import { EditProgram } from "../../models/editProgram";
-import { useState, useRef, useEffect } from "preact/hooks";
+import { useState, useRef, useEffect } from "react";
 import { ModalAddStateVariable } from "./modalAddStateVariable";
 import { IEither } from "../../utils/types";
 import { MenuItem } from "../menuItem";
@@ -63,7 +63,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   const variationsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (props.programExercise !== prevProps.current.programExercise) {
+    if (props.programExercise !== prevProps.current!.programExercise) {
       setProgress(
         ProgramExercise.buildProgress(
           programExercise,
@@ -281,7 +281,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             areVariationsEnabled={showVariations}
             onEnableVariations={() => {
               setShowVariations(true);
-              variationsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+              variationsRef.current!.scrollIntoView({ behavior: "smooth", block: "center" });
             }}
             onChangeTimer={(expr) => {
               EditProgram.setTimer(props.dispatch, expr);
@@ -417,7 +417,7 @@ function Variations(props: IVariationsProps): JSX.Element {
   const { programExercise, variationIndex, dispatch } = props;
 
   return (
-    <Fragment>
+    <>
       <GroupHeader
         topPadding={true}
         name="Sets Variations"
@@ -461,7 +461,7 @@ function Variations(props: IVariationsProps): JSX.Element {
         )}
       </div>
       <div className="p-1"></div>
-    </Fragment>
+    </>
   );
 }
 

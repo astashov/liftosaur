@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { IScreen, Screen } from "../models/screen";
 import {
@@ -29,7 +29,7 @@ import { DateUtils } from "../utils/date";
 import { HistoryRecordSetsView } from "./historyRecordSets";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { IconFilter } from "./icons/iconFilter";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { Weight } from "../models/weight";
 import { Locker } from "./locker";
 import { HelpExerciseStats } from "./help/helpExerciseStats";
@@ -380,7 +380,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                                       <>
                                         {i !== 0 && ", "}
                                         <span>
-                                          {stateKey} - <strong>{displayValue}</strong>
+                                          {stateKey} - <strong>{`${displayValue}`}</strong>
                                         </span>
                                       </>
                                     );

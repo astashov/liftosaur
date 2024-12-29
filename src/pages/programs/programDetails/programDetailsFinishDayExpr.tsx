@@ -1,12 +1,12 @@
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
-import { useRef, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { memo } from "react";
+import { useRef, useState } from "react";
 import Prism from "prismjs";
 
 export const FinishDayExprView = memo(
   (props: { finishDayExpr: string; shouldShowAllScripts: boolean }): JSX.Element | null => {
     const [isVisible, setIsVisible] = useState(props.shouldShowAllScripts);
-    const codeRef = useRef<HTMLElement>();
+    const codeRef = useRef<HTMLElement>(null);
     const highlightedCode = Prism.highlight(props.finishDayExpr, Prism.languages.javascript, "javascript");
     if (!props.finishDayExpr) {
       return null;
@@ -19,7 +19,7 @@ export const FinishDayExprView = memo(
           <pre className={`text-sm overflow-auto ${isVisible ? "block" : "hidden"}`}>
             <code
               ref={codeRef}
-              class="block code language-javascript"
+              className="block code language-javascript"
               dangerouslySetInnerHTML={{ __html: highlightedCode }}
             />
           </pre>

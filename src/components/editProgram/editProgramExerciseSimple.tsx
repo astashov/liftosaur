@@ -1,8 +1,8 @@
 import { Program } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { ModalExercise } from "../modalExercise";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { EditProgram } from "../../models/editProgram";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { MenuItem, MenuItemWrapper } from "../menuItem";

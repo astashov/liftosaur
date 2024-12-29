@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 
 export function IconDelete(): JSX.Element {
   return (

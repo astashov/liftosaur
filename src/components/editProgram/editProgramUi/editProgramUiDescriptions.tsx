@@ -1,5 +1,5 @@
-import { JSX, h } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
 import { GroupHeader } from "../../groupHeader";
 import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";

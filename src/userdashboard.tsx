@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { HydrateUtils } from "./utils/hydrate";
 import { IUserDashboardContentProps, UserDashboardContent } from "./pages/userDashboard/userDashboardContent";
 

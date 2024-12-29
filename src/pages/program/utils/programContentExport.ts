@@ -6,7 +6,7 @@ import { IProgramEditorState } from "../models/types";
 export namespace ProgramContentExport {
   export function generateExportedProgram(state: IProgramEditorState): IExportedProgram {
     return {
-      program: state.current.program,
+      program: state.current!.program,
       customExercises: state.settings.exercises,
       version: getLatestMigrationVersion(),
       settings: ObjectUtils.pick(state.settings, ["timers", "units", "planner"]),

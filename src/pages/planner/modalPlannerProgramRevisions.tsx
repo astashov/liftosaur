@@ -1,5 +1,5 @@
-import { h, JSX, Fragment } from "preact";
-import { useState, useEffect } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState, useEffect } from "react";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
 import { IconSpinner } from "../../components/icons/iconSpinner";

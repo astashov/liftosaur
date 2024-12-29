@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IPlannerProgramProperty } from "../../../pages/planner/models/types";
 
 interface IEditProgramUiUpdateProps {

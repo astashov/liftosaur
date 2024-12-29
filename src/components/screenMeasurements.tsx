@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IScreen, Screen } from "../models/screen";
 import { IStats, ISettings, ISubscription } from "../types";
 import { ILoading } from "../models/state";

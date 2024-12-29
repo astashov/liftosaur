@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { RecordContent } from "./pages/record/recordContent";
 import { IRecordResponse } from "./api/service";
 import { HydrateUtils } from "./utils/hydrate";

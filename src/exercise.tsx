@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { IExerciseContentProps, ExerciseContent } from "./pages/exercise/exerciseContent";
 import { HydrateUtils } from "./utils/hydrate";
 

@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useRef, useState, useEffect } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Button } from "./button";
@@ -36,18 +36,18 @@ export function ScreenOnboarding(props: IProps): JSX.Element {
 
   const [selectedDotIndex, setSelectedDotIndex] = useState(0);
   const selectedDotRef = useRef<number>(selectedDotIndex);
-  const screensRef = useRef<HTMLDivElement>();
+  const screensRef = useRef<HTMLDivElement>(null);
   const video = [
-    useRef<HTMLVideoElement>(),
-    useRef<HTMLVideoElement>(),
-    useRef<HTMLVideoElement>(),
-    useRef<HTMLVideoElement>(),
-    useRef<HTMLVideoElement>(),
+    useRef<HTMLVideoElement>(null),
+    useRef<HTMLVideoElement>(null),
+    useRef<HTMLVideoElement>(null),
+    useRef<HTMLVideoElement>(null),
+    useRef<HTMLVideoElement>(null),
   ];
 
   useEffect(() => {
     // eslint-disable-next-line no-unused-expressions
-    video[0].current?.play();
+    video[0].current!.play();
   }, []);
 
   return (
@@ -56,14 +56,14 @@ export function ScreenOnboarding(props: IProps): JSX.Element {
         <div
           ref={screensRef}
           onScroll={() => {
-            const scrollLeft = screensRef.current?.scrollLeft ?? 0;
+            const scrollLeft = screensRef.current!.scrollLeft ?? 0;
             const windowWidth = window.innerWidth;
             const selectedDot = Math.floor((scrollLeft + windowWidth / 2) / windowWidth);
             if (selectedDotRef.current !== selectedDot) {
               selectedDotRef.current = selectedDot;
               setSelectedDotIndex(selectedDot);
               // eslint-disable-next-line no-unused-expressions
-              video[selectedDot]?.current?.play();
+              video[selectedDot]?.current!.play();
             }
           }}
           className="flex h-full overflow-x-scroll overflow-y-hidden shadow-lg"

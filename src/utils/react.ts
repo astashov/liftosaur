@@ -1,10 +1,7 @@
-import { useState, useEffect, StateUpdater, useRef } from "preact/hooks";
+import { useState, useEffect, Dispatch, useRef } from "react";
 
 export namespace ReactUtils {
-  export function useStateWithCallback<S>(
-    initialState: S | (() => S),
-    callback: (state: S) => void
-  ): [S, StateUpdater<S>] {
+  export function useStateWithCallback<S>(initialState: S | (() => S), callback: (state: S) => void): [S, Dispatch<S>] {
     const [state, setState] = useState<S>(initialState);
     const didMount = useRef(false);
     useEffect(() => {

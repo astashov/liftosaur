@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { IAccount } from "../src/models/account";
 import { AllExercisesHtml } from "../src/pages/allExercises/allExercisesHtml";
 

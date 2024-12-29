@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { IScreen, Screen } from "../models/screen";
@@ -92,7 +92,7 @@ function CreateButton(props: { isActive: boolean }): JSX.Element {
   const stroke = props.isActive ? "#E6DEFC" : "#DFDFDF";
   return (
     <svg width="54" height="54" viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="2" width="50" height="50" rx="25" fill={fill} stroke={stroke} stroke-width="4" />
+      <rect x="2" y="2" width="50" height="50" rx="25" fill={fill} stroke={stroke} strokeWidth="4" />
       <rect x="20.5" y="24.5" width="13" height="5" stroke="white" />
       <path
         d="M20.0928 22.1617C20.0928 20.8872 19.177 19.854 18.0473 19.854C16.9176 19.854 16.0019 20.8872 16.0019 22.1617L16.0019 31.3924C16.0019 32.667 16.9176 33.7001 18.0473 33.7001C19.177 33.7001 20.0928 32.667 20.0928 31.3924L20.0928 22.1617Z"
@@ -119,8 +119,8 @@ function Shadow(): JSX.Element {
     <svg width="1200" height="60" viewBox="0 -30 1200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g filter="url(#filter0_d_0_1)">
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M0 22C0 22 504.56 22 535 22C564.072 22 574.069 0 600 0C625.931 0 636.943 22 665 22C694.575 22 1200 22 1200 22V30H0V22Z"
           fill="white"
         />
@@ -133,9 +133,9 @@ function Shadow(): JSX.Element {
           width="1250"
           height="80"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix
             in="SourceAlpha"
             type="matrix"

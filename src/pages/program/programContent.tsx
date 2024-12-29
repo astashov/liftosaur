@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { IProgramEditorState } from "./models/types";
 import { IExportedProgram, Program } from "../../models/program";
@@ -9,7 +9,7 @@ import { ProgramPreview } from "../../components/programPreview";
 import { ProgramContentEditor, saveProgram } from "./programContentEditor";
 import { IconLink } from "../../components/icons/iconLink";
 import { IconLogo } from "../../components/icons/iconLogo";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState } from "react";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { ProgramContentModalSettings } from "./components/programContentModalSettings";
 import { IconCog2 } from "../../components/icons/iconCog2";
@@ -78,7 +78,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
 
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
-      if (oldState.current.program !== newState.current.program || oldState.settings !== newState.settings) {
+      if (oldState.current!.program !== newState.current!.program || oldState.settings !== newState.settings) {
         const exportedProgram = ProgramContentExport.generateExportedProgram(newState);
         const baseUrl = UrlUtils.build("/program", window.location.href);
         const url = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), baseUrl.toString());
@@ -217,7 +217,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-bold">Program Preview</h3>
-                  <h4 className="text-sm text-grayv2-main">{state.current.program.name}</h4>
+                  <h4 className="text-sm text-grayv2-main">{state.current!.program.name}</h4>
                 </div>
               </div>
               <div className="flex-1 text-right">
@@ -261,7 +261,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
             </div>
             <ProgramPreview
               isMobile={props.isMobile}
-              program={state.current.program}
+              program={state.current!.program}
               settings={state.settings}
               subscription={{ google: { fake: null }, apple: {} }}
               hasNavbar={true}
@@ -282,7 +282,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       )}
       <ProgramContentModalSettings
         isMobile={props.isMobile}
-        program={state.current.program}
+        program={state.current!.program}
         isHidden={!showSettingsModal}
         settings={state.settings}
         dispatch={dispatch}
@@ -336,13 +336,13 @@ function LoggedOutGuideBanner(): JSX.Element {
           <a
             href="https://apps.apple.com/app/apple-store/id1661880849?pt=126680920&mt=8"
             target="_blank"
-            style="display: inline-block; overflow: hidden; border-radius: 13px"
+            style={{ display: "inline-block", overflow: "hidden", borderRadius: "13px" }}
           >
             <img
               className="w-32"
               src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1673481600"
               alt="Download on the App Store"
-              style="border-radius: 13px"
+              style={{ borderRadius: "13px" }}
             />
           </a>
         </div>

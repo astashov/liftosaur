@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { lb, lbu, LensBuilder } from "lens-shmens";
-import { h, JSX } from "preact";
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
 import { IconPreview } from "../../components/icons/iconPreview";
@@ -109,8 +109,8 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
   const editorRef = useRef<HTMLDivElement | null>(null);
   const statsRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
-    setEditorWidth(editorRef.current?.clientWidth);
-    setStatsWidth(statsRef.current?.clientWidth);
+    setEditorWidth(editorRef.current!.clientWidth);
+    setStatsWidth(statsRef.current!.clientWidth);
     function onBeforeUnload(e: Event): void {
       e.preventDefault();
       e.returnValue = true;

@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useRef } from "react";
 import { IAllCustomExercises } from "../../../types";
 import { PlannerEditor } from "../plannerEditor";
 import { PlannerSyntaxError } from "../plannerExerciseEvaluator";
@@ -41,25 +41,25 @@ export function PlannerEditorView(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (codeEditor.current) {
-      codeEditor.current.setCustomExercises(props.customExercises);
+      codeEditor.current!.setCustomExercises(props.customExercises);
     }
   }, [props.customExercises]);
 
   useEffect(() => {
     if (codeEditor.current) {
-      codeEditor.current.setExerciseFullNames(props.exerciseFullNames);
+      codeEditor.current!.setExerciseFullNames(props.exerciseFullNames);
     }
   }, [props.exerciseFullNames]);
 
   useEffect(() => {
     if (codeEditor.current) {
-      codeEditor.current.args.onLineChange = props.onLineChange;
+      codeEditor.current!.args.onLineChange = props.onLineChange;
     }
   }, [props.onLineChange]);
 
   useEffect(() => {
     if (codeEditor.current) {
-      codeEditor.current.setError(props.error);
+      codeEditor.current!.setError(props.error);
     }
   }, [props.error]);
 
@@ -72,7 +72,7 @@ export function PlannerEditorView(props: IProps): JSX.Element {
     }
   }, [props.value]);
 
-  const divRef = useRef<HTMLDivElement>();
+  const divRef = useRef<HTMLDivElement>(null);
 
   let className =
     "block w-full px-2 py-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:shadow-outline";

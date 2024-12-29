@@ -1,8 +1,8 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { emptyProgramId, Program } from "../models/program";
 import { Thunk } from "../ducks/thunks";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { IProgram, IHistoryRecord, ISettings, IStats, ISubscription } from "../types";
 import { HistoryRecordsList } from "./historyRecordsList";
 import { ILoading } from "../models/state";
@@ -62,6 +62,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         <NavbarView
           rightButtons={[
             <button
+              key={0}
               data-cy="navbar-user"
               className="p-2 nm-navbar-user"
               onClick={() => props.dispatch(Thunk.pushScreen("account"))}

@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { Weight } from "../../../models/weight";
 import { IPlannerProgramExercise, IPlannerProgramReuse, IPlannerState } from "../../../pages/planner/models/types";
 import { IDayData, ISettings } from "../../../types";

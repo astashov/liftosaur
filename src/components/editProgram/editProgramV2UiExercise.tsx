@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { focusedToStr, IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
@@ -62,7 +62,18 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
         <div className="flex items-center flex-1">
           {props.handleTouchStart && (
             <div className="p-2 mr-1 cursor-move" style={{ touchAction: "none" }}>
-              <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
+              <span
+                onMouseDown={(e) => {
+                  if (props.handleTouchStart) {
+                    props.handleTouchStart(e.nativeEvent);
+                  }
+                }}
+                onTouchStart={(e) => {
+                  if (props.handleTouchStart) {
+                    props.handleTouchStart(e.nativeEvent);
+                  }
+                }}
+              >
                 <IconHandle />
               </span>
             </div>

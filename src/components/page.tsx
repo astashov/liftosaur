@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { IAccount } from "../models/account";
 import { IPageWrapperProps, PageWrapper } from "./pageWrapper";
 
@@ -74,7 +74,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         {props.postHead}
       </head>
       <body>
-        <div class="content" id="app">
+        <div className="content" id="app">
           {props.nowrapper ? props.children : <PageWrapper {...pageWrapperProps}>{props.children}</PageWrapper>}
         </div>
         <div id="pagewrapper" style={{ display: "none" }}>

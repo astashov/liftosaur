@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
 import { MenuItemEditable } from "../menuItemEditable";
 import { EditProgram } from "../../models/editProgram";
@@ -69,7 +69,7 @@ export function EditProgramWeek(props: IProps): JSX.Element {
                   handleTouchStart={handleTouchStart}
                   name={day.name}
                   value={
-                    <Fragment>
+                    <>
                       <button
                         className="p-2 align-middle ls-day-edit-exercise button"
                         onClick={() => props.dispatch({ type: "EditDayAction", index: editDayIndex })}
@@ -82,7 +82,7 @@ export function EditProgramWeek(props: IProps): JSX.Element {
                       >
                         <IconTrash />
                       </button>
-                    </Fragment>
+                    </>
                   }
                 />
               );

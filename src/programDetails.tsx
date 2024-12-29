@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { PageWrapper } from "./components/pageWrapper";
 import { AudioInterface } from "./lib/audioInterface";
 import { ProgramDetailsContent } from "./pages/programs/programDetailsContent";

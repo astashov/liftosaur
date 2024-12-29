@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IWhatsNew, WhatsNew } from "../models/whatsnew";
 import { DateUtils } from "../utils/date";
 import { ObjectUtils } from "../utils/object";

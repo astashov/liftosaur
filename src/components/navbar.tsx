@@ -1,10 +1,10 @@
-import { h, JSX, ComponentChildren, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { IScreen } from "../models/screen";
 import { IconBack } from "./icons/iconBack";
 import { IconHelp } from "./icons/iconHelp";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "react";
 import { ILoading, IState, updateState } from "../models/state";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IconClose } from "./icons/iconClose";
@@ -15,8 +15,8 @@ import { ObjectUtils } from "../utils/object";
 import { ModalDebug } from "./modalDebug";
 
 interface INavbarCenterProps {
-  title: ComponentChildren;
-  subtitle?: ComponentChildren;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
   onTitleClick?: () => void;
 }
 
@@ -24,7 +24,7 @@ interface INavbarProps extends INavbarCenterProps {
   dispatch: IDispatch;
   rightButtons?: JSX.Element[];
   onBack?: () => boolean;
-  helpContent?: ComponentChildren;
+  helpContent?: React.ReactNode;
   loading: ILoading;
   screenStack: IScreen[];
 }

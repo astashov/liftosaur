@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { ILoginContentProps, LoginContent } from "./pages/login/loginContent";
 import { HydrateUtils } from "./utils/hydrate";
 

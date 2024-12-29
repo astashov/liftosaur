@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IProgramMode, Program } from "../models/program";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";

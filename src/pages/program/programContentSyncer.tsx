@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IExportedProgram } from "../../models/program";
 import { IStorage } from "../../types";
 import { IAccount } from "../../models/account";

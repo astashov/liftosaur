@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { BottomSheet } from "./bottomSheet";
 import { BottomSheetItem } from "./bottomSheetItem";
 import { IconDoc } from "./icons/iconDoc";

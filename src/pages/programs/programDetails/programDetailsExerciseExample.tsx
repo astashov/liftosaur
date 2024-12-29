@@ -1,5 +1,5 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { HistoryRecordSetsView } from "../../../components/historyRecordSets";
 import { Input } from "../../../components/input";

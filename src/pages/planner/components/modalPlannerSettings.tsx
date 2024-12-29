@@ -1,5 +1,5 @@
 import { lf } from "lens-shmens";
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { GroupHeader } from "../../../components/groupHeader";
 import { Input } from "../../../components/input";
 import { MenuItemValue } from "../../../components/menuItemEditable";

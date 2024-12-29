@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Modal } from "../../../components/modal";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IProgramEditorState } from "../models/types";

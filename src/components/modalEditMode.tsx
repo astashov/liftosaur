@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import {
@@ -20,7 +20,7 @@ import { Weight } from "../models/weight";
 import { MenuItemEditable } from "./menuItemEditable";
 import { EditProgramConvertStateVariables } from "./editProgram/editProgramConvertStateVariables";
 import { IconCalculator } from "./icons/iconCalculator";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { RepMaxCalculator } from "./repMaxCalculator";
 import { StringUtils } from "../utils/string";
 import { IWeightChange, ProgramExercise } from "../models/programExercise";
@@ -44,7 +44,7 @@ interface IModalEditModeProps {
 export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
   const programExercise = props.program.exercises.filter((e) => e.id === props.programExerciseId)[0];
   if (programExercise == null) {
-    return <Fragment />;
+    return <></>;
   }
   const exercise = Exercise.get(programExercise.exerciseType, props.settings.exercises);
   const onClose = (): void => {

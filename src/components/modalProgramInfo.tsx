@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Button } from "./button";
 import { Modal } from "./modal";
 import { IProgram, ISettings } from "../types";

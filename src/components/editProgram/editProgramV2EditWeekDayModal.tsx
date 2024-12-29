@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef } from "react";
 import { IPlannerProgram } from "../../types";
 import { Button } from "../button";
 import { Input } from "../input";
@@ -55,8 +55,8 @@ export function EditProgramV2EditWeekDayModal(props: IProps): JSX.Element {
           kind="orange"
           className="ls-edit-davv2-modal-submit"
           onClick={() => {
-            if (textInput.current.value) {
-              props.onSelect(textInput.current.value);
+            if (textInput.current!.value) {
+              props.onSelect(textInput.current!.value);
             }
           }}
         >

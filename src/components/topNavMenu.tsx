@@ -1,5 +1,5 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { IconHamburger } from "./icons/iconHamburger";
 import { Account } from "./account";
 import { MenuItemWrapper } from "./menuItem";
@@ -21,8 +21,8 @@ export function TopNavMenu(props: {
   const service = new Service(props.client);
 
   return (
-    <nav class="w-full mx-auto px-2 my-10" style={{ maxWidth: `${props.maxWidth}px` }}>
-      <div class="flex items-center">
+    <nav className="w-full px-2 mx-auto my-10" style={{ maxWidth: `${props.maxWidth}px` }}>
+      <div className="flex items-center">
         <div className="flex items-center w-full mr-2 md:hidden">
           <div>
             <button className="p-2 align-middle nm-navbar-hamburger" onClick={() => setIsMenuOpen(true)}>
@@ -30,7 +30,7 @@ export function TopNavMenu(props: {
             </button>
           </div>
           <div>
-            <a href="/" class="text-gray-900 align-middle no-underline ml-3">
+            <a href="/" className="ml-3 text-gray-900 no-underline align-middle">
               <img
                 className="inline align-middle"
                 style={{ width: "3.5em", height: "3.5em" }}
@@ -58,7 +58,7 @@ export function TopNavMenu(props: {
               </MenuItemWrapper>
               {getMenuItemsList(!!props.account).map(([text, link]) => {
                 return (
-                  <MenuItemWrapper name={text}>
+                  <MenuItemWrapper key={text} name={text}>
                     {props.current === link ? (
                       <span className="inline-block py-4 font-bold">{text}</span>
                     ) : (
@@ -77,7 +77,7 @@ export function TopNavMenu(props: {
         )}
         <div className="items-center flex-1 hidden md:flex">
           <div>
-            <a href="/" class="text-gray-900 no-underline">
+            <a href="/" className="text-gray-900 no-underline">
               <img
                 className="inline align-middle"
                 style={{ width: "5em", height: "5em" }}
@@ -90,7 +90,7 @@ export function TopNavMenu(props: {
             <ul className="flex-1 ml-2 font-bold whitespace-no-wrap align-middle list-none">
               {getMenuItemsList(!!props.account).map(([text, link]) => {
                 return (
-                  <li className="inline-block mx-4 align-middle list-none">
+                  <li key={link} className="inline-block mx-4 align-middle list-none">
                     {props.current === link ? (
                       <strong className="text-orangev2">{text}</strong>
                     ) : (
@@ -144,7 +144,7 @@ function SocialIcons(): JSX.Element {
         ["Discord", "https://discord.gg/AAh3cvdBRs", "logo-discord"],
       ].map(([text, link, img]) => {
         return (
-          <li className="inline-block list-none md:block">
+          <li key={link} className="inline-block list-none md:block">
             <a
               target="_blank"
               href={link}

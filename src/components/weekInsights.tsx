@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { IHistoryRecord, ISettings } from "../types";
 import { WeekInsightsUtils } from "../utils/weekInsightsUtils";
 import { DateUtils } from "../utils/date";

@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { InternalLink } from "../../internalLink";
 import { IProgramExercise } from "../../types";
 import { IEither } from "../../utils/types";
@@ -15,7 +15,7 @@ export function EditProgramFinishDayScriptEditor(props: IEditProgramFinishDayScr
   const { programExercise } = props;
 
   return (
-    <Fragment>
+    <>
       <GroupHeader
         topPadding={true}
         name="Finish Day Script"
@@ -39,6 +39,6 @@ export function EditProgramFinishDayScriptEditor(props: IEditProgramFinishDayScr
           props.onSetFinishDayExpr(value);
         }}
       />
-    </Fragment>
+    </>
   );
 }

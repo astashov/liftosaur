@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Subscriptions } from "../utils/subscriptions";

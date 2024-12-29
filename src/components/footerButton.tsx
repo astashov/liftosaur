@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IScreen, ITab, Screen } from "../models/screen";
 import { StringUtils } from "../utils/string";
 

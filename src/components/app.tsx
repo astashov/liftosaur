@@ -1,5 +1,5 @@
-import { h, JSX, Fragment } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useRef } from "react";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
@@ -45,7 +45,7 @@ import { useLoopCatcher } from "../utils/useLoopCatcher";
 import { Equipment } from "../models/equipment";
 import { ScreenGyms } from "./screenGyms";
 import PullToRefresh from "pulltorefreshjs";
-import { renderToString } from "preact-render-to-string";
+import { renderToString } from "react-dom/server";
 import { IconSpinner } from "./icons/iconSpinner";
 import { ScreenExercises } from "./screenExercises";
 import { ScreenAppleHealthSettings } from "./screenAppleHealthSettings";
@@ -102,7 +102,7 @@ export function AppView(props: IProps): JSX.Element | null {
       shouldPullToRefresh: () => {
         return (
           !window.scrollY &&
-          Screen.enablePtr(stateRef.current.screenStack) &&
+          Screen.enablePtr(stateRef.current!.screenStack) &&
           !document.body.classList.contains("stop-scrolling")
         );
       },
@@ -574,7 +574,7 @@ export function AppView(props: IProps): JSX.Element | null {
   const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
   const screensWithoutTimer: IScreen[] = ["subscription"];
   return (
-    <Fragment>
+    <>
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -604,6 +604,6 @@ export function AppView(props: IProps): JSX.Element | null {
       {state.showSignupRequest && (
         <ModalSignupRequest numberOfWorkouts={state.storage.history.length} dispatch={dispatch} />
       )}
-    </Fragment>
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import { ComponentChildren, h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IExerciseType, IProgram, ISettings } from "../../../types";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { IAudioInterface } from "../../../lib/audioInterface";
@@ -145,7 +145,7 @@ function ExerciseListItem(props: {
   exerciseType: IExerciseType;
   index: number;
   offsetY?: number;
-  children: ComponentChildren;
+  children: React.ReactNode;
 }): JSX.Element {
   return (
     <li className="flex mb-2">

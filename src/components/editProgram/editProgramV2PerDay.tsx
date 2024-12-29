@@ -1,6 +1,6 @@
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
-import { useMemo } from "preact/hooks";
+import React, { JSX } from "react";
+import { useMemo } from "react";
 import { LinkButton } from "../../components/linkButton";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";

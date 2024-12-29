@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 
 interface IProps {
   size?: number;
@@ -9,7 +9,7 @@ interface IProps {
 export function IconHeart(props: IProps): JSX.Element {
   return (
     <svg width={props.size || 20} height={props.size || 20} viewBox="0 0 13 10" className="inline-block">
-      <g stroke="none" stroke-width="0.5" fill="none" fill-rule="evenodd">
+      <g stroke="none" strokeWidth="0.5" fill="none" fillRule="evenodd">
         <g
           transform="translate(-5.500000, -8.000000)"
           fill={props.fillColor || undefined}

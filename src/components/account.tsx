@@ -1,5 +1,5 @@
-import { h, JSX, Fragment } from "preact";
-import { useState, useEffect } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState, useEffect } from "react";
 import { Service } from "../api/service";
 import { IAccount } from "../models/account";
 import { UidFactory } from "../utils/generator";

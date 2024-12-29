@@ -1,4 +1,4 @@
-import { h, JSX, ComponentChildren, Ref } from "preact";
+import React, { JSX, Ref } from "react";
 import { ISettings, IPlannerProgram, IPlannerProgramWeek, IPlannerProgramDay } from "../types";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { StringUtils } from "../utils/string";
@@ -10,7 +10,7 @@ import { IPlannerProgramExercise, IPlannerProgramExerciseSet } from "../pages/pl
 import { Markdown } from "./markdown";
 import { Weight } from "../models/weight";
 import { CollectionUtils } from "../utils/collection";
-import { forwardRef } from "preact/compat";
+import { forwardRef } from "react";
 
 export interface IProgramShareOutputOptions {
   showInfo: boolean;
@@ -26,7 +26,7 @@ interface IProgramShareOutputProps {
   options: IProgramShareOutputOptions;
 }
 
-function Card(props: { children: ComponentChildren }): JSX.Element {
+function Card(props: { children: React.ReactNode }): JSX.Element {
   return (
     <div
       style={{

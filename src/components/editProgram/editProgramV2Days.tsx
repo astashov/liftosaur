@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { lb, LensBuilder } from "lens-shmens";
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { LinkButton } from "../../components/linkButton";
 import { ScrollableTabs } from "../../components/scrollableTabs";
 import { IPlannerProgram, ISettings } from "../../types";

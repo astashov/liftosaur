@@ -1,10 +1,10 @@
-import { JSX, h } from "preact";
-import { useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef } from "react";
 import { Weight } from "../../../models/weight";
 import { IWeight, IPercentage, ISettings, IUnit, IExerciseType } from "../../../types";
 import { MathUtils } from "../../../utils/math";
 
-interface INumInputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "ref"> {
+interface INumInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "ref"> {
   name: string;
   value?: number;
   dimmed?: boolean;
@@ -19,11 +19,11 @@ interface INumInputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "ref
 
 export function NumInput(props: INumInputProps): JSX.Element {
   const { label, step, min, max, onUpdate, ...rest } = props;
-  const inputRef = useRef<HTMLInputElement>();
+  const inputRef = useRef<HTMLInputElement>(null);
   const actualStep = step ?? 1;
 
   function getValue(): number | undefined {
-    const inputValue = inputRef.current.value || "0";
+    const inputValue = inputRef.current!.value || "0";
     const v = Number(inputValue);
     if (inputValue && !isNaN(v)) {
       return MathUtils.clamp(v, min, max);
@@ -94,7 +94,7 @@ export function NumInput(props: INumInputProps): JSX.Element {
   );
 }
 
-interface IWeightInputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "ref" | "value"> {
+interface IWeightInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "ref" | "value"> {
   name: string;
   value?: IWeight | IPercentage;
   label?: string;
@@ -105,7 +105,7 @@ interface IWeightInputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "
 }
 
 export function WeightInput(props: IWeightInputProps): JSX.Element {
-  const selectRef = useRef<HTMLSelectElement>();
+  const selectRef = useRef<HTMLSelectElement>(null);
   return (
     <div className="flex items-center w-full">
       <NumInput
@@ -115,7 +115,7 @@ export function WeightInput(props: IWeightInputProps): JSX.Element {
         value={props.value?.value}
         onIncrement={(value) => {
           if (value != null) {
-            const unit = selectRef.current.value as "%" | IUnit;
+            const unit = selectRef.current!.value as "%" | IUnit;
             if (unit === "%") {
               const newValue = Math.max(0, value + 1);
               props.onUpdate(Weight.buildPct(newValue));
@@ -127,7 +127,7 @@ export function WeightInput(props: IWeightInputProps): JSX.Element {
         }}
         onDecrement={(value) => {
           if (value != null) {
-            const unit = selectRef.current.value as "%" | IUnit;
+            const unit = selectRef.current!.value as "%" | IUnit;
             if (unit === "%") {
               const newValue = Math.max(0, value - 1);
               props.onUpdate(Weight.buildPct(newValue));
@@ -140,10 +140,10 @@ export function WeightInput(props: IWeightInputProps): JSX.Element {
         onUpdate={(newValue) => {
           if (newValue == null) {
             props.onUpdate(newValue);
-          } else if (selectRef.current.value === "%") {
+          } else if (selectRef.current!.value === "%") {
             props.onUpdate(Weight.buildPct(Math.max(0, newValue)));
           } else {
-            props.onUpdate(Weight.build(Math.max(0, newValue), selectRef.current.value as "kg" | "lb"));
+            props.onUpdate(Weight.build(Math.max(0, newValue), selectRef.current!.value as "kg" | "lb"));
           }
         }}
       />
@@ -154,10 +154,10 @@ export function WeightInput(props: IWeightInputProps): JSX.Element {
           disabled={props.disabled}
           onChange={() => {
             if (props.value != null) {
-              if (selectRef.current.value === "%") {
+              if (selectRef.current!.value === "%") {
                 props.onUpdate(Weight.buildPct(props.value.value));
               } else {
-                props.onUpdate(Weight.build(props.value.value, selectRef.current.value as "kg" | "lb"));
+                props.onUpdate(Weight.build(props.value.value, selectRef.current!.value as "kg" | "lb"));
               }
             }
           }}

@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 
 import { renderPage } from "./render";
 import { AffiliateDashboardHtml } from "../src/pages/affiliateDashboard/affiliateDashboardHtml";

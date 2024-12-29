@@ -1,7 +1,7 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { useRef } from "preact/hooks";
+import { useRef } from "react";
 import { Input } from "./input";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
@@ -25,7 +25,7 @@ export function ModalCoupon(props: IProps): JSX.Element {
           name="redeem-coupon"
           kind="orange"
           onClick={() => {
-            const value = textInput.current.value?.trim() || "";
+            const value = textInput.current!.value?.trim() || "";
             if (value) {
               props.dispatch(Thunk.redeemCoupon(value));
             }

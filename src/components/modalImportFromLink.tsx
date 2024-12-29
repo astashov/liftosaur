@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef } from "react";
 import { Button } from "./button";
 import { Modal } from "./modal";
 import { GroupHeader } from "./groupHeader";
@@ -42,7 +42,7 @@ export function ModalImportFromLink(props: IProps): JSX.Element {
             className="ls-submit-link"
             onClick={(e) => {
               e.preventDefault();
-              props.onSubmit(textInput.current?.value);
+              props.onSubmit(textInput.current!.value);
             }}
           >
             Add

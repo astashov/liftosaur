@@ -1,7 +1,6 @@
-import { h, JSX } from "preact";
-import { JSXInternal } from "preact/src/jsx";
+import React, { JSX } from "react";
 
-export function SemiButton(props: JSXInternal.HTMLAttributes<HTMLButtonElement>): JSX.Element {
+export function SemiButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>): JSX.Element {
   const className = [
     props.className,
     "box-border block w-full p-2 text-center border border-gray-500 border-dashed rounded-md",

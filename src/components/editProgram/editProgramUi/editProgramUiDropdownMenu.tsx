@@ -1,6 +1,6 @@
-import { ComponentChildren, JSX, h } from "preact";
+import React, { JSX } from "react";
 
-export function DropdownMenu(props: { children: ComponentChildren; onClose: () => void }): JSX.Element {
+export function DropdownMenu(props: { children: React.ReactNode; onClose: () => void }): JSX.Element {
   return (
     <section className="" style={{ zIndex: 100 }}>
       <div data-name="overlay" className="fixed inset-0 z-10 overflow-scroll scrolling-touch" onClick={props.onClose} />
@@ -12,7 +12,7 @@ export function DropdownMenu(props: { children: ComponentChildren; onClose: () =
   );
 }
 
-interface IDropdownMenuItemProps extends JSX.HTMLAttributes<HTMLButtonElement> {
+interface IDropdownMenuItemProps extends React.HTMLAttributes<HTMLButtonElement> {
   isTop?: boolean;
 }
 

@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useMemo } from "preact/hooks";
+import React, { JSX } from "react";
+import { useMemo } from "react";
 import { Service } from "../../api/service";
 import { ScrollableTabs } from "../../components/scrollableTabs";
 import { ILensDispatch } from "../../utils/useLensReducer";

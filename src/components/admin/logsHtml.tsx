@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { LogsContent } from "./logsContent";
 import { renderAdminHtml, AdminHtml } from "./adminHtml";
 

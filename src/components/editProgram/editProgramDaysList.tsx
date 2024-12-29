@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
 import { GroupHeader } from "../groupHeader";
 import { MenuItem } from "../menuItem";
@@ -9,7 +9,7 @@ import { MenuItemEditable } from "../menuItemEditable";
 import { StringUtils } from "../../utils/string";
 import { ILoading, IState, updateState } from "../../models/state";
 import { Button } from "../button";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
 import { IProgram, ISettings } from "../../types";
@@ -306,7 +306,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                   <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
                 ))}
                 value={
-                  <Fragment>
+                  <>
                     <button
                       data-cy="edit-day"
                       className="px-2 align-middle ls-days-list-edit-day button"
@@ -350,7 +350,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                         <IconTrash />
                       </button>
                     )}
-                  </Fragment>
+                  </>
                 }
               />
             );
@@ -388,7 +388,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
               }
               name={exercise.name}
               value={
-                <Fragment>
+                <>
                   <button
                     data-cy="edit-exercise"
                     className="px-2 align-middle ls-days-list-edit-exercise button"
@@ -422,7 +422,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                   >
                     <IconTrash />
                   </button>
-                </Fragment>
+                </>
               }
             />
           );

@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useRef } from "react";
 import type { CodeEditor } from "../../editor";
 import { IEither } from "../../utils/types";
 import { EvalResultInEditor } from "../evalResultInEditor";
@@ -45,7 +45,7 @@ export function MultiLineTextEditor(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (codeEditor.current) {
-      codeEditor.current.updateState(props.state);
+      codeEditor.current!.updateState(props.state);
     }
   }, [props.state]);
 
@@ -58,7 +58,7 @@ export function MultiLineTextEditor(props: IProps): JSX.Element {
     }
   }, [props.value]);
 
-  const divRef = useRef<HTMLDivElement>();
+  const divRef = useRef<HTMLDivElement>(null);
 
   let className =
     "relative z-10 block w-full px-2 py-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:shadow-outline";

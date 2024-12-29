@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { IAccount } from "../models/account";
 
 interface IProps {
@@ -35,7 +35,7 @@ export function FooterPage(props: IProps): JSX.Element {
                   ...(!!props.account ? [["Your Programs", "/user/programs"]] : []),
                 ].map(([text, link]) => {
                   return (
-                    <li className="block mx-4 my-0 mb-2 leading-5 text-left">
+                    <li key={link} className="block mx-4 my-0 mb-2 leading-5 text-left">
                       <a className="text-blue-700 underline cursor-pointer" href={link}>
                         {text}
                       </a>
@@ -52,7 +52,7 @@ export function FooterPage(props: IProps): JSX.Element {
                   ["Affiliate Program", "/affiliates"],
                 ].map(([text, link]) => {
                   return (
-                    <li className="block mx-4 my-0 mb-2 leading-5 text-left">
+                    <li key={link} className="block mx-4 my-0 mb-2 leading-5 text-left">
                       <a className="text-blue-700 underline cursor-pointer" href={link}>
                         {text}
                       </a>
@@ -69,7 +69,7 @@ export function FooterPage(props: IProps): JSX.Element {
                 ["Discord", "https://discord.gg/AAh3cvdBRs", "logo-discord"],
               ].map(([text, link, img]) => {
                 return (
-                  <li className="inline-block text-left align-middle list-none">
+                  <li key={link} className="inline-block text-left align-middle list-none">
                     <a
                       target="_blank"
                       href={link}

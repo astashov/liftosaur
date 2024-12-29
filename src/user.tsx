@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { HydrateUtils } from "./utils/hydrate";
 import { UserContent } from "./pages/user/userContent";
 import { IStorage } from "./types";

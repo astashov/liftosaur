@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useEffect } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect } from "react";
 import { Progress } from "../../models/progress";
 import { ScriptRunner } from "../../parser";
 import { IDayData, IExerciseType, IHistoryEntry, IProgramState, ISettings } from "../../types";

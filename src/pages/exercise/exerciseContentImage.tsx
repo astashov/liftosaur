@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { ExerciseImage } from "../../components/exerciseImage";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { Settings } from "../../models/settings";

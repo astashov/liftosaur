@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { PageWrapper } from "./components/pageWrapper";
 import { IProgramOrPlannerSyncerProps, ProgramOrPlannerSyncer } from "./pages/program/programOrPlannerSyncer";
 import { HydrateUtils } from "./utils/hydrate";

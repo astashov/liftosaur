@@ -1,11 +1,11 @@
-import { h, ComponentChildren, JSX, RefObject } from "preact";
-import { useRef, useEffect } from "preact/hooks";
+import React, { JSX, RefObject } from "react";
+import { useRef, useEffect } from "react";
 import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
 
 interface IProps {
   name?: string;
-  children: ComponentChildren;
-  autofocusInputRef?: RefObject<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
+  children: React.ReactNode;
+  autofocusInputRef?: RefObject<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null>;
   preautofocus?: [RefObject<HTMLElement>, (el: HTMLElement) => void][];
   isHidden?: boolean;
   isFullWidth?: boolean;
@@ -19,7 +19,7 @@ interface IProps {
 }
 
 export function Modal(props: IProps): JSX.Element {
-  const modalRef = useRef<HTMLElement>();
+  const modalRef = useRef<HTMLElement>(null);
 
   let className = "fixed inset-0 flex items-center justify-center";
   if (props.isHidden) {
@@ -42,7 +42,7 @@ export function Modal(props: IProps): JSX.Element {
     };
   }, [props.isHidden]);
 
-  if (modalRef.current != null && prevProps.current.isHidden && !props.isHidden) {
+  if (modalRef.current != null && prevProps.current!.isHidden && !props.isHidden) {
     for (const [ref, callback] of props.preautofocus ?? []) {
       if (ref.current != null) {
         callback(ref.current);

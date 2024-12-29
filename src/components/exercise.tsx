@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Exercise } from "../models/exercise";
 import { History, IHistoryRecordAndEntry } from "../models/history";
 import { IDispatch } from "../ducks/types";
@@ -6,7 +6,7 @@ import { Weight } from "../models/weight";
 import { Reps } from "../models/set";
 import { CollectionUtils } from "../utils/collection";
 import { ProgressStateChanges } from "./progressStateChanges";
-import { memo } from "preact/compat";
+import { memo } from "react";
 import {
   IHistoryEntry,
   ISettings,
@@ -27,7 +27,7 @@ import { IconArrowRight } from "./icons/iconArrowRight";
 import { lb } from "lens-shmens";
 import { Progress } from "../models/progress";
 import { Button } from "./button";
-import { useRef, useState } from "preact/hooks";
+import { useRef, useState } from "react";
 import { ProgramExercise } from "../models/programExercise";
 import { Subscriptions } from "../utils/subscriptions";
 import { LinkButton } from "./linkButton";
@@ -138,7 +138,7 @@ export const ExerciseView = memo(
     }
 
     return (
-      <Fragment>
+      <>
         <section data-cy={dataCy} className={className}>
           <ExerciseContentView {...props} />
           {props.programExercise && props.program && (
@@ -154,7 +154,7 @@ export const ExerciseView = memo(
             />
           )}
         </section>
-      </Fragment>
+      </>
     );
   }
 );
@@ -518,7 +518,7 @@ const ExerciseContentView = memo(
               placeholder="The exercise went very well..."
               maxLength={4095}
               value={props.entry.notes}
-              onInput={(e) => {
+              onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
                 const target = e.target;
                 if (target instanceof HTMLTextAreaElement) {
                   Progress.editExerciseNotes(props.dispatch, props.progress.id, props.index, target.value);

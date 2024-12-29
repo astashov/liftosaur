@@ -1,5 +1,5 @@
-import { JSX, h, ComponentChildren, Fragment } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IExerciseType, ISettings } from "../types";
 import { IconDefaultExercise } from "./icons/iconDefaultExercise";
@@ -21,12 +21,12 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
     equipment: props.exerciseType.equipment || exercise.defaultEquipment,
   };
 
-  const imgRef = useRef<HTMLImageElement>();
+  const imgRef = useRef<HTMLImageElement>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
   useEffect(() => {
     if (imgRef.current) {
-      if (imgRef.current.complete) {
+      if (imgRef.current!.complete) {
         setIsLoading(false);
       } else {
         imgRef.current.addEventListener("load", () => {
@@ -84,7 +84,7 @@ function ExerciseImageAuxiliary(props: {
   if (props.isError) {
     return (
       <ExerciseNoImage size={props.size}>
-        <span class="text-red-700">Error fetching the exercise image</span>
+        <span className="text-red-700">Error fetching the exercise image</span>
       </ExerciseNoImage>
     );
   } else if (props.isLoading) {
@@ -101,7 +101,7 @@ function ExerciseImageAuxiliary(props: {
 }
 
 interface INoImageProps {
-  children: ComponentChildren;
+  children: React.ReactNode;
   size: "large" | "small";
 }
 

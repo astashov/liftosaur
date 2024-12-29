@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef } from "react";
 import { Button } from "./button";
 import { Modal } from "./modal";
 import { IUnit } from "../types";
@@ -48,7 +48,7 @@ export function ModalPlates(props: IProps): JSX.Element {
             data-cy="add-plate"
             className="ls-add-plate"
             onClick={() => {
-              const value = textInput.current?.value;
+              const value = textInput.current!.value;
               const numValue = value != null ? parseFloat(value) : undefined;
               props.onInput(numValue != null && !isNaN(numValue) ? numValue : undefined);
             }}

@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Link } from "../link";
 
 export function HelpChooseProgramFirstTime(): JSX.Element {

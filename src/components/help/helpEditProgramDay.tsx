@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IconMuscles2 } from "../icons/iconMuscles2";
 
 export function HelpEditProgramDay(): JSX.Element {

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { MockAudioInterface } from "../../lib/audioInterface";
 import { IAccount } from "../../models/account";
 import { IEnv } from "../../models/state";

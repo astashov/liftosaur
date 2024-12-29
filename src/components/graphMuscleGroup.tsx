@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import UPlot from "uplot";
-import { useRef, useEffect, useState } from "preact/hooks";
+import { useRef, useEffect, useState } from "react";
 import { ISettings, IVolumeSelectedType } from "../types";
 import { GraphsPlugins } from "../utils/graphsPlugins";
 import { StringUtils } from "../utils/string";
@@ -43,7 +43,7 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const rect = graphRef.current.getBoundingClientRect();
+    const rect = graphRef.current!.getBoundingClientRect();
     const data = props.data;
     const dataMaxX = data[0]?.[data[0].length - 1] || new Date(0).getTime() / 1000;
     const dataMinX = Math.max(data[0]?.[0] || 0, dataMaxX - 365 * 24 * 60 * 60);
@@ -71,12 +71,12 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
                 const sets = data[2][idx];
                 let text = "";
                 if (props.selectedType === "volume" && volume != null) {
-                  text = `<div class="text-center">${DateUtils.format(date)}, Volume: <strong>${volume} ${
+                  text = `<div className="text-center">${DateUtils.format(date)}, Volume: <strong>${volume} ${
                     props.settings.units
                   }s</strong>`;
                   text += "</div>";
                 } else if (props.selectedType === "sets" && sets != null) {
-                  text = `<div class="text-center">${DateUtils.format(date)}, Sets: <strong>${sets}</strong>`;
+                  text = `<div className="text-center">${DateUtils.format(date)}, Sets: <strong>${sets}</strong>`;
                   text += "</div>";
                 }
                 if (legendRef.current != null) {
@@ -126,9 +126,9 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
       ],
     };
 
-    const uplot = new UPlot(opts, data, graphRef.current);
+    const uplot = new UPlot(opts, data, graphRef.current!);
 
-    const underEl = graphRef.current.querySelector(".over");
+    const underEl = graphRef.current!.querySelector(".over");
     const underRect = underEl?.getBoundingClientRect();
 
     function handler(): void {

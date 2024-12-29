@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { Exercise, IExercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";

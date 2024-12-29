@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { BuilderLinkInlineInput } from "../../builder/components/builderInlineInput";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";

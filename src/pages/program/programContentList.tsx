@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IStorage, IProgram } from "../../types";
 import { IAccount } from "../../models/account";
 import { IconDuplicate2 } from "../../components/icons/iconDuplicate2";
@@ -12,7 +12,7 @@ import { ExerciseImageUtils } from "../../models/exerciseImage";
 import { ExerciseImage } from "../../components/exerciseImage";
 import { StringUtils } from "../../utils/string";
 import { Button } from "../../components/button";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { ModalCreateProgram } from "../../components/modalCreateProgram";
 import { CollectionUtils } from "../../utils/collection";
 import { Exercise } from "../../models/exercise";

@@ -1,7 +1,5 @@
-import { JSX } from "preact";
-
-import { h } from "preact";
-import { useRef, useEffect, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef, useEffect, useState } from "react";
 import { ObjectUtils } from "../utils/object";
 import { Button } from "./button";
 import { Help } from "../models/help";
@@ -28,20 +26,20 @@ interface IProps {
 
 export function HelpOverlay(props: IProps): JSX.Element | null {
   const seenIds: string[] = props.seenIds;
-  const svgEl = useRef<SVGSVGElement>();
-  const width = useRef<number | undefined>();
-  const height = useRef<number | undefined>();
+  const svgEl = useRef<SVGSVGElement>(null);
+  const width = useRef<number | undefined>(null);
+  const height = useRef<number | undefined>(null);
 
   const [windows, setWindows] = useState<Partial<Record<string, IRect>>>({});
 
   useEffect(() => {
     let isChanged = false;
-    if (width.current == null && svgEl.current?.clientWidth != null) {
-      width.current = svgEl.current.clientWidth;
+    if (width.current == null && svgEl.current!.clientWidth != null) {
+      width.current = svgEl.current!.clientWidth;
       isChanged = true;
     }
-    if (height.current == null && svgEl.current?.clientWidth != null) {
-      height.current = svgEl.current.clientHeight;
+    if (height.current == null && svgEl.current!.clientWidth != null) {
+      height.current = svgEl.current!.clientHeight;
       isChanged = true;
     }
     const elements = Array.from(document.querySelectorAll("[data-help-id]"));
@@ -88,7 +86,7 @@ export function HelpOverlay(props: IProps): JSX.Element | null {
     <div className="absolute top-0 left-0 z-30 w-full h-full" id="help-overlay">
       <svg ref={svgEl} className="absolute top-0 left-0 w-full h-full" viewBox={`0 0 ${wt} ${ht}`}>
         <clipPath id="windows">
-          <path d={path} clip-rule="evenodd" />
+          <path d={path} clipRule="evenodd" />
         </clipPath>
         <rect
           clip-path="url(#windows)"

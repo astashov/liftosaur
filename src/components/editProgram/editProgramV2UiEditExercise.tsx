@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Exercise } from "../../models/exercise";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { focusedToStr, IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
@@ -15,7 +15,7 @@ import { EditProgramUiReuseSets } from "./editProgramUi/editProgramUiReuseSets";
 import { EditProgramUiAllSetVariations } from "./editProgramUi/editProgramUiAllSetVariations";
 import { DropdownMenu, DropdownMenuItem } from "./editProgramUi/editProgramUiDropdownMenu";
 import { IconKebab } from "../icons/iconKebab";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { EditProgramUiGlobals } from "./editProgramUi/editProgramUiGlobals";
 import { NumInput } from "./editProgramUi/editProgramUiInputs";
@@ -86,7 +86,18 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
         <div className="flex items-center flex-1">
           {props.handleTouchStart && (
             <div className="p-2 mr-1 cursor-move" style={{ touchAction: "none" }}>
-              <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
+              <span
+                onMouseDown={(e) => {
+                  if (props.handleTouchStart) {
+                    props.handleTouchStart(e.nativeEvent);
+                  }
+                }}
+                onTouchStart={(e) => {
+                  if (props.handleTouchStart) {
+                    props.handleTouchStart(e.nativeEvent);
+                  }
+                }}
+              >
                 <IconHandle />
               </span>
             </div>

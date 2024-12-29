@@ -1,5 +1,5 @@
 import { ILensRecordingPayload, lb, Lens } from "lens-shmens";
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Weight } from "../models/weight";
 import { ISettings, IEquipmentData, IEquipment, IAllEquipment, IUnit } from "../types";
 import { GroupHeader } from "./groupHeader";
@@ -9,7 +9,7 @@ import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
 import { ModalPlates } from "./modalPlates";
 import { ModalNewFixedWeight } from "./modalNewFixedWeight";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { ILensDispatch } from "../utils/useLensReducer";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";

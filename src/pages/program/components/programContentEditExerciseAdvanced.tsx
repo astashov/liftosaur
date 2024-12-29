@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { EditProgramStateVariables } from "../../../components/editProgram/editProgramStateVariables";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IProgramEditorState } from "../models/types";
@@ -7,7 +7,7 @@ import { IProgramExercise, ISettings, IHistoryRecord, IProgram, IUnit } from "..
 import { EditProgramLenses } from "../../../models/editProgramLenses";
 import { LensBuilder, lbu, lb } from "lens-shmens";
 import { ProgramContentPlayground } from "./programContentPlayground";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "react";
 import { LinkButton } from "../../../components/linkButton";
 import { EditProgramVariationsEditor } from "../../../components/editProgram/editProgramVariationsEditor";
 import { EditProgramWarmupSets } from "../../../components/editProgram/editProgramWarmupSets";

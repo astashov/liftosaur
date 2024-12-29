@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { ObjectUtils } from "../utils/object";
 import { IHistoryEntry, ISettings } from "../types";
 import { Weight } from "../models/weight";
@@ -25,7 +25,7 @@ export function WorkoutStateVariables(props: IWorkoutStateVariablesProps): JSX.E
           const displayValue = Weight.is(value) ? Weight.display(value) : value;
           return (
             <li className="text-xs" data-cy={`workout-state-variable-${StringUtils.dashcase(stateKey)}`}>
-              <span>{stateKey}</span> - <strong>{displayValue}</strong>
+              <span>{stateKey}</span> - <strong>{`${displayValue}`}</strong>
             </li>
           );
         })}

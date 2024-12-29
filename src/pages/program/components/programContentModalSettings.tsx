@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { MenuItemValue } from "../../../components/menuItemEditable";
 import { Modal } from "../../../components/modal";
 import { ILensDispatch } from "../../../utils/useLensReducer";

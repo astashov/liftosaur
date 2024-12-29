@@ -1,16 +1,17 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
 import { Progress } from "../models/progress";
 import { ComparerUtils } from "../utils/comparer";
-import { memo } from "preact/compat";
+import { memo } from "react";
 import { IHistoryRecord, ISettings } from "../types";
 import { HtmlUtils } from "../utils/html";
 import { History } from "../models/history";
 import { IconWatch } from "./icons/iconWatch";
 import { HistoryEntryView } from "./historyEntry";
 import { Button } from "./button";
+import { Exercise } from "../models/exercise";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -76,6 +77,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
             const isNext = Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord);
             return (
               <HistoryEntryView
+                key={Exercise.toKey(entry.exercise)}
                 entry={entry}
                 isNext={isNext}
                 isLast={i === entries.length - 1}

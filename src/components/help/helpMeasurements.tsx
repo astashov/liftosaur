@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 
 export function HelpMeasurements(): JSX.Element {
   return (

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Page } from "../../components/page";
 import type { IAffiliateData } from "./affiliateDashboardContent";
 import { AffiliateDashboardContent } from "./affiliateDashboardContent";

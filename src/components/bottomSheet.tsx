@@ -1,9 +1,9 @@
-import { h, JSX, ComponentChildren } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface IProps {
   isHidden: boolean;
-  children?: ComponentChildren;
+  children?: React.ReactNode;
   onClose: () => void;
 }
 
@@ -14,7 +14,7 @@ export function BottomSheet(props: IProps): JSX.Element {
   useEffect(() => {
     const bottomSheet = bottomSheetRef.current;
     const height = bottomSheet?.clientHeight;
-    setBottomShift(height);
+    setBottomShift(height ?? -99999);
   }, []);
 
   useEffect(() => {

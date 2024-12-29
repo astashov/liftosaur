@@ -1,26 +1,26 @@
-import { h, JSX, ComponentChildren } from "preact";
+import React, { JSX } from "react";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { IconHandle } from "./icons/iconHandle";
 import { StringUtils } from "../utils/string";
 
 interface IMenuItemProps {
-  prefix?: ComponentChildren;
+  prefix?: React.ReactNode;
   name: string;
   isBorderless?: boolean;
   value?: string | JSX.Element;
   expandName?: boolean;
   expandValue?: boolean;
-  addons?: ComponentChildren;
+  addons?: React.ReactNode;
   shouldShowRightArrow?: boolean;
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
-  onClick?: (e: MouseEvent) => void;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export function MenuItemWrapper(props: {
   name: string;
-  children: ComponentChildren;
+  children: React.ReactNode;
   isBorderless?: boolean;
-  onClick?: (e: MouseEvent) => void;
+  onClick?: (e: React.MouseEvent) => void;
 }): JSX.Element {
   return (
     <section
@@ -39,7 +39,18 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
       <section className="flex items-center">
         {props.handleTouchStart && (
           <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-            <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
+            <span
+              onMouseDown={(e) => {
+                if (props.handleTouchStart) {
+                  props.handleTouchStart(e.nativeEvent);
+                }
+              }}
+              onTouchStart={(e) => {
+                if (props.handleTouchStart) {
+                  props.handleTouchStart(e.nativeEvent);
+                }
+              }}
+            >
               <IconHandle />
             </span>
           </div>

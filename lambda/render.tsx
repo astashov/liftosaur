@@ -1,6 +1,6 @@
-import { JSX } from "preact";
-import render from "preact-render-to-string";
+import { JSX } from "react";
+import { renderToString } from "react-dom/server";
 
 export function renderPage(page: JSX.Element): string {
-  return "<!DOCTYPE html>" + render(page);
+  return "<!DOCTYPE html>" + renderToString(page);
 }

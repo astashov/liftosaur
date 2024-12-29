@@ -1,4 +1,4 @@
-import { Reducer } from "preact/hooks";
+import { Reducer } from "react";
 import { Program } from "../models/program";
 import { Progress } from "../models/progress";
 import { StateError } from "./stateError";

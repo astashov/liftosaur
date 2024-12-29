@@ -1,5 +1,5 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { Weight } from "../../models/weight";
 import { IProgramExercise, IProgramStateMetadata, ISettings, IUnit } from "../../types";
 import { ObjectUtils } from "../../utils/object";

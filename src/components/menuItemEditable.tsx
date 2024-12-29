@@ -1,6 +1,6 @@
-import { h, JSX, ComponentChildren } from "preact";
+import React, { JSX } from "react";
 import { MenuItemWrapper } from "./menuItem";
-import { useState, StateUpdater } from "preact/hooks";
+import { useState, Dispatch } from "react";
 import { StringUtils } from "../utils/string";
 import { ScrollBarrell } from "./scrollBarrell";
 import { IconTrash } from "./icons/iconTrash";
@@ -11,12 +11,12 @@ type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select"
 
 interface IMenuItemEditableValueProps {
   name: string;
-  prefix?: ComponentChildren;
+  prefix?: React.ReactNode;
   type: IMenuItemType;
   value: string | null | undefined;
   valueUnits?: string;
   values?: [string, string][];
-  onChange?: (v?: string, e?: Event) => void;
+  onChange?: (v?: string, e?: React.FocusEvent) => void;
   pattern?: string;
   patternMessage?: string;
 }
@@ -39,7 +39,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   if (numberOfVisibleItems % 2 === 0) {
     numberOfVisibleItems += 1;
   }
-  const onChange = (v?: string, e?: Event): void => {
+  const onChange = (v?: string, e?: React.FocusEvent): void => {
     lg(`menu-item-edit-${StringUtils.dashcase(props.name)}`);
     if (props.onChange != null) {
       props.onChange(v, e);
@@ -115,7 +115,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
 }
 
 export function MenuItemValue(
-  props: { setPatternError: StateUpdater<boolean> } & IMenuItemEditableValueProps
+  props: { setPatternError: Dispatch<boolean> } & IMenuItemEditableValueProps
 ): JSX.Element | null {
   if (props.type === "desktop-select") {
     return (
@@ -123,7 +123,8 @@ export function MenuItemValue(
         data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
         className="border rounded border-grayv2-main"
         value={props.value || undefined}
-        onChange={handleChange(props.onChange, props.setPatternError)}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onChange={handleChange(props.onChange, props.setPatternError) as any}
       >
         {(props.values || []).map(([key, value]) => (
           <option value={key} selected={key === props.value}>
@@ -176,10 +177,10 @@ export function MenuItemValue(
             type="checkbox"
             className="text-right text-bluev2 checkbox"
             checked={props.value === "true"}
-            onChange={(e: Event): void => {
+            onChange={(e: React.ChangeEvent): void => {
               if (props.onChange != null) {
                 const value = `${(e.target as HTMLInputElement).checked}`;
-                props.onChange(value, e);
+                props.onChange(value, e as React.FocusEvent);
               }
             }}
           />
@@ -219,10 +220,10 @@ export function MenuItemValue(
 }
 
 function handleChange(
-  cb: ((val: string, e: Event) => void) | undefined,
-  setPatternError: StateUpdater<boolean>
-): (e: Event) => void {
-  return (e: Event): void => {
+  cb: ((val: string, e: React.FocusEvent) => void) | undefined,
+  setPatternError: Dispatch<boolean>
+): (e: React.FocusEvent) => void {
+  return (e: React.FocusEvent): void => {
     setPatternError(e.target instanceof HTMLInputElement && e.target.validity.patternMismatch);
     if (cb != null) {
       const value = (e.target as HTMLInputElement).value;

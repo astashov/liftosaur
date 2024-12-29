@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
@@ -9,7 +9,7 @@ import { IconGraphs2 } from "./icons/iconGraphs2";
 import { Button } from "./button";
 import { SendMessage } from "../utils/sendMessage";
 import { LinkButton } from "./linkButton";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { Modal } from "./modal";
 import { IconBell } from "./icons/iconBell";
 import { lb } from "lens-shmens";

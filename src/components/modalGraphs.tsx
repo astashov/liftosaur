@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Modal } from "./modal";
 import { Exercise, equipmentName } from "../models/exercise";
 import { StringUtils } from "../utils/string";
@@ -178,7 +178,18 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
               >
                 <section className="flex items-center">
                   <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-                    <span onMouseDown={handleTouchStart} onTouchStart={handleTouchStart}>
+                    <span
+                      onMouseDown={(e) => {
+                        if (handleTouchStart) {
+                          handleTouchStart(e.nativeEvent);
+                        }
+                      }}
+                      onTouchStart={(e) => {
+                        if (handleTouchStart) {
+                          handleTouchStart(e.nativeEvent);
+                        }
+                      }}
+                    >
                       <IconHandle />
                     </span>
                   </div>
@@ -274,7 +285,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
 function ExercisePreview(props: { exerciseKey: string; settings: ISettings }): JSX.Element {
   const e = Exercise.get(Exercise.fromKey(props.exerciseKey), props.settings.exercises);
   return (
-    <Fragment>
+    <>
       <div className="w-12 pr-4" style={{ minHeight: "2rem" }}>
         <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
       </div>
@@ -284,24 +295,24 @@ function ExercisePreview(props: { exerciseKey: string; settings: ISettings }): J
           <div className="text-xs text-grayv2-main">{equipmentName(e.equipment)}</div>
         </div>
       </div>
-    </Fragment>
+    </>
   );
 }
 
 function StatsPreview(props: { stats: IStatsKey }): JSX.Element {
   return (
-    <Fragment>
+    <>
       <div className="flex items-center flex-1 py-3 text-left">{Stats.name(props.stats)}</div>
-    </Fragment>
+    </>
   );
 }
 
 function MuscleGroupPreview(props: { muscleGroup: string }): JSX.Element {
   return (
-    <Fragment>
+    <>
       <div className="flex items-center flex-1 py-3 text-left">
         {StringUtils.capitalize(props.muscleGroup)} Weekly Volume
       </div>
-    </Fragment>
+    </>
   );
 }

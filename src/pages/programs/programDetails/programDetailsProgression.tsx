@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
+import React, { JSX } from "react";
+import { memo } from "react";
 import { IProgression } from "../../../models/progression";
 
 export const ProgressionView = memo(

@@ -1,5 +1,5 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { EditStats } from "../models/editStats";
 import { Length } from "../models/length";
@@ -206,7 +206,7 @@ export function StatsList(props: IProps): JSX.Element {
                       className="flex-1 w-full p-2 text-right text-bluev2"
                       step="0.01"
                       value={+convertedValue.value.toFixed(2)}
-                      onInput={(e) => {
+                      onInput={(e: React.FormEvent<HTMLInputElement>) => {
                         const num = parseFloat(e.currentTarget.value);
                         if (!isNaN(num)) {
                           if (selectedKey === "weight") {

@@ -8,3 +8,7 @@ export namespace UidFactory {
     return uid;
   }
 }
+
+export function k(): string {
+  return UidFactory.generateUid(8);
+}

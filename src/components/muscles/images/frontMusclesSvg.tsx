@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IScreenMuscle } from "../../../types";
 
 interface IMuscleStyle {
@@ -23,7 +23,7 @@ export function FrontMusclesSvg(props: IProps): JSX.Element {
 
   return (
     <svg className="muscle" viewBox="0 0 112 234" version="1.1">
-      <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+      <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
         <g
           data-id="back"
           opacity={getOpacity("back")}

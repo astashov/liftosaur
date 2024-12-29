@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Link } from "../link";
 import { IconHandle } from "../icons/iconHandle";
 

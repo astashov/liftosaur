@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Exercise } from "../../models/exercise";
 import { IPoints, Muscle } from "../../models/muscle";
 import { IScreenMuscle, ISettings } from "../../types";

@@ -1,5 +1,5 @@
-import { ComponentChildren, h, JSX, Ref } from "preact";
-import { useRef, useState, useEffect } from "preact/hooks";
+import React, { JSX, Ref } from "react";
+import { useRef, useState, useEffect } from "react";
 import { ExerciseImage } from "../../components/exerciseImage";
 import { ExerciseItem } from "../../components/modalExercise";
 import { Multiselect } from "../../components/multiselect";
@@ -11,7 +11,7 @@ import { muscleDescriptions } from "../../models/muscleDescriptions";
 import { Muscle } from "../../models/muscle";
 import { exerciseDescriptions } from "../../models/exerciseDescriptions";
 import { Markdown } from "../../components/markdown";
-import { forwardRef } from "preact/compat";
+import { forwardRef } from "react";
 import { UrlUtils } from "../../utils/url";
 import { ScrollableTabs } from "../../components/scrollableTabs";
 import { GroupHeader } from "../../components/groupHeader";
@@ -52,7 +52,7 @@ export function ExerciseContent(props: IExerciseContentProps): JSX.Element {
   const column3Ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const maxHeight = Math.max(column2Ref.current?.scrollHeight || 0, column3Ref.current?.scrollHeight || 0);
+    const maxHeight = Math.max(column2Ref.current!.scrollHeight || 0, column3Ref.current!.scrollHeight || 0);
     const c1 = column1Ref.current;
     if (c1) {
       c1.style.setProperty("height", `${maxHeight}px`);
@@ -122,6 +122,7 @@ export function ExerciseContent(props: IExerciseContentProps): JSX.Element {
             <ExerciseListWrapper
               ref={column1Ref}
               exercise={exercise}
+              isSubstitute={false}
               filterTypes={filterTypes}
               insideModal={false}
               setFilterTypes={setFilterTypes}
@@ -159,6 +160,7 @@ export function ExerciseContent(props: IExerciseContentProps): JSX.Element {
             ref={column1Ref}
             exercise={exercise}
             filterTypes={filterTypes}
+            isSubstitute={false}
             setFilterTypes={setFilterTypes}
             onChange={(newExerciseType) => {
               window.history.pushState(
@@ -273,7 +275,7 @@ const ExercisesList = forwardRef(
             value={filter}
             placeholder="Filter by name"
             onInput={() => {
-              setFilter(textInput.current.value.toLowerCase());
+              setFilter(textInput.current!.value.toLowerCase());
             }}
           />
           <Multiselect
@@ -513,7 +515,7 @@ function MuscleDescription(props: { muscle: IMuscle; insideModal: boolean }): JS
 function DropdownMenu(props: {
   onTop: boolean;
   noPointerEvents?: boolean;
-  children: ComponentChildren;
+  children: React.ReactNode;
   onClose: () => void;
 }): JSX.Element {
   return (

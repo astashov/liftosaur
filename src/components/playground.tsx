@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { buildCardsReducer, ICardsAction } from "../ducks/reducer";
 import { IDispatch } from "../ducks/types";
 import { Program } from "../models/program";
@@ -17,7 +17,7 @@ import { GroupHeader } from "./groupHeader";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ModalAmrap } from "./modalAmrap";
 import { ModalWeight } from "./modalWeight";
-import { useRef } from "preact/hooks";
+import { useRef } from "react";
 import { ProgramExercise } from "../models/programExercise";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
@@ -46,7 +46,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
   };
 
   return (
-    <Fragment>
+    <>
       <GroupHeader
         topPadding={true}
         name="Playground"
@@ -181,6 +181,6 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
           setIndex={progress.ui?.editSetModal?.setIndex}
         />
       )}
-    </Fragment>
+    </>
   );
 }

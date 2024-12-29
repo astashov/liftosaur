@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/compat";
+import React, { JSX } from "react";
+import { useRef } from "react";
 import { Settings } from "../../models/settings";
 import { IProgram } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
@@ -30,7 +30,7 @@ export interface IProgramDetailsContentProps {
 
 export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.Element {
   const service = new Service(props.client);
-  const ref = useRef<HTMLSelectElement>();
+  const ref = useRef<HTMLSelectElement>(null);
   const initialState: IProgramDetailsState = {
     programs: props.programs,
     selectedProgramId: props.selectedProgramId,
@@ -141,7 +141,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
               name="selected_program_id"
               id="selected_program_id"
               onChange={() => {
-                dispatch(lb<IProgramDetailsState>().p("selectedProgramId").record(ref.current.value));
+                dispatch(lb<IProgramDetailsState>().p("selectedProgramId").record(ref.current!.value));
                 window.history.replaceState(
                   {},
                   `Liftosaur: Program Details - ${program.name}`,
@@ -156,7 +156,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
               ))}
             </select>
           </div>
-          <div class="pb-4 text-right px-4">
+          <div className="pb-4 text-right px-4">
             <button
               onClick={() =>
                 dispatch(lb<IProgramDetailsState>().p("shouldShowAllFormulas").record(!state.shouldShowAllFormulas))

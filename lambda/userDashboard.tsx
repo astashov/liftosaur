@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 
 import { renderPage } from "./render";
 import { UserDashboardHtml } from "../src/pages/userDashboard/userDashboardHtml";

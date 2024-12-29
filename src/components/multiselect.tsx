@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useState, useRef, useEffect } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState, useRef, useEffect } from "react";
 import { StringUtils } from "../utils/string";
 import { inputClassName } from "./input";
 
@@ -90,7 +90,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
       )}
       {props.label && (
         <div>
-          <label for={props.id} className="block text-sm font-bold">
+          <label htmlFor={props.id} className="block text-sm font-bold">
             {props.label}
           </label>
         </div>
@@ -105,7 +105,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
           name={props.id}
           value={filter}
           onFocus={() => setShowValuesList(true)}
-          onInput={(e) => {
+          onInput={(e: React.FormEvent<HTMLInputElement>) => {
             const value = e.currentTarget.value;
             setFilter(value);
           }}
@@ -149,7 +149,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
                 props.onChange(set);
               }}
             >
-              <span className="inline-block" style="transform: rotate(45deg)">
+              <span className="inline-block" style={{ transform: "rotate(45deg)" }}>
                 +
               </span>
             </button>

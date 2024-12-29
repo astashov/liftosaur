@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IProgramExercise } from "../../types";
 import { IEither } from "../../utils/types";
 import { GroupHeader } from "../groupHeader";
@@ -14,7 +14,7 @@ export function EditProgramVariationsEditor(props: IEditProgramVariationsEditorP
   const { programExercise } = props;
 
   return (
-    <Fragment>
+    <>
       <GroupHeader
         name="Variation Selection Script"
         help={
@@ -32,6 +32,6 @@ export function EditProgramVariationsEditor(props: IEditProgramVariationsEditorP
         height={4}
         onChange={props.onChange}
       />
-    </Fragment>
+    </>
   );
 }

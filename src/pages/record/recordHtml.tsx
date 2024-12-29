@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 
 import { IRecordResponse } from "../../api/service";
 import { RecordContent } from "./recordContent";

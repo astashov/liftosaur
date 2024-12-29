@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { IAccount } from "../src/models/account";
 import { IExportedProgram } from "../src/models/program";
 import { ProgramHtml } from "../src/pages/program/programHtml";

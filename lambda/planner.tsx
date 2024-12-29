@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 
 import { renderPage } from "./render";
 import { PlannerHtml } from "../src/pages/planner/plannerHtml";

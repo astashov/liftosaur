@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IconFilter } from "../icons/iconFilter";
 
 export function HelpStats(): JSX.Element {

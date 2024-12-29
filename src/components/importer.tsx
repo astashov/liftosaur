@@ -1,13 +1,13 @@
-import { Fragment, ComponentChildren, h, JSX } from "preact";
-import { useRef } from "preact/compat";
+import React, { JSX } from "react";
+import { useRef } from "react";
 
 interface IImporterProps {
-  children: (onClick: () => void) => ComponentChildren;
+  children: (onClick: () => void) => React.ReactNode;
   onFileSelect: (contents: string) => void;
 }
 
 export function Importer(props: IImporterProps): JSX.Element {
-  const fileInput = useRef<HTMLInputElement>();
+  const fileInput = useRef<HTMLInputElement>(null);
 
   return (
     <>
@@ -16,7 +16,7 @@ export function Importer(props: IImporterProps): JSX.Element {
         type="file"
         ref={fileInput}
         onChange={() => {
-          const file = fileInput.current.files?.[0];
+          const file = fileInput.current!.files?.[0];
           if (file != null) {
             const reader = new FileReader();
             reader.addEventListener("load", async (event) => {
@@ -30,7 +30,7 @@ export function Importer(props: IImporterProps): JSX.Element {
         }}
       />
       {props.children(() => {
-        fileInput.current.click();
+        fileInput.current!.click();
       })}
     </>
   );

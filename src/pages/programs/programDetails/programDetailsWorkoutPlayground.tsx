@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { memo, useState } from "preact/compat";
+import React, { JSX } from "react";
+import { memo, useState } from "react";
 import { IProgram, ISettings, IUnit } from "../../../types";
 import { MenuItemValue } from "../../../components/menuItemEditable";
 import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";

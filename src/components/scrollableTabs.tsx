@@ -1,12 +1,12 @@
-import { h, JSX, ComponentChildren } from "preact";
+import React, { JSX } from "react";
 import { StringUtils } from "../utils/string";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { Scroller } from "./scroller";
 
 interface IProps {
   tabs: {
     label: string;
-    children: ComponentChildren;
+    children: React.ReactNode;
     isInvalid?: boolean;
   }[];
   defaultIndex?: number;

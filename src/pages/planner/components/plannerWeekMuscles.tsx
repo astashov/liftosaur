@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { ObjectUtils } from "../../../utils/object";
 import { BackMusclesSvg, IMuscleStyle } from "../../../components/muscles/images/backMusclesSvg";
 import { FrontMusclesSvg } from "../../../components/muscles/images/frontMusclesSvg";

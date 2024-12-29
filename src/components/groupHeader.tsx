@@ -1,5 +1,5 @@
-import { h, JSX, Fragment, ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { StringUtils } from "../utils/string";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
 import { IconArrowUp } from "./icons/iconArrowUp";
@@ -9,7 +9,7 @@ interface IProps {
   name: string;
   help?: JSX.Element;
   size?: "small" | "large";
-  children?: ComponentChildren;
+  children?: React.ReactNode;
   rightAddOn?: JSX.Element;
   leftExpandIcon?: boolean;
   isExpanded?: boolean;
@@ -25,7 +25,7 @@ export function GroupHeader(props: IProps): JSX.Element {
   const testId = `group-header-${StringUtils.dashcase(name)}`;
 
   return (
-    <Fragment>
+    <>
       <div
         data-cy={testId}
         onClick={props.children ? () => setIsExpanded(!isExpanded) : undefined}
@@ -63,6 +63,6 @@ export function GroupHeader(props: IProps): JSX.Element {
       </div>
       {isHelpShown && props.help}
       {isExpanded && props.children}
-    </Fragment>
+    </>
   );
 }

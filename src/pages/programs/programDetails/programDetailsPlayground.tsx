@@ -1,6 +1,6 @@
-import { h, JSX, Fragment } from "preact";
-import { memo } from "preact/compat";
-import { useState, useRef, useCallback } from "preact/hooks";
+import React, { JSX } from "react";
+import { memo } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Progress } from "../../../models/progress";
 import { History } from "../../../models/history";
 import { buildCardsReducer } from "../../../ducks/reducer";
@@ -79,7 +79,7 @@ export const Playground = memo(
     const progressRef = useRef(progress);
     const historyRef = useRef([]);
 
-    const entry = progressRef.current.entries[0];
+    const entry = progressRef.current!.entries[0];
 
     const dispatch: IDispatch = useCallback(
       async (action) => {
@@ -123,7 +123,7 @@ export const Playground = memo(
             updateProgress({ programExercise: newProgramExercise });
           }}
         />
-        {progressRef.current?.ui?.amrapModal && (
+        {progressRef.current!.ui?.amrapModal && (
           <ModalAmrap
             progress={progressRef.current}
             settings={props.settings}
@@ -132,13 +132,13 @@ export const Playground = memo(
             allProgramExercises={allProgramExercises}
           />
         )}
-        {progressRef.current.ui?.weightModal && (
+        {progressRef.current!.ui?.weightModal && (
           <ModalWeight
-            isHidden={progressRef.current.ui?.weightModal == null}
-            programExercise={progressRef.current.ui?.weightModal?.programExercise}
+            isHidden={progressRef.current!.ui?.weightModal == null}
+            programExercise={progressRef.current!.ui?.weightModal?.programExercise}
             settings={props.settings}
             dispatch={dispatch}
-            weight={progressRef.current.ui?.weightModal?.weight ?? 0}
+            weight={progressRef.current!.ui?.weightModal?.weight ?? 0}
           />
         )}
       </>

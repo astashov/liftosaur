@@ -1,9 +1,9 @@
-import { h, JSX, ComponentChildren } from "preact";
+import React, { JSX } from "react";
 import { StringUtils } from "../utils/string";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 
 interface IProps {
-  tabs: [string, ComponentChildren][];
+  tabs: [string, React.ReactNode][];
   defaultIndex?: number;
   onChange?: (index: number, newValue: string) => void;
 }

@@ -1,6 +1,6 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import UPlot from "uplot";
-import { useRef, useEffect } from "preact/hooks";
+import { useRef, useEffect } from "react";
 import { CollectionUtils } from "../utils/collection";
 import { Weight } from "../models/weight";
 import {
@@ -79,7 +79,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
     const dataMinX = Math.max(data[0]?.[0] || 0, dataMaxX - 365 * 24 * 60 * 60);
     const allMaxX = props.maxX;
     const allMinX = Math.max(props.minX, allMaxX - 365 * 24 * 60 * 60);
-    const rect = graphRef.current.getBoundingClientRect();
+    const rect = graphRef.current!.getBoundingClientRect();
     const opts: UPlot.Options = {
       title: props.title === undefined ? `${Stats.name(props.statsKey)}` : props.title || undefined,
       class: "graph-max-weight",
@@ -138,9 +138,9 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
       ],
     };
 
-    const uplot = new UPlot(opts, data, graphRef.current);
+    const uplot = new UPlot(opts, data, graphRef.current!);
 
-    const underEl = graphRef.current.querySelector(".over");
+    const underEl = graphRef.current!.querySelector(".over");
     const underRect = underEl?.getBoundingClientRect();
 
     function handler(): void {

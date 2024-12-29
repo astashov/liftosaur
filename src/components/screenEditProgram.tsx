@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { EditProgramDay } from "./editProgram/editProgramDay";
 import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
@@ -8,7 +8,7 @@ import { IProgram, IProgramExercise, ISettings, ISubscription } from "../types";
 import { ILoading } from "../models/state";
 import { EditProgramWeek } from "./editProgram/editProgramWeek";
 import { EditProgramV2 } from "./editProgram/editProgramV2";
-import { useEffect } from "preact/hooks";
+import { useEffect } from "react";
 import { EditProgram } from "../models/editProgram";
 import { IPlannerState } from "../pages/planner/models/types";
 

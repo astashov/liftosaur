@@ -1,4 +1,4 @@
-import { Fragment, h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { IEquipment, IGym, ISettings } from "../types";
 import { ILoading, IState, updateState } from "../models/state";
@@ -16,7 +16,7 @@ import { CollectionUtils } from "../utils/collection";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { ModalNewGym } from "./modalNewGym";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { Thunk } from "../ducks/thunks";
 import { LinkButton } from "./linkButton";
 import { Settings } from "../models/settings";
@@ -72,7 +72,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                 ) : undefined
               }
               value={
-                <Fragment>
+                <>
                   <button
                     data-cy="edit-gym"
                     className="px-2 align-middle ls-gyms-list-edit-gym button"
@@ -137,7 +137,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                       <IconTrash />
                     </button>
                   )}
-                </Fragment>
+                </>
               }
             />
           );

@@ -1,8 +1,8 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { GraphExercise } from "./graphExercise";
 import { History } from "../models/history";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { ModalGraphs } from "./modalGraphs";
 import { ObjectUtils } from "../utils/object";
 import { ISettings, IHistoryRecord, IStats, IScreenMuscle } from "../types";

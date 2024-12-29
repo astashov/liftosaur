@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { PageWrapper } from "./components/pageWrapper";
 import { AllExercisesContent, IAllExercisesContentProps } from "./pages/allExercises/allExercisesContent";
 import { HydrateUtils } from "./utils/hydrate";

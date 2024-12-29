@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
 import { MenuItemEditable } from "../menuItemEditable";
 import { EditProgram } from "../../models/editProgram";
@@ -21,7 +21,7 @@ import { IconCheckCircle } from "../icons/iconCheckCircle";
 import { HelpEditProgramDay } from "../help/helpEditProgramDay";
 import { BottomSheetItem } from "../bottomSheetItem";
 import { BottomSheet } from "../bottomSheet";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { IconKebab } from "../icons/iconKebab";
 import { lb } from "lens-shmens";
 
@@ -123,7 +123,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
                   handleTouchStart={handleTouchStart}
                   name={exercise.name}
                   value={
-                    <Fragment>
+                    <>
                       <button
                         className="p-2 align-middle ls-day-edit-exercise button"
                         onClick={() => EditProgram.editProgramExercise(props.dispatch, exercise)}
@@ -138,7 +138,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
                       >
                         <IconTrash />
                       </button>
-                    </Fragment>
+                    </>
                   }
                 />
               );

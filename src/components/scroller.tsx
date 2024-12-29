@@ -1,8 +1,8 @@
-import { h, JSX, ComponentChildren } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface IProps {
-  children: ComponentChildren;
+  children: React.ReactNode;
   arrowYOffsetPct?: number;
 }
 
@@ -12,13 +12,13 @@ export function Scroller(props: IProps): JSX.Element {
   const tabsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!tabsRef.current || tabsRef.current.clientWidth >= tabsRef.current.scrollWidth) {
+    if (!tabsRef.current || tabsRef.current!.clientWidth >= tabsRef.current!.scrollWidth) {
       setAtLeft(true);
       setAtRight(true);
     } else {
-      setAtLeft(tabsRef.current?.scrollLeft === 0);
+      setAtLeft(tabsRef.current!.scrollLeft === 0);
       const diff = Math.abs(
-        tabsRef.current?.scrollLeft - (tabsRef.current?.scrollWidth - tabsRef.current?.clientWidth)
+        tabsRef.current!.scrollLeft - (tabsRef.current!.scrollWidth - tabsRef.current!.clientWidth)
       );
       setAtRight(diff < 3);
     }
@@ -36,7 +36,7 @@ export function Scroller(props: IProps): JSX.Element {
           }}
           onClick={() => {
             // eslint-disable-next-line no-unused-expressions
-            tabsRef.current?.scrollTo({ left: 0, behavior: "smooth" });
+            tabsRef.current!.scrollTo({ left: 0, behavior: "smooth" });
           }}
         >
           {"<"}
@@ -51,10 +51,10 @@ export function Scroller(props: IProps): JSX.Element {
             transform: `translateY(${-50 + (props.arrowYOffsetPct || 0)}%)`,
           }}
           onClick={() => {
-            const newScrollRight = tabsRef.current?.scrollLeft + tabsRef.current?.clientWidth;
+            const newScrollRight = tabsRef.current!.scrollLeft + tabsRef.current!.clientWidth;
             if (newScrollRight !== undefined) {
               // eslint-disable-next-line no-unused-expressions
-              tabsRef.current?.scrollTo({ left: newScrollRight, behavior: "smooth" });
+              tabsRef.current!.scrollTo({ left: newScrollRight, behavior: "smooth" });
             }
           }}
         >
@@ -66,9 +66,9 @@ export function Scroller(props: IProps): JSX.Element {
         className="overflow-x-auto"
         ref={tabsRef}
         onScroll={() => {
-          setAtLeft(tabsRef.current?.scrollLeft === 0);
+          setAtLeft(tabsRef.current!.scrollLeft === 0);
           const diff = Math.abs(
-            tabsRef.current?.scrollLeft - (tabsRef.current?.scrollWidth - tabsRef.current?.clientWidth)
+            tabsRef.current!.scrollLeft - (tabsRef.current!.scrollWidth - tabsRef.current!.clientWidth)
           );
           setAtRight(diff < 3);
         }}

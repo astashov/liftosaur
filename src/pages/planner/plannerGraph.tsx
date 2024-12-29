@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import UPlot from "uplot";
-import { useRef, useEffect } from "preact/hooks";
+import { useRef, useEffect } from "react";
 import { GraphsPlugins } from "../../utils/graphsPlugins";
 
 interface IPlannerGraphProps {
@@ -16,7 +16,7 @@ export function PlannerGraph(props: IPlannerGraphProps): JSX.Element {
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const rect = graphRef.current.getBoundingClientRect();
+    const rect = graphRef.current!.getBoundingClientRect();
     const opts: UPlot.Options = {
       class: "planner-exercise-graph",
       width: rect.width,
@@ -55,9 +55,9 @@ export function PlannerGraph(props: IPlannerGraphProps): JSX.Element {
     };
 
     const data = props.data;
-    const uplot = new UPlot(opts, data, graphRef.current);
+    const uplot = new UPlot(opts, data, graphRef.current!);
 
-    const underEl = graphRef.current.querySelector(".over");
+    const underEl = graphRef.current!.querySelector(".over");
     const underRect = underEl?.getBoundingClientRect();
 
     function handler(): void {

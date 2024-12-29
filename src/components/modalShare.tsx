@@ -1,8 +1,8 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Modal } from "./modal";
 import { Share } from "../models/share";
 import { Button } from "./button";
-import { useRef, useState, useEffect } from "preact/hooks";
+import { useRef, useState, useEffect } from "react";
 import { ClipboardUtils } from "../utils/clipboard";
 import { UrlUtils } from "../utils/url";
 
@@ -14,7 +14,7 @@ interface IProps {
 
 export function ModalShare(props: IProps): JSX.Element {
   const link = Share.generateLink(props.userId, props.id);
-  const linkRef = useRef<HTMLDivElement>();
+  const linkRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number | undefined>(undefined);
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
@@ -44,7 +44,7 @@ export function ModalShare(props: IProps): JSX.Element {
         <button
           className="text-blue-700 underline ls-modal-share-copy nm-modal-share-copy"
           onClick={() => {
-            const text = linkRef.current.textContent;
+            const text = linkRef.current!.textContent;
             if (text != null) {
               ClipboardUtils.copy(text);
               setIsCopied(true);

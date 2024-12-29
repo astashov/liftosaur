@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import React, { JSX } from "react";
 
 export function HelpEditProgramExerciseSimple(): JSX.Element {
   return (

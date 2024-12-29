@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Input } from "../input";
 import { IconTrash } from "../icons/iconTrash";
 import { IDayData, IProgramExercise, ISettings } from "../../types";
@@ -40,7 +40,7 @@ export function EditProgramExerciseSimpleDescription(props: IEditProgramExercise
         label="Description"
         placeholder="Place the feet shoulder width apart..."
         value={props.programExercise.descriptions[0]}
-        onInput={(e) => {
+        onInput={(e: React.FormEvent<HTMLInputElement>) => {
           props.onChange(e.currentTarget.value, 0);
         }}
       />
@@ -171,7 +171,7 @@ function EditProgramExerciseDescription(props: IEditProgramExerciseDescriptionPr
                 label={`Description ${props.index + 1}`}
                 placeholder="Place the feet shoulder width apart..."
                 value={props.description}
-                onInput={(e) => {
+                onInput={(e: React.FormEvent<HTMLInputElement>) => {
                   props.onChange(e.currentTarget.value);
                 }}
               />
@@ -210,7 +210,19 @@ function DeleteBtn(props: { onRemove: () => void }): JSX.Element {
 
 function Handle(props: { handleTouchStart?: (e: TouchEvent | MouseEvent) => void }): JSX.Element {
   return (
-    <div className="p-2 cursor-move" onTouchStart={props.handleTouchStart} onMouseDown={props.handleTouchStart}>
+    <div
+      className="p-2 cursor-move"
+      onTouchStart={(e) => {
+        if (props.handleTouchStart) {
+          props.handleTouchStart(e.nativeEvent);
+        }
+      }}
+      onMouseDown={(e) => {
+        if (props.handleTouchStart) {
+          props.handleTouchStart(e.nativeEvent);
+        }
+      }}
+    >
       <IconHandle />
     </div>
   );

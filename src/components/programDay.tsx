@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { CardsView } from "./cards";
 import { IDispatch } from "../ducks/types";
 import { ModalAmrap } from "./modalAmrap";
@@ -8,7 +8,7 @@ import { History } from "../models/history";
 import { ModalDate } from "./modalDate";
 import { ILoading, IState, updateState } from "../models/state";
 import { ModalShare } from "./modalShare";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import {
@@ -102,6 +102,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             }
             rightButtons={[
               <button
+                key={0}
                 className="p-2 nm-delete-progress ls-delete-progress"
                 onClick={() => {
                   if (confirm("Are you sure?")) {

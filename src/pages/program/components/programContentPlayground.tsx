@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IDayData, IExerciseType, IHistoryRecord, IProgram, IProgramExercise, ISettings } from "../../../types";
-import { useRef } from "preact/hooks";
+import { useRef } from "react";
 import { IDispatch } from "../../../ducks/types";
 import { buildCardsReducer, ICardsAction } from "../../../ducks/reducer";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -68,7 +68,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
           <span className="mr-2">Day:</span>
           <select
             className="border rounded border-grayv2-main"
-            value={progressRef.current.day}
+            value={progressRef.current!.day}
             onChange={(e) => {
               const newValue = (e.target as HTMLSelectElement).value;
               const newDay = parseInt(newValue || "1", 10);
@@ -97,7 +97,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
           >
             {Program.getListOfDays(props.program, props.settings).map(([value, name]) => {
               return (
-                <option value={value} selected={Number(value) === progressRef.current.day}>
+                <option value={value} selected={Number(value) === progressRef.current!.day}>
                   {name}
                 </option>
               );

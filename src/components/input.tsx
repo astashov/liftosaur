@@ -1,5 +1,6 @@
-import { h, JSX, Ref } from "preact";
-import { forwardRef, useState, useCallback } from "preact/compat";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { JSX, Ref } from "react";
+import { forwardRef, useState, useCallback } from "react";
 import { UidFactory } from "../utils/generator";
 import { StringUtils } from "../utils/string";
 import { IEither } from "../utils/types";
@@ -9,7 +10,8 @@ export const inputClassName =
 
 export type IValidationError = "required" | "pattern-mismatch";
 
-export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, "ref"> {
+export interface IProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement> | React.TextareaHTMLAttributes<HTMLTextAreaElement>, "ref"> {
   label?: string;
   identifier?: string;
   multiline?: number;
@@ -20,10 +22,16 @@ export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLT
   errorMessage?: string;
   patternMessage?: string;
   requiredMessage?: string;
+  max?: number | string;
+  min?: number | string;
+  step?: number | string;
+  pattern?: string;
+  type?: string;
+  autofocus?: boolean;
   changeHandler?: (e: IEither<string, Set<IValidationError>>) => void;
 }
 
-export function selectInputOnFocus(e: Event): boolean | undefined {
+export function selectInputOnFocus(e: React.FocusEvent): boolean | undefined {
   const target = e.target;
   if (target instanceof HTMLInputElement) {
     const handleNumber = target.type === "number";
@@ -41,7 +49,7 @@ export function selectInputOnFocus(e: Event): boolean | undefined {
 }
 
 export const Input = forwardRef(
-  (props: IProps, ref: Ref<HTMLInputElement> | Ref<HTMLTextAreaElement>): JSX.Element => {
+  (props: IProps, ref: Ref<HTMLInputElement | HTMLTextAreaElement>): JSX.Element => {
     const { inputSize, label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
     const changeType = props.changeType || "onblur";
     const identifier = props.identifier || StringUtils.dashcase((label || UidFactory.generateUid(8))?.toLowerCase());
@@ -49,7 +57,7 @@ export const Input = forwardRef(
     const size = inputSize || "md";
 
     const onInputHandler = useCallback(
-      (e: Event) => {
+      (e: React.UIEvent) => {
         const target = e.target;
         if (target instanceof HTMLInputElement) {
           const errors = new Set<IValidationError>();
@@ -126,7 +134,7 @@ export const Input = forwardRef(
                   onFocus={selectInputOnFocus}
                   className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
                   style={{ fontSize: size === "md" ? "16px" : "15px", height: `${props.multiline * 25}px` }}
-                  {...otherProps}
+                  {...(otherProps as any)}
                 />
               ) : (
                 <input
@@ -137,7 +145,7 @@ export const Input = forwardRef(
                   onFocus={selectInputOnFocus}
                   className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
                   style={{ height: "1.25rem", fontSize: size === "md" ? "16px" : "15px" }}
-                  {...otherProps}
+                  {...(otherProps as any)}
                 />
               )}
             </div>

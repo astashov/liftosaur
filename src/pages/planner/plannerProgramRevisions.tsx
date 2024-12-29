@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { IconArrowDown2 } from "../../components/icons/iconArrowDown2";
 import { IconArrowRight } from "../../components/icons/iconArrowRight";
 import { DateUtils } from "../../utils/date";

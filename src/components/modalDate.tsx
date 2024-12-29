@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef } from "react";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
@@ -74,9 +74,9 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
             type="submit"
             className="ls-modal-set-date"
             onClick={() => {
-              const newDate = textInput.current?.value;
-              const newHoursValue = Number(hoursInput.current?.value);
-              const newMinutesValue = Number(minutesInput.current?.value);
+              const newDate = textInput.current!.value;
+              const newHoursValue = Number(hoursInput.current!.value);
+              const newMinutesValue = Number(minutesInput.current!.value);
               const newTime =
                 isNaN(newHoursValue) || isNaN(newMinutesValue)
                   ? props.time

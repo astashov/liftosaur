@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { ModalExercise } from "../../../components/modalExercise";
 import { Exercise, equipmentName } from "../../../models/exercise";
@@ -45,7 +45,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   const initialTab = isEligibleForSimple ? 0 : 1;
 
   useEffect(() => {
-    if (!ObjectUtils.isEqual(props.programExercise, prevProps.current.programExercise)) {
+    if (!ObjectUtils.isEqual(props.programExercise, prevProps.current!.programExercise)) {
       setProgress(
         ProgramExercise.buildProgress(
           programExercise,

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 
 interface IProps {
   size?: number;
@@ -19,8 +19,8 @@ export function IconInfo(props: IProps): JSX.Element {
         fill={color}
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M10 0C4.47714 0 0 4.47714 0 10C0 15.5229 4.47714 20 10 20C15.5229 20 20 15.5229 20 10C20 4.47714 15.5229 0 10 0ZM0.816327 10C0.816327 4.928 4.928 0.816327 10 0.816327C15.072 0.816327 19.1837 4.928 19.1837 10C19.1837 15.072 15.072 19.1837 10 19.1837C4.928 19.1837 0.816327 15.072 0.816327 10Z"
         fill={color}
       />

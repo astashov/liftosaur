@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { lb, LensBuilder, lbu } from "lens-shmens";
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { EditProgramExerciseSimpleProgression } from "../../../components/editProgram/editProgramExerciseSimpleProgression";
 import { EditProgramExerciseSimpleRow } from "../../../components/editProgram/editProgramExerciseSimpleRow";
 import { EditProgramLenses } from "../../../models/editProgramLenses";

@@ -1,7 +1,7 @@
 import deepmerge from "deepmerge";
 import { lb } from "lens-shmens";
-import { ComponentChildren, h, JSX, Fragment } from "preact";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FooterPage } from "../../components/footerPage";
 import { ProgramPreviewPlaygroundDay } from "../../components/preview/programPreviewPlaygroundDay";
 import { TopNavMenu } from "../../components/topNavMenu";
@@ -510,7 +510,7 @@ function StoresLinks(): JSX.Element {
   return (
     <div>
       <div>
-        <div class="inline-block align-middle">
+        <div className="inline-block align-middle">
           <a
             href="https://apps.apple.com/app/apple-store/id1661880849?pt=126680920&mt=8"
             className="inline-block mt-2 overflow-hidden rounded-xl apple-store-link"
@@ -524,7 +524,7 @@ function StoresLinks(): JSX.Element {
             />
           </a>
         </div>
-        <div class="inline-block align-middle">
+        <div className="inline-block align-middle">
           <a
             target="_blank"
             className="google-play-link"
@@ -539,7 +539,7 @@ function StoresLinks(): JSX.Element {
         </div>
       </div>
       <div>
-        <span class="content-cta-row-or">or</span>
+        <span className="content-cta-row-or">or</span>
         &nbsp;
         <a href="/app" target="_blank" className="font-bold underline text-bluev2">
           use as a web app
@@ -556,7 +556,7 @@ interface IFeatureProps {
   imgOnLeft: boolean;
   title: string;
   subtitle: string | JSX.Element;
-  children?: ComponentChildren;
+  children?: React.ReactNode;
 }
 
 function Feature(props: IFeatureProps): JSX.Element {
@@ -587,7 +587,7 @@ function Feature(props: IFeatureProps): JSX.Element {
     <div className="flex items-center justify-center flex-1">
       <div>
         <h3 className="mb-4 text-3xl font-bold leading-none text-center md:text-left">{props.title}</h3>
-        <p style={{ maxWidth: "20rem" }}>{props.subtitle}</p>
+        <div style={{ maxWidth: "20rem" }}>{props.subtitle}</div>
       </div>
     </div>
   );
@@ -608,8 +608,8 @@ function Bubbles(props: IBubblesProps): JSX.Element {
   const { pos1, pos2 } = props;
   return (
     <svg className="absolute inset-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {pos1 && <ellipse cx={pos1.x} cy={pos1.y} rx={pos1.r} ry={pos1.r} fill="#FF8066" fill-opacity="0.3" />}
-      {pos2 && <ellipse cx={pos2.x} cy={pos2.y} rx={pos2.r} ry={pos2.r} fill="#8256F6" fill-opacity="0.3" />}
+      {pos1 && <ellipse cx={pos1.x} cy={pos1.y} rx={pos1.r} ry={pos1.r} fill="#FF8066" fillOpacity="0.3" />}
+      {pos2 && <ellipse cx={pos2.x} cy={pos2.y} rx={pos2.r} ry={pos2.r} fill="#8256F6" fillOpacity="0.3" />}
     </svg>
   );
 }
@@ -646,11 +646,11 @@ Leg Curl / 3x8 / progress: dp(5lb, 8, 12)`,
   const [state, dispatch] = useLensReducer(initialState, {});
   const lbDay = lb<IPlannerState>().p("current").pi("program").p("weeks").i(0).p("days").i(0);
   const { evaluatedWeeks, exerciseFullNames } = useMemo(
-    () => PlannerProgram.evaluate(state.current.program, settings),
-    [state.current.program]
+    () => PlannerProgram.evaluate(state.current!.program, settings),
+    [state.current!.program]
   );
   const evaluatedDay = evaluatedWeeks[0][0];
-  const text = state.current.program.weeks[0].days[0].exerciseText;
+  const text = state.current!.program.weeks[0].days[0].exerciseText;
 
   return (
     <div className="flex flex-col gap-4 mb-1 md:flex-row">
@@ -671,7 +671,7 @@ Leg Curl / 3x8 / progress: dp(5lb, 8, 12)`,
         />
       </div>
       <div className="flex-1">
-        {evaluatedDay.success && <MainPlayground key={text} planner={state.current.program} settings={settings} />}
+        {evaluatedDay.success && <MainPlayground key={text} planner={state.current!.program} settings={settings} />}
       </div>
     </div>
   );
@@ -699,7 +699,6 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
       progress={progress}
       staticStates={{}}
       onProgressChange={(newProgress) => {
-        console.log(newProgress);
         setProgress(newProgress);
       }}
       onProgramChange={(newProgram) => {

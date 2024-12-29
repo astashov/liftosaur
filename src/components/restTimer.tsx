@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TimeUtils } from "../utils/time";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
@@ -55,7 +55,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
         props.dispatch(Thunk.playAudioNotification());
         sentNotification.current = true;
       }
-      if (prevProps.current.progress.timerSince !== props.progress.timerSince) {
+      if (prevProps.current!.progress.timerSince !== props.progress.timerSince) {
         sentNotification.current = false;
       }
     }
@@ -76,7 +76,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
       <div className="fixed z-50 safe-area-inset-bottom " style={{ left: "1rem", right: "1rem", bottom: "5rem" }}>
         <div
           className={`flex w-full ${className} text-center rounded-lg shadow-xl text-white`}
-          style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%);" }}
+          style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%)" }}
         >
           <button
             data-cy="rest-timer-minus"
@@ -134,7 +134,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
           data-cy="rest-timer-collapsed"
           onClick={() => setIsExpanded(true)}
           className={`${className} w-16 text-center px-2 py-2 rounded-lg shadow-xl`}
-          style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%);" }}
+          style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%)" }}
         >
           <span data-cy="rest-timer-current" className="font-bold text-white ">
             {TimeUtils.formatMMSS(timeDifference)}

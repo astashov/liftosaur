@@ -1,6 +1,6 @@
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
-import { useCallback } from "preact/hooks";
+import React, { JSX } from "react";
+import { memo } from "react";
+import { useCallback } from "react";
 import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
 import { IHistoryRecord, IProgram, IProgramState, ISettings } from "../../types";
 import { IDispatch } from "../../ducks/types";
@@ -61,6 +61,7 @@ export const ProgramPreviewPlaygroundDay = memo(
           const staticState = props.staticStates[programExercise.id];
           return (
             <ProgramPreviewPlaygroundExercise
+              key={Exercise.toKey(entry.exercise)}
               entry={entry}
               dayIndex={props.dayIndex}
               progress={props.progress}

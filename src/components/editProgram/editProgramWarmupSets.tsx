@@ -1,7 +1,7 @@
 import { IProgramExercise, ISettings, IProgramExerciseWarmupSet } from "../../types";
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Exercise, IExercise } from "../../models/exercise";
-import { useCallback, useEffect, useRef } from "preact/hooks";
+import { useCallback, useEffect, useRef } from "react";
 import { GroupHeader } from "../groupHeader";
 import { LinkButton } from "../linkButton";
 import { Weight } from "../../models/weight";
@@ -90,16 +90,16 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
   const unit = typeof warmupSet.value !== "number" ? warmupSet.value.unit : props.settings.units;
   const threshold = warmupSet.threshold;
 
-  const repsRef = useRef<HTMLInputElement>();
-  const valueRef = useRef<HTMLInputElement>();
-  const valueUnitRef = useRef<HTMLSelectElement>();
-  const thresholdRef = useRef<HTMLInputElement>();
+  const repsRef = useRef<HTMLInputElement>(null);
+  const valueRef = useRef<HTMLInputElement>(null);
+  const valueUnitRef = useRef<HTMLSelectElement>(null);
+  const thresholdRef = useRef<HTMLInputElement>(null);
 
   const onUpdate = useCallback(() => {
-    const newUnit = valueUnitRef.current.value as "%" | "kg" | "lb";
-    const newReps = parseInt(repsRef.current.value, 10);
-    const numValue = parseInt(valueRef.current.value, 10);
-    const thresholdValue = parseFloat(thresholdRef.current.value);
+    const newUnit = valueUnitRef.current!.value as "%" | "kg" | "lb";
+    const newReps = parseInt(repsRef.current!.value ?? "0", 10);
+    const numValue = parseInt(valueRef.current!.value ?? "0", 10);
+    const thresholdValue = parseFloat(thresholdRef.current!.value ?? "0");
     if (!isNaN(numValue) && !isNaN(thresholdValue) && !isNaN(newReps)) {
       const value = newUnit === "%" ? numValue / 100 : Weight.build(numValue, newUnit);
       const newWarmupSet: IProgramExerciseWarmupSet = {

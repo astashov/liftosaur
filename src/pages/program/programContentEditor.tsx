@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { DraggableList } from "../../components/draggableList";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput";
@@ -14,7 +14,7 @@ import { StringUtils } from "../../utils/string";
 import { ProgramContentExercise } from "./components/programContentExercise";
 import { ProgramContentEditExercise } from "./components/programContentEditExercise";
 import { GroupHeader } from "../../components/groupHeader";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { ObjectUtils } from "../../utils/object";
 import { ProgramContentModalExistingExercise } from "./components/programContentModalExistingExercise";
 import { undo, useUndoRedo, canUndo, canRedo, redo } from "../builder/utils/undoredo";
@@ -113,8 +113,8 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
   const [collapsedDays, setCollapsedDays] = useState<boolean[]>([]);
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
 
-  const program = state.current.program;
-  const editExercises = state.current.editExercises;
+  const program = state.current!.program;
+  const editExercises = state.current!.editExercises;
   const assignedExerciseIds = new Set(program.days.flatMap((d) => d.exercises.map((e) => e.id)));
   const unassignedExercises = program.exercises.filter((e) => !assignedExerciseIds.has(e.id));
   const lbProgram = lb<IProgramEditorState>().p("current").p("program");
@@ -284,7 +284,18 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                 <section className="flex w-full px-2 py-1 text-left">
                   <div className="flex flex-col">
                     <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-                      <span onMouseDown={handleTouchStart} onTouchStart={handleTouchStart}>
+                      <span
+                        onMouseDown={(e) => {
+                          if (handleTouchStart) {
+                            handleTouchStart(e.nativeEvent);
+                          }
+                        }}
+                        onTouchStart={(e) => {
+                          if (handleTouchStart) {
+                            handleTouchStart(e.nativeEvent);
+                          }
+                        }}
+                      >
                         <IconHandle />
                       </span>
                     </div>

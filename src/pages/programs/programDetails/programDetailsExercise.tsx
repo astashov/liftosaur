@@ -1,7 +1,7 @@
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { memo } from "react";
+import { useState } from "react";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { IProgramMode, Program } from "../../../models/program";
 import { ProgramExercise } from "../../../models/programExercise";

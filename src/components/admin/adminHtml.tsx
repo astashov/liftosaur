@@ -1,14 +1,14 @@
-import { h, JSX, ComponentChildren } from "preact";
-import render from "preact-render-to-string";
+import React, { JSX } from "react";
+import { renderToString } from "react-dom/server";
 
 interface IProps {
   apiKey: string;
   props: unknown;
-  children: ComponentChildren;
+  children: React.ReactNode;
 }
 
 export function renderAdminHtml(el: JSX.Element): string {
-  return "<!DOCTYPE html>" + render(el);
+  return "<!DOCTYPE html>" + renderToString(el);
 }
 
 export function AdminHtml(props: IProps): JSX.Element {
@@ -29,16 +29,16 @@ export function AdminHtml(props: IProps): JSX.Element {
         />
       </head>
       <body>
-        <div class="content">
-          <nav class="top-nav">
-            <div class="top-nav-left">
-              <a href="/" class="top-nav-logo">
+        <div className="content">
+          <nav className="top-nav">
+            <div className="top-nav-left">
+              <a href="/" className="top-nav-logo">
                 <img src="/images/logo.svg" alt="Liftosaur Logo" />
                 <span>Liftosaur</span>
               </a>
             </div>
-            <div class="top-nav-right">
-              <ul class="top-nav-menu">
+            <div className="top-nav-right">
+              <ul className="top-nav-menu">
                 <li>
                   <a href={`/admin/logs?key=${props.apiKey}`}>Logs</a>
                 </li>

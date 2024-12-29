@@ -1,11 +1,11 @@
-import { Fragment, h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { Progress } from "../models/progress";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { HistoryRecordView } from "./historyRecord";
 import { DateUtils } from "../utils/date";
 import { WeekInsights, WeekInsightsTeaser } from "./weekInsights";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { ModalPlannerSettings } from "../pages/planner/components/modalPlannerSettings";
 import { IState, updateState } from "../models/state";
 import { lb } from "lens-shmens";
@@ -72,12 +72,13 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
   });
   const combinedHistoryAndInsights = insertWeekInsights(combinedHistory);
   return (
-    <Fragment>
+    <>
       {combinedHistoryAndInsights.map((record) => {
         if (record.type === "weekInsights") {
           if (Subscriptions.hasSubscription(props.subscription)) {
             return (
               <WeekInsights
+                key={`insights-${record.historyRecords[0]?.id}`}
                 historyRecords={record.historyRecords}
                 settings={settings}
                 onOpenPlannerSettings={() => {
@@ -86,11 +87,12 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
               />
             );
           } else {
-            return <WeekInsightsTeaser dispatch={props.dispatch} />;
+            return <WeekInsightsTeaser key={`insights-${record.historyRecords[0]?.id}`} dispatch={props.dispatch} />;
           }
         } else {
           return (
             <HistoryRecordView
+              key={`record-${record.historyRecord.id}`}
               isOngoing={!!(Progress.isCurrent(record.historyRecord) && props.progress)}
               settings={settings}
               historyRecord={record.historyRecord}
@@ -110,6 +112,6 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
           onClose={() => setShowPlannerSettings(false)}
         />
       )}
-    </Fragment>
+    </>
   );
 }

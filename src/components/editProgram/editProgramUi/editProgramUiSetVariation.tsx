@@ -1,5 +1,5 @@
-import { JSX, h, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { Weight } from "../../../models/weight";
 import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";
 import {
@@ -167,7 +167,18 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             className="p-2 cursor-move nm-reorder-set-variations"
             style={{ touchAction: "none", marginLeft: "-0.5rem" }}
           >
-            <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
+            <span
+              onMouseDown={(e) => {
+                if (props.handleTouchStart) {
+                  props.handleTouchStart(e.nativeEvent);
+                }
+              }}
+              onTouchStart={(e) => {
+                if (props.handleTouchStart) {
+                  props.handleTouchStart(e.nativeEvent);
+                }
+              }}
+            >
               <IconHandle />
             </span>
           </div>
@@ -261,7 +272,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             value={set.label}
             type="text"
             data-cy="edit-exercise-set-label"
-            onInput={(e) => {
+            onInput={(e: React.FormEvent<HTMLInputElement>) => {
               const target = e.target as HTMLInputElement;
               const value = target.value;
               if (!props.disabled) {

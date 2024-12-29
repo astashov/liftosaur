@@ -1,7 +1,7 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { useRef } from "preact/hooks";
+import { useRef } from "react";
 import { Input } from "./input";
 import { LinkButton } from "./linkButton";
 import { UrlUtils } from "../utils/url";
@@ -56,8 +56,8 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           kind="orange"
           className="ls-modal-create-program"
           onClick={() => {
-            if (!props.isLoading && textInput.current.value) {
-              props.onSelect(textInput.current.value, true);
+            if (!props.isLoading && textInput.current!.value) {
+              props.onSelect(textInput.current!.value, true);
             }
           }}
         >
@@ -68,12 +68,11 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
         <div className="mt-2 text-center">
           <LinkButton
             name="modal-create-experimental-program-submit"
-            kind="grayv2"
             data-cy="modal-create-program-submit"
             className="text-xs ls-modal-create-legacy-program"
             onClick={() => {
-              if (textInput.current.value) {
-                props.onSelect(textInput.current.value, false);
+              if (textInput.current!.value) {
+                props.onSelect(textInput.current!.value, false);
               }
             }}
           >

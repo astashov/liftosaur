@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { ExerciseImage } from "../../../components/exerciseImage";
 
 export function ProgramDetailsGzclPrinciple(): JSX.Element {

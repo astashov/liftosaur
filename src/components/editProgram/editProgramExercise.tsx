@@ -1,6 +1,6 @@
 import { Program } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { EditProgramExerciseAdvanced } from "./editProgramExerciseAdvanced";
 import { EditProgramExerciseSimple } from "./editProgramExerciseSimple";
 import { ISettings, IProgramExercise, ISubscription, IProgram } from "../../types";
@@ -10,7 +10,7 @@ import { IScreen, Screen } from "../../models/screen";
 import { Surface } from "../surface";
 import { Footer2View } from "../footer2";
 import { Tabs2 } from "../tabs2";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { HelpEditProgramExerciseSimple } from "../help/helpEditProgramExerciseSimple";
 import { HelpEditProgramExerciseAdvanced } from "../help/helpEditProgramExerciseAdvanced";
 

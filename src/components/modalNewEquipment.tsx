@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef } from "react";
 import { Button } from "./button";
 import { Modal } from "./modal";
 import { GroupHeader } from "./groupHeader";
@@ -45,7 +45,7 @@ export function ModalNewEquipment(props: IProps): JSX.Element {
             name="add-equipment-submit"
             className="ls-add-equipment"
             onClick={() => {
-              const value = textInput.current?.value;
+              const value = textInput.current!.value;
               if (value) {
                 props.onInput(value);
               }

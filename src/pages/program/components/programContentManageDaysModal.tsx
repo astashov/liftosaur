@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { DraggableList } from "../../../components/draggableList";
 import { GroupHeader } from "../../../components/groupHeader";
 import { IconPlus } from "../../../components/icons/iconPlus";

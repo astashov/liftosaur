@@ -1,5 +1,5 @@
-import { h, JSX, Fragment } from "preact";
-import { useRef, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef, useState } from "react";
 import { Progress } from "../../models/progress";
 import { Weight } from "../../models/weight";
 import { ScriptRunner } from "../../parser";
@@ -51,7 +51,7 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
   const onDeleteVariation = props.onDeleteVariation;
   const onDuplicateVariation = props.onDuplicateVariation;
   return (
-    <Fragment>
+    <>
       <GroupHeader
         topPadding={true}
         name={programExercise.variations.length > 1 ? `Sets of Variation ${variationIndex + 1}` : "Sets"}
@@ -131,7 +131,7 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
           Add New Set
         </LinkButton>
       </div>
-    </Fragment>
+    </>
   );
 }
 
@@ -171,12 +171,12 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
       if (script) {
         const scriptRunnerResult = new ScriptRunner(
           script,
-          propsRef.current.state,
+          propsRef.current!.state,
           {},
           Progress.createEmptyScriptBindings(
-            propsRef.current.dayData,
-            propsRef.current.settings,
-            propsRef.current.exerciseType
+            propsRef.current!.dayData,
+            propsRef.current!.settings,
+            propsRef.current!.exerciseType
           ),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -228,8 +228,8 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
                 <div className="mb-1">
                   <MinRepsInput
                     repsResult={minRepsResult}
-                    variationIndex={propsRef.current.variationIndex}
-                    setIndex={propsRef.current.setIndex}
+                    variationIndex={propsRef.current!.variationIndex}
+                    setIndex={propsRef.current!.setIndex}
                     state={state}
                     set={set}
                     onChangeReps={props.onChangeMinReps}
@@ -239,8 +239,8 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
               <RepsInput
                 label={props.enabledRepRanges ? "Max Reps" : "Reps"}
                 repsResult={repsResult}
-                variationIndex={propsRef.current.variationIndex}
-                setIndex={propsRef.current.setIndex}
+                variationIndex={propsRef.current!.variationIndex}
+                setIndex={propsRef.current!.setIndex}
                 state={state}
                 set={set}
                 onChangeReps={props.onChangeReps}
@@ -250,16 +250,16 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
               <Amrap
                 onChangeAmrap={props.onChangeAmrap}
                 set={set}
-                variationIndex={propsRef.current.variationIndex}
-                setIndex={propsRef.current.setIndex}
+                variationIndex={propsRef.current!.variationIndex}
+                setIndex={propsRef.current!.setIndex}
               />
             </div>
             {props.isDeleteEnabled && (
               <div>
                 <DeleteBtn
                   onRemoveSet={props.onRemoveSet}
-                  variationIndex={propsRef.current.variationIndex}
-                  setIndex={propsRef.current.setIndex}
+                  variationIndex={propsRef.current!.variationIndex}
+                  setIndex={propsRef.current!.setIndex}
                 />
               </div>
             )}
@@ -268,8 +268,8 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
             <div className="flex-1 min-w-0">
               <WeightInput
                 weightResult={weightResult}
-                variationIndex={propsRef.current.variationIndex}
-                setIndex={propsRef.current.setIndex}
+                variationIndex={propsRef.current!.variationIndex}
+                setIndex={propsRef.current!.setIndex}
                 state={state}
                 set={set}
                 onChangeWeight={props.onChangeWeight}
@@ -279,7 +279,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
               <Input
                 changeHandler={(r) => {
                   if (r.success) {
-                    props.onChangeLabel(propsRef.current.variationIndex, propsRef.current.setIndex, r.data);
+                    props.onChangeLabel(propsRef.current!.variationIndex, propsRef.current!.setIndex, r.data);
                   }
                 }}
                 maxLength={8}
@@ -294,8 +294,8 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
               <div className="flex-1 min-w-0">
                 <RpeInput
                   rpeResult={rpeResult}
-                  variationIndex={propsRef.current.variationIndex}
-                  setIndex={propsRef.current.setIndex}
+                  variationIndex={propsRef.current!.variationIndex}
+                  setIndex={propsRef.current!.setIndex}
                   state={state}
                   set={set}
                   onChangeRpe={props.onChangeRpe}
@@ -305,8 +305,8 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
                 <LogRpe
                   onChangeLogRpe={props.onChangeLogRpe}
                   set={set}
-                  variationIndex={propsRef.current.variationIndex}
-                  setIndex={propsRef.current.setIndex}
+                  variationIndex={propsRef.current!.variationIndex}
+                  setIndex={propsRef.current!.setIndex}
                 />
               </div>
             </div>
@@ -335,7 +335,19 @@ function DeleteBtn(props: {
 
 function Handle(props: { handleTouchStart?: (e: TouchEvent | MouseEvent) => void }): JSX.Element {
   return (
-    <div className="p-2 cursor-move" onTouchStart={props.handleTouchStart} onMouseDown={props.handleTouchStart}>
+    <div
+      className="p-2 cursor-move"
+      onTouchStart={(e) => {
+        if (props.handleTouchStart) {
+          props.handleTouchStart(e.nativeEvent);
+        }
+      }}
+      onMouseDown={(e) => {
+        if (props.handleTouchStart) {
+          props.handleTouchStart(e.nativeEvent);
+        }
+      }}
+    >
       <IconHandle />
     </div>
   );

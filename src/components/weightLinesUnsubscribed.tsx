@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Weight } from "../models/weight";
 import { IWeight } from "../types";
 
@@ -13,7 +13,7 @@ export function WeightLinesUnsubscribed(props: IWeightLinesUnsubscribedProps): J
         .filter((w) => !Weight.eq(w.original, w.rounded))
         .map((w) => {
           return (
-            <div>
+            <div key={Weight.display(w.original)} className="mb-1">
               <div className="text-xs text-grayv2-main">
                 <span className="line-through">
                   {Number(w.original.value?.toFixed(2))} {w.original.unit}

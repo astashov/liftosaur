@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Button } from "../button";
 import { MenuItemEditable } from "../menuItemEditable";
 import { Modal } from "../modal";

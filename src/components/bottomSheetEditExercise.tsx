@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { BottomSheet } from "./bottomSheet";
 import { IconEditSquare } from "./icons/iconEditSquare";

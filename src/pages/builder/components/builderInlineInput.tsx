@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-expressions */
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef } from "react";
 
-export interface IBuilderInlineInputProps extends JSX.HTMLAttributes<HTMLInputElement> {
-  style?: JSX.CSSProperties;
+export interface IBuilderInlineInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  style?: React.CSSProperties;
   minWidth?: number;
   onInputInt?: (value: number) => void;
   onInputFloat?: (value: number) => void;
@@ -24,7 +24,7 @@ export function BuilderInlineInput(props: IBuilderInlineInputProps): JSX.Element
       ref={elRef}
       className={`min-w-0 font-bold border-none ${className}`}
       style={{ width: `${length}ch`, ...(style || {}) }}
-      onInput={(e) => {
+      onInput={(e: React.FormEvent<HTMLInputElement>) => {
         if (e.target instanceof HTMLInputElement) {
           const value = e.target.value;
           const int = parseInt(value, 10);

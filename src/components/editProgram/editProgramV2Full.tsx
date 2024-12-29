@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import {
@@ -11,7 +11,7 @@ import {
 import { Modal } from "../modal";
 import { lb, lbu, LensBuilder } from "lens-shmens";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
-import { useMemo } from "preact/hooks";
+import { useMemo } from "react";
 import { CollectionUtils } from "../../utils/collection";
 import { Button } from "../button";
 import { IconMusclesW } from "../icons/iconMusclesW";

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { ProgramSet } from "../models/programSet";
 import { Reps } from "../models/set";
 import { Weight } from "../models/weight";
@@ -58,8 +58,8 @@ export function HistoryRecordSetsView(props: {
   const hasRpe = displayGroups.some((group) => group.some((set) => set.rpe || set.completedRpe));
   return (
     <div className={`flex ${props.noWrap ? "" : "flex-wrap"}`}>
-      {displayGroups.map((g) => (
-        <HistoryRecordSet sets={g} isNext={props.isNext} hasRpe={hasRpe} />
+      {displayGroups.map((g, i) => (
+        <HistoryRecordSet key={i} sets={g} isNext={props.isNext} hasRpe={hasRpe} />
       ))}
     </div>
   );

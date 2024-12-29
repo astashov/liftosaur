@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
+import React, { JSX } from "react";
+import { memo } from "react";
 import { inputClassName } from "../../../components/input";
 import { Weight } from "../../../models/weight";
 import { IPercentage, IProgramState, ISettings, IWeight } from "../../../types";
@@ -24,7 +24,7 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
     const val = typeof variable === "number" ? variable : variable.value;
     return (
       <li data-cy={`state-var-${key}`} className="flex items-center pb-2">
-        <label className="pr-2 font-bold" for={name}>
+        <label className="pr-2 font-bold" htmlFor={name}>
           {key}
         </label>
         <input
@@ -34,7 +34,7 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
           name={name}
           type={SendMessage.isIos() ? "number" : "tel"}
           value={val}
-          onInput={(e) => {
+          onInput={(e: React.FormEvent<HTMLInputElement>) => {
             const newValStr = (e.target as HTMLInputElement).value;
             const newVal = newValStr ? parseInt(newValStr, 10) : undefined;
             if (newVal != null && !isNaN(newVal)) {

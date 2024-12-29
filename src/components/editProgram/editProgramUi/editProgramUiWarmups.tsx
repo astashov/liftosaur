@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { Exercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";
 import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";

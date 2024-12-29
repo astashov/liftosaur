@@ -1,5 +1,6 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { JSX } from "react";
+import { useEffect, useRef } from "react";
 import { StringUtils } from "../utils/string";
 
 interface IProps {
@@ -14,8 +15,8 @@ interface IProps {
 export function ScrollBarrell(props: IProps): JSX.Element {
   const height = props.itemHeight * props.numberOfVisibleItems;
   const numberOfDummyItems = Math.floor(props.numberOfVisibleItems / 2);
-  const containerRef = useRef<HTMLDivElement>();
-  const barrelRef = useRef<HTMLDivElement>();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const barrelRef = useRef<HTMLDivElement>(null);
   const timer = useRef<number | undefined>(undefined);
   const isDefaultSet = useRef<boolean>(false);
   const isTurnedOn = useRef<boolean>(props.isExpanded);
@@ -96,7 +97,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
       <div
         className="relative w-full h-full overflow-scroll"
         ref={barrelRef}
-        style={{ overflowScrolling: "touch", scrollSnapType: "y mandatory" }}
+        style={{ overflowScrolling: "touch", scrollSnapType: "y mandatory" } as any}
       >
         {Array.apply(null, Array(numberOfDummyItems)).map(() => (
           <div
@@ -111,7 +112,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
             style={{ minHeight: `${props.itemHeight}px`, scrollSnapAlign: "start" }}
             onClick={() => {
               props.onSelect(value);
-              barrelRef.current.scrollTo({ top: index * props.itemHeight, behavior: "smooth" });
+              barrelRef.current!.scrollTo({ top: index * props.itemHeight, behavior: "smooth" });
             }}
           >
             {StringUtils.truncate(label, 35)}

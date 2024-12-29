@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import UPlot from "uplot";
-import { useRef, useEffect, useState } from "preact/hooks";
+import { useRef, useEffect, useState } from "react";
 import { CollectionUtils } from "../utils/collection";
 import { DateUtils } from "../utils/date";
 import { Exercise, equipmentName } from "../models/exercise";
@@ -139,7 +139,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
   const graphGoToHistoryRecordFnName = `graphGoToHistoryRecord${Exercise.toKey(props.exercise)}`;
   const units = props.settings.units;
   useEffect(() => {
-    const rect = graphRef.current.getBoundingClientRect();
+    const rect = graphRef.current!.getBoundingClientRect();
     const exercise = Exercise.get(props.exercise, props.settings.exercises);
     const result = getData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData);
     const data = result.data;
@@ -176,22 +176,22 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                 let text: string;
                 if (weight != null && units != null && reps != null) {
                   if (props.selectedType === "weight") {
-                    text = `<div><div class="text-center">${DateUtils.format(
+                    text = `<div><div className="text-center">${DateUtils.format(
                       date
                     )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
                     if (props.isWithOneRm && onerm != null) {
                       text += `, 1RM = <strong>${onerm.toFixed(2)}</strong> ${units}s`;
                     }
                     if (historyRecord != null && dispatch) {
-                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2 nm-graph-exercise-workout">Workout</button>`;
+                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" className="font-bold underline border-none workout-link text-bluev2 nm-graph-exercise-workout">Workout</button>`;
                     }
                     text += "</span>";
                   } else {
-                    text = `<div><div class="text-center">${DateUtils.format(
+                    text = `<div><div className="text-center">${DateUtils.format(
                       date
                     )}, Volume: <strong>${volume} ${units}s</strong>`;
                     if (historyRecord != null && dispatch) {
-                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2 nm-graph-exercise-workout">Workout</button>`;
+                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" className="font-bold underline border-none workout-link text-bluev2 nm-graph-exercise-workout">Workout</button>`;
                     }
                     text += "</span>";
                   }
@@ -206,12 +206,12 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                   .map((e) => e.notes)
                   .filter((e) => e);
                 if (historyRecord.notes || entryNotes.length > 0) {
-                  text += "<div class='text-sm text-grayv2-main'>";
+                  text += "<div className='text-sm text-grayv2-main'>";
                   if (entryNotes.length > 0) {
                     text += `<ul>${entryNotes.map((e) => `<li>${HtmlUtils.escapeHtml(e || "")}</li>`)}</ul>`;
                   }
                   if (historyRecord.notes) {
-                    text += `<div><span class='font-bold'>Workout: </span><span>${HtmlUtils.escapeHtml(
+                    text += `<div><span className='font-bold'>Workout: </span><span>${HtmlUtils.escapeHtml(
                       historyRecord.notes || ""
                     )}</span></div>`;
                   }
@@ -237,7 +237,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                 if (groups.length > 0) {
                   text += `<ul>${groups
                     .map(([a, b]) => {
-                      return `<li class="flex flex-row gap-4 text-xs"><div class="flex-1">${a}</div><div class="flex-1">${
+                      return `<li className="flex flex-row gap-4 text-xs"><div className="flex-1">${a}</div><div className="flex-1">${
                         b ?? ""
                       }</div></li>`;
                     })
@@ -246,7 +246,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
 
                 text += "</div>";
                 if (legendRef.current != null) {
-                  legendRef.current.innerHTML = text;
+                  legendRef.current!.innerHTML = text;
                   selectedHistoryRecordRef.current = historyRecord;
                 }
               },
@@ -300,9 +300,9 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
       ],
     };
 
-    const uplot = new UPlot(opts, data, graphRef.current);
+    const uplot = new UPlot(opts, data, graphRef.current!);
 
-    const underEl = graphRef.current.querySelector(".over");
+    const underEl = graphRef.current!.querySelector(".over");
     const underRect = underEl?.getBoundingClientRect();
 
     function handler(): void {

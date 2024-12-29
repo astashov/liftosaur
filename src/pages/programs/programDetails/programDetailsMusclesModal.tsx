@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Modal } from "../../../components/modal";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { IPoints, Muscle } from "../../../models/muscle";

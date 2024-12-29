@@ -1,6 +1,6 @@
 import { IDispatch } from "../ducks/types";
-import { JSX, h } from "preact";
-import { useRef, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef, useState } from "react";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { Weight } from "../models/weight";
@@ -182,7 +182,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             onClick={() => {
               const repsValue = MathUtils.round(MathUtils.clamp(reps, 1), 1);
               const rpeValue = enableRpe ? MathUtils.round(MathUtils.clamp(rpe, 0, 10), 0.5) : undefined;
-              const isAmrap = !!(isAmrapInput.current?.checked || false);
+              const isAmrap = !!(isAmrapInput.current!.checked || false);
               const newSet: ISet = {
                 reps: repsValue,
                 weight,

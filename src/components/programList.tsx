@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { Program } from "../models/program";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
@@ -8,7 +8,7 @@ import { IProgram, ISettings, IEquipment } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { LinkButton } from "./linkButton";
-import { useState } from "preact/compat";
+import { useState } from "react";
 import { IconTrash } from "./icons/iconTrash";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { Exercise, IExercise } from "../models/exercise";
@@ -68,7 +68,7 @@ export function ProgramListView(props: IProps): JSX.Element {
               }}
               value={
                 isEditMode ? (
-                  <Fragment>
+                  <>
                     <button
                       className="p-2 align-middle button nm-program-list-edit-program"
                       onClick={() => {
@@ -97,7 +97,7 @@ export function ProgramListView(props: IProps): JSX.Element {
                     >
                       <IconTrash />
                     </button>
-                  </Fragment>
+                  </>
                 ) : (
                   <span className="inline-block">
                     <IconArrowRight />
@@ -110,7 +110,7 @@ export function ProgramListView(props: IProps): JSX.Element {
       )}
 
       {programs.length > 0 && (
-        <Fragment>
+        <>
           {props.customPrograms && props.customPrograms.length > 0 ? (
             <GroupHeader name="Or clone from built-in programs" />
           ) : null}
@@ -125,7 +125,7 @@ export function ProgramListView(props: IProps): JSX.Element {
               />
             ))}
           </div>
-        </Fragment>
+        </>
       )}
     </div>
   );

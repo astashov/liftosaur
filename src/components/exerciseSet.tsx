@@ -1,8 +1,8 @@
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
+import React, { JSX } from "react";
+import { memo } from "react";
 import { Reps } from "../models/set";
 import { IExerciseType, ISettings, ISet } from "../types";
-import { useCallback, useRef } from "preact/hooks";
+import { useCallback, useRef } from "react";
 import { n } from "../utils/math";
 
 interface IProps {
@@ -132,14 +132,14 @@ function ExerciseSetBase(props: IExerciseSetBaseProps): JSX.Element {
       data-help={`Press here to record completed ${props.title} reps, press again to lower completed reps.`}
       data-help-width={200}
       data-cy={props.cy}
-      onTouchStart={onDown}
-      onTouchMove={onMove}
-      onTouchEnd={onUp}
-      onMouseDown={onDown}
-      onMouseMove={onMove}
-      onMouseUp={onUp}
+      onTouchStart={onDown ? (e) => onDown(e.nativeEvent) : undefined}
+      onTouchMove={onMove ? (e) => onMove(e.nativeEvent) : undefined}
+      onTouchEnd={onUp ? (e) => onUp(e.nativeEvent) : undefined}
+      onMouseDown={onDown ? (e) => onDown(e.nativeEvent) : undefined}
+      onMouseMove={onMove ? (e) => onMove(e.nativeEvent) : undefined}
+      onMouseUp={onUp ? (e) => onUp(e.nativeEvent) : undefined}
       className={`${className} nm-${props.cy}`}
-      onClick={onClick}
+      onClick={onClick ? (e) => onClick(e.nativeEvent) : undefined}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
       {props.rightSuperstring != null && (
@@ -189,7 +189,7 @@ function useLongPress(
   const startPos = useRef<{ x: number; y: number; time: number } | undefined>(undefined);
   const currentPos = useRef<{ x: number; y: number } | undefined>(undefined);
   const wasLongPress = useRef<boolean>(false);
-  const timerRef = useRef<number | undefined>();
+  const timerRef = useRef<number | undefined>(null);
 
   const onDown = useCallback(
     (e: MouseEvent | TouchEvent) => {
@@ -208,8 +208,8 @@ function useLongPress(
         timerRef.current = undefined;
         if (startPos.current != null && currentPos.current != null) {
           const { x, y } = currentPos.current;
-          const dx = x - startPos.current.x;
-          const dy = y - startPos.current.y;
+          const dx = x - startPos.current!.x;
+          const dy = y - startPos.current!.y;
           if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
             onLongPress();
             wasLongPress.current = true;

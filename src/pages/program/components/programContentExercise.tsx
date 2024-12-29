@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { IconCloseCircleOutline } from "../../../components/icons/iconCloseCircleOutline";
 import { IconDuplicate2 } from "../../../components/icons/iconDuplicate2";
@@ -52,7 +52,18 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
       >
         {props.handleTouchStart && (
           <div className="p-2 mr-1 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-            <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
+            <span
+              onMouseDown={(e) => {
+                if (props.handleTouchStart) {
+                  props.handleTouchStart(e.nativeEvent);
+                }
+              }}
+              onTouchStart={(e) => {
+                if (props.handleTouchStart) {
+                  props.handleTouchStart(e.nativeEvent);
+                }
+              }}
+            >
               <IconHandle />
             </span>
           </div>

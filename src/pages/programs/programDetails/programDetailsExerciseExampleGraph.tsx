@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import UPlot from "uplot";
-import { useRef, useEffect } from "preact/hooks";
+import { useRef, useEffect } from "react";
 import { IHistoryEntry } from "../../../types";
 import { GraphsPlugins } from "../../../utils/graphsPlugins";
 
@@ -17,7 +17,7 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const rect = graphRef.current.getBoundingClientRect();
+    const rect = graphRef.current!.getBoundingClientRect();
     const opts: UPlot.Options = {
       title: props.title,
       class: "graph-program-details-example",
@@ -63,9 +63,9 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
       }),
     ];
 
-    const uplot = new UPlot(opts, data, graphRef.current);
+    const uplot = new UPlot(opts, data, graphRef.current!);
 
-    const underEl = graphRef.current.querySelector(".over");
+    const underEl = graphRef.current!.querySelector(".over");
     const underRect = underEl?.getBoundingClientRect();
 
     function handler(): void {

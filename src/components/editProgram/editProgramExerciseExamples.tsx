@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IProgramExerciseExample } from "../../models/programExercise";
 import { Weight } from "../../models/weight";
 import { StringUtils } from "../../utils/string";

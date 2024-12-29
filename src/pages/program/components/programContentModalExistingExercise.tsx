@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useRef, useState, useEffect } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Modal } from "../../../components/modal";
 import { IExerciseId, IProgram, ISettings } from "../../../types";
 import { StringUtils } from "../../../utils/string";
@@ -22,7 +22,7 @@ export function ProgramContentModalExistingExercise(props: IProgramContentModalE
   );
   useEffect(() => {
     if (!props.isHidden) {
-      textInput.current.value = "";
+      textInput.current!.value = "";
       setFilter("");
     }
   }, [!!props.isHidden]);
@@ -30,7 +30,7 @@ export function ProgramContentModalExistingExercise(props: IProgramContentModalE
   return (
     <Modal
       isHidden={props.isHidden}
-      autofocusInputRef={textInput}
+      autofocusInputRef={textInput!}
       shouldShowClose={true}
       onClose={() => props.onChange()}
     >
@@ -51,7 +51,7 @@ export function ProgramContentModalExistingExercise(props: IProgramContentModalE
           type="text"
           placeholder="Filter"
           onInput={() => {
-            setFilter(textInput.current.value.toLowerCase());
+            setFilter(textInput.current!.value.toLowerCase());
           }}
         />
         {availableExercises.map((programExercise) => {

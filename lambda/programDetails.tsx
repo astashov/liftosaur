@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 import { ProgramDetailsHtml } from "../src/pages/programs/programDetailsHtml";
 import { IProgram } from "../src/types";
 

@@ -1,4 +1,4 @@
-import { Reducer } from "preact/hooks";
+import { Reducer } from "react";
 import { IAction, reducerWrapper } from "../../src/ducks/reducer";
 import { Storage } from "../../src/models/storage";
 import { Thunk } from "../../src/ducks/thunks";

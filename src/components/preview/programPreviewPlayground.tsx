@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
+import React, { JSX } from "react";
+import { memo } from "react";
 import { IHistoryRecord, IProgram, ISettings } from "../../types";
 import { Program } from "../../models/program";
 import { ProgramPreviewPlaygroundDay } from "./programPreviewPlaygroundDay";

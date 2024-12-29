@@ -1,9 +1,9 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 
 interface IProps {
   isChecked: boolean;
   color?: string;
-  style?: JSX.CSSProperties;
+  style?: React.CSSProperties;
   className?: string;
 }
 

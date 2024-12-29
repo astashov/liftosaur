@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { BuilderLinkInlineInput } from "../../builder/components/builderInlineInput";
 import { LinkButton } from "../../../components/linkButton";
 import { CollectionUtils } from "../../../utils/collection";

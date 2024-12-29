@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 import { LensBuilder, lb } from "lens-shmens";
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import { PlannerEditorCustomCta } from "../../pages/planner/components/plannerEditorCustomCta";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";

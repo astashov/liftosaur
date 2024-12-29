@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import "../../models/state";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { History } from "../../models/history";
@@ -25,10 +25,10 @@ export function UserContent(props: IProps): JSX.Element {
     <section className="px-6">
       <h1 className="mb-6">
         {settings.nickname ? (
-          <Fragment>
+          <>
             <div className="text-sm text-gray-500 uppercase">User Profile</div>
             <div className="text-3xl font-bold">{settings.nickname}</div>
-          </Fragment>
+          </>
         ) : (
           <span className="text-3xl font-bold">User Profile</span>
         )}
@@ -49,14 +49,14 @@ export function UserContent(props: IProps): JSX.Element {
           )}
         </div>
       )}
-      <Fragment>
+      <>
         <h2 className="my-4 text-xl font-bold">{hasMainLifts ? "Rest Lifts Progress" : "Lifts Progress"}</h2>
         {ObjectUtils.keys(maxSets).map((id) =>
           mainLifts.indexOf(id) === -1 ? (
             <Entry exerciseTypeStr={id} maxSet={maxSets[id]!} history={history} settings={settings} />
           ) : undefined
         )}
-      </Fragment>
+      </>
     </section>
   );
 }

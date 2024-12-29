@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { focusedToStr, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { IDayData, ISettings } from "../../types";

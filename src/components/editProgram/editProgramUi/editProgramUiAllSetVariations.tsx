@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { IPlannerProgramExercise, IPlannerState } from "../../../pages/planner/models/types";
 import { IDayData, ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, render } from "preact";
+import React from "react";
+import { createRoot } from "react-dom/client";
 import RB from "rollbar";
 import { RollbarUtils } from "./utils/rollbar";
 
@@ -41,9 +42,8 @@ async function initialize(loadedData: unknown): Promise<void> {
   (window as any).state = initialState;
   (window as any).service = new Service(window.fetch.bind(window));
   const queue = new AsyncQueue();
-  render(
-    <AppView initialState={initialState} client={client} audio={audio} queue={queue} />,
-    document.getElementById("app")!
+  createRoot(document.getElementById("app")!).render(
+    <AppView initialState={initialState} client={client} audio={audio} queue={queue} />
   );
 }
 

@@ -1,9 +1,9 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { ExerciseView } from "./exercise";
 import { IDispatch } from "../ducks/types";
 import { Progress } from "../models/progress";
 import { Button } from "./button";
-import { memo } from "preact/compat";
+import { memo } from "react";
 import {
   IHistoryRecord,
   IProgram,
@@ -131,6 +131,7 @@ export const CardsView = memo(
 
           return (
             <ExerciseView
+              key={Exercise.toKey(entry.exercise)}
               programMode={Program.programMode(props.program)}
               history={props.history}
               helps={props.helps}
@@ -182,7 +183,7 @@ export const CardsView = memo(
             name="workout-notes"
             placeholder="The workout went very well..."
             value={props.progress.notes}
-            onInput={(e) => {
+            onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
               const target = e.target;
               if (target instanceof HTMLTextAreaElement) {
                 Progress.editNotes(props.dispatch, props.progress.id, target.value);

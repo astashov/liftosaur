@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 
 interface IProps {
   style?: { [key: string]: string | number };
@@ -29,8 +29,8 @@ export function IconSpeaker(props: IProps): JSX.Element {
         fill={color}
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M2 17.4509C2 16.3199 2.89543 15.403 4 15.403H12.6291C12.7507 15.403 12.8682 15.3576 12.9595 15.2753L22.6785 6.51473C23.9704 5.35024 26 6.28953 26 8.05191V39.9481C26 41.7105 23.9704 42.6498 22.6785 41.4853L12.9595 32.7247C12.8682 32.6424 12.7507 32.597 12.6291 32.597H4C2.89543 32.597 2 31.6801 2 30.5491V17.4509Z"
         fill={color}
       />

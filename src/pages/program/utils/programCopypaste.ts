@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { useEffect } from "preact/hooks";
+import { useEffect } from "react";
 import { IProgramEditorState, IProgramEditorUiSelected } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { ICustomExercise, IProgramExercise } from "../../../types";
@@ -26,7 +26,7 @@ export function useCopyPaste(state: IProgramEditorState, dispatch: ILensDispatch
           (await ClipboardUtils.canReadTextFromClipboard())
         ) {
           const copypaste: ICopyPaste[] = [];
-          const program = state.current.program;
+          const program = state.current!.program;
           for (const selected of selectedExercises) {
             const programExercise = Program.getProgramExercise(program, selected.exerciseId);
             if (programExercise != null) {
@@ -70,7 +70,7 @@ export function useCopyPaste(state: IProgramEditorState, dispatch: ILensDispatch
           const dayIndex = selectedExercise?.dayIndex;
           const selectedIndex =
             dayIndex != null
-              ? state.current.program.days[dayIndex].exercises.findIndex((e) => e.id === selectedExercise.exerciseId)
+              ? state.current!.program.days[dayIndex].exercises.findIndex((e) => e.id === selectedExercise.exerciseId)
               : undefined;
           const newSelection: IProgramEditorUiSelected[] = [];
           for (const copypaste of copypastes || []) {
@@ -92,7 +92,7 @@ export function useCopyPaste(state: IProgramEditorState, dispatch: ILensDispatch
               }
             }
 
-            const existingExercise = Program.getProgramExercise(state.current.program, id);
+            const existingExercise = Program.getProgramExercise(state.current!.program, id);
             if (!existingExercise) {
               dispatch(
                 lb<IProgramEditorState>()

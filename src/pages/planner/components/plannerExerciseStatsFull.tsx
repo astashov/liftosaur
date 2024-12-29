@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { LinkButton } from "../../../components/linkButton";
 import { Exercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";

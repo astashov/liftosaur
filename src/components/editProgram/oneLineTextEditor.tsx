@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useEffect, useRef } from "react";
 import { IEither } from "../../utils/types";
 import { EvalResultInEditor } from "../evalResultInEditor";
 import type { CodeEditor } from "../../editor";
@@ -18,7 +18,7 @@ interface IProps {
 let editorImport: Promise<{ CodeEditor: typeof CodeEditor }>;
 
 export function OneLineTextEditor(props: IProps): JSX.Element {
-  const divRef = useRef<HTMLDivElement>();
+  const divRef = useRef<HTMLDivElement>(null);
   const codeEditor = useRef<CodeEditor | undefined>(undefined);
 
   const onChange = (value: string): void => {
@@ -29,7 +29,7 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (codeEditor.current) {
-      codeEditor.current.updateState(props.state);
+      codeEditor.current!.updateState(props.state);
     }
   }, [props.state]);
 

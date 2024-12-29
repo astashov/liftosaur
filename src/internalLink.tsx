@@ -1,11 +1,11 @@
-import { h, JSX, ComponentChildren } from "preact";
+import React, { JSX } from "react";
 import { SendMessage } from "./utils/sendMessage";
 import { UrlUtils } from "./utils/url";
 
 interface IProps {
   href: string;
   className?: string;
-  children: ComponentChildren;
+  children: React.ReactNode;
   name: string;
 }
 

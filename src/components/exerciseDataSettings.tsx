@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { Exercise, equipmentName, IExercise } from "../models/exercise";
 import { updateState, IState } from "../models/state";

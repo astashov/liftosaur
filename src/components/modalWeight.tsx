@@ -1,6 +1,6 @@
 import { IDispatch } from "../ducks/types";
-import { JSX, h } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { Weight } from "../models/weight";

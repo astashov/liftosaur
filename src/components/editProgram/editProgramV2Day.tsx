@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 import { LensBuilder } from "lens-shmens";
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useState } from "react";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { IPlannerProgramDay, IPlannerProgram, ISettings, IDayData } from "../../types";
@@ -52,7 +52,18 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
       <div className="flex-1">
         <div className="flex items-center">
           <div className="p-2 cursor-move" style={{ marginLeft: "-12px", touchAction: "none" }}>
-            <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
+            <span
+              onMouseDown={(e) => {
+                if (props.handleTouchStart) {
+                  props.handleTouchStart(e.nativeEvent);
+                }
+              }}
+              onTouchStart={(e) => {
+                if (props.handleTouchStart) {
+                  props.handleTouchStart(e.nativeEvent);
+                }
+              }}
+            >
               <IconHandle />
             </span>
           </div>

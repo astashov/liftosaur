@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef } from "react";
 import { Program } from "../../models/program";
 import { ProgramExercise } from "../../models/programExercise";
 import { IProgramExercise, ISettings, IProgramSet } from "../../types";
@@ -36,12 +36,12 @@ export function EditProgramExerciseSimpleRow(props: IEditProgramExerciseSimpleRo
     "weight"
   );
 
-  const setsRef = useRef<HTMLInputElement>();
-  const repsRef = useRef<HTMLInputElement>();
-  const weightRef = useRef<HTMLInputElement>();
+  const setsRef = useRef<HTMLInputElement>(null);
+  const repsRef = useRef<HTMLInputElement>(null);
+  const weightRef = useRef<HTMLInputElement>(null);
 
   function getSetsNum(): number | undefined {
-    const value = setsRef.current.value;
+    const value = setsRef.current!.value;
     if (value != null) {
       let setsNum = parseInt(value, 10);
       if (isNaN(setsNum)) {
@@ -54,7 +54,7 @@ export function EditProgramExerciseSimpleRow(props: IEditProgramExerciseSimpleRo
   }
 
   function getRepsNum(): number | undefined {
-    const value = repsRef.current.value;
+    const value = repsRef.current!.value;
     if (value != null) {
       let repsNum = parseInt(value, 10);
       if (isNaN(repsNum)) {
@@ -67,7 +67,7 @@ export function EditProgramExerciseSimpleRow(props: IEditProgramExerciseSimpleRo
   }
 
   function getWeightNum(): number | undefined {
-    const value = weightRef.current.value;
+    const value = weightRef.current!.value;
     if (value != null) {
       let weightNum = parseFloat(value);
       if (isNaN(weightNum)) {

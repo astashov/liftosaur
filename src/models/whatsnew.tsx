@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { ObjectUtils } from "../utils/object";
 import { IDispatch } from "../ducks/types";
 import { DateUtils } from "../utils/date";

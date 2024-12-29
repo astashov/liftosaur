@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { DraggableList } from "../../../components/draggableList";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { GroupHeader } from "../../../components/groupHeader";
@@ -39,7 +39,18 @@ export function ProgramContentEditWeeks(props: IProgramContentEditWeeksProps): J
               <section className="flex w-full px-2 py-1 text-left">
                 <div className="flex flex-col">
                   <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-                    <span onMouseDown={handleTouchStart} onTouchStart={handleTouchStart}>
+                    <span
+                      onMouseDown={(e) => {
+                        if (handleTouchStart) {
+                          handleTouchStart(e.nativeEvent);
+                        }
+                      }}
+                      onTouchStart={(e) => {
+                        if (handleTouchStart) {
+                          handleTouchStart(e.nativeEvent);
+                        }
+                      }}
+                    >
                       <IconHandle />
                     </span>
                   </div>
@@ -115,7 +126,18 @@ export function ProgramContentEditWeeks(props: IProgramContentEditWeeksProps): J
                                   className="p-2 mr-1 cursor-move"
                                   style={{ marginLeft: "-16px", touchAction: "none" }}
                                 >
-                                  <span onMouseDown={handleTouchStart2} onTouchStart={handleTouchStart2}>
+                                  <span
+                                    onMouseDown={(e) => {
+                                      if (handleTouchStart2) {
+                                        handleTouchStart2(e.nativeEvent);
+                                      }
+                                    }}
+                                    onTouchStart={(e) => {
+                                      if (handleTouchStart2) {
+                                        handleTouchStart2(e.nativeEvent);
+                                      }
+                                    }}
+                                  >
                                     <IconHandle />
                                   </span>
                                 </div>

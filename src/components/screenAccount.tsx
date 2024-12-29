@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { ILoading } from "../models/state";
@@ -9,7 +9,7 @@ import { Footer2View } from "./footer2";
 import { Button } from "./button";
 import { HelpAccount } from "./help/helpAccount";
 import { Account, IAccount } from "../models/account";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState } from "react";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { IconDoc } from "./icons/iconDoc";

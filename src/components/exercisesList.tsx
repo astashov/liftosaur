@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useRef, useState } from "preact/hooks";
+import React, { JSX } from "react";
+import { useRef, useState } from "react";
 import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Equipment } from "../models/equipment";
@@ -125,7 +125,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           value={filter}
           placeholder="Filter by name"
           onInput={() => {
-            setFilter(textInput.current.value.toLowerCase());
+            setFilter(textInput.current!.value.toLowerCase() ?? "");
           }}
         />
         <Multiselect

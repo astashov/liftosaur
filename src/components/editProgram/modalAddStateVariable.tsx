@@ -1,7 +1,7 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Modal } from "../modal";
 import { Button } from "../button";
-import { useRef, useState } from "preact/hooks";
+import { useRef, useState } from "react";
 import { GroupHeader } from "../groupHeader";
 import { MenuItemEditable } from "../menuItemEditable";
 import { Input } from "../input";
@@ -12,7 +12,7 @@ interface IProps {
 }
 
 export function ModalAddStateVariable(props: IProps): JSX.Element {
-  const textInput = useRef<HTMLInputElement>();
+  const textInput = useRef<HTMLInputElement>(null);
   const [type, setType] = useState("");
   const [userPrompted, setUserPrompted] = useState(false);
   const [isEnabled, setIsEnabled] = useState(false);
@@ -103,7 +103,7 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
             type="submit"
             disabled={!isEnabled}
             onClick={() => {
-              if (isEnabled && textInput.current?.value) {
+              if (isEnabled && textInput.current!.value) {
                 props.onDone(textInput.current!.value, type, userPrompted);
                 clear();
               }
