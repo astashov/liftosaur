@@ -49,6 +49,16 @@ module.exports = {
         use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
       },
       {
+        test: /\.(gif|jpe?g|png|svg)$/,
+        use: {
+          loader: "url-loader",
+          options: {
+            name: "[name].[ext]",
+            esModule: false,
+          },
+        },
+      },
+      {
         test: /\.tsx?$/,
         use: [
           {
@@ -74,10 +84,11 @@ module.exports = {
         use: {
           loader: "babel-loader",
           options: {
-            presets: ["@babel/preset-env"],
+            cacheDirectory: true,
+            presets: ["module:@react-native/babel-preset"],
+            plugins: ["react-native-web"],
           },
         },
-        exclude: /node_modules/,
       },
     ],
   },
@@ -93,9 +104,10 @@ module.exports = {
     },
   },
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".css"],
+    extensions: [".web.js", ".js", ".jsx", ".ts", ".tsx", ".css"],
     alias: {
       "react-native$": "react-native-web",
+      "react-native-svg": "react-native-svg-web",
     },
   },
   plugins: [

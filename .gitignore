@@ -27,3 +27,4 @@ cloudflare.*
 # Ruby / CocoaPods
 **/Pods/
 /vendor/bundle/
+/ios/build
