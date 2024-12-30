@@ -1538,8 +1538,8 @@ export namespace WhatsNew {
   }
 
   export function newUpdates(lastDateStr: string): Record<string, IWhatsNew> {
-    const url = UrlUtils.build(window.location.href);
-    const forcedUserEmail = url.searchParams.get("forceuseremail");
+    const url = typeof document !== "undefined" ? UrlUtils.build(document.location.href) : undefined;
+    const forcedUserEmail = url?.searchParams.get("forceuseremail");
     if (forcedUserEmail != null) {
       return {};
     }

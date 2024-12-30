@@ -104,7 +104,7 @@ module.exports = {
     },
   },
   resolve: {
-    extensions: [".web.js", ".js", ".jsx", ".ts", ".tsx", ".css"],
+    extensions: [".web.tsx", ".web.ts", ".web.js", ".js", ".jsx", ".ts", ".tsx", ".css"],
     alias: {
       "react-native$": "react-native-web",
       "react-native-svg": "react-native-svg-web",

@@ -36,14 +36,17 @@ import deepmerge from "deepmerge";
 import { Exercise } from "../models/exercise";
 import { SendMessage } from "../utils/sendMessage";
 
+console.log("1");
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
     ? !!UrlUtils.build(window.location.href).searchParams.get("log")
     : false;
+console.log("2");
 const shouldSkipIntro =
   typeof window !== "undefined" && window?.location
     ? !!UrlUtils.build(window.location.href).searchParams.get("skipintro")
     : false;
+console.log("3");
 
 export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<string> {
   const currentAccount = await IndexedDBUtils.get("current_account");
@@ -58,10 +61,10 @@ export async function getInitialState(
   client: Window["fetch"],
   args?: { url?: URL; rawStorage?: string; storage?: IStorage }
 ): Promise<IState> {
-  const url = args?.url || UrlUtils.build(document.location.href);
-  const messageerror = url.searchParams.get("messageerror") || undefined;
-  const messagesuccess = url.searchParams.get("messagesuccess") || undefined;
-  const nosync = url.searchParams.get("nosync") === "true";
+  const url = args?.url || (typeof document !== "undefined" ? UrlUtils.build(document.location.href) : undefined);
+  const messageerror = url?.searchParams.get("messageerror") || undefined;
+  const messagesuccess = url?.searchParams.get("messagesuccess") || undefined;
+  const nosync = url?.searchParams.get("nosync") === "true";
   let storage: ILocalStorage | undefined;
   if (args?.storage) {
     storage = { storage: args.storage };
@@ -411,52 +414,54 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   ];
 }
 
-export const reducerWrapper = (storeToLocalStorage: boolean): Reducer<IState, IAction> => (state, action) => {
-  if (typeof window !== "undefined") {
-    window.reducerLastState = state;
-    window.reducerLastActions = [
-      { ...action, time: DateUtils.formatHHMMSS(Date.now(), true) },
-      ...(window.reducerLastActions || []).slice(0, 30),
-    ];
-  }
-  const newState = reducer(state, action);
-  if (!newState.reportedCorruptedStorage && newState.storage !== state.storage) {
-    const validateResult = Storage.validateAndReportStorage(newState.storage);
-    if (!validateResult.success) {
-      newState.reportedCorruptedStorage = true;
+export const reducerWrapper =
+  (storeToLocalStorage: boolean): Reducer<IState, IAction> =>
+  (state, action) => {
+    if (typeof window !== "undefined") {
+      window.reducerLastState = state;
+      window.reducerLastActions = [
+        { ...action, time: DateUtils.formatHHMMSS(Date.now(), true) },
+        ...(window.reducerLastActions || []).slice(0, 30),
+      ];
     }
-  }
+    const newState = reducer(state, action);
+    if (!newState.reportedCorruptedStorage && newState.storage !== state.storage) {
+      const validateResult = Storage.validateAndReportStorage(newState.storage);
+      if (!validateResult.success) {
+        newState.reportedCorruptedStorage = true;
+      }
+    }
 
-  if (typeof window !== "undefined") {
-    window.tempUserId = newState.storage.tempUserId;
-    if (timerId != null) {
-      window.clearTimeout(timerId);
+    if (typeof window !== "undefined") {
+      window.tempUserId = newState.storage.tempUserId;
+      if (timerId != null) {
+        window.clearTimeout(timerId);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).state = newState;
+      if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
+        timerId = window.setTimeout(async () => {
+          clearTimeout(timerId);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const newState2: IState = (window as any).state;
+          timerId = undefined;
+          const userId = newState2.user?.id || newState.storage.tempUserId;
+          const localStorage: ILocalStorage = {
+            storage: newState2.storage,
+            lastSyncedStorage: newState2.lastSyncedStorage,
+            progress: newState2.progress[0],
+          };
+          try {
+            await IndexedDBUtils.set("current_account", userId);
+            await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
+          } catch (e) {
+            console.error(e);
+          }
+        }, 100);
+      }
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).state = newState;
-    if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
-      timerId = window.setTimeout(async () => {
-        clearTimeout(timerId);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const newState2: IState = (window as any).state;
-        timerId = undefined;
-        const userId = newState2.user?.id || newState.storage.tempUserId;
-        const localStorage: ILocalStorage = {
-          storage: newState2.storage,
-          lastSyncedStorage: newState2.lastSyncedStorage,
-          progress: newState2.progress[0],
-        };
-        try {
-          await IndexedDBUtils.set("current_account", userId);
-          await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
-        } catch (e) {
-          console.error(e);
-        }
-      }, 100);
-    }
-  }
-  return newState;
-};
+    return newState;
+  };
 
 export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, ICardsAction> {
   return (progress, action): IHistoryRecord => {
