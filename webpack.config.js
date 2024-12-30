@@ -34,6 +34,7 @@ module.exports = {
     userdashboard: ["./src/userdashboard.tsx", "./src/page.css", "./src/index.css"],
     usersdashboard: ["./src/usersdashboard.tsx", "./src/page.css", "./src/index.css"],
     "webpushr-sw": "./src/webpushr-sw.ts",
+    reactnative: "./rnsrc/index.web.tsx",
   },
   output: {
     filename: "[name].js",
@@ -68,6 +69,16 @@ module.exports = {
           },
         },
       },
+      {
+        test: /\.js$/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env"],
+          },
+        },
+        exclude: /node_modules/,
+      },
     ],
   },
   optimization: {
@@ -83,6 +94,9 @@ module.exports = {
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".css"],
+    alias: {
+      "react-native$": "react-native-web",
+    },
   },
   plugins: [
     new SourceMapDevToolPlugin({
@@ -113,6 +127,16 @@ module.exports = {
       {
         from: `src/index.html`,
         to: `app/index.html`,
+        transform: (content) => {
+          return content
+            .toString()
+            .replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`)
+            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${commitHash}`);
+        },
+      },
+      {
+        from: `rnsrc/index.html`,
+        to: `rnapp/index.html`,
         transform: (content) => {
           return content
             .toString()

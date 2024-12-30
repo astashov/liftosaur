@@ -23,3 +23,7 @@
 .cdk.staging
 cdk.out
 cloudflare.*
+
+# Ruby / CocoaPods
+**/Pods/
+/vendor/bundle/

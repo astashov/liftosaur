@@ -22,6 +22,7 @@
     "resolveJsonModule": true
   },
   "include": [
+    "rnsrc/**/*",
     "src/**/*",
     "server/**/*",
     "lambda/**/*",
@@ -29,6 +30,7 @@
     "test/**/*",
     "tests/**/*",
     "devserver.ts",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "rnsrc/index.web.tsx"
   ]
 }
