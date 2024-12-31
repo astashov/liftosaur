@@ -41,7 +41,7 @@ const SettingsScreen = (): JSX.Element => (
 );
 
 // Create Bottom Tabs
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator({});
 
 interface IAppProps {
   essentials: IInitializeEssentials;
