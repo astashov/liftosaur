@@ -17,6 +17,7 @@ import { Button } from "./button";
 import { Footer2View } from "./footer2";
 import { ModalImportFromLink } from "./modalImportFromLink";
 import { EditProgram } from "../models/editProgram";
+import { sendThunk } from "../utils/useLiftosaurThunkReducer";
 
 interface IProps {
   dispatch: IDispatch;
@@ -59,7 +60,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
               onPreview={() => Program.previewProgram(props.dispatch, program.id, false)}
               onSelect={() => {
                 Program.cloneProgram(props.dispatch, program, props.settings);
-                props.dispatch(Thunk.pushScreen("main"));
+                sendThunk(props.dispatch, "pushScreen", "main");
               }}
             />
           )}

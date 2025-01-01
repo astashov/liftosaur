@@ -21,6 +21,7 @@ module.exports = {
     repmax: ["./src/repmax.tsx", "./src/index.css"],
     allexercises: ["./src/allExercises.tsx", "./src/index.css"],
     app: ["./src/index.tsx", "./src/index.css"],
+    screen: ["./src/screen.tsx", "./src/index.css"],
     admin: ["./src/admin.tsx", "./src/admin.css"],
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
     user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
@@ -98,7 +99,7 @@ module.exports = {
         vendors: {
           test: /[\\/]node_modules[\\/]/,
           name: "vendors",
-          chunks: (chunk) => chunk.name === "app",
+          chunks: (chunk) => chunk.name === "app" || chunk.name === "screen",
         },
       },
     },
@@ -139,6 +140,16 @@ module.exports = {
       {
         from: `src/index.html`,
         to: `app/index.html`,
+        transform: (content) => {
+          return content
+            .toString()
+            .replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`)
+            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${commitHash}`);
+        },
+      },
+      {
+        from: `src/screen.html`,
+        to: `screen/index.html`,
         transform: (content) => {
           return content
             .toString()

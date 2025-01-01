@@ -35,6 +35,8 @@ import { Subscriptions } from "../utils/subscriptions";
 import deepmerge from "deepmerge";
 import { Exercise } from "../models/exercise";
 import { SendMessage } from "../utils/sendMessage";
+import { lensRegistry } from "../lensRegistry";
+import { ITail } from "../utils/types";
 
 console.log("1");
 const isLoggingEnabled =
@@ -229,6 +231,18 @@ export type IConfirmWeightAction = {
   programExercise?: IProgramExercise;
 };
 
+export type IThunkAction = {
+  type: "Thunk";
+  name: keyof typeof Thunk;
+  args: Parameters<(typeof Thunk)[keyof typeof Thunk]>;
+};
+
+export type ILensAction = {
+  type: "Lens";
+  name: keyof typeof lensRegistry;
+  args: ITail<Parameters<(typeof lensRegistry)[keyof typeof lensRegistry]>>;
+};
+
 export type IUpdateSettingsAction = {
   type: "UpdateSettings";
   lensRecording: ILensRecordingPayload<ISettings>;
@@ -297,6 +311,8 @@ export type ICardsAction =
   | IUpdateProgressAction;
 
 export type IAction =
+  | IThunkAction
+  | ILensAction
   | ICardsAction
   | IStartProgramDayAction
   | IFinishProgramDayAction
@@ -387,9 +403,11 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
     },
     (dispatch, action, oldState, newState) => {
       if (oldState.screenStack !== newState.screenStack) {
-        setTimeout(() => {
-          window.scroll(0, 0);
-        }, 0);
+        if (typeof window !== "undefined" && window.scroll) {
+          setTimeout(() => {
+            window.scroll(0, 0);
+          }, 0);
+        }
       }
     },
     (dispatch, action, oldState, newState) => {

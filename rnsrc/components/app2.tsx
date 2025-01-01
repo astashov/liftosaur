@@ -1,69 +1,118 @@
-import React, { useEffect, useRef } from "react";
-import { View, Text } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import "../global.css";
+import React, { createContext, useEffect, useRef } from "react";
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { IconDoc } from "../../src/components/icons/iconDoc";
 import { IconCog2 } from "../../src/components/icons/iconCog2";
-import { WebView } from "react-native-webview";
 import { IInitializeEssentials } from "../initialize";
 import { Service } from "../../src/api/service";
-import { useThunkReducer } from "../../src/utils/useThunkReducer";
 import { lb } from "lens-shmens";
-import { IAction, reducerWrapper, defaultOnActions } from "../../src/ducks/reducer";
+import { reducerWrapper, defaultOnActions } from "../../src/ducks/reducer";
 import { Thunk } from "../../src/ducks/thunks";
-import { Program } from "../../src/models/program";
 import { IEnv, IState, updateState } from "../../src/models/state";
-import { WhatsNew } from "../../src/models/whatsnew";
 import { SendMessage } from "../../src/utils/sendMessage";
 import { Subscriptions } from "../../src/utils/subscriptions";
 import { UrlUtils } from "../../src/utils/url";
+import tailwindConfig from "../../tailwind.config.js";
+import { IconRuler } from "../../src/components/icons/iconRuler";
+import { IconGraphs2 } from "../../src/components/icons/iconGraphs2";
+import { WebViewScreen } from "./webViewScreen";
+import { useLiftosaurThunkReducer } from "../../src/utils/useLiftosaurThunkReducer";
+import { IDispatch } from "../../src/ducks/types.js";
 
-// Screens
-const WebViewScreen = (): JSX.Element => (
-  <View style={{ flex: 1, justifyContent: "center", alignItems: "stretch" }}>
-    <WebView
-      source={{ uri: "https://local.liftosaur.com:8080/app/" }}
-      injectedJavaScript={`
-      window.appState = {};
-    `}
-      onMessage={(event) => {
-        console.log("Message from WebView:", event.nativeEvent.data);
-      }}
-      style={{ flex: 1 }}
-    />
-  </View>
-);
+const ProgramStack = (): JSX.Element => {
+  const Stack = createNativeStackNavigator();
+  return (
+    <Stack.Navigator>
+      <Stack.Screen options={{ headerShown: false }} name="onboarding" component={WebViewScreen} />
+      <Stack.Screen options={{ title: "Choose Program" }} name="programs" component={WebViewScreen} />
+      <Stack.Screen name="muscles" component={WebViewScreen} />
+      <Stack.Screen name="editProgram" component={WebViewScreen} />
+      <Stack.Screen name="editProgramWeek" component={WebViewScreen} />
+      <Stack.Screen name="editProgramExercise" component={WebViewScreen} />
+      <Stack.Screen name="editProgramDay" component={WebViewScreen} />
+      <Stack.Screen name="editProgramDayScript" component={WebViewScreen} />
+      <Stack.Screen name="programPreview" component={WebViewScreen} />
+      <Stack.Screen options={{ headerShown: false }} name="first" component={WebViewScreen} />
+      <Stack.Screen name="units" component={WebViewScreen} />
+    </Stack.Navigator>
+  );
+};
 
-const SettingsScreen = (): JSX.Element => (
-  <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-    <Text>Settings Screen</Text>
-  </View>
-);
+const MeasuresStack = (): JSX.Element => {
+  const Stack = createNativeStackNavigator();
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="stats" component={WebViewScreen} />
+      <Stack.Screen name="measurements" component={WebViewScreen} />
+    </Stack.Navigator>
+  );
+};
 
-// Create Bottom Tabs
-const Tab = createBottomTabNavigator({});
+const WorkoutStack = (): JSX.Element => {
+  const Stack = createNativeStackNavigator();
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="main" component={WebViewScreen} />
+      <Stack.Screen name="progress" component={WebViewScreen} />
+      <Stack.Screen name="finishDay" component={WebViewScreen} />
+      <Stack.Screen name="subscription" component={WebViewScreen} />
+      <Stack.Screen name="exerciseStats" component={WebViewScreen} />
+    </Stack.Navigator>
+  );
+};
+
+const GraphsStack = (): JSX.Element => {
+  const Stack = createNativeStackNavigator();
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="graphs" component={WebViewScreen} />
+    </Stack.Navigator>
+  );
+};
+
+const SettingsStack = (): JSX.Element => {
+  const Stack = createNativeStackNavigator();
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="settings" component={WebViewScreen} />
+      <Stack.Screen name="account" component={WebViewScreen} />
+      <Stack.Screen name="timers" component={WebViewScreen} />
+      <Stack.Screen name="plates" component={WebViewScreen} />
+      <Stack.Screen name="appleHealth" component={WebViewScreen} />
+      <Stack.Screen name="googleHealth" component={WebViewScreen} />
+      <Stack.Screen name="gyms" component={WebViewScreen} />
+      <Stack.Screen name="exercises" component={WebViewScreen} />
+    </Stack.Navigator>
+  );
+};
+
+const Tab = createBottomTabNavigator();
 
 interface IAppProps {
-  essentials: IInitializeEssentials;
+  essentials?: IInitializeEssentials;
 }
+
+interface IAppContext {
+  state?: IState;
+  dispatch?: IDispatch;
+}
+export const DefaultPropsContext = createContext<IAppContext>({});
 
 export default function App(props: IAppProps): JSX.Element {
   console.log("App props", props);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
-  const { client, audio, queue, initialState } = props.essentials;
+  const { client, audio, queue, initialState } = props.essentials!;
   const service = new Service(client);
   const env: IEnv = { service, audio, queue };
-  const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(
-    reducerWrapper(true),
-    initialState,
-    env,
-    defaultOnActions(env)
-  );
+  const [state, dispatch] = useLiftosaurThunkReducer(reducerWrapper(true), initialState, env, defaultOnActions(env));
+  console.log("Screen stack", state.screenStack);
   const stateRef = useRef<IState>(state);
   useEffect(() => {
     stateRef.current = state;
   });
-  const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
 
   useEffect(() => {
     SendMessage.toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
@@ -105,29 +154,39 @@ export default function App(props: IAppProps): JSX.Element {
     SendMessage.toAndroid({ type: "loaded", userid: userId });
   }, []);
 
-  const currentProgram =
-    state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
-
-  console.log("Current program", currentProgram);
-
   return (
-    <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ color, size }) => {
-            if (route.name === "Home") {
-              return <IconDoc width={size} height={size} />;
-            } else if (route.name === "Settings") {
-              return <IconCog2 size={size} />;
-            }
-          },
-          tabBarActiveTintColor: "tomato",
-          tabBarInactiveTintColor: "gray",
-        })}
-      >
-        <Tab.Screen name="Home" component={() => <HomeScreen />} />
-        <Tab.Screen name="Settings" component={SettingsScreen} />
-      </Tab.Navigator>
-    </NavigationContainer>
+    <DefaultPropsContext.Provider value={{ state, dispatch }}>
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            tabBarIcon: ({ color, size }) => {
+              switch (route.name) {
+                case "Program":
+                  return <IconDoc width={size} height={size} color={color} />;
+                case "Measures":
+                  return <IconRuler color={color} size={size} />;
+                case "Graphs":
+                  return <IconGraphs2 color={color} size={size} />;
+                case "Settings":
+                  return <IconCog2 size={size} color={color} />;
+              }
+            },
+            tabBarIconStyle: {
+              marginBottom: 5,
+              marginTop: 5,
+            },
+            headerShown: false,
+            tabBarActiveTintColor: tailwindConfig.theme.extend.colors.purplev2.main,
+            tabBarInactiveTintColor: tailwindConfig.theme.extend.colors.grayv2.main,
+          })}
+        >
+          <Tab.Screen name="Program" component={ProgramStack} />
+          <Tab.Screen name="Measures" component={MeasuresStack} />
+          <Tab.Screen name="Workout" component={WorkoutStack} />
+          <Tab.Screen name="Graphs" component={GraphsStack} />
+          <Tab.Screen name="Settings" component={SettingsStack} />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </DefaultPropsContext.Provider>
   );
 }

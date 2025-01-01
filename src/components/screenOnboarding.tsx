@@ -5,6 +5,7 @@ import { IDispatch } from "../ducks/types";
 import { Button } from "./button";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { IPhoneFrame } from "./iphoneFrame";
+import { sendThunk } from "../utils/useLiftosaurThunkReducer";
 
 interface IProps {
   dispatch: IDispatch;
@@ -114,7 +115,7 @@ export function ScreenOnboarding(props: IProps): JSX.Element {
         >
           <Button
             name="onboarding-choose-a-program"
-            onClick={() => props.dispatch(Thunk.pushScreen("units"))}
+            onClick={() => sendThunk(props.dispatch, "pushScreen", "units")}
             kind="purple"
           >
             <span className="align-middle">Continue</span>{" "}

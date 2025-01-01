@@ -21,6 +21,10 @@
     "outDir": "out",
     "resolveJsonModule": true
   },
+  "paths": {
+    "react-native": ["node_modules/react-native-web"],
+    "react-native-svg": ["node_modules/react-native-svg-web"]
+  },
   "include": [
     "index.ts",
     "rnsrc/**/*",
@@ -32,6 +36,7 @@
     "tests/**/*",
     "devserver.ts",
     "playwright.config.ts",
-    "rnsrc/index.web.tsx"
+    "rnsrc/index.web.tsx",
+    "nativewind-env.d.ts"
   ]
 }

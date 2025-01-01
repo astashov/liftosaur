@@ -31,6 +31,11 @@ interface Window {
   onYouTubeIframeAPIReady?: () => void;
   YT: typeof YT;
   tempUserId?: string;
+
+  ReactNativeWebView: {
+    postMessage: (message: string) => void;
+  };
+  appState?: any;
 }
 
 declare namespace YT {

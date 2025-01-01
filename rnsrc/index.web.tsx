@@ -4,10 +4,9 @@ import { initializeApp } from "./initialize";
 
 async function run(): Promise<void> {
   const essentials = await initializeApp();
-  console.log(essentials);
   AppRegistry.registerComponent("Liftosaur", () => App);
   AppRegistry.runApplication("Liftosaur", {
-    initialProps: {},
+    initialProps: { essentials },
     rootTag: document.getElementById("app"),
   });
 }

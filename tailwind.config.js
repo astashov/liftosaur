@@ -1,5 +1,6 @@
 module.exports = {
-  content: ["./src/**/*.tsx"],
+  content: ["./src/**/*.tsx", "./rnsrc/**/*.tsx"],
+  presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {

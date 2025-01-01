@@ -393,7 +393,9 @@ export namespace Thunk {
         screen = "programs";
       }
       dispatch({ type: "PushScreen", screen });
-      window.scroll(0, 0);
+      if (typeof window !== "undefined" && window.scroll) {
+        window.scroll(0, 0);
+      }
     };
   }
 
@@ -485,7 +487,9 @@ export namespace Thunk {
         }
       }
       dispatch({ type: "PullScreen" });
-      window.scroll(0, 0);
+      if (typeof window !== "undefined" && window.scroll) {
+        window.scroll(0, 0);
+      }
     };
   }
 
