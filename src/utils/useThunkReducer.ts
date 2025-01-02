@@ -46,3 +46,23 @@ export function useThunkReducer<TState, TAction extends Record<string, unknown>,
 
   return [hookState, dispatch];
 }
+
+export function getNewState<TState, TAction extends Record<string, unknown>, TEnv>(
+  state: TState,
+  action: TAction | IGThunk<TState, TAction, TEnv>,
+  env: TEnv
+) {
+  if (typeof action === "function") {
+    (action(getNewState, state, env) as Promise<void>).then(() => {
+      for (const onAction of onActions) {
+        onAction(dispatch, action, state);
+      }
+    });
+  } else {
+    const newState = reduce(action);
+    setState(newState);
+    for (const onAction of onActions) {
+      onAction(dispatch, action, oldState, state.current);
+    }
+  }
+}

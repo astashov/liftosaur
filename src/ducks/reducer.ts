@@ -257,6 +257,7 @@ export type IUpdateStateAction = {
 export type IReplaceStateAction = {
   type: "ReplaceState";
   state: IState;
+  desc?: string;
 };
 
 export type IEditHistoryRecordAction = {

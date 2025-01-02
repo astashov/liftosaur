@@ -1,4 +1,4 @@
-import React, { JSX } from "react";
+import React, { JSX, useEffect, useState } from "react";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
 import { ProgramHistoryView } from "./programHistory";
@@ -12,7 +12,7 @@ import { ScreenEquipment } from "./screenEquipment";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Progress } from "../models/progress";
-import { IState, updateState } from "../models/state";
+import { IEnv, IState, updateState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
@@ -39,28 +39,40 @@ import { ScreenGoogleHealthSettings } from "./screenGoogleHealthSettings";
 import { ScreenUnitSelector } from "./screenUnitSelector";
 import { IDispatch } from "../ducks/types";
 import { reducer } from "../ducks/reducer";
+import { useThunkReducer } from "../utils/useThunkReducer";
 
-interface IProps {
+interface IScreenViewWrapperProps {
   state: IState;
-  dispatch?: IDispatch;
+  env: IEnv;
 }
 
-export function ScreenView(props: IProps): JSX.Element | null {
-  const { state } = props;
-  const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
-  const dispatch: IDispatch =
-    props.dispatch ||
-    ((action) => {
-      let theAction = action;
-      if (typeof action !== "function" && action.type === "UpdateState") {
-        const newState = reducer(state, action);
-        theAction = { type: "ReplaceState", state: newState };
-      } else if (typeof action !== "function" && action.type === "UpdateSettings") {
-        const newState = reducer(state, action);
-        theAction = { type: "ReplaceState", state: newState };
+export function ScreenViewWrapper(props: IScreenViewWrapperProps): JSX.Element {
+  const [state, dispatch] = useThunkReducer(reducer, props.state, props.env, [
+    (d, action, oldState, newState) => {
+      if (typeof action !== "function" && !(action.type === "ReplaceState" && action.desc === "Update")) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: "ReplaceState", state: newState }));
       }
-      window.ReactNativeWebView.postMessage(JSON.stringify(theAction));
-    });
+    },
+  ]);
+
+  useEffect(() => {
+    window.replaceState = (newState: IState) => {
+      dispatch({ type: "ReplaceState", state: newState, desc: "Update" });
+    };
+  }, []);
+
+  return <ScreenView state={state} dispatch={dispatch} />;
+}
+
+interface IScreenViewProps {
+  state: IState;
+  dispatch: IDispatch;
+}
+
+export function ScreenView(props: IScreenViewProps): JSX.Element | null {
+  const { state, dispatch } = props;
+  console.log("A", state.progress?.[0]?.ui?.amrapModal);
+  const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
   const currentProgram =
     state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
 

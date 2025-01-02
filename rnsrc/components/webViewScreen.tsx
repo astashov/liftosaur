@@ -1,42 +1,43 @@
-import React, { JSX } from "react";
+import React, { JSX, useEffect, useRef } from "react";
 import { useContext } from "react";
 import { View } from "react-native";
 import WebView from "react-native-webview";
 import { DefaultPropsContext } from "./app2";
-import { useNavigation } from "@react-navigation/native";
 import { IDispatch } from "../../src/ducks/types";
 import { Screen } from "../../src/models/screen";
+import { reducer } from "../../src/ducks/reducer";
 
 // Screens
 export const WebViewScreen = (): JSX.Element => {
-  const { state, dispatch } = useContext(DefaultPropsContext);
+  const { state, dispatch, env } = useContext(DefaultPropsContext);
   console.log("Render webview");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<any>();
-  if (!state || !dispatch) {
+  if (!state || !dispatch || !env) {
     return <View style={{ flex: 1, justifyContent: "center", alignItems: "stretch" }} />;
   }
-  const augmentedDispatch: IDispatch = (action) => {
-    if (typeof action !== "function" && action.type === "Thunk" && action.name === "pushScreen") {
-      navigation.navigate(action.args[0]);
+  const webviewRef = useRef<WebView>(null);
+
+  useEffect(() => {
+    if (webviewRef.current) {
+      webviewRef.current.injectJavaScript(`if (window.replaceState) {
+        window.replaceState(${JSON.stringify(state)})
+      } else {
+        console.error("No replace state");
+      }; true`);
     }
-    dispatch(action);
-  };
+  }, [state]);
 
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "stretch" }}>
       <WebView
-        key={Screen.current(state.screenStack)}
+        ref={webviewRef}
         javaScriptEnabled={true}
         allowsInlineMediaPlayback={true}
         webviewDebuggingEnabled={true}
+        injectedJavaScriptBeforeContentLoaded={`window.appState = ${JSON.stringify(state)};`}
         source={{ uri: "https://local.liftosaur.com:8080/screen/" }}
-        injectedJavaScriptBeforeContentLoaded={`
-      window.appState = ${JSON.stringify(state)};
-    `}
         onMessage={(event) => {
-          console.log("Received event", event.nativeEvent.data);
-          augmentedDispatch(JSON.parse(event.nativeEvent.data));
+          dispatch(JSON.parse(event.nativeEvent.data));
         }}
         style={{ flex: 1 }}
       />

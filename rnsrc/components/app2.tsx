@@ -1,10 +1,5 @@
 import "../global.css";
 import React, { createContext, useEffect, useRef } from "react";
-import { NavigationContainer, useNavigation } from "@react-navigation/native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { IconDoc } from "../../src/components/icons/iconDoc";
-import { IconCog2 } from "../../src/components/icons/iconCog2";
 import { IInitializeEssentials } from "../initialize";
 import { Service } from "../../src/api/service";
 import { lb } from "lens-shmens";
@@ -14,81 +9,9 @@ import { IEnv, IState, updateState } from "../../src/models/state";
 import { SendMessage } from "../../src/utils/sendMessage";
 import { Subscriptions } from "../../src/utils/subscriptions";
 import { UrlUtils } from "../../src/utils/url";
-import tailwindConfig from "../../tailwind.config.js";
-import { IconRuler } from "../../src/components/icons/iconRuler";
-import { IconGraphs2 } from "../../src/components/icons/iconGraphs2";
 import { WebViewScreen } from "./webViewScreen";
-import { useLiftosaurThunkReducer } from "../../src/utils/useLiftosaurThunkReducer";
-import { IDispatch } from "../../src/ducks/types.js";
-
-const ProgramStack = (): JSX.Element => {
-  const Stack = createNativeStackNavigator();
-  return (
-    <Stack.Navigator>
-      <Stack.Screen options={{ headerShown: false }} name="onboarding" component={WebViewScreen} />
-      <Stack.Screen options={{ title: "Choose Program" }} name="programs" component={WebViewScreen} />
-      <Stack.Screen name="muscles" component={WebViewScreen} />
-      <Stack.Screen name="editProgram" component={WebViewScreen} />
-      <Stack.Screen name="editProgramWeek" component={WebViewScreen} />
-      <Stack.Screen name="editProgramExercise" component={WebViewScreen} />
-      <Stack.Screen name="editProgramDay" component={WebViewScreen} />
-      <Stack.Screen name="editProgramDayScript" component={WebViewScreen} />
-      <Stack.Screen name="programPreview" component={WebViewScreen} />
-      <Stack.Screen options={{ headerShown: false }} name="first" component={WebViewScreen} />
-      <Stack.Screen name="units" component={WebViewScreen} />
-    </Stack.Navigator>
-  );
-};
-
-const MeasuresStack = (): JSX.Element => {
-  const Stack = createNativeStackNavigator();
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="stats" component={WebViewScreen} />
-      <Stack.Screen name="measurements" component={WebViewScreen} />
-    </Stack.Navigator>
-  );
-};
-
-const WorkoutStack = (): JSX.Element => {
-  const Stack = createNativeStackNavigator();
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="main" component={WebViewScreen} />
-      <Stack.Screen name="progress" component={WebViewScreen} />
-      <Stack.Screen name="finishDay" component={WebViewScreen} />
-      <Stack.Screen name="subscription" component={WebViewScreen} />
-      <Stack.Screen name="exerciseStats" component={WebViewScreen} />
-    </Stack.Navigator>
-  );
-};
-
-const GraphsStack = (): JSX.Element => {
-  const Stack = createNativeStackNavigator();
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="graphs" component={WebViewScreen} />
-    </Stack.Navigator>
-  );
-};
-
-const SettingsStack = (): JSX.Element => {
-  const Stack = createNativeStackNavigator();
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="settings" component={WebViewScreen} />
-      <Stack.Screen name="account" component={WebViewScreen} />
-      <Stack.Screen name="timers" component={WebViewScreen} />
-      <Stack.Screen name="plates" component={WebViewScreen} />
-      <Stack.Screen name="appleHealth" component={WebViewScreen} />
-      <Stack.Screen name="googleHealth" component={WebViewScreen} />
-      <Stack.Screen name="gyms" component={WebViewScreen} />
-      <Stack.Screen name="exercises" component={WebViewScreen} />
-    </Stack.Navigator>
-  );
-};
-
-const Tab = createBottomTabNavigator();
+import { IDispatch } from "../../src/ducks/types";
+import { useThunkReducer } from "../../src/utils/useThunkReducer";
 
 interface IAppProps {
   essentials?: IInitializeEssentials;
@@ -97,6 +20,7 @@ interface IAppProps {
 interface IAppContext {
   state?: IState;
   dispatch?: IDispatch;
+  env?: IEnv;
 }
 export const DefaultPropsContext = createContext<IAppContext>({});
 
@@ -107,7 +31,7 @@ export default function App(props: IAppProps): JSX.Element {
   const { client, audio, queue, initialState } = props.essentials!;
   const service = new Service(client);
   const env: IEnv = { service, audio, queue };
-  const [state, dispatch] = useLiftosaurThunkReducer(reducerWrapper(true), initialState, env, defaultOnActions(env));
+  const [state, dispatch] = useThunkReducer(reducerWrapper(true), initialState, env, defaultOnActions(env));
   console.log("Screen stack", state.screenStack);
   const stateRef = useRef<IState>(state);
   useEffect(() => {
@@ -155,38 +79,8 @@ export default function App(props: IAppProps): JSX.Element {
   }, []);
 
   return (
-    <DefaultPropsContext.Provider value={{ state, dispatch }}>
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={({ route }) => ({
-            tabBarIcon: ({ color, size }) => {
-              switch (route.name) {
-                case "Program":
-                  return <IconDoc width={size} height={size} color={color} />;
-                case "Measures":
-                  return <IconRuler color={color} size={size} />;
-                case "Graphs":
-                  return <IconGraphs2 color={color} size={size} />;
-                case "Settings":
-                  return <IconCog2 size={size} color={color} />;
-              }
-            },
-            tabBarIconStyle: {
-              marginBottom: 5,
-              marginTop: 5,
-            },
-            headerShown: false,
-            tabBarActiveTintColor: tailwindConfig.theme.extend.colors.purplev2.main,
-            tabBarInactiveTintColor: tailwindConfig.theme.extend.colors.grayv2.main,
-          })}
-        >
-          <Tab.Screen name="Program" component={ProgramStack} />
-          <Tab.Screen name="Measures" component={MeasuresStack} />
-          <Tab.Screen name="Workout" component={WorkoutStack} />
-          <Tab.Screen name="Graphs" component={GraphsStack} />
-          <Tab.Screen name="Settings" component={SettingsStack} />
-        </Tab.Navigator>
-      </NavigationContainer>
+    <DefaultPropsContext.Provider value={{ state, dispatch, env }}>
+      <WebViewScreen />
     </DefaultPropsContext.Provider>
   );
 }
