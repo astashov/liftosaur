@@ -1,4 +1,3 @@
-import React from "react";
 import Svg, { Path } from "react-native-svg";
 
 interface IProps {
@@ -14,7 +13,14 @@ export function IconDoc(props: IProps): JSX.Element {
   const width = props.width || 17;
   const height = props.height || 22;
   return (
-    <Svg style={props.style} width={width} height={height} viewBox="0 0 17 22" fill="none">
+    <Svg
+      className={`inline-block ${props.className}`}
+      style={props.style}
+      width={width}
+      height={height}
+      viewBox="0 0 17 22"
+      fill="none"
+    >
       <Path
         fillRule="evenodd"
         clipRule="evenodd"

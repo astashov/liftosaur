@@ -3,6 +3,8 @@
     "files": true
   },
   "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "nativewind",
     "target": "es2015",
     "lib": ["esnext", "dom", "WebWorker"],
     "module": "commonjs",
@@ -15,7 +17,6 @@
     "sourceMap": true,
     "pretty": true,
     "strict": true,
-    "jsx": "react",
     "skipLibCheck": true,
     "noEmit": true,
     "outDir": "out",

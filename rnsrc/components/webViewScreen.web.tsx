@@ -1,3 +1,4 @@
+import "../global.css";
 import React, { JSX, useContext } from "react";
 import { View } from "react-native";
 import { DefaultPropsContext } from "./app2";

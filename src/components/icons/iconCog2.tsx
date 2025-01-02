@@ -1,4 +1,3 @@
-import React, { JSX } from "react";
 import Svg, { Path } from "react-native-svg";
 
 interface IProps {
@@ -11,7 +10,7 @@ export function IconCog2(props: IProps): JSX.Element {
   const color = props.color || "#3C5063";
   const size = props.size || 21;
   return (
-    <Svg style={props.style} width={size} height={size} viewBox="0 0 21 21" fill="none">
+    <Svg className="inline-block" style={props.style} width={size} height={size} viewBox="0 0 21 21" fill="none">
       <Path
         fillRule="evenodd"
         clipRule="evenodd"

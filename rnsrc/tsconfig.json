@@ -1,6 +1,7 @@
 {
   "extends": "@react-native/typescript-config/tsconfig.json",
   "compilerOptions": {
+    "jsxImportSource": "nativewind",
     "types": ["react-native"],
     "lib": [
       "es2019",

@@ -5,7 +5,6 @@ import { updateSettings } from "../models/state";
 import { ISettings } from "../types";
 import { Thunk } from "../ducks/thunks";
 import { lb } from "lens-shmens";
-import { sendThunk } from "../utils/useLiftosaurThunkReducer";
 
 interface IProps {
   dispatch: IDispatch;
@@ -26,7 +25,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
                 kind="purple"
                 onClick={() => {
                   updateSettings(props.dispatch, lb<ISettings>().p("units").record("lb"));
-                  sendThunk(props.dispatch, "pushScreen", "programs");
+                  props.dispatch(Thunk.pushScreen("programs"));
                 }}
               >
                 Pounds (lb)
@@ -38,7 +37,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
                 kind="purple"
                 onClick={() => {
                   updateSettings(props.dispatch, lb<ISettings>().p("units").record("kg"));
-                  sendThunk(props.dispatch, "pushScreen", "programs");
+                  props.dispatch(Thunk.pushScreen("programs"));
                 }}
               >
                 Kilograms (kg)

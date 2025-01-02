@@ -9,9 +9,11 @@ import { IEnv, IState, updateState } from "../../src/models/state";
 import { SendMessage } from "../../src/utils/sendMessage";
 import { Subscriptions } from "../../src/utils/subscriptions";
 import { UrlUtils } from "../../src/utils/url";
+import { Screen } from "../../src/models/screen";
 import { WebViewScreen } from "./webViewScreen";
 import { IDispatch } from "../../src/ducks/types";
 import { useThunkReducer } from "../../src/utils/useThunkReducer";
+import { ScreenMeasurements } from "../../src/components/screenMeasurements";
 
 interface IAppProps {
   essentials?: IInitializeEssentials;
@@ -78,9 +80,22 @@ export default function App(props: IAppProps): JSX.Element {
     SendMessage.toAndroid({ type: "loaded", userid: userId });
   }, []);
 
+  const screen = Screen.current(state.screenStack);
+
   return (
     <DefaultPropsContext.Provider value={{ state, dispatch, env }}>
-      <WebViewScreen />
+      {screen === "measurements" ? (
+        <ScreenMeasurements
+          loading={state.loading}
+          screenStack={state.screenStack}
+          subscription={state.storage.subscription}
+          dispatch={dispatch}
+          settings={state.storage.settings}
+          stats={state.storage.stats}
+        />
+      ) : (
+        <WebViewScreen />
+      )}
     </DefaultPropsContext.Provider>
   );
 }
