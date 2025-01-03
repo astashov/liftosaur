@@ -20,7 +20,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
   return (
     <View className="fixed bottom-0 left-0 z-10 items-center w-full text-center" style={{ marginBottom: -2 }}>
       <View className="w-full safe-area-inset-bottom">
-        <View className="box-content relative z-10 flex flex-row w-full px-2 pt-2 pb-2 mt-2 bg-white border-t border-grayv2-300">
+        <View className="box-border relative z-10 flex flex-row w-full px-2 pt-2 pb-2 mt-2 bg-white border-t border-grayv2-300">
           <View className="flex flex-row items-end justify-around flex-1 " style={{ marginTop: -10 }}>
             <FooterButton
               name="program"
@@ -50,7 +50,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               </TouchableOpacity>
               <LftText
                 className={Screen.tab(props.screen) === "workout" ? "text-purplev2-700" : ""}
-                style={{ fontSize: 11, paddingTop: 35, textAlign: "center" }}
+                style={{ fontSize: 10, paddingTop: 35, textAlign: "center" }}
               >
                 Workout
               </LftText>

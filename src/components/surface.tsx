@@ -1,5 +1,5 @@
-import React, { JSX } from "react";
 import { forwardRef, Ref } from "react";
+import { View } from "react-native";
 
 interface IProps {
   navbar: React.ReactNode;
@@ -8,17 +8,15 @@ interface IProps {
   children: React.ReactNode;
 }
 
-export const Surface = forwardRef(
-  (props: IProps, ref: Ref<HTMLElement>): JSX.Element => {
-    return (
-      <section className="h-full">
-        {props.navbar}
-        <section data-cy="screen" ref={ref} className="py-16">
-          <div className="safe-area-inset-bottom safe-area-inset-top">{props.children}</div>
-        </section>
-        {props.footer}
-        {props.addons}
-      </section>
-    );
-  }
-);
+export const Surface = forwardRef((props: IProps, ref: Ref<HTMLElement>): JSX.Element => {
+  return (
+    <View className="w-full h-full">
+      {props.navbar}
+      <View data-cy="screen" className="flex-row w-full py-16">
+        <View className="w-full safe-area-inset-bottom safe-area-inset-top">{props.children}</View>
+      </View>
+      {props.footer}
+      {props.addons}
+    </View>
+  );
+});

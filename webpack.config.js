@@ -15,26 +15,26 @@ const local = `https://${localdomain}.liftosaur.com:8080/`;
 // Export a function. Accept the base config as the only param.
 module.exports = {
   entry: {
-    main: ["./src/main.tsx", "./src/index.css"],
-    login: ["./src/login.tsx", "./src/index.css"],
-    exercise: ["./src/exercise.tsx", "./src/index.css"],
-    repmax: ["./src/repmax.tsx", "./src/index.css"],
-    allexercises: ["./src/allExercises.tsx", "./src/index.css"],
+    // main: ["./src/main.tsx", "./src/index.css"],
+    // login: ["./src/login.tsx", "./src/index.css"],
+    // exercise: ["./src/exercise.tsx", "./src/index.css"],
+    // repmax: ["./src/repmax.tsx", "./src/index.css"],
+    // allexercises: ["./src/allExercises.tsx", "./src/index.css"],
     app: ["./src/index.tsx", "./src/index.css"],
     screen: ["./src/screen.tsx", "./src/index.css"],
-    admin: ["./src/admin.tsx", "./src/admin.css"],
-    record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
-    user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
-    programdetails: ["./src/programDetails.tsx", "./src/programDetails.css", "./src/index.css"],
-    planner: ["./src/planner.tsx", "./src/planner.css", "./src/index.css"],
-    program: ["./src/program.tsx", "./src/program.css", "./src/index.css"],
-    programsList: ["./src/programsList.tsx", "./src/program.css", "./src/index.css"],
-    editor: ["./src/editor.ts", "./src/editor.css"],
-    affiliatedashboard: ["./src/affiliatedashboard.tsx", "./src/affiliatedashboard.css", "./src/index.css"],
-    affiliates: ["./src/affiliates.tsx", "./src/page.css", "./src/index.css"],
-    userdashboard: ["./src/userdashboard.tsx", "./src/page.css", "./src/index.css"],
-    usersdashboard: ["./src/usersdashboard.tsx", "./src/page.css", "./src/index.css"],
-    "webpushr-sw": "./src/webpushr-sw.ts",
+    // admin: ["./src/admin.tsx", "./src/admin.css"],
+    // record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
+    // user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
+    // programdetails: ["./src/programDetails.tsx", "./src/programDetails.css", "./src/index.css"],
+    // planner: ["./src/planner.tsx", "./src/planner.css", "./src/index.css"],
+    // program: ["./src/program.tsx", "./src/program.css", "./src/index.css"],
+    // programsList: ["./src/programsList.tsx", "./src/program.css", "./src/index.css"],
+    // editor: ["./src/editor.ts", "./src/editor.css"],
+    // affiliatedashboard: ["./src/affiliatedashboard.tsx", "./src/affiliatedashboard.css", "./src/index.css"],
+    // affiliates: ["./src/affiliates.tsx", "./src/page.css", "./src/index.css"],
+    // userdashboard: ["./src/userdashboard.tsx", "./src/page.css", "./src/index.css"],
+    // usersdashboard: ["./src/usersdashboard.tsx", "./src/page.css", "./src/index.css"],
+    // "webpushr-sw": "./src/webpushr-sw.ts",
     reactnative: "./rnsrc/index.web.tsx",
   },
   output: {
@@ -82,6 +82,7 @@ module.exports = {
       },
       {
         test: /\.js$/,
+        exclude: /node_modules\/(?!react-native-)/,
         use: {
           loader: "babel-loader",
           options: {
@@ -92,6 +93,12 @@ module.exports = {
         },
       },
     ],
+  },
+  stats: {
+    timings: true,
+  },
+  cache: {
+    type: "filesystem",
   },
   optimization: {
     splitChunks: {
@@ -181,10 +188,10 @@ module.exports = {
         from: "_headers",
         to: "",
       },
-      {
-        from: `src/editor.html`,
-        to: `editor.html`,
-      },
+      // {
+      //   from: `src/editor.html`,
+      //   to: `editor.html`,
+      // },
       {
         from: `docs`,
         to: `docs`,

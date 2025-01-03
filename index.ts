@@ -3,6 +3,11 @@ import App from "./rnsrc/components/app2";
 import { name as appName } from "./app.json";
 import { IInitializeEssentials, initializeApp } from "./rnsrc/initialize";
 import React from "react";
+import { localapidomain, localdomain } from "./src/localdomain";
+
+declare const global: { __API_HOST__: string; __HOST__: string };
+global.__API_HOST__ = `https://${localapidomain}.liftosaur.com:3000`;
+global.__HOST__ = `https://${localdomain}.liftosaur.com:8080`;
 
 function withEssentials(props: IInitializeEssentials) {
   return () => React.createElement(App, { essentials: props });

@@ -1,14 +1,19 @@
-import React, { JSX } from "react";
+import { TouchableOpacity, View } from "react-native";
+import { LftText } from "./lftText";
 
-interface IProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface IProps {
   buttonSize?: "xs" | "sm" | "md" | "lg";
   kind: "orange" | "purple" | "grayv2" | "red";
   name: string;
+  children: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+  onPress?: () => void;
 }
 
 export function Button(props: IProps): JSX.Element {
   const { children, buttonSize, kind, ...otherProps } = props;
-  let className = "text-xs text-white rounded-2xl";
+  let className = "rounded-2xl";
   if (props.disabled) {
     className += " bg-grayv2-main opacity-50";
   } else if (kind === "purple") {
@@ -36,8 +41,10 @@ export function Button(props: IProps): JSX.Element {
     className += " cursor-not-allowed";
   }
   return (
-    <button {...otherProps} className={`${props.className || ""} ${className} nm-${props.name}`}>
-      {props.children}
-    </button>
+    <TouchableOpacity {...otherProps} className={`${props.className || ""} ${className} nm-${props.name}`}>
+      <View>
+        <LftText className="text-xs font-bold text-center text-white">{props.children}</LftText>
+      </View>
+    </TouchableOpacity>
   );
 }

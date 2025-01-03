@@ -1,4 +1,3 @@
-import React, { JSX } from "react";
 import { IScreen, Screen } from "../models/screen";
 import { IStats, ISettings, ISubscription } from "../types";
 import { ILoading } from "../models/state";
@@ -24,19 +23,24 @@ export function ScreenMeasurements(props: IProps): JSX.Element {
 
   return (
     <SafeAreaView className="flex-1">
-      <View className="relative flex-1">
-        <NavbarView
-          loading={props.loading}
-          dispatch={props.dispatch}
-          helpContent={<HelpMeasurements />}
-          screenStack={props.screenStack}
-          title="Measurements"
-        />
-        {/* <StatsList subscription={props.subscription} stats={stats} settings={settings} dispatch={dispatch} /> */}
-        <View className="absolute bottom-0 left-0 w-full">
-          <Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />
-        </View>
-      </View>
+      <Surface
+        navbar={
+          <NavbarView
+            loading={props.loading}
+            dispatch={props.dispatch}
+            helpContent={<HelpMeasurements />}
+            screenStack={props.screenStack}
+            title="Measurements"
+          />
+        }
+        footer={
+          <View className="absolute bottom-0 left-0 w-full">
+            <Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />
+          </View>
+        }
+      >
+        <StatsList subscription={props.subscription} stats={stats} settings={settings} dispatch={dispatch} />
+      </Surface>
     </SafeAreaView>
   );
 }

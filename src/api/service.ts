@@ -197,7 +197,7 @@ export class Service {
   }): Promise<IPostSyncResponse> {
     const url = UrlUtils.build(`${__API_HOST__}/api/sync`);
     if (args.tempUserId) {
-      url.searchParams.set("tempuserid", args.tempUserId);
+      url.searchParams.append("tempuserid", args.tempUserId);
     }
     const result = await this.client(url.toString(), {
       method: "POST",
@@ -233,7 +233,7 @@ export class Service {
 
   public async postAddFreeUser(userid: string, adminKey: string): Promise<void> {
     const url = UrlUtils.build(`${__API_HOST__}/api/addfreeuser/${userid}`);
-    url.searchParams.set("key", adminKey);
+    url.searchParams.append("key", adminKey);
     await this.client(url.toString(), {
       method: "POST",
       credentials: "include",
@@ -343,13 +343,13 @@ export class Service {
   ): Promise<IGetStorageResponse> {
     const url = UrlUtils.build(`${__API_HOST__}/api/storage`);
     if (tempUserId) {
-      url.searchParams.set("tempuserid", tempUserId);
+      url.searchParams.append("tempuserid", tempUserId);
     }
     if (userId != null && adminKey != null) {
-      url.searchParams.set("userid", userId);
-      url.searchParams.set("key", adminKey);
+      url.searchParams.append("userid", userId);
+      url.searchParams.append("key", adminKey);
       if (storageId) {
-        url.searchParams.set("storageid", storageId);
+        url.searchParams.append("storageid", storageId);
       }
     }
     const result = await this.client(url.toString(), { credentials: "include" });
@@ -458,7 +458,7 @@ export class Service {
 
   public async publishProgram(program: IProgram, adminKey: string): Promise<void> {
     const url = UrlUtils.build(`${__API_HOST__}/api/publishprogram`);
-    url.searchParams.set("key", adminKey);
+    url.searchParams.append("key", adminKey);
     await this.client(url.toString(), {
       method: "POST",
       body: JSON.stringify({ program }),
@@ -474,8 +474,8 @@ export class Service {
 
   public record(user: string, id: string): Promise<{ data: IRecordResponse } | { error: string }> {
     const url = UrlUtils.build(`${__API_HOST__}/api/record`);
-    url.searchParams.set("user", user);
-    url.searchParams.set("id", id);
+    url.searchParams.append("user", user);
+    url.searchParams.append("id", id);
     return this.client(url.toString(), { credentials: "include" }).then((response) => response.json());
   }
 }

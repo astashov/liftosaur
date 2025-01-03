@@ -22,8 +22,8 @@ export function FooterButton(props: IProps): JSX.Element {
       onPress={props.onClick}
     >
       {props.icon(isActive)}
-      <View className={`pt-2 ${isActive ? "text-purplev2-main" : ""}`}>
-        <LftText style={{ fontSize: 11 }} className="text-center">
+      <View className={`pt-1 ${isActive ? "text-purplev2-main" : ""}`}>
+        <LftText style={{ fontSize: 10 }} className="text-center">
           {props.text}
         </LftText>
       </View>

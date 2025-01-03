@@ -1,5 +1,5 @@
-import React, { JSX } from "react";
 import { useState } from "react";
+import { View, TextInput, Alert } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { EditStats } from "../models/editStats";
 import { Length } from "../models/length";
@@ -19,6 +19,7 @@ import { Thunk } from "../ducks/thunks";
 import { updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
 import { Subscriptions } from "../utils/subscriptions";
+import { LftText } from "./lftText";
 
 interface IProps {
   stats: IStats;
@@ -67,19 +68,19 @@ export function StatsList(props: IProps): JSX.Element {
 
   if (statsKeys.length === 0) {
     return (
-      <div>
-        <div className="py-12 text-xl text-center text-grayv2-main">No measurements added yet</div>
-        <div className="text-center">
+      <View>
+        <LftText className="py-12 text-xl text-center text-grayv2-main">No measurements added yet</LftText>
+        <View className="flex-row justify-center text-center">
           <Button
             name="add-measurements"
             data-cy="add-measurements"
             kind="purple"
-            onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
+            onPress={() => props.dispatch(Thunk.pushScreen("stats"))}
           >
             Add measurements
           </Button>
-        </div>
-      </div>
+        </View>
+      </View>
     );
   }
   const units =
@@ -95,17 +96,17 @@ export function StatsList(props: IProps): JSX.Element {
     selectedKey === "weight" ? props.settings.units : selectedKey === "bodyfat" ? "%" : props.settings.lengthUnits;
 
   return (
-    <div className="px-4" data-cy={`stats-list-${selectedKey}`}>
-      <div className="pb-2 text-center">
+    <View className="px-4" data-cy={`stats-list-${selectedKey}`}>
+      <View className="pb-2 text-center">
         <Button
           name="add-measurements"
           data-cy="add-measurements"
           kind="purple"
-          onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
+          onPress={() => props.dispatch(Thunk.pushScreen("stats"))}
         >
           Add measurements
         </Button>
-      </div>
+      </View>
       <GroupHeader name="Selected Measurement Type" />
       <MenuItemEditable
         type="select"
@@ -142,7 +143,7 @@ export function StatsList(props: IProps): JSX.Element {
           }}
         />
       )}
-      <div className="relative">
+      <View className="relative">
         {graphPoints.length > 2 && (
           <>
             <GraphStats
@@ -160,12 +161,12 @@ export function StatsList(props: IProps): JSX.Element {
             <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
           </>
         )}
-      </div>
+      </View>
       {values.length === 0 ? (
         <>
-          <div className="py-12 text-xl text-center text-grayv2-main">
+          <LftText className="py-12 text-xl text-center text-grayv2-main">
             No {Stats.name(selectedKey)} measurements added yet
-          </div>
+          </LftText>
         </>
       ) : (
         <>
@@ -178,14 +179,13 @@ export function StatsList(props: IProps): JSX.Element {
               : value.value;
             return (
               <MenuItemWrapper key={`${selectedKey}-${value.timestamp}`} name={`${selectedKey}-${value.timestamp}`}>
-                <div className="flex items-center">
-                  <div className="flex-1">
-                    <input
+                <View className="flex flex-row items-center">
+                  <View className="flex-1">
+                    <TextInput
                       className="inline-block py-2 text-bluev2"
                       data-cy="input-stats-date"
-                      type="date"
                       onChange={(e) => {
-                        const date = Date.parse(e.currentTarget.value + "T00:00:00");
+                        const date = Date.parse(e.nativeEvent.text + "T00:00:00");
                         if (!isNaN(date)) {
                           if (selectedKey === "weight") {
                             EditStats.changeStatWeightTimestamp(props.dispatch, selectedKey, value.index, date);
@@ -198,16 +198,14 @@ export function StatsList(props: IProps): JSX.Element {
                       }}
                       value={DateUtils.formatYYYYMMDD(value.timestamp)}
                     />
-                  </div>
-                  <div className="flex flex-1">
-                    <input
-                      type="number"
+                  </View>
+                  <View className="flex flex-row flex-1">
+                    <TextInput
                       data-cy="input-stats-value"
                       className="flex-1 w-full p-2 text-right text-bluev2"
-                      step="0.01"
-                      value={+convertedValue.value.toFixed(2)}
-                      onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                        const num = parseFloat(e.currentTarget.value);
+                      value={convertedValue.value.toFixed(2)}
+                      onChange={(e) => {
+                        const num = parseFloat(e.nativeEvent.text);
                         if (!isNaN(num)) {
                           if (selectedKey === "weight") {
                             const v = Weight.build(num, props.settings.units);
@@ -222,35 +220,51 @@ export function StatsList(props: IProps): JSX.Element {
                         }
                       }}
                     />
-                    <span className="py-3" data-cy="input-stats-unit">
+                    <LftText className="py-3" data-cy="input-stats-unit">
                       {units}
-                    </span>
-                  </div>
-                  <div>
-                    <button
+                    </LftText>
+                  </View>
+                  <View>
+                    <Button
+                      name="delete-stat"
+                      kind="orange"
                       className="p-3 ls-delete-stat"
                       data-cy="delete-stat"
-                      onClick={() => {
-                        if (confirm("Are you sure?")) {
-                          if (selectedKey === "weight") {
-                            EditStats.deleteWeightStat(props.dispatch, selectedKey, value.index, value.timestamp);
-                          } else if (selectedKey === "bodyfat") {
-                            EditStats.deletePercentageStat(props.dispatch, selectedKey, value.index, value.timestamp);
-                          } else {
-                            EditStats.deleteLengthStat(props.dispatch, selectedKey, value.index, value.timestamp);
-                          }
-                        }
+                      onPress={() => {
+                        Alert.alert("Confirmation", "Are you sure?", [
+                          {
+                            text: "Cancel",
+                            style: "cancel",
+                          },
+                          {
+                            text: "OK",
+                            onPress: () => {
+                              if (selectedKey === "weight") {
+                                EditStats.deleteWeightStat(props.dispatch, selectedKey, value.index, value.timestamp);
+                              } else if (selectedKey === "bodyfat") {
+                                EditStats.deletePercentageStat(
+                                  props.dispatch,
+                                  selectedKey,
+                                  value.index,
+                                  value.timestamp
+                                );
+                              } else {
+                                EditStats.deleteLengthStat(props.dispatch, selectedKey, value.index, value.timestamp);
+                              }
+                            },
+                          },
+                        ]);
                       }}
                     >
                       <IconTrash />
-                    </button>
-                  </div>
-                </div>
+                    </Button>
+                  </View>
+                </View>
               </MenuItemWrapper>
             );
           })}
         </>
       )}
-    </div>
+    </View>
   );
 }
