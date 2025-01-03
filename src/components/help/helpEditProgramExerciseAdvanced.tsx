@@ -1,5 +1,5 @@
 import React, { JSX } from "react";
-import { Link } from "../link";
+import { Link } from "../link.web";
 import { IconHandle } from "../icons/iconHandle";
 
 export function HelpEditProgramExerciseAdvanced(): JSX.Element {

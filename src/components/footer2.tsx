@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { IScreen, Screen } from "../models/screen";
@@ -8,6 +8,7 @@ import { IconDoc } from "./icons/iconDoc";
 import { IconGraphs2 } from "./icons/iconGraphs2";
 import { IconRuler } from "./icons/iconRuler";
 import Svg, { Path, Rect } from "react-native-svg";
+import { LftText } from "./lftText";
 
 interface IFooterProps {
   dispatch: IDispatch;
@@ -17,64 +18,60 @@ interface IFooterProps {
 export function Footer2View(props: IFooterProps): JSX.Element {
   const activeColor = "#8356F6";
   return (
-    <View
-      className="fixed bottom-0 left-0 z-10 items-center w-full text-center pointer-events-none"
-      style={{ marginBottom: -2 }}
-    >
-      <View
-        className="box-content relative z-10 flex flex-row w-full px-2 pt-4 bg-white pointer-events-auto safe-area-inset-bottom"
-        style={{ minHeight: 54 }}
-      >
-        <View className="flex flex-row items-center justify-around flex-1 " style={{ marginTop: -10 }}>
-          <FooterButton
-            name="program"
-            screen={props.screen}
-            icon={(isActive) => <IconDoc color={isActive ? activeColor : undefined} />}
-            text="Program"
-            onClick={() => {
-              props.dispatch(Thunk.pushToEditProgram());
-            }}
-          />
-          <FooterButton
-            name="measurements"
-            screen={props.screen}
-            icon={(isActive) => <IconRuler color={isActive ? activeColor : undefined} />}
-            text="Measures"
-            onClick={() => props.dispatch(Thunk.pushScreen("measurements"))}
-          />
-        </View>
-        <View className="relative" style={{ width: 75 }}>
-          <View>
-            <TouchableOpacity
-              className="absolute nm-footer-workout"
-              style={{ top: -27, left: "50%", marginLeft: -27 }}
-              onPress={() => props.dispatch(Thunk.pushScreen("main"))}
-            >
-              <CreateButton isActive={Screen.tab(props.screen) === "workout"} />
-            </TouchableOpacity>
-            <Text
-              className={Screen.tab(props.screen) === "workout" ? "text-purplev2-700" : ""}
-              style={{ fontSize: 10, paddingTop: 30, textAlign: "center" }}
-            >
-              Workout
-            </Text>
+    <View className="fixed bottom-0 left-0 z-10 items-center w-full text-center" style={{ marginBottom: -2 }}>
+      <View className="w-full safe-area-inset-bottom">
+        <View className="box-content relative z-10 flex flex-row w-full px-2 pt-2 pb-2 mt-2 bg-white border-t border-grayv2-300">
+          <View className="flex flex-row items-end justify-around flex-1 " style={{ marginTop: -10 }}>
+            <FooterButton
+              name="program"
+              screen={props.screen}
+              icon={(isActive) => <IconDoc color={isActive ? activeColor : undefined} />}
+              text="Program"
+              onClick={() => {
+                props.dispatch(Thunk.pushToEditProgram());
+              }}
+            />
+            <FooterButton
+              name="measurements"
+              screen={props.screen}
+              icon={(isActive) => <IconRuler color={isActive ? activeColor : undefined} />}
+              text="Measures"
+              onClick={() => props.dispatch(Thunk.pushScreen("measurements"))}
+            />
           </View>
-        </View>
-        <View className="flex flex-row items-center justify-around flex-1" style={{ marginTop: -10 }}>
-          <FooterButton
-            name="graphs"
-            screen={props.screen}
-            icon={(isActive) => <IconGraphs2 color={isActive ? activeColor : undefined} />}
-            text="Graphs"
-            onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
-          />
-          <FooterButton
-            name="settings"
-            screen={props.screen}
-            icon={(isActive) => <IconCog2 color={isActive ? activeColor : undefined} />}
-            text="Settings"
-            onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
-          />
+          <View className="relative" style={{ width: 75 }}>
+            <View>
+              <TouchableOpacity
+                className="absolute z-10 nm-footer-workout"
+                style={{ top: -22, left: "50%", marginLeft: -27 }}
+                onPress={() => props.dispatch(Thunk.pushScreen("main"))}
+              >
+                <CreateButton isActive={Screen.tab(props.screen) === "workout"} />
+              </TouchableOpacity>
+              <LftText
+                className={Screen.tab(props.screen) === "workout" ? "text-purplev2-700" : ""}
+                style={{ fontSize: 11, paddingTop: 35, textAlign: "center" }}
+              >
+                Workout
+              </LftText>
+            </View>
+          </View>
+          <View className="flex flex-row items-end justify-around flex-1" style={{ marginTop: -10 }}>
+            <FooterButton
+              name="graphs"
+              screen={props.screen}
+              icon={(isActive) => <IconGraphs2 color={isActive ? activeColor : undefined} />}
+              text="Graphs"
+              onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
+            />
+            <FooterButton
+              name="settings"
+              screen={props.screen}
+              icon={(isActive) => <IconCog2 color={isActive ? activeColor : undefined} />}
+              text="Settings"
+              onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
+            />
+          </View>
         </View>
       </View>
     </View>

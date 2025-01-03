@@ -1,4 +1,3 @@
-import React, { JSX } from "react";
 import { IAccount } from "../models/account";
 
 interface IProps {

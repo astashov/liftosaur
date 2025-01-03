@@ -1,12 +1,23 @@
-import React, { JSX } from "react";
+import { Linking } from "react-native";
+import { LftText } from "./lftText";
 
-type IProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
+type IProps = {
+  className?: string;
+  href: string;
+  children: JSX.Element | string;
+};
 
 export function Link(props: IProps): JSX.Element {
-  const { className, children, ...otherProps } = props;
+  const { className, children } = props;
   return (
-    <a target="_blank" className={`text-bluev2 font-bold underline ${className}`} {...otherProps}>
+    <LftText
+      onPress={() => {
+        Linking.openURL(props.href);
+      }}
+      style={{ fontFamily: "Poppins-Bold" }}
+      className={`text-bluev2 underline ${className}`}
+    >
       {children}
-    </a>
+    </LftText>
   );
 }

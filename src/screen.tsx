@@ -1,4 +1,3 @@
-import React from "react";
 import { createRoot } from "react-dom/client";
 import { ScreenViewWrapper } from "./components/screen";
 import { MockAudioInterface } from "./lib/audioInterface";

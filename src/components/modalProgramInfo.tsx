@@ -2,7 +2,7 @@ import React, { JSX } from "react";
 import { Button } from "./button";
 import { Modal } from "./modal";
 import { IProgram, ISettings } from "../types";
-import { Link } from "./link";
+import { Link } from "./link.web";
 import { IconWatch } from "./icons/iconWatch";
 import { TimeUtils } from "../utils/time";
 import { Program } from "../models/program";

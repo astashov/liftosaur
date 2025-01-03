@@ -1,5 +1,5 @@
 import React, { JSX } from "react";
-import { Link } from "../link";
+import { Link } from "../link.web";
 
 export function HelpChooseProgram(): JSX.Element {
   return (

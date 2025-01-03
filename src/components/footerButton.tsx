@@ -1,7 +1,7 @@
-import React, { JSX } from "react";
 import { IScreen, ITab, Screen } from "../models/screen";
 import { StringUtils } from "../utils/string";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
+import { LftText } from "./lftText";
 
 export interface IProps {
   name: ITab;
@@ -16,10 +16,16 @@ export function FooterButton(props: IProps): JSX.Element {
   const isActive = Screen.tab(props.screen) === props.name;
   const dataCy = `footer-${StringUtils.dashcase(props.text)}`;
   return (
-    <TouchableOpacity className={`inline-block px-2 text-center nm-${dataCy}`} data-cy={dataCy} onPress={props.onClick}>
+    <TouchableOpacity
+      className={`px-2 flex items-center text-center nm-${dataCy}`}
+      data-cy={dataCy}
+      onPress={props.onClick}
+    >
       {props.icon(isActive)}
-      <View className={`pt-1 ${isActive ? "text-purplev2-main" : ""}`}>
-        <Text style={{ fontSize: 10 }}>{props.text}</Text>
+      <View className={`pt-2 ${isActive ? "text-purplev2-main" : ""}`}>
+        <LftText style={{ fontSize: 11 }} className="text-center">
+          {props.text}
+        </LftText>
       </View>
     </TouchableOpacity>
   );

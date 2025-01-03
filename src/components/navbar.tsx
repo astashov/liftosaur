@@ -10,9 +10,11 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { IconClose } from "./icons/iconClose";
 import { lb } from "lens-shmens";
 import { Modal } from "./modal";
-import { Link } from "./link";
 import { ObjectUtils } from "../utils/object";
 import { ModalDebug } from "./modalDebug";
+import { View, TouchableOpacity } from "react-native";
+import { Link } from "./link";
+import { LftText } from "./lftText";
 
 interface INavbarCenterProps {
   title: React.ReactNode;
@@ -36,21 +38,24 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
   const showBackButton = props.screenStack.length > 1;
 
   useEffect(() => {
-    const onScroll = (): void => {
-      if (window.pageYOffset > 0 && !isScrolled) {
-        setIsScrolled(true);
-      } else if (window.pageYOffset === 0 && isScrolled) {
-        setIsScrolled(false);
-      }
-    };
-    window.addEventListener("scroll", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-    };
+    if (typeof window !== "undefined" && window.addEventListener) {
+      const onScroll = (): void => {
+        if (window.pageYOffset > 0 && !isScrolled) {
+          setIsScrolled(true);
+        } else if (window.pageYOffset === 0 && isScrolled) {
+          setIsScrolled(false);
+        }
+      };
+      window.addEventListener("scroll", onScroll);
+      return () => {
+        window.removeEventListener("scroll", onScroll);
+      };
+    }
+    return;
   });
 
   let className =
-    "fixed top-0 left-0 z-30 flex items-center justify-center w-full px-2 text-center bg-white safe-area-inset-top";
+    "fixed top-0 left-0 z-30 flex flex-row items-center justify-center w-full px-2 text-center bg-white safe-area-inset-top";
   if (isScrolled) {
     className += " has-shadow";
   }
@@ -68,27 +73,27 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
 
   return (
     <>
-      <div data-cy="navbar" className={className} style={{ transition: "box-shadow 0.2s ease-in-out" }}>
-        <div className="flex items-center justify-start" style={{ minWidth: numberOfButtons * 40 }}>
+      <View data-cy="navbar" className={className}>
+        <View className="flex flex-row items-center justify-start" style={{ minWidth: numberOfButtons * 40 }}>
           {showBackButton ? (
-            <button
+            <TouchableOpacity
               className="p-2 nm-back"
               data-cy="navbar-back"
-              onClick={() => {
+              onPress={() => {
                 if (!props.onBack || props.onBack()) {
                   props.dispatch(Thunk.pullScreen());
                 }
               }}
             >
               <IconBack />
-            </button>
+            </TouchableOpacity>
           ) : undefined}
           {isLoading ? (
-            <span className="pl-2">
+            <View className="pl-2">
               <IconSpinner width={20} height={20} />
-            </span>
+            </View>
           ) : null}
-        </div>
+        </View>
         <NavbarCenterView
           {...props}
           onTitleClick={
@@ -107,29 +112,29 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
             })
           }
         />
-        <div className="flex items-center justify-end" style={{ minWidth: numberOfButtons * 40 }}>
+        <View className="flex flex-row items-center justify-end" style={{ minWidth: numberOfButtons * 40 }}>
           {props.rightButtons}
           {props.helpContent && (
-            <button className="p-2 nm-navbar-help" onClick={() => setShouldShowModalHelp(true)}>
+            <TouchableOpacity className="p-2 nm-navbar-help" onPress={() => setShouldShowModalHelp(true)}>
               <IconHelp />
-            </button>
+            </TouchableOpacity>
           )}
-        </div>
+        </View>
         {error && (
-          <div
-            className="absolute left-0 flex justify-center w-full align-middle pointer-events-none"
-            style={{ bottom: "-1rem" }}
+          <View
+            className="absolute left-0 flex flex-row justify-center w-full align-middle pointer-events-none"
+            style={{ bottom: -16 }}
           >
-            <div
-              className="flex pl-4 rounded-full pointer-events-auto border-redv2-main text-redv2-main"
-              style={{ background: "#FFECEC", boxShadow: "0 0 4px rgba(255, 27, 27, 0.38)" }}
+            <View
+              className="flex flex-row pl-4 rounded-full pointer-events-auto border-redv2-main text-redv2-main"
+              style={{ backgroundColor: "#FFECEC", boxShadow: "0 0 4px rgba(255, 27, 27, 0.38)" }}
             >
-              <div className="font-bold" style={{ paddingTop: "1px" }}>
+              <LftText className="font-bold" style={{ paddingTop: 1 }}>
                 {error}
-              </div>
-              <button
+              </LftText>
+              <TouchableOpacity
                 className="px-3 nm-navbar-error-close"
-                onClick={() =>
+                onPress={() =>
                   updateState(props.dispatch, [
                     lb<IState>()
                       .p("loading")
@@ -140,11 +145,11 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
                 }
               >
                 <IconClose size={16} color="#E53E3E" />
-              </button>
-            </div>
-          </div>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
-      </div>
+      </View>
       {props.helpContent && (
         <Modal
           isHidden={!shouldShowModalHelp}
@@ -153,12 +158,12 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           isFullWidth
         >
           {props.helpContent}
-          <div className="w-full h-0 mt-4 mb-2 border-b border-grayv2-200" />
-          <p className="text-sm text-grayv2-main">
+          <View className="w-full h-0 mt-4 mb-2 border-b border-grayv2-200" />
+          <LftText className="text-sm text-grayv2-main">
             If you still have questions, or if you encountered a bug, have a feature idea, or just want to share some
             feedback - don't hesitate to <Link href="mailto:info@liftosaur.com">contact us</Link>! Or join our{" "}
             <Link href="https://discord.com/invite/AAh3cvdBRs">Discord server</Link> and ask your question there.
-          </p>
+          </LftText>
         </Modal>
       )}
       {showDebug > 4 && (
@@ -171,16 +176,20 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
 export function NavbarCenterView(props: INavbarCenterProps): JSX.Element {
   if (props.subtitle != null) {
     return (
-      <div className="flex-1" onClick={props.onTitleClick}>
-        <div className="pt-2 text-sm font-semibold">{props.title}</div>
-        <div className="pb-2 text-sm font-semibold text-orangev2">{props.subtitle}</div>
-      </div>
+      <View className="flex-1">
+        <TouchableOpacity onPress={props.onTitleClick}>
+          <LftText className="pt-2 text-sm font-semibold text-center">{props.title}</LftText>
+          <LftText className="pb-2 text-sm font-semibold text-center text-orangev2">{props.subtitle}</LftText>
+        </TouchableOpacity>
+      </View>
     );
   } else {
     return (
-      <div className="flex-1 py-2" onClick={props.onTitleClick}>
-        <div className="py-2 text-lg font-semibold whitespace-no-wrap">{props.title}</div>
-      </div>
+      <View className="flex-1 py-2">
+        <TouchableOpacity onPress={props.onTitleClick}>
+          <LftText className="py-2 text-lg font-semibold text-center whitespace-no-wrap">{props.title}</LftText>
+        </TouchableOpacity>
+      </View>
     );
   }
 }

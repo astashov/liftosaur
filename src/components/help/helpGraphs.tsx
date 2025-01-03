@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { IconFilter } from "../icons/iconFilter";
-import { Link } from "../link";
+import { Link } from "../link.web";
 
 export function HelpGraphs(): JSX.Element {
   return (

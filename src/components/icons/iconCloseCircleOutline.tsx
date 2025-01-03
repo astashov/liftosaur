@@ -1,4 +1,4 @@
-import React, { JSX } from "react";
+import Svg, { Circle, Path } from "react-native-svg";
 
 interface IProps {
   size?: number;
@@ -8,14 +8,14 @@ interface IProps {
 export function IconCloseCircleOutline(props: IProps = {}): JSX.Element {
   const size = props.size ?? 20;
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="24" cy="24" r="22.4416" fill="white" />
-      <path
+    <Svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+      <Circle cx="24" cy="24" r="22.4416" fill="white" />
+      <Path
         fillRule="evenodd"
         clipRule="evenodd"
         d="M24 2.18182C11.9501 2.18182 2.18182 11.9501 2.18182 24C2.18182 36.0499 11.9501 45.8182 24 45.8182C36.0499 45.8182 45.8182 36.0499 45.8182 24C45.8182 11.9501 36.0499 2.18182 24 2.18182ZM0 24C0 10.7451 10.7451 0 24 0C37.2549 0 48 10.7451 48 24C48 37.2549 37.2549 48 24 48C10.7451 48 0 37.2549 0 24ZM30.5568 17.4432C30.9828 17.8692 30.9828 18.56 30.5568 18.986L25.5428 24L30.5568 29.014C30.9828 29.44 30.9828 30.1308 30.5568 30.5568C30.1308 30.9828 29.44 30.9828 29.014 30.5568L24 25.5428L18.986 30.5568C18.56 30.9828 17.8692 30.9828 17.4432 30.5568C17.0172 30.1308 17.0172 29.44 17.4432 29.014L22.4572 24L17.4432 18.986C17.0172 18.56 17.0172 17.8692 17.4432 17.4432C17.8692 17.0172 18.56 17.0172 18.986 17.4432L24 22.4572L29.014 17.4432C29.44 17.0172 30.1308 17.0172 30.5568 17.4432Z"
         fill="#171718"
       />
-    </svg>
+    </Svg>
   );
 }

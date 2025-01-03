@@ -1,4 +1,4 @@
-import React, { JSX, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
 import { ProgramHistoryView } from "./programHistory";
@@ -401,7 +401,6 @@ export function ScreenView(props: IScreenViewProps): JSX.Element | null {
       `,
         }}
       />
-      <div>Blah</div>
       {content}
       {progress && screensWithoutTimer.indexOf(Screen.current(state.screenStack)) === -1 && (
         <RestTimer progress={progress} dispatch={dispatch} />
