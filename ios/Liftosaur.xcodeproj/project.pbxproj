@@ -15,10 +15,12 @@
 		20FCA64157B040C7B82404D3 /* Poppins-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2FDDC89EC246420EB3B06A06 /* Poppins-BlackItalic.ttf */; };
 		34DE7F1C996A4255B619937F /* Poppins-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2479AFA854DA4776B741F95F /* Poppins-LightItalic.ttf */; };
 		3ADD3BCB2D2A12BC00685C69 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3ADD3BC82D2A12BC00685C69 /* main.m */; };
-		3ADD3BCC2D2A12BC00685C69 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3ADD3BC42D2A12BC00685C69 /* AppDelegate.mm */; };
 		3ADD3BCD2D2A12BC00685C69 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3ADD3BC72D2A12BC00685C69 /* LaunchScreen.storyboard */; };
 		3ADD3BCE2D2A12BC00685C69 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3ADD3BC52D2A12BC00685C69 /* Images.xcassets */; };
 		3ADD3BCF2D2A12BC00685C69 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3ADD3BC92D2A12BC00685C69 /* PrivacyInfo.xcprivacy */; };
+		3ADD3BD62D2A1AF200685C69 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ADD3BD52D2A1AF200685C69 /* AppDelegate.swift */; };
+		3ADD3BD82D2A1B4200685C69 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ADD3BD72D2A1B4200685C69 /* MainViewController.swift */; };
+		3ADD3BDA2D2A3E5500685C69 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ADD3BD92D2A3E5500685C69 /* CacheManager.swift */; };
 		4BAE5CAB56144A0C83997C96 /* Poppins-SemiBold.devanagari.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 25B2150E28BA4E069F8702A4 /* Poppins-SemiBold.devanagari.woff2 */; };
 		58B889F6E89D4746AF2BF83A /* Poppins-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AC5E5B6454BD41EFAFB3D26E /* Poppins-Light.ttf */; };
 		64B601BCE03641859B21C175 /* iosevka-regular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = E46B2C1FCCBB4FC9994345F0 /* iosevka-regular.woff2 */; };
@@ -84,13 +86,14 @@
 		327696C3396940798F49CC33 /* Poppins-SemiBoldItalic.latin.woff2 */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBoldItalic.latin.woff2"; path = "../fonts/Poppins-SemiBoldItalic.latin.woff2"; sourceTree = "<group>"; };
 		35C0115F1E2348188AB52692 /* Poppins-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-BoldItalic.ttf"; path = "../fonts/Poppins-BoldItalic.ttf"; sourceTree = "<group>"; };
 		38589632D3CB492B9E241557 /* Poppins-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-ExtraBoldItalic.ttf"; path = "../fonts/Poppins-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
-		3ADD3BC32D2A12BC00685C69 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		3ADD3BC42D2A12BC00685C69 /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
 		3ADD3BC52D2A12BC00685C69 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		3ADD3BC62D2A12BC00685C69 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3ADD3BC72D2A12BC00685C69 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3ADD3BC82D2A12BC00685C69 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		3ADD3BC92D2A12BC00685C69 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3ADD3BD52D2A1AF200685C69 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3ADD3BD72D2A1B4200685C69 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		3ADD3BD92D2A3E5500685C69 /* CacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManager.swift; sourceTree = "<group>"; };
 		3DABDAC0711D4C27B7A87328 /* Poppins-Black.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Black.ttf"; path = "../fonts/Poppins-Black.ttf"; sourceTree = "<group>"; };
 		3FF94C4BE247446E8AC6CEE9 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Regular.ttf"; path = "../fonts/Poppins-Regular.ttf"; sourceTree = "<group>"; };
 		4CB154E9AF1D01305240133D /* libPods-Liftosaur.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Liftosaur.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -172,13 +175,14 @@
 		3ADD3BCA2D2A12BC00685C69 /* Liftosaur */ = {
 			isa = PBXGroup;
 			children = (
-				3ADD3BC32D2A12BC00685C69 /* AppDelegate.h */,
-				3ADD3BC42D2A12BC00685C69 /* AppDelegate.mm */,
+				3ADD3BD92D2A3E5500685C69 /* CacheManager.swift */,
 				3ADD3BC52D2A12BC00685C69 /* Images.xcassets */,
 				3ADD3BC62D2A12BC00685C69 /* Info.plist */,
 				3ADD3BC72D2A12BC00685C69 /* LaunchScreen.storyboard */,
 				3ADD3BC82D2A12BC00685C69 /* main.m */,
 				3ADD3BC92D2A12BC00685C69 /* PrivacyInfo.xcprivacy */,
+				3ADD3BD52D2A1AF200685C69 /* AppDelegate.swift */,
+				3ADD3BD72D2A1B4200685C69 /* MainViewController.swift */,
 			);
 			path = Liftosaur;
 			sourceTree = "<group>";
@@ -328,7 +332,7 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1610;
 					};
 				};
 			};
@@ -552,8 +556,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3ADD3BDA2D2A3E5500685C69 /* CacheManager.swift in Sources */,
+				3ADD3BD82D2A1B4200685C69 /* MainViewController.swift in Sources */,
+				3ADD3BD62D2A1AF200685C69 /* AppDelegate.swift in Sources */,
 				3ADD3BCB2D2A12BC00685C69 /* main.m in Sources */,
-				3ADD3BCC2D2A12BC00685C69 /* AppDelegate.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
