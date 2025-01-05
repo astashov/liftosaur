@@ -1,4 +1,4 @@
-package com.rnapp
+package com.liftosaur.www.twa
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -10,6 +10,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
+import com.facebook.react.common.assets.ReactFontManager
 import com.facebook.soloader.SoLoader
 
 class MainApplication : Application(), ReactApplication {
@@ -35,6 +36,7 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
+      ReactFontManager.getInstance().addCustomFont(this, "Poppins", R.font.poppins);
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.

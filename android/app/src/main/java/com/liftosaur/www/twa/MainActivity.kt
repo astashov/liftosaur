@@ -1,4 +1,4 @@
-package com.rnapp
+package com.liftosaur.www.twa
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

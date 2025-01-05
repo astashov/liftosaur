@@ -14,8 +14,7 @@ export function Link(props: IProps): JSX.Element {
       onPress={() => {
         Linking.openURL(props.href);
       }}
-      style={{ fontFamily: "Poppins-Bold" }}
-      className={`text-bluev2 underline ${className}`}
+      className={`text-bluev2 font-bold underline ${className}`}
     >
       {children}
     </LftText>

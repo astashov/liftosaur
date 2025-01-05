@@ -32,7 +32,7 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -49,24 +49,24 @@
 	<false/>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Poppins-Black.ttf</string>
-		<string>Poppins-BlackItalic.ttf</string>
-		<string>Poppins-Bold.ttf</string>
-		<string>Poppins-BoldItalic.ttf</string>
-		<string>Poppins-ExtraBold.ttf</string>
-		<string>Poppins-ExtraBoldItalic.ttf</string>
-		<string>Poppins-ExtraLight.ttf</string>
-		<string>Poppins-ExtraLightItalic.ttf</string>
-		<string>Poppins-Italic.ttf</string>
-		<string>Poppins-Light.ttf</string>
-		<string>Poppins-LightItalic.ttf</string>
-		<string>Poppins-Medium.ttf</string>
-		<string>Poppins-MediumItalic.ttf</string>
-		<string>Poppins-Regular.ttf</string>
-		<string>Poppins-SemiBold.ttf</string>
-		<string>Poppins-SemiBoldItalic.ttf</string>
-		<string>Poppins-Thin.ttf</string>
-		<string>Poppins-ThinItalic.ttf</string>
+		<string>poppins_black.ttf</string>
+		<string>poppins_blackitalic.ttf</string>
+		<string>poppins_bold.ttf</string>
+		<string>poppins_bolditalic.ttf</string>
+		<string>poppins_extrabold.ttf</string>
+		<string>poppins_extrabolditalic.ttf</string>
+		<string>poppins_extralight.ttf</string>
+		<string>poppins_extralightitalic.ttf</string>
+		<string>poppins_italic.ttf</string>
+		<string>poppins_light.ttf</string>
+		<string>poppins_lightitalic.ttf</string>
+		<string>poppins_medium.ttf</string>
+		<string>poppins_mediumitalic.ttf</string>
+		<string>poppins_regular.ttf</string>
+		<string>poppins_semibold.ttf</string>
+		<string>poppins_semibolditalic.ttf</string>
+		<string>poppins_thin.ttf</string>
+		<string>poppins_thinitalic.ttf</string>
 	</array>
 </dict>
 </plist>

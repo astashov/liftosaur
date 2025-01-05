@@ -8,7 +8,7 @@ interface IProps {
   children: React.ReactNode;
   className?: string;
   disabled?: boolean;
-  onPress?: () => void;
+  onClick?: () => void;
 }
 
 export function Button(props: IProps): JSX.Element {
@@ -41,7 +41,11 @@ export function Button(props: IProps): JSX.Element {
     className += " cursor-not-allowed";
   }
   return (
-    <TouchableOpacity {...otherProps} className={`${props.className || ""} ${className} nm-${props.name}`}>
+    <TouchableOpacity
+      {...otherProps}
+      onPress={props.onClick}
+      className={`${props.className || ""} ${className} nm-${props.name}`}
+    >
       <View>
         <LftText className="text-xs font-bold text-center text-white">{props.children}</LftText>
       </View>
