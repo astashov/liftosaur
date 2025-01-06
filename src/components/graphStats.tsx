@@ -1,7 +1,4 @@
-import React, { JSX } from "react";
-import UPlot from "uplot";
-import { useRef, useEffect } from "react";
-import { CollectionUtils } from "../utils/collection";
+import { Length } from "../models/length";
 import { Weight } from "../models/weight";
 import {
   ILengthUnit,
@@ -12,11 +9,13 @@ import {
   IStatsWeightValue,
   IUnit,
 } from "../types";
-import { Length } from "../models/length";
-import { Stats } from "../models/stats";
-import { DateUtils } from "../utils/date";
-import { GraphsPlugins } from "../utils/graphsPlugins";
 import { IPercentageUnit } from "../types";
+import { View } from "react-native";
+import { CartesianChart, Line, useChartPressState } from "victory-native";
+import { CollectionUtils } from "../utils/collection";
+import { Circle, useFont } from "@shopify/react-native-skia";
+import type { SharedValue } from "react-native-reanimated";
+import poppins from "../../fonts/poppins_regular.ttf";
 
 interface IGraphStatsProps {
   collection: [number, number][];
@@ -52,126 +51,24 @@ export function getPercentageDataForGraph(coll: IStatsPercentageValue[], setting
 }
 
 export function GraphStats(props: IGraphStatsProps): JSX.Element {
-  const graphRef = useRef<HTMLDivElement>(null);
-  const legendRef = useRef<HTMLDivElement>(null);
-  const movingAverageWindowSize = props.movingAverageWindowSize;
-  useEffect(() => {
-    const data = props.collection.reduce<[number[], number[], number[]]>(
-      (memo, i, index, array) => {
-        memo[0].push(i[0]);
-        memo[1].push(i[1]);
-
-        if (movingAverageWindowSize != null) {
-          if (index >= movingAverageWindowSize - 1) {
-            const sum = memo[1].slice(index - movingAverageWindowSize + 1, index + 1).reduce((a, b) => a + b, 0);
-            const movingAvg = sum / movingAverageWindowSize;
-            memo[2].push(Math.round(movingAvg * 10) / 10);
-          } else {
-            memo[2].push(i[1]);
-          }
-        }
-
-        return memo;
-      },
-      [[], [], []]
-    );
-    const dataMaxX = data[0]?.[data[0].length - 1] || new Date(0).getTime() / 1000;
-    const dataMinX = Math.max(data[0]?.[0] || 0, dataMaxX - 365 * 24 * 60 * 60);
-    const allMaxX = props.maxX;
-    const allMinX = Math.max(props.minX, allMaxX - 365 * 24 * 60 * 60);
-    const rect = graphRef.current!.getBoundingClientRect();
-    const opts: UPlot.Options = {
-      title: props.title === undefined ? `${Stats.name(props.statsKey)}` : props.title || undefined,
-      class: "graph-max-weight",
-      width: rect.width,
-      height: rect.height,
-      cursor: {
-        y: false,
-        lock: true,
-      },
-      plugins: [
-        GraphsPlugins.zoom(),
-        {
-          hooks: {
-            setCursor: [
-              (self: UPlot): void => {
-                const idx = self.cursor.idx!;
-                const date = new Date(data[0][idx] * 1000);
-                const value = data[1][idx];
-                let text: string;
-                if (value != null && props.units != null) {
-                  text = `${DateUtils.format(date)}, <strong>${value}</strong> ${props.units}`;
-                  if (movingAverageWindowSize != null) {
-                    text += ` (Avg. ${data[2][idx]} ${props.units})`;
-                  }
-                } else {
-                  text = "";
-                }
-                if (legendRef.current != null) {
-                  legendRef.current.innerHTML = text;
-                }
-              },
-            ],
-          },
-        },
-      ],
-      legend: {
-        show: false,
-      },
-      scales: props.isSameXAxis ? { x: { min: allMinX, max: allMaxX } } : { x: { min: dataMinX, max: dataMaxX } },
-      series: [
-        {},
-        {
-          label: props.statsKey === "weight" ? "Weight" : props.statsKey === "bodyfat" ? "Percentage" : "Size",
-          value: (self, rawValue) => `${rawValue} ${props.units}`,
-          stroke: "red",
-          width: 1,
-        },
-        movingAverageWindowSize != null
-          ? {
-              label: "Moving Average",
-              value: (self, rawValue) => `${rawValue} ${props.units}`,
-              stroke: "blue",
-              width: 1,
-            }
-          : {},
-      ],
-    };
-
-    const uplot = new UPlot(opts, data, graphRef.current!);
-
-    const underEl = graphRef.current!.querySelector(".over");
-    const underRect = underEl?.getBoundingClientRect();
-
-    function handler(): void {
-      function onMove(event: TouchEvent): void {
-        const offset = window.pageYOffset;
-        const touch = event.touches[0];
-        uplot.setCursor({ left: touch.clientX - underRect!.left, top: touch.clientY - underRect!.top + offset });
-      }
-
-      function onEnd(): void {
-        window.removeEventListener("touchmove", onMove);
-        window.removeEventListener("touchend", onEnd);
-      }
-
-      window.addEventListener("touchmove", onMove);
-      window.addEventListener("touchend", onEnd);
-    }
-
-    if (underEl != null) {
-      underEl.addEventListener("touchstart", handler);
-    }
-  }, []);
+  const data = props.collection.map(([x, y]) => ({ x, y }));
+  const font = useFont(poppins, 12);
+  const { state, isActive } = useChartPressState({ x: 0, y: { y: 0 } });
 
   return (
-    <div className="relative z-0 pt-2" data-cy="graph">
-      <div className="w-full" data-cy="graph-data" style={{ height: "20em" }} ref={graphRef}></div>
-      <div
-        data-cy="graph-legend"
-        className={`box-content h-6 px-8 ${props.title === null ? "pt-2" : "pt-8"} pb-2 text-sm text-center`}
-        ref={legendRef}
-      ></div>
-    </div>
+    <View style={{ height: 300 }}>
+      <CartesianChart data={data} xKey="x" yKeys={["y"]} axisOptions={{ font }} chartPressState={state}>
+        {({ points }) => (
+          <>
+            <Line points={points.y} color="red" strokeWidth={1} />
+            {isActive && <ToolTip x={state.x.position} y={state.y.y.position} />}
+          </>
+        )}
+      </CartesianChart>
+    </View>
   );
+}
+
+function ToolTip({ x, y }: { x: SharedValue<number>; y: SharedValue<number> }): JSX.Element {
+  return <Circle cx={x} cy={y} r={4} color="black" />;
 }

@@ -1,9 +1,11 @@
-import React, { JSX } from "react";
+import { View } from "react-native";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Subscriptions } from "../utils/subscriptions";
 import { Thunk } from "../ducks/thunks";
 import { ISubscription } from "../types";
+import { LftText } from "./lftText";
+import { Blur } from "./blur";
 
 interface IProps {
   dispatch: IDispatch;
@@ -19,18 +21,18 @@ export function Locker(props: IProps): JSX.Element {
     return <></>;
   }
   return (
-    <div
-      className="absolute inset-0 z-10 flex flex-col items-center justify-center"
-      style={{ backdropFilter: `blur(${props.blur}px)`, WebkitBackdropFilter: `blur(${props.blur}px)` }}
-    >
-      <div className="mx-auto text-center" style={{ maxWidth: "12rem" }}>
-        Get <span className="font-bold text-orangev2">Premium</span> to unlock <strong>{props.topic}</strong>
-      </div>
-      <div className="pt-1 text-center">
+    <Blur blur={props.blur}>
+      <View className="mx-auto text-center" style={{ maxWidth: 192 }}>
+        <LftText>
+          Get <LftText className="font-bold text-orangev2">Premium</LftText> to unlock{" "}
+          <LftText className="font-bold">{props.topic}</LftText>
+        </LftText>
+      </View>
+      <View className="pt-1 text-center">
         <Button name="unlock" kind="orange" onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}>
           Unlock
         </Button>
-      </div>
-    </div>
+      </View>
+    </Blur>
   );
 }

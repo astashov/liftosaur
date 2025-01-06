@@ -22,7 +22,7 @@ interface IProps {
 export function Modal(props: IProps): JSX.Element {
   const modalRef = useRef<View>(null);
 
-  let className = "inset-0 flex flex-row items-center justify-center web:fixed ios:absolute";
+  let className = "absolute inset-0 flex flex-row items-center justify-center web:fixed";
   if (props.isHidden) {
     className += " invisible";
   }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, TextInput, Alert } from "react-native";
+import { View, TextInput, Alert, TouchableOpacity } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { EditStats } from "../models/editStats";
 import { Length } from "../models/length";
@@ -75,7 +75,7 @@ export function StatsList(props: IProps): JSX.Element {
             name="add-measurements"
             data-cy="add-measurements"
             kind="purple"
-            onPress={() => props.dispatch(Thunk.pushScreen("stats"))}
+            onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
           >
             Add measurements
           </Button>
@@ -102,7 +102,7 @@ export function StatsList(props: IProps): JSX.Element {
           name="add-measurements"
           data-cy="add-measurements"
           kind="purple"
-          onPress={() => props.dispatch(Thunk.pushScreen("stats"))}
+          onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
         >
           Add measurements
         </Button>
@@ -225,9 +225,7 @@ export function StatsList(props: IProps): JSX.Element {
                     </LftText>
                   </View>
                   <View>
-                    <Button
-                      name="delete-stat"
-                      kind="orange"
+                    <TouchableOpacity
                       className="p-3 ls-delete-stat"
                       data-cy="delete-stat"
                       onPress={() => {
@@ -257,7 +255,7 @@ export function StatsList(props: IProps): JSX.Element {
                       }}
                     >
                       <IconTrash />
-                    </Button>
+                    </TouchableOpacity>
                   </View>
                 </View>
               </MenuItemWrapper>

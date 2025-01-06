@@ -215,7 +215,12 @@ export function ScreenStats(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           helpContent={<HelpStats />}
           rightButtons={[
-            <button className="p-2 ls-modify-stats" data-cy="modify-stats" onClick={() => setIsModalVisible(true)}>
+            <button
+              key={0}
+              className="p-2 ls-modify-stats"
+              data-cy="modify-stats"
+              onClick={() => setIsModalVisible(true)}
+            >
               <IconFilter />
             </button>,
           ]}
@@ -447,24 +452,22 @@ function DoubleLine(props: IDoubleLineProps): JSX.Element {
 }
 
 const StatInput = memo(
-  forwardRef(
-    (props: IInputProps, ref: Ref<HTMLInputElement>): JSX.Element => {
-      const name = StringUtils.dashcase(props.label.toLowerCase());
-      return (
-        <Input
-          label={`${props.label} (${props.unit})`}
-          labelSize="xs"
-          defaultValue={props.value}
-          ref={ref}
-          className="w-full"
-          type={SendMessage.isIos() ? "number" : "tel"}
-          placeholder="e.g. 10"
-          min="0"
-          step="0.01"
-          tabIndex={1}
-          data-cy={`input-stats-${name}`}
-        />
-      );
-    }
-  )
+  forwardRef((props: IInputProps, ref: Ref<HTMLInputElement>): JSX.Element => {
+    const name = StringUtils.dashcase(props.label.toLowerCase());
+    return (
+      <Input
+        label={`${props.label} (${props.unit})`}
+        labelSize="xs"
+        defaultValue={props.value}
+        ref={ref}
+        className="w-full"
+        type={SendMessage.isIos() ? "number" : "tel"}
+        placeholder="e.g. 10"
+        min="0"
+        step="0.01"
+        tabIndex={1}
+        data-cy={`input-stats-${name}`}
+      />
+    );
+  })
 );

@@ -1,7 +1,9 @@
 import React, { JSX } from "react";
+import { View, TouchableOpacity } from "react-native";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { IconHandle } from "./icons/iconHandle";
 import { StringUtils } from "../utils/string";
+import { LftText } from "./lftText";
 
 interface IMenuItemProps {
   prefix?: React.ReactNode;
@@ -12,61 +14,65 @@ interface IMenuItemProps {
   expandValue?: boolean;
   addons?: React.ReactNode;
   shouldShowRightArrow?: boolean;
-  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
-  onClick?: (e: React.MouseEvent) => void;
+  handleTouchStart?: () => void;
+  onClick?: () => void;
 }
 
 export function MenuItemWrapper(props: {
   name: string;
   children: React.ReactNode;
   isBorderless?: boolean;
-  onClick?: (e: React.MouseEvent) => void;
+  onClick?: () => void;
 }): JSX.Element {
-  return (
-    <section
-      data-cy={`menu-item-${StringUtils.dashcase(props.name)}`}
-      className="w-full text-base text-left"
-      onClick={props.onClick}
-    >
-      <div className={!props.isBorderless ? "border-b border-grayv2-100" : ""}>{props.children}</div>
-    </section>
-  );
+  const view = <View className={!props.isBorderless ? "border-b border-grayv2-100" : ""}>{props.children}</View>;
+  if (props.onClick) {
+    return (
+      <TouchableOpacity
+        data-cy={`menu-item-${StringUtils.dashcase(props.name)}`}
+        className="w-full text-base text-left"
+        onPress={() => {
+          if (props.onClick) {
+            props.onClick();
+          }
+        }}
+      >
+        {view}
+      </TouchableOpacity>
+    );
+  } else {
+    return view;
+  }
 }
 
 export function MenuItem(props: IMenuItemProps): JSX.Element {
   return (
     <MenuItemWrapper name={props.name} onClick={props.onClick} isBorderless={props.isBorderless}>
-      <section className="flex items-center">
+      <View className="flex flex-row items-center">
         {props.handleTouchStart && (
-          <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-            <span
-              onMouseDown={(e) => {
+          <View className="p-2 cursor-move" style={{ marginLeft: -16 }}>
+            <TouchableOpacity
+              onPressIn={(e) => {
                 if (props.handleTouchStart) {
-                  props.handleTouchStart(e.nativeEvent);
-                }
-              }}
-              onTouchStart={(e) => {
-                if (props.handleTouchStart) {
-                  props.handleTouchStart(e.nativeEvent);
+                  props.handleTouchStart();
                 }
               }}
             >
               <IconHandle />
-            </span>
-          </div>
+            </TouchableOpacity>
+          </View>
         )}
-        <div className="flex items-center justify-center">{props.prefix}</div>
-        <div className={`${props.expandValue ? "" : "flex-1"}`}>
-          <div className="flex items-center pt-3 pb-1 text-left">{props.name}</div>
-          <div className="pb-2">{props.addons}</div>
-        </div>
-        <div className={`${props.expandName ? "" : "flex-1"} text-right text-bluev2`}>{props.value}</div>
+        <View className="flex flex-row items-center justify-center">{props.prefix}</View>
+        <View className={`${props.expandValue ? "" : "flex-1"}`}>
+          <LftText className="flex flex-row items-center pt-3 pb-1 text-left">{props.name}</LftText>
+          <View className="pb-2">{props.addons}</View>
+        </View>
+        <LftText className={`${props.expandName ? "" : "flex-1"} text-right text-bluev2`}>{props.value}</LftText>
         {props.shouldShowRightArrow && (
-          <div className="flex items-center py-2 pl-2">
+          <View className="flex flex-row items-center py-2 pl-2">
             <IconArrowRight style={{ color: "#a0aec0" }} />
-          </div>
+          </View>
         )}
-      </section>
+      </View>
     </MenuItemWrapper>
   );
 }
