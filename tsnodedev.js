@@ -1,7 +1,7 @@
 require("@babel/register")({
   extensions: [".js", ".jsx"],
-  only: [/node_modules\/react-native*/],
-  ignore: [/node_modules/, /\.tsx?$/],
+  only: [/node_modules\/react-native.*/],
+  presets: ["@babel/preset-env", "@babel/preset-react"],
 });
 
 const { resolve, extname } = require("path");

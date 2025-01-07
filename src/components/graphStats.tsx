@@ -10,12 +10,15 @@ import {
   IUnit,
 } from "../types";
 import { IPercentageUnit } from "../types";
-import { View } from "react-native";
-import { CartesianChart, Line, useChartPressState } from "victory-native";
+import { Text, View } from "react-native";
+import { CartesianChart, Line, useChartPressState, useChartTransformState } from "victory-native";
 import { CollectionUtils } from "../utils/collection";
 import { Circle, useFont } from "@shopify/react-native-skia";
-import type { SharedValue } from "react-native-reanimated";
+import { useDerivedValue, type SharedValue } from "react-native-reanimated";
 import poppins from "../../fonts/poppins_regular.ttf";
+import Animated, { useAnimatedProps } from "react-native-reanimated";
+import { DateUtils } from "../utils/date";
+import AnimateableText from "react-native-animateable-text";
 
 interface IGraphStatsProps {
   collection: [number, number][];
@@ -51,13 +54,50 @@ export function getPercentageDataForGraph(coll: IStatsPercentageValue[], setting
 }
 
 export function GraphStats(props: IGraphStatsProps): JSX.Element {
-  const data = props.collection.map(([x, y]) => ({ x, y }));
+  const data = props.collection.map(([x, y]) => ({ x: x * 1000, y }));
   const font = useFont(poppins, 12);
-  const { state, isActive } = useChartPressState({ x: 0, y: { y: 0 } });
+  const lastDataPoint = data[data.length - 1];
+  const { state, isActive } = useChartPressState({ x: lastDataPoint?.x ?? 0, y: { y: lastDataPoint?.y ?? 0 } });
+  const transformState = useChartTransformState({
+    scaleX: 1.0,
+    scaleY: 1.0,
+  });
+  const animatedPropsDate = useAnimatedProps(() => ({ text: `${DateUtils.format(state.x.value.value)}` }));
+  const animatedPropsValue = useAnimatedProps(() => ({ text: `${state.y.y.value.value}` }));
 
   return (
     <View style={{ height: 300 }}>
-      <CartesianChart data={data} xKey="x" yKeys={["y"]} axisOptions={{ font }} chartPressState={state}>
+      <CartesianChart
+        transformState={transformState.state}
+        transformConfig={{
+          pan: {
+            minPointers: 2,
+            dimensions: ["x"],
+            activateAfterLongPress: 300,
+          },
+          pinch: {
+            dimensions: ["x"],
+          },
+        }}
+        data={data}
+        xKey="x"
+        yKeys={["y"]}
+        domainPadding={{ left: 12, right: 12, top: 12, bottom: 12 }}
+        padding={{ left: 12, right: 12, top: 12, bottom: 12 }}
+        xAxis={{
+          font,
+          formatXLabel: (x) => {
+            return DateUtils.format(x, true, true);
+          },
+        }}
+        yAxis={[{ font }]}
+        chartPressState={state}
+        chartPressConfig={{
+          pan: {
+            activeOffsetX: 10,
+          },
+        }}
+      >
         {({ points }) => (
           <>
             <Line points={points.y} color="red" strokeWidth={1} />
@@ -65,6 +105,12 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
           </>
         )}
       </CartesianChart>
+      <View className="flex flex-row justify-center mb-2">
+        <AnimateableText animatedProps={animatedPropsDate} />
+        <Text>, </Text>
+        <AnimateableText style={{ fontWeight: "bold" }} animatedProps={animatedPropsValue} />
+        <Text> {props.units}</Text>
+      </View>
     </View>
   );
 }

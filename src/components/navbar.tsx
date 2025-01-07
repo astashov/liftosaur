@@ -150,7 +150,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           </View>
         )}
       </View>
-      {props.helpContent && (
+      {props.helpContent && shouldShowModalHelp && (
         <Modal
           isHidden={!shouldShowModalHelp}
           onClose={() => setShouldShowModalHelp(false)}

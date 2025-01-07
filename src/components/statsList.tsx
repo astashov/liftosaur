@@ -6,7 +6,6 @@ import { Length } from "../models/length";
 import { Stats } from "../models/stats";
 import { Weight } from "../models/weight";
 import { ILength, IPercentage, ISettings, IStats, IStatsKey, ISubscription, IWeight } from "../types";
-import { DateUtils } from "../utils/date";
 import { ObjectUtils } from "../utils/object";
 import { MenuItemWrapper } from "./menuItem";
 import { GroupHeader } from "./groupHeader";
@@ -20,6 +19,7 @@ import { updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
 import { Subscriptions } from "../utils/subscriptions";
 import { LftText } from "./lftText";
+import { Datepicker } from "./datepicker";
 
 interface IProps {
   stats: IStats;
@@ -181,11 +181,10 @@ export function StatsList(props: IProps): JSX.Element {
               <MenuItemWrapper key={`${selectedKey}-${value.timestamp}`} name={`${selectedKey}-${value.timestamp}`}>
                 <View className="flex flex-row items-center">
                   <View className="flex-1">
-                    <TextInput
-                      className="inline-block py-2 text-bluev2"
+                    <Datepicker
+                      value={value.timestamp}
                       data-cy="input-stats-date"
-                      onChange={(e) => {
-                        const date = Date.parse(e.nativeEvent.text + "T00:00:00");
+                      onChange={(date) => {
                         if (!isNaN(date)) {
                           if (selectedKey === "weight") {
                             EditStats.changeStatWeightTimestamp(props.dispatch, selectedKey, value.index, date);
@@ -196,7 +195,6 @@ export function StatsList(props: IProps): JSX.Element {
                           }
                         }
                       }}
-                      value={DateUtils.formatYYYYMMDD(value.timestamp)}
                     />
                   </View>
                   <View className="flex flex-row flex-1">

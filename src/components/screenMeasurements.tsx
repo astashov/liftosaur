@@ -7,7 +7,7 @@ import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { StatsList } from "./statsList";
 import { HelpMeasurements } from "./help/helpMeasurements";
-import { SafeAreaView, View } from "react-native";
+import { SafeAreaView, View, Text } from "react-native";
 
 interface IProps {
   dispatch: IDispatch;

@@ -1,5 +1,6 @@
 export namespace DateUtils {
   export function format(dateStr: string | Date | number, hideWeekday?: boolean, hideYear?: boolean): string {
+    "worklet";
     let date;
     if (typeof dateStr === "string") {
       date = new Date(Date.parse(dateStr));
