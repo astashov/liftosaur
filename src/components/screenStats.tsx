@@ -1,4 +1,5 @@
 import React, { JSX } from "react";
+import { TouchableOpacity, View } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import {
@@ -15,7 +16,7 @@ import {
   IPercentageUnit,
 } from "../types";
 import { Button } from "./button";
-import { forwardRef, Ref, useRef, useState, memo } from "react";
+import { useState } from "react";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
 import { Length } from "../models/length";
@@ -33,6 +34,7 @@ import { HelpStats } from "./help/helpStats";
 import { SendMessage } from "../utils/sendMessage";
 import { HealthSync } from "../lib/healthSync";
 import { MenuItemEditable } from "./menuItemEditable";
+import { LftText } from "./lftText";
 
 interface IProps {
   dispatch: IDispatch;
@@ -89,22 +91,38 @@ export function ScreenStats(props: IProps): JSX.Element {
   const [syncToAppleHealth, setSyncToAppleHealth] = useState(!!props.settings.appleHealthSyncMeasurements);
   const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncMeasurements);
 
-  const refs = {
-    weight: useRef<HTMLInputElement>(null),
-    bodyfat: useRef<HTMLInputElement>(null),
-    neck: useRef<HTMLInputElement>(null),
-    shoulders: useRef<HTMLInputElement>(null),
-    bicepLeft: useRef<HTMLInputElement>(null),
-    bicepRight: useRef<HTMLInputElement>(null),
-    forearmLeft: useRef<HTMLInputElement>(null),
-    forearmRight: useRef<HTMLInputElement>(null),
-    chest: useRef<HTMLInputElement>(null),
-    waist: useRef<HTMLInputElement>(null),
-    hips: useRef<HTMLInputElement>(null),
-    thighLeft: useRef<HTMLInputElement>(null),
-    thighRight: useRef<HTMLInputElement>(null),
-    calfLeft: useRef<HTMLInputElement>(null),
-    calfRight: useRef<HTMLInputElement>(null),
+  const [weight, setWeight] = useState<number | undefined>(undefined);
+  const [bodyfat, setBodyfat] = useState<number | undefined>(undefined);
+  const [neck, setNeck] = useState<number | undefined>(undefined);
+  const [shoulders, setShoulders] = useState<number | undefined>(undefined);
+  const [bicepLeft, setBicepLeft] = useState<number | undefined>(undefined);
+  const [bicepRight, setBicepRight] = useState<number | undefined>(undefined);
+  const [forearmLeft, setForearmLeft] = useState<number | undefined>(undefined);
+  const [forearmRight, setForearmRight] = useState<number | undefined>(undefined);
+  const [chest, setChest] = useState<number | undefined>(undefined);
+  const [waist, setWaist] = useState<number | undefined>(undefined);
+  const [hips, setHips] = useState<number | undefined>(undefined);
+  const [thighLeft, setThighLeft] = useState<number | undefined>(undefined);
+  const [thighRight, setThighRight] = useState<number | undefined>(undefined);
+  const [calfLeft, setCalfLeft] = useState<number | undefined>(undefined);
+  const [calfRight, setCalfRight] = useState<number | undefined>(undefined);
+
+  const values = {
+    weight,
+    bodyfat,
+    neck,
+    shoulders,
+    bicepLeft,
+    bicepRight,
+    forearmLeft,
+    forearmRight,
+    chest,
+    waist,
+    hips,
+    thighLeft,
+    thighRight,
+    calfLeft,
+    calfRight,
   };
 
   function saveWeight(): Partial<Record<keyof IStatsWeight, IWeight>> {
@@ -112,12 +130,9 @@ export function ScreenStats(props: IProps): JSX.Element {
       (acc, key) => {
         const isEnabled = statsEnabled.weight[key];
         if (isEnabled) {
-          const stringValue = refs[key]?.current!.value;
-          if (stringValue) {
-            const value = parseFloat(stringValue);
-            if (!isNaN(value)) {
-              acc[key] = Weight.build(value, units);
-            }
+          const value = values[key];
+          if (value != null && !isNaN(value)) {
+            acc[key] = Weight.build(value, units);
           }
         }
         return acc;
@@ -133,12 +148,9 @@ export function ScreenStats(props: IProps): JSX.Element {
       (acc, key) => {
         const isEnabled = statsEnabled.length[key];
         if (isEnabled) {
-          const stringValue = refs[key]?.current!.value;
-          if (stringValue) {
-            const value = parseFloat(stringValue);
-            if (!isNaN(value)) {
-              acc[key] = Length.build(value, lengthUnits);
-            }
+          const value = values[key];
+          if (value != null && !isNaN(value)) {
+            acc[key] = Length.build(value, lengthUnits);
           }
         }
         return acc;
@@ -155,12 +167,9 @@ export function ScreenStats(props: IProps): JSX.Element {
     >((acc, key) => {
       const isEnabled = statsEnabled.percentage[key];
       if (isEnabled) {
-        const stringValue = refs[key]?.current!.value;
-        if (stringValue) {
-          const value = parseFloat(stringValue);
-          if (!isNaN(value)) {
-            acc[key] = { value, unit: "%" };
-          }
+        const value = values[key];
+        if (value != null && !isNaN(value)) {
+          acc[key] = { value, unit: "%" };
         }
       }
       return acc;
@@ -215,14 +224,14 @@ export function ScreenStats(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           helpContent={<HelpStats />}
           rightButtons={[
-            <button
+            <TouchableOpacity
               key={0}
               className="p-2 ls-modify-stats"
               data-cy="modify-stats"
-              onClick={() => setIsModalVisible(true)}
+              onPress={() => setIsModalVisible(true)}
             >
               <IconFilter />
-            </button>,
+            </TouchableOpacity>,
           ]}
           screenStack={props.screenStack}
           title="Add Measurements"
@@ -238,29 +247,29 @@ export function ScreenStats(props: IProps): JSX.Element {
         />
       }
     >
-      <section className="px-4">
-        <p className="py-2 text-sm text-grayv2-main">
+      <View className="px-4">
+        <LftText className="py-2 text-sm text-grayv2-main">
           All fields are optional, input only the fields you want this time. Empty fields won't be added.
-        </p>
+        </LftText>
         {statsEnabled.length.neck && (
           <SingleLine>
-            <StatInput ref={refs.neck} label="Neck" value={lastLengthStats.neck?.value} unit={lengthUnits} />
+            <StatInput onChange={setNeck} label="Neck" value={lastLengthStats.neck?.value} unit={lengthUnits} />
           </SingleLine>
         )}
         {statsEnabled.weight && (
           <SingleLine>
-            <StatInput ref={refs.weight} label="Bodyweight" value={lastWeightStats.weight?.value} unit={units} />
+            <StatInput onChange={setWeight} label="Bodyweight" value={lastWeightStats.weight?.value} unit={units} />
           </SingleLine>
         )}
         {statsEnabled.percentage.bodyfat && (
           <SingleLine>
-            <StatInput ref={refs.bodyfat} label="Bodyfat" value={lastPercentageStats.bodyfat?.value} unit="%" />
+            <StatInput onChange={setBodyfat} label="Bodyfat" value={lastPercentageStats.bodyfat?.value} unit="%" />
           </SingleLine>
         )}
         {statsEnabled.length.shoulders && (
           <SingleLine>
             <StatInput
-              ref={refs.shoulders}
+              onChange={setShoulders}
               label="Shoulders"
               value={lastLengthStats.shoulders?.value}
               unit={lengthUnits}
@@ -272,7 +281,7 @@ export function ScreenStats(props: IProps): JSX.Element {
             first={
               statsEnabled.length.bicepLeft && (
                 <StatInput
-                  ref={refs.bicepLeft}
+                  onChange={setBicepLeft}
                   label="Bicep Left"
                   value={lastLengthStats.bicepLeft?.value}
                   unit={lengthUnits}
@@ -282,7 +291,7 @@ export function ScreenStats(props: IProps): JSX.Element {
             second={
               statsEnabled.length.bicepRight && (
                 <StatInput
-                  ref={refs.bicepRight}
+                  onChange={setBicepRight}
                   label="Bicep Right"
                   value={lastLengthStats.bicepRight?.value}
                   unit={lengthUnits}
@@ -296,7 +305,7 @@ export function ScreenStats(props: IProps): JSX.Element {
             first={
               statsEnabled.length.forearmLeft && (
                 <StatInput
-                  ref={refs.forearmLeft}
+                  onChange={setForearmLeft}
                   label="Forearm Left"
                   value={lastLengthStats.forearmLeft?.value}
                   unit={lengthUnits}
@@ -306,7 +315,7 @@ export function ScreenStats(props: IProps): JSX.Element {
             second={
               statsEnabled.length.forearmRight && (
                 <StatInput
-                  ref={refs.forearmRight}
+                  onChange={setForearmRight}
                   label="Forearm Right"
                   value={lastLengthStats.forearmRight?.value}
                   unit={lengthUnits}
@@ -317,17 +326,17 @@ export function ScreenStats(props: IProps): JSX.Element {
         )}
         {statsEnabled.length.chest && (
           <SingleLine>
-            <StatInput label="Chest" ref={refs.chest} value={lastLengthStats.chest?.value} unit={lengthUnits} />
+            <StatInput label="Chest" onChange={setChest} value={lastLengthStats.chest?.value} unit={lengthUnits} />
           </SingleLine>
         )}
         {statsEnabled.length.waist && (
           <SingleLine>
-            <StatInput ref={refs.waist} label="Waist" value={lastLengthStats.waist?.value} unit={lengthUnits} />
+            <StatInput onChange={setWaist} label="Waist" value={lastLengthStats.waist?.value} unit={lengthUnits} />
           </SingleLine>
         )}
         {statsEnabled.length.hips && (
           <SingleLine>
-            <StatInput ref={refs.hips} label="Hips" value={lastLengthStats.hips?.value} unit={lengthUnits} />
+            <StatInput onChange={setHips} label="Hips" value={lastLengthStats.hips?.value} unit={lengthUnits} />
           </SingleLine>
         )}
         {(statsEnabled.length.thighLeft || statsEnabled.length.thighRight) && (
@@ -335,7 +344,7 @@ export function ScreenStats(props: IProps): JSX.Element {
             first={
               statsEnabled.length.thighLeft && (
                 <StatInput
-                  ref={refs.thighLeft}
+                  onChange={setThighLeft}
                   label="Thigh Left"
                   value={lastLengthStats.thighLeft?.value}
                   unit={lengthUnits}
@@ -345,7 +354,7 @@ export function ScreenStats(props: IProps): JSX.Element {
             second={
               statsEnabled.length.thighRight && (
                 <StatInput
-                  ref={refs.thighRight}
+                  onChange={setThighRight}
                   label="Thigh Right"
                   value={lastLengthStats.thighRight?.value}
                   unit={lengthUnits}
@@ -359,7 +368,7 @@ export function ScreenStats(props: IProps): JSX.Element {
             first={
               statsEnabled.length.calfLeft && (
                 <StatInput
-                  ref={refs.calfLeft}
+                  onChange={setCalfLeft}
                   label="Calf Left"
                   value={lastLengthStats.calfLeft?.value}
                   unit={lengthUnits}
@@ -369,7 +378,7 @@ export function ScreenStats(props: IProps): JSX.Element {
             second={
               statsEnabled.length.calfRight && (
                 <StatInput
-                  ref={refs.calfRight}
+                  onChange={setCalfRight}
                   label="Calf Right"
                   value={lastLengthStats.calfRight?.value}
                   unit={lengthUnits}
@@ -379,7 +388,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           />
         )}
         {HealthSync.eligibleForAppleHealth() && (
-          <div>
+          <View>
             <MenuItemEditable
               name="Sync to Apple Health"
               type="boolean"
@@ -388,10 +397,10 @@ export function ScreenStats(props: IProps): JSX.Element {
                 setSyncToAppleHealth(newValue === "true");
               }}
             />
-          </div>
+          </View>
         )}
         {HealthSync.eligibleForGoogleHealth() && (
-          <div>
+          <View>
             <MenuItemEditable
               name="Sync to Google Health Connect"
               type="boolean"
@@ -400,21 +409,14 @@ export function ScreenStats(props: IProps): JSX.Element {
                 setSyncToGoogleHealth(newValue === "true");
               }}
             />
-          </div>
+          </View>
         )}
-        <div className="py-4 mb-2 text-center">
-          <Button
-            name="add-stats"
-            tabIndex={1}
-            className="ls-add-stats"
-            data-cy="add-stats"
-            kind="orange"
-            onClick={save}
-          >
+        <View className="flex flex-row justify-center py-4 mb-2 text-center">
+          <Button name="add-stats" className="ls-add-stats" data-cy="add-stats" kind="orange" onClick={save}>
             Done
           </Button>
-        </div>
-      </section>
+        </View>
+      </View>
     </Surface>
   );
 }
@@ -423,6 +425,7 @@ interface IInputProps {
   label: string;
   value?: number | string;
   unit: IUnit | ILengthUnit | IPercentageUnit;
+  onChange?: (value: number) => void;
 }
 
 interface ISingleLineProps {
@@ -431,9 +434,9 @@ interface ISingleLineProps {
 
 function SingleLine(props: ISingleLineProps): JSX.Element {
   return (
-    <div className="my-2">
-      <div className="w-48 mx-auto text-center">{props.children}</div>
-    </div>
+    <View className="my-2">
+      <View className="w-48 mx-auto text-center">{props.children}</View>
+    </View>
   );
 }
 
@@ -444,30 +447,32 @@ interface IDoubleLineProps {
 
 function DoubleLine(props: IDoubleLineProps): JSX.Element {
   return (
-    <div className="flex my-2 text-center">
-      <div className="flex-1 mr-1 text-center">{props.first}</div>
-      <div className="flex-1 ml-1 text-center">{props.second}</div>
-    </div>
+    <View className="flex flex-row my-2 text-center">
+      <View className="flex-1 mr-1 text-center">{props.first}</View>
+      <View className="flex-1 ml-1 text-center">{props.second}</View>
+    </View>
   );
 }
 
-const StatInput = memo(
-  forwardRef((props: IInputProps, ref: Ref<HTMLInputElement>): JSX.Element => {
-    const name = StringUtils.dashcase(props.label.toLowerCase());
-    return (
-      <Input
-        label={`${props.label} (${props.unit})`}
-        labelSize="xs"
-        defaultValue={props.value}
-        ref={ref}
-        className="w-full"
-        type={SendMessage.isIos() ? "number" : "tel"}
-        placeholder="e.g. 10"
-        min="0"
-        step="0.01"
-        tabIndex={1}
-        data-cy={`input-stats-${name}`}
-      />
-    );
-  })
-);
+const StatInput = (props: IInputProps): JSX.Element => {
+  const name = StringUtils.dashcase(props.label.toLowerCase());
+  return (
+    <Input
+      label={`${props.label} (${props.unit})`}
+      labelSize="xs"
+      value={`${props.value}`}
+      changeHandler={(result) => {
+        if (result.success && props.onChange) {
+          props.onChange(parseFloat(result.data));
+        }
+      }}
+      className="w-full"
+      type="numeric"
+      placeholder="e.g. 10"
+      min="0"
+      step="0.01"
+      tabIndex={1}
+      data-cy={`input-stats-${name}`}
+    />
+  );
+};

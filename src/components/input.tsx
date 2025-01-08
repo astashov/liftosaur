@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { JSX, Ref } from "react";
-import { forwardRef, useState, useCallback } from "react";
+import { forwardRef, useState, useCallback, Ref } from "react";
 import { UidFactory } from "../utils/generator";
 import { StringUtils } from "../utils/string";
 import { IEither } from "../utils/types";
+import { TextInput, View } from "react-native";
+import { LftText } from "./lftText";
 
 export const inputClassName =
   "inline-block w-full px-4 text-base py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline text-base";
@@ -31,24 +32,7 @@ export interface IProps
   changeHandler?: (e: IEither<string, Set<IValidationError>>) => void;
 }
 
-export function selectInputOnFocus(e: React.FocusEvent): boolean | undefined {
-  const target = e.target;
-  if (target instanceof HTMLInputElement) {
-    const handleNumber = target.type === "number";
-    if (handleNumber) {
-      target.type = "text";
-    }
-    const value = (target as HTMLInputElement).value;
-    target.setSelectionRange(0, value.length);
-    if (handleNumber) {
-      target.type = "number";
-    }
-    return false;
-  }
-  return undefined;
-}
-
-export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement | HTMLTextAreaElement>): JSX.Element => {
+export const Input = forwardRef((props: IProps, ref: Ref<TextInput>): JSX.Element => {
   const { inputSize, labelSize, label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
   const changeType = props.changeType || "onblur";
   const identifier = props.identifier || StringUtils.dashcase((label || UidFactory.generateUid(8))?.toLowerCase());
@@ -56,24 +40,21 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement | HTML
   const size = inputSize || "md";
 
   const onInputHandler = useCallback(
-    (e: React.UIEvent) => {
-      const target = e.target;
-      if (target instanceof HTMLInputElement) {
-        const errors = new Set<IValidationError>();
-        if (target.validity.patternMismatch) {
-          errors.add("pattern-mismatch");
-        }
-        if (target.validity.valueMissing) {
-          errors.add("required");
-        }
-        setValidationErrors(errors);
-        if (props.changeHandler != null) {
-          if (errors.size > 0) {
-            props.changeHandler({ success: false, error: errors });
-          } else {
-            const value = (e.target as HTMLInputElement).value;
-            props.changeHandler({ success: true, data: value });
-          }
+    (value: string) => {
+      const errors = new Set<IValidationError>();
+      // TODO: Add error handling
+      // if (target.validity.patternMismatch) {
+      //   errors.add("pattern-mismatch");
+      // }
+      // if (target.validity.valueMissing) {
+      //   errors.add("required");
+      // }
+      setValidationErrors(errors);
+      if (props.changeHandler != null) {
+        if (errors.size > 0) {
+          props.changeHandler({ success: false, error: errors });
+        } else {
+          props.changeHandler({ success: true, data: value });
         }
       }
     },
@@ -105,56 +86,66 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement | HTML
   }
   const theLabelSize = labelSize || "sm";
   return (
-    <div className={containerClassName}>
-      <label
-        data-cy={`${identifier}-label`}
-        className={className}
-        style={{ minHeight: size === "md" ? "48px" : "40px" }}
-      >
-        <div
+    <View className={containerClassName}>
+      <View data-cy={`${identifier}-label`} className={className} style={{ minHeight: size === "md" ? 48 : 40 }}>
+        <View
           className={`relative mx-4 ${size === "md" ? "my-1" : ""}`}
-          style={size !== "md" ? { marginTop: "1px", marginBottom: "1px" } : {}}
+          style={size !== "md" ? { marginTop: 1, marginBottom: 1 } : {}}
         >
           {props.label && (
-            <div
-              className={`leading-none relative ${theLabelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
-              style={{ top: "2px", left: "0" }}
+            <LftText
+              className={`relative ${theLabelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
+              style={{ top: 0, left: 0 }}
             >
               {props.label}
-            </div>
+            </LftText>
           )}
-          <div className="relative flex" style={{ top: props.label ? "3px" : "8px", left: "0" }}>
+          <View className="relative flex" style={{ top: props.label ? 3 : 8, left: 0 }}>
             {props.multiline ? (
-              <textarea
+              <TextInput
                 data-cy={`${identifier}-input`}
                 ref={ref as Ref<HTMLTextAreaElement>}
-                onBlur={changeType === "onblur" ? onInputHandler : undefined}
-                onInput={changeType === "oninput" ? onInputHandler : undefined}
-                onFocus={selectInputOnFocus}
+                onBlur={(e) => {
+                  if (changeType === "onblur") {
+                    onInputHandler(e.nativeEvent.text);
+                  }
+                }}
+                onChange={(e) => {
+                  if (changeType === "oninput") {
+                    onInputHandler(e.nativeEvent.text);
+                  }
+                }}
                 className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
-                style={{ fontSize: size === "md" ? "16px" : "15px", height: `${props.multiline * 25}px` }}
+                style={{ fontSize: 16, height: props.multiline * 25 }}
                 {...(otherProps as any)}
               />
             ) : (
-              <input
+              <TextInput
                 data-cy={`${identifier}-input`}
                 ref={ref as Ref<HTMLInputElement>}
-                onBlur={changeType === "onblur" ? onInputHandler : undefined}
-                onInput={changeType === "oninput" ? onInputHandler : undefined}
-                onFocus={selectInputOnFocus}
+                onBlur={(e) => {
+                  if (changeType === "onblur") {
+                    onInputHandler(e.nativeEvent.text);
+                  }
+                }}
+                onChange={(e) => {
+                  if (changeType === "oninput") {
+                    onInputHandler(e.nativeEvent.text);
+                  }
+                }}
                 className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
-                style={{ height: "1.25rem", fontSize: size === "md" ? "16px" : "15px" }}
+                style={{ height: 20, fontSize: 16 }}
                 {...(otherProps as any)}
               />
             )}
-          </div>
-        </div>
-      </label>
+          </View>
+        </View>
+      </View>
       {errorMessages.map((message) => (
-        <div className="text-xs text-left text-redv2-main" key={message}>
+        <LftText className="text-xs text-left text-redv2-main" key={message}>
           {message}
-        </div>
+        </LftText>
       ))}
-    </div>
+    </View>
   );
 });

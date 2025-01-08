@@ -14,6 +14,7 @@ import { WebViewScreen } from "./webViewScreen";
 import { IDispatch } from "../../src/ducks/types";
 import { useThunkReducer } from "../../src/utils/useThunkReducer";
 import { ScreenMeasurements } from "../../src/components/screenMeasurements";
+import { ScreenStats } from "../../src/components/screenStats";
 
 interface IAppProps {
   essentials?: IInitializeEssentials;
@@ -89,6 +90,14 @@ export default function App(props: IAppProps): JSX.Element {
           loading={state.loading}
           screenStack={state.screenStack}
           subscription={state.storage.subscription}
+          dispatch={dispatch}
+          settings={state.storage.settings}
+          stats={state.storage.stats}
+        />
+      ) : screen === "stats" ? (
+        <ScreenStats
+          screenStack={state.screenStack}
+          loading={state.loading}
           dispatch={dispatch}
           settings={state.storage.settings}
           stats={state.storage.stats}

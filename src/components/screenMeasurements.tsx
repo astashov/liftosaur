@@ -22,25 +22,23 @@ export function ScreenMeasurements(props: IProps): JSX.Element {
   const { settings, stats, dispatch } = props;
 
   return (
-    <SafeAreaView className="flex-1">
-      <Surface
-        navbar={
-          <NavbarView
-            loading={props.loading}
-            dispatch={props.dispatch}
-            helpContent={<HelpMeasurements />}
-            screenStack={props.screenStack}
-            title="Measurements"
-          />
-        }
-        footer={
-          <View className="absolute bottom-0 left-0 w-full">
-            <Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />
-          </View>
-        }
-      >
-        <StatsList subscription={props.subscription} stats={stats} settings={settings} dispatch={dispatch} />
-      </Surface>
-    </SafeAreaView>
+    <Surface
+      navbar={
+        <NavbarView
+          loading={props.loading}
+          dispatch={props.dispatch}
+          helpContent={<HelpMeasurements />}
+          screenStack={props.screenStack}
+          title="Measurements"
+        />
+      }
+      footer={
+        <View className="absolute bottom-0 left-0 w-full">
+          <Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />
+        </View>
+      }
+    >
+      <StatsList subscription={props.subscription} stats={stats} settings={settings} dispatch={dispatch} />
+    </Surface>
   );
 }

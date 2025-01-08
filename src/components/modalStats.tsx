@@ -1,10 +1,10 @@
-import React, { JSX } from "react";
 import { Modal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ISettings, IStatsLength, IStatsPercentage, IStatsWeight } from "../types";
 import { EditStats } from "../models/editStats";
 import { GroupHeader } from "./groupHeader";
+import { View } from "react-native";
 
 interface IModalStatsProps {
   dispatch: IDispatch;
@@ -37,7 +37,7 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
   return (
     <Modal isHidden={props.isHidden} isFullWidth={true} shouldShowClose={true} onClose={props.onClose}>
       <GroupHeader name="Enabled measurement types" />
-      <form data-cy="modal-stats" onSubmit={(e) => e.preventDefault()}>
+      <View data-cy="modal-stats">
         <MenuItemEditable
           onChange={saveWeight("weight")}
           name="Weight"
@@ -128,7 +128,7 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
           type="boolean"
           value={`${statsEnabled.length.calfRight}`}
         />
-      </form>
+      </View>
     </Modal>
   );
 }
