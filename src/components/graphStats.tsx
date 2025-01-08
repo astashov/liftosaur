@@ -14,11 +14,12 @@ import { Text, View } from "react-native";
 import { CartesianChart, Line, useChartPressState, useChartTransformState } from "victory-native";
 import { CollectionUtils } from "../utils/collection";
 import { Circle, useFont } from "@shopify/react-native-skia";
-import { useDerivedValue, type SharedValue } from "react-native-reanimated";
+import { type SharedValue } from "react-native-reanimated";
 import poppins from "../../fonts/poppins_regular.ttf";
-import Animated, { useAnimatedProps } from "react-native-reanimated";
-import { DateUtils } from "../utils/date";
+import { useAnimatedProps } from "react-native-reanimated";
+import { DateUtils, lastDayOfWeekTimestamp } from "../utils/date";
 import AnimateableText from "react-native-animateable-text";
+import { MathUtils } from "../utils/math";
 
 interface IGraphStatsProps {
   collection: [number, number][];
@@ -54,10 +55,24 @@ export function getPercentageDataForGraph(coll: IStatsPercentageValue[], setting
 }
 
 export function GraphStats(props: IGraphStatsProps): JSX.Element {
-  const data = props.collection.map(([x, y]) => ({ x: x * 1000, y }));
+  const data = props.collection.map(([x, y], i) => {
+    const point: { x: number; y: number; movingAverageY?: number } = { x: x * 1000, y };
+    if (props.movingAverageWindowSize != null) {
+      const sum = props.collection
+        .slice(Math.max(0, i - props.movingAverageWindowSize), i + 1)
+        .reduce((a, b) => a + b[1], 0);
+      const movingAvg = MathUtils.roundTo05(sum / Math.min(i + 1, props.movingAverageWindowSize));
+      point.movingAverageY = movingAvg;
+    }
+    return point;
+  });
+
   const font = useFont(poppins, 12);
   const lastDataPoint = data[data.length - 1];
-  const { state, isActive } = useChartPressState({ x: lastDataPoint?.x ?? 0, y: { y: lastDataPoint?.y ?? 0 } });
+  const { state, isActive } = useChartPressState({
+    x: lastDataPoint?.x ?? 0,
+    y: { y: lastDataPoint?.y ?? 0, movingAverageY: lastDayOfWeekTimestamp?.movingAverageY ?? 0 },
+  });
   const transformState = useChartTransformState({
     scaleX: 1.0,
     scaleY: 1.0,
@@ -71,7 +86,6 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
         transformState={transformState.state}
         transformConfig={{
           pan: {
-            minPointers: 2,
             dimensions: ["x"],
             activateAfterLongPress: 300,
           },
@@ -81,7 +95,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
         }}
         data={data}
         xKey="x"
-        yKeys={["y"]}
+        yKeys={["y", "movingAverageY"]}
         domainPadding={{ left: 12, right: 12, top: 12, bottom: 12 }}
         padding={{ left: 12, right: 12, top: 12, bottom: 12 }}
         xAxis={{
@@ -101,6 +115,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
         {({ points }) => (
           <>
             <Line points={points.y} color="red" strokeWidth={1} />
+            <Line points={points.movingAverageY} color="blue" strokeWidth={1} />
             {isActive && <ToolTip x={state.x.position} y={state.y.y.position} />}
           </>
         )}

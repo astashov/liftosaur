@@ -239,12 +239,16 @@ export function ScreenStats(props: IProps): JSX.Element {
       }
       footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
-        <ModalStats
-          isHidden={!isModalVisible}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          onClose={() => setIsModalVisible(false)}
-        />
+        <>
+          {isModalVisible && (
+            <ModalStats
+              isHidden={!isModalVisible}
+              settings={props.settings}
+              dispatch={props.dispatch}
+              onClose={() => setIsModalVisible(false)}
+            />
+          )}
+        </>
       }
     >
       <View className="px-4">
@@ -456,6 +460,7 @@ function DoubleLine(props: IDoubleLineProps): JSX.Element {
 
 const StatInput = (props: IInputProps): JSX.Element => {
   const name = StringUtils.dashcase(props.label.toLowerCase());
+  console.log(props.value);
   return (
     <Input
       label={`${props.label} (${props.unit})`}
@@ -467,11 +472,7 @@ const StatInput = (props: IInputProps): JSX.Element => {
         }
       }}
       className="w-full"
-      type="numeric"
       placeholder="e.g. 10"
-      min="0"
-      step="0.01"
-      tabIndex={1}
       data-cy={`input-stats-${name}`}
     />
   );

@@ -11,13 +11,15 @@ export const inputClassName =
 
 export type IValidationError = "required" | "pattern-mismatch";
 
-export interface IProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement> | React.TextareaHTMLAttributes<HTMLTextAreaElement>, "ref"> {
+export interface IProps {
   label?: string;
   identifier?: string;
   multiline?: number;
   changeType?: "onblur" | "oninput";
-  defaultValue?: number | string;
+  className?: string;
+  value?: string;
+  defaultValue?: string;
+  placeholder?: string;
   inputSize?: "md" | "sm";
   labelSize?: "xs" | "sm";
   errorMessage?: string;
@@ -33,7 +35,17 @@ export interface IProps
 }
 
 export const Input = forwardRef((props: IProps, ref: Ref<TextInput>): JSX.Element => {
-  const { inputSize, labelSize, label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
+  const {
+    inputSize,
+    labelSize,
+    label,
+    changeHandler,
+    errorMessage,
+    patternMessage,
+    multiline,
+    className,
+    ...otherProps
+  } = props;
   const changeType = props.changeType || "onblur";
   const identifier = props.identifier || StringUtils.dashcase((label || UidFactory.generateUid(8))?.toLowerCase());
   const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
@@ -61,11 +73,11 @@ export const Input = forwardRef((props: IProps, ref: Ref<TextInput>): JSX.Elemen
     [changeHandler]
   );
 
-  let className = "relative block w-full text-left border rounded-lg appearance-none ";
+  let innerClassName = "relative block w-full text-left border rounded-lg ";
   if (props.errorMessage || validationErrors.size > 0) {
-    className += " border-redv2-main";
+    innerClassName += " border-redv2-main";
   } else {
-    className += " border-grayv2-200";
+    innerClassName += " border-grayv2-200";
   }
 
   const errorMessages = [];
@@ -81,13 +93,14 @@ export const Input = forwardRef((props: IProps, ref: Ref<TextInput>): JSX.Elemen
   }
 
   let containerClassName = "inline-block bg-white rounded-lg";
-  if (className.indexOf("w-full") !== -1) {
+  if (innerClassName.indexOf("w-full") !== -1) {
     containerClassName += " w-full";
   }
   const theLabelSize = labelSize || "sm";
+  console.log(otherProps);
   return (
     <View className={containerClassName}>
-      <View data-cy={`${identifier}-label`} className={className} style={{ minHeight: size === "md" ? 48 : 40 }}>
+      <View data-cy={`${identifier}-label`} className={innerClassName} style={{ minHeight: size === "md" ? 48 : 40 }}>
         <View
           className={`relative mx-4 ${size === "md" ? "my-1" : ""}`}
           style={size !== "md" ? { marginTop: 1, marginBottom: 1 } : {}}
@@ -100,44 +113,14 @@ export const Input = forwardRef((props: IProps, ref: Ref<TextInput>): JSX.Elemen
               {props.label}
             </LftText>
           )}
-          <View className="relative flex" style={{ top: props.label ? 3 : 8, left: 0 }}>
-            {props.multiline ? (
-              <TextInput
-                data-cy={`${identifier}-input`}
-                ref={ref as Ref<HTMLTextAreaElement>}
-                onBlur={(e) => {
-                  if (changeType === "onblur") {
-                    onInputHandler(e.nativeEvent.text);
-                  }
-                }}
-                onChange={(e) => {
-                  if (changeType === "oninput") {
-                    onInputHandler(e.nativeEvent.text);
-                  }
-                }}
-                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
-                style={{ fontSize: 16, height: props.multiline * 25 }}
-                {...(otherProps as any)}
-              />
-            ) : (
-              <TextInput
-                data-cy={`${identifier}-input`}
-                ref={ref as Ref<HTMLInputElement>}
-                onBlur={(e) => {
-                  if (changeType === "onblur") {
-                    onInputHandler(e.nativeEvent.text);
-                  }
-                }}
-                onChange={(e) => {
-                  if (changeType === "oninput") {
-                    onInputHandler(e.nativeEvent.text);
-                  }
-                }}
-                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
-                style={{ height: 20, fontSize: 16 }}
-                {...(otherProps as any)}
-              />
-            )}
+          <View className="relative" style={{ top: props.label ? 3 : 8, left: 0 }}>
+            <TextInput
+              data-cy={`${identifier}-input`}
+              ref={ref}
+              onChangeText={onInputHandler}
+              className={`flex-1 text-base border-none focus:outline-none ${className}`}
+              style={{ fontSize: 16, height: multiline ? multiline * 25 : 20, minHeight: 20, padding: 0, margin: 0 }}
+            />
           </View>
         </View>
       </View>

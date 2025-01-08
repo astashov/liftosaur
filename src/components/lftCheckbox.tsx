@@ -1,5 +1,7 @@
-import CheckBox from "@react-native-community/checkbox";
+import { TouchableOpacity } from "react-native";
 import { StringUtils } from "../utils/string";
+import { useState } from "react";
+import { IconCheckCircle } from "./icons/iconCheckCircle";
 
 interface ILftCheckboxProps {
   name: string;
@@ -8,15 +10,20 @@ interface ILftCheckboxProps {
 }
 
 export function LftCheckbox(props: ILftCheckboxProps): JSX.Element {
+  const [isChecked, setIsChecked] = useState<boolean>(props.value);
+
   return (
-    <CheckBox
+    <TouchableOpacity
       data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
-      value={props.value}
-      onValueChange={(e) => {
+      className="p-2"
+      onPress={(e) => {
         if (props.onChange) {
-          props.onChange(e);
+          props.onChange(!isChecked);
         }
+        setIsChecked(!isChecked);
       }}
-    />
+    >
+      <IconCheckCircle isChecked={isChecked} />
+    </TouchableOpacity>
   );
 }

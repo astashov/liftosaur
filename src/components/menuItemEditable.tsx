@@ -102,24 +102,30 @@ export function MenuItemValue(
 ): JSX.Element | null {
   if (props.type === "select") {
     return (
-      <RNPickerSelect
-        value={props.value}
-        onValueChange={(itemValue) => {
-          if (props.onChange) {
-            props.onChange(itemValue == null ? undefined : itemValue);
-          }
-        }}
-        items={(props.values || []).map(([value, label]) => ({ label, value }))}
-        style={{
-          inputWeb: {
-            textAlign: "right",
-          },
-          inputIOSContainer: {
-            alignItems: "flex-end",
-            pointerEvents: "none",
-          },
-        }}
-      />
+      <View className="flex-row items-center justify-end flex-1 text-right min-h-10">
+        <RNPickerSelect
+          value={props.value}
+          onValueChange={(itemValue) => {
+            if (props.onChange) {
+              props.onChange(itemValue == null ? undefined : itemValue);
+            }
+          }}
+          items={(props.values || []).map(([value, label]) => ({ label, value }))}
+          style={{
+            viewContainer: {
+              alignItems: "center",
+              justifyContent: "center",
+            },
+            inputWeb: {
+              textAlign: "right",
+            },
+            inputIOSContainer: {
+              alignItems: "flex-end",
+              pointerEvents: "none",
+            },
+          }}
+        />
+      </View>
     );
   } else if (props.type === "text") {
     return (
@@ -133,7 +139,7 @@ export function MenuItemValue(
     );
   } else if (props.type === "boolean") {
     return (
-      <View className="flex-row items-center flex-1 text-right">
+      <View className="flex-row items-center justify-end flex-1 text-right min-h-10">
         <LftCheckbox
           name={props.name}
           value={props.value === "true"}
