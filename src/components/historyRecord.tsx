@@ -1,4 +1,4 @@
-import React, { JSX } from "react";
+import { View, TouchableOpacity } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
@@ -6,12 +6,12 @@ import { Progress } from "../models/progress";
 import { ComparerUtils } from "../utils/comparer";
 import { memo } from "react";
 import { IHistoryRecord, ISettings } from "../types";
-import { HtmlUtils } from "../utils/html";
 import { History } from "../models/history";
 import { IconWatch } from "./icons/iconWatch";
 import { HistoryEntryView } from "./historyEntry";
 import { Button } from "./button";
 import { Exercise } from "../models/exercise";
+import { LftText } from "./lftText";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -26,7 +26,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
 
   const entries = historyRecord.entries;
   return (
-    <div
+    <TouchableOpacity
       data-cy="history-record"
       className={`history-record rounded-2xl mx-4 mb-4 px-4 text-sm ${
         Progress.isCurrent(historyRecord)
@@ -36,23 +36,21 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
           : "bg-grayv2-50 nm-edit-workout"
       }`}
       style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
-      onClick={(event) => {
-        if (!HtmlUtils.classInParents(event.target as Element, "button")) {
-          if (Progress.isCurrent(historyRecord)) {
-            dispatch({ type: "StartProgramDayAction" });
-          } else {
-            editHistoryRecord(
-              historyRecord,
-              dispatch,
-              Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)
-            );
-          }
+      onPress={(event) => {
+        if (Progress.isCurrent(historyRecord)) {
+          dispatch({ type: "StartProgramDayAction" });
+        } else {
+          editHistoryRecord(
+            historyRecord,
+            dispatch,
+            Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)
+          );
         }
       }}
     >
-      <div className="py-4">
-        <div className="flex">
-          <div className="flex-1 font-bold" data-cy="history-record-date">
+      <View className="py-4">
+        <View className="flex flex-row gap-8">
+          <View className="flex-row items-center" data-cy="history-record-date">
             {Progress.isCurrent(historyRecord) ? (
               !props.isOngoing ? (
                 <Button name="start-workout-button" data-cy="start-workout" kind="orange" onClick={() => undefined}>
@@ -64,15 +62,17 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
                 </Button>
               )
             ) : (
-              DateUtils.format(historyRecord.date)
+              <LftText className="font-bold">{DateUtils.format(historyRecord.date)}</LftText>
             )}
-          </div>
-          <div className="flex-1 text-xs text-right text-gray-600" data-cy="history-record-program">
-            {historyRecord.programName}
-            {historyRecord.dayName ? `, ${historyRecord.dayName}` : ""}
-          </div>
-        </div>
-        <div className="flex flex-col mt-2" data-cy="history-entry">
+          </View>
+          <View className="flex-1" data-cy="history-record-program">
+            <LftText className="text-sm text-right text-gray-600">
+              {historyRecord.programName}
+              {historyRecord.dayName ? `, ${historyRecord.dayName}` : ""}
+            </LftText>
+          </View>
+        </View>
+        <View className="flex flex-col mt-2" data-cy="history-entry">
           {entries.map((entry, i) => {
             const isNext = Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord);
             return (
@@ -86,20 +86,20 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
               />
             );
           })}
-        </div>
-        {historyRecord.notes && <p className="mt-1 text-sm text-grayv2-main">{historyRecord.notes}</p>}
+        </View>
+        {historyRecord.notes && <LftText className="mt-1 text-sm text-grayv2-main">{historyRecord.notes}</LftText>}
         {!Progress.isCurrent(historyRecord) && historyRecord.startTime != null && historyRecord.endTime != null && (
-          <div className="flex items-center mt-1 text-gray-600" style={{ minHeight: "1.8em" }}>
-            <div className="text-left">
+          <View className="flex flex-row items-center mt-1 text-gray-600" style={{ minHeight: 28 }}>
+            <View className="flex-row items-center gap-2 text-left">
               <IconWatch />{" "}
-              <span className="inline-block align-middle" style={{ paddingTop: "2px" }}>
+              <LftText className="inline-block align-middle" style={{ paddingTop: 2 }}>
                 {TimeUtils.formatHHMM(History.workoutTime(historyRecord))}
-              </span>
-            </div>
-          </div>
+              </LftText>
+            </View>
+          </View>
         )}
-      </div>
-    </div>
+      </View>
+    </TouchableOpacity>
   );
 }, ComparerUtils.noFns);
 

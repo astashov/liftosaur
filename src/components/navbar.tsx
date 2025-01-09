@@ -121,12 +121,9 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           )}
         </View>
         {error && (
-          <View
-            className="absolute left-0 flex flex-row justify-center w-full align-middle pointer-events-none"
-            style={{ bottom: -16 }}
-          >
+          <View className="absolute left-0 flex flex-row justify-center w-full align-middle" style={{ bottom: -16 }}>
             <View
-              className="flex flex-row pl-4 rounded-full pointer-events-auto border-redv2-main text-redv2-main"
+              className="flex flex-row items-center pl-4 rounded-full pointer-events-auto border-redv2-main text-redv2-main"
               style={{ backgroundColor: "#FFECEC", boxShadow: "0 0 4px rgba(255, 27, 27, 0.38)" }}
             >
               <LftText className="font-bold" style={{ paddingTop: 1 }}>

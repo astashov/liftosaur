@@ -15,6 +15,8 @@ import { IDispatch } from "../../src/ducks/types";
 import { useThunkReducer } from "../../src/utils/useThunkReducer";
 import { ScreenMeasurements } from "../../src/components/screenMeasurements";
 import { ScreenStats } from "../../src/components/screenStats";
+import { Program } from "../../src/models/program";
+import { ProgramHistoryView } from "../../src/components/programHistory";
 
 interface IAppProps {
   essentials?: IInitializeEssentials;
@@ -28,14 +30,10 @@ interface IAppContext {
 export const DefaultPropsContext = createContext<IAppContext>({});
 
 export default function App(props: IAppProps): JSX.Element {
-  console.log("App props", props);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-
   const { client, audio, queue, initialState } = props.essentials!;
   const service = new Service(client);
   const env: IEnv = { service, audio, queue };
   const [state, dispatch] = useThunkReducer(reducerWrapper(true), initialState, env, defaultOnActions(env));
-  console.log("Screen stack", state.screenStack);
   const stateRef = useRef<IState>(state);
   useEffect(() => {
     stateRef.current = state;
@@ -47,10 +45,8 @@ export default function App(props: IAppProps): JSX.Element {
   }, [state.storage.settings.alwaysOnDisplay]);
 
   useEffect(() => {
-    console.log("A");
     const url =
       typeof document !== "undefined" ? UrlUtils.build(document.location.href, "https://liftosaur.com") : undefined;
-    console.log("B");
     const urlUserId = url != null ? url.searchParams.get("userid") || undefined : undefined;
     if (state.adminKey != null && urlUserId != null) {
       const storageId = url != null ? url.searchParams.get("storageid") || undefined : undefined;
@@ -82,6 +78,8 @@ export default function App(props: IAppProps): JSX.Element {
   }, []);
 
   const screen = Screen.current(state.screenStack);
+  const currentProgram =
+    state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
 
   return (
     <DefaultPropsContext.Provider value={{ state, dispatch, env }}>
@@ -101,6 +99,21 @@ export default function App(props: IAppProps): JSX.Element {
           dispatch={dispatch}
           settings={state.storage.settings}
           stats={state.storage.stats}
+        />
+      ) : screen === "main" && currentProgram ? (
+        <ProgramHistoryView
+          editProgramId={state.progress[0]?.programId}
+          screenStack={state.screenStack}
+          loading={state.loading}
+          allPrograms={state.storage.programs}
+          program={currentProgram}
+          progress={state.progress?.[0]}
+          userId={state.user?.id}
+          stats={state.storage.stats}
+          settings={state.storage.settings}
+          history={state.storage.history}
+          subscription={state.storage.subscription}
+          dispatch={dispatch}
         />
       ) : (
         <WebViewScreen />

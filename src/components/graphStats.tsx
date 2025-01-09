@@ -17,7 +17,7 @@ import { Circle, useFont } from "@shopify/react-native-skia";
 import { type SharedValue } from "react-native-reanimated";
 import poppins from "../../fonts/poppins_regular.ttf";
 import { useAnimatedProps } from "react-native-reanimated";
-import { DateUtils, lastDayOfWeekTimestamp } from "../utils/date";
+import { DateUtils } from "../utils/date";
 import AnimateableText from "react-native-animateable-text";
 import { MathUtils } from "../utils/math";
 
@@ -71,7 +71,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
   const lastDataPoint = data[data.length - 1];
   const { state, isActive } = useChartPressState({
     x: lastDataPoint?.x ?? 0,
-    y: { y: lastDataPoint?.y ?? 0, movingAverageY: lastDayOfWeekTimestamp?.movingAverageY ?? 0 },
+    y: { y: lastDataPoint?.y ?? 0, movingAverageY: lastDataPoint?.movingAverageY ?? 0 },
   });
   const transformState = useChartTransformState({
     scaleX: 1.0,

@@ -1,4 +1,4 @@
-import React, { JSX } from "react";
+import { View } from "react-native";
 import { IPlannerState, IPlannerUiFocusedExercise, ISetResults, ISetSplit } from "../models/types";
 import { ObjectUtils } from "../../../utils/object";
 import { StringUtils } from "../../../utils/string";
@@ -11,6 +11,7 @@ import { useState } from "react";
 import { CollectionUtils } from "../../../utils/collection";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { n } from "../../../utils/math";
+import { LftText } from "../../../components/lftText";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
@@ -25,24 +26,24 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
   const { setResults, settings, frequency, dispatch, focusedExercise } = props;
   const showLink = !frequency;
   return (
-    <div className="mb-2 text-sm">
-      <div>
-        <span className="text-grayv2-main">Total Sets:</span> {setResults.total}
-      </div>
-      <div>
-        <span className="text-grayv2-main">Strength Sets: </span>
-        <span
+    <View className="mb-2 text-sm">
+      <View>
+        <LftText className="text-grayv2-main">Total Sets:</LftText> {setResults.total}
+      </View>
+      <View>
+        <LftText className="text-grayv2-main">Strength Sets: </LftText>
+        <LftText
           className={
             props.colorize ? colorPctValue(setResults.total, setResults.strength, settings.planner.strengthSetsPct) : ""
           }
         >
           {setResults.strength}
           {setResults.total > 0 ? `, ${Math.round((setResults.strength * 100) / setResults.total)}%` : ""}
-        </span>
-      </div>
-      <div className="mb-2">
-        <span className="text-grayv2-main">Hypertrophy Sets: </span>
-        <span
+        </LftText>
+      </View>
+      <View className="mb-2">
+        <LftText className="text-grayv2-main">Hypertrophy Sets: </LftText>
+        <LftText
           className={
             props.colorize
               ? colorPctValue(setResults.total, setResults.hypertrophy, settings.planner.hypertrophySetsPct)
@@ -51,40 +52,40 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         >
           {setResults.hypertrophy}
           {setResults.total > 0 ? `, ${Math.round((setResults.hypertrophy * 100) / setResults.total)}%` : ""}
-        </span>
-      </div>
-      <div>
+        </LftText>
+      </View>
+      <View>
         {labelSet("Upper Sets", showLink, ["upper"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.upper} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
-      <div>
+      </View>
+      <View>
         {labelSet("Lower Sets", showLink, ["lower"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.lower} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
-      <div>
+      </View>
+      <View>
         {labelSet("Core Sets", showLink, ["core"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.core} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
-      <div>
+      </View>
+      <View>
         {labelSet("Push Sets", showLink, ["push"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.push} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
-      <div>
+      </View>
+      <View>
         {labelSet("Pull Sets", showLink, ["pull"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.pull} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
-      <div className="mb-4">
+      </View>
+      <View className="mb-4">
         {labelSet("Legs Sets", showLink, ["legs"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.legs} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
+      </View>
 
-      <div className="w-32 mb-2">
+      <View className="w-32 mb-2">
         <PlannerWeekMuscles settings={props.settings} data={setResults.muscleGroup} />
-      </div>
+      </View>
 
       {ObjectUtils.keys(setResults.muscleGroup).map((muscleGroup) => {
         return (
-          <div>
+          <View>
             {labelSet(StringUtils.capitalize(muscleGroup), showLink, [], [muscleGroup], dispatch, focusedExercise)}{" "}
             <PlannerSetSplit
               split={setResults.muscleGroup[muscleGroup]}
@@ -92,10 +93,10 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
               shouldIncludeFrequency={frequency}
               muscle={props.colorize ? muscleGroup : undefined}
             />
-          </div>
+          </View>
         );
       })}
-    </div>
+    </View>
   );
 }
 
@@ -112,7 +113,7 @@ export function labelSet(
       <LinkButton
         name={`planner-stats-${label}`}
         className="font-normal"
-        onClick={() => {
+        onPress={() => {
           dispatch(
             lb<IPlannerState>().p("ui").p("modalExercise").record({
               focusedExercise,
@@ -126,7 +127,7 @@ export function labelSet(
       </LinkButton>
     );
   } else {
-    return <span className="text-grayv2-main">{label}:</span>;
+    return <LftText className="text-grayv2-main">{label}:</LftText>;
   }
 }
 
@@ -157,16 +158,12 @@ export function PlannerSetSplit(props: {
   const frequencyColor = muscle ? colorThresholdValue(frequency, settings.planner.weeklyFrequency[muscle] ?? 0) : "";
 
   return (
-    <span
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-      onClick={() => setShowTooltip(!showTooltip)}
-    >
-      <span className={`cursor-auto relative ${setColor}`}>
+    <LftText onPress={() => setShowTooltip(!showTooltip)}>
+      <LftText className={`cursor-auto relative ${setColor}`}>
         {n(total, 0)}
         {setDirection}
         {showTooltip && <PlannerStatsTooltip split={split} />}
-      </span>{" "}
+      </LftText>{" "}
       {total > 0 && (
         <>
           ({split.strength > 0 && <abbr title="Strength Sets Number">{n(split.strength, 0)}s</abbr>}
@@ -182,7 +179,7 @@ export function PlannerSetSplit(props: {
           </abbr>
         </>
       )}
-    </span>
+    </LftText>
   );
 }
 
@@ -243,7 +240,7 @@ function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
   }
 
   return (
-    <div className="absolute z-10 px-3 py-2 text-xs bg-white border border-grayv2-400 rounded-xl text-blackv2 planner-stats-tooltip">
+    <View className="absolute z-10 px-3 py-2 text-xs bg-white border border-grayv2-400 rounded-xl text-blackv2 planner-stats-tooltip">
       <ul style={{ minWidth: "14rem" }}>
         {exercises.map((exercise) => {
           const totalSets = exercise.strengthSets + exercise.hypertrophySets;
@@ -254,6 +251,6 @@ function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
           );
         })}
       </ul>
-    </div>
+    </View>
   );
 }

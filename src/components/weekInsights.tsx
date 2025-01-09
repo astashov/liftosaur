@@ -1,4 +1,3 @@
-import React, { JSX } from "react";
 import { IHistoryRecord, ISettings } from "../types";
 import { WeekInsightsUtils } from "../utils/weekInsightsUtils";
 import { DateUtils } from "../utils/date";
@@ -10,6 +9,8 @@ import { StringUtils } from "../utils/string";
 import { LinkButton } from "./linkButton";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
+import { View } from "react-native";
+import { LftText } from "./lftText";
 
 interface IWeekInsightsProps {
   historyRecords: IHistoryRecord[];
@@ -25,97 +26,99 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
   );
   const historyRecord = props.historyRecords[0];
   if (!historyRecord) {
-    return <div />;
+    return <View />;
   }
   const firstDayOfWeek = DateUtils.format(DateUtils.firstDayOfWeekTimestamp(historyRecord.startTime), true, true);
   const lastDayOfWeek = DateUtils.format(DateUtils.lastDayOfWeekTimestamp(historyRecord.startTime), true, true);
 
   return (
-    <section className="p-4 m-4 border border-purplev2-300 bg-purplev2-100 rounded-xl">
-      <h3 className="font-bold">
-        <span className="text-purplev2-main">Week insights</span>: {firstDayOfWeek} - {lastDayOfWeek}
-      </h3>
+    <View className="p-4 m-4 border border-purplev2-300 bg-purplev2-100 rounded-xl">
+      <LftText className="font-bold">
+        <LftText className="text-purplev2-main">Week insights</LftText>: {firstDayOfWeek} - {lastDayOfWeek}
+      </LftText>
       <GroupHeader name="Sets" size="large" />
-      <div>
-        <span className="text-grayv2-main">Total:</span> {setResults.total}
-      </div>
-      <div>
-        <span className="text-grayv2-main">Strength: </span>
-        <span className={colorPctValue(setResults.total, setResults.strength, props.settings.planner.strengthSetsPct)}>
+      <View>
+        <LftText className="text-grayv2-main">Total:</LftText> {setResults.total}
+      </View>
+      <View>
+        <LftText className="text-grayv2-main">Strength: </LftText>
+        <LftText
+          className={colorPctValue(setResults.total, setResults.strength, props.settings.planner.strengthSetsPct)}
+        >
           {setResults.strength}
           {setResults.total > 0 ? `, ${Math.round((setResults.strength * 100) / setResults.total)}%` : ""}
-        </span>
-      </div>
-      <div>
-        <span className="text-grayv2-main">Hypertrophy: </span>
-        <span
+        </LftText>
+      </View>
+      <View>
+        <LftText className="text-grayv2-main">Hypertrophy: </LftText>
+        <LftText
           className={colorPctValue(setResults.total, setResults.hypertrophy, props.settings.planner.hypertrophySetsPct)}
         >
           {setResults.hypertrophy}
           {setResults.total > 0 ? `, ${Math.round((setResults.hypertrophy * 100) / setResults.total)}%` : ""}
-        </span>
-      </div>
-      <div className="flex mt-2">
-        <div className="flex-1 gap-1">
-          <div>
-            <span className="text-grayv2-main">Upper:</span>{" "}
+        </LftText>
+      </View>
+      <View className="flex flex-row mt-2">
+        <View className="flex-1 gap-1">
+          <View>
+            <LftText className="text-grayv2-main">Upper:</LftText>{" "}
             <PlannerSetSplit split={setResults.upper} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-          <div>
-            <span className="text-grayv2-main">Lower:</span>{" "}
+          </View>
+          <View>
+            <LftText className="text-grayv2-main">Lower:</LftText>{" "}
             <PlannerSetSplit split={setResults.lower} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-          <div>
-            <span className="text-grayv2-main">Core:</span>{" "}
+          </View>
+          <View>
+            <LftText className="text-grayv2-main">Core:</LftText>{" "}
             <PlannerSetSplit split={setResults.core} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-        </div>
-        <div className="flex-1">
-          <div>
-            <span className="text-grayv2-main">Push:</span>{" "}
+          </View>
+        </View>
+        <View className="flex-1">
+          <View>
+            <LftText className="text-grayv2-main">Push:</LftText>{" "}
             <PlannerSetSplit split={setResults.push} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-          <div>
-            <span className="text-grayv2-main">Pull:</span>{" "}
+          </View>
+          <View>
+            <LftText className="text-grayv2-main">Pull:</LftText>{" "}
             <PlannerSetSplit split={setResults.pull} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-          <div>
-            <span className="text-grayv2-main">Legs:</span>{" "}
+          </View>
+          <View>
+            <LftText className="text-grayv2-main">Legs:</LftText>{" "}
             <PlannerSetSplit split={setResults.legs} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center mt-2">
-        <div className="flex-1">
+          </View>
+        </View>
+      </View>
+      <View className="flex flex-row items-center mt-2">
+        <View className="flex-1">
           {ObjectUtils.keys(setResults.muscleGroup).map((muscleGroup) => {
             return (
-              <div>
-                <span className="text-grayv2-main">{StringUtils.capitalize(muscleGroup)}:</span>{" "}
+              <View key={muscleGroup}>
+                <LftText className="text-grayv2-main">{StringUtils.capitalize(muscleGroup)}:</LftText>{" "}
                 <PlannerSetSplit
                   split={setResults.muscleGroup[muscleGroup]}
                   settings={props.settings}
                   shouldIncludeFrequency={true}
                   muscle={muscleGroup}
                 />
-              </div>
+              </View>
             );
           })}
-        </div>
-        <div className="w-20 mb-2">
+        </View>
+        <View className="w-20 mb-2">
           <PlannerWeekMuscles settings={props.settings} data={setResults.muscleGroup} />
-        </div>
-      </div>
-      <div className="mt-2">
+        </View>
+      </View>
+      <View className="mt-2">
         <LinkButton
           name="week-insights-show-planner-settings"
-          onClick={() => {
+          onPress={() => {
             props.onOpenPlannerSettings();
           }}
         >
           Change Set Range Settings
         </LinkButton>
-      </div>
-    </section>
+      </View>
+    </View>
   );
 }
 
@@ -125,10 +128,10 @@ interface IWeekInsightsTeaserProps {
 
 export function WeekInsightsTeaser(props: IWeekInsightsTeaserProps): JSX.Element {
   return (
-    <section className="p-4 m-4 text-center border border-purplev2-300 bg-purplev2-100 rounded-xl">
-      <LinkButton name="week-insights-teaser" onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}>
+    <View className="p-4 m-4 text-center border border-purplev2-300 bg-purplev2-100 rounded-xl">
+      <LinkButton name="week-insights-teaser" onPress={() => props.dispatch(Thunk.pushScreen("subscription"))}>
         See last week insights!
       </LinkButton>
-    </section>
+    </View>
   );
 }

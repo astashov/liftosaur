@@ -1,5 +1,6 @@
-import React, { JSX } from "react";
+import { Svg, G, Use } from "react-native-svg";
 import { IScreenMuscle } from "../../../types";
+import { BackMuscleDefs } from "./backMuscleDefs";
 
 export interface IMuscleStyle {
   fill?: string;
@@ -24,63 +25,64 @@ export function BackMusclesSvg(props: IProps): JSX.Element {
   }
 
   return (
-    <svg className="muscle" viewBox="0 0 112 234" version="1.1">
-      <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-        <g
+    <Svg className="muscle" viewBox="0 0 112 234">
+      <BackMuscleDefs />
+      <G stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+        <G
           data-id="back"
           opacity={getOpacity("back")}
           fill={getFill("back")}
           transform="translate(28.250948, 26.431691)"
         >
-          <use href="/images/back-muscles.svg#back" />
-        </g>
-        <g
+          <Use href="/images/back-muscles.svg#back" />
+        </G>
+        <G
           data-id="shoulders"
           opacity={getOpacity("shoulders")}
           fill={getFill("shoulders")}
           transform="translate(18.066334, 41.383607)"
         >
-          <use href="/images/back-muscles.svg#shoulders" />
-        </g>
-        <g
+          <Use href="/images/back-muscles.svg#shoulders" />
+        </G>
+        <G
           data-id="glutes"
           opacity={getOpacity("glutes")}
           fill={getFill("glutes")}
           transform="translate(34.187744, 98.720793)"
         >
-          <use href="/images/back-muscles.svg#glutes" />
-        </g>
-        <g
+          <Use href="/images/back-muscles.svg#glutes" />
+        </G>
+        <G
           data-id="triceps"
           opacity={getOpacity("triceps")}
           fill={getFill("triceps")}
           transform="translate(13.910000, 56.592542)"
         >
-          <use href="/images/back-muscles.svg#triceps" />
-        </g>
-        <g
+          <Use href="/images/back-muscles.svg#triceps" />
+        </G>
+        <G
           data-id="forearms"
           opacity={getOpacity("forearms")}
           fill={getFill("forearms")}
           transform="translate(8.884225, 87.710000)"
         >
-          <use href="/images/back-muscles.svg#forearms" />
-        </g>
-        <g data-id="calves" opacity={getOpacity("calves")} fill={getFill("calves")}>
-          <use href="/images/back-muscles.svg#calves" />
-        </g>
-        <g
+          <Use href="/images/back-muscles.svg#forearms" />
+        </G>
+        <G data-id="calves" opacity={getOpacity("calves")} fill={getFill("calves")}>
+          <Use href="/images/back-muscles.svg#calves" />
+        </G>
+        <G
           data-id="hamstrings"
           opacity={getOpacity("hamstrings")}
           fill={getFill("hamstrings")}
           transform="translate(24.854000, 126.371014)"
         >
-          <use href="/images/back-muscles.svg#hamstrings" />
-        </g>
-        <g data-id="contour" opacity={props.contour?.opacity ?? 1} fill={props.contour?.fill ?? "#28839F"}>
-          <use href="/images/back-muscles.svg#contour" />
-        </g>
-      </g>
-    </svg>
+          <Use href="/images/back-muscles.svg#hamstrings" />
+        </G>
+        <G data-id="contour" opacity={props.contour?.opacity ?? 1} fill={props.contour?.fill ?? "#28839F"}>
+          <Use href="/images/back-muscles.svg#contour" />
+        </G>
+      </G>
+    </Svg>
   );
 }

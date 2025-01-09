@@ -1,4 +1,5 @@
-import React, { JSX } from "react";
+import { TouchableOpacity, View } from "react-native";
+import { LftText } from "./lftText"; // Assuming LftText is in the same directory
 
 interface IProps {
   title: string;
@@ -12,18 +13,18 @@ interface IProps {
 
 export function BottomSheetItem(props: IProps): JSX.Element {
   return (
-    <button
+    <TouchableOpacity
       data-cy={`bottom-sheet-${props.name}`}
       className={`block text-base w-full text-left ${!props.isFirst ? "border-t border-grayv2-100 mt-4" : ""} ${
         props.className
       } nm-${props.name}`}
-      onClick={props.onClick}
+      onPress={props.onClick}
     >
-      <div className={`flex items-center ${!props.isFirst ? "pt-4" : ""}`}>
-        <div>{props.icon}</div>
-        <div className="flex-1 pl-3">{props.title}</div>
-      </div>
-      <div className="pt-2 text-xs text-grayv2-main">{props.description}</div>
-    </button>
+      <View className={`flex flex-row items-center ${!props.isFirst ? "pt-4" : ""}`}>
+        <View>{props.icon}</View>
+        <LftText className="flex-1 pl-3">{props.title}</LftText>
+      </View>
+      <LftText className="pt-2 text-xs text-grayv2-main">{props.description}</LftText>
+    </TouchableOpacity>
   );
 }

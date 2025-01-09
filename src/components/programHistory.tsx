@@ -22,6 +22,8 @@ import { LinkButton } from "./linkButton";
 import { ModalChangeNextDay } from "./modalChangeNextDay";
 import { Markdown } from "./markdown";
 import { GroupHeader } from "./groupHeader";
+import { TouchableOpacity, View } from "react-native";
+import { LftText } from "./lftText"; // Import LftText component
 
 interface IProps {
   program: IProgram;
@@ -46,9 +48,8 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const weekDescription = Program.getProgramWeek(props.program, props.settings)?.description;
   const nextHistoryRecord = props.progress || Program.nextProgramRecord(props.program, props.settings);
   const history = [nextHistoryRecord, ...sortedHistory];
-  const [containerRef, visibleRecords] = useGradualList(history, 20, () => undefined);
+  const [visibleRecords, setVisibleRecords] = useState(20);
 
-  const [showProgramBottomSheet, setShowProgramBottomSheet] = useState(false);
   const [showChangeWorkout, setShowChangeWorkout] = useState(false);
   const isUserLoading = ObjectUtils.values(props.loading.items).some((i) => i?.type === "fetchStorage" && !i.endTime);
 
@@ -57,18 +58,22 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   return (
     <Surface
-      ref={containerRef}
+      onScroll={(atEnd: boolean) => {
+        if (atEnd) {
+          setVisibleRecords(visibleRecords + 20);
+        }
+      }}
       navbar={
         <NavbarView
           rightButtons={[
-            <button
+            <TouchableOpacity
               key={0}
               data-cy="navbar-user"
               className="p-2 nm-navbar-user"
-              onClick={() => props.dispatch(Thunk.pushScreen("account"))}
+              onPress={() => props.dispatch(Thunk.pushScreen("account"))}
             >
               <IconUser size={22} color={props.userId ? "#38A169" : isUserLoading ? "#607284" : "#E53E3E"} />
-            </button>,
+            </TouchableOpacity>,
           ]}
           loading={props.loading}
           dispatch={dispatch}
@@ -80,31 +85,6 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
         <>
-          <BottomSheet isHidden={!showProgramBottomSheet} onClose={() => setShowProgramBottomSheet(false)}>
-            <div className="p-4">
-              <BottomSheetItem
-                name="choose-program"
-                title="Choose Another Program"
-                isFirst={true}
-                icon={<IconDoc />}
-                description="Select a program for the next workout."
-                onClick={() => dispatch(Thunk.pushScreen("programs"))}
-              />
-              <BottomSheetItem
-                name="edit-program"
-                title="Edit Current Program"
-                icon={<IconEditSquare />}
-                description={`Edit the current program '${props.program.name}'.`}
-                onClick={() => {
-                  if (props.editProgramId == null || props.editProgramId !== props.program.id) {
-                    Program.editAction(props.dispatch, props.program.id);
-                  } else {
-                    alert("You cannot edit the program while that program's workout is in progress");
-                  }
-                }}
-              />
-            </div>
-          </BottomSheet>
           {showChangeWorkout && (
             <ModalChangeNextDay
               onClose={() => setShowChangeWorkout(false)}
@@ -118,35 +98,35 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       }
     >
       {props.progress == null && (
-        <div className="flex w-full gap-4">
-          <div className="px-4 pb-2 text-xs">
-            <LinkButton name="change-next-day" data-cy="change-next-day" onClick={() => setShowChangeWorkout(true)}>
+        <View className="flex flex-row w-full gap-4 mt-4">
+          <View className="px-4 pb-2 text-xs">
+            <LinkButton name="change-next-day" data-cy="change-next-day" onPress={() => setShowChangeWorkout(true)}>
               Change next workout
             </LinkButton>
-          </div>
-          <div className="px-4 pb-2 ml-auto text-xs text-right">
+          </View>
+          <View className="px-4 pb-2 ml-auto text-xs text-right">
             <LinkButton
               name="start-empty-workout"
               data-cy="start-empty-workout"
-              onClick={() => {
+              onPress={() => {
                 dispatch({ type: "StartProgramDayAction", programId: emptyProgramId });
               }}
             >
               Ad-Hoc Workout
             </LinkButton>
-          </div>
-        </div>
+          </View>
+        </View>
       )}
       {weekDescription && (
-        <div className="px-4 pb-2 text-sm">
+        <View className="px-4 pb-2 text-sm">
           <GroupHeader name="Week Description" />
           <Markdown value={weekDescription} />
-        </div>
+        </View>
       )}
       {doesProgressNotMatchProgram && (
-        <div className="mx-4 mb-1 text-xs text-center text-grayv2-main">
+        <LftText className="mx-4 mb-1 text-xs text-center text-grayv2-main">
           You currently have ongoing workout. Finish it first to see newly chosen program or a different day.
-        </div>
+        </LftText>
       )}
       <HistoryRecordsList
         history={history}

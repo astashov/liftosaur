@@ -1,4 +1,4 @@
-import React, { JSX } from "react";
+import { View } from "react-native";
 import { Modal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { IProgram, IScreenMuscle, ISettings } from "../types";
@@ -15,6 +15,7 @@ import { ObjectUtils } from "../utils/object";
 import { BackMusclesSvg, IMuscleStyle } from "./muscles/images/backMusclesSvg";
 import { FrontMusclesSvg } from "./muscles/images/frontMusclesSvg";
 import { IconArrowRight } from "./icons/iconArrowRight";
+import { LftText } from "./lftText";
 
 interface IModalChangeNextDayProps {
   dispatch: IDispatch;
@@ -41,10 +42,14 @@ export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element
           }
         }}
       />
-      <div className="pt-8 text-xs">
-        <span className="text-grayv2-main">Next Workout: </span>
-        <strong>{Program.getDayName(fullProgram, fullProgram.nextDay, props.settings)}</strong>
-      </div>
+      <View className="pt-8">
+        <LftText>
+          <LftText className="text-xs text-grayv2-main">Next Workout: </LftText>
+          <LftText className="text-xs font-bold">
+            {Program.getDayName(fullProgram, fullProgram.nextDay, props.settings)}
+          </LftText>
+        </LftText>
+      </View>
       <GroupHeader name="Change next workout:" />
       {days.map(([dayId, dayName], dayIndex) => {
         const day = Program.getProgramDay(fullProgram, dayIndex + 1);
@@ -71,27 +76,27 @@ export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element
               props.onClose();
             }}
           >
-            <div className="flex py-2">
-              <div className="flex-1">
-                <div>{dayName}</div>
-                <div>
+            <View className="flex flex-row py-2">
+              <View className="flex-1">
+                <LftText>{dayName}</LftText>
+                <View className="flex flex-row">
                   {exerciseTypes.map((e) => (
-                    <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
+                    <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-8 h-10 mr-1" />
                   ))}
-                </div>
-              </div>
-              <div className="flex items-center w-12">
-                <div className="relative flex-1">
+                </View>
+              </View>
+              <View className="flex flex-row items-center w-20">
+                <View className="relative flex-1 w-10 h-12">
                   <BackMusclesSvg muscles={muscleData} contour={{ fill: "#28839F" }} />
-                </div>
-                <div className="relative flex-1">
+                </View>
+                <View className="relative flex-1 w-10 h-12">
                   <FrontMusclesSvg muscles={muscleData} contour={{ fill: "#28839F" }} />
-                </div>
-              </div>
-              <div className="flex items-center py-2 pl-2">
+                </View>
+              </View>
+              <View className="flex flex-row items-center py-2 pl-2">
                 <IconArrowRight style={{ color: "#a0aec0" }} />
-              </div>
-            </div>
+              </View>
+            </View>
           </MenuItemWrapper>
         );
       })}

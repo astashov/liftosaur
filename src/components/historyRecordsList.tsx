@@ -1,4 +1,3 @@
-import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { Progress } from "../models/progress";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
