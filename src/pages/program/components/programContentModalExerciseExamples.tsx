@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import React, { JSX } from "react";
-import { Modal } from "../../../components/modal";
+import { LftModal } from "../../../components/modal";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IProgramEditorState } from "../models/types";
 import { EditProgramExerciseExamples } from "../../../components/editProgram/editProgramExerciseExamples";
@@ -16,7 +16,7 @@ interface IProgramContentModalExerciseExamplesProps {
 
 export function ProgramContentModalExerciseExamples(props: IProgramContentModalExerciseExamplesProps): JSX.Element {
   return (
-    <Modal
+    <LftModal
       shouldShowClose={true}
       onClose={() =>
         props.dispatch(lb<IProgramEditorState>().p("ui").p("showExamplesForExerciseKey").record(undefined))
@@ -36,6 +36,6 @@ export function ProgramContentModalExerciseExamples(props: IProgramContentModalE
           }}
         />
       </div>
-    </Modal>
+    </LftModal>
   );
 }

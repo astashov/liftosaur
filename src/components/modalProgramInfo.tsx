@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { Button } from "./button";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { IProgram, ISettings } from "../types";
 import { Link } from "./link.web";
 import { IconWatch } from "./icons/iconWatch";
@@ -21,7 +21,7 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
   const time = Program.dayAverageTimeMs(program, props.settings);
   const formattedTime = time > 0 ? TimeUtils.formatHHMM(time) : undefined;
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
+    <LftModal shouldShowClose={true} onClose={props.onClose}>
       <h2 className="pr-6 text-lg font-bold">
         {props.hasCustomPrograms ? "Clone" : "Start"} <Link href={program.url}>{program.name}</Link>
       </h2>
@@ -57,6 +57,6 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
           {props.hasCustomPrograms ? "Clone" : "Start"}
         </Button>
       </p>
-    </Modal>
+    </LftModal>
   );
 }

@@ -1,5 +1,5 @@
 import React, { JSX } from "react";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { Share } from "../models/share";
 import { Button } from "./button";
 import { useRef, useState, useEffect } from "react";
@@ -31,7 +31,7 @@ export function ModalShare(props: IProps): JSX.Element {
   });
 
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
+    <LftModal shouldShowClose={true} onClose={props.onClose}>
       <h3 className="pb-2 font-bold text-center">Share this workout</h3>
       <div
         className="p-2 overflow-x-auto whitespace-no-wrap bg-gray-100 border border-gray-600 rounded-lg"
@@ -93,6 +93,6 @@ export function ModalShare(props: IProps): JSX.Element {
           </Button>
         </div>
       </div>
-    </Modal>
+    </LftModal>
   );
 }

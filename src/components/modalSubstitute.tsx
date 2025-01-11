@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { useRef, useState } from "react";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { Exercise, IExercise } from "../models/exercise";
 import { StringUtils } from "../utils/string";
 import { inputClassName } from "./input";
@@ -26,7 +26,7 @@ export function ModalSubstitute(props: IModalSubstituteProps): JSX.Element {
   }
 
   return (
-    <Modal autofocusInputRef={textInput} shouldShowClose={true} onClose={() => props.onChange()}>
+    <LftModal autofocusInputRef={textInput} shouldShowClose={true} onClose={() => props.onChange()}>
       <h2 className="text-lg font-bold">Select exercise substitute</h2>
       <p className="text-xs italic">Similar exercises are sorted by the same muscles as the current one</p>
       <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
@@ -70,7 +70,7 @@ export function ModalSubstitute(props: IModalSubstituteProps): JSX.Element {
           );
         })}
       </form>
-    </Modal>
+    </LftModal>
   );
 }
 

@@ -1,7 +1,7 @@
 import { IDispatch } from "../ducks/types";
 import React, { JSX } from "react";
 import { useState } from "react";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { Button } from "./button";
 import { Weight } from "../models/weight";
 import { IProgramExercise, ISettings, IWeight } from "../types";
@@ -22,7 +22,7 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
   );
   console.log("Weight", weight);
   return (
-    <Modal
+    <LftModal
       isHidden={props.isHidden}
       shouldShowClose={true}
       onClose={() => props.dispatch({ type: "ConfirmWeightAction", weight: undefined })}
@@ -75,6 +75,6 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
           </Button>
         </div>
       </form>
-    </Modal>
+    </LftModal>
   );
 }

@@ -1,4 +1,3 @@
-import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { emptyProgramId, Program } from "../models/program";
 import { Thunk } from "../ducks/thunks";
@@ -10,12 +9,7 @@ import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { IScreen, Screen } from "../models/screen";
 import { Footer2View } from "./footer2";
-import { IconDoc } from "./icons/iconDoc";
 import { HelpProgramHistory } from "./help/helpProgramHistory";
-import { BottomSheet } from "./bottomSheet";
-import { BottomSheetItem } from "./bottomSheetItem";
-import { IconEditSquare } from "./icons/iconEditSquare";
-import { useGradualList } from "../utils/useGradualList";
 import { IconUser } from "./icons/iconUser";
 import { ObjectUtils } from "../utils/object";
 import { LinkButton } from "./linkButton";

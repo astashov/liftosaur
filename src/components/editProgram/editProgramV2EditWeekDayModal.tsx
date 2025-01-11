@@ -3,7 +3,7 @@ import { useRef } from "react";
 import { IPlannerProgram } from "../../types";
 import { Button } from "../button";
 import { Input } from "../input";
-import { Modal } from "../modal";
+import { LftModal } from "../modal";
 
 interface IProps {
   onSelect: (name: string) => void;
@@ -24,7 +24,7 @@ export function EditProgramV2EditWeekDayModal(props: IProps): JSX.Element {
   const title = props.dayIndex == null ? "Edit Week" : "Edit Day";
 
   return (
-    <Modal onClose={props.onClose} shouldShowClose={true}>
+    <LftModal onClose={props.onClose} shouldShowClose={true}>
       <h3 className="pb-2 text-xl font-bold text-center">
         {title} "{nameModal}"
       </h3>
@@ -63,6 +63,6 @@ export function EditProgramV2EditWeekDayModal(props: IProps): JSX.Element {
           Update
         </Button>
       </p>
-    </Modal>
+    </LftModal>
   );
 }

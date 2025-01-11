@@ -10,7 +10,7 @@ import { Button } from "./button";
 import { SendMessage } from "../utils/sendMessage";
 import { LinkButton } from "./linkButton";
 import { useState } from "react";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { IconBell } from "./icons/iconBell";
 import { lb } from "lens-shmens";
 import { IconSpinner } from "./icons/iconSpinner";
@@ -73,7 +73,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
       }
       footer={<></>}
       addons={[
-        <Modal
+        <LftModal
           noPaddings={true}
           isHidden={!isPlatesCalculatorShown}
           onClose={() => setIsPlatesCalculatorShown(false)}
@@ -94,8 +94,8 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               alt="Plates Calculator screenshot"
             />
           </div>
-        </Modal>,
-        <Modal
+        </LftModal>,
+        <LftModal
           noPaddings={true}
           isHidden={!isGraphsShown}
           onClose={() => setIsGraphsShown(false)}
@@ -116,8 +116,8 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               alt="Graphs screenshot"
             />
           </div>
-        </Modal>,
-        <Modal
+        </LftModal>,
+        <LftModal
           noPaddings={true}
           isHidden={!isNotifsShown}
           onClose={() => setIsNotifsShown(false)}
@@ -134,8 +134,8 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               alt="Notification screenshot"
             />
           </div>
-        </Modal>,
-        <Modal
+        </LftModal>,
+        <LftModal
           noPaddings={true}
           isHidden={!isWeekStatsShown}
           onClose={() => setIsWeekStatsShown(false)}
@@ -155,7 +155,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               alt="Week Insights Screenshot"
             />
           </div>
-        </Modal>,
+        </LftModal>,
         <ModalCoupon isHidden={!isRedeemShown} dispatch={props.dispatch} onClose={() => setIsRedeemShown(false)} />,
       ]}
     >

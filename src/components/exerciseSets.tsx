@@ -1,5 +1,5 @@
-import React, { JSX } from "react";
 import { useCallback } from "react";
+import { View, TouchableOpacity } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { ProgramExercise } from "../models/programExercise";
@@ -17,6 +17,7 @@ import {
 import { ExerciseSetView } from "./exerciseSet";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
 import { Reps } from "../models/set";
+import { LftText } from "./lftText";
 
 type IOnStartSetChanging = (
   isWarmup: boolean,
@@ -116,14 +117,14 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
               mode="warmup"
             />
           )}
-          <div
+          <View
             style={{
-              width: "1px",
-              marginTop: "21px",
-              marginBottom: "0",
+              width: 1,
+              marginTop: 21,
+              marginBottom: 0,
             }}
             className={`${props.size === "small" ? "h-8 mt-1 mr-1" : "h-10 mr-2"} bg-grayv2-400`}
-          ></div>
+          ></View>
         </>
       )}
       {props.entry.sets.map((set, setIndex) => {
@@ -207,22 +208,21 @@ interface IExerciseSetContainerProps {
 function ExerciseSetContainer(props: IExerciseSetContainerProps): JSX.Element {
   const { isEditMode, set, isCurrentProgress } = props;
   return (
-    <div data-cy={`${props.mode}-set`} className={`${props.size === "small" ? "mr-1 mb-1" : "mr-2 mb-2"}`}>
-      <div
+    <View data-cy={`${props.mode}-set`} className={`${props.size === "small" ? "mr-1 mb-1" : "mr-2 mb-2"}`}>
+      <LftText
         data-cy={`${props.mode}-set-title`}
         className="leading-none text-center text-grayv2-main"
         style={{
-          fontSize: props.size === "small" ? "9px" : "10px",
-          marginTop:
-            (set.isAmrap && set.completedReps != null) || set.completedRpe != null || set.rpe != null ? "0px" : "5px",
+          fontSize: props.size === "small" ? 9 : 10,
+          marginTop: (set.isAmrap && set.completedReps != null) || set.completedRpe != null || set.rpe != null ? 0 : 5,
           marginBottom:
-            (set.isAmrap && set.completedReps != null) || set.completedRpe != null || set.rpe != null ? "8px" : "3px",
-          minHeight: props.size === "small" ? "9px" : "10px",
+            (set.isAmrap && set.completedReps != null) || set.completedRpe != null || set.rpe != null ? 8 : 3,
+          minHeight: props.size === "small" ? 9 : 10,
         }}
       >
         {props.label ?? " "}
-      </div>
-      <div className={`relative ${isEditMode ? "is-edit-mode" : ""}`}>
+      </LftText>
+      <View className={`relative ${isEditMode ? "is-edit-mode" : ""}`}>
         <ExerciseSetView
           showHelp={props.showHelp}
           settings={props.settings}
@@ -232,17 +232,14 @@ function ExerciseSetContainer(props: IExerciseSetContainerProps): JSX.Element {
           set={set}
           isEditMode={isEditMode}
           onLongPress={props.onLongPress}
-          onClick={(e) => {
-            e.preventDefault();
-            props.onClick();
-          }}
+          onClick={props.onClick}
         />
         {isEditMode && (
-          <button
+          <TouchableOpacity
             data-cy="set-edit-mode-remove"
-            style={{ top: "-12px", left: "-13px" }}
+            style={{ top: -12, left: -13 }}
             className="absolute z-10 p-1 ls-edit-set-remove nm-edit-set-remove"
-            onClick={() => {
+            onPress={() => {
               EditProgressEntry.removeSet(
                 props.dispatch,
                 props.progress.id,
@@ -253,10 +250,10 @@ function ExerciseSetContainer(props: IExerciseSetContainerProps): JSX.Element {
             }}
           >
             <IconCloseCircle />
-          </button>
+          </TouchableOpacity>
         )}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
@@ -271,28 +268,28 @@ interface IAddSetButtonProps {
 function AddSetButton(props: IAddSetButtonProps): JSX.Element {
   const sizeClassNames = props.size === "small" ? "w-10 h-10 text-xs" : "w-12 h-12";
   return (
-    <div className="mb-2 mr-2">
-      <div
+    <View className="mb-2 mr-2">
+      <LftText
         data-cy={`${props.mode}-set-title`}
         className="leading-none text-center text-grayv2-main"
         style={{
-          fontSize: props.size === "small" ? "9px" : "10px",
-          marginBottom: "8px",
-          minHeight: props.size === "small" ? "9px" : "10px",
+          fontSize: props.size === "small" ? 9 : 10,
+          marginBottom: 8,
+          minHeight: props.size === "small" ? 9 : 10,
         }}
       >
         {props.label ?? " "}
-      </div>
-      <button
+      </LftText>
+      <TouchableOpacity
         data-cy={`add-${props.mode}-set`}
-        onClick={props.onClick}
+        onPress={props.onClick}
         className={`${sizeClassNames} leading-7 text-center border border-gray-400 border-dashed rounded-lg bg-grayv2-100 ls-edit-set-open-modal-add-warmup nm-edit-set-open-modal-add-warmup ${
           props.quickAddSets ? "" : "is-edit-mode"
         }`}
       >
         +
-      </button>
-    </div>
+      </TouchableOpacity>
+    </View>
   );
 }
 

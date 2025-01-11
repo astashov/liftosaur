@@ -6,7 +6,7 @@ import { MenuItemWrapper } from "./menuItem";
 import { BottomSheet } from "./bottomSheet";
 import { IconUser } from "./icons/iconUser";
 import { IAccount } from "../models/account";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { Service } from "../api/service";
 
 export function TopNavMenu(props: {
@@ -173,8 +173,8 @@ interface IModalAccountProps {
 
 function ModalAccount(props: IModalAccountProps): JSX.Element {
   return (
-    <Modal onClose={props.onClose} shouldShowClose={true}>
+    <LftModal onClose={props.onClose} shouldShowClose={true}>
       <Account account={props.account} client={props.service.client} />
-    </Modal>
+    </LftModal>
   );
 }

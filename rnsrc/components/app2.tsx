@@ -17,6 +17,8 @@ import { ScreenMeasurements } from "../../src/components/screenMeasurements";
 import { ScreenStats } from "../../src/components/screenStats";
 import { Program } from "../../src/models/program";
 import { ProgramHistoryView } from "../../src/components/programHistory";
+import { Progress } from "../../src/models/progress";
+import { ProgramDayView } from "../../src/components/programDay";
 
 interface IAppProps {
   essentials?: IInitializeEssentials;
@@ -81,43 +83,68 @@ export default function App(props: IAppProps): JSX.Element {
   const currentProgram =
     state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
 
-  return (
-    <DefaultPropsContext.Provider value={{ state, dispatch, env }}>
-      {screen === "measurements" ? (
-        <ScreenMeasurements
-          loading={state.loading}
-          screenStack={state.screenStack}
-          subscription={state.storage.subscription}
-          dispatch={dispatch}
-          settings={state.storage.settings}
-          stats={state.storage.stats}
-        />
-      ) : screen === "stats" ? (
-        <ScreenStats
-          screenStack={state.screenStack}
-          loading={state.loading}
-          dispatch={dispatch}
-          settings={state.storage.settings}
-          stats={state.storage.stats}
-        />
-      ) : screen === "main" && currentProgram ? (
-        <ProgramHistoryView
-          editProgramId={state.progress[0]?.programId}
-          screenStack={state.screenStack}
-          loading={state.loading}
-          allPrograms={state.storage.programs}
-          program={currentProgram}
-          progress={state.progress?.[0]}
-          userId={state.user?.id}
-          stats={state.storage.stats}
-          settings={state.storage.settings}
-          history={state.storage.history}
-          subscription={state.storage.subscription}
-          dispatch={dispatch}
-        />
-      ) : (
-        <WebViewScreen />
-      )}
-    </DefaultPropsContext.Provider>
-  );
+  let content = <></>;
+  if (screen === "measurements") {
+    content = (
+      <ScreenMeasurements
+        loading={state.loading}
+        screenStack={state.screenStack}
+        subscription={state.storage.subscription}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+        stats={state.storage.stats}
+      />
+    );
+  } else if (screen === "stats") {
+    content = (
+      <ScreenStats
+        screenStack={state.screenStack}
+        loading={state.loading}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+        stats={state.storage.stats}
+      />
+    );
+  } else if (screen === "main" && currentProgram) {
+    content = (
+      <ProgramHistoryView
+        editProgramId={state.progress[0]?.programId}
+        screenStack={state.screenStack}
+        loading={state.loading}
+        allPrograms={state.storage.programs}
+        program={currentProgram}
+        progress={state.progress?.[0]}
+        userId={state.user?.id}
+        stats={state.storage.stats}
+        settings={state.storage.settings}
+        history={state.storage.history}
+        subscription={state.storage.subscription}
+        dispatch={dispatch}
+      />
+    );
+  } else if (screen === "progress") {
+    const progress = state.progress[state.currentHistoryRecord!]!;
+    const program = Progress.isCurrent(progress)
+      ? Program.getFullProgram(state, progress.programId) ||
+        (currentProgram ? Program.fullProgram(currentProgram, state.storage.settings) : undefined)
+      : undefined;
+    content = (
+      <ProgramDayView
+        helps={state.storage.helps}
+        loading={state.loading}
+        history={state.storage.history}
+        subscription={state.storage.subscription}
+        userId={state.user?.id}
+        progress={progress}
+        program={program}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+        screenStack={state.screenStack}
+      />
+    );
+  } else {
+    content = <WebViewScreen />;
+  }
+
+  return <DefaultPropsContext.Provider value={{ state, dispatch, env }}>{content}</DefaultPropsContext.Provider>;
 }

@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { Button } from "./button";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { useRef } from "react";
 import { Input } from "./input";
 import { LinkButton } from "./linkButton";
@@ -26,7 +26,7 @@ function hasLegacyProgram(): boolean {
 export function ModalCreateProgram(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput} onClose={props.onClose} shouldShowClose={true}>
+    <LftModal isHidden={props.isHidden} autofocusInputRef={textInput} onClose={props.onClose} shouldShowClose={true}>
       <h3 className="pb-2 text-xl font-bold text-center">Create Program</h3>
       <Input
         label="Program Name"
@@ -80,6 +80,6 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           </LinkButton>
         </div>
       )}
-    </Modal>
+    </LftModal>
   );
 }

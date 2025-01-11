@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { Weight } from "../models/weight";
 import { lb } from "lens-shmens";
 import { Exercise } from "../models/exercise";
@@ -18,7 +18,7 @@ interface IModal1RMProps {
 export function Modal1RM(props: IModal1RMProps): JSX.Element {
   const exercise = Exercise.get(props.exercise, props.settings.exercises);
   return (
-    <Modal
+    <LftModal
       isHidden={false}
       onClose={() => {
         updateState(props.dispatch, [
@@ -46,6 +46,6 @@ export function Modal1RM(props: IModal1RMProps): JSX.Element {
           ]);
         }}
       />
-    </Modal>
+    </LftModal>
   );
 }

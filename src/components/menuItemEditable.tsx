@@ -111,6 +111,7 @@ export function MenuItemValue(
             }
           }}
           items={(props.values || []).map(([value, label]) => ({ label, value }))}
+          placeholder={{}}
           style={{
             viewContainer: {
               alignItems: "center",

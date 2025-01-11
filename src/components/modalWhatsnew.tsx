@@ -2,7 +2,7 @@ import React, { JSX } from "react";
 import { IWhatsNew, WhatsNew } from "../models/whatsnew";
 import { DateUtils } from "../utils/date";
 import { ObjectUtils } from "../utils/object";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 
 export interface IModalWhatsnewProps {
   lastDateStr: string;
@@ -18,7 +18,7 @@ export function ModalWhatsnew(props: IModalWhatsnewProps): JSX.Element {
   sortedWhatsnewRecords.sort((a, b) => parseInt(b[0], 10) - parseInt(a[0], 10));
 
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
+    <LftModal shouldShowClose={true} onClose={props.onClose}>
       <h3 className="pb-2 text-xl font-bold text-center">What's new?</h3>
       <ul>
         {sortedWhatsnewRecords.map(([dateStr, whatsNewRecord]) => {
@@ -34,6 +34,6 @@ export function ModalWhatsnew(props: IModalWhatsnewProps): JSX.Element {
           );
         })}
       </ul>
-    </Modal>
+    </LftModal>
   );
 }

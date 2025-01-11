@@ -1,6 +1,6 @@
 import React, { JSX, RefObject } from "react";
 import { GroupHeader } from "../../../components/groupHeader";
-import { Modal } from "../../../components/modal";
+import { LftModal } from "../../../components/modal";
 import { IPlannerProgram, ISettings } from "../../../types";
 import { IProgramShareOutputOptions, ProgramShareOutput } from "../../../components/programShareOutput";
 import { Button } from "../../../components/button";
@@ -45,7 +45,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
   });
 
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose} noPaddings={true}>
+    <LftModal shouldShowClose={true} onClose={props.onClose} noPaddings={true}>
       <div className="relative w-full h-px overflow-hidden">
         <div className="absolute" style={{ top: "9999px", left: "9999px" }}>
           <ProgramShareOutput ref={sourceRef} settings={props.settings} program={props.program} options={config} />
@@ -102,7 +102,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
           </div>
         </div>
       </div>
-    </Modal>
+    </LftModal>
   );
 }
 

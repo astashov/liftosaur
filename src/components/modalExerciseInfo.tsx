@@ -1,5 +1,5 @@
 import React, { JSX } from "react";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { IExerciseType, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
 
@@ -12,8 +12,8 @@ interface IModalDateProps {
 
 export function ModalExerciseInfo(props: IModalDateProps): JSX.Element {
   return (
-    <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth={true}>
+    <LftModal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth={true}>
       {props.exerciseType && <ExerciseImage settings={props.settings} exerciseType={props.exerciseType} size="large" />}
-    </Modal>
+    </LftModal>
   );
 }

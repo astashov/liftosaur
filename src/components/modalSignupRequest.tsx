@@ -1,5 +1,5 @@
 import React, { JSX } from "react";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
@@ -22,7 +22,7 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
   ];
 
   return (
-    <Modal
+    <LftModal
       shouldShowClose={true}
       isFullWidth={true}
       onClose={() => {
@@ -85,6 +85,6 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
           </Button>
         </div>
       </div>
-    </Modal>
+    </LftModal>
   );
 }

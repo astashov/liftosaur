@@ -15,9 +15,8 @@ export interface IProps {
   label?: string;
   identifier?: string;
   multiline?: number;
-  changeType?: "onblur" | "oninput";
   className?: string;
-  value?: string;
+  value?: string | number;
   defaultValue?: string;
   placeholder?: string;
   inputSize?: "md" | "sm";
@@ -25,6 +24,7 @@ export interface IProps {
   errorMessage?: string;
   patternMessage?: string;
   requiredMessage?: string;
+  maxLength?: number;
   max?: number | string;
   min?: number | string;
   step?: number | string;
@@ -35,18 +35,7 @@ export interface IProps {
 }
 
 export const Input = forwardRef((props: IProps, ref: Ref<TextInput>): JSX.Element => {
-  const {
-    inputSize,
-    labelSize,
-    label,
-    changeHandler,
-    errorMessage,
-    patternMessage,
-    multiline,
-    className,
-    ...otherProps
-  } = props;
-  const changeType = props.changeType || "onblur";
+  const { inputSize, labelSize, label, changeHandler, errorMessage, patternMessage, multiline, className } = props;
   const identifier = props.identifier || StringUtils.dashcase((label || UidFactory.generateUid(8))?.toLowerCase());
   const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
   const size = inputSize || "md";
@@ -97,7 +86,6 @@ export const Input = forwardRef((props: IProps, ref: Ref<TextInput>): JSX.Elemen
     containerClassName += " w-full";
   }
   const theLabelSize = labelSize || "sm";
-  console.log(otherProps);
   return (
     <View className={containerClassName}>
       <View data-cy={`${identifier}-label`} className={innerClassName} style={{ minHeight: size === "md" ? 48 : 40 }}>
@@ -113,11 +101,13 @@ export const Input = forwardRef((props: IProps, ref: Ref<TextInput>): JSX.Elemen
               {props.label}
             </LftText>
           )}
-          <View className="relative" style={{ top: props.label ? 3 : 8, left: 0 }}>
+          <View className="relative" style={{ top: props.label ? -2 : 8, left: 0 }}>
             <TextInput
               data-cy={`${identifier}-input`}
+              value={`${props.value}`}
               ref={ref}
               onChangeText={onInputHandler}
+              maxLength={props.maxLength}
               className={`flex-1 text-base border-none focus:outline-none ${className}`}
               style={{ fontSize: 16, height: multiline ? multiline * 25 : 20, minHeight: 20, padding: 0, margin: 0 }}
             />

@@ -1,7 +1,6 @@
 import { IDispatch } from "../ducks/types";
-import React, { JSX } from "react";
-import { useRef, useState } from "react";
-import { Modal } from "./modal";
+import { useState } from "react";
+import { LftModal } from "./modal";
 import { Button } from "./button";
 import { Weight } from "../models/weight";
 import { EditProgressEntry } from "../models/editProgressEntry";
@@ -14,6 +13,9 @@ import { InputNumber } from "./inputNumber";
 import { InputWeight } from "./inputWeight";
 import { MathUtils } from "../utils/math";
 import { Equipment } from "../models/equipment";
+import { View, TouchableOpacity } from "react-native";
+import { LftText } from "./lftText";
+import { LftCheckbox } from "./lftCheckbox";
 
 interface IModalWeightProps {
   subscription: ISubscription;
@@ -54,12 +56,12 @@ function getPlatesStr(
 
 export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const set = props.set;
-  const isAmrapInput = useRef<HTMLInputElement>(null);
   const unit = Equipment.getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
   const [weight, setWeight] = useState(set?.weight || Weight.build(0, unit));
   const initialRpe = set?.rpe;
   const [rpe, setRpe] = useState(initialRpe ?? 0);
   const [reps, setReps] = useState(set?.reps ?? 5);
+  const [isAmrap, setIsAmrap] = useState(set?.isAmrap ?? false);
   const quickAddSets = props.programExercise
     ? ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
     : false;
@@ -68,25 +70,26 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
 
   const platesStr = getPlatesStr(props.subscription, weight, props.settings, props.exerciseType);
   return (
-    <Modal
+    <LftModal
       isHidden={props.isHidden}
       isFullWidth={true}
       shouldShowClose={true}
-      maxWidth="480px"
+      maxWidth={480}
       onClose={() => {
         EditProgressEntry.hideEditSetModal(props.dispatch);
       }}
     >
       <GroupHeader size="large" name="Please enter reps and weight" />
       {!quickAddSets && (
-        <h4 className="mb-2 text-xs text-grayv2-main">
-          It changes reps and weight <strong>only for this workout!</strong> If you want to change them for this and the
-          future workouts, make changes <strong>in the program</strong>.
-        </h4>
+        <LftText className="mb-2 text-xs text-grayv2-main">
+          It changes reps and weight <LftText className="font-bold">only for this workout!</LftText> If you want to
+          change them for this and the future workouts, make changes{" "}
+          <LftText className="font-bold">in the program</LftText>.
+        </LftText>
       )}
-      <form onSubmit={(e) => e.preventDefault()}>
-        <div>
-          <div className="mb-2">
+      <View>
+        <View>
+          <View className="mb-2">
             <InputNumber
               data-cy="modal-edit-set-reps-input"
               value={reps}
@@ -97,8 +100,8 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                 setReps(newValue);
               }}
             />
-          </div>
-          <div className="mb-2">
+          </View>
+          <View className="mb-2">
             <InputWeight
               units={["kg", "lb"]}
               settings={props.settings}
@@ -112,9 +115,9 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               value={weight}
               label="Weight"
             />
-          </div>
+          </View>
           {!props.isWarmup && enableRpe && (
-            <div className="mb-2">
+            <View className="mb-2">
               <InputNumber
                 data-cy="modal-edit-set-reps-input"
                 value={rpe}
@@ -126,44 +129,41 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                   setRpe(newValue);
                 }}
               />
-            </div>
+            </View>
           )}
-        </div>
+        </View>
         {!props.isWarmup && (
-          <div className="mt-1 ml-1">
-            <label>
-              <input data-cy="modal-edit-set-amrap-input" ref={isAmrapInput} type="checkbox" checked={set?.isAmrap} />
-              <strong className="ml-2">
-                Is AMRAP?
-                <button className="ml-1 nm-is-amrap" onClick={() => alert("As Many Reps As Possible.")}>
-                  <IconQuestion width={12} height={12} />
-                </button>
-              </strong>
-            </label>
-          </div>
+          <View className="flex flex-row items-center mt-1 ml-1">
+            <LftCheckbox name="modal-edit-set-amrap-input" value={isAmrap} onChange={setIsAmrap} />
+            <View className="flex-row items-center gap-1 ml-2 font-bold">
+              <LftText className="font-bold">Is AMRAP?</LftText>
+              <TouchableOpacity className="nm-is-amrap" onPress={() => alert("As Many Reps As Possible.")}>
+                <IconQuestion width={12} height={12} />
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
         {platesStr != null && (
-          <div className="mt-1 text-xs text-grayv2-main">
+          <LftText className="mt-1 text-xs text-grayv2-main">
             Plates:{" "}
             {platesStr.weightDiff != null && (
-              <span>
-                <span className="line-through">
+              <LftText>
+                <LftText className="line-through">
                   {Number(platesStr.weightDiff.original.value?.toFixed(2))} {platesStr.weightDiff.original.unit}
-                </span>
-                <span> → </span>
-                <span>
+                </LftText>
+                <LftText> → </LftText>
+                <LftText>
                   {platesStr.weightDiff.rounded.value} {platesStr.weightDiff.rounded.unit}
-                </span>
-                <span>{" - "}</span>
-              </span>
+                </LftText>
+                <LftText>{" - "}</LftText>
+              </LftText>
             )}
-            <strong>{platesStr.plates || "None"}</strong>
-          </div>
+            <LftText className="font-bold">{platesStr.plates || "None"}</LftText>
+          </LftText>
         )}
-        <div className="mt-4 text-right">
+        <View className="flex flex-row justify-center mt-4 text-right">
           <Button
             name="modal-edit-set-cancel"
-            type="button"
             kind="grayv2"
             data-cy="modal-edit-set-cancel"
             className="mr-3"
@@ -178,11 +178,9 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             kind="orange"
             data-cy="modal-edit-set-submit"
             className="ls-modal-edit-set"
-            type="submit"
             onClick={() => {
               const repsValue = MathUtils.round(MathUtils.clamp(reps, 1), 1);
               const rpeValue = enableRpe ? MathUtils.round(MathUtils.clamp(rpe, 0, 10), 0.5) : undefined;
-              const isAmrap = !!(isAmrapInput.current!.checked || false);
               const newSet: ISet = {
                 reps: repsValue,
                 weight,
@@ -210,8 +208,8 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
           >
             Done
           </Button>
-        </div>
-      </form>
-    </Modal>
+        </View>
+      </View>
+    </LftModal>
   );
 }

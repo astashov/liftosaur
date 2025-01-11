@@ -2,7 +2,7 @@ import React, { JSX } from "react";
 import { useState } from "react";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { IHistoryRecord, IPercentage, IProgramExercise, ISettings, IWeight } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { ObjectUtils } from "../utils/object";
@@ -79,7 +79,13 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   }
 
   return (
-    <Modal maxWidth="480px" isHidden={!amrapModal} isFullWidth={true} shouldShowClose={true} onClose={() => onDone()}>
+    <LftModal
+      maxWidth="480px"
+      isHidden={!amrapModal}
+      isFullWidth={true}
+      shouldShowClose={true}
+      onClose={() => onDone()}
+    >
       <form onSubmit={(e) => e.preventDefault()}>
         {isAmrap && (
           <div className="mb-2">
@@ -180,7 +186,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
           </Button>
         </div>
       </form>
-    </Modal>
+    </LftModal>
   );
 }
 

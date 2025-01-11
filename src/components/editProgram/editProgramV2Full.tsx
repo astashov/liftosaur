@@ -8,7 +8,7 @@ import {
   IPlannerUi,
   IPlannerUiFocusedExercise,
 } from "../../pages/planner/models/types";
-import { Modal } from "../modal";
+import { LftModal } from "../modal";
 import { lb, lbu, LensBuilder } from "lens-shmens";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { useMemo } from "react";
@@ -194,7 +194,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
         </div>
       </div>
       {props.ui.showExerciseStats && (
-        <Modal
+        <LftModal
           shouldShowClose={true}
           isFullWidth={true}
           onClose={() => {
@@ -211,10 +211,10 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
               exerciseLine={focusedExercise?.exerciseLine}
             />
           )}
-        </Modal>
+        </LftModal>
       )}
       {props.ui.showDayStats && (
-        <Modal
+        <LftModal
           shouldShowClose={true}
           isFullWidth={true}
           onClose={() => {
@@ -229,10 +229,10 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
               evaluatedDay={evalResults[weekIndex][dayIndex]}
             />
           )}
-        </Modal>
+        </LftModal>
       )}
       {props.ui.showWeekStats && (
-        <Modal
+        <LftModal
           shouldShowClose={true}
           isFullWidth={true}
           onClose={() => {
@@ -246,7 +246,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
               settings={props.settings}
             />
           )}
-        </Modal>
+        </LftModal>
       )}
     </div>
   );

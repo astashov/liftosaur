@@ -1,4 +1,3 @@
-import React, { JSX } from "react";
 import { CardsView } from "./cards";
 import { IDispatch } from "../ducks/types";
 import { ModalAmrap } from "./modalAmrap";
@@ -41,6 +40,8 @@ import { CollectionUtils } from "../utils/collection";
 import { PlannerKey } from "../pages/planner/plannerKey";
 import { ModalEquipment } from "./modalEquipment";
 import { Modal1RM } from "./modal1RM";
+import { TouchableOpacity } from "react-native";
+import { LftText } from "./lftText";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -86,7 +87,9 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             title={Progress.isCurrent(progress) ? "Ongoing workout" : `${DateUtils.format(progress.date)}`}
             subtitle={
               !Progress.isCurrent(progress) && progress.endTime ? (
-                TimeUtils.formatHHMM(History.workoutTime(props.progress))
+                <LftText className="text-xs font-bold">
+                  {TimeUtils.formatHHMM(History.workoutTime(props.progress))}
+                </LftText>
               ) : (
                 <Timer
                   progress={props.progress}
@@ -101,17 +104,17 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               )
             }
             rightButtons={[
-              <button
+              <TouchableOpacity
                 key={0}
                 className="p-2 nm-delete-progress ls-delete-progress"
-                onClick={() => {
+                onPress={() => {
                   if (confirm("Are you sure?")) {
                     props.dispatch({ type: "DeleteProgress" });
                   }
                 }}
               >
                 <IconTrash />
-              </button>,
+              </TouchableOpacity>,
             ]}
           />
         }

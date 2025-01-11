@@ -4,7 +4,7 @@ import { Exercise, IExercise } from "../models/exercise";
 import { IExerciseDataValue, ISettings } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { useState } from "react";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { RepMaxCalculator } from "./repMaxCalculator";
 
 interface IExerciseRMProps {
@@ -50,7 +50,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
         Available in Liftoscript as <strong>{props.rmKey}</strong> variable
       </div>
       {showCalculator && (
-        <Modal shouldShowClose={true} onClose={() => setShowCalculator(false)}>
+        <LftModal shouldShowClose={true} onClose={() => setShowCalculator(false)}>
           <RepMaxCalculator
             backLabel="Close"
             unit={props.settings.units}
@@ -61,7 +61,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
               setShowCalculator(false);
             }}
           />
-        </Modal>
+        </LftModal>
       )}
     </section>
   );

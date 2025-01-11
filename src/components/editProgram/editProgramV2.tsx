@@ -24,7 +24,7 @@ import { EditProgramV2Full } from "./editProgramV2Full";
 import { PlannerToProgram } from "../../models/plannerToProgram";
 import { CollectionUtils } from "../../utils/collection";
 import { ProgramPreviewOrPlayground } from "../programPreviewOrPlayground";
-import { Modal } from "../modal";
+import { LftModal } from "../modal";
 import { ModalPlannerSettings } from "../../pages/planner/components/modalPlannerSettings";
 import { ModalExercise } from "../modalExercise";
 import { equipmentName, Exercise } from "../../models/exercise";
@@ -145,7 +145,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
             />
           )}
           {plannerState.ui.showPreview && (
-            <Modal
+            <LftModal
               isFullWidth={true}
               name="program-preview"
               shouldShowClose={true}
@@ -163,7 +163,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
                 hasNavbar={false}
                 settings={props.settings}
               />
-            </Modal>
+            </LftModal>
           )}
           {plannerState.ui.showSettingsModal && (
             <ModalPlannerSettings

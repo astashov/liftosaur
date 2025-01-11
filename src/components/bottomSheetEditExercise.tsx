@@ -1,4 +1,5 @@
 import React, { JSX } from "react";
+import { View, TouchableOpacity } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { BottomSheet } from "./bottomSheet";
 import { IconEditSquare } from "./icons/iconEditSquare";
@@ -9,6 +10,7 @@ import { IHistoryRecord } from "../types";
 import { Thunk } from "../ducks/thunks";
 import { IconStats } from "./icons/iconStats";
 import { IconEdit } from "./icons/iconEdit";
+import { LftText } from "./lftText";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -27,18 +29,18 @@ export function BottomSheetEditExercise(props: IProps): JSX.Element {
         ]);
       }}
     >
-      <div className="p-4">
+      <View className="p-4">
         <BottomSheetItem
           name="edit-exercise"
           title="Edit Exercise"
           isFirst={true}
           icon={<IconEdit penColor="#607284" lineColor="#607284" size={18} />}
           description={
-            <>
-              Edit <strong>only for this workout</strong>, it will not change it in the program. To change it in the
-              program, press <IconEditSquare className="inline-block mx-1" /> at the top of the screen to edit the
-              program, and edit exercise there.
-            </>
+            <LftText>
+              Edit <LftText className="font-bold">only for this workout</LftText>, it will not change it in the program.
+              To change it in the program, press <IconEditSquare className="inline-block mx-1" /> at the top of the
+              screen to edit the program, and edit exercise there.
+            </LftText>
           }
           onClick={() =>
             updateState(props.dispatch, [
@@ -51,7 +53,11 @@ export function BottomSheetEditExercise(props: IProps): JSX.Element {
           title="Exercise Stats"
           name="exercise-stats"
           icon={<IconStats />}
-          description="Various stats about this exercise. Your progress graphs, your personal records, exercise history."
+          description={
+            <LftText>
+              Various stats about this exercise. Your progress graphs, your personal records, exercise history.
+            </LftText>
+          }
           onClick={() => {
             if (entryIndex != null) {
               const entry = props.progress.entries[entryIndex];
@@ -62,7 +68,7 @@ export function BottomSheetEditExercise(props: IProps): JSX.Element {
             }
           }}
         />
-      </div>
+      </View>
     </BottomSheet>
   );
 }

@@ -1,8 +1,8 @@
-import React, { JSX, Ref } from "react";
-import { forwardRef } from "react";
+import { TextInput, View, TextInputProps } from "react-native";
 import { inputClassName } from "./input";
+import { LftText } from "./lftText";
 
-interface ILabelAndInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface ILabelAndInputProps extends TextInputProps {
   identifier: string;
   star?: boolean;
   label: string;
@@ -10,20 +10,18 @@ interface ILabelAndInputProps extends React.InputHTMLAttributes<HTMLInputElement
   hint?: string;
 }
 
-export const LabelAndInput = forwardRef(
-  (props: ILabelAndInputProps, ref: Ref<HTMLInputElement>): JSX.Element => {
-    const { identifier, label, errorMessage, hint } = props;
-    const id = [props.id, identifier].filter((r) => r).join(" ");
-    return (
-      <div className="mb-4">
-        <label data-cy={`${identifier}-label`} htmlFor={identifier} className="block text-sm font-bold">
-          {label}
-          {props.star && <span className="text-redv2-main"> *</span>}
-        </label>
-        <input ref={ref} data-cy={`${identifier}-input`} id={id} className={inputClassName} type="text" {...props} />
-        {hint && <div className="text-xs text-grayv2-main">{hint}</div>}
-        {errorMessage && <div className="text-xs text-red-500">{errorMessage}</div>}
-      </div>
-    );
-  }
-);
+export const LabelAndInput = (props: ILabelAndInputProps): JSX.Element => {
+  const { identifier, label, errorMessage, hint } = props;
+  const id = [props.id, identifier].filter((r) => r).join(" ");
+  return (
+    <View className="mb-4">
+      <LftText data-cy={`${identifier}-label`} className="block text-sm font-bold">
+        {label}
+        {props.star && <LftText className="text-redv2-main"> *</LftText>}
+      </LftText>
+      <TextInput data-cy={`${identifier}-input`} id={id} className={inputClassName} {...props} />
+      {hint && <LftText className="text-xs text-grayv2-main">{hint}</LftText>}
+      {errorMessage && <LftText className="text-xs text-red-500">{errorMessage}</LftText>}
+    </View>
+  );
+};

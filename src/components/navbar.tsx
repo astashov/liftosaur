@@ -9,7 +9,7 @@ import { ILoading, IState, updateState } from "../models/state";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IconClose } from "./icons/iconClose";
 import { lb } from "lens-shmens";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { ObjectUtils } from "../utils/object";
 import { ModalDebug } from "./modalDebug";
 import { View, TouchableOpacity } from "react-native";
@@ -148,7 +148,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
         )}
       </View>
       {props.helpContent && shouldShowModalHelp && (
-        <Modal
+        <LftModal
           isHidden={!shouldShowModalHelp}
           onClose={() => setShouldShowModalHelp(false)}
           shouldShowClose={true}
@@ -161,7 +161,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
             feedback - don't hesitate to <Link href="mailto:info@liftosaur.com">contact us</Link>! Or join our{" "}
             <Link href="https://discord.com/invite/AAh3cvdBRs">Discord server</Link> and ask your question there.
           </LftText>
-        </Modal>
+        </LftModal>
       )}
       {showDebug > 4 && (
         <ModalDebug onClose={() => setShowDebug(0)} loading={props.loading} dispatch={props.dispatch} />

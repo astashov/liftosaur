@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { IProgram, IScreenMuscle, ISettings } from "../types";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -30,7 +30,7 @@ export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element
   const programsValues = props.allPrograms.map<[string, string]>((p) => [p.id, p.name]);
   const days = Program.getListOfDays(fullProgram, props.settings);
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose} isFullWidth>
+    <LftModal shouldShowClose={true} onClose={props.onClose} isFullWidth>
       <MenuItemEditable
         type="select"
         name="Program"
@@ -100,6 +100,6 @@ export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element
           </MenuItemWrapper>
         );
       })}
-    </Modal>
+    </LftModal>
   );
 }

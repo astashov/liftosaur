@@ -5,7 +5,7 @@ import { GroupHeader } from "../../../components/groupHeader";
 import { IconPlus } from "../../../components/icons/iconPlus";
 import { IconTrash } from "../../../components/icons/iconTrash";
 import { MenuItem } from "../../../components/menuItem";
-import { Modal } from "../../../components/modal";
+import { LftModal } from "../../../components/modal";
 import { EditProgramLenses } from "../../../models/editProgramLenses";
 import { IProgram } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -24,7 +24,7 @@ export function ProgramContentManageDaysModal(props: IProgramContentManageDaysMo
   const lbPrefix = lb<IProgramEditorState>().p("current").p("program");
 
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
+    <LftModal shouldShowClose={true} onClose={props.onClose}>
       <div style={{ minWidth: "20rem" }}>
         <section>
           <DraggableList
@@ -70,6 +70,6 @@ export function ProgramContentManageDaysModal(props: IProgramContentManageDaysMo
           ))}
         </section>
       </div>
-    </Modal>
+    </LftModal>
   );
 }

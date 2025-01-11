@@ -1,10 +1,11 @@
-import React, { JSX } from "react";
 import { TimeUtils } from "../utils/time";
 import { useEffect, useRef, useState } from "react";
 import { IconPlay } from "./icons/iconPlay";
 import { IconPause } from "./icons/iconPause";
 import { IHistoryRecord } from "../types";
 import { History } from "../models/history";
+import { TouchableOpacity, View } from "react-native";
+import { LftText } from "./lftText";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -32,21 +33,29 @@ export function Timer(props: IProps): JSX.Element {
   const workoutTime = History.workoutTime(props.progress);
   const isPaused = History.isPaused(props.progress.intervals);
   return (
-    <span style={{ marginLeft: "-0.5rem" }}>
+    <View style={{ marginLeft: -8 }}>
       {isPaused ? (
-        <button className="px-1 leading-none align-middle" style={{ marginTop: "-2px" }} onClick={props.onPauseResume}>
+        <TouchableOpacity
+          className="px-1 leading-none align-middle"
+          style={{ marginTop: -2 }}
+          onPress={props.onPauseResume}
+        >
           <IconPlay color="#607284" size={16} />
-        </button>
+        </TouchableOpacity>
       ) : (
-        <button className="px-1 leading-none align-middle" style={{ marginTop: "-2px" }} onClick={props.onPauseResume}>
+        <TouchableOpacity
+          className="px-1 leading-none align-middle"
+          style={{ marginTop: -2 }}
+          onPress={props.onPauseResume}
+        >
           <IconPause color="#607284" size={16} />
-        </button>
+        </TouchableOpacity>
       )}
-      <span className={`leading-none align-middle ${isPaused ? "text-redv2-main" : "text-greenv2-main"}`}>
+      <LftText className={`leading-none align-middle ${isPaused ? "text-redv2-main" : "text-greenv2-main"}`}>
         {TimeUtils.formatHH(workoutTime)}
-        <span className={isPaused ? "" : "blinking"}>:</span>
+        <LftText className={isPaused ? "" : "blinking"}>:</LftText>
         {TimeUtils.formatMM(workoutTime)} h
-      </span>
-    </span>
+      </LftText>
+    </View>
   );
 }

@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { useRef, useState, useEffect } from "react";
-import { Modal } from "../../../components/modal";
+import { LftModal } from "../../../components/modal";
 import { IExerciseId, IProgram, ISettings } from "../../../types";
 import { StringUtils } from "../../../utils/string";
 import { ProgramContentExercise } from "./programContentExercise";
@@ -28,7 +28,7 @@ export function ProgramContentModalExistingExercise(props: IProgramContentModalE
   }, [!!props.isHidden]);
 
   return (
-    <Modal
+    <LftModal
       isHidden={props.isHidden}
       autofocusInputRef={textInput!}
       shouldShowClose={true}
@@ -70,6 +70,6 @@ export function ProgramContentModalExistingExercise(props: IProgramContentModalE
           );
         })}
       </form>
-    </Modal>
+    </LftModal>
   );
 }

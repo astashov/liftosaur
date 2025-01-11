@@ -3,7 +3,7 @@ import React, { JSX } from "react";
 import { GroupHeader } from "../../../components/groupHeader";
 import { Input } from "../../../components/input";
 import { MenuItemValue } from "../../../components/menuItemEditable";
-import { Modal } from "../../../components/modal";
+import { LftModal } from "../../../components/modal";
 import { IPlannerSettings, ISettings, IUnit, screenMuscles } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { StringUtils } from "../../../utils/string";
@@ -50,7 +50,7 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
   }
 
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
+    <LftModal shouldShowClose={true} onClose={props.onClose}>
       <GroupHeader size="large" name="Muscle Settings" />
       <form className="mt-2" style={{ minWidth: props.inApp ? "auto" : "32rem" }}>
         {!props.inApp && (
@@ -392,6 +392,6 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
           })}
         </ul>
       </form>
-    </Modal>
+    </LftModal>
   );
 }

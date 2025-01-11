@@ -1,5 +1,5 @@
 import React, { JSX } from "react";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemWrapper } from "./menuItem";
 import { Importer } from "./importer";
@@ -62,7 +62,7 @@ export function ModalImportFromOtherApps(props: IProps): JSX.Element {
   }, []);
 
   return (
-    <Modal isFullWidth={true} isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose}>
+    <LftModal isFullWidth={true} isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose}>
       <GroupHeader size="large" name="Import history from other apps" />
       <Importer onFileSelect={onFileSelect}>
         {(onClick) => (
@@ -73,6 +73,6 @@ export function ModalImportFromOtherApps(props: IProps): JSX.Element {
           </div>
         )}
       </Importer>
-    </Modal>
+    </LftModal>
   );
 }

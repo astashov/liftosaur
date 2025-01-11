@@ -2,7 +2,7 @@ import React, { JSX } from "react";
 import { useRef } from "react";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { DateUtils } from "../utils/date";
 import { Input } from "./input";
 import { MathUtils } from "../utils/math";
@@ -26,7 +26,7 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
   const minutesStr = minutes.toString().padStart(2, "0");
   console.log(props.time, hours, minutes);
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
+    <LftModal isHidden={props.isHidden} autofocusInputRef={textInput}>
       <form onSubmit={(e) => e.preventDefault()}>
         <h3 className="pb-2 font-bold">Please enter new date</h3>
         <input
@@ -88,6 +88,6 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
           </Button>
         </div>
       </form>
-    </Modal>
+    </LftModal>
   );
 }

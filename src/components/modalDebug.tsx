@@ -6,7 +6,7 @@ import { CollectionUtils } from "../utils/collection";
 import { DateUtils } from "../utils/date";
 import { ObjectUtils } from "../utils/object";
 import { Button } from "./button";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 
 interface IModalDebugProps {
   onClose: () => void;
@@ -18,7 +18,7 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
   const loadingItems = props.loading.items;
   const items = CollectionUtils.sortBy(CollectionUtils.nonnull(ObjectUtils.values(loadingItems)), "startTime");
   return (
-    <Modal isHidden={false} onClose={props.onClose} shouldShowClose={true} isFullWidth>
+    <LftModal isHidden={false} onClose={props.onClose} shouldShowClose={true} isFullWidth>
       <h3 className="pb-2 font-bold">Network calls</h3>
       <ul>
         {items.map((item) => {
@@ -50,6 +50,6 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
           Send Debug Info
         </Button>
       </div>
-    </Modal>
+    </LftModal>
   );
 }

@@ -1,6 +1,6 @@
 import { lb } from "lens-shmens";
 import React, { JSX } from "react";
-import { Modal } from "../../../components/modal";
+import { LftModal } from "../../../components/modal";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { IPoints, Muscle } from "../../../models/muscle";
 import { IProgram, ISettings } from "../../../types";
@@ -23,13 +23,13 @@ export function ProgramDetailsMusclesModal(props: IProps): JSX.Element {
   }
 
   return (
-    <Modal
+    <LftModal
       shouldShowClose={true}
       onClose={() => props.dispatch(lb<IProgramDetailsState>().p("muscles").record(undefined))}
     >
       <div style={{ maxWidth: "400px" }}>
         <MusclesView settings={props.settings} points={points} title={props.program.name} />
       </div>
-    </Modal>
+    </LftModal>
   );
 }

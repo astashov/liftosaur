@@ -1,5 +1,5 @@
 import React, { JSX } from "react";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { Exercise, equipmentName } from "../models/exercise";
 import { StringUtils } from "../utils/string";
 import { IDispatch } from "../ducks/types";
@@ -71,7 +71,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   const hasAvailableStats = statsLengthKeys.length > 0 || statsWeightKeys.length > 0 || statsPercentageKeys.length > 0;
 
   return (
-    <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth>
+    <LftModal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth>
       <GroupHeader name="Settings" isExpanded={true}>
         <MenuItemEditable
           type="select"
@@ -278,7 +278,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
           </div>
         )}
       </form>
-    </Modal>
+    </LftModal>
   );
 }
 

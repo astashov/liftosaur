@@ -1,4 +1,4 @@
-import React, { JSX } from "react";
+import { View, TouchableOpacity, TextInput, Image } from "react-native";
 import { Exercise } from "../models/exercise";
 import { History, IHistoryRecordAndEntry } from "../models/history";
 import { IDispatch } from "../ducks/types";
@@ -49,6 +49,7 @@ import { IProgramMode } from "../models/program";
 import { n } from "../utils/math";
 import { IconSwap } from "./icons/iconSwap";
 import { Equipment } from "../models/equipment";
+import { LftText } from "./lftText";
 
 interface IProps {
   showHelp: boolean;
@@ -121,417 +122,404 @@ function getBgColor200(entry: IHistoryEntry): string {
   }
 }
 
-export const ExerciseView = memo(
-  (props: IProps): JSX.Element => {
-    const { entry } = props;
-    const color = getColor(entry);
-    const className = `px-4 pt-4 pb-2 mb-2 rounded-lg ${getBgColor100(entry)}`;
-    let dataCy;
-    if (color === "green") {
-      dataCy = "exercise-completed";
-    } else if (color === "yellow") {
-      dataCy = "exercise-in-range-completed";
-    } else if (color === "red") {
-      dataCy = "exercise-finished";
-    } else {
-      dataCy = "exercise-progress";
-    }
+export const ExerciseView = memo((props: IProps): JSX.Element => {
+  const { entry } = props;
+  const color = getColor(entry);
+  const className = `px-4 pt-4 pb-2 mb-2 rounded-lg ${getBgColor100(entry)}`;
+  let dataCy;
+  if (color === "green") {
+    dataCy = "exercise-completed";
+  } else if (color === "yellow") {
+    dataCy = "exercise-in-range-completed";
+  } else if (color === "red") {
+    dataCy = "exercise-finished";
+  } else {
+    dataCy = "exercise-progress";
+  }
 
-    return (
-      <>
-        <section data-cy={dataCy} className={className}>
-          <ExerciseContentView {...props} />
-          {props.programExercise && props.program && (
-            <ProgressStateChanges
-              mode={props.programMode}
-              entry={props.entry}
-              forceShow={props.forceShowStateChanges}
-              settings={props.settings}
-              dayData={props.dayData}
-              programExercise={props.programExercise}
-              program={props.program}
-              userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
-            />
-          )}
-        </section>
-      </>
+  return (
+    <>
+      <View data-cy={dataCy} className={className}>
+        <ExerciseContentView {...props} />
+        {props.programExercise && props.program && (
+          <ProgressStateChanges
+            mode={props.programMode}
+            entry={props.entry}
+            forceShow={props.forceShowStateChanges}
+            settings={props.settings}
+            dayData={props.dayData}
+            programExercise={props.programExercise}
+            program={props.program}
+            userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
+          />
+        )}
+      </View>
+    </>
+  );
+});
+
+const ExerciseContentView = memo((props: IProps): JSX.Element => {
+  const isCurrentProgress = Progress.isCurrent(props.progress);
+  const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
+  const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(props.settings, exercise);
+  const historicalSameDay = isCurrentProgress
+    ? History.getHistoricalSameDay(props.history, props.progress, props.entry)
+    : undefined;
+  const historicalLastDay = isCurrentProgress ? History.getHistoricalLastDay(props.history, props.entry) : undefined;
+  const showLastDay =
+    historicalLastDay != null &&
+    (historicalSameDay == null || historicalSameDay.record.startTime < historicalLastDay.record.startTime);
+  const workoutWeights = CollectionUtils.compatBy(
+    props.entry.sets.map((s) => ({ original: s.originalWeight, rounded: s.weight })),
+    (w) => w.rounded.value.toString()
+  );
+  const hasUnequalWeights = workoutWeights.some((w) => !Weight.eq(w.original, w.rounded));
+  workoutWeights.sort((a, b) => Weight.compare(a.rounded, b.rounded));
+  const warmupWeights = CollectionUtils.compatBy(
+    props.entry.warmupSets.map((s) => ({ original: s.originalWeight, rounded: s.weight })),
+    (w) => w.rounded.value.toString()
+  ).filter((w) =>
+    isCurrentProgress
+      ? Object.keys(Weight.calculatePlates(w.rounded, props.settings, exerciseUnit, props.entry.exercise).plates)
+          .length > 0
+      : true
+  );
+  const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
+  const historicalAmrapSets = isCurrentProgress
+    ? History.getHistoricalAmrapSets(props.history, props.entry, nextSet)
+    : undefined;
+  warmupWeights.sort((a, b) => Weight.compare(a.rounded, b.rounded));
+  const isEditModeRef = useRef(false);
+  isEditModeRef.current = props.progress.ui?.entryIndexEditMode === props.index;
+  const isSubscribed = Subscriptions.hasSubscription(props.subscription);
+
+  const [showNotes, setShowNotes] = useState(!!props.entry.notes);
+  const [showStateVariables, setShowStateVariables] = useState(false);
+
+  const programExercise = props.programExercise;
+  let description: string | undefined;
+  if (programExercise != null && props.program != null) {
+    description = ProgramExercise.getDescription(
+      programExercise,
+      props.program.exercises,
+      props.dayData,
+      props.settings
     );
   }
-);
+  const volume = Reps.volume(props.entry.sets);
+  const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
+  const onerm = Exercise.onerm(exercise, props.settings);
 
-const ExerciseContentView = memo(
-  (props: IProps): JSX.Element => {
-    const isCurrentProgress = Progress.isCurrent(props.progress);
-    const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
-    const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(props.settings, exercise);
-    const historicalSameDay = isCurrentProgress
-      ? History.getHistoricalSameDay(props.history, props.progress, props.entry)
-      : undefined;
-    const historicalLastDay = isCurrentProgress ? History.getHistoricalLastDay(props.history, props.entry) : undefined;
-    const showLastDay =
-      historicalLastDay != null &&
-      (historicalSameDay == null || historicalSameDay.record.startTime < historicalLastDay.record.startTime);
-    const workoutWeights = CollectionUtils.compatBy(
-      props.entry.sets.map((s) => ({ original: s.originalWeight, rounded: s.weight })),
-      (w) => w.rounded.value.toString()
-    );
-    const hasUnequalWeights = workoutWeights.some((w) => !Weight.eq(w.original, w.rounded));
-    workoutWeights.sort((a, b) => Weight.compare(a.rounded, b.rounded));
-    const warmupWeights = CollectionUtils.compatBy(
-      props.entry.warmupSets.map((s) => ({ original: s.originalWeight, rounded: s.weight })),
-      (w) => w.rounded.value.toString()
-    ).filter((w) =>
-      isCurrentProgress
-        ? Object.keys(Weight.calculatePlates(w.rounded, props.settings, exerciseUnit, props.entry.exercise).plates)
-            .length > 0
-        : true
-    );
-    const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
-    const historicalAmrapSets = isCurrentProgress
-      ? History.getHistoricalAmrapSets(props.history, props.entry, nextSet)
-      : undefined;
-    warmupWeights.sort((a, b) => Weight.compare(a.rounded, b.rounded));
-    const isEditModeRef = useRef(false);
-    isEditModeRef.current = props.progress.ui?.entryIndexEditMode === props.index;
-    const isSubscribed = Subscriptions.hasSubscription(props.subscription);
-
-    const [showNotes, setShowNotes] = useState(!!props.entry.notes);
-    const [showStateVariables, setShowStateVariables] = useState(false);
-
-    const programExercise = props.programExercise;
-    let description: string | undefined;
-    if (programExercise != null && props.program != null) {
-      description = ProgramExercise.getDescription(
-        programExercise,
-        props.program.exercises,
-        props.dayData,
-        props.settings
-      );
-    }
-    const volume = Reps.volume(props.entry.sets);
-    const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
-    const onerm = Exercise.onerm(exercise, props.settings);
-
-    return (
-      <div data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}>
-        <header className="flex">
-          <div style={{ width: "62px" }}>
-            <button
-              className="w-full px-2 nm-workout-exercise-image"
-              style={{ marginLeft: "-0.5rem" }}
-              onClick={() => props.onExerciseInfoClick?.(exercise)}
-            >
-              <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
-            </button>
-          </div>
-          <div className="flex-1 min-w-0 ml-auto">
-            <div className="flex items-center">
-              <div className="flex-1 text-lg font-bold">
-                <button
-                  className="text-left nm-workout-exercise-name"
-                  data-cy="exercise-name"
-                  onClick={() => props.onExerciseInfoClick?.(exercise)}
-                >
-                  <span className="pr-1">{Exercise.nameWithEquipment(exercise, props.settings)}</span>{" "}
-                  <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
-                </button>
-              </div>
-              {props.showEditButtons && (
-                <div>
-                  {!isCurrentProgress && (
-                    <button
-                      data-cy="exercise-state-vars-toggle"
-                      className="p-2 leading-none align-middle nm-workout-see-statvars"
-                      onClick={() => setShowStateVariables(!showStateVariables)}
-                    >
-                      <IconPreview size={18} className="inline-block" />
-                    </button>
-                  )}
-                  <button
-                    data-cy="exercise-swap"
-                    className="box-content p-2 align-middle nm-workout-edit-mode"
-                    style={{ width: "18px", height: "18px" }}
-                    onClick={() => {
-                      updateState(props.dispatch, [
-                        lb<IState>()
-                          .p("progress")
-                          .pi(props.progress.id)
-                          .pi("ui")
-                          .p("exerciseModal")
-                          .record({ exerciseType: props.entry.exercise, entryIndex: props.index }),
-                      ]);
-                    }}
-                  >
-                    <IconSwap size={18} color="#313A43" />
-                  </button>
-                  <button
-                    data-cy="exercise-edit-mode"
-                    className="box-content p-2 align-middle nm-workout-edit-mode"
-                    style={{ width: "18px", height: "18px" }}
-                    onClick={() => {
-                      if (!isCurrentProgress || !programExercise) {
-                        updateState(props.dispatch, [
-                          lb<IState>()
-                            .p("progress")
-                            .pi(props.progress.id)
-                            .pi("ui")
-                            .p("entryIndexEditMode")
-                            .record(props.index),
-                        ]);
-                      } else {
-                        updateState(props.dispatch, [
-                          lb<IState>()
-                            .p("progress")
-                            .pi(props.progress.id)
-                            .pi("ui")
-                            .p("editModal")
-                            .record({ programExercise: programExercise, entryIndex: props.index }),
-                        ]);
-                      }
-                    }}
-                  >
-                    <IconEditSquare />
-                  </button>
-                  <button
-                    data-cy="exercise-notes-toggle"
-                    className="p-2 leading-none align-middle nm-workout-exercise-notes"
-                    style={{ marginRight: "-0.5rem" }}
-                    onClick={() => setShowNotes(!showNotes)}
-                  >
-                    <IconNotebook size={18} />
-                  </button>
-                </div>
-              )}
-            </div>
-            <div data-cy="exercise-equipment" className="text-xs text-grayv2-600">
-              Equipment:{" "}
-              <LinkButton
-                name="exercise-equipment-picker"
-                data-cy="exercise-equipment-picker"
-                onClick={() => {
-                  updateState(props.dispatch, [
-                    lb<IState>()
-                      .p("progress")
-                      .pi(props.progress.id)
-                      .pi("ui")
-                      .p("equipmentModal")
-                      .record({ exerciseType: props.entry.exercise }),
-                  ]);
-                }}
+  return (
+    <View data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}>
+      <View className="flex-row">
+        <View style={{ width: 62 }}>
+          <TouchableOpacity
+            className="w-full px-2 nm-workout-exercise-image"
+            style={{ marginLeft: -8 }}
+            onPress={() => props.onExerciseInfoClick?.(exercise)}
+          >
+            <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
+          </TouchableOpacity>
+        </View>
+        <View className="flex-1 min-w-0 ml-auto">
+          <View className="flex-row items-center">
+            <View className="flex-1">
+              <TouchableOpacity
+                className="text-left nm-workout-exercise-name"
+                data-cy="exercise-name"
+                onPress={() => props.onExerciseInfoClick?.(exercise)}
               >
-                {currentEquipmentName || "None"}
-              </LinkButton>
-            </div>
-            {programExercise && ProgramExercise.doesUse1RM(programExercise) && (
-              <div data-cy="exercise-rm1" className="text-xs text-grayv2-600">
-                1RM:{" "}
-                <LinkButton
-                  name="exercise-rm1-picker"
-                  data-cy="exercise-rm1-picker"
-                  onClick={() => {
+                <LftText className="text-lg font-bold">
+                  <LftText className="pr-1">{Exercise.nameWithEquipment(exercise, props.settings)}</LftText>{" "}
+                  <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
+                </LftText>
+              </TouchableOpacity>
+            </View>
+            {props.showEditButtons && (
+              <View className="flex-row">
+                {!isCurrentProgress && (
+                  <TouchableOpacity
+                    data-cy="exercise-state-vars-toggle"
+                    className="p-2 leading-none align-middle nm-workout-see-statvars"
+                    onPress={() => setShowStateVariables(!showStateVariables)}
+                  >
+                    <IconPreview size={18} className="inline-block" />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  data-cy="exercise-swap"
+                  className="box-content p-2 align-middle nm-workout-edit-mode"
+                  style={{ width: 18, height: 18 }}
+                  onPress={() => {
                     updateState(props.dispatch, [
                       lb<IState>()
                         .p("progress")
                         .pi(props.progress.id)
                         .pi("ui")
-                        .p("rm1Modal")
-                        .record({ exerciseType: props.entry.exercise }),
+                        .p("exerciseModal")
+                        .record({ exerciseType: props.entry.exercise, entryIndex: props.index }),
                     ]);
                   }}
                 >
-                  {Weight.print(onerm)}
-                </LinkButton>
-              </div>
+                  <IconSwap size={18} color="#313A43" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  data-cy="exercise-edit-mode"
+                  className="box-content p-2 align-middle nm-workout-edit-mode"
+                  style={{ width: 18, height: 18 }}
+                  onPress={() => {
+                    if (!isCurrentProgress || !programExercise) {
+                      updateState(props.dispatch, [
+                        lb<IState>()
+                          .p("progress")
+                          .pi(props.progress.id)
+                          .pi("ui")
+                          .p("entryIndexEditMode")
+                          .record(props.index),
+                      ]);
+                    } else {
+                      updateState(props.dispatch, [
+                        lb<IState>()
+                          .p("progress")
+                          .pi(props.progress.id)
+                          .pi("ui")
+                          .p("editModal")
+                          .record({ programExercise: programExercise, entryIndex: props.index }),
+                      ]);
+                    }
+                  }}
+                >
+                  <IconEditSquare />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  data-cy="exercise-notes-toggle"
+                  className="p-2 leading-none align-middle nm-workout-exercise-notes"
+                  style={{ marginRight: -8 }}
+                  onPress={() => setShowNotes(!showNotes)}
+                >
+                  <IconNotebook size={18} />
+                </TouchableOpacity>
+              </View>
             )}
-            {description && (
-              <div className="mt-2">
-                <Markdown value={description} />
-              </div>
-            )}
-            {showStateVariables && <WorkoutStateVariables settings={props.settings} entry={props.entry} />}
-            {!props.hidePlatesCalculator ? (
-              <div
-                className={`p-2 mt-2 ${getBgColor200(props.entry)} rounded-2xl`}
-                style={{
-                  backgroundImage: "url(/images/icon-barbell.svg)",
-                  backgroundPosition: "15px 13px",
-                  backgroundRepeat: "no-repeat",
+          </View>
+          <LftText data-cy="exercise-equipment" className="text-xs text-grayv2-600">
+            Equipment:{" "}
+            <LinkButton
+              name="exercise-equipment-picker"
+              data-cy="exercise-equipment-picker"
+              onPress={() => {
+                updateState(props.dispatch, [
+                  lb<IState>()
+                    .p("progress")
+                    .pi(props.progress.id)
+                    .pi("ui")
+                    .p("equipmentModal")
+                    .record({ exerciseType: props.entry.exercise }),
+                ]);
+              }}
+            >
+              {currentEquipmentName || "None"}
+            </LinkButton>
+          </LftText>
+          {programExercise && ProgramExercise.doesUse1RM(programExercise) && (
+            <LftText data-cy="exercise-rm1" className="text-xs text-grayv2-600">
+              1RM:{" "}
+              <LinkButton
+                name="exercise-rm1-picker"
+                data-cy="exercise-rm1-picker"
+                onPress={() => {
+                  updateState(props.dispatch, [
+                    lb<IState>()
+                      .p("progress")
+                      .pi(props.progress.id)
+                      .pi("ui")
+                      .p("rm1Modal")
+                      .record({ exerciseType: props.entry.exercise }),
+                  ]);
                 }}
               >
-                <div className="py-1 pl-8 text-xs text-grayv2-main">
-                  {isSubscribed ? (
-                    "Plates for each bar side"
-                  ) : (
-                    <LinkButton
-                      name="see-plates-for-each-side"
-                      onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}
-                    >
-                      See plates for each side
-                    </LinkButton>
-                  )}
-                </div>
+                {Weight.print(onerm)}
+              </LinkButton>
+            </LftText>
+          )}
+          {description && (
+            <View className="mt-2">
+              <Markdown value={description} />
+            </View>
+          )}
+          {showStateVariables && <WorkoutStateVariables settings={props.settings} entry={props.entry} />}
+          {!props.hidePlatesCalculator ? (
+            <View className={`p-2 mt-2 ${getBgColor200(props.entry)} rounded-2xl`}>
+              <Image source={{ uri: "/images/icon-barbell.svg" }} className="w-6 h-6" />
+              <LftText className="py-1 pl-1 text-xs text-grayv2-main">
                 {isSubscribed ? (
-                  <div className="relative pr-8">
-                    {warmupWeights.map((w) => {
-                      const isCurrent = nextSet != null && Weight.eq(nextSet.weight, w.rounded);
-                      const className = isCurrent ? "font-bold" : "";
-                      return (
-                        <div className={`${className} flex items-start`}>
-                          <span
-                            style={{ minWidth: "16px" }}
-                            className="inline-block mx-2 text-center align-text-bottom"
-                          >
-                            {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
-                          </span>
-                          <span className="text-left whitespace-no-wrap text-grayv2-500">
-                            {n(w.rounded.value)} {w.rounded.unit}
-                          </span>
-                          <WeightView weight={w.rounded} exercise={props.entry.exercise} settings={props.settings} />
-                        </div>
-                      );
-                    })}
-                    {workoutWeights.map((w, i) => {
-                      return (
-                        <WeightLine
-                          key={UidFactory.generateUid(8)}
-                          weight={w}
-                          entry={props.entry}
-                          settings={props.settings}
-                          dispatch={props.dispatch}
-                          nextSet={nextSet}
-                          programExercise={props.programExercise}
-                        />
-                      );
-                    })}
-                  </div>
+                  "Plates for each bar side"
                 ) : (
-                  <div className="pl-8">
-                    <WeightLinesUnsubscribed weights={workoutWeights} />
-                  </div>
+                  <LinkButton
+                    name="see-plates-for-each-side"
+                    onPress={() => props.dispatch(Thunk.pushScreen("subscription"))}
+                  >
+                    See plates for each side
+                  </LinkButton>
                 )}
-                {props.showHelp && hasUnequalWeights && (
-                  <HelpEquipment
-                    helps={props.helps}
-                    entry={props.entry}
-                    progress={props.progress}
-                    dispatch={props.dispatch}
-                  />
-                )}
-              </div>
-            ) : (
-              <div className="mt-2">
-                <WeightLinesUnsubscribed weights={workoutWeights} />
+              </LftText>
+              {isSubscribed ? (
+                <View className="relative pr-8">
+                  {warmupWeights.map((w) => {
+                    const isCurrent = nextSet != null && Weight.eq(nextSet.weight, w.rounded);
+                    const className = isCurrent ? "font-bold" : "";
+                    return (
+                      <View className={`${className} flex-row items-start`}>
+                        <LftText style={{ minWidth: 16 }} className="inline-block mx-2 text-center align-text-bottom">
+                          {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
+                        </LftText>
+                        <LftText className="text-left whitespace-no-wrap text-grayv2-500">
+                          {n(w.rounded.value)} {w.rounded.unit}
+                        </LftText>
+                        <WeightView weight={w.rounded} exercise={props.entry.exercise} settings={props.settings} />
+                      </View>
+                    );
+                  })}
+                  {workoutWeights.map((w, i) => {
+                    return (
+                      <WeightLine
+                        key={UidFactory.generateUid(8)}
+                        weight={w}
+                        entry={props.entry}
+                        settings={props.settings}
+                        dispatch={props.dispatch}
+                        nextSet={nextSet}
+                        programExercise={props.programExercise}
+                      />
+                    );
+                  })}
+                </View>
+              ) : (
+                <View className="pl-8">
+                  <WeightLinesUnsubscribed weights={workoutWeights} />
+                </View>
+              )}
+              {props.showHelp && hasUnequalWeights && (
                 <HelpEquipment
                   helps={props.helps}
                   entry={props.entry}
                   progress={props.progress}
                   dispatch={props.dispatch}
                 />
-              </div>
-            )}
-            {(!isSubscribed || props.hidePlatesCalculator) && (
-              <div className="h-4">
-                {nextSet && <NextSet nextSet={nextSet} settings={props.settings} exerciseType={props.entry.exercise} />}
-              </div>
-            )}
-          </div>
-        </header>
-        <section className="flex flex-wrap py-2 pt-4">
-          <ExerciseSets
-            isEditMode={isEditModeRef.current}
-            dayData={props.dayData}
-            warmupSets={props.entry.warmupSets}
-            index={props.index}
-            progress={props.progress}
-            programExercise={props.programExercise}
-            allProgramExercises={props.program?.exercises}
-            showHelp={props.showHelp}
-            settings={props.settings}
-            entry={props.entry}
-            onStartSetChanging={props.onStartSetChanging}
-            onChangeReps={props.onChangeReps}
-            dispatch={props.dispatch}
-          />
-        </section>
-        {!isCurrentProgress && volume.value > 0 && (
-          <div className="mb-1 text-xs text-left" style={{ marginTop: "-1rem" }}>
-            Volume: <strong>{Weight.print(Weight.roundTo005(volume))}</strong>
-          </div>
-        )}
-        {isEditModeRef.current && (
-          <div className="text-center">
-            <Button
-              name="delete-workout-exercise"
-              data-cy="delete-edit-exercise"
-              kind="red"
-              className="mr-1"
-              onClick={() => {
-                if (confirm("Are you sure? It only deletes it from this workout, not from a program.")) {
-                  const lbp = lb<IState>().p("progress").pi(props.progress.id);
-                  updateState(props.dispatch, [
-                    lbp
-                      .p("deletedProgramExercises")
-                      .recordModify((dpe) => (programExercise ? { ...dpe, [programExercise.id]: true } : dpe)),
-                    lbp.pi("ui").p("entryIndexEditMode").record(undefined),
-                    lbp.p("entries").recordModify((entries) => {
-                      return CollectionUtils.removeAt(entries, props.index);
-                    }),
-                  ]);
-                }
-              }}
-            >
-              Delete
-            </Button>
-            <Button
-              name="finish-edit-workout-exercise"
-              data-cy="done-edit-exercise"
-              kind="orange"
-              className="ml-1"
-              onClick={() =>
+              )}
+            </View>
+          ) : (
+            <View className="mt-2">
+              <WeightLinesUnsubscribed weights={workoutWeights} />
+              <HelpEquipment
+                helps={props.helps}
+                entry={props.entry}
+                progress={props.progress}
+                dispatch={props.dispatch}
+              />
+            </View>
+          )}
+          {(!isSubscribed || props.hidePlatesCalculator) && (
+            <View className="h-4">
+              {nextSet && <NextSet nextSet={nextSet} settings={props.settings} exerciseType={props.entry.exercise} />}
+            </View>
+          )}
+        </View>
+      </View>
+      <View className="flex-row flex-wrap py-2 pt-4">
+        <ExerciseSets
+          isEditMode={isEditModeRef.current}
+          dayData={props.dayData}
+          warmupSets={props.entry.warmupSets}
+          index={props.index}
+          progress={props.progress}
+          programExercise={props.programExercise}
+          allProgramExercises={props.program?.exercises}
+          showHelp={props.showHelp}
+          settings={props.settings}
+          entry={props.entry}
+          onStartSetChanging={props.onStartSetChanging}
+          onChangeReps={props.onChangeReps}
+          dispatch={props.dispatch}
+        />
+      </View>
+      {!isCurrentProgress && volume.value > 0 && (
+        <LftText className="mb-1 text-xs text-left" style={{ marginTop: -16 }}>
+          Volume: <LftText className="font-bold">{Weight.print(Weight.roundTo005(volume))}</LftText>
+        </LftText>
+      )}
+      {isEditModeRef.current && (
+        <View className="text-center">
+          <Button
+            name="delete-workout-exercise"
+            data-cy="delete-edit-exercise"
+            kind="red"
+            className="mr-1"
+            onClick={() => {
+              if (confirm("Are you sure? It only deletes it from this workout, not from a program.")) {
+                const lbp = lb<IState>().p("progress").pi(props.progress.id);
                 updateState(props.dispatch, [
-                  lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("entryIndexEditMode").record(undefined),
-                ])
+                  lbp
+                    .p("deletedProgramExercises")
+                    .recordModify((dpe) => (programExercise ? { ...dpe, [programExercise.id]: true } : dpe)),
+                  lbp.pi("ui").p("entryIndexEditMode").record(undefined),
+                  lbp.p("entries").recordModify((entries) => {
+                    return CollectionUtils.removeAt(entries, props.index);
+                  }),
+                ]);
               }
-            >
-              Finish Editing
-            </Button>
-          </div>
-        )}
-        {showLastDay && historicalLastDay && (
-          <HistoricalLastDay historyRecordAndEntry={historicalLastDay} settings={props.settings} />
-        )}
-        {historicalSameDay && <HistoricalSameDay historyRecordAndEntry={historicalSameDay} settings={props.settings} />}
-        {historicalAmrapSets && <HistoricalAmrapSets historicalAmrapSets={historicalAmrapSets} />}
-        {showNotes && (
-          <div className="mt-2">
-            <GroupHeader
-              name="Notes"
-              help={
-                <div>
+            }}
+          >
+            Delete
+          </Button>
+          <Button
+            name="finish-edit-workout-exercise"
+            data-cy="done-edit-exercise"
+            kind="orange"
+            className="ml-1"
+            onClick={() =>
+              updateState(props.dispatch, [
+                lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("entryIndexEditMode").record(undefined),
+              ])
+            }
+          >
+            Finish Editing
+          </Button>
+        </View>
+      )}
+      {showLastDay && historicalLastDay && (
+        <HistoricalLastDay historyRecordAndEntry={historicalLastDay} settings={props.settings} />
+      )}
+      {historicalSameDay && <HistoricalSameDay historyRecordAndEntry={historicalSameDay} settings={props.settings} />}
+      {historicalAmrapSets && <HistoricalAmrapSets historicalAmrapSets={historicalAmrapSets} />}
+      {showNotes && (
+        <View className="mt-2">
+          <GroupHeader
+            name="Notes"
+            help={
+              <View>
+                <LftText>
                   Notes for the exercise. You can also add notes for the whole workout at the bottom of this screen.
-                </div>
-              }
-            />
-            <textarea
-              data-cy="exercise-notes-input"
-              name="exercise-notes"
-              placeholder="The exercise went very well..."
-              maxLength={4095}
-              value={props.entry.notes}
-              onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
-                const target = e.target;
-                if (target instanceof HTMLTextAreaElement) {
-                  Progress.editExerciseNotes(props.dispatch, props.progress.id, props.index, target.value);
-                }
-              }}
-              className={`${inputClassName} h-32`}
-            />
-          </div>
-        )}
-      </div>
-    );
-  }
-);
+                </LftText>
+              </View>
+            }
+          />
+          <TextInput
+            data-cy="exercise-notes-input"
+            placeholder="The exercise went very well..."
+            maxLength={4095}
+            value={props.entry.notes}
+            onChangeText={(text) => {
+              Progress.editExerciseNotes(props.dispatch, props.progress.id, props.index, text);
+            }}
+            className={`${inputClassName} h-32`}
+          />
+        </View>
+      )}
+    </View>
+  );
+});
 
 interface IHelpEquipmentProps {
   helps: string[];
@@ -543,24 +531,26 @@ interface IHelpEquipmentProps {
 function HelpEquipment(props: IHelpEquipmentProps): JSX.Element {
   return (
     <Nux className="mt-2" id="Rounded Weights" helps={props.helps} dispatch={props.dispatch}>
-      <span className="line-through">Crossed out</span> weight means it's <strong>rounded</strong> to fit your bar and
-      plates. Adjust your{" "}
-      <LinkButton
-        name="nux-rounding-equipment-settings"
-        onClick={() => {
-          updateState(props.dispatch, [
-            lb<IState>()
-              .p("progress")
-              .pi(props.progress.id)
-              .pi("ui")
-              .p("equipmentModal")
-              .record({ exerciseType: props.entry.exercise }),
-          ]);
-        }}
-      >
-        Equipment settings there
-      </LinkButton>
-      .
+      <LftText>
+        <LftText className="line-through">Crossed out</LftText> weight means it's{" "}
+        <LftText className="font-bold">rounded</LftText> to fit your bar and plates. Adjust your{" "}
+        <LinkButton
+          name="nux-rounding-equipment-settings"
+          onPress={() => {
+            updateState(props.dispatch, [
+              lb<IState>()
+                .p("progress")
+                .pi(props.progress.id)
+                .pi("ui")
+                .p("equipmentModal")
+                .record({ exerciseType: props.entry.exercise }),
+            ]);
+          }}
+        >
+          Equipment settings there
+        </LinkButton>
+        .
+      </LftText>
     </Nux>
   );
 }
@@ -568,43 +558,43 @@ function HelpEquipment(props: IHelpEquipmentProps): JSX.Element {
 function NextSet(props: { nextSet: ISet; settings: ISettings; exerciseType?: IExerciseType }): JSX.Element {
   const nextSet = props.nextSet;
   return (
-    <div className="pt-2 text-xs text-grayv2-main" data-cy="next-set">
+    <LftText className="pt-2 text-xs text-grayv2-main" data-cy="next-set">
       Next Set:{" "}
-      <strong>
+      <LftText className="font-bold">
         {nextSet.isAmrap ? "at least " : ""}
         {nextSet.minReps != null ? `${nextSet.minReps}-` : ""}
         {nextSet.reps} reps x {Weight.print(nextSet.weight)}
         {nextSet.rpe != null ? ` @${nextSet.rpe} RPE` : ""}
-      </strong>
-    </div>
+      </LftText>
+    </LftText>
   );
 }
 
 function HistoricalSameDay(props: { historyRecordAndEntry: IHistoryRecordAndEntry; settings: ISettings }): JSX.Element {
   const { record, entry } = props.historyRecordAndEntry;
   return (
-    <div className="text-xs italic">
-      <div>
-        <div>
-          Same day last time, <strong>{DateUtils.format(record.startTime)}</strong>:
-        </div>
+    <LftText className="text-xs italic">
+      <View>
+        <LftText>
+          Same day last time, <LftText className="font-bold">{DateUtils.format(record.startTime)}</LftText>:
+        </LftText>
         <HistoryRecordSetsView sets={entry.sets} isNext={false} settings={props.settings} />
-      </div>
-    </div>
+      </View>
+    </LftText>
   );
 }
 
 function HistoricalLastDay(props: { historyRecordAndEntry: IHistoryRecordAndEntry; settings: ISettings }): JSX.Element {
   const { record, entry } = props.historyRecordAndEntry;
   return (
-    <div className="text-xs italic">
-      <div>
-        <div>
-          Last time, <strong>{DateUtils.format(record.startTime)}</strong>:
-        </div>
+    <LftText className="text-xs italic">
+      <View>
+        <LftText>
+          Last time, <LftText className="font-bold">{DateUtils.format(record.startTime)}</LftText>:
+        </LftText>
         <HistoryRecordSetsView sets={entry.sets} isNext={false} settings={props.settings} />
-      </div>
-    </div>
+      </View>
+    </LftText>
   );
 }
 
@@ -613,22 +603,26 @@ function HistoricalAmrapSets(props: {
 }): JSX.Element {
   const { max, last } = props.historicalAmrapSets;
   return (
-    <div className="mt-2 text-xs italic">
-      <div>
-        <div>
-          <strong>AMRAP Set</strong>:
-        </div>
-        Last time you did <strong>{Weight.display(last[0].weight)}</strong>/
-        <strong>{last[0].completedReps} reps</strong> on <strong>{DateUtils.format(last[1])}</strong>.
-      </div>
+    <LftText className="mt-2 text-xs italic">
+      <View>
+        <LftText>
+          <LftText className="font-bold">AMRAP Set</LftText>:
+        </LftText>
+        <LftText>
+          Last time you did <LftText className="font-bold">{Weight.display(last[0].weight)}</LftText>/
+          <LftText className="font-bold">{last[0].completedReps} reps</LftText> on{" "}
+          <LftText className="font-bold">{DateUtils.format(last[1])}</LftText>.
+        </LftText>
+      </View>
       {max[0].completedReps === last[0].completedReps ? (
-        <div>It was historical max too.</div>
+        <LftText>It was historical max too.</LftText>
       ) : (
-        <div>
-          Historical max was <strong>{max[0].completedReps} reps</strong> on {DateUtils.format(max[1])}.
-        </div>
+        <LftText>
+          Historical max was <LftText className="font-bold">{max[0].completedReps} reps</LftText> on{" "}
+          {DateUtils.format(max[1])}.
+        </LftText>
       )}
-    </div>
+    </LftText>
   );
 }
 
@@ -643,12 +637,12 @@ const WeightView = memo(
     const className = Weight.eq(weight, props.weight) ? "text-grayv2-600" : "text-redv2-600";
     return (
       <>
-        <span className="px-1">-</span>
-        <span className="break-all">
-          <span className={className} data-cy="plates-list">
+        <LftText className="px-1">-</LftText>
+        <LftText className="break-all">
+          <LftText className={className} data-cy="plates-list">
             {plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.exercise) : "None"}
-          </span>
-        </span>
+          </LftText>
+        </LftText>
       </>
     );
   }
@@ -669,27 +663,23 @@ function WeightLine(props: IWeightLineProps): JSX.Element {
   const isEqual = Weight.eq(w.original, w.rounded);
   const className = isCurrent ? "font-bold" : "";
   return (
-    <div className={!isEqual ? "py-1" : ""}>
+    <View className={!isEqual ? "py-1" : ""}>
       {!isEqual && (
-        <div className="pl-8">
-          <span className="text-xs line-through text-grayv2-main">
+        <View className="pl-8">
+          <LftText className="text-xs line-through text-grayv2-main">
             {Number(w.original.value?.toFixed(2))} {w.original.unit}
-          </span>
-          <div
-            className="ml-4 bg-grayv2-600"
-            style={{ marginTop: "-2px", marginBottom: "-2px", width: "1px", height: "4px" }}
-          />
-        </div>
+          </LftText>
+          <View className="ml-4 bg-grayv2-600" style={{ marginTop: -2, marginBottom: -2, width: 1, height: 4 }} />
+        </View>
       )}
-      <div className={`${className} flex items-start`}>
-        <span style={{ minWidth: "16px" }} className="inline-block mx-2 text-center align-text-bottom">
+      <View className={`${className} flex-row items-start`}>
+        <LftText style={{ minWidth: 16 }} className="inline-block mx-2 text-center align-text-bottom">
           {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
-        </span>
-        <button
+        </LftText>
+        <TouchableOpacity
           data-cy="change-weight"
-          className="text-left underline whitespace-no-wrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal nm-workout-open-change-weight-modal"
-          style={{ fontWeight: "inherit" }}
-          onClick={() => {
+          className="text-left whitespace-no-wrap cursor-pointer ls-progress-open-change-weight-modal nm-workout-open-change-weight-modal"
+          onPress={() => {
             props.dispatch({
               type: "ChangeWeightAction",
               weight: w.rounded,
@@ -698,10 +688,12 @@ function WeightLine(props: IWeightLineProps): JSX.Element {
             });
           }}
         >
-          {n(w.rounded.value)} {w.rounded.unit}
-        </button>
+          <LftText className="underline text-bluev2">
+            {n(w.rounded.value)} {w.rounded.unit}
+          </LftText>
+        </TouchableOpacity>
         <WeightView weight={w.rounded} exercise={props.entry.exercise} settings={props.settings} />
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }

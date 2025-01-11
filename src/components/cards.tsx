@@ -1,4 +1,3 @@
-import React, { JSX } from "react";
 import { ExerciseView } from "./exercise";
 import { IDispatch } from "../ducks/types";
 import { Progress } from "../models/progress";
@@ -27,6 +26,8 @@ import { lb } from "lens-shmens";
 import { EditProgram } from "../models/editProgram";
 import { Exercise } from "../models/exercise";
 import { Markdown } from "./markdown";
+import { View, TextInput, TouchableOpacity } from "react-native";
+import { LftText } from "./lftText";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -54,20 +55,20 @@ interface ICardsViewProps {
 export const CardsView = memo((props: ICardsViewProps): JSX.Element => {
   const { program } = props;
   return (
-    <section className="px-4 pb-4">
-      <div className="flex pb-2">
-        <div className="flex items-center flex-1">
-          <div className="flex-1 mr-2 align-middle">
-            <div className="text-lg font-semibold">{props.progress?.programName}</div>
-            <div data-cy="day-name" className="text-sm text-grayv2-main">
+    <View className="px-4 pb-4">
+      <View className="flex flex-row pb-2">
+        <View className="flex flex-row items-center flex-1">
+          <View className="flex-1 mr-2 align-middle">
+            <LftText className="text-lg font-semibold">{props.progress?.programName}</LftText>
+            <LftText data-cy="day-name" className="text-sm text-grayv2-main">
               {props.progress?.dayName}
-            </div>
-          </div>
-          <div className="mr-2 align-middle">
+            </LftText>
+          </View>
+          <View className="flex-row mr-2 align-middle">
             {program && (
-              <button
+              <TouchableOpacity
                 className="px-2 ml-1 align-middle nm-workout-edit-day"
-                onClick={() => {
+                onPress={() => {
                   if (program.planner) {
                     const dayData = Program.getDayData(program, props.progress.day, props.settings);
                     const plannerState = EditProgram.initPlannerState(program.id, program.planner, dayData);
@@ -80,11 +81,11 @@ export const CardsView = memo((props: ICardsViewProps): JSX.Element => {
                 }}
               >
                 <IconEditSquare />
-              </button>
+              </TouchableOpacity>
             )}
             {program && (
-              <button
-                onClick={() => {
+              <TouchableOpacity
+                onPress={() => {
                   const dayIndex = Program.getProgramDayIndex(program, props.progress.day);
                   updateState(props.dispatch, [
                     lb<IState>().p("muscleView").record({ type: "day", programId: program.id, dayIndex }),
@@ -94,12 +95,12 @@ export const CardsView = memo((props: ICardsViewProps): JSX.Element => {
                 className="px-2 align-middle nm-workout-day-muscles"
               >
                 <IconMuscles2 />
-              </button>
+              </TouchableOpacity>
             )}
-          </div>
-        </div>
+          </View>
+        </View>
         {!Progress.isCurrent(props.progress) && (
-          <div className="pt-1 pl-2">
+          <View className="pt-1 pl-2">
             <Button
               name="finish-day-share"
               className="ls-finish-day-share"
@@ -114,9 +115,9 @@ export const CardsView = memo((props: ICardsViewProps): JSX.Element => {
             >
               Share
             </Button>
-          </div>
+          </View>
         )}
-      </div>
+      </View>
       {props.programDay?.description && <Markdown value={props.programDay.description} />}
       {props.progress.entries.map((entry, index) => {
         let programExercise: IProgramExercise | undefined;
@@ -153,44 +154,42 @@ export const CardsView = memo((props: ICardsViewProps): JSX.Element => {
           />
         );
       })}
-      <div style={{ marginTop: "-0.25rem" }} className="text-xs">
+      <View style={{ marginTop: -4 }} className="text-xs">
         <LinkButton
           name="add-exercise-to-workout"
           data-cy="add-exercise-button"
-          onClick={() => {
+          onPress={() => {
             Progress.showAddExerciseModal(props.dispatch, props.progress.id);
           }}
         >
           Add exercise (only to this workout)
         </LinkButton>
-      </div>
-      <div>
+      </View>
+      <View>
         <GroupHeader
           name="Notes"
           help={
-            <div>
-              Notes for the workout. You can also add notes per specific exercise by tapping{" "}
-              <IconNotebook className="inline-block" /> for that exercise.
-            </div>
+            <View>
+              <LftText>
+                Notes for the workout. You can also add notes per specific exercise by tapping{" "}
+                <IconNotebook className="inline-block" /> for that exercise.
+              </LftText>
+            </View>
           }
         />
-        <textarea
+        <TextInput
           data-cy="workout-notes-input"
           id="workout-notes"
           maxLength={4095}
-          name="workout-notes"
           placeholder="The workout went very well..."
           value={props.progress.notes}
-          onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
-            const target = e.target;
-            if (target instanceof HTMLTextAreaElement) {
-              Progress.editNotes(props.dispatch, props.progress.id, target.value);
-            }
+          onChangeText={(v: string) => {
+            Progress.editNotes(props.dispatch, props.progress.id, v);
           }}
           className={`${inputClassName} h-32`}
         />
-      </div>
-      <div className="pt-1 pb-3 text-center">
+      </View>
+      <View className="pt-1 pb-3 text-center">
         <Button
           name={Progress.isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
           kind="orange"
@@ -207,7 +206,7 @@ export const CardsView = memo((props: ICardsViewProps): JSX.Element => {
         >
           {Progress.isCurrent(props.progress) ? "Finish the workout" : "Save"}
         </Button>
-      </div>
-    </section>
+      </View>
+    </View>
   );
 });

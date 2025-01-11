@@ -1,7 +1,7 @@
 import React, { JSX } from "react";
 import { useRef } from "react";
 import { Button } from "./button";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { GroupHeader } from "./groupHeader";
 import { Input } from "./input";
 
@@ -13,7 +13,7 @@ interface IProps {
 export function ModalNewEquipment(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal
+    <LftModal
       isHidden={props.isHidden}
       autofocusInputRef={textInput}
       shouldShowClose={true}
@@ -55,6 +55,6 @@ export function ModalNewEquipment(props: IProps): JSX.Element {
           </Button>
         </div>
       </form>
-    </Modal>
+    </LftModal>
   );
 }

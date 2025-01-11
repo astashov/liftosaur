@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { useRef, useState } from "react";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { Exercise, IExercise } from "../models/exercise";
 import { StringUtils } from "../utils/string";
 import { inputClassName } from "./input";
@@ -24,7 +24,7 @@ export function ModalExercisesByMuscle(props: IModalSubstituteProps): JSX.Elemen
   }
 
   return (
-    <Modal autofocusInputRef={textInput} shouldShowClose={true} onClose={() => props.onChange()}>
+    <LftModal autofocusInputRef={textInput} shouldShowClose={true} onClose={() => props.onChange()}>
       <h2 className="text-lg font-bold">Select exercises for {StringUtils.capitalize(props.screenMuscle)}</h2>
       <p className="py-2">It adds an exercise to the last day of the current week</p>
       <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
@@ -54,7 +54,7 @@ export function ModalExercisesByMuscle(props: IModalSubstituteProps): JSX.Elemen
           );
         })}
       </form>
-    </Modal>
+    </LftModal>
   );
 }
 

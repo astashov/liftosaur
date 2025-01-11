@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { Button } from "./button";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { useRef } from "react";
 import { Input } from "./input";
 import { IDispatch } from "../ducks/types";
@@ -15,7 +15,7 @@ interface IProps {
 export function ModalCoupon(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput} onClose={props.onClose} shouldShowClose={true}>
+    <LftModal isHidden={props.isHidden} autofocusInputRef={textInput} onClose={props.onClose} shouldShowClose={true}>
       <h3 className="pt-4 pb-2 text-lg font-bold">Redeem Code</h3>
       <div className="mb-2 text-center">
         <Input maxLength={8} labelSize="xs" label="Code" ref={textInput} />
@@ -34,6 +34,6 @@ export function ModalCoupon(props: IProps): JSX.Element {
           Redeem
         </Button>
       </div>
-    </Modal>
+    </LftModal>
   );
 }

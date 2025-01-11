@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { LftText } from "../lftText"; // Adjust the import path as necessary
+import { LftText } from "../lftText";
 
 export function HelpProgramHistory(): JSX.Element {
   return (

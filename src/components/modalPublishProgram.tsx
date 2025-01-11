@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { Button } from "./button";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { Input } from "./input";
 import { useRef } from "react";
@@ -24,7 +24,7 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
   const urlRef = useRef<HTMLInputElement>(null);
   const authorRef = useRef<HTMLInputElement>(null);
   return (
-    <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth={true}>
+    <LftModal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth={true}>
       <form>
         <GroupHeader name="Publish Program" topPadding={false} />
         <div className="mb-2">
@@ -74,6 +74,6 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
           </Button>
         </div>
       </form>
-    </Modal>
+    </LftModal>
   );
 }

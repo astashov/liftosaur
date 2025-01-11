@@ -14,7 +14,7 @@ import { Button } from "../button";
 import { IconMusclesD } from "../icons/iconMusclesD";
 import { IconMusclesW } from "../icons/iconMusclesW";
 import { IconGraphsE } from "../icons/iconGraphsE";
-import { Modal } from "../modal";
+import { LftModal } from "../modal";
 import { PlannerWeekStats } from "../../pages/planner/components/plannerWeekStats";
 import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats";
 import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
@@ -297,7 +297,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
         </div>
       </div>
       {props.ui.showExerciseStats && props.ui.focusedExercise && (
-        <Modal
+        <LftModal
           shouldShowClose={true}
           isFullWidth={true}
           onClose={() => props.plannerDispatch(props.lbUi.p("showExerciseStats").record(false))}
@@ -310,10 +310,10 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             dayIndex={props.ui.focusedExercise.dayIndex}
             exerciseLine={props.ui.focusedExercise.exerciseLine}
           />
-        </Modal>
+        </LftModal>
       )}
       {props.ui.showDayStats && props.ui.focusedExercise && (
-        <Modal
+        <LftModal
           shouldShowClose={true}
           isFullWidth={true}
           onClose={() => props.plannerDispatch(props.lbUi.p("showDayStats").record(false))}
@@ -324,10 +324,10 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             settings={props.settings}
             evaluatedDay={evaluatedWeeks[props.ui.weekIndex][props.ui.focusedExercise.dayIndex]}
           />
-        </Modal>
+        </LftModal>
       )}
       {props.ui.showWeekStats && (
-        <Modal
+        <LftModal
           shouldShowClose={true}
           isFullWidth={true}
           onClose={() => props.plannerDispatch(props.lbUi.p("showWeekStats").record(false))}
@@ -341,7 +341,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
           ) : (
             <div className="font-bold">Week Stats</div>
           )}
-        </Modal>
+        </LftModal>
       )}
     </div>
   );

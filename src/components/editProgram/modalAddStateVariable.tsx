@@ -1,5 +1,5 @@
 import React, { JSX } from "react";
-import { Modal } from "../modal";
+import { LftModal } from "../modal";
 import { Button } from "../button";
 import { useRef, useState } from "react";
 import { GroupHeader } from "../groupHeader";
@@ -26,7 +26,7 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
   }
 
   return (
-    <Modal
+    <LftModal
       isFullWidth={true}
       isHidden={props.isHidden}
       autofocusInputRef={textInput}
@@ -113,6 +113,6 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
           </Button>
         </div>
       </form>
-    </Modal>
+    </LftModal>
   );
 }

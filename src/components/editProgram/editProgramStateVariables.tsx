@@ -8,7 +8,7 @@ import { GroupHeader } from "../groupHeader";
 import { IconCalculator } from "../icons/iconCalculator";
 import { LinkButton } from "../linkButton";
 import { MenuItemEditable } from "../menuItemEditable";
-import { Modal } from "../modal";
+import { LftModal } from "../modal";
 import { RepMaxCalculator } from "../repMaxCalculator";
 import { EditProgramConvertStateVariables } from "./editProgramConvertStateVariables";
 
@@ -91,7 +91,7 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
         </div>
       )}
       {showCalculator && (
-        <Modal shouldShowClose={true} onClose={() => setShowCalculator(undefined)}>
+        <LftModal shouldShowClose={true} onClose={() => setShowCalculator(undefined)}>
           <RepMaxCalculator
             backLabel="Close"
             unit={showCalculator[1]}
@@ -102,7 +102,7 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
               setShowCalculator(undefined);
             }}
           />
-        </Modal>
+        </LftModal>
       )}
     </section>
   );

@@ -2,6 +2,8 @@ import React, { JSX } from "react";
 import { StringUtils } from "../utils/string";
 import { useState } from "react";
 import { Scroller } from "./scroller";
+import { View, TouchableOpacity } from "react-native";
+import { LftText } from "./lftText";
 
 interface IProps {
   tabs: {
@@ -19,43 +21,45 @@ export function ScrollableTabs(props: IProps): JSX.Element {
   const [selectedIndex, setSelectedIndex] = useState<number>(props.defaultIndex || 0);
 
   return (
-    <div className="relative">
+    <View className="relative">
       {tabs.length > 1 && (
-        <div
+        <View
           className="sticky left-0 z-10 bg-white"
-          style={{ top: props.offsetY || "0", marginLeft: "-1rem", marginRight: "-1rem" }}
+          style={{ top: props.offsetY ? parseFloat(props.offsetY) * 16 : 0, marginLeft: -16, marginRight: -16 }}
         >
           <Scroller arrowYOffsetPct={0}>
-            <div className="flex w-full pt-6 pb-2">
+            <View className="flex-row w-full pt-24 pb-8">
               {tabs.map(({ label, isInvalid }, index) => {
                 const nameClass = `tab-${StringUtils.dashcase(label.toLowerCase())}`;
 
                 return (
-                  <div className="flex-1 text-center whitespace-no-wrap border-b border-grayv2-50">
-                    <button
+                  <View className="flex-1 text-center whitespace-no-wrap border-b border-grayv2-50" key={index}>
+                    <TouchableOpacity
                       className={`ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
                         selectedIndex === index ? "text-orangev2 border-b border-orangev2" : ""
                       } ${isInvalid ? " text-redv2-main" : ""} nm-tab-${nameClass}`}
-                      style={selectedIndex === index ? { borderBottomWidth: "2px" } : {}}
+                      style={selectedIndex === index ? { borderBottomWidth: 2 } : {}}
                       data-cy={nameClass}
-                      onClick={() => {
+                      onPress={() => {
                         if (props.onChange) {
                           props.onChange(index);
                         }
                         setSelectedIndex(index);
                       }}
                     >
-                      {isInvalid ? " ⚠️" : ""}
-                      {label}
-                    </button>
-                  </div>
+                      <LftText className={`${isInvalid ? "text-redv2-main" : ""}`}>
+                        {isInvalid ? " ⚠️" : ""}
+                        {label}
+                      </LftText>
+                    </TouchableOpacity>
+                  </View>
                 );
               })}
-            </div>
+            </View>
           </Scroller>
-        </div>
+        </View>
       )}
       {tabs[selectedIndex]?.children || tabs[0]?.children}
-    </div>
+    </View>
   );
 }

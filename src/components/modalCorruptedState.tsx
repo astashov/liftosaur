@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { Button } from "./button";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 
 interface IModalAmrapProps {
   backup: boolean;
@@ -11,7 +11,7 @@ interface IModalAmrapProps {
 
 export function ModalCorruptedState(props: IModalAmrapProps): JSX.Element {
   return (
-    <Modal shouldShowClose={false}>
+    <LftModal shouldShowClose={false}>
       <h3 className="pt-2 pb-4 text-lg font-bold text-center">🚨 Corrupted Storage 🚨</h3>
       <p className="pb-4">
         Something went <strong>terribly wrong</strong>, and your {props.local ? "local" : "remote"} storage and history
@@ -46,6 +46,6 @@ export function ModalCorruptedState(props: IModalAmrapProps): JSX.Element {
           {props.local ? "Reset and start from scratch" : "Continue"}
         </Button>
       </div>
-    </Modal>
+    </LftModal>
   );
 }

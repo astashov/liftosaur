@@ -4,7 +4,7 @@ import { Service } from "../../api/service";
 import { Button } from "../../components/button";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { LinkButton } from "../../components/linkButton";
-import { Modal } from "../../components/modal";
+import { LftModal } from "../../components/modal";
 import { DateUtils } from "../../utils/date";
 import { IEither } from "../../utils/types";
 import { PlannerCodeBlock } from "./components/plannerCodeBlock";
@@ -58,7 +58,7 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
   const programRevision = state[currentRevision];
 
   return (
-    <Modal
+    <LftModal
       innerClassName="flex flex-col"
       isFullWidth={true}
       onClose={props.onClose}
@@ -132,6 +132,6 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
           )}
         </div>
       </div>
-    </Modal>
+    </LftModal>
   );
 }

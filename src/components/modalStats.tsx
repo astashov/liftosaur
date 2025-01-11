@@ -1,4 +1,4 @@
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ISettings, IStatsLength, IStatsPercentage, IStatsWeight } from "../types";
@@ -35,7 +35,7 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
   }
 
   return (
-    <Modal isHidden={props.isHidden} isFullWidth={true} shouldShowClose={true} onClose={props.onClose}>
+    <LftModal isHidden={props.isHidden} isFullWidth={true} shouldShowClose={true} onClose={props.onClose}>
       <GroupHeader name="Enabled measurement types" />
       <View data-cy="modal-stats">
         <MenuItemEditable
@@ -129,6 +129,6 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
           value={`${statsEnabled.length.calfRight}`}
         />
       </View>
-    </Modal>
+    </LftModal>
   );
 }

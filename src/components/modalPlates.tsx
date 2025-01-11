@@ -1,7 +1,7 @@
 import React, { JSX } from "react";
 import { useRef } from "react";
 import { Button } from "./button";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { IUnit } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { SendMessage } from "../utils/sendMessage";
@@ -15,7 +15,7 @@ interface IProps {
 export function ModalPlates(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal
+    <LftModal
       isHidden={props.isHidden}
       autofocusInputRef={textInput}
       shouldShowClose={true}
@@ -57,6 +57,6 @@ export function ModalPlates(props: IProps): JSX.Element {
           </Button>
         </div>
       </form>
-    </Modal>
+    </LftModal>
   );
 }

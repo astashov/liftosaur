@@ -1,6 +1,5 @@
-import React, { JSX, RefObject } from "react";
-import { useRef, useState } from "react";
-import { Modal } from "./modal";
+import { useState } from "react";
+import { LftModal } from "./modal";
 import { StringUtils } from "../utils/string";
 import {
   availableMuscles,
@@ -17,7 +16,6 @@ import {
 import { GroupHeader } from "./groupHeader";
 import { Button } from "./button";
 import { ObjectUtils } from "../utils/object";
-import { HtmlUtils } from "../utils/html";
 import { LabelAndInput } from "./labelAndInput";
 import { Multiselect } from "./multiselect";
 import { equipmentName, Exercise, IExercise } from "../models/exercise";
@@ -29,6 +27,8 @@ import { Muscle } from "../models/muscle";
 import { CollectionUtils } from "../utils/collection";
 import { ScrollableTabs } from "./scrollableTabs";
 import { IconExternalLink } from "./icons/iconExternalLink";
+import { LftText } from "./lftText";
+import { View, TextInput, TouchableOpacity } from "react-native";
 
 interface IModalExerciseProps {
   isHidden: boolean;
@@ -53,19 +53,13 @@ interface IModalExerciseProps {
 }
 
 export function ModalExercise(props: IModalExerciseProps): JSX.Element {
-  const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>(props.initialFilter || "");
   const [isCustomExerciseDisplayed, setIsCustomExerciseDisplayed] = useState<boolean>(!!props.customExerciseName);
   const [editingExercise, setEditingExercise] = useState<ICustomExercise | undefined>(undefined);
 
   return (
-    <Modal
-      isHidden={props.isHidden}
-      autofocusInputRef={textInput}
-      shouldShowClose={true}
-      onClose={() => props.onChange(undefined, true)}
-    >
-      <div style={{ maxWidth: "600px", minWidth: "260px" }}>
+    <LftModal isHidden={props.isHidden} shouldShowClose={true} onClose={() => props.onChange(undefined, true)}>
+      <View style={{ maxWidth: 600, minWidth: 260 }}>
         {isCustomExerciseDisplayed ? (
           <CustomExerciseForm
             backLabel="Back to list"
@@ -83,15 +77,14 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
             setFilter={setFilter}
             setIsCustomExerciseDisplayed={setIsCustomExerciseDisplayed}
             setEditingExercise={setEditingExercise}
-            textInput={textInput}
             exerciseType={props.exerciseType}
             onChange={props.onChange}
             onDelete={props.onDelete}
             settings={props.settings}
           />
         )}
-      </div>
-    </Modal>
+      </View>
+    </LftModal>
   );
 }
 
@@ -113,8 +106,8 @@ interface IModalCustomExerciseProps {
 
 export function ModalCustomExercise(props: IModalCustomExerciseProps): JSX.Element {
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
-      <div style={{ maxWidth: "600px", minWidth: "260px" }}>
+    <LftModal shouldShowClose={true} onClose={props.onClose}>
+      <View style={{ maxWidth: 600, minWidth: 260 }}>
         <CustomExerciseForm
           backLabel="Cancel"
           exercise={props.exercise}
@@ -122,8 +115,8 @@ export function ModalCustomExercise(props: IModalCustomExerciseProps): JSX.Eleme
           settings={props.settings}
           onCreateOrUpdate={props.onCreateOrUpdate}
         />
-      </div>
-    </Modal>
+      </View>
+    </LftModal>
   );
 }
 
@@ -169,11 +162,10 @@ interface IExercisesListProps {
   exerciseType?: IExerciseType;
   onChange: (value: IExerciseType | undefined, shouldClose: boolean) => void;
   onDelete: (id: string) => void;
-  textInput: RefObject<HTMLInputElement | null>;
 }
 
 const ExercisesList = (props: IExercisesListProps): JSX.Element => {
-  const { textInput, setFilter, filter } = props;
+  const { setFilter, filter } = props;
 
   let exercises = Exercise.allExpanded({});
   let customExercises = props.settings.exercises;
@@ -197,12 +189,14 @@ const ExercisesList = (props: IExercisesListProps): JSX.Element => {
   const exercise = props.exerciseType ? Exercise.get(props.exerciseType, props.settings.exercises) : undefined;
 
   return (
-    <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
+    <View data-cy="modal-exercise">
       {props.isSubstitute && (
-        <p className="text-xs italic">Similar exercises are sorted by the same muscles as the current one.</p>
+        <LftText className="text-xs italic">
+          Similar exercises are sorted by the same muscles as the current one.
+        </LftText>
       )}
       {exercise && (
-        <div className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
+        <View className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
           <GroupHeader name="Current" />
           <ExerciseItem
             shouldAddExternalLinks={props.shouldAddExternalLinks}
@@ -211,17 +205,15 @@ const ExercisesList = (props: IExercisesListProps): JSX.Element => {
             exercise={exercise}
             equipment={exercise.equipment}
           />
-        </div>
+        </View>
       )}
-      <input
-        ref={textInput}
+      <TextInput
         className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-        type="text"
         value={filter}
         data-cy="exercise-filter-by-name"
         placeholder="Filter by name"
-        onInput={() => {
-          setFilter(textInput.current!.value.toLowerCase());
+        onChangeText={(text) => {
+          setFilter(text.toLowerCase());
         }}
       />
       <Multiselect
@@ -241,40 +233,38 @@ const ExercisesList = (props: IExercisesListProps): JSX.Element => {
             .map((id) => {
               const e = customExercises[id]!;
               return (
-                <section
+                <TouchableOpacity
                   key={e.id}
                   data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
                   className="w-full px-2 py-1 text-left border-b border-gray-200"
-                  onClick={(event) => {
-                    if (!HtmlUtils.classInParents(event.target as Element, "button")) {
-                      props.onChange({ id: e.id }, true);
-                    }
+                  onPress={(event) => {
+                    props.onChange({ id: e.id }, true);
                   }}
                 >
-                  <section className="flex items-center">
-                    <div className="w-12 pr-2" style={{ minHeight: "2.5rem" }}>
+                  <View className="flex flex-row items-center">
+                    <View className="w-12 pr-2" style={{ minHeight: 40 }}>
                       <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
-                    </div>
-                    <div className="flex-1 py-2 text-left">
-                      <div>{e.name}</div>
+                    </View>
+                    <View className="flex-1 py-2 text-left">
+                      <LftText>{e.name}</LftText>
                       <CustomMuscleGroupsView exercise={e} />
-                    </div>
-                    <div>
-                      <button
+                    </View>
+                    <View>
+                      <TouchableOpacity
                         className={`px-3 py-4 button nm-edit-custom-exercise-${StringUtils.dashcase(e.name)}`}
                         data-cy={`custom-exercise-edit-${StringUtils.dashcase(e.name)}`}
-                        onClick={(event) => {
+                        onPress={(event) => {
                           event.preventDefault();
                           props.setEditingExercise(e);
                           props.setIsCustomExerciseDisplayed(true);
                         }}
                       >
                         <IconEditSquare />
-                      </button>
-                      <button
+                      </TouchableOpacity>
+                      <TouchableOpacity
                         className={`px-1 py-4 button nm-delete-custom-exercise-${StringUtils.dashcase(e.name)}`}
                         data-cy={`custom-exercise-delete-${StringUtils.dashcase(e.name)}`}
-                        onClick={(event) => {
+                        onPress={(event) => {
                           event.preventDefault();
                           if (confirm(`Are you sure you want to delete ${e.name}?`)) {
                             props.onDelete(e.id);
@@ -282,17 +272,17 @@ const ExercisesList = (props: IExercisesListProps): JSX.Element => {
                         }}
                       >
                         <IconTrash />
-                      </button>
-                    </div>
-                  </section>
-                </section>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableOpacity>
               );
             })}
-          <div className="mb-4">
+          <View className="mb-4">
             <LinkButton
               name="custom-exercise-create"
               data-cy="custom-exercise-create"
-              onClick={(event) => {
+              onPress={(event) => {
                 event.preventDefault();
                 props.setEditingExercise(undefined);
                 props.setIsCustomExerciseDisplayed(true);
@@ -300,19 +290,19 @@ const ExercisesList = (props: IExercisesListProps): JSX.Element => {
             >
               Add Custom Exercise
             </LinkButton>
-          </div>
+          </View>
         </>
       )}
       <GroupHeader name="Built-in exercises" />
       {exercises.map((e) => {
         return (
-          <section
+          <TouchableOpacity
             key={Exercise.toKey(e)}
             data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
               e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
             }`}
             className="w-full px-2 py-1 text-left border-b border-gray-200"
-            onClick={() => {
+            onPress={() => {
               props.onChange(e, true);
             }}
           >
@@ -324,10 +314,10 @@ const ExercisesList = (props: IExercisesListProps): JSX.Element => {
               exercise={e}
               equipment={e.equipment}
             />
-          </section>
+          </TouchableOpacity>
         );
       })}
-    </form>
+    </View>
   );
 };
 
@@ -345,21 +335,19 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
   const exerciseType = { id: e.id, equipment: props.equipment || e.defaultEquipment };
 
   return (
-    <section className="flex items-center">
-      <div className="w-12 pr-2" style={{ minHeight: "2.5rem" }}>
+    <View className="flex flex-row items-center">
+      <View className="w-12 pr-2" style={{ minHeight: 40 }}>
         <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
-      </div>
-      <div className="flex-1 py-2 text-left">
-        <div>
-          <span className="font-bold">{e.name}</span>,{" "}
-          <span className="text-grayv2-main">{equipmentName(exerciseType.equipment)}</span>
-        </div>
+      </View>
+      <View className="flex-1 py-2 text-left">
+        <LftText className="font-bold">{e.name}</LftText>
+        <LftText className="text-grayv2-main">{equipmentName(exerciseType.equipment)}</LftText>
         {props.showMuscles ? (
           <MuscleView currentExerciseType={props.currentExerciseType} exercise={e} settings={props.settings} />
         ) : (
           <MuscleGroupsView exercise={e} settings={props.settings} />
         )}
-      </div>
+      </View>
       {props.shouldAddExternalLinks && (
         <div className="pl-1">
           <div className="flex items-center">
@@ -369,7 +357,7 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
           </div>
         </div>
       )}
-    </section>
+    </View>
   );
 }
 
@@ -402,7 +390,7 @@ export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element
   const [largeImageUrl, setLargeImageUrl] = useState<string>(props.exercise?.largeImageUrl || "");
 
   return (
-    <form onSubmit={(e) => e.preventDefault()}>
+    <View>
       <LabelAndInput
         star={true}
         identifier="custom-exercise-name"
@@ -410,10 +398,8 @@ export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element
         errorMessage={nameError}
         value={name}
         placeholder="Super Squat"
-        onInput={(e: React.FormEvent<HTMLInputElement>) => {
-          if (e.currentTarget.value != null) {
-            setName(e.currentTarget.value?.trim() || "");
-          }
+        onChangeText={(text) => {
+          setName(text.trim() || "");
         }}
       />
       <Multiselect
@@ -443,10 +429,8 @@ export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element
         value={smallImageUrl}
         hint="1:1 aspect ratio, >= 150px width"
         placeholder="https://www.img.com/small.jpg"
-        onInput={(e: React.FormEvent<HTMLInputElement>) => {
-          if (e.currentTarget.value != null) {
-            setSmallImageUrl(e.currentTarget.value);
-          }
+        onChangeText={(text) => {
+          setSmallImageUrl(text);
         }}
       />
       <LabelAndInput
@@ -455,33 +439,29 @@ export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element
         value={largeImageUrl}
         hint="4:3 aspect ratio, >= 800px width"
         placeholder="https://www.img.com/large.jpg"
-        onInput={(e: React.FormEvent<HTMLInputElement>) => {
-          if (e.currentTarget.value != null) {
-            setLargeImageUrl(e.currentTarget.value);
-          }
+        onChangeText={(text) => {
+          setLargeImageUrl(text);
         }}
       />
-      <div className="flex py-4">
-        <div className="flex-1">
+      <View className="flex flex-row py-4">
+        <View className="flex-1">
           <Button
             name="custom-exercise-cancel"
             kind="grayv2"
             data-cy="custom-exercise-cancel"
-            onClick={(e) => {
-              e.preventDefault();
+            onClick={() => {
               props.setIsCustomExerciseDisplayed(false);
             }}
           >
             {props.backLabel}
           </Button>
-        </div>
-        <div className="flex-1 text-right">
+        </View>
+        <View className="flex-1 text-right">
           <Button
             name="custom-exercise-create"
             kind="orange"
             data-cy="custom-exercise-create"
-            onClick={(e) => {
-              e.preventDefault();
+            onClick={() => {
               if (!name) {
                 setNameError("Name cannot be empty");
               } else if (props.exercise?.name !== name && Exercise.exists(name, customExercises)) {
@@ -506,9 +486,9 @@ export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element
           >
             {props.exercise != null ? "Update" : "Create"}
           </Button>
-        </div>
-      </div>
-    </form>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -524,26 +504,26 @@ export function MuscleGroupsView(props: { exercise: IExercise; settings: ISettin
   const types = exercise.types.map((t) => StringUtils.capitalize(t));
 
   return (
-    <div className="text-xs">
+    <View className="text-xs">
       {types.length > 0 && (
-        <div>
-          <span className="text-grayv2-main">Type: </span>
-          <span className="font-bold">{types.join(", ")}</span>
-        </div>
+        <View>
+          <LftText className="text-grayv2-main">Type: </LftText>
+          <LftText className="font-bold">{types.join(", ")}</LftText>
+        </View>
       )}
       {targetMuscleGroups.length > 0 && (
-        <div>
-          <span className="text-grayv2-main">Target: </span>
-          <span className="font-bold">{targetMuscleGroups.join(", ")}</span>
-        </div>
+        <View>
+          <LftText className="text-grayv2-main">Target: </LftText>
+          <LftText className="font-bold">{targetMuscleGroups.join(", ")}</LftText>
+        </View>
       )}
       {synergistMuscleGroups.length > 0 && (
-        <div>
-          <span className="text-grayv2-main">Synergist: </span>
-          <span className="font-bold">{synergistMuscleGroups.join(", ")}</span>
-        </div>
+        <View>
+          <LftText className="text-grayv2-main">Synergist: </LftText>
+          <LftText className="font-bold">{synergistMuscleGroups.join(", ")}</LftText>
+        </View>
       )}
-    </div>
+    </View>
   );
 }
 
@@ -563,52 +543,52 @@ function MuscleView(props: {
   const types = exercise.types.map((t) => StringUtils.capitalize(t));
 
   return (
-    <div className="text-xs">
+    <View className="text-xs">
       {types.length > 0 && (
-        <div>
-          <span className="text-grayv2-main">Type: </span>
-          <span className="font-bold">{types.join(", ")}</span>
-        </div>
+        <View>
+          <LftText className="text-grayv2-main">Type: </LftText>
+          <LftText className="font-bold">{types.join(", ")}</LftText>
+        </View>
       )}
       {targetMuscles.length > 0 && (
-        <div>
-          <span className="text-grayv2-main">Target: </span>
-          <span className="font-bold">
+        <View>
+          <LftText className="text-grayv2-main">Target: </LftText>
+          <LftText className="font-bold">
             {targetMuscles.map((m, i) => {
               return (
-                <span>
-                  <span
+                <View>
+                  <LftText
                     className={tms.length === 0 ? "" : tms.indexOf(m) !== -1 ? "text-greenv2-main" : "text-redv2-main"}
                   >
                     {m}
-                  </span>
+                  </LftText>
                   {i !== targetMuscles.length - 1 ? ", " : ""}
-                </span>
+                </View>
               );
             })}
-          </span>
-        </div>
+          </LftText>
+        </View>
       )}
       {synergistMuscles.length > 0 && (
-        <div>
-          <span className="text-grayv2-main">Synergist: </span>
-          <span className="font-bold">
+        <View>
+          <LftText className="text-grayv2-main">Synergist: </LftText>
+          <LftText className="font-bold">
             {synergistMuscles.map((m, i) => {
               return (
-                <span>
-                  <span
+                <View>
+                  <LftText
                     className={sms.length === 0 ? "" : sms.indexOf(m) !== -1 ? "text-greenv2-main" : "text-redv2-main"}
                   >
                     {m}
-                  </span>
+                  </LftText>
                   {i !== synergistMuscles.length - 1 ? ", " : ""}
-                </span>
+                </View>
               );
             })}
-          </span>
-        </div>
+          </LftText>
+        </View>
       )}
-    </div>
+    </View>
   );
 }
 
@@ -625,25 +605,25 @@ export function CustomMuscleGroupsView(props: { exercise: ICustomExercise }): JS
   const types = (exercise.types || []).map((t) => StringUtils.capitalize(t));
 
   return (
-    <div className="text-xs">
+    <View className="text-xs">
       {types.length > 0 && (
-        <div>
-          <span className="text-grayv2-main">Type: </span>
-          <span className="font-bold">{types.join(", ")}</span>
-        </div>
+        <View>
+          <LftText className="text-grayv2-main">Type: </LftText>
+          <LftText className="font-bold">{types.join(", ")}</LftText>
+        </View>
       )}
       {targetMuscleGroups.length > 0 && (
-        <div>
-          <span className="text-grayv2-main">Target: </span>
-          <span className="font-bold">{targetMuscleGroups.join(", ")}</span>{" "}
-        </div>
+        <View>
+          <LftText className="text-grayv2-main">Target: </LftText>
+          <LftText className="font-bold">{targetMuscleGroups.join(", ")}</LftText>{" "}
+        </View>
       )}
       {synergistMuscleGroups.length > 0 && (
-        <div>
-          <span className="text-grayv2-main">Synergist: </span>
-          <span className="font-bold">{synergistMuscleGroups.join(", ")}</span>
-        </div>
+        <View>
+          <LftText className="text-grayv2-main">Synergist: </LftText>
+          <LftText className="font-bold">{synergistMuscleGroups.join(", ")}</LftText>
+        </View>
       )}
-    </div>
+    </View>
   );
 }

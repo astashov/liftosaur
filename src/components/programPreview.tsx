@@ -1,10 +1,9 @@
-import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { IProgram, ISettings, ISubscription, IExerciseType } from "../types";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import { useState } from "react";
 import { IPoints, Muscle } from "../models/muscle";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { MusclesView } from "./muscles/musclesView";
 import { ModalExerciseInfo } from "./modalExerciseInfo";
 import { Locker } from "./locker";
@@ -132,7 +131,7 @@ export function ProgramPreviewMusclesModal(props: IProgramPreviewMusclesModalPro
       : `Muscles for day '${props.program.days[props.muscles.dayIndex].name}'`;
 
   return (
-    <Modal
+    <LftModal
       shouldShowClose={true}
       onClose={props.onClose}
       isFullWidth={true}
@@ -143,6 +142,6 @@ export function ProgramPreviewMusclesModal(props: IProgramPreviewMusclesModalPro
       )}
       <h2 className="pb-2 text-xl font-bold text-center">{title}</h2>
       <MusclesView settings={props.settings} points={points} title={props.program.name} />
-    </Modal>
+    </LftModal>
   );
 }

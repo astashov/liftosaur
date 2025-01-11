@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { MenuItemValue } from "../../../components/menuItemEditable";
-import { Modal } from "../../../components/modal";
+import { LftModal } from "../../../components/modal";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IProgramEditorState } from "../models/types";
 import { IProgram, ISettings, IUnit } from "../../../types";
@@ -19,7 +19,7 @@ interface IProgramContentModalSettingsProps {
 
 export function ProgramContentModalSettings(props: IProgramContentModalSettingsProps): JSX.Element {
   return (
-    <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose}>
+    <LftModal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose}>
       {!props.isMobile && (
         <label className="flex items-center">
           <div className="mr-2 font-bold">Is Multiweek program?</div>
@@ -86,6 +86,6 @@ export function ProgramContentModalSettings(props: IProgramContentModalSettingsP
           <span className="ml-1 font-bold">sec</span>
         </label>
       </div>
-    </Modal>
+    </LftModal>
   );
 }

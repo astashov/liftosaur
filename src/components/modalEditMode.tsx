@@ -1,5 +1,5 @@
 import React, { JSX } from "react";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { Button } from "./button";
 import {
   ISettings,
@@ -95,7 +95,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
   const planner = program.planner;
 
   return (
-    <Modal shouldShowClose={true} onClose={onClose} isFullWidth={true}>
+    <LftModal shouldShowClose={true} onClose={onClose} isFullWidth={true}>
       <div style={{ minWidth: "80%" }} data-cy="modal-edit-mode">
         {!showCalculator ? (
           <>
@@ -270,7 +270,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
           />
         )}
       </div>
-    </Modal>
+    </LftModal>
   );
 }
 

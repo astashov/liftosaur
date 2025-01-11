@@ -3,7 +3,7 @@ import React, { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
 import { EditProgram } from "../../models/editProgram";
 import { IUnit } from "../../types";
-import { Modal } from "../modal";
+import { LftModal } from "../modal";
 import { EditProgramExerciseExamples } from "./editProgramExerciseExamples";
 
 interface IModalEditProgramExerciseExamplesProps {
@@ -14,7 +14,7 @@ interface IModalEditProgramExerciseExamplesProps {
 
 export function ModalEditProgramExerciseExamples(props: IModalEditProgramExerciseExamplesProps): JSX.Element {
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose} isFullWidth={true}>
+    <LftModal shouldShowClose={true} onClose={props.onClose} isFullWidth={true}>
       <EditProgramExerciseExamples
         unit={props.unit}
         onSelect={(e) => {
@@ -25,6 +25,6 @@ export function ModalEditProgramExerciseExamples(props: IModalEditProgramExercis
           }
         }}
       />
-    </Modal>
+    </LftModal>
   );
 }

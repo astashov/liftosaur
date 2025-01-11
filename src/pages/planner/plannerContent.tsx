@@ -32,7 +32,7 @@ import { IconHelp } from "../../components/icons/iconHelp";
 import { IconDoc } from "../../components/icons/iconDoc";
 import { PlannerContentPerDay } from "./plannerContentPerDay";
 import { PlannerContentFull } from "./plannerContentFull";
-import { Modal } from "../../components/modal";
+import { LftModal } from "../../components/modal";
 import { GroupHeader } from "../../components/groupHeader";
 import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
 import { PlannerToProgram } from "../../models/plannerToProgram";
@@ -520,7 +520,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         />
       )}
       {state.ui.showPreview && (
-        <Modal
+        <LftModal
           isFullWidth={true}
           name="program-preview"
           shouldShowClose={true}
@@ -542,7 +542,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               setSettings(lf(settings).p("units").set(unit));
             }}
           />
-        </Modal>
+        </LftModal>
       )}
       {modalExerciseUi && (
         <ModalExercise

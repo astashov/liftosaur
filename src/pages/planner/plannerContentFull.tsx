@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
 import { IconPreview } from "../../components/icons/iconPreview";
-import { Modal } from "../../components/modal";
+import { LftModal } from "../../components/modal";
 import { Exercise } from "../../models/exercise";
 import { IPlannerProgram, ISettings } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
@@ -291,7 +291,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
         </div>
       </div>
       {showExerciseStats && (
-        <Modal shouldShowClose={true} isFullWidth={true} onClose={() => setShowExerciseStats(false)}>
+        <LftModal shouldShowClose={true} isFullWidth={true} onClose={() => setShowExerciseStats(false)}>
           {focusedExercise?.exerciseLine != null ? (
             <PlannerExerciseStats
               settings={props.settings}
@@ -304,10 +304,10 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
           ) : (
             <div className="font-bold">Exercise Stats</div>
           )}
-        </Modal>
+        </LftModal>
       )}
       {showDayStats && (
-        <Modal shouldShowClose={true} isFullWidth={true} onClose={() => setShowDayStats(false)}>
+        <LftModal shouldShowClose={true} isFullWidth={true} onClose={() => setShowDayStats(false)}>
           {weekIndex !== -1 && dayIndex !== -1 ? (
             <PlannerDayStats
               dispatch={props.dispatch}
@@ -318,10 +318,10 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
           ) : (
             <div className="font-bold">Day Stats</div>
           )}
-        </Modal>
+        </LftModal>
       )}
       {showWeekStats && (
-        <Modal shouldShowClose={true} isFullWidth={true} onClose={() => setShowWeekStats(false)}>
+        <LftModal shouldShowClose={true} isFullWidth={true} onClose={() => setShowWeekStats(false)}>
           {weekIndex !== -1 ? (
             <PlannerWeekStats
               dispatch={props.dispatch}
@@ -331,7 +331,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
           ) : (
             <div className="font-bold">Week Stats</div>
           )}
-        </Modal>
+        </LftModal>
       )}
     </div>
   );

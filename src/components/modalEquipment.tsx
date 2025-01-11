@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
-import { Modal } from "./modal";
+import { LftModal } from "./modal";
 import { MenuItemEditable } from "./menuItemEditable";
 import { Equipment } from "../models/equipment";
 import { IExerciseType, IHistoryEntry, ISettings } from "../types";
@@ -32,7 +32,7 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
   const currentGymId = props.settings.currentGymId ?? props.settings.gyms[0].id;
   const availableEquipment = Equipment.getCurrentGym(props.settings).equipment;
   return (
-    <Modal
+    <LftModal
       isHidden={false}
       onClose={() => {
         updateState(props.dispatch, [
@@ -97,7 +97,7 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
           </div>
         )}
       </div>
-    </Modal>
+    </LftModal>
   );
 }
 

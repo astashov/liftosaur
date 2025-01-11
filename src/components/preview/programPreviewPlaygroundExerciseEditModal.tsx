@@ -1,7 +1,7 @@
 import React, { JSX } from "react";
 import { Button } from "../button";
 import { MenuItemEditable } from "../menuItemEditable";
-import { Modal } from "../modal";
+import { LftModal } from "../modal";
 import { Weight } from "../../models/weight";
 import { IProgramExercise, IProgramStateMetadata, ISettings, IExerciseDataValue } from "../../types";
 import { ObjectUtils } from "../../utils/object";
@@ -29,7 +29,7 @@ export function ProgramPreviewPlaygroundExerciseEditModal(
   }
   const exercise = Exercise.get(programExercise.exerciseType, props.settings.exercises);
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
+    <LftModal shouldShowClose={true} onClose={props.onClose}>
       <div style={{ minWidth: "15rem" }}>
         {(props.isPlanner || hasRm1) && (
           <>
@@ -66,7 +66,7 @@ export function ProgramPreviewPlaygroundExerciseEditModal(
           </Button>
         </div>
       </div>
-    </Modal>
+    </LftModal>
   );
 }
 
