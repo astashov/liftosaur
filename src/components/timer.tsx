@@ -4,7 +4,7 @@ import { IconPlay } from "./icons/iconPlay";
 import { IconPause } from "./icons/iconPause";
 import { IHistoryRecord } from "../types";
 import { History } from "../models/history";
-import { TouchableOpacity, View } from "react-native";
+import { Animated, TouchableOpacity, View } from "react-native";
 import { LftText } from "./lftText";
 
 interface IProps {
@@ -30,13 +30,40 @@ export function Timer(props: IProps): JSX.Element {
     };
   });
 
-  const workoutTime = History.workoutTime(props.progress);
+  const blinkOpacity = useRef(new Animated.Value(1)).current;
   const isPaused = History.isPaused(props.progress.intervals);
+  useEffect(() => {
+    // Blinking animation
+    if (isPaused) {
+      blinkOpacity.setValue(1);
+      return;
+    } else {
+      const blinking = Animated.loop(
+        Animated.sequence([
+          Animated.timing(blinkOpacity, {
+            toValue: 0, // Fade out
+            duration: 500, // Duration of fade out
+            useNativeDriver: true, // Use native driver for better performance
+          }),
+          Animated.timing(blinkOpacity, {
+            toValue: 1, // Fade in
+            duration: 500, // Duration of fade in
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+      blinking.start();
+      return () => blinking.stop();
+    }
+  }, [isPaused, blinkOpacity]);
+
+  const workoutTime = History.workoutTime(props.progress);
   return (
-    <View style={{ marginLeft: -8 }}>
+    <View className="flex-row items-center justify-center">
       {isPaused ? (
         <TouchableOpacity
-          className="px-1 leading-none align-middle"
+          className="px-1 leading-6 align-middle"
           style={{ marginTop: -2 }}
           onPress={props.onPauseResume}
         >
@@ -44,18 +71,27 @@ export function Timer(props: IProps): JSX.Element {
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
-          className="px-1 leading-none align-middle"
+          className="px-1 leading-6 align-middle"
           style={{ marginTop: -2 }}
           onPress={props.onPauseResume}
         >
           <IconPause color="#607284" size={16} />
         </TouchableOpacity>
       )}
-      <LftText className={`leading-none align-middle ${isPaused ? "text-redv2-main" : "text-greenv2-main"}`}>
-        {TimeUtils.formatHH(workoutTime)}
-        <LftText className={isPaused ? "" : "blinking"}>:</LftText>
-        {TimeUtils.formatMM(workoutTime)} h
-      </LftText>
+      <View className={`leading-6 flex-row`}>
+        <LftText className={`font-bold ${isPaused ? "text-redv2-main" : "text-greenv2-main"}`}>
+          {TimeUtils.formatHH(workoutTime)}
+        </LftText>
+        <Animated.Text
+          style={{ opacity: blinkOpacity }}
+          className={`font-bold ${isPaused ? "text-redv2-main" : "text-greenv2-main"}`}
+        >
+          :
+        </Animated.Text>
+        <LftText className={`font-bold ${isPaused ? "text-redv2-main" : "text-greenv2-main"}`}>
+          {TimeUtils.formatMM(workoutTime)} h
+        </LftText>
+      </View>
     </View>
   );
 }

@@ -180,6 +180,8 @@ export const CardsView = memo((props: ICardsViewProps): JSX.Element => {
         <TextInput
           data-cy="workout-notes-input"
           id="workout-notes"
+          multiline={true}
+          numberOfLines={4}
           maxLength={4095}
           placeholder="The workout went very well..."
           value={props.progress.notes}

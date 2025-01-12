@@ -40,6 +40,14 @@
   },
   "author": "Anton Astashov",
   "license": "AGPL-3.0",
+  "codegenConfig": {
+    "name": "NativeNumKeyboardSpec",
+    "type": "modules",
+    "jsSrcsDir": "specs",
+    "android": {
+      "javaPackageName": "com.liftosaur.www.twa.numkey"
+    }
+  },
   "devDependencies": {
     "@11ty/eleventy": "^0.11.1",
     "@11ty/eleventy-plugin-rss": "^1.1.0",
@@ -155,6 +163,8 @@
     "react-native": "^0.76.5",
     "react-native-animateable-text": "^0.14.2",
     "react-native-gesture-handler": "^2.21.2",
+    "react-native-keyboard-aware-scroll-view": "^0.9.5",
+    "react-native-keyboard-controller": "^1.15.2",
     "react-native-mmkv": "^3.2.0",
     "react-native-picker-select": "^9.3.1",
     "react-native-reanimated": "^3.16.6",
@@ -162,6 +172,7 @@
     "react-native-screens": "^4.4.0",
     "react-native-svg": "^15.10.1",
     "react-native-svg-web": "^1.0.9",
+    "react-native-ui-lib": "^7.34.6",
     "react-native-web": "^0.19.13",
     "react-native-webview": "^13.12.5",
     "rollbar": "^2.26.2",

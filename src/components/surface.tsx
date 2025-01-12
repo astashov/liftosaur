@@ -1,5 +1,6 @@
 import { forwardRef, Ref } from "react";
-import { View, ScrollView, SafeAreaView } from "react-native";
+import { View, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 interface IProps {
   navbar: React.ReactNode;
@@ -12,11 +13,13 @@ interface IProps {
 export const Surface = forwardRef((props: IProps, ref: Ref<HTMLElement>): JSX.Element => {
   const onScroll = props.onScroll;
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-white">
       <View className="w-full h-full">
         {props.navbar}
 
-        <ScrollView
+        <KeyboardAwareScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
           data-cy="screen"
           onScroll={
             onScroll
@@ -28,7 +31,7 @@ export const Surface = forwardRef((props: IProps, ref: Ref<HTMLElement>): JSX.El
           }
         >
           <View className="flex-1 w-full safe-area-inset-bottom safe-area-inset-top web:pt-16">{props.children}</View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
         {props.footer}
         {props.addons}
       </View>

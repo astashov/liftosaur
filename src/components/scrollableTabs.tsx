@@ -21,24 +21,24 @@ export function ScrollableTabs(props: IProps): JSX.Element {
   const [selectedIndex, setSelectedIndex] = useState<number>(props.defaultIndex || 0);
 
   return (
-    <View className="relative">
+    <View className="flex-col h-full">
       {tabs.length > 1 && (
-        <View
-          className="sticky left-0 z-10 bg-white"
-          style={{ top: props.offsetY ? parseFloat(props.offsetY) * 16 : 0, marginLeft: -16, marginRight: -16 }}
-        >
+        <View className="flex-row" style={{ marginLeft: -16, marginRight: -16 }}>
           <Scroller arrowYOffsetPct={0}>
-            <View className="flex-row w-full pt-24 pb-8">
+            <View className="flex-row w-full pt-4">
               {tabs.map(({ label, isInvalid }, index) => {
                 const nameClass = `tab-${StringUtils.dashcase(label.toLowerCase())}`;
 
                 return (
-                  <View className="flex-1 text-center whitespace-no-wrap border-b border-grayv2-50" key={index}>
+                  <View
+                    className="flex-row justify-center flex-1 text-center whitespace-no-wrap border-b border-grayv2-50"
+                    key={index}
+                  >
                     <TouchableOpacity
-                      className={`ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
-                        selectedIndex === index ? "text-orangev2 border-b border-orangev2" : ""
+                      className={`ls-${nameClass} justify-center text-base px-4 pb-1 border-b ${
+                        selectedIndex === index ? "text-orangev2 border-orangev2" : "border-white"
                       } ${isInvalid ? " text-redv2-main" : ""} nm-tab-${nameClass}`}
-                      style={selectedIndex === index ? { borderBottomWidth: 2 } : {}}
+                      style={{ borderBottomWidth: 2 }}
                       data-cy={nameClass}
                       onPress={() => {
                         if (props.onChange) {
@@ -47,7 +47,7 @@ export function ScrollableTabs(props: IProps): JSX.Element {
                         setSelectedIndex(index);
                       }}
                     >
-                      <LftText className={`${isInvalid ? "text-redv2-main" : ""}`}>
+                      <LftText className={`text-center ${isInvalid ? "text-redv2-main" : ""}`}>
                         {isInvalid ? " ⚠️" : ""}
                         {label}
                       </LftText>
@@ -59,7 +59,7 @@ export function ScrollableTabs(props: IProps): JSX.Element {
           </Scroller>
         </View>
       )}
-      {tabs[selectedIndex]?.children || tabs[0]?.children}
+      <View className="flex-1">{tabs[selectedIndex]?.children || tabs[0]?.children}</View>
     </View>
   );
 }

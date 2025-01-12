@@ -28,6 +28,7 @@
   },
   "include": [
     "index.ts",
+    "specs/**/*",
     "rnsrc/**/*",
     "src/**/*",
     "server/**/*",

@@ -9,7 +9,7 @@ import { ILoading, IState, updateState } from "../models/state";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IconClose } from "./icons/iconClose";
 import { lb } from "lens-shmens";
-import { LftModal } from "./modal";
+import { Modal } from "./modal";
 import { ObjectUtils } from "../utils/object";
 import { ModalDebug } from "./modalDebug";
 import { View, TouchableOpacity } from "react-native";
@@ -148,7 +148,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
         )}
       </View>
       {props.helpContent && shouldShowModalHelp && (
-        <LftModal
+        <Modal
           isHidden={!shouldShowModalHelp}
           onClose={() => setShouldShowModalHelp(false)}
           shouldShowClose={true}
@@ -161,7 +161,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
             feedback - don't hesitate to <Link href="mailto:info@liftosaur.com">contact us</Link>! Or join our{" "}
             <Link href="https://discord.com/invite/AAh3cvdBRs">Discord server</Link> and ask your question there.
           </LftText>
-        </LftModal>
+        </Modal>
       )}
       {showDebug > 4 && (
         <ModalDebug onClose={() => setShowDebug(0)} loading={props.loading} dispatch={props.dispatch} />
@@ -175,8 +175,20 @@ export function NavbarCenterView(props: INavbarCenterProps): JSX.Element {
     return (
       <View className="flex-1">
         <TouchableOpacity onPress={props.onTitleClick}>
-          <LftText className="pt-2 text-sm font-semibold text-center">{props.title}</LftText>
-          <LftText className="pb-2 text-sm font-semibold text-center text-orangev2">{props.subtitle}</LftText>
+          <View className="pt-2">
+            {typeof props.title === "string" ? (
+              <LftText className="text-sm font-semibold text-center ">{props.title}</LftText>
+            ) : (
+              props.title
+            )}
+          </View>
+          <View className="pb-2">
+            {typeof props.subtitle === "string" ? (
+              <LftText className="text-sm font-semibold text-center text-orangev2">{props.subtitle}</LftText>
+            ) : (
+              props.subtitle
+            )}
+          </View>
         </TouchableOpacity>
       </View>
     );

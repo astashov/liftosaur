@@ -1307,6 +1307,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-keyboard-controller (1.15.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-mmkv (3.2.0):
     - DoubleConversion
     - glog
@@ -1705,6 +1726,8 @@ PODS:
     - React-logger (= 0.76.5)
     - React-perflogger (= 0.76.5)
     - React-utils (= 0.76.5)
+  - ReactNativeUiLib (4.3.2):
+    - React
   - RNCCheckbox (0.5.17):
     - BEMCheckBox (~> 1.4)
     - React-Core
@@ -1989,6 +2012,7 @@ DEPENDENCIES:
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-animateable-text (from `../node_modules/react-native-animateable-text`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
+  - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-skia (from `../node_modules/@shopify/react-native-skia`)"
@@ -2020,6 +2044,7 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - ReactNativeUiLib (from `../node_modules/react-native-ui-lib`)
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
@@ -2110,6 +2135,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-animateable-text"
   react-native-blur:
     :path: "../node_modules/@react-native-community/blur"
+  react-native-keyboard-controller:
+    :path: "../node_modules/react-native-keyboard-controller"
   react-native-mmkv:
     :path: "../node_modules/react-native-mmkv"
   react-native-safe-area-context:
@@ -2172,6 +2199,8 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  ReactNativeUiLib:
+    :path: "../node_modules/react-native-ui-lib"
   RNCCheckbox:
     :path: "../node_modules/@react-native-community/checkbox"
   RNCPicker:
@@ -2228,6 +2257,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: 01dd998649ff5f8814846b7eee84c4d57f5d3671
   react-native-animateable-text: 48701de46a35cec80b7e9f2667dc57cf8df8ecf3
   react-native-blur: d480b382e8ddb4d0c29cd5c4ebacd9f3eb997cc3
+  react-native-keyboard-controller: ca83b0d28acc8cb5b46bd4de2a9a6067e13d4fff
   react-native-mmkv: b4af3744580f08e1ffc7761103b408d313b2f772
   react-native-safe-area-context: f145b8906585d648f9f9c7dfa3885bac54f38fcc
   react-native-skia: 021001c035f63fe25d9625e41ed5e67e43356466
@@ -2257,8 +2287,9 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 215d21fbcb922aa469c6adcf5a729e2769d210e4
   React-timing: 1050c6fa44c327f2d7538e10c548fdf521fabdb8
   React-utils: f584a494ac233c7857bab176416b0c49cb4037ba
-  ReactCodegen: 3a68408bf68d0957abcd13d610f76420005c1d91
+  ReactCodegen: ddc4a48d9304fa617d9b4a783d262d8e79829b63
   ReactCommon: 5809a8ee421b7219221a475b78180f8f34b5c5ec
+  ReactNativeUiLib: 4990e6d7c99b57513540f317b5fb560eacb8fbb5
   RNCCheckbox: 450ce156f3e29e25efa0315c96cfbabe5a39ded1
   RNCPicker: b38333672004badbea06689e92955635869b746c
   RNDateTimePicker: 9ec036a62ad0f5a2d04c1c7829338e87b4e423e7

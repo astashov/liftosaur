@@ -30,7 +30,7 @@ export function LftModal(props: IProps): JSX.Element {
         className="z-10 opacity-50 bg-grayv2-700"
       />
 
-      <View className="items-center justify-center flex-1">
+      <View className="absolute top-0 bottom-0 left-0 right-0 z-20 items-center justify-center flex-1">
         <View
           data-name="modal"
           data-cy={`modal${props.name ? `-${props.name}` : ""}`}
@@ -42,13 +42,7 @@ export function LftModal(props: IProps): JSX.Element {
             ...props.style,
           }}
         >
-          <ScrollView
-            className={`relative h-full ${props.noPaddings ? "" : "px-6"} ${
-              props.overflowHidden ? "overflow-hidden" : "overflow-auto"
-            } ${props.innerClassName}`}
-          >
-            {props.children}
-          </ScrollView>
+          <View className={`${props.noPaddings ? "" : "px-6"} ${props.innerClassName}`}>{props.children}</View>
           {props.shouldShowClose && (
             <TouchableOpacity
               data-cy={`modal-close${props.name ? `-${props.name}` : ""}`}

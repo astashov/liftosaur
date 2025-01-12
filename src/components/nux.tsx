@@ -21,7 +21,7 @@ export function Nux(props: IProps): JSX.Element | null {
   const { dispatch } = props;
   return (
     <View className={`${props.className} flex flex-row py-2 pl-4 text-xs bg-white rounded-2xl`}>
-      <LftText>{props.children}</LftText>
+      <View className="flex-1">{props.children}</View>
       <View>
         <TouchableOpacity
           className="p-2 nm-nux-close"

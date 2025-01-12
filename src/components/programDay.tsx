@@ -42,6 +42,7 @@ import { ModalEquipment } from "./modalEquipment";
 import { Modal1RM } from "./modal1RM";
 import { TouchableOpacity } from "react-native";
 import { LftText } from "./lftText";
+import { AlertUtils } from "../utils/alert";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -206,49 +207,53 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                     } else {
                       const entryIndex = progress.ui?.exerciseModal?.entryIndex;
                       const program = props.program;
-                      if (
-                        program &&
-                        confirm("This will change it for the current workout. Change in the program too?")
-                      ) {
-                        const programExercise = Program.getProgramExerciseFromEntry(
-                          program.exercises || [],
-                          progress.entries[entryIndex]
-                        );
-                        if (program && programExercise) {
-                          if (program.planner) {
-                            const newPlannerResult = PlannerProgram.replaceExercise(
-                              program.planner,
-                              PlannerKey.fromProgramExercise(programExercise, props.settings),
-                              exerciseType,
-                              props.settings
+                      if (program) {
+                        AlertUtils.confirm("This will change it for the current workout. Change in the program too?", {
+                          onYes: () => {
+                            const programExercise = Program.getProgramExerciseFromEntry(
+                              program.exercises || [],
+                              progress.entries[entryIndex]
                             );
-                            if (newPlannerResult.success) {
-                              const newProgram = Program.cleanPlannerProgram({
-                                ...program,
-                                planner: newPlannerResult.data,
-                              });
-                              updateState(props.dispatch, [
-                                lb<IState>()
-                                  .p("storage")
-                                  .p("programs")
-                                  .recordModify((programs) => {
-                                    return CollectionUtils.setBy(programs, "id", program.id, newProgram);
-                                  }),
-                              ]);
-                            } else {
-                              alert(newPlannerResult.error);
+                            if (program && programExercise) {
+                              if (program.planner) {
+                                const newPlannerResult = PlannerProgram.replaceExercise(
+                                  program.planner,
+                                  PlannerKey.fromProgramExercise(programExercise, props.settings),
+                                  exerciseType,
+                                  props.settings
+                                );
+                                if (newPlannerResult.success) {
+                                  const newProgram = Program.cleanPlannerProgram({
+                                    ...program,
+                                    planner: newPlannerResult.data,
+                                  });
+                                  updateState(props.dispatch, [
+                                    lb<IState>()
+                                      .p("storage")
+                                      .p("programs")
+                                      .recordModify((programs) => {
+                                        return CollectionUtils.setBy(programs, "id", program.id, newProgram);
+                                      }),
+                                  ]);
+                                } else {
+                                  alert(newPlannerResult.error);
+                                }
+                              } else {
+                                EditProgram.swapExercise(
+                                  props.dispatch,
+                                  props.settings,
+                                  program.id,
+                                  programExercise.id,
+                                  programExercise.exerciseType,
+                                  exerciseType
+                                );
+                              }
                             }
-                          } else {
-                            EditProgram.swapExercise(
-                              props.dispatch,
-                              props.settings,
-                              program.id,
-                              programExercise.id,
-                              programExercise.exerciseType,
-                              exerciseType
-                            );
-                          }
-                        }
+                          },
+                          onNo: () => {
+                            Progress.changeExercise(props.dispatch, props.progress.id, exerciseType, entryIndex);
+                          },
+                        });
                       } else {
                         Progress.changeExercise(props.dispatch, props.progress.id, exerciseType, entryIndex);
                       }

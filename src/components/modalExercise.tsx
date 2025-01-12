@@ -28,7 +28,8 @@ import { CollectionUtils } from "../utils/collection";
 import { ScrollableTabs } from "./scrollableTabs";
 import { IconExternalLink } from "./icons/iconExternalLink";
 import { LftText } from "./lftText";
-import { View, TextInput, TouchableOpacity } from "react-native";
+import { View, TextInput, TouchableOpacity, FlatList, Alert } from "react-native";
+import { AlertUtils } from "../utils/alert";
 
 interface IModalExerciseProps {
   isHidden: boolean;
@@ -58,8 +59,13 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
   const [editingExercise, setEditingExercise] = useState<ICustomExercise | undefined>(undefined);
 
   return (
-    <LftModal isHidden={props.isHidden} shouldShowClose={true} onClose={() => props.onChange(undefined, true)}>
-      <View style={{ maxWidth: 600, minWidth: 260 }}>
+    <LftModal
+      noPaddings={true}
+      isHidden={props.isHidden}
+      shouldShowClose={true}
+      onClose={() => props.onChange(undefined, true)}
+    >
+      <View className="px-4" style={{ maxWidth: 600, minWidth: 260 }}>
         {isCustomExerciseDisplayed ? (
           <CustomExerciseForm
             backLabel="Back to list"
@@ -107,7 +113,7 @@ interface IModalCustomExerciseProps {
 export function ModalCustomExercise(props: IModalCustomExerciseProps): JSX.Element {
   return (
     <LftModal shouldShowClose={true} onClose={props.onClose}>
-      <View style={{ maxWidth: 600, minWidth: 260 }}>
+      <View style={{ maxWidth: 600, minWidth: 300 }}>
         <CustomExerciseForm
           backLabel="Cancel"
           exercise={props.exercise}
@@ -164,6 +170,39 @@ interface IExercisesListProps {
   onDelete: (id: string) => void;
 }
 
+type IExerciseListItem =
+  | {
+      type: "text";
+      id: string;
+    }
+  | {
+      type: "header";
+      id: string;
+    }
+  | {
+      type: "exercise";
+      id: string;
+      exercise: IExercise;
+    }
+  | {
+      type: "current-exercise";
+      id: "current-exercise";
+      exercise: IExercise;
+    }
+  | {
+      type: "custom-exercise";
+      id: string;
+      exercise: ICustomExercise;
+    }
+  | {
+      type: "new-custom-exercise";
+      id: "new-custom-exercise";
+    }
+  | {
+      type: "filter";
+      id: "filter";
+    };
+
 const ExercisesList = (props: IExercisesListProps): JSX.Element => {
   const { setFilter, filter } = props;
 
@@ -188,136 +227,192 @@ const ExercisesList = (props: IExercisesListProps): JSX.Element => {
   exercises = Exercise.sortExercises(exercises, props.isSubstitute, props.settings, filterTypes, props.exerciseType);
   const exercise = props.exerciseType ? Exercise.get(props.exerciseType, props.settings.exercises) : undefined;
 
+  const items: IExerciseListItem[] = [
+    ...(props.isSubstitute
+      ? [{ type: "text", id: "Similar exercises are sorted by the same muscles as the current one." } as const]
+      : []),
+    ...(exercise
+      ? [
+          {
+            type: "current-exercise",
+            id: "current-exercise",
+            exercise,
+          } as const,
+        ]
+      : []),
+    { type: "filter", id: "filter" },
+    ...(!props.isSubstitute ? [{ type: "header", id: "Custom exercises" } as const] : []),
+    ...(!props.isSubstitute
+      ? ObjectUtils.keys(customExercises)
+          .filter((id) => !customExercises[id]?.isDeleted)
+          .map<{
+            type: "custom-exercise";
+            id: string;
+            exercise: ICustomExercise;
+          }>((id) => {
+            return {
+              type: "custom-exercise" as const,
+              id,
+              exercise: customExercises[id]!,
+            } as const;
+          })
+      : []),
+    { type: "new-custom-exercise", id: "new-custom-exercise" },
+    { type: "header", id: "Built-in exercises" },
+    ...exercises.map<{
+      type: "exercise";
+      id: string;
+      exercise: IExercise;
+    }>((e) => {
+      return {
+        type: "exercise" as const,
+        id: Exercise.toKey(e),
+        exercise: e,
+      } as const;
+    }),
+  ];
+
   return (
-    <View data-cy="modal-exercise">
-      {props.isSubstitute && (
-        <LftText className="text-xs italic">
-          Similar exercises are sorted by the same muscles as the current one.
-        </LftText>
-      )}
-      {exercise && (
-        <View className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
-          <GroupHeader name="Current" />
-          <ExerciseItem
-            shouldAddExternalLinks={props.shouldAddExternalLinks}
-            showMuscles={props.isSubstitute}
-            settings={props.settings}
-            exercise={exercise}
-            equipment={exercise.equipment}
-          />
-        </View>
-      )}
-      <TextInput
-        className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-        value={filter}
-        data-cy="exercise-filter-by-name"
-        placeholder="Filter by name"
-        onChangeText={(text) => {
-          setFilter(text.toLowerCase());
-        }}
-      />
-      <Multiselect
-        id="filtertypes"
-        label=""
-        data-cy="exercise-filter-by-type"
-        placeholder="Filter by type"
-        values={filterOptions}
-        initialSelectedValues={new Set(initialFilterOptions)}
-        onChange={(ft) => setFilterTypes(Array.from(ft))}
-      />
-      {!props.isSubstitute && (
-        <>
-          <GroupHeader name="Custom exercises" />
-          {ObjectUtils.keys(customExercises)
-            .filter((id) => !customExercises[id]?.isDeleted)
-            .map((id) => {
-              const e = customExercises[id]!;
-              return (
-                <TouchableOpacity
-                  key={e.id}
-                  data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
-                  className="w-full px-2 py-1 text-left border-b border-gray-200"
+    <FlatList
+      style={{ minWidth: 300 }}
+      className="pt-4"
+      data-cy="modal-exercise"
+      contentContainerStyle={{ flexGrow: 1 }}
+      data={items}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => {
+        switch (item.type) {
+          case "text":
+            return <LftText className="text-xs italic">{item.id}</LftText>;
+          case "header":
+            return <GroupHeader name={item.id} />;
+          case "current-exercise":
+            return (
+              <View className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
+                <GroupHeader name="Current" />
+                <ExerciseItem
+                  shouldAddExternalLinks={props.shouldAddExternalLinks}
+                  showMuscles={props.isSubstitute}
+                  settings={props.settings}
+                  exercise={item.exercise}
+                  equipment={item.exercise.equipment}
+                />
+              </View>
+            );
+          case "filter":
+            return (
+              <>
+                <TextInput
+                  className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+                  value={filter}
+                  data-cy="exercise-filter-by-name"
+                  placeholder="Filter by name"
+                  onChangeText={(text) => {
+                    setFilter(text.toLowerCase());
+                  }}
+                />
+                <Multiselect
+                  id="filtertypes"
+                  label=""
+                  data-cy="exercise-filter-by-type"
+                  placeholder="Filter by type"
+                  values={filterOptions}
+                  initialSelectedValues={new Set(initialFilterOptions)}
+                  onChange={(ft) => setFilterTypes(Array.from(ft))}
+                />
+              </>
+            );
+          case "custom-exercise": {
+            const e = item.exercise;
+            return (
+              <TouchableOpacity
+                key={e.id}
+                data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
+                className="w-full px-2 py-1 text-left border-b border-gray-200"
+                onPress={(event) => {
+                  props.onChange({ id: e.id }, true);
+                }}
+              >
+                <View className="flex flex-row items-center">
+                  <View className="w-12 pr-2" style={{ minHeight: 40 }}>
+                    <ExerciseImage settings={props.settings} className="w-10 h-10" exerciseType={e} size="small" />
+                  </View>
+                  <View className="flex-1 py-2 text-left">
+                    <LftText>{e.name}</LftText>
+                    <CustomMuscleGroupsView exercise={e} />
+                  </View>
+                  <View>
+                    <TouchableOpacity
+                      className={`px-3 py-4 button nm-edit-custom-exercise-${StringUtils.dashcase(e.name)}`}
+                      data-cy={`custom-exercise-edit-${StringUtils.dashcase(e.name)}`}
+                      onPress={(event) => {
+                        event.preventDefault();
+                        props.setEditingExercise(e);
+                        props.setIsCustomExerciseDisplayed(true);
+                      }}
+                    >
+                      <IconEditSquare />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className={`px-1 py-4 button nm-delete-custom-exercise-${StringUtils.dashcase(e.name)}`}
+                      data-cy={`custom-exercise-delete-${StringUtils.dashcase(e.name)}`}
+                      onPress={(event) => {
+                        event.preventDefault();
+                        AlertUtils.confirm(`Are you sure you want to delete ${e.name}?`, {
+                          onYes: () => props.onDelete(e.id),
+                        });
+                      }}
+                    >
+                      <IconTrash />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          }
+          case "new-custom-exercise":
+            return (
+              <View className="mb-4">
+                <LinkButton
+                  name="custom-exercise-create"
+                  data-cy="custom-exercise-create"
                   onPress={(event) => {
-                    props.onChange({ id: e.id }, true);
+                    event.preventDefault();
+                    props.setEditingExercise(undefined);
+                    props.setIsCustomExerciseDisplayed(true);
                   }}
                 >
-                  <View className="flex flex-row items-center">
-                    <View className="w-12 pr-2" style={{ minHeight: 40 }}>
-                      <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
-                    </View>
-                    <View className="flex-1 py-2 text-left">
-                      <LftText>{e.name}</LftText>
-                      <CustomMuscleGroupsView exercise={e} />
-                    </View>
-                    <View>
-                      <TouchableOpacity
-                        className={`px-3 py-4 button nm-edit-custom-exercise-${StringUtils.dashcase(e.name)}`}
-                        data-cy={`custom-exercise-edit-${StringUtils.dashcase(e.name)}`}
-                        onPress={(event) => {
-                          event.preventDefault();
-                          props.setEditingExercise(e);
-                          props.setIsCustomExerciseDisplayed(true);
-                        }}
-                      >
-                        <IconEditSquare />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        className={`px-1 py-4 button nm-delete-custom-exercise-${StringUtils.dashcase(e.name)}`}
-                        data-cy={`custom-exercise-delete-${StringUtils.dashcase(e.name)}`}
-                        onPress={(event) => {
-                          event.preventDefault();
-                          if (confirm(`Are you sure you want to delete ${e.name}?`)) {
-                            props.onDelete(e.id);
-                          }
-                        }}
-                      >
-                        <IconTrash />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          <View className="mb-4">
-            <LinkButton
-              name="custom-exercise-create"
-              data-cy="custom-exercise-create"
-              onPress={(event) => {
-                event.preventDefault();
-                props.setEditingExercise(undefined);
-                props.setIsCustomExerciseDisplayed(true);
-              }}
-            >
-              Add Custom Exercise
-            </LinkButton>
-          </View>
-        </>
-      )}
-      <GroupHeader name="Built-in exercises" />
-      {exercises.map((e) => {
-        return (
-          <TouchableOpacity
-            key={Exercise.toKey(e)}
-            data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
-              e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
-            }`}
-            className="w-full px-2 py-1 text-left border-b border-gray-200"
-            onPress={() => {
-              props.onChange(e, true);
-            }}
-          >
-            <ExerciseItem
-              shouldAddExternalLinks={props.shouldAddExternalLinks}
-              showMuscles={props.isSubstitute}
-              settings={props.settings}
-              currentExerciseType={props.exerciseType}
-              exercise={e}
-              equipment={e.equipment}
-            />
-          </TouchableOpacity>
-        );
-      })}
-    </View>
+                  Add Custom Exercise
+                </LinkButton>
+              </View>
+            );
+          case "exercise": {
+            const e = item.exercise;
+            return (
+              <TouchableOpacity
+                key={Exercise.toKey(e)}
+                data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
+                  e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
+                }`}
+                className="w-full px-2 py-1 text-left border-b border-gray-200"
+                onPress={() => {
+                  props.onChange(e, true);
+                }}
+              >
+                <ExerciseItem
+                  shouldAddExternalLinks={props.shouldAddExternalLinks}
+                  showMuscles={props.isSubstitute}
+                  settings={props.settings}
+                  currentExerciseType={props.exerciseType}
+                  exercise={e}
+                  equipment={e.equipment}
+                />
+              </TouchableOpacity>
+            );
+          }
+        }
+      }}
+    />
   );
 };
 
@@ -335,13 +430,15 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
   const exerciseType = { id: e.id, equipment: props.equipment || e.defaultEquipment };
 
   return (
-    <View className="flex flex-row items-center">
-      <View className="w-12 pr-2" style={{ minHeight: 40 }}>
-        <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
+    <View className="flex flex-row items-center gap-2">
+      <View className="w-14" style={{ minHeight: 40 }}>
+        <ExerciseImage settings={props.settings} className="w-12 h-12" exerciseType={exerciseType} size="small" />
       </View>
       <View className="flex-1 py-2 text-left">
-        <LftText className="font-bold">{e.name}</LftText>
-        <LftText className="text-grayv2-main">{equipmentName(exerciseType.equipment)}</LftText>
+        <LftText>
+          <LftText className="font-bold">{e.name}</LftText>,{" "}
+          <LftText className="text-grayv2-main">{equipmentName(exerciseType.equipment)}</LftText>
+        </LftText>
         {props.showMuscles ? (
           <MuscleView currentExerciseType={props.currentExerciseType} exercise={e} settings={props.settings} />
         ) : (
@@ -506,22 +603,22 @@ export function MuscleGroupsView(props: { exercise: IExercise; settings: ISettin
   return (
     <View className="text-xs">
       {types.length > 0 && (
-        <View>
+        <LftText>
           <LftText className="text-grayv2-main">Type: </LftText>
           <LftText className="font-bold">{types.join(", ")}</LftText>
-        </View>
+        </LftText>
       )}
       {targetMuscleGroups.length > 0 && (
-        <View>
+        <LftText>
           <LftText className="text-grayv2-main">Target: </LftText>
           <LftText className="font-bold">{targetMuscleGroups.join(", ")}</LftText>
-        </View>
+        </LftText>
       )}
       {synergistMuscleGroups.length > 0 && (
-        <View>
+        <LftText>
           <LftText className="text-grayv2-main">Synergist: </LftText>
           <LftText className="font-bold">{synergistMuscleGroups.join(", ")}</LftText>
-        </View>
+        </LftText>
       )}
     </View>
   );
@@ -545,13 +642,13 @@ function MuscleView(props: {
   return (
     <View className="text-xs">
       {types.length > 0 && (
-        <View>
+        <LftText>
           <LftText className="text-grayv2-main">Type: </LftText>
           <LftText className="font-bold">{types.join(", ")}</LftText>
-        </View>
+        </LftText>
       )}
       {targetMuscles.length > 0 && (
-        <View>
+        <LftText>
           <LftText className="text-grayv2-main">Target: </LftText>
           <LftText className="font-bold">
             {targetMuscles.map((m, i) => {
@@ -567,10 +664,10 @@ function MuscleView(props: {
               );
             })}
           </LftText>
-        </View>
+        </LftText>
       )}
       {synergistMuscles.length > 0 && (
-        <View>
+        <LftText>
           <LftText className="text-grayv2-main">Synergist: </LftText>
           <LftText className="font-bold">
             {synergistMuscles.map((m, i) => {
@@ -586,7 +683,7 @@ function MuscleView(props: {
               );
             })}
           </LftText>
-        </View>
+        </LftText>
       )}
     </View>
   );
@@ -607,22 +704,22 @@ export function CustomMuscleGroupsView(props: { exercise: ICustomExercise }): JS
   return (
     <View className="text-xs">
       {types.length > 0 && (
-        <View>
+        <LftText>
           <LftText className="text-grayv2-main">Type: </LftText>
           <LftText className="font-bold">{types.join(", ")}</LftText>
-        </View>
+        </LftText>
       )}
       {targetMuscleGroups.length > 0 && (
-        <View>
+        <LftText>
           <LftText className="text-grayv2-main">Target: </LftText>
           <LftText className="font-bold">{targetMuscleGroups.join(", ")}</LftText>{" "}
-        </View>
+        </LftText>
       )}
       {synergistMuscleGroups.length > 0 && (
-        <View>
+        <LftText>
           <LftText className="text-grayv2-main">Synergist: </LftText>
           <LftText className="font-bold">{synergistMuscleGroups.join(", ")}</LftText>
-        </View>
+        </LftText>
       )}
     </View>
   );

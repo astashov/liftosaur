@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MathUtils } from "../utils/math";
 import { StringUtils } from "../utils/string";
 import { Input } from "./input";
 import { LftText } from "./lftText";
-import { TouchableOpacity, View } from "react-native";
+import { findNodeHandle, TextInput, TouchableOpacity, View } from "react-native";
+import NativeNumKeyboard from "../../specs/NativeNumKeyboard";
 
 interface IInputNumberProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "ref"> {
   value?: number;
@@ -19,6 +20,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
   const { label, step, min, max, onUpdate, ...rest } = props;
   const [value, setValue] = useState(props.value);
   const actualStep = step ?? 1;
+  const ref = useRef<TextInput>(null);
 
   return (
     <View className="w-full">
@@ -28,6 +30,13 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
             className="flex-row items-center justify-center w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-minus"
             data-cy={`input-${StringUtils.dashcase(props.label || "")}-minus`}
             onPress={() => {
+              if (ref.current) {
+                const nativeTag = findNodeHandle(ref.current);
+                if (nativeTag) {
+                  ref.current.focus();
+                  NativeNumKeyboard.showKeyboard(nativeTag);
+                }
+              }
               if (value != null) {
                 const newValue = MathUtils.clamp(value - actualStep, min, max);
                 setValue(newValue);
@@ -42,6 +51,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
           <View className="flex-1">
             <Input
               label={label}
+              ref={ref}
               labelSize="xs"
               inputSize="sm"
               step="0.01"
@@ -50,6 +60,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
               data-cy={`input-${StringUtils.dashcase(props.label || "")}-field`}
               changeHandler={(e) => {
                 if (e.success) {
+                  console.log("input", e);
                   const data = Number(e.data);
                   if (data != null && !isNaN(data)) {
                     setValue(data);

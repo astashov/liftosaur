@@ -213,35 +213,38 @@ const ExerciseContentView = memo((props: IProps): JSX.Element => {
   return (
     <View data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}>
       <View className="flex-row">
-        <View style={{ width: 62 }}>
+        <View style={{ width: 64 }}>
           <TouchableOpacity
-            className="w-full px-2 nm-workout-exercise-image"
+            className="w-full px-2 py-2 nm-workout-exercise-image"
             style={{ marginLeft: -8 }}
             onPress={() => props.onExerciseInfoClick?.(exercise)}
           >
-            <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
+            <ExerciseImage settings={props.settings} className="w-16 h-16" exerciseType={exercise} size="small" />
           </TouchableOpacity>
         </View>
         <View className="flex-1 min-w-0 ml-auto">
-          <View className="flex-row items-center">
+          <View className="flex-row items-start">
             <View className="flex-1">
               <TouchableOpacity
                 className="text-left nm-workout-exercise-name"
                 data-cy="exercise-name"
                 onPress={() => props.onExerciseInfoClick?.(exercise)}
               >
-                <LftText className="text-lg font-bold">
-                  <LftText className="pr-1">{Exercise.nameWithEquipment(exercise, props.settings)}</LftText>{" "}
+                <View className="flex-row items-center gap-1">
+                  <LftText className="pr-1 text-lg font-bold">
+                    {Exercise.nameWithEquipment(exercise, props.settings)}
+                  </LftText>{" "}
                   <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
-                </LftText>
+                </View>
               </TouchableOpacity>
             </View>
             {props.showEditButtons && (
-              <View className="flex-row">
+              <View className="flex-row gap-4 px-2">
                 {!isCurrentProgress && (
                   <TouchableOpacity
                     data-cy="exercise-state-vars-toggle"
-                    className="p-2 leading-none align-middle nm-workout-see-statvars"
+                    className="leading-none align-middle nm-workout-see-statvars"
+                    hitSlop={8}
                     onPress={() => setShowStateVariables(!showStateVariables)}
                   >
                     <IconPreview size={18} className="inline-block" />
@@ -249,7 +252,8 @@ const ExerciseContentView = memo((props: IProps): JSX.Element => {
                 )}
                 <TouchableOpacity
                   data-cy="exercise-swap"
-                  className="box-content p-2 align-middle nm-workout-edit-mode"
+                  hitSlop={8}
+                  className="box-content align-middle nm-workout-edit-mode"
                   style={{ width: 18, height: 18 }}
                   onPress={() => {
                     updateState(props.dispatch, [
@@ -266,7 +270,8 @@ const ExerciseContentView = memo((props: IProps): JSX.Element => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   data-cy="exercise-edit-mode"
-                  className="box-content p-2 align-middle nm-workout-edit-mode"
+                  hitSlop={8}
+                  className="box-content align-middle nm-workout-edit-mode"
                   style={{ width: 18, height: 18 }}
                   onPress={() => {
                     if (!isCurrentProgress || !programExercise) {
@@ -294,7 +299,8 @@ const ExerciseContentView = memo((props: IProps): JSX.Element => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   data-cy="exercise-notes-toggle"
-                  className="p-2 leading-none align-middle nm-workout-exercise-notes"
+                  hitSlop={8}
+                  className="leading-none align-middle nm-workout-exercise-notes"
                   style={{ marginRight: -8 }}
                   onPress={() => setShowNotes(!showNotes)}
                 >
@@ -303,8 +309,8 @@ const ExerciseContentView = memo((props: IProps): JSX.Element => {
               </View>
             )}
           </View>
-          <LftText data-cy="exercise-equipment" className="text-xs text-grayv2-600">
-            Equipment:{" "}
+          <View data-cy="exercise-equipment" className="flex-row items-center gap-1">
+            <LftText className="text-sm text-grayv2-600">Equipment:</LftText>
             <LinkButton
               name="exercise-equipment-picker"
               data-cy="exercise-equipment-picker"
@@ -321,7 +327,7 @@ const ExerciseContentView = memo((props: IProps): JSX.Element => {
             >
               {currentEquipmentName || "None"}
             </LinkButton>
-          </LftText>
+          </View>
           {programExercise && ProgramExercise.doesUse1RM(programExercise) && (
             <LftText data-cy="exercise-rm1" className="text-xs text-grayv2-600">
               1RM:{" "}
@@ -421,7 +427,7 @@ const ExerciseContentView = memo((props: IProps): JSX.Element => {
             </View>
           )}
           {(!isSubscribed || props.hidePlatesCalculator) && (
-            <View className="h-4">
+            <View>
               {nextSet && <NextSet nextSet={nextSet} settings={props.settings} exerciseType={props.entry.exercise} />}
             </View>
           )}
@@ -508,6 +514,7 @@ const ExerciseContentView = memo((props: IProps): JSX.Element => {
           <TextInput
             data-cy="exercise-notes-input"
             placeholder="The exercise went very well..."
+            multiline={true}
             maxLength={4095}
             value={props.entry.notes}
             onChangeText={(text) => {
@@ -532,8 +539,10 @@ function HelpEquipment(props: IHelpEquipmentProps): JSX.Element {
   return (
     <Nux className="mt-2" id="Rounded Weights" helps={props.helps} dispatch={props.dispatch}>
       <LftText>
-        <LftText className="line-through">Crossed out</LftText> weight means it's{" "}
-        <LftText className="font-bold">rounded</LftText> to fit your bar and plates. Adjust your{" "}
+        <LftText className="line-through">Crossed out</LftText>
+        <LftText> weight means it's </LftText>
+        <LftText className="font-bold">rounded</LftText>
+        <LftText> to fit your bar and plates. Adjust your </LftText>
         <LinkButton
           name="nux-rounding-equipment-settings"
           onPress={() => {
