@@ -23,7 +23,7 @@ export function ScrollableTabs(props: IProps): JSX.Element {
   return (
     <View className="flex-col h-full">
       {tabs.length > 1 && (
-        <View className="flex-row" style={{ marginLeft: -16, marginRight: -16 }}>
+        <View className="flex-row">
           <Scroller arrowYOffsetPct={0}>
             <View className="flex-row w-full pt-4">
               {tabs.map(({ label, isInvalid }, index) => {

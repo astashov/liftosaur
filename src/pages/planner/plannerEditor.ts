@@ -402,15 +402,18 @@ export class PlannerEditor {
 
     const [extensions, compartments] = getEditorSetup(this);
     this.compartments = compartments;
+    console.log("Value", this.args.value);
     const editorState = EditorState.create({
       doc: this.args.value || "",
       extensions: [keymap.of(defaultKeymap), extensions, updateFacet, language, eventHandlers],
     });
 
+    console.log("Add Editor");
     const codemirror = new EditorView({
       state: editorState,
       parent: container,
     });
+    console.log("Done add Editor");
     this.codeMirror = codemirror;
   }
 }

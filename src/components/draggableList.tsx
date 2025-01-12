@@ -28,7 +28,7 @@ export function DraggableList<T>(props: IDraggableListProps<T>): JSX.Element {
   return (
     <div className="relative" ref={elWrapper}>
       {props.items.map((e, i) => (
-        <>
+        <div key={i}>
           <DropTarget index={i} heights={heights.current} data={theData.current} />
           <DraggableListItem
             hideBorders={props.hideBorders}
@@ -72,7 +72,7 @@ export function DraggableList<T>(props: IDraggableListProps<T>): JSX.Element {
             }}
           />
           {props.items.length - 1 === i && <DropTarget heights={heights.current} index={i + 1} data={data} />}
-        </>
+        </div>
       ))}
     </div>
   );
@@ -106,7 +106,7 @@ function DropTarget({
     prevIsDragging.current = !!data;
   });
 
-  const y = rect.current!.y;
+  const y = rect.current?.y;
   let isVisible;
   if (y != null && data != null && index !== data.index) {
     if (index < data.index) {

@@ -65,7 +65,7 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
       shouldShowClose={true}
       onClose={() => props.onChange(undefined, true)}
     >
-      <View className="px-4" style={{ maxWidth: 600, minWidth: 260 }}>
+      <View className="web:flex-1" style={{ maxWidth: 600, minWidth: 260 }}>
         {isCustomExerciseDisplayed ? (
           <CustomExerciseForm
             backLabel="Back to list"
@@ -277,7 +277,7 @@ const ExercisesList = (props: IExercisesListProps): JSX.Element => {
       style={{ minWidth: 300 }}
       className="pt-4"
       data-cy="modal-exercise"
-      contentContainerStyle={{ flexGrow: 1 }}
+      contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16 }}
       data={items}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => {

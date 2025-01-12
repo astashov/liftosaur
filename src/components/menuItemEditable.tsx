@@ -110,7 +110,7 @@ export function MenuItemValue(
               props.onChange(itemValue == null ? undefined : itemValue);
             }
           }}
-          items={(props.values || []).map(([value, label]) => ({ label, value }))}
+          items={(props.values || []).map(([value, label]) => ({ label, value, key: value }))}
           placeholder={{}}
           style={{
             viewContainer: {

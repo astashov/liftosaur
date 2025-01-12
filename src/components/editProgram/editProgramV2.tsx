@@ -96,6 +96,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           rightButtons={[
             <button
+              key={0}
               data-cy="navbar-3-dot"
               className="p-2 nm-edit-program-v2-navbar-kebab"
               onClick={() => setShouldShowBottomSheet(true)}

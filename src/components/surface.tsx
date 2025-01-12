@@ -1,5 +1,5 @@
 import { forwardRef, Ref } from "react";
-import { View, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, SafeAreaView } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 interface IProps {
@@ -30,7 +30,9 @@ export const Surface = forwardRef((props: IProps, ref: Ref<HTMLElement>): JSX.El
               : undefined
           }
         >
-          <View className="flex-1 w-full safe-area-inset-bottom safe-area-inset-top web:pt-16">{props.children}</View>
+          <View className="flex-1 w-full safe-area-inset-bottom safe-area-inset-top web:pt-16 web:pb-16">
+            {props.children}
+          </View>
         </KeyboardAwareScrollView>
         {props.footer}
         {props.addons}

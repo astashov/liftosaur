@@ -42,7 +42,7 @@ export function LftModal(props: IProps): JSX.Element {
             ...props.style,
           }}
         >
-          <View className={`${props.noPaddings ? "" : "px-6"} ${props.innerClassName}`}>{props.children}</View>
+          <View className={`w-full ${props.noPaddings ? "" : "px-6"} ${props.innerClassName}`}>{props.children}</View>
           {props.shouldShowClose && (
             <TouchableOpacity
               data-cy={`modal-close${props.name ? `-${props.name}` : ""}`}

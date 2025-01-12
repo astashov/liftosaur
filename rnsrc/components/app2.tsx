@@ -19,16 +19,6 @@ import { Program } from "../../src/models/program";
 import { ProgramHistoryView } from "../../src/components/programHistory";
 import { Progress } from "../../src/models/progress";
 import { ProgramDayView } from "../../src/components/programDay";
-import { KeyboardRegistry } from "react-native-ui-lib/keyboard";
-import { View, Text } from "react-native";
-
-KeyboardRegistry.registerKeyboard("liftosaur.NumKeyboard", () => {
-  return (
-    <View className="flex bg-slate-600">
-      <Text>Custom Keyboard</Text>
-    </View>
-  );
-});
 
 interface IAppProps {
   essentials?: IInitializeEssentials;
