@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { lb, LensBuilder } from "lens-shmens";
-import React, { JSX } from "react";
 import { LinkButton } from "../../components/linkButton";
 import { ScrollableTabs } from "../../components/scrollableTabs";
 import { IPlannerProgram, ISettings } from "../../types";
@@ -25,6 +24,8 @@ import { IconUndo } from "../icons/iconUndo";
 import { undo, canUndo, canRedo, redo } from "../../pages/builder/utils/undoredo";
 import { GroupHeader } from "../groupHeader";
 import { MarkdownEditor } from "../markdownEditor";
+import { LftText } from "../lftText";
+import { View, TouchableOpacity } from "react-native";
 
 export interface IEditProgramV2DaysProps {
   state: IPlannerState;
@@ -49,10 +50,10 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
   let dayIndex = 0;
 
   return (
-    <div>
-      <div className="sticky z-20 w-full py-1 pl-4 pr-2 bg-white border-b border-grayv2-100" style={{ top: "3.7rem" }}>
-        <div className="flex items-center">
-          <div className="mr-2">
+    <View>
+      <View className="sticky z-20 w-full py-1 pl-4 pr-2 bg-white border-b border-grayv2-100" style={{ top: 59.2 }}>
+        <View className="flex flex-row items-center">
+          <View className="mr-2">
             <Button
               name="editor-save-v2-top"
               data-cy="editor-save-v2-top"
@@ -67,36 +68,27 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             >
               Save
             </Button>
-          </div>
-          <div className="ml-auto">
-            <button
-              style={{ cursor: canUndo(props.state) ? "pointer" : "default" }}
-              title="Undo"
+          </View>
+          <View className="flex flex-row ml-auto">
+            <TouchableOpacity
               className="p-2 nm-program-undo"
               disabled={!canUndo(props.state)}
-              onClick={() => undo(props.plannerDispatch, props.state)}
+              onPress={() => undo(props.plannerDispatch, props.state)}
             >
               <IconUndo width={20} height={20} color={!canUndo(props.state) ? "#BAC4CD" : "#171718"} />
-            </button>
-            <button
-              style={{ cursor: canRedo(props.state) ? "pointer" : "default" }}
-              title="Redo"
+            </TouchableOpacity>
+            <TouchableOpacity
               className="p-2 nm-program-redo"
               disabled={!canRedo(props.state)}
-              onClick={() => redo(props.plannerDispatch, props.state)}
+              onPress={() => redo(props.plannerDispatch, props.state)}
             >
-              <IconUndo
-                width={20}
-                height={20}
-                style={{ transform: "scale(-1,  1)" }}
-                color={!canRedo(props.state) ? "#BAC4CD" : "#171718"}
-              />
-            </button>
-            <button
+              <IconUndo width={20} height={20} color={!canRedo(props.state) ? "#BAC4CD" : "#171718"} />
+            </TouchableOpacity>
+            <TouchableOpacity
               className="p-2 nm-ui-mode-switch"
               data-cy="editor-v2-full-program"
               disabled={isInvalid}
-              onClick={() => {
+              onPress={() => {
                 if (!isInvalid) {
                   if (ui.isUiMode) {
                     props.plannerDispatch(props.lbUi.p("isUiMode").record(false));
@@ -111,58 +103,58 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
               }}
             >
               <IconDoc style={{ display: "block" }} color={isInvalid ? "#BAC4CD" : "#3C5063"} />
-            </button>
-            <button
+            </TouchableOpacity>
+            <TouchableOpacity
               data-cy="editor-v2-week-muscles"
               className="p-2 nm-show-week-muscles"
-              onClick={() => {
+              onPress={() => {
                 props.plannerDispatch(props.lbUi.p("showWeekStats").record(true));
               }}
             >
               <IconMusclesW size={22} />
-            </button>
-            <button
+            </TouchableOpacity>
+            <TouchableOpacity
               disabled={!enabledDayStats}
               className="p-2 nm-show-day-muscles"
               data-cy="editor-v2-day-muscles"
-              onClick={() => {
+              onPress={() => {
                 if (enabledDayStats) {
                   props.plannerDispatch(props.lbUi.p("showDayStats").record(true));
                 }
               }}
             >
               <IconMusclesD size={22} color={enabledDayStats ? "#3C5063" : "#D2D8DE"} />
-            </button>
-            <button
+            </TouchableOpacity>
+            <TouchableOpacity
               disabled={!enabledDayStats}
               data-cy="editor-v2-exercise-stats"
               className="p-2 nm-show-exercise-stats"
-              onClick={() => {
+              onPress={() => {
                 if (enabledDayStats) {
                   props.plannerDispatch(props.lbUi.p("showExerciseStats").record(true));
                 }
               }}
             >
               <IconGraphsE width={16} height={22} color={enabledDayStats ? "#3C5063" : "#D2D8DE"} />
-            </button>
-            <button
+            </TouchableOpacity>
+            <TouchableOpacity
               disabled={isInvalid}
               data-cy="program-preview"
               className="p-2 nm-show-program-preview"
-              onClick={() => {
+              onPress={() => {
                 if (!isInvalid) {
                   props.plannerDispatch(props.lbUi.p("showPreview").record(true));
                 }
               }}
             >
               <IconPreview />
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="px-4">
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+      <View className="px-4">
         <ScrollableTabs
-          offsetY="6rem"
+          offsetY="96"
           defaultIndex={ui.focusedDay?.week ? ui.focusedDay.week - 1 : undefined}
           onChange={(index) => props.plannerDispatch(props.lbUi.p("weekIndex").record(index))}
           tabs={plannerProgram.weeks.map((week, weekIndex) => {
@@ -171,44 +163,44 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
               label: week.name,
               isInvalid: evaluatedWeeks[weekIndex].some((day) => !day.success),
               children: (
-                <div key={weekIndex}>
+                <View key={weekIndex}>
                   {!showProgramDescription ? (
-                    <div>
+                    <View>
                       <LinkButton
                         name="planner-add-week-description"
-                        onClick={() => {
+                        onPress={() => {
                           props.plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("description").record(""));
                         }}
                       >
                         Add Week Description
                       </LinkButton>
-                    </div>
+                    </View>
                   ) : (
-                    <div className="mb-4">
-                      <div className="leading-none">
+                    <View className="mb-4">
+                      <View className="leading-none">
                         <GroupHeader name="Week Description (Markdown)" />
-                      </div>
+                      </View>
                       <MarkdownEditor
                         value={week.description ?? ""}
                         onChange={(v) => {
                           props.plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("description").record(v));
                         }}
                       />
-                      <div>
+                      <View>
                         <LinkButton
                           className="text-xs"
                           name="planner-delete-week-description"
-                          onClick={() => {
+                          onPress={() => {
                             props.plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("description").record(undefined));
                           }}
                         >
                           Delete Week Description
                         </LinkButton>
-                      </div>
-                    </div>
+                      </View>
+                    </View>
                   )}
-                  <div className="flex flex-col mt-4 md:flex-row">
-                    <div className="flex-1">
+                  <View className="flex flex-col mt-4 md:flex-row">
+                    <View className="flex-1">
                       <DraggableList
                         items={week.days}
                         onDragEnd={(startIndex, endIndex) => {
@@ -231,7 +223,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
                           const dayData = { week: weekIndex + 1, dayInWeek: dayInWeekIndex + 1, day: dayIndex + 1 };
                           dayIndex += 1;
                           return (
-                            <div key={dayInWeekIndex}>
+                            <View key={dayInWeekIndex}>
                               <EditProgramV2Day
                                 exerciseFullNames={props.exerciseFullNames}
                                 evaluatedWeeks={evaluatedWeeks}
@@ -247,15 +239,15 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
                                 ui={ui}
                                 lbProgram={lbProgram}
                               />
-                            </div>
+                            </View>
                           );
                         }}
                       />
-                      <div className="pb-8">
+                      <View className="pb-8">
                         <LinkButton
                           name="planner-add-day"
                           data-cy="planner-add-day"
-                          onClick={() => {
+                          onPress={() => {
                             plannerDispatch(
                               lbProgram
                                 .p("weeks")
@@ -273,15 +265,15 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
                         >
                           Add Day
                         </LinkButton>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                      </View>
+                    </View>
+                  </View>
+                </View>
               ),
             };
           })}
         />
-        <div className="mb-8 text-center">
+        <View className="mb-8 text-center">
           <Button
             name="save-editor-v2"
             kind="orange"
@@ -294,8 +286,8 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
           >
             Save
           </Button>
-        </div>
-      </div>
+        </View>
+      </View>
       {props.ui.showExerciseStats && props.ui.focusedExercise && (
         <LftModal
           shouldShowClose={true}
@@ -339,10 +331,10 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
               settings={props.settings}
             />
           ) : (
-            <div className="font-bold">Week Stats</div>
+            <LftText className="font-bold">Week Stats</LftText>
           )}
         </LftModal>
       )}
-    </div>
+    </View>
   );
 }

@@ -24,6 +24,8 @@ import { LinkButton } from "../linkButton";
 import { OneLineTextEditor } from "./oneLineTextEditor";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
 import { Input } from "../input";
+import { GestureResponderEvent, TouchableOpacity, View } from "react-native";
+import { LftText } from "../lftText";
 
 interface IEditProgramSets {
   programExercise: IProgramExercise;
@@ -58,40 +60,41 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
         rightAddOn={
           <>
             {onDuplicateVariation ? (
-              <button
-                style={{ marginTop: "-0.5rem", marginBottom: "-0.5rem" }}
+              <TouchableOpacity
+                style={{ marginTop: -8, marginBottom: -8 }}
                 className="p-2 nm-duplicate-variation"
-                onClick={() => onDuplicateVariation(variationIndex)}
+                onPress={() => onDuplicateVariation(variationIndex)}
               >
                 <IconDuplicate2 />
-              </button>
+              </TouchableOpacity>
             ) : undefined}
             {onDeleteVariation ? (
-              <button
-                style={{ marginTop: "-0.5rem", marginBottom: "-0.5rem" }}
+              <TouchableOpacity
+                style={{ marginTop: -8, marginBottom: -8 }}
                 className="p-2 nm-delete-variation"
-                onClick={() => onDeleteVariation(variationIndex)}
+                onPress={() => onDeleteVariation(variationIndex)}
               >
                 <IconTrash />
-              </button>
+              </TouchableOpacity>
             ) : undefined}
           </>
         }
         help={
-          <span>
+          <LftText>
             Sets, reps and weights
             {programExercise.variations.length > 1 && (
-              <span>
-                of chosen <strong>Variation</strong>
-              </span>
+              <LftText>
+                of chosen <LftText className="font-bold">Variation</LftText>
+              </LftText>
             )}
-            . Note that <strong>Reps</strong> and <strong>Weight</strong> fields are Liftoscript scripts, and the
-            returning value will be used for reps/weight. <strong>AMRAP</strong> means "As Many Reps As Possible", i.e.
-            you do as many reps as you can for it.
-          </span>
+            . Note that <LftText className="font-bold">Reps</LftText> and{" "}
+            <LftText className="font-bold">Weight</LftText> fields are Liftoscript scripts, and the returning value will
+            be used for reps/weight. <LftText className="font-bold">AMRAP</LftText> means "As Many Reps As Possible",
+            i.e. you do as many reps as you can for it.
+          </LftText>
         }
       />
-      <ul className="relative z-10 mt-2 text-sm">
+      <View className="relative z-10 mt-2 text-sm">
         <DraggableList
           hideBorders={true}
           items={variation.sets}
@@ -125,12 +128,12 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
             props.onReorderSets(variationIndex, startIndex, endIndex);
           }}
         />
-      </ul>
-      <div>
-        <LinkButton name="add-new-set" data-cy="add-new-set" onClick={() => props.onAddSet(variationIndex)}>
+      </View>
+      <View>
+        <LinkButton name="add-new-set" data-cy="add-new-set" onPress={() => props.onAddSet(variationIndex)}>
           Add New Set
         </LinkButton>
-      </div>
+      </View>
     </>
   );
 }
@@ -213,19 +216,19 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
   const rpeResult = props.enabledRpe && set.rpeExpr ? validate(set.rpeExpr.trim(), "rpe") : undefined;
 
   return (
-    <li className="relative pb-2">
-      <div className={`flex p-1  select-none bg-purplev2-100 rounded-2xl`}>
-        <div className={`flex flex-col pt-2 items-center`}>
-          <div>
+    <View className="relative pb-2">
+      <View className="flex flex-row p-1 select-none bg-purplev2-100 rounded-2xl">
+        <View className="flex flex-col items-center pt-2">
+          <View>
             <SetNumber setIndex={props.setIndex} />
-          </div>
+          </View>
           <Handle handleTouchStart={props.handleTouchStart} />
-        </div>
-        <div className="flex flex-col flex-1 min-w-0">
-          <div className="flex">
-            <div className="flex-1 min-w-0">
+        </View>
+        <View className="flex flex-col flex-1 min-w-0">
+          <View className="flex flex-row">
+            <View className="flex-1 min-w-0">
               {props.enabledRepRanges && (
-                <div className="mb-1">
+                <View className="mb-1">
                   <MinRepsInput
                     repsResult={minRepsResult}
                     variationIndex={propsRef.current!.variationIndex}
@@ -234,7 +237,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
                     set={set}
                     onChangeReps={props.onChangeMinReps}
                   />
-                </div>
+                </View>
               )}
               <RepsInput
                 label={props.enabledRepRanges ? "Max Reps" : "Reps"}
@@ -245,27 +248,27 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
                 set={set}
                 onChangeReps={props.onChangeReps}
               />
-            </div>
-            <div className="pt-2 pl-2 pr-1">
+            </View>
+            <View className="pt-2 pl-2 pr-1">
               <Amrap
                 onChangeAmrap={props.onChangeAmrap}
                 set={set}
                 variationIndex={propsRef.current!.variationIndex}
                 setIndex={propsRef.current!.setIndex}
               />
-            </div>
+            </View>
             {props.isDeleteEnabled && (
-              <div>
+              <View>
                 <DeleteBtn
                   onRemoveSet={props.onRemoveSet}
                   variationIndex={propsRef.current!.variationIndex}
                   setIndex={propsRef.current!.setIndex}
                 />
-              </div>
+              </View>
             )}
-          </div>
-          <div className="flex mt-2">
-            <div className="flex-1 min-w-0">
+          </View>
+          <View className="flex flex-row mt-2">
+            <View className="flex-1 min-w-0">
               <WeightInput
                 weightResult={weightResult}
                 variationIndex={propsRef.current!.variationIndex}
@@ -274,8 +277,8 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
                 set={set}
                 onChangeWeight={props.onChangeWeight}
               />
-            </div>
-            <div style={{ width: "7rem" }} className="px-2">
+            </View>
+            <View style={{ width: 112 }} className="px-2">
               <Input
                 changeHandler={(r) => {
                   if (r.success) {
@@ -287,11 +290,11 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
                 label="Label"
                 value={set.label}
               />
-            </div>
-          </div>
+            </View>
+          </View>
           {props.enabledRpe && (
-            <div className="flex mt-2">
-              <div className="flex-1 min-w-0">
+            <View className="flex flex-row mt-2">
+              <View className="flex-1 min-w-0">
                 <RpeInput
                   rpeResult={rpeResult}
                   variationIndex={propsRef.current!.variationIndex}
@@ -300,20 +303,20 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
                   set={set}
                   onChangeRpe={props.onChangeRpe}
                 />
-              </div>
-              <div className="pt-2 pl-2 pr-1">
+              </View>
+              <View className="pt-2 pl-2 pr-1">
                 <LogRpe
                   onChangeLogRpe={props.onChangeLogRpe}
                   set={set}
                   variationIndex={propsRef.current!.variationIndex}
                   setIndex={propsRef.current!.setIndex}
                 />
-              </div>
-            </div>
+              </View>
+            </View>
           )}
-        </div>
-      </div>
-    </li>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -323,45 +326,42 @@ function DeleteBtn(props: {
   setIndex: number;
 }): JSX.Element {
   return (
-    <button
+    <TouchableOpacity
       className="p-3 nm-remove-set"
       style={{ top: 0, right: 0 }}
-      onClick={() => props.onRemoveSet(props.variationIndex, props.setIndex)}
+      onPress={() => props.onRemoveSet(props.variationIndex, props.setIndex)}
     >
       <IconTrash />
-    </button>
+    </TouchableOpacity>
   );
 }
 
-function Handle(props: { handleTouchStart?: (e: TouchEvent | MouseEvent) => void }): JSX.Element {
+function Handle(props: { handleTouchStart?: (e: GestureResponderEvent) => void }): JSX.Element {
   return (
-    <div
+    <TouchableOpacity
       className="p-2 cursor-move"
-      onTouchStart={(e) => {
+      onPressIn={(e) => {
         if (props.handleTouchStart) {
-          props.handleTouchStart(e.nativeEvent);
-        }
-      }}
-      onMouseDown={(e) => {
-        if (props.handleTouchStart) {
-          props.handleTouchStart(e.nativeEvent);
+          props.handleTouchStart(e);
         }
       }}
     >
       <IconHandle />
-    </div>
+    </TouchableOpacity>
   );
 }
 
 export function SetNumber(props: { setIndex: number; size?: "md" | "sm" }): JSX.Element {
   return (
-    <div
+    <View
       className={`flex items-center justify-center ${
-        props.size === "sm" ? "w-5 h-5 font-bold text-xs" : "w-6 h-6 font-bold"
-      } border rounded-full border-grayv2-main text-grayv2-main`}
+        props.size === "sm" ? "w-5 h-5" : "w-6 h-6"
+      } border rounded-full border-grayv2-main`}
     >
-      {props.setIndex + 1}
-    </div>
+      <LftText className={`${props.size === "sm" ? "font-bold text-xs" : "font-bold"} text-grayv2-main`}>
+        {props.setIndex + 1}
+      </LftText>
+    </View>
   );
 }
 
@@ -472,7 +472,7 @@ interface IAmrapProps {
 function Amrap(props: IAmrapProps): JSX.Element {
   return (
     <label className="text-center">
-      <div>
+      <View>
         <input
           checked={props.set.isAmrap}
           className="block checkbox text-bluev2"
@@ -482,13 +482,13 @@ function Amrap(props: IAmrapProps): JSX.Element {
             props.onChangeAmrap(e.currentTarget.checked, props.variationIndex, props.setIndex);
           }}
         />
-      </div>
-      <div className="text-xs leading-none">
-        <span className="align-middle text-grayv2-main">AMRAP</span>{" "}
-        <button className="align-middle nm-amrap-help" onClick={() => alert("As Many Reps As Possible.")}>
+      </View>
+      <View className="text-xs leading-none">
+        <LftText className="align-middle text-grayv2-main">AMRAP</LftText>{" "}
+        <TouchableOpacity className="align-middle nm-amrap-help" onPress={() => alert("As Many Reps As Possible.")}>
           <IconHelp size={12} color="#607284" />
-        </button>
-      </div>
+        </TouchableOpacity>
+      </View>
     </label>
   );
 }
@@ -503,7 +503,7 @@ interface ILogRpeProps {
 function LogRpe(props: ILogRpeProps): JSX.Element {
   return (
     <label className="text-center">
-      <div>
+      <View>
         <input
           data-cy="toggle-log-rpe"
           checked={props.set.logRpe}
@@ -514,20 +514,20 @@ function LogRpe(props: ILogRpeProps): JSX.Element {
             props.onChangeLogRpe(e.currentTarget.checked, props.variationIndex, props.setIndex);
           }}
         />
-      </div>
-      <div className="text-xs leading-none">
-        <span className="align-middle text-grayv2-main">Log RPE</span>{" "}
-        <button
+      </View>
+      <View className="text-xs leading-none">
+        <LftText className="align-middle text-grayv2-main">Log RPE</LftText>{" "}
+        <TouchableOpacity
           className="align-middle nm-log-rpe-help"
-          onClick={() =>
+          onPress={() =>
             alert(
               "Log RPE (Rate of Perceived Exertion) when finished this set. You can access it in the Finish Day Script in `completedRPE` variable."
             )
           }
         >
           <IconHelp size={12} color="#607284" />
-        </button>
-      </div>
+        </TouchableOpacity>
+      </View>
     </label>
   );
 }

@@ -1,14 +1,14 @@
 import { lb } from "lens-shmens";
-import React, { JSX } from "react";
 import { focusedToStr, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { IDayData, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { DraggableList } from "../draggableList";
-import { LinkButton } from "../linkButton";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { EditProgramV2UiEditExercise } from "./editProgramV2UiEditExercise";
 import { EditProgramV2UiExercise } from "./editProgramV2UiExercise";
+import { LftText } from "../lftText";
+import { View, TouchableOpacity } from "react-native";
 
 interface IEditProgramV2UiExercisesProps {
   evaluatedWeeks: IPlannerEvalResult[][];
@@ -22,12 +22,12 @@ interface IEditProgramV2UiExercisesProps {
 export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps): JSX.Element {
   const evaluatedDay = props.evaluatedWeeks?.[props.dayData.week - 1]?.[props.dayData.dayInWeek - 1];
   if (!evaluatedDay?.success) {
-    return <div />;
+    return <View />;
   }
   const lbProgram = lb<IPlannerState>().p("current").p("program");
 
   return (
-    <div className="w-full">
+    <View className="w-full">
       <DraggableList
         hideBorders={true}
         items={evaluatedDay.data}
@@ -82,11 +82,11 @@ export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps):
           );
         }}
       />
-      <div>
-        <LinkButton
-          name="add-exercise"
+      <View>
+        <TouchableOpacity
+          className="add-exercise"
           data-cy="add-exercise"
-          onClick={() => {
+          onPress={() => {
             props.plannerDispatch(
               lb<IPlannerState>()
                 .p("ui")
@@ -103,9 +103,9 @@ export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps):
             );
           }}
         >
-          Add Exercise
-        </LinkButton>
-      </div>
-    </div>
+          <LftText>Add Exercise</LftText>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }

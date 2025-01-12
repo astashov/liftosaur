@@ -31,17 +31,15 @@ export function EditProgramV2EditWeekDayModal(props: IProps): JSX.Element {
       <Input
         label="Day Name"
         data-cy="modal-day-name-input"
-        ref={textInput}
         defaultValue={nameModal}
         type="text"
         required={true}
         requiredMessage="Please enter a name for a day"
       />
-      <p className="mt-4 text-center">
+      <div className="mt-4 text-center">
         <Button
           name="modal-edit-day-v2-cancel"
           data-cy="modal-edit-day-v2-cancel"
-          type="button"
           kind="grayv2"
           className="mr-3"
           onClick={props.onClose}
@@ -51,7 +49,6 @@ export function EditProgramV2EditWeekDayModal(props: IProps): JSX.Element {
         <Button
           name="modal-edit-day-v2-submit"
           data-cy="modal-edit-day-v2-submit"
-          type="button"
           kind="orange"
           className="ls-edit-davv2-modal-submit"
           onClick={() => {
@@ -62,7 +59,7 @@ export function EditProgramV2EditWeekDayModal(props: IProps): JSX.Element {
         >
           Update
         </Button>
-      </p>
+      </div>
     </LftModal>
   );
 }

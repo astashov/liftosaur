@@ -1,6 +1,6 @@
 import { lb } from "lens-shmens";
-import React, { JSX } from "react";
 import { useMemo } from "react";
+import { View } from "react-native";
 import { LinkButton } from "../../components/linkButton";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -8,6 +8,7 @@ import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { EditProgramV2Days } from "./editProgramV2Days";
 import { EditProgramV2Weeks } from "./editProgramV2Weeks";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
+import { LftText } from "../lftText";
 
 export interface IPlannerContentPerDayProps {
   state: IPlannerState;
@@ -26,26 +27,26 @@ export function EditProgramV2PerDay(props: IPlannerContentPerDayProps): JSX.Elem
   }, [plannerProgram, settings]);
 
   return (
-    <div>
+    <View>
       {props.ui.subscreen !== "weeks" && (
-        <div className="flex items-center px-4">
-          <div>
+        <View className="flex-row items-center px-4">
+          <View>
             <LinkButton
               name="planner-edit-weeks"
-              onClick={() => props.plannerDispatch(lb<IPlannerState>().pi("ui").p("subscreen").record("weeks"))}
+              onPress={() => props.plannerDispatch(lb<IPlannerState>().pi("ui").p("subscreen").record("weeks"))}
             >
-              Edit Weeks
+              <LftText>Edit Weeks</LftText>
             </LinkButton>
-          </div>
-          <div className="ml-auto">
+          </View>
+          <View className="ml-auto">
             <LinkButton
               name="planner-edit-settings"
-              onClick={() => props.plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(true))}
+              onPress={() => props.plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(true))}
             >
-              Settings
+              <LftText>Settings</LftText>
             </LinkButton>
-          </div>
-        </div>
+          </View>
+        </View>
       )}
       {props.ui.subscreen === "weeks" ? (
         <EditProgramV2Weeks
@@ -75,6 +76,6 @@ export function EditProgramV2PerDay(props: IPlannerContentPerDayProps): JSX.Elem
           plannerDispatch={plannerDispatch}
         />
       )}
-    </div>
+    </View>
   );
 }

@@ -1,5 +1,6 @@
 import { lb } from "lens-shmens";
 import React, { JSX } from "react";
+import { View, TouchableOpacity, GestureResponderEvent } from "react-native";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { focusedToStr, IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
@@ -20,6 +21,7 @@ import { EditProgramUiDescriptions } from "./editProgramUi/editProgramUiDescript
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { EditProgramUiProgress } from "./editProgramUi/editProgramUiProgress";
 import { EditProgramUiUpdate } from "./editProgramUi/editProgramUiUpdate";
+import { LftText } from "../lftText";
 
 interface IEditProgramV2UiExerciseProps {
   plannerExercise: IPlannerProgramExercise;
@@ -27,7 +29,7 @@ interface IEditProgramV2UiExerciseProps {
   dayData: Required<IDayData>;
   exerciseLine: number;
   ui: IPlannerUi;
-  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
+  handleTouchStart?: (e: GestureResponderEvent) => void;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
@@ -53,44 +55,39 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
   const lbProgram = lb<IPlannerState>().p("current").p("program");
 
   return (
-    <div
+    <View
       data-cy={`exercise-${key}`}
-      className="px-2 py-1 mb-2 rounded-lg bg-purplev2-100"
-      style={{ border: "1px solid rgb(125 103 189 / 15%)", minHeight: "5rem" }}
+      className="px-2 py-1 mb-2 border rounded-lg bg-purplev2-100"
+      style={{ minHeight: 80 }}
     >
-      <div className="flex items-center">
-        <div className="flex items-center flex-1">
+      <View className="flex flex-row items-center">
+        <View className="flex flex-row items-center flex-1">
           {props.handleTouchStart && (
-            <div className="p-2 mr-1 cursor-move" style={{ touchAction: "none" }}>
-              <span
-                onMouseDown={(e) => {
+            <View className="p-2 mr-1 cursor-move">
+              <TouchableOpacity
+                onPressIn={(e) => {
                   if (props.handleTouchStart) {
-                    props.handleTouchStart(e.nativeEvent);
-                  }
-                }}
-                onTouchStart={(e) => {
-                  if (props.handleTouchStart) {
-                    props.handleTouchStart(e.nativeEvent);
+                    props.handleTouchStart(e);
                   }
                 }}
               >
                 <IconHandle />
-              </span>
-            </div>
+              </TouchableOpacity>
+            </View>
           )}
-          <div>
+          <View>
             <SetNumber setIndex={props.exerciseLine} />
-          </div>
-          {orderAndRepeat && <div className="ml-4 text-xs font-bold text-grayv2-main">[{orderAndRepeat}]</div>}
+          </View>
+          {orderAndRepeat && <LftText className="ml-4 text-xs font-bold text-grayv2-main">[{orderAndRepeat}]</LftText>}
           {plannerExercise.notused && (
-            <div className="px-1 ml-3 text-xs font-bold text-white rounded bg-grayv2-main">UNUSED</div>
+            <LftText className="px-1 ml-3 text-xs font-bold text-white rounded bg-grayv2-main">UNUSED</LftText>
           )}
-        </div>
-        <div className="">
-          <button
+        </View>
+        <View>
+          <TouchableOpacity
             data-cy="edit-exercise"
             className="px-2 align-middle ls-edit-day-v2 button nm-edit-day-v2"
-            onClick={() => {
+            onPress={() => {
               props.plannerDispatch(
                 lb<IPlannerState>()
                   .p("ui")
@@ -106,11 +103,11 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
             }}
           >
             <IconEditSquare />
-          </button>
-          <button
+          </TouchableOpacity>
+          <TouchableOpacity
             data-cy="clone-exercise"
             className="px-2 align-middle ls-clone-day-v2 button nm-clone-day-v2"
-            onClick={() => {
+            onPress={() => {
               props.plannerDispatch(
                 lb<IPlannerState>()
                   .p("ui")
@@ -132,11 +129,11 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
             }}
           >
             <IconDuplicate2 />
-          </button>
-          <button
+          </TouchableOpacity>
+          <TouchableOpacity
             data-cy={`delete-exercise`}
             className="px-2 align-middle ls-delete-day-v2 button nm-delete-day-v2"
-            onClick={() => {
+            onPress={() => {
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
                   return EditProgramUiHelpers.deleteCurrentInstance(
@@ -150,28 +147,28 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
             }}
           >
             <IconTrash />
-          </button>
-        </div>
-      </div>
-      <div className="flex items-center flex-1">
+          </TouchableOpacity>
+        </View>
+      </View>
+      <View className="flex flex-row items-center flex-1">
         {exerciseType && (
-          <div className="mr-3">
+          <View className="mr-3">
             <ExerciseImage settings={props.settings} className="w-8" exerciseType={exerciseType} size="small" />
-          </div>
+          </View>
         )}
-        <div className="flex items-center flex-1 mr-2 text-lg">
-          <div data-cy="planner-ui-exercise-name">
+        <View className="flex flex-row items-center flex-1 mr-2 text-lg">
+          <LftText data-cy="planner-ui-exercise-name">
             {plannerExercise.label ? `${plannerExercise.label}: ` : ""}
             {plannerExercise.name}
             {plannerExercise.equipment != null && plannerExercise.equipment !== exercise?.defaultEquipment && (
-              <div className="text-xs text-grayv2-main">{equipmentName(plannerExercise.equipment)}</div>
+              <LftText className="text-xs text-grayv2-main">{equipmentName(plannerExercise.equipment)}</LftText>
             )}
-          </div>
-          <div>
-            <button
+          </LftText>
+          <View>
+            <TouchableOpacity
               className="w-8 p-2 mr-1 text-center nm-edit-program-v2-expand-collapse-exercise"
               data-cy="collapse-exercise"
-              onClick={() => {
+              onPress={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>()
                     .p("ui")
@@ -191,16 +188,16 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
               }}
             >
               {isCollapsed ? <IconArrowRight className="inline-block" /> : <IconArrowDown2 className="inline-block" />}
-            </button>
-          </div>
-        </div>
-      </div>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
       {!isCollapsed && (
         <>
           {plannerExercise.descriptions.length > 0 && (
             <EditProgramUiDescriptions header="Descriptions" showCurrent={true} plannerExercise={plannerExercise} />
           )}
-          <div className="px-1">
+          <View className="px-1">
             {PlannerProgramExercise.setVariations(plannerExercise).map((_, i) => {
               const sets = PlannerProgramExercise.sets(plannerExercise, i);
               const hasCurrentSets = !!plannerExercise.setVariations[i]?.sets;
@@ -214,55 +211,55 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
               let currentIndex = plannerExercise.setVariations.findIndex((v) => v.isCurrent);
               currentIndex = currentIndex === -1 ? 0 : currentIndex;
               return (
-                <div>
-                  <div>
+                <View key={i}>
+                  <View>
                     {plannerExercise.setVariations.length > 1 && (
                       <GroupHeader
                         highlighted={true}
                         name={`Set Variation ${i + 1}`}
                         rightAddOn={
                           plannerExercise.setVariations.length > 1 && currentIndex === i ? (
-                            <div className="px-1 text-xs font-bold text-white rounded bg-grayv2-main">CURRENT</div>
+                            <LftText className="px-1 text-xs font-bold text-white rounded bg-grayv2-main">
+                              CURRENT
+                            </LftText>
                           ) : undefined
                         }
                       />
                     )}
-                  </div>
-                  <div className="flex items-end">
+                  </View>
+                  <View className="flex flex-row items-end">
                     {displayWarmupSets.flat().length > 0 && (
                       <>
-                        <div>
-                          <div className="text-xs text-center text-grayv2-main">Warmups</div>
-                          <div>
-                            <div className="flex">
-                              {displayWarmupSets.map((g) => (
-                                <HistoryRecordSet sets={g} isNext={true} />
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="ml-2 mr-4 bg-grayv2-100" style={{ width: "1px", height: "60px" }} />
+                        <View>
+                          <LftText className="text-xs text-center text-grayv2-main">Warmups</LftText>
+                          <View className="flex flex-row">
+                            {displayWarmupSets.map((g, index) => (
+                              <HistoryRecordSet key={index} sets={g} isNext={true} />
+                            ))}
+                          </View>
+                        </View>
+                        <View className="ml-2 mr-4 bg-grayv2-100" style={{ width: 1, height: 60 }} />
                       </>
                     )}
-                    <div>
-                      {reusingSets && <div className="text-xs text-grayv2-main">Reusing {reusingSets}</div>}
-                      <div className="flex flex-wrap">
-                        {displayGroups.map((g) => (
-                          <HistoryRecordSet sets={g} isNext={true} />
+                    <View>
+                      {reusingSets && <LftText className="text-xs text-grayv2-main">Reusing {reusingSets}</LftText>}
+                      <View className="flex flex-wrap">
+                        {displayGroups.map((g, index) => (
+                          <HistoryRecordSet key={index} sets={g} isNext={true} />
                         ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                      </View>
+                    </View>
+                  </View>
+                </View>
               );
             })}
-          </div>
-          <div className="px-1 pb-2 text-xs text-grayv2-main">
+          </View>
+          <View className="px-1 pb-2 text-xs text-grayv2-main">
             {progress && <EditProgramUiProgress progress={progress} />}
             {update && <EditProgramUiUpdate update={update} />}
-          </div>
+          </View>
         </>
       )}
-    </div>
+    </View>
   );
 }

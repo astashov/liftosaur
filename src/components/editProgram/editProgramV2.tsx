@@ -1,4 +1,3 @@
-import React, { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
 import { GroupHeader } from "../groupHeader";
 import { MenuItem } from "../menuItem";
@@ -6,7 +5,7 @@ import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
 import { ILoading, IState, updateSettings, updateState } from "../../models/state";
 import { Button } from "../button";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
 import { ICustomExercise, IExerciseKind, IMuscle, IProgram, ISettings } from "../../types";
@@ -41,6 +40,8 @@ import { BottomSheetEditProgramV2 } from "../bottomSheetEditProgramV2";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { UrlUtils } from "../../utils/url";
 import { ModalPlannerPictureExport } from "../../pages/planner/components/modalPlannerPictureExport";
+import { View, TouchableOpacity } from "react-native";
+import { LftText } from "../lftText";
 
 interface IProps {
   editProgram: IProgram;
@@ -61,12 +62,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
   const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
   const plannerState = props.plannerState;
 
-  useEffect(() => {
-    if (plannerState.ui.focusedDay != null) {
-      window.scrollTo(0, programEditorRef.current!.offsetTop || 0);
-    }
-  }, []);
-  const programEditorRef = useRef<HTMLDivElement>(null);
+  const programEditorRef = useRef<View>(null);
   const plannerDispatch: ILensDispatch<IPlannerState> = useCallback(
     (lensRecording: ILensRecordingPayload<IPlannerState> | ILensRecordingPayload<IPlannerState>[], desc?: string) => {
       const lensRecordings = Array.isArray(lensRecording) ? lensRecording : [lensRecording];
@@ -95,14 +91,14 @@ export function EditProgramV2(props: IProps): JSX.Element {
           loading={props.loading}
           dispatch={props.dispatch}
           rightButtons={[
-            <button
+            <TouchableOpacity
               key={0}
               data-cy="navbar-3-dot"
               className="p-2 nm-edit-program-v2-navbar-kebab"
-              onClick={() => setShouldShowBottomSheet(true)}
+              onPress={() => setShouldShowBottomSheet(true)}
             >
               <IconKebab />
-            </button>,
+            </TouchableOpacity>,
           ]}
           helpContent={<HelpEditProgramV2 />}
           screenStack={props.screenStack}
@@ -382,14 +378,14 @@ export function EditProgramV2(props: IProps): JSX.Element {
         </>
       }
     >
-      <section>
-        <div className="px-4">
-          <div className="mb-2 text-sm text-grayv2-main">
-            <div>
+      <View className="px-4">
+        <View className="mb-2">
+          <LftText className="text-sm text-grayv2-main">
+            <LftText>
               You can use{" "}
               <LinkButton
                 name="edit-program-copy-program-link"
-                onClick={async () => {
+                onPress={async () => {
                   const cb = (): void => {
                     setIsCopied(true);
                     setTimeout(() => {
@@ -408,108 +404,112 @@ export function EditProgramV2(props: IProps): JSX.Element {
                 this link
               </LinkButton>{" "}
               to edit this program on your laptop
-            </div>
-            {isCopied && <div className="font-bold">Copied to clipboard!</div>}
-          </div>
-          <GroupHeader name="Current Program" />
-          <MenuItem
-            name="Program"
-            value={props.editProgram.name}
-            expandValue={true}
-            shouldShowRightArrow={true}
-            onClick={() => props.dispatch(Thunk.pushScreen("programs"))}
-          />
-          <div className="px-2 mb-2 text-xs text-right">
-            <LinkButton onClick={() => props.dispatch(Thunk.pushScreen("programs"))} name="history-change-program">
+            </LftText>
+            {isCopied && <LftText className="font-bold">Copied to clipboard!</LftText>}
+          </LftText>
+        </View>
+        <GroupHeader name="Current Program" />
+        <MenuItem
+          name="Program"
+          value={props.editProgram.name}
+          expandValue={true}
+          shouldShowRightArrow={true}
+          onClick={() => props.dispatch(Thunk.pushScreen("programs"))}
+        />
+        <View className="px-2 mb-2">
+          <LftText className="text-xs text-right">
+            <LinkButton onPress={() => props.dispatch(Thunk.pushScreen("programs"))} name="history-change-program">
               Change Program
             </LinkButton>
-          </div>
-          <GroupHeader name="Program Details" topPadding={true} />
-          <MenuItemEditable
-            type="text"
-            name="Name:"
-            value={props.editProgram.name}
-            onChange={(newValue) => {
-              if (newValue) {
-                EditProgram.setName(props.dispatch, props.editProgram, newValue);
-                plannerDispatch(lb<IPlannerState>().p("current").p("program").p("name").record(newValue));
-              }
-            }}
-          />
-          <MenuItemEditable
-            type="select"
-            name="Next Day:"
-            values={Program.getListOfDays(props.editProgram, props.settings)}
-            value={props.editProgram.nextDay.toString()}
-            onChange={(newValueStr) => {
-              const newValue = newValueStr != null ? parseInt(newValueStr, 10) : undefined;
-              if (newValue != null && !isNaN(newValue)) {
-                const newDay = Math.max(1, Math.min(newValue, Program.numberOfDays(props.editProgram, props.settings)));
-                EditProgram.setNextDay(props.dispatch, props.editProgram, newDay);
-              }
-            }}
-          />
-          <Nux
-            className="my-2 bg-orange-100 border border-orange-600 rounded-md"
-            id="Rounded Weights"
-            helps={props.helps}
-            dispatch={props.dispatch}
-          >
+          </LftText>
+        </View>
+        <GroupHeader name="Program Details" topPadding={true} />
+        <MenuItemEditable
+          type="text"
+          name="Name:"
+          value={props.editProgram.name}
+          onChange={(newValue) => {
+            if (newValue) {
+              EditProgram.setName(props.dispatch, props.editProgram, newValue);
+              plannerDispatch(lb<IPlannerState>().p("current").p("program").p("name").record(newValue));
+            }
+          }}
+        />
+        <MenuItemEditable
+          type="select"
+          name="Next Day:"
+          values={Program.getListOfDays(props.editProgram, props.settings)}
+          value={props.editProgram.nextDay.toString()}
+          onChange={(newValueStr) => {
+            const newValue = newValueStr != null ? parseInt(newValueStr, 10) : undefined;
+            if (newValue != null && !isNaN(newValue)) {
+              const newDay = Math.max(1, Math.min(newValue, Program.numberOfDays(props.editProgram, props.settings)));
+              EditProgram.setNextDay(props.dispatch, props.editProgram, newDay);
+            }
+          }}
+        />
+        <Nux
+          className="my-2 bg-orange-100 border border-orange-600 rounded-md"
+          id="Rounded Weights"
+          helps={props.helps}
+          dispatch={props.dispatch}
+        >
+          <LftText>
             If you're first time here, make sure to read the help (
             <IconHelp fill="white" size={20} className="inline-block" /> at the top right corner) to learn how to use
-            the <strong>Liftoscript</strong> syntax to write weightlifting programs!
-          </Nux>
-        </div>
-        <div ref={programEditorRef}>
-          {props.plannerState.fulltext != null ? (
-            <EditProgramV2Full
-              plannerProgram={plannerState.current!.program}
-              ui={plannerState.ui}
-              lbUi={lb<IPlannerState>().pi("ui")}
-              fulltext={props.plannerState.fulltext}
-              settings={props.settings}
-              plannerDispatch={plannerDispatch}
-            />
-          ) : (
-            <EditProgramV2PerDay
-              state={plannerState}
-              plannerProgram={plannerState.current!.program}
-              ui={plannerState.ui}
-              settings={props.settings}
-              plannerDispatch={plannerDispatch}
-              onSave={() => {
-                const newProgram: IProgram = {
-                  ...Program.cleanPlannerProgram(props.editProgram),
-                  planner: props.plannerState.current!.program,
-                };
-                updateState(props.dispatch, [
-                  lb<IState>()
-                    .p("storage")
-                    .p("programs")
-                    .recordModify((programs) => {
-                      return CollectionUtils.setBy(programs, "id", props.editProgram.id, newProgram);
-                    }),
-                  lb<IState>().p("editProgramV2").record(undefined),
-                ]);
-                props.dispatch(Thunk.pullScreen());
-              }}
-            />
-          )}
-        </div>
-        {props.adminKey && (
-          <div className="py-3 text-center">
-            <Button
-              name="publish-program"
-              kind="orange"
-              onClick={() => {
-                setShouldShowPublishModal(true);
-              }}
-            >
-              Publish
-            </Button>
-          </div>
+            the <LftText className="font-bold">Liftoscript</LftText> syntax to write weightlifting programs!
+          </LftText>
+        </Nux>
+      </View>
+      <View ref={programEditorRef}>
+        {props.plannerState.fulltext != null ? (
+          <EditProgramV2Full
+            plannerProgram={plannerState.current!.program}
+            ui={plannerState.ui}
+            lbUi={lb<IPlannerState>().pi("ui")}
+            fulltext={props.plannerState.fulltext}
+            settings={props.settings}
+            plannerDispatch={plannerDispatch}
+          />
+        ) : (
+          <EditProgramV2PerDay
+            state={plannerState}
+            plannerProgram={plannerState.current!.program}
+            ui={plannerState.ui}
+            settings={props.settings}
+            plannerDispatch={plannerDispatch}
+            onSave={() => {
+              const newProgram: IProgram = {
+                ...Program.cleanPlannerProgram(props.editProgram),
+                planner: props.plannerState.current!.program,
+              };
+              updateState(props.dispatch, [
+                lb<IState>()
+                  .p("storage")
+                  .p("programs")
+                  .recordModify((programs) => {
+                    return CollectionUtils.setBy(programs, "id", props.editProgram.id, newProgram);
+                  }),
+                lb<IState>().p("editProgramV2").record(undefined),
+              ]);
+              props.dispatch(Thunk.pullScreen());
+            }}
+          />
         )}
-      </section>
+      </View>
+      {props.adminKey && (
+        <View className="py-3 text-center">
+          <Button
+            name="publish-program"
+            kind="orange"
+            onClick={() => {
+              setShouldShowPublishModal(true);
+            }}
+          >
+            Publish
+          </Button>
+        </View>
+      )}
     </Surface>
   );
 }

@@ -1,8 +1,8 @@
-import React, { JSX } from "react";
 import { BottomSheet } from "./bottomSheet";
 import { BottomSheetItem } from "./bottomSheetItem";
 import { IconLink } from "./icons/iconLink";
 import { IconPicture } from "./icons/iconPicture";
+import { View } from "react-native";
 
 interface IProps {
   isHidden: boolean;
@@ -14,7 +14,7 @@ interface IProps {
 export function BottomSheetEditProgramV2(props: IProps): JSX.Element {
   return (
     <BottomSheet isHidden={props.isHidden} onClose={props.onClose}>
-      <div className="p-4">
+      <View className="p-4">
         <BottomSheetItem
           name="copy-link"
           className="ls-export-program"
@@ -31,7 +31,7 @@ export function BottomSheetEditProgramV2(props: IProps): JSX.Element {
           description="To share it with somebody."
           onClick={props.onGenerateProgramImage}
         />
-      </div>
+      </View>
     </BottomSheet>
   );
 }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 import { LensBuilder, lb } from "lens-shmens";
-import React, { JSX } from "react";
+import { View } from "react-native";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import { PlannerEditorCustomCta } from "../../pages/planner/components/plannerEditorCustomCta";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
@@ -13,6 +13,7 @@ import { CollectionUtils } from "../../utils/collection";
 import { TimeUtils } from "../../utils/time";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconWatch } from "../icons/iconWatch";
+import { LftText } from "../lftText";
 
 interface IEditProgramV2TextExercisesProps {
   exerciseFullNames: string[];
@@ -38,7 +39,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
     );
   }
   return (
-    <div className="flex-1 w-0">
+    <View className="flex-1 w-0">
       <PlannerEditorView
         name="Exercises"
         exerciseFullNames={props.exerciseFullNames}
@@ -76,20 +77,20 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
         }}
       />
       {repeats.length > 0 && (
-        <ul className="pl-1 ml-8 overflow-x-auto list-disc">
+        <View className="flex-row pl-1 ml-8 overflow-x-auto list-disc">
           {repeats.map((e) => (
-            <li>
+            <View key={e.line}>
               <PlannerCodeBlock script={e.text} />
-            </li>
+            </View>
           ))}
-        </ul>
+        </View>
       )}
       {approxDayTime && (
-        <div className="text-xs text-right text-grayv2-main">
+        <View className="flex-row text-xs text-right text-grayv2-main">
           <IconWatch className="mb-1 align-middle" />
-          <span className="pl-1 align-middle">{approxDayTime}</span>
-        </div>
+          <LftText className="pl-1 align-middle">{approxDayTime}</LftText>
+        </View>
       )}
-    </div>
+    </View>
   );
 }

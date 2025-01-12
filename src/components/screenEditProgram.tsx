@@ -1,4 +1,3 @@
-import React, { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { EditProgramDay } from "./editProgram/editProgramDay";
 import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
@@ -11,6 +10,7 @@ import { EditProgramV2 } from "./editProgram/editProgramV2";
 import { useEffect } from "react";
 import { EditProgram } from "../models/editProgram";
 import { IPlannerState } from "../pages/planner/models/types";
+import { View } from "react-native";
 
 interface IProps {
   editProgram: IProgram;
@@ -39,7 +39,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
   if (screen === "editProgram") {
     if (props.editProgram.planner != null) {
       if (props.plannerState == null) {
-        return <div />;
+        return <View />;
       } else {
         return (
           <EditProgramV2

@@ -19,6 +19,7 @@ import { Program } from "../../src/models/program";
 import { ProgramHistoryView } from "../../src/components/programHistory";
 import { Progress } from "../../src/models/progress";
 import { ProgramDayView } from "../../src/components/programDay";
+import { ScreenEditProgram } from "../../src/components/screenEditProgram";
 
 interface IAppProps {
   essentials?: IInitializeEssentials;
@@ -142,6 +143,31 @@ export default function App(props: IAppProps): JSX.Element {
         screenStack={state.screenStack}
       />
     );
+  } else if (Screen.editProgramScreens.indexOf(Screen.current(state.screenStack)) !== -1) {
+    let editProgram = Program.getEditingProgram(state);
+    editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
+    if (editProgram != null) {
+      content = (
+        <ScreenEditProgram
+          helps={state.storage.helps}
+          loading={state.loading}
+          adminKey={state.adminKey}
+          subscription={state.storage.subscription}
+          screenStack={state.screenStack}
+          settings={state.storage.settings}
+          editExercise={state.editExercise}
+          dispatch={dispatch}
+          programIndex={Program.getEditingProgramIndex(state)}
+          dayIndex={Math.min(state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 0, editProgram.days.length - 1)}
+          weekIndex={state.editProgram?.weekIndex}
+          editProgram={editProgram}
+          plannerState={state.editProgramV2}
+          isLoggedIn={state.user != null}
+        />
+      );
+    } else {
+      throw new Error("Opened 'editProgram' screen, but 'state.editProgram' is null");
+    }
   } else {
     content = <WebViewScreen />;
   }

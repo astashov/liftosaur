@@ -84,25 +84,27 @@ export function useUndoRedo<T, S extends IUndoRedoState<T>>(
   shouldEnable?: () => boolean
 ): void {
   useEffect(() => {
-    function onKeyPress(event: KeyboardEvent): void {
-      if (
-        !(event.target instanceof HTMLTextAreaElement) &&
-        !(event.target instanceof HTMLInputElement) &&
-        (event.key === "z" || event.key === "Z") &&
-        (event.ctrlKey || event.metaKey) &&
-        (!shouldEnable || shouldEnable())
-      ) {
-        if (!event.shiftKey) {
-          event.preventDefault();
-          undo(dispatch, state);
-        } else {
-          event.preventDefault();
-          redo(dispatch, state);
+    if (window.addEventListener) {
+      function onKeyPress(event: KeyboardEvent): void {
+        if (
+          !(event.target instanceof HTMLTextAreaElement) &&
+          !(event.target instanceof HTMLInputElement) &&
+          (event.key === "z" || event.key === "Z") &&
+          (event.ctrlKey || event.metaKey) &&
+          (!shouldEnable || shouldEnable())
+        ) {
+          if (!event.shiftKey) {
+            event.preventDefault();
+            undo(dispatch, state);
+          } else {
+            event.preventDefault();
+            redo(dispatch, state);
+          }
         }
       }
+      window.addEventListener("keydown", onKeyPress);
+      window.isUndoing = false;
+      return () => window.removeEventListener("keydown", onKeyPress);
     }
-    window.addEventListener("keydown", onKeyPress);
-    window.isUndoing = false;
-    return () => window.removeEventListener("keydown", onKeyPress);
   }, [state, ...additionalDeps]);
 }
