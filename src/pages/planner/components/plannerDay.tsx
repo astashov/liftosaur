@@ -147,13 +147,16 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
               }}
             />
             {repeats.length > 0 && (
-              <ul className="pl-1 ml-8 overflow-x-auto list-disc">
-                {repeats.map((e) => (
-                  <li>
-                    <PlannerCodeBlock script={e.text} />
-                  </li>
-                ))}
-              </ul>
+              <>
+                <GroupHeader name="Repeated exercises from previous weeks:" />
+                <ul className="pl-1 ml-8 overflow-x-auto list-disc" style={{ marginTop: "-0.5rem" }}>
+                  {repeats.map((e) => (
+                    <li>
+                      <PlannerCodeBlock script={e.text} />
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </div>
         </div>

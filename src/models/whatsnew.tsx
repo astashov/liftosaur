@@ -1522,6 +1522,23 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20250117": {
+    title: <span>Share workouts on Social Media</span>,
+    body: (
+      <ul>
+        <li>You can share your finished workouts on Instagram (and once Tiktok approves Liftosaur app - on Tiktok)</li>
+        <li>
+          You can do it from the congratulations screen, or if you tap on one of the past workouts. This replaces
+          outdated "Share" functionality where you could share via a post on Facebook or Twitter.
+        </li>
+        <li>
+          It generates an image of a workout that you could share on some default background, or use your photo as a
+          background. Or you can just generate a workout image via "... More" menu, and share it through native share
+          sheet.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
