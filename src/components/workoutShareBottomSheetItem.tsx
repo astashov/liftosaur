@@ -3,7 +3,6 @@ import { IHistoryRecord, ISettings } from "../types";
 import { useRef, useState } from "preact/hooks";
 import { WorkoutShareOutput } from "./workoutShareOutput";
 import { IconSpinner } from "./icons/iconSpinner";
-import { IconMore } from "./icons/iconMore";
 import { ImageShareUtils } from "../utils/imageshare";
 import { BottomSheetItem } from "./bottomSheetItem";
 import { IconPicture } from "./icons/iconPicture";
