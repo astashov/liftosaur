@@ -5,18 +5,21 @@ import { IHistoryRecord, ISettings } from "../types";
 import { IconInstagram } from "./icons/iconInstagram";
 import { useState } from "preact/hooks";
 import { WorkoutSocialShareSheet } from "./workoutSocialShareSheet";
-import { IconTiktok } from "./icons/iconTiktok";
 import { WorkoutShareBottomSheetItem } from "./workoutShareBottomSheetItem";
+import { IconLink } from "./icons/iconLink";
+import { ClipboardUtils } from "../utils/clipboard";
+import { Share } from "../models/share";
 
 interface IProps {
   record: IHistoryRecord;
+  userId?: string;
   history: IHistoryRecord[];
   settings: ISettings;
   isHidden: boolean;
   onClose: () => void;
 }
 
-export function BottomSheetShareOptions(props: IProps): JSX.Element {
+export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
   const [shareType, setShareType] = useState<"igstory" | "igfeed" | "tiktok">("igstory");
   const [shouldShowShareSheet, setShouldShowShareSheet] = useState<boolean>(false);
 
@@ -58,6 +61,21 @@ export function BottomSheetShareOptions(props: IProps): JSX.Element {
               props.onClose();
             }}
           /> */}
+          <BottomSheetItem
+            name="share-to-link"
+            title="Copy link to workout"
+            description={""}
+            icon={<IconLink />}
+            onClick={() => {
+              if (props.userId) {
+                const link = Share.generateLink(props.userId, props.history[0].id);
+                ClipboardUtils.copy(link);
+                alert("Copied!");
+              } else {
+                alert("You should be logged in to copy link to a workout");
+              }
+            }}
+          />
           <WorkoutShareBottomSheetItem history={props.history} record={props.record} settings={props.settings} />
         </div>
       </BottomSheet>

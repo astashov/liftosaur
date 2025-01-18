@@ -6,6 +6,7 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { IconMore } from "./icons/iconMore";
 import { ImageShareUtils } from "../utils/imageshare";
 import { BottomSheetItem } from "./bottomSheetItem";
+import { IconPicture } from "./icons/iconPicture";
 
 interface IWorkoutShareBottomSheetItemProps {
   record?: IHistoryRecord;
@@ -20,9 +21,9 @@ export function WorkoutShareBottomSheetItem(props: IWorkoutShareBottomSheetItemP
     <div className="relative overflow-hidden text-left">
       <BottomSheetItem
         name="share-to-image"
-        title="More..."
+        title="Share Image..."
         description={""}
-        icon={isLoading ? <IconSpinner height={24} width={24} /> : <IconMore size={24} />}
+        icon={isLoading ? <IconSpinner height={24} width={24} /> : <IconPicture size={24} />}
         onClick={async () => {
           setIsLoading(true);
           try {

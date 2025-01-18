@@ -40,7 +40,9 @@ import { CollectionUtils } from "../utils/collection";
 import { PlannerKey } from "../pages/planner/plannerKey";
 import { ModalEquipment } from "./modalEquipment";
 import { Modal1RM } from "./modal1RM";
-import { BottomSheetShareOptions } from "./bottomSheetShareOptions";
+import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
+import { SendMessage } from "../utils/sendMessage";
+import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -292,15 +294,27 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 dispatch={props.dispatch}
               />
             )}
-            {!Progress.isCurrent(progress) && (
-              <BottomSheetShareOptions
-                history={props.history}
-                settings={props.settings}
-                record={progress}
-                isHidden={!isShareShown}
-                onClose={() => setIsShareShown(false)}
-              />
-            )}
+            {!Progress.isCurrent(progress) &&
+              ((SendMessage.isIos() && SendMessage.iosAppVersion() >= 11) ||
+              (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 20) ? (
+                <BottomSheetMobileShareOptions
+                  userId={props.userId}
+                  history={props.history}
+                  settings={props.settings}
+                  record={progress}
+                  isHidden={!isShareShown}
+                  onClose={() => setIsShareShown(false)}
+                />
+              ) : (
+                <BottomSheetWebappShareOptions
+                  userId={props.userId}
+                  history={props.history}
+                  settings={props.settings}
+                  record={progress}
+                  isHidden={!isShareShown}
+                  onClose={() => setIsShareShown(false)}
+                />
+              ))}
           </>
         }
       >

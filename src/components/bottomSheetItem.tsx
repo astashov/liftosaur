@@ -14,6 +14,7 @@ export function BottomSheetItem(props: IProps): JSX.Element {
   return (
     <button
       data-cy={`bottom-sheet-${props.name}`}
+      style={{ outline: "none" }}
       className={`block text-base w-full text-left ${!props.isFirst ? "border-t border-grayv2-100 mt-4" : ""} ${
         props.className
       } nm-${props.name}`}

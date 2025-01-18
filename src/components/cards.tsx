@@ -100,22 +100,20 @@ export const CardsView = memo(
               )}
             </div>
           </div>
-          {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 11) ||
-            (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 20)) &&
-            !Progress.isCurrent(props.progress) && (
-              <div className="pt-1 pl-2">
-                <Button
-                  name="past-workout-share"
-                  className="ls-past-workout-share"
-                  kind="purple"
-                  onClick={() => {
-                    props.setIsShareShown(true);
-                  }}
-                >
-                  Share
-                </Button>
-              </div>
-            )}
+          {!Progress.isCurrent(props.progress) && (
+            <div className="pt-1 pl-2">
+              <Button
+                name="past-workout-share"
+                className="ls-past-workout-share"
+                kind="purple"
+                onClick={() => {
+                  props.setIsShareShown(true);
+                }}
+              >
+                Share
+              </Button>
+            </div>
+          )}
         </div>
         {props.programDay?.description && <Markdown value={props.programDay.description} />}
         {props.progress.entries.map((entry, index) => {

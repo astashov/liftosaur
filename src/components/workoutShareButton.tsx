@@ -9,6 +9,7 @@ import { ImageShareUtils } from "../utils/imageshare";
 interface IWorkoutShareButtonProps {
   record?: IHistoryRecord;
   history: IHistoryRecord[];
+  icon: JSX.Element;
   settings: ISettings;
 }
 
@@ -18,7 +19,7 @@ export function WorkoutShareButton(props: IWorkoutShareButtonProps): JSX.Element
   return (
     <div className="relative overflow-hidden text-left">
       <button
-        className="w-10 h-10"
+        className="w-10 h-10 rounded-full bg-grayv2-100"
         onClick={async () => {
           setIsLoading(true);
           try {
@@ -33,7 +34,7 @@ export function WorkoutShareButton(props: IWorkoutShareButtonProps): JSX.Element
           }
         }}
       >
-        {isLoading ? <IconSpinner width={20} height={20} /> : <IconMore size={40} />}
+        {isLoading ? <IconSpinner width={20} height={20} /> : props.icon}
       </button>
       <div className="absolute" style={{ top: "9999px", left: "9999px" }}>
         <div ref={workoutShareRef} style={{ width: "420px" }}>
