@@ -83,19 +83,27 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
                     const prset = prs[k];
                     return prset && Reps.isSameSet(set, prset);
                   });
-                  const success = (set.completedReps ?? 0) >= set.reps;
+                  const repsSuccess = (set.completedReps ?? 0) >= set.reps;
+                  const rpe = set.completedRpe ?? set.rpe;
+                  const rpeFailure = set.completedRpe != null && set.completedRpe > (set.rpe ?? 0);
                   return (
-                    <div className={`${isPr ? "bg-yellow-200" : ""}`}>
+                    <div className={`${isPr ? "bg-yellow-200" : ""} whitespace-no-wrap`}>
                       {group.length > 1 && (
                         <>
                           <span className="font-bold text-purplev2-main">{group.length}</span>
                           <span className="text-grayv2-main"> × </span>
                         </>
                       )}
-                      <span className={`font-bold ${success ? "text-greenv2-main" : "text-redv2-main"}`}>
+                      <span className={`font-bold ${repsSuccess ? "text-greenv2-main" : "text-redv2-main"}`}>
                         {set.completedReps}
                       </span>
                       <span className="text-grayv2-main"> × </span>
+                      {rpe != null && (
+                        <span className={`${rpeFailure ? "text-redv2-main" : "text-greenv2-main"}`}>
+                          <span className="text-xs">@</span>
+                          <span>{rpe} </span>
+                        </span>
+                      )}
                       <span>{set.weight.value}</span>
                       <span className="text-xs text-grayv2-main">{set.weight.unit}</span>
                     </div>
