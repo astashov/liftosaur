@@ -1540,10 +1540,9 @@ Squat / 5x5 / progress: lp(5lb)`}
     ),
   },
   "20250119": {
-    title: <span></span>,
+    title: <span>Redesigned the sets, and added PRs to history/exercise stats</span>,
     body: (
       <ul>
-        <li>Redesigned the sets, and added PRs to history/exercise stats</li>
         <li>
           Changed what the sets (on the history screen, in the program, etc) look like - now they laid out vertically,
           and it's easier to scan weight/reps for the sets.
