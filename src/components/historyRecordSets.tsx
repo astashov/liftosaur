@@ -159,17 +159,17 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
         )}
         <span className={`font-semibold ${repsColor}`}>{set.reps}</span>
         <span className="text-grayv2-main"> × </span>
-        {set.rpe != null && (
-          <span className={rpeColor} data-cy="history-entry-rpe">
-            <span className="text-xs">@</span>
-            <span>{set.rpe} </span>
-          </span>
-        )}
         <span data-cy="history-entry-weight">
           <span className="font-semibold">{set.weight}</span>
           <span className="text-xs">{set.askWeight ? "+" : ""}</span>
           <span className="text-xs text-grayv2-main">{set.unit}</span>
         </span>
+        {set.rpe != null && (
+          <span className={rpeColor} data-cy="history-entry-rpe">
+            <span className="text-xs"> @</span>
+            <span>{set.rpe}</span>
+          </span>
+        )}
       </span>
     </div>
   );
