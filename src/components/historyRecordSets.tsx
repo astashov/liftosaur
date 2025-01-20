@@ -104,6 +104,9 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
   const { isNext } = props;
   const group = props.sets;
   const set = group[0];
+  if (set == null) {
+    return <div />;
+  }
   const prTypes = CollectionUtils.compact(
     ObjectUtils.keys(props.prs || {}).map<"e1RM" | "Weight" | undefined>((k) => {
       const prset = (props.prs || {})[k];
