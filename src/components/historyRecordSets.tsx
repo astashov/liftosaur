@@ -147,7 +147,7 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
           <span>{prTypes.join(", ")}</span> <span>🏆</span>
         </span>
       )}
-      <span className={`px-1 ${isPr ? "bg-yellow-100" : ""}`}>
+      <span className={`px-1 ${isPr ? "bg-yellow-200" : ""}`}>
         {group.length > 1 && (
           <>
             <span className="font-semibold text-purplev2-main">{group.length}</span>
