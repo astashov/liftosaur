@@ -50,7 +50,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("navbar-back").click();
 
   await expect(page.getByTestId("history-entry-exercise-name").nth(0)).toHaveText("Blah One");
-  await expect(page.getByTestId("history-entry-exercise-name").nth(1)).toHaveText("My Exercise 2");
+  await expect(page.getByTestId("history-entry-exercise-name").nth(1)).toHaveText("My Exercise 2 🏆");
 
   await page.getByTestId("footer-program").click({ force: true });
   await page.getByTestId("edit-exercise").click();
@@ -76,7 +76,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("navbar-back").click();
 
   await expect(page.getByTestId("history-entry-exercise-name").nth(0)).toHaveText("My Exercise 3");
-  await expect(page.getByTestId("history-entry-exercise-name").nth(1)).toHaveText("My Exercise 3");
+  await expect(page.getByTestId("history-entry-exercise-name").nth(1)).toHaveText("My Exercise 3 🏆");
 
   await page.getByTestId("footer-program").click({ force: true });
   await page.getByTestId("navbar-3-dot").click({ force: true });

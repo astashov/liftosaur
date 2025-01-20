@@ -37,8 +37,8 @@ test("rep ranges", async ({ page }) => {
   await page.getByTestId("save-exercise").click();
 
   await page.getByTestId("footer-workout").click();
-  await expect(page.getByTestId("history-entry-sets-next").nth(0)).toHaveText("5");
-  await expect(page.getByTestId("history-entry-sets-next").nth(1)).toHaveText("3-5");
+  await expect(page.getByTestId("history-entry-sets-next").nth(0)).toHaveText("5 × 135lb");
+  await expect(page.getByTestId("history-entry-sets-next").nth(1)).toHaveText("3-5 × 135lb");
 
   await page.getByTestId("start-workout").click();
 
@@ -82,18 +82,18 @@ test("rep ranges", async ({ page }) => {
   await page.getByTestId("finish-day-continue").click();
 
   await expect(page.getByTestId("history-entry-sets-completed")).toHaveCount(1);
-  await expect(page.getByTestId("history-entry-sets-completed")).toHaveText("5");
+  await expect(page.getByTestId("history-entry-sets-completed")).toHaveText("5 × 135lb");
 
   await expect(page.getByTestId("history-entry-sets-in-range")).toHaveCount(1);
-  await expect(page.getByTestId("history-entry-sets-in-range")).toHaveText("4");
+  await expect(page.getByTestId("history-entry-sets-in-range")).toHaveText("4 × 135lb");
 
   await page.getByTestId("start-workout").click();
 
   await expect(page.getByTestId("history-entry-sets-completed")).toHaveCount(1);
-  await expect(page.getByTestId("history-entry-sets-completed")).toHaveText("5");
+  await expect(page.getByTestId("history-entry-sets-completed")).toHaveText("5 × 135lb");
 
   await expect(page.getByTestId("history-entry-sets-in-range")).toHaveCount(1);
-  await expect(page.getByTestId("history-entry-sets-in-range")).toHaveText("4");
+  await expect(page.getByTestId("history-entry-sets-in-range")).toHaveText("4 × 135lb");
 
   await page.getByTestId("set-nonstarted").nth(0).click();
 

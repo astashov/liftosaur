@@ -43,7 +43,7 @@ test("works", async ({ page }) => {
   await expect(page.getByTestId("exercise-stats-image")).toBeVisible();
   await expect(page.getByTestId("max-weight-value")).toHaveText("95 lb");
   await expect(page.getByTestId("one-rm-value")).toHaveText("109.8 lb (5 x 95 lb)");
-  await expect(page.getByTestId("history-entry-sets-completed")).toHaveText("3x5");
+  await expect(page.getByTestId("history-entry-sets-completed")).toHaveText("Weight, e1RM 🏆3 × 5 × 95lb");
   await expect(page.getByTestId("graph-data")).not.toBeVisible();
 
   await page.getByTestId("navbar-back").click({ force: true });

@@ -588,7 +588,11 @@ function HistoricalSameDay(props: { historyRecordAndEntry: IHistoryRecordAndEntr
         <div>
           Same day last time, <strong>{DateUtils.format(record.startTime)}</strong>:
         </div>
-        <HistoryRecordSetsView sets={entry.sets} isNext={false} settings={props.settings} />
+        <div className="flex">
+          <div>
+            <HistoryRecordSetsView sets={entry.sets} isNext={false} settings={props.settings} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -602,7 +606,11 @@ function HistoricalLastDay(props: { historyRecordAndEntry: IHistoryRecordAndEntr
         <div>
           Last time, <strong>{DateUtils.format(record.startTime)}</strong>:
         </div>
-        <HistoryRecordSetsView sets={entry.sets} isNext={false} settings={props.settings} />
+        <div className="flex">
+          <div>
+            <HistoryRecordSetsView sets={entry.sets} isNext={false} settings={props.settings} />
+          </div>
+        </div>
       </div>
     </div>
   );

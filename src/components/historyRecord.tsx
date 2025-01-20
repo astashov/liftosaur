@@ -7,14 +7,16 @@ import { ComparerUtils } from "../utils/comparer";
 import { memo } from "preact/compat";
 import { IHistoryRecord, ISettings } from "../types";
 import { HtmlUtils } from "../utils/html";
-import { History } from "../models/history";
+import { History, IPersonalRecords } from "../models/history";
 import { IconWatch } from "./icons/iconWatch";
 import { HistoryEntryView } from "./historyEntry";
 import { Button } from "./button";
+import { Exercise } from "../models/exercise";
 
 interface IProps {
   historyRecord: IHistoryRecord;
   isOngoing: boolean;
+  prs?: IPersonalRecords;
   settings: ISettings;
   dispatch: IDispatch;
   userId?: string;
@@ -74,9 +76,12 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
         <div className="flex flex-col mt-2" data-cy="history-entry">
           {entries.map((entry, i) => {
             const isNext = Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord);
+            const exerciseKey = Exercise.toKey(entry.exercise);
+            const pr = props.prs?.[props.historyRecord.id]?.[exerciseKey] || undefined;
             return (
               <HistoryEntryView
                 entry={entry}
+                prs={pr}
                 isNext={isNext}
                 isLast={i === entries.length - 1}
                 settings={props.settings}

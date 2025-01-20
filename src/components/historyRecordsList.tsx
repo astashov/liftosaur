@@ -1,6 +1,7 @@
 import { Fragment, h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Progress } from "../models/progress";
+import { History } from "../models/history";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { HistoryRecordView } from "./historyRecord";
 import { DateUtils } from "../utils/date";
@@ -70,6 +71,7 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
       return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
     }
   });
+  const prs = History.getPersonalRecords(props.history);
   const combinedHistoryAndInsights = insertWeekInsights(combinedHistory);
   return (
     <Fragment>
@@ -92,6 +94,7 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
           return (
             <HistoryRecordView
               isOngoing={!!(Progress.isCurrent(record.historyRecord) && props.progress)}
+              prs={prs}
               settings={settings}
               historyRecord={record.historyRecord}
               userId={props.currentUserId}

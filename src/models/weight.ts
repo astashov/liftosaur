@@ -14,9 +14,7 @@ export namespace Weight {
     } else if (Weight.isPct(weight)) {
       return `${weight.value}${withUnit ? "%" : ""}`;
     } else {
-      return weight.value === 0
-        ? "BW"
-        : `${parseFloat(weight.value.toFixed(2)).toString()}${withUnit ? ` ${weight.unit}` : ""}`;
+      return `${parseFloat(weight.value.toFixed(2)).toString()}${withUnit ? ` ${weight.unit}` : ""}`;
     }
   }
 

@@ -5,10 +5,13 @@ import { Exercise } from "../models/exercise";
 import { Weight } from "../models/weight";
 import { IHistoryEntry, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
+import { IHistoryEntryPersonalRecords } from "../models/history";
 import { HistoryRecordSetsView } from "./historyRecordSets";
+import { ObjectUtils } from "../utils/object";
 
 interface IHistoryEntryProps {
   entry: IHistoryEntry;
+  prs?: IHistoryEntryPersonalRecords;
   isNext: boolean;
   isLast?: boolean;
   settings: ISettings;
@@ -20,6 +23,7 @@ export const HistoryEntryView = memo(
     const { entry, isNext, isLast, settings, showNotes } = props;
     const exercise = Exercise.get(entry.exercise, settings.exercises);
     const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(settings, exercise);
+    const isPr = ObjectUtils.values(props.prs || {}).some((v) => v);
     return (
       <div
         data-cy="history-entry-exercise"
@@ -29,13 +33,14 @@ export const HistoryEntryView = memo(
           <ExerciseImage settings={props.settings} className="w-6 mr-3" exerciseType={exercise} size="small" />
         </div>
         <div className="flex-1">
-          <div className="flex items-center">
-            <div className="pr-2" style={{ width: "50%" }}>
-              <div data-cy="history-entry-exercise-name" className="font-bold">
+          <div className="flex items-center gap-2">
+            <div>
+              <div data-cy="history-entry-exercise-name" className="font-semibold">
                 {Exercise.nameWithEquipment(exercise, props.settings)}
+                {isPr && " 🏆"}
               </div>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 text-right">
               <HistoryRecordSetsView
                 sets={entry.sets.map((set) => ({
                   ...set,
@@ -43,6 +48,7 @@ export const HistoryEntryView = memo(
                     ? Weight.roundConvertTo(set.weight, props.settings, exerciseUnit, entry.exercise)
                     : set.weight,
                 }))}
+                prs={props.prs}
                 settings={props.settings}
                 isNext={isNext}
               />

@@ -67,7 +67,9 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     .addFn(History.collectAllHistoryRecordsOfExerciseType(exerciseType))
     .addFn(History.collectWeightPersonalRecord(exerciseType, props.settings.units))
     .addFn(History.collect1RMPersonalRecord(exerciseType, props.settings));
+
   const [showCustomExerciseModal, setShowCustomExerciseModal] = useState(false);
+  const allPrs = History.getPersonalRecords(props.history);
 
   const [
     { maxTime: maxX, minTime: minX },
@@ -356,6 +358,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                     <div className="flex-1">
                       <div>
                         {exerciseEntries.map((entry) => {
+                          const prs = allPrs[historyRecord.id]?.[Exercise.toKey(entry.exercise)];
                           const state = entry.state || {};
                           const vars = entry.vars || {};
                           for (const key of ObjectUtils.keys(vars)) {
@@ -365,7 +368,15 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                           const volume = Reps.volume(entry.sets);
                           return (
                             <div className="pt-1">
-                              <HistoryRecordSetsView sets={entry.sets} settings={props.settings} isNext={false} />
+                              <div className="text-right">
+                                <HistoryRecordSetsView
+                                  showPrDetails={true}
+                                  prs={prs}
+                                  sets={entry.sets}
+                                  settings={props.settings}
+                                  isNext={false}
+                                />
+                              </div>
                               {volume.value > 0 && (
                                 <div className="mb-1 text-xs leading-none text-left text-grayv2-main">
                                   Volume: <strong>{Weight.print(volume)}</strong>

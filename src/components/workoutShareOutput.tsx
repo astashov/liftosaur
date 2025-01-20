@@ -1,12 +1,12 @@
-import { JSX, h, Fragment } from "preact";
+import { JSX, h } from "preact";
 import { IHistoryRecord, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
 import { Exercise } from "../models/exercise";
-import { Reps } from "../models/set";
 import { History } from "../models/history";
 import { TimeUtils } from "../utils/time";
 import { ObjectUtils } from "../utils/object";
 import { StringUtils } from "../utils/string";
+import { HistoryRecordSetsView } from "./historyRecordSets";
 
 interface IWorkoutShareOutputProps {
   record?: IHistoryRecord;
@@ -55,10 +55,6 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
         {entries.map((entry) => {
           const prs = recordPrs[Exercise.toKey(entry.exercise)] ?? {};
           const hasPrs = ObjectUtils.keys(prs).length > 0;
-          const groupedSets = Reps.group(
-            entry.sets.filter((s) => (s.completedReps ?? 0) > 0),
-            false
-          );
           const exercise = Exercise.get(entry.exercise, settings.exercises);
           return (
             <div className="flex items-center gap-4">
@@ -77,38 +73,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
                 </span>
               </div>
               <div className="text-right">
-                {groupedSets.map((group) => {
-                  const set = group[0];
-                  const isPr = ObjectUtils.keys(prs).some((k) => {
-                    const prset = prs[k];
-                    return prset && Reps.isSameSet(set, prset);
-                  });
-                  const repsSuccess = (set.completedReps ?? 0) >= set.reps;
-                  const rpe = set.completedRpe ?? set.rpe;
-                  const rpeFailure = set.completedRpe != null && set.completedRpe > (set.rpe ?? 0);
-                  return (
-                    <div className={`${isPr ? "bg-yellow-200" : ""} whitespace-no-wrap`}>
-                      {group.length > 1 && (
-                        <>
-                          <span className="font-bold text-purplev2-main">{group.length}</span>
-                          <span className="text-grayv2-main"> × </span>
-                        </>
-                      )}
-                      <span className={`font-bold ${repsSuccess ? "text-greenv2-main" : "text-redv2-main"}`}>
-                        {set.completedReps}
-                      </span>
-                      <span className="text-grayv2-main"> × </span>
-                      {rpe != null && (
-                        <span className={`${rpeFailure ? "text-redv2-main" : "text-greenv2-main"}`}>
-                          <span className="text-xs">@</span>
-                          <span>{rpe} </span>
-                        </span>
-                      )}
-                      <span>{set.weight.value}</span>
-                      <span className="text-xs text-grayv2-main">{set.weight.unit}</span>
-                    </div>
-                  );
-                })}
+                <HistoryRecordSetsView sets={entry.sets} prs={prs} settings={settings} isNext={false} />
               </div>
             </div>
           );

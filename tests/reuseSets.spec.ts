@@ -50,19 +50,19 @@ Triceps Extension / ...Bench Press[1]`
   await page.getByTestId("editor-v2-save-full").click();
 
   await page.getByTestId("program-preview").click();
-  expect(
+  await expect(
     page.getByTestId("preview-day-day-2").getByTestId("hack-squat").getByTestId("history-entry-sets-next")
   ).toHaveCount(1);
-  expect(
+  await expect(
     page.getByTestId("preview-day-day-2").getByTestId("hack-squat").getByTestId("history-entry-sets-next").first()
-  ).toHaveText("1");
+  ).toHaveText("1 × 115lb");
   await page.getByTestId("tab-week-2").nth(1).click();
-  expect(page.getByTestId("preview-day-day-2").getByTestId("squat").getByTestId("history-entry-sets-next")).toHaveCount(
-    1
-  );
-  expect(
+  await expect(
+    page.getByTestId("preview-day-day-2").getByTestId("squat").getByTestId("history-entry-sets-next")
+  ).toHaveCount(1);
+  await expect(
     page.getByTestId("preview-day-day-2").getByTestId("squat").getByTestId("history-entry-sets-next").first()
-  ).toHaveText("2");
+  ).toHaveText("2 × 130lb");
   await page.getByTestId("modal-close-program-preview").click();
 
   await page.getByTestId("editor-save-v2-top").click();
@@ -77,17 +77,17 @@ Triceps Extension / ...Bench Press[1]`
   await page.getByTestId("footer-program").click();
   await page.getByTestId("editor-v2-full-program").click();
 
-  expect(page.getByTestId("planner-editor").first()).toContainText("Squat / 1x1 / 140lb");
-  expect(page.getByTestId("planner-editor").nth(1)).toContainText("Squat / 1x2 / 133.25lb");
-  expect(page.getByTestId("planner-editor").nth(1)).toContainText("Hack Squat / ...Squat[1] / 100%");
-  expect(page.getByTestId("planner-editor").nth(2)).toContainText("Deadlift / ...Leg Press");
-  expect(page.getByTestId("planner-editor").nth(2)).toContainText("Front Raise / ...Bench Press[2]");
+  await expect(page.getByTestId("planner-editor").first()).toContainText("Squat / 1x1 / 140lb");
+  await expect(page.getByTestId("planner-editor").nth(1)).toContainText("Squat / 1x2 / 133.25lb");
+  await expect(page.getByTestId("planner-editor").nth(1)).toContainText("Hack Squat / ...Squat[1] / 100%");
+  await expect(page.getByTestId("planner-editor").nth(2)).toContainText("Deadlift / ...Leg Press");
+  await expect(page.getByTestId("planner-editor").nth(2)).toContainText("Front Raise / ...Bench Press[2]");
 
   await page.getByTestId("tab-week-2").click();
-  expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
+  await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
     "Triceps Extension / ...Bench Press[1]"
   );
-  expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
+  await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
     "a: Squat / ...Squat[1:2] / 95%"
   );
 });

@@ -51,7 +51,7 @@ test("Empty Workout", async ({ page }) => {
       .nth(1)
       .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-sets-completed]")
       .first()
-  ).toHaveText("2x7");
+  ).toHaveText("2 × 7 × 100lb");
   await expect(
     page
       .getByTestId("history-record")
@@ -65,5 +65,5 @@ test("Empty Workout", async ({ page }) => {
       .nth(1)
       .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-sets-completed]")
       .first()
-  ).toHaveText("5");
+  ).toHaveText("5 × 150lb");
 });

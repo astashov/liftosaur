@@ -100,16 +100,10 @@ test("Clones a program and goes through first day", async ({ page }) => {
 
   // Checking the history record
   const historyEntry = page.locator("[data-cy=history-entry-exercise]:has-text('Bent Over Row')");
-  await expect(historyEntry.locator("[data-cy=history-entry-sets-incompleted]").nth(0)).toHaveText("4");
-  await expect(historyEntry.locator("[data-cy=history-entry-sets-completed]").nth(0)).toHaveText("5");
-  await expect(historyEntry.locator("[data-cy=history-entry-sets-incompleted]").nth(1)).toHaveText("2");
-  await expect(historyEntry.locator("[data-cy=history-entry-weight]").nth(0)).toHaveText("200lb");
-  await expect(historyEntry.locator("[data-cy=history-entry-weight]").nth(1)).toHaveText("200lb");
-  await expect(historyEntry.locator("[data-cy=history-entry-weight]").nth(2)).toHaveText("200lb");
+  await expect(historyEntry.locator("[data-cy=history-entry-sets-incompleted]").nth(0)).toHaveText("4 × 200lb");
+  await expect(historyEntry.locator("[data-cy=history-entry-sets-completed]").nth(0)).toHaveText("5 × 200lb");
+  await expect(historyEntry.locator("[data-cy=history-entry-sets-incompleted]").nth(1)).toHaveText("2 × 200lb");
   await expect(
     page.locator("[data-cy=history-entry-exercise]:has-text('Squat') [data-cy=history-entry-sets-completed]")
-  ).toHaveText("3x5");
-  await expect(
-    page.locator("[data-cy=history-entry-exercise]:has-text('Squat') [data-cy=history-entry-weight]")
-  ).toHaveText("45lb");
+  ).toHaveText("3 × 5 × 45lb");
 });

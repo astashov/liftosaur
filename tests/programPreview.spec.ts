@@ -18,15 +18,7 @@ test("Program Preview", async ({ page }) => {
       .getByTestId("bent-over-row")
       .getByTestId("history-entry-sets-next")
       .first()
-  ).toHaveText("2x5");
-  await expect(
-    page
-      .getByTestId("preview-day-workout-a")
-      .first()
-      .getByTestId("bent-over-row")
-      .getByTestId("history-entry-weight")
-      .first()
-  ).toHaveText("95lb");
+  ).toHaveText("2 × 5 × 95lb");
   await page
     .getByTestId("preview-day-workout-a")
     .first()

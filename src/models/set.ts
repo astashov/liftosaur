@@ -49,7 +49,10 @@ export namespace Reps {
 
   export function isCompletedSet(set: ISet): boolean {
     if (set.completedReps != null) {
-      return set.completedReps >= set.reps;
+      return (
+        set.completedReps >= set.reps &&
+        (set.rpe != null && set.completedRpe != null ? set.completedRpe <= set.rpe : true)
+      );
     } else {
       return false;
     }
@@ -58,6 +61,7 @@ export namespace Reps {
   export function isInRangeCompletedSet(set: ISet): boolean {
     return (
       set.completedReps != null &&
+      (set.rpe != null && set.completedRpe != null ? set.completedRpe <= set.rpe : true) &&
       (set.minReps != null ? set.completedReps >= set.minReps : set.completedReps >= set.reps)
     );
   }
