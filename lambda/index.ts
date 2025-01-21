@@ -1030,7 +1030,7 @@ const getDashboardsUsersHandler: RouteHandler<
     const usersById = CollectionUtils.groupByKeyUniq(users, "id");
     const userIdToProgramNames = userPrograms.reduce<Record<string, { id: string; name: string }[]>>((memo, p) => {
       memo[p.userId] = memo[p.userId] || [];
-      memo[p.userId].push({ id: p.id, name: `${p.name} ${p.planner ? "🎯" : ""}` });
+      memo[p.userId].push({ id: p.id, name: `${p.name} ${p.planner ? "🎯" : "👴"}` });
       return memo;
     }, {});
     const subscriptionDetailsById = CollectionUtils.groupByKeyUniq(subscriptionDetailsDaos, "userId");
