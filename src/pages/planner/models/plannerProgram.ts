@@ -30,6 +30,7 @@ import { Weight } from "../../../models/weight";
 import { PP } from "../../../models/pp";
 import { IEither } from "../../../utils/types";
 import { UidFactory } from "../../../utils/generator";
+import { getLatestMigrationVersion } from "../../../migrations/migrations";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -587,6 +588,28 @@ export class PlannerProgram {
       customExercises: planner.settings.exercises,
       version: planner.version,
     };
+  }
+
+  public static buildExportedProgram(
+    id: string,
+    program: IPlannerProgram,
+    settings: ISettings,
+    nextDay?: number
+  ): IExportedProgram {
+    const { evaluatedWeeks } = PlannerProgram.evaluate(program, settings);
+
+    const exportedPlannerProgram: IExportedPlannerProgram = {
+      id,
+      type: "v2",
+      version: getLatestMigrationVersion(),
+      program: program,
+      plannerSettings: settings.planner,
+      settings: {
+        exercises: PlannerProgram.usedExercises(settings.exercises, evaluatedWeeks),
+        timer: settings.timers.workout ?? 0,
+      },
+    };
+    return Program.exportedPlannerProgramToExportedProgram(exportedPlannerProgram, nextDay);
   }
 
   public static async getExportedPlannerProgram(

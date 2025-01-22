@@ -31,6 +31,7 @@ import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
 import { ObjectUtils } from "../../utils/object";
 import { UidFactory } from "../../utils/generator";
 import { MigratorToPlanner } from "../../models/migratorToPlanner";
+import { MigrationBanner } from "../migrationBanner";
 
 interface IProps {
   editProgram: IProgram;
@@ -96,6 +97,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
       }
     >
       <section className="px-4">
+        <MigrationBanner program={props.editProgram} settings={props.settings} client={window.fetch.bind(window)} />
         <div className="mb-2 text-sm text-grayv2-main">
           <div>
             You can use{" "}

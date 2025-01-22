@@ -14,6 +14,7 @@ interface IBuilderCopyLinkProps<T> {
   type: "p" | "b" | "n";
   program: T;
   client: Window["fetch"];
+  title?: string | JSX.Element;
 }
 
 export function BuilderCopyLink<T>(props: IBuilderCopyLinkProps<T>): JSX.Element {
@@ -48,7 +49,8 @@ export function BuilderCopyLink<T>(props: IBuilderCopyLinkProps<T>): JSX.Element
           setShowInfo(url);
         }}
       >
-        <IconLink />
+        <IconLink className="inline-block align-middle" />
+        <span className="align-middle">{props.title}</span>
       </button>
     </div>
   );

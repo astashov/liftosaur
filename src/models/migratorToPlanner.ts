@@ -2,21 +2,19 @@ import { PlannerKey } from "../pages/planner/plannerKey";
 import {
   IDayData,
   IPercentage,
+  IPlannerProgram,
   IPlannerProgramDay,
   IPlannerProgramWeek,
   IProgram,
   IProgramExercise,
   IProgramExerciseWarmupSet,
   IProgramSet,
-  IProgramState,
   ISettings,
   IWeight,
 } from "../types";
 import { MathUtils } from "../utils/math";
-import { ObjectUtils } from "../utils/object";
 import { equipmentName, Exercise, IExercise } from "./exercise";
 import { Weight } from "./weight";
-import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { IProgramWeek } from "../types";
 import { UidFactory } from "../utils/generator";
 import { ScriptRunner } from "../parser";
@@ -31,8 +29,7 @@ export interface IGlobals {
 export class MigratorToPlanner {
   constructor(private readonly program: IProgram, private readonly settings: ISettings) {}
 
-  public migrate(): string {
-    const addedProgressMap: Record<string, boolean> = {};
+  public migrate(): IPlannerProgram {
     const addedWarmupsMap: Record<string, boolean> = {};
     const addedQuickAddSet: Record<string, boolean> = {};
     const plannerWeeks: IPlannerProgramWeek[] = [];
@@ -96,18 +93,6 @@ export class MigratorToPlanner {
             }
           }
 
-          const skip = this.getSkipProgress(programExercise.finishDayExpr);
-          if (skip.some((s) => weekIndex + 1 === s[0] && dayInWeekIndex + 1 === s[1])) {
-            plannerExercise += ` / progress: none`;
-          } else if (
-            !addedProgressMap[key] &&
-            (programExercise.finishDayExpr ||
-              programExercise.reuseFinishDayScript ||
-              ObjectUtils.isNotEmpty(ProgramExercise.getState(programExercise, this.program.exercises)))
-          ) {
-            plannerExercise += this.getProgress(programExercise);
-            addedProgressMap[key] = true;
-          }
           exerciseTextArr.push(plannerExercise);
           dayIndex += 1;
         }
@@ -116,8 +101,7 @@ export class MigratorToPlanner {
       }
       plannerWeeks.push(plannerWeek);
     }
-    const text = PlannerProgram.generateFullText(plannerWeeks);
-    return text;
+    return { name: this.program.name, weeks: plannerWeeks };
   }
 
   private getExerciseName(programExercise: IProgramExercise, exercise: IExercise): string {
@@ -165,10 +149,6 @@ export class MigratorToPlanner {
     };
   }
 
-  private printVal(val: number | IWeight | IPercentage): string {
-    return Weight.is(val) || Weight.isPct(val) ? `${val.value}${val.unit}` : `${val}`;
-  }
-
   private groupVariationSets(sets: IProgramSet[]): [IProgramSet, number][] {
     if (sets.length === 0) {
       return [[{ repsExpr: "1", weightExpr: "0lb" }, 0]];
@@ -184,14 +164,6 @@ export class MigratorToPlanner {
       lastKey = key;
     }
     return groups;
-  }
-
-  private getExerciseKey(programExercise: IProgramExercise): string {
-    const originalExercise = Exercise.get(programExercise.exerciseType, this.settings.exercises);
-    const addEquipment =
-      programExercise.exerciseType.equipment != null &&
-      programExercise.exerciseType.equipment !== originalExercise.defaultEquipment;
-    return `${programExercise.name}${addEquipment ? `, ${equipmentName(programExercise.exerciseType.equipment)}` : ""}`;
   }
 
   private groupWarmupsSets(sets: IProgramExerciseWarmupSet[]): [IProgramExerciseWarmupSet, number][] {
@@ -227,36 +199,6 @@ export class MigratorToPlanner {
       return strs.length === 0 ? "none" : strs.join(", ");
     }
     return undefined;
-  }
-
-  private getBuiltinProgress(state: IProgramState, finishDayExpr?: string): string | undefined {
-    const progressLine = (finishDayExpr || "").split("\n")?.find((l) => l.indexOf("// progress:") !== -1);
-    if (progressLine != null) {
-      const progressMatch = progressLine.match(/progress: ([^(]+)\((.*)\)$/);
-      if (progressMatch) {
-        const name = progressMatch[1];
-        const args = progressMatch[2].split(",").map((a) => a.trim());
-        if (name === "lp") {
-          const [increment, totalSuccess, , decrement, totalFailure] = args;
-          return `lp(${increment}, ${totalSuccess}, ${state.successes}, ${decrement}, ${totalFailure}, ${state.failures})`;
-        } else if (name === "dp" || name === "sum") {
-          return `${name}(${args.join(", ")})`;
-        }
-      }
-    }
-    return undefined;
-  }
-
-  private getSkipProgress(finishDayExpr?: string): [number, number][] {
-    const skipLine = (finishDayExpr || "").split("\n")?.find((l) => l.indexOf("// skip: ") !== -1);
-    if (skipLine != null) {
-      const skipMatch = skipLine.match(/skip: (.*)$/);
-      if (skipMatch) {
-        const arr: [number, number][] = JSON.parse(skipMatch[1]);
-        return arr;
-      }
-    }
-    return [];
   }
 
   private getReps(
@@ -363,33 +305,5 @@ export class MigratorToPlanner {
 
   private setToKey(set: IProgramSet): string {
     return `${set.repsExpr}-${set.minRepsExpr}-${set.weightExpr}-${set.isAmrap}-${set.rpeExpr}-${set.logRpe}-${set.timerExpr}-${set.label}`;
-  }
-
-  private getProgress(programExercise: IProgramExercise): string {
-    let plannerExercise = "";
-    const state = ProgramExercise.getState(programExercise, this.program.exercises);
-    const progress = this.getBuiltinProgress(state, programExercise.finishDayExpr);
-    if (progress != null) {
-      plannerExercise += ` / progress: ${progress}`;
-    } else {
-      const stateVars = ObjectUtils.keys(state).map((k) => `${k}: ${this.printVal(state[k])}`);
-      plannerExercise += ` / progress: custom(${stateVars.join(", ")})`;
-      if (programExercise.reuseFinishDayScript) {
-        const originalProgramExercise = this.program.exercises.find(
-          (e) => e.id === programExercise.reuseFinishDayScript
-        );
-        if (originalProgramExercise != null) {
-          const originalKey = this.getExerciseKey(originalProgramExercise);
-          plannerExercise += ` { ...${originalKey} }`;
-        }
-      } else if (programExercise.finishDayExpr) {
-        const finishDayExpr = programExercise.finishDayExpr.replace(/^[\s\S]*{~/, "{~").replace(/~}[\s\S]*$/, "~}");
-        plannerExercise += ` {~\n${finishDayExpr
-          .split("\n")
-          .map((l) => `  ${l}`)
-          .join("\n")}\n~}`;
-      }
-    }
-    return plannerExercise;
   }
 }

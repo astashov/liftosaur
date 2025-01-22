@@ -250,6 +250,12 @@ export function AppView(props: IProps): JSX.Element | null {
     SendMessage.toIos({ type: "loaded", userid: userId });
     SendMessage.toAndroid({ type: "loaded", userid: userId });
 
+    if (currentProgram != null && currentProgram.planner == null) {
+      alert(
+        "You're using OLD STYLE programs, which won't be supported, and WILL STOP WORKING starting from Feb 3, 2025! Please go to Program screen, and migrate the program to the new style"
+      );
+    }
+
     return () => {
       ptr.destroy();
       window.removeEventListener("error", onerror);
