@@ -12,6 +12,7 @@ import { IDispatch } from "../ducks/types";
 import { HtmlUtils } from "../utils/html";
 import { Reps } from "../models/set";
 import { ObjectUtils } from "../utils/object";
+import { History } from "../models/history";
 
 interface IGraphProps {
   history: IHistoryRecord[];
@@ -52,17 +53,17 @@ function getData(
     }
     const entry = i.entries.filter((e) => Exercise.eq(e.exercise, exerciseType))[0];
     if (entry != null) {
-      const maxSet = CollectionUtils.sort(entry.sets, (a, b) => {
-        return !Weight.eq(b.weight, a.weight)
-          ? Weight.compare(b.weight, a.weight)
-          : (b.completedReps || 0) - (a.completedReps || 0);
-      }).find((s) => s.completedReps != null && s.completedReps > 0);
+      const maxSet = History.getMaxWeightSetFromEntry(entry);
+      const maxe1RMSet = History.getMax1RMSetFromEntry(entry);
       const volume = Reps.volume(entry.sets);
       if (maxSet != null) {
         const convertedWeight = Weight.convertTo(maxSet.weight, settings.units);
         let onerm = null;
         if (isWithOneRm) {
-          onerm = Weight.getOneRepMax(convertedWeight, maxSet.completedReps || 0).value;
+          onerm = Weight.getOneRepMax(
+            Weight.convertTo((maxe1RMSet || maxSet).weight, settings.units),
+            (maxe1RMSet || maxSet).completedReps || 0
+          ).value;
         }
         const timestamp = new Date(Date.parse(i.date)).getTime() / 1000;
         historyRecords[timestamp] = i;
@@ -180,7 +181,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                       date
                     )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
                     if (props.isWithOneRm && onerm != null) {
-                      text += `, 1RM = <strong>${onerm.toFixed(2)}</strong> ${units}s`;
+                      text += `, e1RM = <strong>${onerm.toFixed(2)}</strong> ${units}s`;
                     }
                     if (historyRecord != null && dispatch) {
                       text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2 nm-graph-exercise-workout">Workout</button>`;
@@ -275,7 +276,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
           width: 1,
         },
         {
-          label: "1RM",
+          label: "e1RM",
           show: props.isWithOneRm && props.selectedType === "weight",
           value: (self, rawValue) => `${rawValue} ${units}`,
           stroke: "#28839F",

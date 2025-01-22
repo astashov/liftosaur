@@ -106,8 +106,8 @@ export namespace History {
     return getMaxWeightSet(entry.sets);
   }
 
-  export function getMax1RMFromEntry(entry: IHistoryEntry): ISet | undefined {
-    return getMax1RM(entry.sets);
+  export function getMax1RMSetFromEntry(entry: IHistoryEntry): ISet | undefined {
+    return getMax1RMSet(entry.sets);
   }
 
   export function getMaxWeightSet(sets: ISet[]): ISet | undefined {
@@ -123,7 +123,7 @@ export namespace History {
     )[0];
   }
 
-  export function getMax1RM(sets: ISet[]): ISet | undefined {
+  export function getMax1RMSet(sets: ISet[]): ISet | undefined {
     return CollectionUtils.sort(
       sets.filter((s) => (s.completedReps || 0) > 0),
       (a, b) => {
@@ -367,7 +367,7 @@ export namespace History {
             result[record.id]![key]!.maxWeightSet = thisMaxWeightSet;
           }
 
-          const thisMax1RMSet = getMax1RMFromEntry(entry);
+          const thisMax1RMSet = getMax1RMSetFromEntry(entry);
           const thisMax1RM = thisMax1RMSet
             ? Weight.getOneRepMax(
                 thisMax1RMSet.weight,
