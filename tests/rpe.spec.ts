@@ -46,7 +46,7 @@ test("rpe", async ({ page }) => {
   await expect(page.getByTestId("history-entry-rpe")).toHaveText("@8");
 
   await expect(page.getByTestId("history-entry-sets-next")).toHaveCount(2);
-  await expect(page.getByTestId("history-entry-sets-next").first()).toHaveText("2 × 5 × @8 135lb");
+  await expect(page.getByTestId("history-entry-sets-next").first()).toHaveText("2 × 5 × 135lb @8");
   await expect(page.getByTestId("history-entry-sets-next").nth(1)).toHaveText("2 × 5 × 135lb");
 
   await page.getByTestId("start-workout").click();
@@ -83,10 +83,10 @@ test("rpe", async ({ page }) => {
   await page.getByRole("button", { name: "Continue" }).click();
 
   await expect(page.getByTestId("history-entry-sets-completed")).toHaveCount(4);
-  await expect(page.getByTestId("history-entry-sets-completed").nth(0)).toHaveText("5 × @7.5 135lb");
-  await expect(page.getByTestId("history-entry-sets-completed").nth(1)).toHaveText("5 × @8 135lb");
+  await expect(page.getByTestId("history-entry-sets-completed").nth(0)).toHaveText("5 × 135lb @7.5");
+  await expect(page.getByTestId("history-entry-sets-completed").nth(1)).toHaveText("5 × 135lb @8");
   await expect(page.getByTestId("history-entry-sets-completed").nth(2)).toHaveText("5 × 135lb");
-  await expect(page.getByTestId("history-entry-sets-completed").nth(3)).toHaveText("5 × @10 135lb");
+  await expect(page.getByTestId("history-entry-sets-completed").nth(3)).toHaveText("5 × 135lb @10");
 
   await expect(page.getByTestId("history-entry-rpe")).toHaveCount(4);
   await expect(page.getByTestId("history-entry-rpe").nth(0)).toHaveText("@8");
