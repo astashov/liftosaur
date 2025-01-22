@@ -34,6 +34,7 @@ import { Share } from "../models/share";
 import { ClipboardUtils } from "../utils/clipboard";
 import { InternalLink } from "../internalLink";
 import { LinkButton } from "./linkButton";
+import { IconTiktok } from "./icons/iconTiktok";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -376,17 +377,17 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
             </button>
             <div>IG Feed</div>
           </div>
-          {/* <div className="text-center">
-                <button
-                  onClick={() => {
-                    setShareType("tiktok");
-                    setIsShareShown(true);
-                  }}
-                >
-                  <IconTiktok />
-                </button>
-                <div>Tiktok</div>
-              </div> */}
+          <div className="text-center">
+            <button
+              onClick={() => {
+                setShareType("tiktok");
+                setIsShareShown(true);
+              }}
+            >
+              <IconTiktok />
+            </button>
+            <div>Tiktok</div>
+          </div>
           <div className="text-center">
             <WorkoutShareButton
               history={props.history}

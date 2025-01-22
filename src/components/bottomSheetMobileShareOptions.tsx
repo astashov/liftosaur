@@ -9,6 +9,7 @@ import { WorkoutShareBottomSheetItem } from "./workoutShareBottomSheetItem";
 import { IconLink } from "./icons/iconLink";
 import { ClipboardUtils } from "../utils/clipboard";
 import { Share } from "../models/share";
+import { IconTiktok } from "./icons/iconTiktok";
 
 interface IProps {
   record: IHistoryRecord;
@@ -50,7 +51,7 @@ export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
               props.onClose();
             }}
           />
-          {/* <BottomSheetItem
+          <BottomSheetItem
             name="share-to-tiktok"
             title="Share to Tiktok"
             description={""}
@@ -60,7 +61,7 @@ export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
               setShareType("tiktok");
               props.onClose();
             }}
-          /> */}
+          />
           <BottomSheetItem
             name="share-to-link"
             title="Copy link to workout"
