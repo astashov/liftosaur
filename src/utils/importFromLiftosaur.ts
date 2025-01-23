@@ -127,7 +127,7 @@ export class ImportFromLiftosaur {
             completedRpe: set.rpe ? getNumber(set.rpe) : undefined,
             isAmrap: set.isAmrap === "1",
             label: "",
-            timestamp: getTimestamp(set.workoutDateTime),
+            timestamp: getTimestamp(set.completedRepsTime) || getTimestamp(set.workoutDateTime),
           })),
           sets: rawWorkoutSets.map((set) => ({
             reps: getNumber(set.requiredReps ?? 0),
@@ -137,29 +137,34 @@ export class ImportFromLiftosaur {
             completedRpe: set.rpe ? getNumber(set.rpe) : undefined,
             isAmrap: set.isAmrap === "1",
             label: "",
-            timestamp: getTimestamp(set.workoutDateTime),
+            timestamp: getTimestamp(set.completedRepsTime) || getTimestamp(set.workoutDateTime),
           })),
           notes: firstSet.notes,
         };
         return entry;
       });
       const firstRecord = records[0];
-      const endTime = CollectionUtils.sortBy(
+      let endTime = CollectionUtils.sortBy(
         entries.flatMap((e) => e.warmupSets.concat(e.sets)).map((s) => ({ t: getNumber(`${s.timestamp}` || "0") })),
         "t",
         true
       )[0]?.t;
+      const startTime = getTimestamp(firstRecord.workoutDateTime);
+      if (endTime == null || endTime < startTime) {
+        endTime = startTime;
+      }
       const historyRecord: IHistoryRecord = {
-        date: new Date(getTimestamp(firstRecord.workoutDateTime)).toISOString(),
+        date: new Date(startTime).toISOString(),
         day: 1,
         dayName: `${firstRecord.dayname}` || "Workout",
         programName: `${firstRecord.program}` || "CSV Import",
+        intervals: [[startTime, endTime]],
         entries,
-        id: getTimestamp(firstRecord.workoutDateTime),
+        id: startTime,
         programId: StringUtils.dashcase(firstRecord.program || "csv"),
-        startTime: getTimestamp(firstRecord.workoutDateTime),
+        startTime: startTime,
         dayInWeek: 1,
-        endTime: endTime || getTimestamp(firstRecord.workoutDateTime),
+        endTime: endTime,
         notes: "",
       };
       return historyRecord;
