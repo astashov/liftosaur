@@ -18,7 +18,7 @@ export function WorkoutShareButton(props: IWorkoutShareButtonProps): JSX.Element
   return (
     <div className="relative overflow-hidden text-left">
       <button
-        className="w-10 h-10 rounded-full bg-grayv2-100"
+        className="w-10 h-10 rounded-full bg-grayv2-100 nm-workout-share-image"
         onClick={async () => {
           setIsLoading(true);
           try {

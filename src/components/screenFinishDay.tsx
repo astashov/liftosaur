@@ -357,6 +357,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
         <div className="flex justify-between gap-4 text-xs text-grayv2-main">
           <div className="text-center">
             <button
+              className="nm-finishday-share-igstory"
               onClick={() => {
                 setShareType("igstory");
                 setIsShareShown(true);
@@ -368,6 +369,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
           </div>
           <div className="text-center">
             <button
+              className="nm-finishday-share-igfeed"
               onClick={() => {
                 setShareType("igfeed");
                 setIsShareShown(true);
@@ -379,6 +381,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
           </div>
           <div className="text-center">
             <button
+              className="nm-finishday-share-tiktok"
               onClick={() => {
                 setShareType("tiktok");
                 setIsShareShown(true);
