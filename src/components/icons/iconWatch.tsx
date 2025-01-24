@@ -1,4 +1,5 @@
 import { h, JSX } from "preact";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   style?: { [key: string]: string | number };
@@ -9,36 +10,25 @@ interface IProps {
 }
 
 export function IconWatch(props: IProps): JSX.Element {
-  const color = props.color || "#607284";
+  const color = props.color || Tailwind.colors().grayv3.main;
+  const width = props.width || 17;
+  const height = props.height || 22;
   return (
     <svg
-      width={props.width || 15}
-      height={props.height || 18}
-      viewBox="0 0 15 18"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+      width={width}
+      height={height}
       className={`inline-block ${props.className || ""}`}
       style={props.style}
+      viewBox="0 0 17 22"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
     >
       <path
-        d="M7.5 17.0181C11.0036 17.0181 13.8438 14.1779 13.8438 10.6743C13.8438 7.17076 11.0036 4.33057 7.5 4.33057C3.99644 4.33057 1.15625 7.17076 1.15625 10.6743C1.15625 14.1779 3.99644 17.0181 7.5 17.0181Z"
+        d="M12.187 6.72466L13.2643 5.24117M6.58297 3.66675H10.2496M8.41667 8.2493V11.9167H12.0833M14.8333 11.9167C14.8333 15.4606 11.9605 18.3334 8.41667 18.3334C4.87283 18.3334 2 15.4606 2 11.9167C2 8.37291 4.87283 5.50008 8.41667 5.50008C11.9605 5.50008 14.8333 8.37291 14.8333 11.9167Z"
         stroke={color}
-      />
-      <path
-        d="M13.1262 6.49637C12.744 6.87853 12.1244 6.87853 11.7422 6.49637C11.36 6.11417 11.36 5.49454 11.7422 5.11239L12.5726 4.28201C12.9548 3.89981 13.5744 3.89981 13.9565 4.28201C14.3387 4.66417 14.3387 5.2838 13.9565 5.666L13.1262 6.49637Z"
-        fill={color}
-      />
-      <path
-        d="M6.625 8.1875C6.625 7.70424 7.01674 7.3125 7.5 7.3125C7.98326 7.3125 8.375 7.70424 8.375 8.1875V10.8125C8.375 11.2958 7.98326 11.6875 7.5 11.6875C7.01674 11.6875 6.625 11.2958 6.625 10.8125V8.1875Z"
-        fill={color}
-      />
-      <path
-        d="M6.625 8.1875C6.625 7.70424 7.01674 7.3125 7.5 7.3125C7.98326 7.3125 8.375 7.70424 8.375 8.1875V10.8125C8.375 11.2958 7.98326 11.6875 7.5 11.6875C7.01674 11.6875 6.625 11.2958 6.625 10.8125V8.1875Z"
-        fill={color}
-      />
-      <path
-        d="M8.8125 0.75H6.1875C5.70425 0.75 5.3125 1.14175 5.3125 1.625C5.3125 2.10825 5.70425 2.5 6.1875 2.5H8.8125C9.29575 2.5 9.6875 2.10825 9.6875 1.625C9.6875 1.14175 9.29575 0.75 8.8125 0.75Z"
-        fill={color}
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
       />
     </svg>
   );

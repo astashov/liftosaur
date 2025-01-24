@@ -8,11 +8,11 @@ interface IProps extends JSX.HTMLAttributes<HTMLButtonElement> {
 
 export function Button(props: IProps): JSX.Element {
   const { children, buttonSize, kind, ...otherProps } = props;
-  let className = "text-xs text-white rounded-2xl";
+  let className = "text-xs text-white rounded-lg";
   if (props.disabled) {
     className += " bg-grayv2-main opacity-50";
   } else if (kind === "purple") {
-    className += " bg-purplev2-main";
+    className += " bg-purplev3-500";
   } else if (kind === "grayv2") {
     className += " bg-grayv2-main";
   } else if (kind === "red") {

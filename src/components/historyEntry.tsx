@@ -12,28 +12,32 @@ import { ObjectUtils } from "../utils/object";
 interface IHistoryEntryProps {
   entry: IHistoryEntry;
   prs?: IHistoryEntryPersonalRecords;
-  isNext: boolean;
+  isOngoing?: boolean;
   isLast?: boolean;
+  isNext: boolean;
   settings: ISettings;
   showNotes: boolean;
 }
 
 export const HistoryEntryView = memo(
   (props: IHistoryEntryProps): JSX.Element => {
-    const { entry, isNext, isLast, settings, showNotes } = props;
+    const { entry, isNext, settings, showNotes, isOngoing, isLast } = props;
     const exercise = Exercise.get(entry.exercise, settings.exercises);
     const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(settings, exercise);
     const isPr = ObjectUtils.values(props.prs || {}).some((v) => v);
     return (
-      <div
-        data-cy="history-entry-exercise"
-        className={`flex flex-row items-center flex-1 py-1 ${!isLast ? "border-b border-grayv2-100" : ""}`}
-      >
-        <div data-cy="history-entry-exercise-img" style={{ minWidth: "2.25rem" }}>
+      <div data-cy="history-entry-exercise" className={`flex flex-row items-center flex-1`}>
+        <div data-cy="history-entry-exercise-img py-2" style={{ minWidth: "2.25rem" }}>
           <ExerciseImage settings={props.settings} className="w-6 mr-3" exerciseType={exercise} size="small" />
         </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
+        <div
+          className={`flex-1 py-2 ${
+            !isLast
+              ? `border-b ${isNext ? (isOngoing ? "border-yellowv3-200" : "border-purplev3-200") : "border-grayv3-200"}`
+              : ""
+          }`}
+        >
+          <div className="flex items-center gap-2 min-h-8">
             <div>
               <div data-cy="history-entry-exercise-name" className="font-semibold">
                 {Exercise.nameWithEquipment(exercise, props.settings)}

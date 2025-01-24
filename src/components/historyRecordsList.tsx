@@ -2,7 +2,7 @@ import { Fragment, h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Progress } from "../models/progress";
 import { History } from "../models/history";
-import { IHistoryRecord, ISettings, ISubscription } from "../types";
+import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { HistoryRecordView } from "./historyRecord";
 import { DateUtils } from "../utils/date";
 import { WeekInsights, WeekInsightsTeaser } from "./weekInsights";
@@ -11,10 +11,12 @@ import { ModalPlannerSettings } from "../pages/planner/components/modalPlannerSe
 import { IState, updateState } from "../models/state";
 import { lb } from "lens-shmens";
 import { Subscriptions } from "../utils/subscriptions";
+import { Program } from "../models/program";
 
 interface IHistoryRecordsListProps {
   history: IHistoryRecord[];
   progress?: IHistoryRecord;
+  program: IProgram;
   settings: ISettings;
   currentUserId?: string;
   dispatch: IDispatch;
@@ -61,6 +63,8 @@ function insertWeekInsights(history: IHistoryRecord[]): Array<IHistoryRecordWrap
 export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element {
   const { history, settings, dispatch, visibleRecords } = props;
   const [showPlannerSettings, setShowPlannerSettings] = useState(false);
+  const program = Program.fullProgram(props.program, props.settings);
+  const programDay = Program.getProgramDay(program, program.nextDay);
   const combinedHistory = history.slice(0, visibleRecords);
   combinedHistory.sort((a, b) => {
     if (Progress.isCurrent(a)) {
@@ -94,6 +98,7 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
           return (
             <HistoryRecordView
               isOngoing={!!(Progress.isCurrent(record.historyRecord) && props.progress)}
+              programDay={programDay}
               prs={prs}
               settings={settings}
               historyRecord={record.historyRecord}

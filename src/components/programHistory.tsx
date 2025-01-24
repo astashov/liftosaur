@@ -119,6 +119,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       )}
       <HistoryRecordsList
         history={history}
+        program={props.program}
         subscription={props.subscription}
         progress={props.progress}
         settings={props.settings}
