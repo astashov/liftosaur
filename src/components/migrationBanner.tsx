@@ -6,6 +6,7 @@ import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { IProgram, ISettings } from "../types";
 import { Encoder } from "../utils/encoder";
 import { UrlUtils } from "../utils/url";
+import { UidFactory } from "../utils/generator";
 
 interface IMigrationBannerProps {
   client: Window["fetch"];
@@ -33,7 +34,7 @@ export function MigrationBanner(props: IMigrationBannerProps): JSX.Element {
             encodedProgram={async () => {
               const newPlannerProgram = new MigratorToPlanner(props.program, props.settings).migrate();
               const exportedProgram = PlannerProgram.buildExportedProgram(
-                props.program.id,
+                UidFactory.generateUid(8),
                 newPlannerProgram,
                 props.settings,
                 props.program.nextDay

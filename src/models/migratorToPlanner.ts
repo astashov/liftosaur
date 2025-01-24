@@ -101,7 +101,7 @@ export class MigratorToPlanner {
       }
       plannerWeeks.push(plannerWeek);
     }
-    return { name: this.program.name, weeks: plannerWeeks };
+    return { name: `${this.program.name} (New)`, weeks: plannerWeeks };
   }
 
   private getExerciseName(programExercise: IProgramExercise, exercise: IExercise): string {
