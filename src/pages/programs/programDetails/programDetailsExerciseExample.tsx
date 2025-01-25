@@ -79,7 +79,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
                     <>
                       {i !== 0 && <div className="h-12 mr-2 border-l border-grayv2-200" />}
                       <div>
-                        <div className="px-2 text-xs text-center whitespace-no-wrap text-grayv2-main">{week.label}</div>
+                        <div className="px-2 text-xs text-center whitespace-nowrap text-grayv2-main">{week.label}</div>
                         <div className="flex flex-no-wrap justify-center">
                           <HistoryRecordSetsView sets={week.entry.sets} isNext={true} settings={props.settings} />
                         </div>

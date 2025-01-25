@@ -168,7 +168,7 @@ interface ISetProps {
 
 function SetView({ set, units }: ISetProps): JSX.Element {
   return (
-    <span className="whitespace-no-wrap">
+    <span className="whitespace-nowrap">
       {set.completedReps || 0} {StringUtils.pluralize("rep", set.completedReps || 0)} x{" "}
       {Weight.display(Weight.convertTo(set.weight, units))}
     </span>

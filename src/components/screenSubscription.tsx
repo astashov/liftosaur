@@ -217,7 +217,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                     name="subscription-free"
                     onClick={() => props.dispatch(Thunk.claimkey())}
                     kind="orange"
-                    className="whitespace-no-wrap"
+                    className="whitespace-nowrap"
                     data-cy="button-subscription-free"
                     buttonSize="lg"
                   >

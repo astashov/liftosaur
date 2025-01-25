@@ -214,7 +214,7 @@ function Set(props: ISetProps): JSX.Element {
     return <div />;
   }
   return (
-    <div className="text-base leading-4 text-right whitespace-no-wrap text-grayv2-main">
+    <div className="text-base leading-4 text-right whitespace-nowrap text-grayv2-main">
       {repRange.numberOfSets > 1 && (
         <span>
           <span className="font-semibold text-purplev2-main">{repRange.numberOfSets}</span>{" "}

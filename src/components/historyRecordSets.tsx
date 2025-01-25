@@ -134,7 +134,7 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
   const rpeColor = isNext ? "text-grayv2-main" : set.isRpeFailed ? "text-redv2-main" : "text-greenv2-main";
   return (
     <div
-      className="whitespace-no-wrap"
+      className="whitespace-nowrap"
       data-cy={
         isNext
           ? "history-entry-sets-next"

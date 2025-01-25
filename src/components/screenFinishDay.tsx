@@ -276,7 +276,7 @@ function PersonalRecords(props: IPersonalRecords): JSX.Element {
                 <li>
                   <div>
                     <strong>{exercise.name}</strong>:{" "}
-                    <span className="whitespace-no-wrap">
+                    <span className="whitespace-nowrap">
                       <strong className="text-greenv2-main">{Weight.display(item.set.weight)}</strong>,{" "}
                       {item.set.completedReps || 0} {StringUtils.pluralize("rep", item.set.completedReps || 0)}
                     </span>
@@ -317,7 +317,7 @@ function PersonalRecords(props: IPersonalRecords): JSX.Element {
                 <li>
                   <div>
                     <strong>{exercise.name}</strong>:{" "}
-                    <span className="whitespace-no-wrap">
+                    <span className="whitespace-nowrap">
                       <strong className="text-greenv2-main">{Weight.display(estimated1RM)}</strong> (
                       {item.set.completedReps || 0} × {Weight.display(item.set.weight)}
                       {setRpe ? ` @${setRpe}` : ""})

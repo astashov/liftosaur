@@ -383,7 +383,7 @@ const ExerciseContentView = memo(
                           >
                             {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
                           </span>
-                          <span className="text-left whitespace-no-wrap text-grayv2-500">
+                          <span className="text-left whitespace-nowrap text-grayv2-500">
                             {n(w.rounded.value)} {w.rounded.unit}
                           </span>
                           <WeightView weight={w.rounded} exercise={props.entry.exercise} settings={props.settings} />
@@ -695,7 +695,7 @@ function WeightLine(props: IWeightLineProps): JSX.Element {
         </span>
         <button
           data-cy="change-weight"
-          className="text-left underline whitespace-no-wrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal nm-workout-open-change-weight-modal"
+          className="text-left underline whitespace-nowrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal nm-workout-open-change-weight-modal"
           style={{ fontWeight: "inherit" }}
           onClick={() => {
             props.dispatch({

@@ -92,7 +92,7 @@ export const RepsAndWeight = memo(
           <>
             <HistoryRecordSetsView sets={sets} isNext={true} settings={props.settings} />
             {!areEqual && forceShowFormula == null && (
-              <div className="whitespace-no-wrap">
+              <div className="whitespace-nowrap">
                 <button
                   className="text-sm underline text-bluev2 nm-program-details-show-formula "
                   onClick={() => setIsDisplayingFormula(!isDisplayingFormula)}
@@ -107,7 +107,7 @@ export const RepsAndWeight = memo(
           <>
             <HistoryRecordProgramSetsView sets={props.sets} />
             {forceShowFormula == null && (
-              <div className="whitespace-no-wrap">
+              <div className="whitespace-nowrap">
                 <button
                   onClick={() => setIsDisplayingFormula(!isDisplayingFormula)}
                   className="text-sm text-blue-700 underline nm-program-details-show-values "
