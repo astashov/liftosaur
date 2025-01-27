@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { IScreen, Screen } from "../models/screen";
-import { IStats, ISettings, ISubscription } from "../types";
+import { IStats, ISettings, ISubscription, IProgram } from "../types";
 import { ILoading } from "../models/state";
 import { IDispatch } from "../ducks/types";
 import { Surface } from "./surface";
@@ -13,6 +13,7 @@ interface IProps {
   dispatch: IDispatch;
   loading: ILoading;
   settings: ISettings;
+  currentProgram: IProgram;
   subscription: ISubscription;
   screenStack: IScreen[];
   stats: IStats;
@@ -32,7 +33,14 @@ export function ScreenMeasurements(props: IProps): JSX.Element {
           title="Measurements"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
     >
       <StatsList subscription={props.subscription} stats={stats} settings={settings} dispatch={dispatch} />
     </Surface>

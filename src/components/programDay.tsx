@@ -47,6 +47,7 @@ import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
 interface IProps {
   progress: IHistoryRecord;
   history: IHistoryRecord[];
+  currentProgram: IProgram;
   program?: IProgram;
   settings: ISettings;
   userId?: string;
@@ -116,7 +117,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             ]}
           />
         }
-        footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+        footer={
+          <Footer2View
+            currentProgram={props.currentProgram}
+            settings={props.settings}
+            dispatch={props.dispatch}
+            screen={Screen.current(props.screenStack)}
+          />
+        }
         addons={
           <>
             <BottomSheetEditExercise

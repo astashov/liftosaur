@@ -18,6 +18,7 @@ import { IconGoogle } from "./icons/iconGoogle";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { IconApple } from "./icons/iconApple";
+import { IProgram, ISettings } from "../types";
 
 declare let __HOST__: string;
 
@@ -25,6 +26,8 @@ interface IProps {
   email?: string;
   loading: ILoading;
   screenStack: IScreen[];
+  currentProgram: IProgram;
+  settings: ISettings;
   dispatch: IDispatch;
 }
 
@@ -63,7 +66,14 @@ export function ScreenAccount(props: IProps): JSX.Element {
           helpContent={<HelpAccount />}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
     >
       <section className="px-4">
         <GroupHeader name="Current Account" />

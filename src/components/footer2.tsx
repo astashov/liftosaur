@@ -1,89 +1,105 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
-import { IScreen, Screen } from "../models/screen";
+import { Screen } from "../models/screen";
 import { FooterButton } from "./footerButton";
-import { IconCog2 } from "./icons/iconCog2";
-import { IconDoc } from "./icons/iconDoc";
-import { IconGraphs2 } from "./icons/iconGraphs2";
-import { IconRuler } from "./icons/iconRuler";
+import { IconGraphs } from "./icons/iconGraphs";
+import { IconHome } from "./icons/iconHome";
+import { useState } from "preact/hooks";
+import { IconMe } from "./icons/iconMe";
+import { Tailwind } from "../utils/tailwindConfig";
+import { IconDoc2 } from "./icons/iconDoc2";
+import { BottomSheetNextWorkout } from "./bottomSheetNextWorkout";
+import { INavCommon } from "../models/state";
 
 interface IFooterProps {
   dispatch: IDispatch;
-  screen: IScreen;
+  navCommon: INavCommon;
 }
 
 export function Footer2View(props: IFooterProps): JSX.Element {
-  const activeColor = "#8356F6";
+  const activeColor = Tailwind.colors().purplev2.main;
+  const inactiveColor = Tailwind.colors().grayv2["800"];
+  const screen = Screen.current(props.navCommon.screenStack);
+  const [showNextWorkoutSheet, setShowNextWorkoutSheet] = useState(false);
   return (
-    <div
-      className="fixed bottom-0 left-0 z-10 items-center w-full text-center pointer-events-none"
-      style={{ marginBottom: "-2px" }}
-    >
+    <>
       <div
-        className="relative flex items-end"
-        style={{ width: "1200px", marginLeft: "-600px", left: "50%", height: "60px", marginBottom: "-10px" }}
+        className="fixed bottom-0 left-0 z-10 items-center w-full text-center pointer-events-none"
+        style={{ marginBottom: "-2px" }}
       >
-        <Shadow />
-      </div>
-      <div
-        className="box-content relative z-10 flex px-2 pt-4 bg-white pointer-events-auto safe-area-inset-bottom"
-        style={{ minHeight: "54px" }}
-      >
-        <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
-          <FooterButton
-            name="program"
-            screen={props.screen}
-            icon={(isActive) => <IconDoc color={isActive ? activeColor : undefined} />}
-            text="Program"
-            onClick={() => {
-              props.dispatch(Thunk.pushToEditProgram());
-            }}
-          />
-          <FooterButton
-            name="measurements"
-            screen={props.screen}
-            icon={(isActive) => <IconRuler color={isActive ? activeColor : undefined} />}
-            text="Measures"
-            onClick={() => props.dispatch(Thunk.pushScreen("measurements"))}
-          />
+        <div
+          className="relative flex items-end"
+          style={{ width: "1200px", marginLeft: "-600px", left: "50%", height: "60px", marginBottom: "-10px" }}
+        >
+          <Shadow />
         </div>
-        <div className="relative" style={{ width: "75px" }}>
-          <div>
-            <button
-              className="absolute nm-footer-workout"
-              data-cy="footer-workout"
-              style={{ top: "-27px", left: "50%", marginLeft: "-27px" }}
+        <div
+          className="box-content relative z-10 flex px-2 pt-4 bg-white pointer-events-auto safe-area-inset-bottom"
+          style={{ minHeight: "54px" }}
+        >
+          <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
+            <FooterButton
+              name="home"
+              screen={screen}
+              icon={(isActive) => <IconHome className="inline-block" size={20} isSelected={isActive} />}
+              text="Home"
               onClick={() => props.dispatch(Thunk.pushScreen("main"))}
-            >
-              <CreateButton isActive={Screen.tab(props.screen) === "workout"} />
-            </button>
-            <div
-              className={Screen.tab(props.screen) === "workout" ? "text-purplev2-700" : ""}
-              style={{ fontSize: "10px", paddingTop: "30px" }}
-            >
-              Workout
+            />
+            <FooterButton
+              name="program"
+              screen={screen}
+              icon={(isActive) => <IconDoc2 className="inline-block" isSelected={isActive} />}
+              text="Program"
+              onClick={() => {
+                props.dispatch(Thunk.pushToEditProgram());
+              }}
+            />
+          </div>
+          <div className="relative" style={{ width: "75px" }}>
+            <div>
+              <button
+                className="absolute nm-footer-workout"
+                data-cy="footer-workout"
+                style={{ top: "-27px", left: "50%", marginLeft: "-27px" }}
+                onClick={() => setShowNextWorkoutSheet(true)}
+              >
+                <CreateButton isActive={Screen.tab(screen) === "workout"} />
+              </button>
+              <div
+                className={Screen.tab(screen) === "workout" ? "text-purplev2-700" : ""}
+                style={{ fontSize: "10px", paddingTop: "30px" }}
+              >
+                Workout
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
-          <FooterButton
-            name="graphs"
-            screen={props.screen}
-            icon={(isActive) => <IconGraphs2 color={isActive ? activeColor : undefined} />}
-            text="Graphs"
-            onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
-          />
-          <FooterButton
-            name="settings"
-            screen={props.screen}
-            icon={(isActive) => <IconCog2 color={isActive ? activeColor : undefined} />}
-            text="Settings"
-            onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
-          />
+          <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
+            <FooterButton
+              name="graphs"
+              screen={screen}
+              icon={(isActive) => <IconGraphs color={isActive ? activeColor : inactiveColor} />}
+              text="Graphs"
+              onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
+            />
+            <FooterButton
+              name="me"
+              screen={screen}
+              icon={(isActive) => <IconMe isSelected={isActive} />}
+              text="Me"
+              onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
+            />
+          </div>
         </div>
       </div>
-    </div>
+      <BottomSheetNextWorkout
+        dispatch={props.dispatch}
+        currentProgram={props.navCommon.currentProgram}
+        settings={props.navCommon.settings}
+        isHidden={!showNextWorkoutSheet}
+        onClose={() => setShowNextWorkoutSheet(false)}
+      />
+    </>
   );
 }
 

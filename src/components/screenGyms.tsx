@@ -1,6 +1,6 @@
 import { Fragment, h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IEquipment, IGym, ISettings } from "../types";
+import { IEquipment, IGym, IProgram, ISettings } from "../types";
 import { ILoading, IState, updateState } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
@@ -27,6 +27,7 @@ interface IProps {
   loading: ILoading;
   expandedEquipment?: IEquipment;
   screenStack: IScreen[];
+  currentProgram: IProgram;
 }
 
 export function ScreenGyms(props: IProps): JSX.Element {
@@ -37,7 +38,14 @@ export function ScreenGyms(props: IProps): JSX.Element {
       navbar={
         <NavbarView loading={props.loading} dispatch={props.dispatch} screenStack={props.screenStack} title="Gyms" />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
       addons={[
         <ModalNewGym
           isHidden={!modalNewGym}

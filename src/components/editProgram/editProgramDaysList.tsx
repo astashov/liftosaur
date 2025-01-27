@@ -38,6 +38,7 @@ interface IProps {
   programIndex: number;
   screenStack: IScreen[];
   dispatch: IDispatch;
+  currentProgram: IProgram;
   adminKey?: string;
   settings: ISettings;
   loading: ILoading;
@@ -52,10 +53,9 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
           helpContent={<HelpEditProgramDaysList />}
-          screenStack={props.screenStack}
           rightButtons={[
             <button
               data-cy="navbar-3-dot"
@@ -68,7 +68,13 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           title="Edit Program"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          navCommon={props.navCommon}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
       addons={
         <>
           <BottomSheetEditProgram

@@ -13,6 +13,7 @@ import {
   IStatsPercentage,
   IPercentage,
   IPercentageUnit,
+  IProgram,
 } from "../types";
 import { Button } from "./button";
 import { forwardRef, Ref, useRef, useState, memo } from "preact/compat";
@@ -38,6 +39,7 @@ interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
   stats: IStats;
+  currentProgram: IProgram;
   loading: ILoading;
   screenStack: IScreen[];
 }
@@ -223,7 +225,14 @@ export function ScreenStats(props: IProps): JSX.Element {
           title="Add Measurements"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          settings={props.settings}
+          currentProgram={props.currentProgram}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
       addons={
         <ModalStats
           isHidden={!isModalVisible}

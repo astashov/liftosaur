@@ -2,7 +2,7 @@ import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Lens, lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
-import { ISettingsTimers, ISettings } from "../types";
+import { ISettingsTimers, ISettings, IProgram } from "../types";
 import { ILoading } from "../models/state";
 import { IScreen, Screen } from "../models/screen";
 import { Surface } from "./surface";
@@ -16,6 +16,8 @@ interface IProps {
   dispatch: IDispatch;
   timers: ISettingsTimers;
   loading: ILoading;
+  currentProgram: IProgram;
+  settings: ISettings;
   screenStack: IScreen[];
 }
 
@@ -39,7 +41,14 @@ export function ScreenTimers(props: IProps): JSX.Element {
           helpContent={<HelpTimers />}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          settings={props.settings}
+          currentProgram={props.currentProgram}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
     >
       <section className="px-4">
         <GroupHeader name="Rest Timers between sets" />

@@ -5,7 +5,7 @@ import { History } from "../models/history";
 import { useState } from "preact/hooks";
 import { ModalGraphs } from "./modalGraphs";
 import { ObjectUtils } from "../utils/object";
-import { ISettings, IHistoryRecord, IStats, IScreenMuscle } from "../types";
+import { ISettings, IHistoryRecord, IStats, IScreenMuscle, IProgram } from "../types";
 import { getLengthDataForGraph, getPercentageDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
 import { ILoading } from "../models/state";
 import { Surface } from "./surface";
@@ -23,6 +23,7 @@ interface IProps {
   dispatch: IDispatch;
   loading: ILoading;
   settings: ISettings;
+  currentProgram: IProgram;
   screenStack: IScreen[];
   stats: IStats;
   history: IHistoryRecord[];
@@ -97,7 +98,14 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           title="Graphs"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
       addons={
         <ModalGraphs
           settings={props.settings}

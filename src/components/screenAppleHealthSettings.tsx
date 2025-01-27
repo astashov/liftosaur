@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
-import { ISettings } from "../types";
+import { IProgram, ISettings } from "../types";
 import { ILoading } from "../models/state";
 import { IScreen, Screen } from "../models/screen";
 import { Surface } from "./surface";
@@ -14,6 +14,7 @@ interface IProps {
   loading: ILoading;
   screenStack: IScreen[];
   settings: ISettings;
+  currentProgram: IProgram;
 }
 
 export function ScreenAppleHealthSettings(props: IProps): JSX.Element {
@@ -27,7 +28,14 @@ export function ScreenAppleHealthSettings(props: IProps): JSX.Element {
           title="Apple Health"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
     >
       <section className="px-4">
         <MenuItemEditable

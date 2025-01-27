@@ -27,6 +27,7 @@ interface IProps {
   loading: ILoading;
   plannerState?: IPlannerState;
   isLoggedIn: boolean;
+  currentProgram: IProgram;
 }
 
 export function ScreenEditProgram(props: IProps): JSX.Element {
@@ -53,6 +54,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
             plannerState={props.plannerState}
             adminKey={props.adminKey}
             isLoggedIn={props.isLoggedIn}
+            currentProgram={props.currentProgram}
           />
         );
       }
@@ -66,6 +68,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
           programIndex={props.programIndex}
           editProgram={props.editProgram}
           adminKey={props.adminKey}
+          currentProgram={props.currentProgram}
         />
       );
     }
@@ -81,6 +84,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           editDay={props.editProgram.days[props.dayIndex]}
           editProgram={props.editProgram}
+          currentProgram={props.currentProgram}
         />
       );
     } else {
@@ -92,6 +96,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
         <EditProgramWeek
           loading={props.loading}
           screenStack={props.screenStack}
+          currentProgram={props.currentProgram}
           settings={props.settings}
           dispatch={props.dispatch}
           editProgram={props.editProgram}
@@ -117,6 +122,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
         program={props.editProgram}
         dispatch={props.dispatch}
         programExercise={editExercise}
+        currentProgram={props.currentProgram}
       />
     );
   } else {

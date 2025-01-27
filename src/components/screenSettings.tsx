@@ -9,7 +9,7 @@ import { IUser } from "../models/user";
 import { ClipboardUtils } from "../utils/clipboard";
 import { Share } from "../models/share";
 import { useState } from "preact/hooks";
-import { ILengthUnit, ISettings, ISubscription, IUnit } from "../types";
+import { ILengthUnit, IProgram, ISettings, ISubscription, IUnit } from "../types";
 import { ILoading } from "../models/state";
 import { WhatsNew } from "../models/whatsnew";
 import { ImporterStorage } from "./importerStorage";
@@ -34,7 +34,7 @@ interface IProps {
   subscription: ISubscription;
   screenStack: IScreen[];
   user?: IUser;
-  currentProgramName?: string;
+  currentProgram: IProgram;
   settings: ISettings;
   loading: ILoading;
 }
@@ -54,7 +54,14 @@ export function ScreenSettings(props: IProps): JSX.Element {
           title="Settings"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
       addons={
         <>
           <ModalImportFromOtherApps
@@ -69,7 +76,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <MenuItem
           shouldShowRightArrow={true}
           name="Program"
-          value={props.currentProgramName}
+          value={props.currentProgram?.name}
           onClick={() => {
             props.dispatch({ type: "PushScreen", screen: "programs" });
           }}

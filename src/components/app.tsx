@@ -17,7 +17,7 @@ import { ScreenEquipment } from "./screenEquipment";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Progress } from "../models/progress";
-import { IEnv, IState, updateState } from "../models/state";
+import { IEnv, INavCommon, IState, updateState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
@@ -266,6 +266,13 @@ export function AppView(props: IProps): JSX.Element | null {
   const currentProgram =
     state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
 
+  const navCommon: INavCommon = {
+    screenStack: state.screenStack,
+    loading: state.loading,
+    currentProgram,
+    settings: state.storage.settings,
+  };
+
   let content: JSX.Element;
   if (Screen.current(state.screenStack) === "first") {
     content = <ScreenFirst dispatch={dispatch} />;
@@ -328,6 +335,7 @@ export function AppView(props: IProps): JSX.Element | null {
       : undefined;
     content = (
       <ProgramDayView
+        currentProgram={currentProgram}
         helps={state.storage.helps}
         loading={state.loading}
         history={state.storage.history}

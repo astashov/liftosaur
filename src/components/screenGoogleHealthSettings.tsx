@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
-import { ISettings } from "../types";
+import { IProgram, ISettings } from "../types";
 import { ILoading } from "../models/state";
 import { IScreen, Screen } from "../models/screen";
 import { Surface } from "./surface";
@@ -12,6 +12,7 @@ import { NavbarView } from "./navbar";
 interface IProps {
   dispatch: IDispatch;
   loading: ILoading;
+  currentProgram: IProgram;
   screenStack: IScreen[];
   settings: ISettings;
 }
@@ -27,7 +28,14 @@ export function ScreenGoogleHealthSettings(props: IProps): JSX.Element {
           title="Google Health Connect"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
     >
       <section className="px-4">
         <MenuItemEditable

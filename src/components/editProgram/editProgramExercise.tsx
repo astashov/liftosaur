@@ -21,6 +21,7 @@ interface IProps {
   subscription: ISubscription;
   programExercise: IProgramExercise;
   program: IProgram;
+  currentProgram: IProgram;
   loading: ILoading;
   dispatch: IDispatch;
 }
@@ -34,15 +35,14 @@ export function EditProgramExercise(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
           helpContent={selectedTab === 0 ? <HelpEditProgramExerciseSimple /> : <HelpEditProgramExerciseAdvanced />}
-          screenStack={props.screenStack}
           title="Edit Program Exercise"
           subtitle={props.program.name}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
       <Tabs2
         onChange={(index) => setSelectedTab(index)}

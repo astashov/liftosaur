@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { ISettings, IEquipment, IAllEquipment } from "../types";
+import { ISettings, IEquipment, IAllEquipment, IProgram } from "../types";
 import { ILoading, IState, updateState } from "../models/state";
 import { EquipmentSettings } from "./equipmentSettings";
 import { lb } from "lens-shmens";
@@ -20,6 +20,7 @@ interface IProps {
   loading: ILoading;
   selectedGymId?: string;
   screenStack: IScreen[];
+  currentProgram: IProgram;
 }
 
 export function ScreenEquipment(props: IProps): JSX.Element {
@@ -46,7 +47,14 @@ export function ScreenEquipment(props: IProps): JSX.Element {
           helpContent={<HelpPlates />}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
     >
       <section className="px-2">
         <div className="px-2 pb-2">

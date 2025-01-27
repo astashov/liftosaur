@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../../ducks/types";
 import { IPoints } from "../../models/muscle";
-import { ISettings } from "../../types";
+import { IProgram, ISettings } from "../../types";
 import { ILoading } from "../../models/state";
 import { MusclesView } from "./musclesView";
 import { Surface } from "../surface";
@@ -17,6 +17,7 @@ interface IProps {
   points: IPoints;
   settings: ISettings;
   loading: ILoading;
+  currentProgram: IProgram;
 }
 
 export function ScreenMuscles(props: IProps): JSX.Element {
@@ -32,7 +33,14 @@ export function ScreenMuscles(props: IProps): JSX.Element {
           helpContent={props.helpContent}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
     >
       <MusclesView title={props.title} points={props.points} settings={props.settings} />
     </Surface>

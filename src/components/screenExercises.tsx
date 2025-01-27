@@ -31,7 +31,14 @@ export function ScreenExercises(props: IProps): JSX.Element {
           helpContent={<HelpExercises />}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.program}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
     >
       <section className="px-4">
         <ExercisesList
