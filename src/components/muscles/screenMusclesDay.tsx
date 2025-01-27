@@ -14,12 +14,14 @@ interface IProps {
   programDay: IProgramDay;
   screenStack: IScreen[];
   loading: ILoading;
+  currentProgram: IProgram;
 }
 
 export function ScreenMusclesDay(props: IProps): JSX.Element {
   const points = Muscle.normalizePoints(Muscle.getPointsForDay(props.program, props.programDay, props.settings));
   return (
     <ScreenMuscles
+      currentProgram={props.currentProgram}
       screenStack={props.screenStack}
       loading={props.loading}
       dispatch={props.dispatch}

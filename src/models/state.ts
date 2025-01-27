@@ -30,6 +30,13 @@ export interface INotification {
   content: string;
 }
 
+export interface INavCommon {
+  loading: ILoading;
+  screenStack: IScreen[];
+  currentProgram: IProgram;
+  settings: ISettings;
+}
+
 export interface ILoadingItem {
   startTime: number;
   type: string;

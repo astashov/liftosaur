@@ -22,6 +22,17 @@ export function BottomSheet(props: IProps): JSX.Element {
   const bottomSheetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!props.isHidden) {
+      document.body.classList.add("stop-scrolling");
+    } else {
+      document.body.classList.remove("stop-scrolling");
+    }
+    return () => {
+      document.body.classList.remove("stop-scrolling");
+    };
+  }, [props.isHidden]);
+
+  useEffect(() => {
     const bottomSheet = bottomSheetRef.current;
     const height = bottomSheet?.clientHeight;
     setBottomShift(height);
@@ -66,10 +77,15 @@ export function BottomSheet(props: IProps): JSX.Element {
             onClick={props.onClose}
             className="absolute top-0 right-0 z-10 p-2 nm-bottom-sheet-close"
           >
-            <IconCloseCircleOutline />
+            <IconCloseCircleOutline size={28} />
           </button>
         )}
-        <div className="w-full safe-area-inset-bottom">{props.children}</div>
+        <div className="w-full safe-area-inset-bottom">
+          <div className="flex items-center justify-center pt-2">
+            <div className="w-8 rounded-sm bg-grayv3-400" style={{ height: "3px" }} />
+          </div>
+          {props.children}
+        </div>
       </div>
     </div>
   );

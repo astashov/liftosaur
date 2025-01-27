@@ -149,7 +149,14 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           )}
         </>
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
     >
       <section className="px-4">
         <h1 className="text-xl font-bold">{Exercise.fullName(fullExercise)}</h1>

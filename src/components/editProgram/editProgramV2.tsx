@@ -53,6 +53,7 @@ interface IProps {
   settings: ISettings;
   loading: ILoading;
   isLoggedIn: boolean;
+  currentProgram: IProgram;
 }
 
 declare let __HOST__: string;
@@ -92,7 +93,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
           rightButtons={[
             <button
@@ -104,11 +105,12 @@ export function EditProgramV2(props: IProps): JSX.Element {
             </button>,
           ]}
           helpContent={<HelpEditProgramV2 />}
-          screenStack={props.screenStack}
           title="Edit Program"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View navCommon={props.navCommon} dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />
+      }
       addons={
         <>
           <BottomSheetEditProgramV2

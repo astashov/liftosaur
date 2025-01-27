@@ -14,6 +14,7 @@ interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
   programs: IProgram[];
+  currentProgram: IProgram;
   selectedProgramId: string;
   subscription: ISubscription;
   loading: ILoading;
@@ -32,7 +33,14 @@ export function ScreenProgramPreview(props: IProps): JSX.Element {
           title="Program Preview"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
     >
       <div>
         <section className="px-4">

@@ -23,6 +23,7 @@ interface IProps {
   editProgram: IProgram;
   editWeek: IProgramWeek;
   loading: ILoading;
+  currentProgram: IProgram;
   dispatch: IDispatch;
 }
 
@@ -44,7 +45,14 @@ export function EditProgramWeek(props: IProps): JSX.Element {
           title="Edit Program Week"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={
+        <Footer2View
+          currentProgram={props.currentProgram}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          screen={Screen.current(props.screenStack)}
+        />
+      }
     >
       <section className="px-4">
         <MenuItemEditable

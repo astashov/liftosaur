@@ -1,18 +1,40 @@
 import { h, JSX } from "preact";
+import { Tailwind } from "../../utils/tailwindConfig";
 
-export function IconGraphs(): JSX.Element {
+interface IProps {
+  color?: string;
+  style?: { [key: string]: string | number };
+  size?: number;
+  className?: string;
+}
+
+export function IconGraphs(props: IProps): JSX.Element {
+  const size = props.size ?? 20;
+  const color = props.color || Tailwind.colors().blackv2;
   return (
-    <svg width="24" height="24" viewBox="0 0 20 17" version="1.1">
-      <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <path
-          d="M1.70710678,16.7071068 C1.31658249,17.0976311 0.683417511,17.0976311 0.292893219,16.7071068 C-0.0976310729,16.3165825 -0.0976310729,15.6834175 0.292893219,15.2928932 L6.29289322,9.29289322 C6.68341751,8.90236893 7.31658249,8.90236893 7.70710678,9.29289322 L11,12.5857864 L15.2928932,8.29289322 C15.6834175,7.90236893 16.3165825,7.90236893 16.7071068,8.29289322 C17.0976311,8.68341751 17.0976311,9.31658249 16.7071068,9.70710678 L11.7071068,14.7071068 C11.3165825,15.0976311 10.6834175,15.0976311 10.2928932,14.7071068 L7,11.4142136 L1.70710678,16.7071068 Z"
-          fill="silver"
-        ></path>
-        <path
-          d="M14.5857864,4 L12.2928932,1.70710678 C11.6629284,1.07714192 12.1090951,0 13,0 L19,0 C19.5522847,0 20,0.44771525 20,1 L20,7 C20,7.89090485 18.9228581,8.33707164 18.2928932,7.70710678 L16,5.41421356 L11.7071068,9.70710678 C11.3165825,10.0976311 10.6834175,10.0976311 10.2928932,9.70710678 L7,6.41421356 L1.70710678,11.7071068 C1.31658249,12.0976311 0.683417511,12.0976311 0.292893219,11.7071068 C-0.0976310729,11.3165825 -0.0976310729,10.6834175 0.292893219,10.2928932 L6.29289322,4.29289322 C6.68341751,3.90236893 7.31658249,3.90236893 7.70710678,4.29289322 L11,7.58578644 L14.5857864,4 L14.5857864,4 Z"
-          fill="white"
-        ></path>
-      </g>
+    <svg
+      width={size}
+      height={size}
+      stroke={color}
+      style={props.style}
+      className={`inline-block ${props.className}`}
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M1 1V19H19" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path
+        d="M4.16663 16.1667L9.62117 10.4067L12.8598 13.8267L19.1666 7.16675"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M4.16663 10.1667L9.62117 4.40675L12.8598 7.82675L19.1666 1.16675"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     </svg>
   );
 }

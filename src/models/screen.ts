@@ -4,7 +4,7 @@ import { Program } from "./program";
 import { Progress } from "./progress";
 import { ObjectUtils } from "../utils/object";
 
-export type ITab = "program" | "measurements" | "workout" | "graphs" | "settings";
+export type ITab = "home" | "program" | "workout" | "graphs" | "me";
 
 export type IScreen =
   | "first"
@@ -104,31 +104,31 @@ export namespace Screen {
         return "program";
       }
       case "main": {
-        return "workout";
+        return "home";
       }
       case "settings": {
-        return "settings";
+        return "me";
       }
       case "account": {
-        return "settings";
+        return "me";
       }
       case "timers": {
-        return "settings";
+        return "me";
       }
       case "plates": {
-        return "settings";
+        return "me";
       }
       case "appleHealth": {
-        return "settings";
+        return "me";
       }
       case "googleHealth": {
-        return "settings";
+        return "me";
       }
       case "gyms": {
-        return "settings";
+        return "me";
       }
       case "exercises": {
-        return "settings";
+        return "me";
       }
       case "programs": {
         return "program";
@@ -146,7 +146,7 @@ export namespace Screen {
         return "program";
       }
       case "stats": {
-        return "measurements";
+        return "me";
       }
       case "editProgram": {
         return "program";
@@ -164,13 +164,13 @@ export namespace Screen {
         return "program";
       }
       case "measurements": {
-        return "measurements";
+        return "me";
       }
       case "subscription": {
         return "workout";
       }
       case "exerciseStats": {
-        return "workout";
+        return "me";
       }
       case "programPreview": {
         return "program";
