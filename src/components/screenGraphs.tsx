@@ -5,13 +5,12 @@ import { History } from "../models/history";
 import { useState } from "preact/hooks";
 import { ModalGraphs } from "./modalGraphs";
 import { ObjectUtils } from "../utils/object";
-import { ISettings, IHistoryRecord, IStats, IScreenMuscle, IProgram } from "../types";
+import { ISettings, IHistoryRecord, IStats, IScreenMuscle } from "../types";
 import { getLengthDataForGraph, getPercentageDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
-import { ILoading } from "../models/state";
+import { INavCommon } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
-import { IScreen, Screen } from "../models/screen";
 import { IconFilter } from "./icons/iconFilter";
 import { HelpGraphs } from "./help/helpGraphs";
 import { Collector } from "../utils/collector";
@@ -21,12 +20,10 @@ import { Exercise } from "../models/exercise";
 
 interface IProps {
   dispatch: IDispatch;
-  loading: ILoading;
   settings: ISettings;
-  currentProgram: IProgram;
-  screenStack: IScreen[];
   stats: IStats;
   history: IHistoryRecord[];
+  navCommon: INavCommon;
 }
 
 export function ScreenGraphs(props: IProps): JSX.Element {
@@ -82,7 +79,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
           helpContent={<HelpGraphs />}
           rightButtons={[
@@ -94,18 +91,10 @@ export function ScreenGraphs(props: IProps): JSX.Element {
               <IconFilter />
             </button>,
           ]}
-          screenStack={props.screenStack}
           title="Graphs"
         />
       }
-      footer={
-        <Footer2View
-          currentProgram={props.currentProgram}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          screen={Screen.current(props.screenStack)}
-        />
-      }
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
       addons={
         <ModalGraphs
           settings={props.settings}

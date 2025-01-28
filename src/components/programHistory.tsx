@@ -5,10 +5,9 @@ import { Thunk } from "../ducks/thunks";
 import { useState } from "preact/hooks";
 import { IProgram, IHistoryRecord, ISettings, IStats, ISubscription } from "../types";
 import { HistoryRecordsList } from "./historyRecordsList";
-import { ILoading } from "../models/state";
+import { INavCommon } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
-import { IScreen, Screen } from "../models/screen";
 import { Footer2View } from "./footer2";
 import { HelpProgramHistory } from "./help/helpProgramHistory";
 import { useGradualList } from "../utils/useGradualList";
@@ -25,12 +24,11 @@ interface IProps {
   progress?: IHistoryRecord;
   editProgramId?: string;
   history: IHistoryRecord[];
-  screenStack: IScreen[];
   stats: IStats;
   userId?: string;
   settings: ISettings;
-  loading: ILoading;
   subscription: ISubscription;
+  navCommon: INavCommon;
   dispatch: IDispatch;
 }
 
@@ -45,7 +43,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const [containerRef, visibleRecords] = useGradualList(history, 20, () => undefined);
 
   const [showChangeWorkout, setShowChangeWorkout] = useState(false);
-  const isUserLoading = ObjectUtils.values(props.loading.items).some((i) => i?.type === "fetchStorage" && !i.endTime);
+  const isUserLoading = ObjectUtils.values(props.navCommon.loading.items).some(
+    (i) => i?.type === "fetchStorage" && !i.endTime
+  );
 
   const doesProgressNotMatchProgram =
     nextHistoryRecord.programId !== props.program.id || nextHistoryRecord.day !== props.program.nextDay;
@@ -64,21 +64,13 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
               <IconUser size={22} color={props.userId ? "#38A169" : isUserLoading ? "#607284" : "#E53E3E"} />
             </button>,
           ]}
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={dispatch}
           helpContent={<HelpProgramHistory />}
-          screenStack={props.screenStack}
           title="Workout History"
         />
       }
-      footer={
-        <Footer2View
-          currentProgram={props.program}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          screen={Screen.current(props.screenStack)}
-        />
-      }
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
       addons={
         <>
           {showChangeWorkout && (

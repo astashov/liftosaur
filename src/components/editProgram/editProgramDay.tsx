@@ -7,10 +7,9 @@ import { GroupHeader } from "../groupHeader";
 import { MenuItem } from "../menuItem";
 import { Thunk } from "../../ducks/thunks";
 import { ISettings, IProgram, IProgramDay } from "../../types";
-import { ILoading, IState, updateState } from "../../models/state";
+import { INavCommon, IState, updateState } from "../../models/state";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
-import { IScreen, Screen } from "../../models/screen";
 import { Footer2View } from "../footer2";
 import { IconMuscles2 } from "../icons/iconMuscles2";
 import { ExerciseImage } from "../exerciseImage";
@@ -27,14 +26,12 @@ import { lb } from "lens-shmens";
 
 interface IProps {
   isProgress: boolean;
-  screenStack: IScreen[];
   dayIndex: number;
   settings: ISettings;
   editProgram: IProgram;
-  currentProgram: IProgram;
   editDay: IProgramDay;
-  loading: ILoading;
   dispatch: IDispatch;
+  navCommon: INavCommon;
 }
 
 export interface IEditSet {

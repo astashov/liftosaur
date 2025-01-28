@@ -1,6 +1,5 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IScreen, Screen } from "../models/screen";
 import {
   ICustomExercise,
   IExerciseKind,
@@ -11,7 +10,7 @@ import {
   ISettings,
   ISubscription,
 } from "../types";
-import { ILoading, updateSettings } from "../models/state";
+import { INavCommon, updateSettings } from "../models/state";
 import { History } from "../models/history";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
@@ -44,12 +43,11 @@ import { Program } from "../models/program";
 
 interface IProps {
   exerciseType: IExerciseType;
-  screenStack: IScreen[];
   history: IHistoryRecord[];
   dispatch: IDispatch;
   subscription: ISubscription;
   settings: ISettings;
-  loading: ILoading;
+  navCommon: INavCommon;
   currentProgram?: IProgram;
 }
 
@@ -106,10 +104,9 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
       ref={containerRef}
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
           helpContent={<HelpExerciseStats />}
-          screenStack={props.screenStack}
           title="Exercise Stats"
         />
       }
@@ -149,14 +146,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           )}
         </>
       }
-      footer={
-        <Footer2View
-          currentProgram={props.currentProgram}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          screen={Screen.current(props.screenStack)}
-        />
-      }
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
       <section className="px-4">
         <h1 className="text-xl font-bold">{Exercise.fullName(fullExercise)}</h1>

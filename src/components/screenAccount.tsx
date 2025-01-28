@@ -1,8 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
-import { ILoading } from "../models/state";
-import { IScreen, Screen } from "../models/screen";
+import { INavCommon } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
@@ -18,16 +17,12 @@ import { IconGoogle } from "./icons/iconGoogle";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { IconApple } from "./icons/iconApple";
-import { IProgram, ISettings } from "../types";
 
 declare let __HOST__: string;
 
 interface IProps {
   email?: string;
-  loading: ILoading;
-  screenStack: IScreen[];
-  currentProgram: IProgram;
-  settings: ISettings;
+  navCommon: INavCommon;
   dispatch: IDispatch;
 }
 
@@ -59,21 +54,13 @@ export function ScreenAccount(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
-          screenStack={props.screenStack}
           title="Account"
           helpContent={<HelpAccount />}
         />
       }
-      footer={
-        <Footer2View
-          currentProgram={props.currentProgram}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          screen={Screen.current(props.screenStack)}
-        />
-      }
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
       <section className="px-4">
         <GroupHeader name="Current Account" />

@@ -6,7 +6,7 @@ import { ModalWeight } from "./modalWeight";
 import { Progress } from "../models/progress";
 import { History } from "../models/history";
 import { ModalDate } from "./modalDate";
-import { ILoading, IState, updateState } from "../models/state";
+import { INavCommon, IState, updateState } from "../models/state";
 import { useState } from "preact/hooks";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
@@ -28,7 +28,6 @@ import { BottomSheetEditExercise } from "./bottomSheetEditExercise";
 import { HelpWorkout } from "./help/helpWorkout";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
-import { IScreen, Screen } from "../models/screen";
 import { ModalEditMode } from "./modalEditMode";
 import { ModalExercise } from "./modalExercise";
 import { EditCustomExercise } from "../models/editCustomExercise";
@@ -47,17 +46,15 @@ import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
 interface IProps {
   progress: IHistoryRecord;
   history: IHistoryRecord[];
-  currentProgram: IProgram;
   program?: IProgram;
   settings: ISettings;
   userId?: string;
   helps: string[];
   dispatch: IDispatch;
-  loading: ILoading;
   subscription: ISubscription;
   timerSince?: number;
   timerMode?: IProgressMode;
-  screenStack: IScreen[];
+  navCommon: INavCommon;
 }
 
 export function ProgramDayView(props: IProps): JSX.Element | null {
@@ -73,9 +70,8 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
       <Surface
         navbar={
           <NavbarView
-            loading={props.loading}
+            navCommon={props.navCommon}
             dispatch={dispatch}
-            screenStack={props.screenStack}
             helpContent={<HelpWorkout />}
             onTitleClick={() => {
               if (!Progress.isCurrent(progress)) {
@@ -117,14 +113,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             ]}
           />
         }
-        footer={
-          <Footer2View
-            currentProgram={props.currentProgram}
-            settings={props.settings}
-            dispatch={props.dispatch}
-            screen={Screen.current(props.screenStack)}
-          />
-        }
+        footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
         addons={
           <>
             <BottomSheetEditExercise

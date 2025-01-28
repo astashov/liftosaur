@@ -1,13 +1,12 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { ISettings, IEquipment, IAllEquipment, IProgram } from "../types";
-import { ILoading, IState, updateState } from "../models/state";
+import { ISettings, IEquipment, IAllEquipment } from "../types";
+import { INavCommon, IState, updateState } from "../models/state";
 import { EquipmentSettings } from "./equipmentSettings";
 import { lb } from "lens-shmens";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
-import { IScreen, Screen } from "../models/screen";
 import { HelpPlates } from "./help/helpPlates";
 import { useEffect } from "preact/hooks";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -17,10 +16,8 @@ interface IProps {
   settings: ISettings;
   expandedEquipment?: IEquipment;
   allEquipment: IAllEquipment;
-  loading: ILoading;
   selectedGymId?: string;
-  screenStack: IScreen[];
-  currentProgram: IProgram;
+  navCommon: INavCommon;
 }
 
 export function ScreenEquipment(props: IProps): JSX.Element {
@@ -40,21 +37,13 @@ export function ScreenEquipment(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
-          screenStack={props.screenStack}
           title="Equipment Settings"
           helpContent={<HelpPlates />}
         />
       }
-      footer={
-        <Footer2View
-          currentProgram={props.currentProgram}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          screen={Screen.current(props.screenStack)}
-        />
-      }
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
       <section className="px-2">
         <div className="px-2 pb-2">

@@ -9,15 +9,13 @@ import { IUser } from "../models/user";
 import { ClipboardUtils } from "../utils/clipboard";
 import { Share } from "../models/share";
 import { useState } from "preact/hooks";
-import { ILengthUnit, IProgram, ISettings, ISubscription, IUnit } from "../types";
-import { ILoading } from "../models/state";
+import { ILengthUnit, ISettings, ISubscription, IUnit } from "../types";
 import { WhatsNew } from "../models/whatsnew";
 import { ImporterStorage } from "./importerStorage";
 import { ImporterProgram } from "./importerProgram";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { Footer2View } from "./footer2";
-import { IScreen, Screen } from "../models/screen";
 import { GroupHeader } from "./groupHeader";
 import { HelpSettings } from "./help/helpSettings";
 import { StringUtils } from "../utils/string";
@@ -28,15 +26,15 @@ import { ModalImportFromOtherApps } from "./modalImportFromOtherApps";
 import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
 import { Subscriptions } from "../utils/subscriptions";
 import { HealthSync } from "../lib/healthSync";
+import { INavCommon } from "../models/state";
 
 interface IProps {
   dispatch: IDispatch;
   subscription: ISubscription;
-  screenStack: IScreen[];
   user?: IUser;
-  currentProgram: IProgram;
+  currentProgramName?: string;
   settings: ISettings;
-  loading: ILoading;
+  navCommon: INavCommon;
 }
 
 export function ScreenSettings(props: IProps): JSX.Element {
@@ -47,21 +45,13 @@ export function ScreenSettings(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
           helpContent={<HelpSettings />}
-          screenStack={props.screenStack}
           title="Settings"
         />
       }
-      footer={
-        <Footer2View
-          currentProgram={props.currentProgram}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          screen={Screen.current(props.screenStack)}
-        />
-      }
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
       addons={
         <>
           <ModalImportFromOtherApps
@@ -76,7 +66,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <MenuItem
           shouldShowRightArrow={true}
           name="Program"
-          value={props.currentProgram?.name}
+          value={props.currentProgramName}
           onClick={() => {
             props.dispatch({ type: "PushScreen", screen: "programs" });
           }}

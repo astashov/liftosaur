@@ -2,9 +2,8 @@ import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Lens, lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
-import { ISettingsTimers, ISettings, IProgram } from "../types";
-import { ILoading } from "../models/state";
-import { IScreen, Screen } from "../models/screen";
+import { ISettingsTimers, ISettings } from "../types";
+import { INavCommon } from "../models/state";
 import { Surface } from "./surface";
 import { Footer2View } from "./footer2";
 import { NavbarView } from "./navbar";
@@ -15,10 +14,7 @@ import { SendMessage } from "../utils/sendMessage";
 interface IProps {
   dispatch: IDispatch;
   timers: ISettingsTimers;
-  loading: ILoading;
-  currentProgram: IProgram;
-  settings: ISettings;
-  screenStack: IScreen[];
+  navCommon: INavCommon;
 }
 
 export function ScreenTimers(props: IProps): JSX.Element {
@@ -34,21 +30,13 @@ export function ScreenTimers(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
-          screenStack={props.screenStack}
           title="Rest Timers"
           helpContent={<HelpTimers />}
         />
       }
-      footer={
-        <Footer2View
-          settings={props.settings}
-          currentProgram={props.currentProgram}
-          dispatch={props.dispatch}
-          screen={Screen.current(props.screenStack)}
-        />
-      }
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
       <section className="px-4">
         <GroupHeader name="Rest Timers between sets" />
