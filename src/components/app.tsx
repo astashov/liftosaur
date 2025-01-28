@@ -287,8 +287,7 @@ export function AppView(props: IProps): JSX.Element | null {
         subscription={state.storage.subscription}
         subscriptionLoading={state.subscriptionLoading}
         dispatch={dispatch}
-        loading={state.loading}
-        screenStack={state.screenStack}
+        navCommon={navCommon}
       />
     );
   } else if (
@@ -297,9 +296,8 @@ export function AppView(props: IProps): JSX.Element | null {
   ) {
     content = (
       <ChooseProgramView
-        loading={state.loading}
+        navCommon={navCommon}
         settings={state.storage.settings}
-        screenStack={state.screenStack}
         dispatch={dispatch}
         programs={state.programs || []}
         customPrograms={state.storage.programs || []}
@@ -310,9 +308,8 @@ export function AppView(props: IProps): JSX.Element | null {
     if (currentProgram != null) {
       content = (
         <ProgramHistoryView
+          navCommon={navCommon}
           editProgramId={state.progress[0]?.programId}
-          screenStack={state.screenStack}
-          loading={state.loading}
           allPrograms={state.storage.programs}
           program={currentProgram}
           progress={state.progress?.[0]}
@@ -335,9 +332,8 @@ export function AppView(props: IProps): JSX.Element | null {
       : undefined;
     content = (
       <ProgramDayView
-        currentProgram={currentProgram}
+        navCommon={navCommon}
         helps={state.storage.helps}
-        loading={state.loading}
         history={state.storage.history}
         subscription={state.storage.subscription}
         userId={state.user?.id}
@@ -345,14 +341,12 @@ export function AppView(props: IProps): JSX.Element | null {
         program={program}
         dispatch={dispatch}
         settings={state.storage.settings}
-        screenStack={state.screenStack}
       />
     );
   } else if (Screen.current(state.screenStack) === "settings") {
     content = (
       <ScreenSettings
-        loading={state.loading}
-        screenStack={state.screenStack}
+        navCommon={navCommon}
         subscription={state.storage.subscription}
         dispatch={dispatch}
         user={state.user}
@@ -369,8 +363,7 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       content = (
         <ScreenProgramPreview
-          screenStack={state.screenStack}
-          loading={state.loading}
+          navCommon={navCommon}
           dispatch={dispatch}
           settings={state.storage.settings}
           selectedProgramId={state.previewProgram?.id}
@@ -382,8 +375,7 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "stats") {
     content = (
       <ScreenStats
-        screenStack={state.screenStack}
-        loading={state.loading}
+        navCommon={navCommon}
         dispatch={dispatch}
         settings={state.storage.settings}
         stats={state.storage.stats}
@@ -392,8 +384,7 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "measurements") {
     content = (
       <ScreenMeasurements
-        loading={state.loading}
-        screenStack={state.screenStack}
+        navCommon={navCommon}
         subscription={state.storage.subscription}
         dispatch={dispatch}
         settings={state.storage.settings}
@@ -401,14 +392,7 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "account") {
-    content = (
-      <ScreenAccount
-        screenStack={state.screenStack}
-        loading={state.loading}
-        dispatch={dispatch}
-        email={state.user?.email}
-      />
-    );
+    content = <ScreenAccount navCommon={navCommon} dispatch={dispatch} email={state.user?.email} />;
   } else if (Screen.current(state.screenStack) === "exerciseStats") {
     const exercise = state.viewExerciseType
       ? Exercise.find(state.viewExerciseType, state.storage.settings.exercises)
@@ -421,11 +405,10 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       content = (
         <ScreenExerciseStats
+          navCommon={navCommon}
           currentProgram={currentProgram}
           key={Exercise.toKey(exercise)}
           history={state.storage.history}
-          screenStack={state.screenStack}
-          loading={state.loading}
           dispatch={dispatch}
           exerciseType={exercise}
           settings={state.storage.settings}
@@ -434,38 +417,18 @@ export function AppView(props: IProps): JSX.Element | null {
       );
     }
   } else if (Screen.current(state.screenStack) === "timers") {
-    content = (
-      <ScreenTimers
-        screenStack={state.screenStack}
-        loading={state.loading}
-        dispatch={dispatch}
-        timers={state.storage.settings.timers}
-      />
-    );
+    content = <ScreenTimers navCommon={navCommon} dispatch={dispatch} timers={state.storage.settings.timers} />;
   } else if (Screen.current(state.screenStack) === "appleHealth") {
-    content = (
-      <ScreenAppleHealthSettings
-        screenStack={state.screenStack}
-        loading={state.loading}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    );
+    content = <ScreenAppleHealthSettings navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />;
   } else if (Screen.current(state.screenStack) === "googleHealth") {
     content = (
-      <ScreenGoogleHealthSettings
-        screenStack={state.screenStack}
-        loading={state.loading}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
+      <ScreenGoogleHealthSettings navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />
     );
   } else if (Screen.current(state.screenStack) === "gyms") {
     content = (
       <ScreenGyms
-        screenStack={state.screenStack}
+        navCommon={navCommon}
         expandedEquipment={state.defaultEquipmentExpanded}
-        loading={state.loading}
         dispatch={dispatch}
         settings={state.storage.settings}
       />
@@ -474,11 +437,10 @@ export function AppView(props: IProps): JSX.Element | null {
     const allEquipment = Equipment.getEquipmentOfGym(state.storage.settings, state.selectedGymId);
     content = (
       <ScreenEquipment
+        navCommon={navCommon}
         allEquipment={allEquipment}
-        screenStack={state.screenStack}
         expandedEquipment={state.defaultEquipmentExpanded}
         selectedGymId={state.selectedGymId}
-        loading={state.loading}
         dispatch={dispatch}
         settings={state.storage.settings}
       />
@@ -489,8 +451,7 @@ export function AppView(props: IProps): JSX.Element | null {
     }
     content = (
       <ScreenExercises
-        screenStack={state.screenStack}
-        loading={state.loading}
+        navCommon={navCommon}
         settings={state.storage.settings}
         dispatch={dispatch}
         program={currentProgram}
@@ -500,8 +461,7 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "graphs") {
     content = (
       <ScreenGraphs
-        screenStack={state.screenStack}
-        loading={state.loading}
+        navCommon={navCommon}
         settings={state.storage.settings}
         dispatch={dispatch}
         history={state.storage.history}
@@ -515,10 +475,9 @@ export function AppView(props: IProps): JSX.Element | null {
       content = (
         <ScreenEditProgram
           helps={state.storage.helps}
-          loading={state.loading}
+          navCommon={navCommon}
           adminKey={state.adminKey}
           subscription={state.storage.subscription}
-          screenStack={state.screenStack}
           settings={state.storage.settings}
           editExercise={state.editExercise}
           dispatch={dispatch}
@@ -536,8 +495,7 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "finishDay") {
     content = (
       <ScreenFinishDay
-        screenStack={state.screenStack}
-        loading={state.loading}
+        navCommon={navCommon}
         settings={state.storage.settings}
         dispatch={dispatch}
         history={state.storage.history}
@@ -560,9 +518,8 @@ export function AppView(props: IProps): JSX.Element | null {
     if (type.type === "program") {
       content = (
         <ScreenMusclesProgram
-          loading={state.loading}
+          navCommon={navCommon}
           dispatch={dispatch}
-          screenStack={state.screenStack}
           program={program}
           settings={state.storage.settings}
         />
@@ -571,8 +528,7 @@ export function AppView(props: IProps): JSX.Element | null {
       const day = program.days[type.dayIndex ?? 0];
       content = (
         <ScreenMusclesDay
-          screenStack={state.screenStack}
-          loading={state.loading}
+          navCommon={navCommon}
           dispatch={dispatch}
           program={program}
           programDay={day}

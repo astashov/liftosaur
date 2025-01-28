@@ -4,9 +4,8 @@ import { h, JSX } from "preact";
 import { EditProgramExerciseAdvanced } from "./editProgramExerciseAdvanced";
 import { EditProgramExerciseSimple } from "./editProgramExerciseSimple";
 import { ISettings, IProgramExercise, ISubscription, IProgram } from "../../types";
-import { ILoading } from "../../models/state";
+import { INavCommon } from "../../models/state";
 import { NavbarView } from "../navbar";
-import { IScreen, Screen } from "../../models/screen";
 import { Surface } from "../surface";
 import { Footer2View } from "../footer2";
 import { Tabs2 } from "../tabs2";
@@ -17,12 +16,10 @@ import { HelpEditProgramExerciseAdvanced } from "../help/helpEditProgramExercise
 interface IProps {
   settings: ISettings;
   programIndex: number;
-  screenStack: IScreen[];
   subscription: ISubscription;
   programExercise: IProgramExercise;
   program: IProgram;
-  currentProgram: IProgram;
-  loading: ILoading;
+  navCommon: INavCommon;
   dispatch: IDispatch;
 }
 

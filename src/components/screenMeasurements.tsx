@@ -1,22 +1,19 @@
 import { h, JSX } from "preact";
-import { IScreen, Screen } from "../models/screen";
-import { IStats, ISettings, ISubscription, IProgram } from "../types";
-import { ILoading } from "../models/state";
+import { IStats, ISettings, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { StatsList } from "./statsList";
 import { HelpMeasurements } from "./help/helpMeasurements";
+import { INavCommon } from "../models/state";
 
 interface IProps {
   dispatch: IDispatch;
-  loading: ILoading;
   settings: ISettings;
-  currentProgram: IProgram;
   subscription: ISubscription;
-  screenStack: IScreen[];
   stats: IStats;
+  navCommon: INavCommon;
 }
 
 export function ScreenMeasurements(props: IProps): JSX.Element {
@@ -26,21 +23,13 @@ export function ScreenMeasurements(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
           helpContent={<HelpMeasurements />}
-          screenStack={props.screenStack}
           title="Measurements"
         />
       }
-      footer={
-        <Footer2View
-          currentProgram={props.currentProgram}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          screen={Screen.current(props.screenStack)}
-        />
-      }
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
       <StatsList subscription={props.subscription} stats={stats} settings={settings} dispatch={dispatch} />
     </Surface>

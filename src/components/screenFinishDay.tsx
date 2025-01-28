@@ -11,8 +11,7 @@ import { Confetti } from "./confetti";
 import { IHistoryRecord, IScreenMuscle, ISet, ISettings } from "../types";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
-import { ILoading } from "../models/state";
-import { IScreen } from "../models/screen";
+import { INavCommon } from "../models/state";
 import { Thunk } from "../ducks/thunks";
 import { GroupHeader } from "./groupHeader";
 import { HistoryEntryView } from "./historyEntry";
@@ -41,8 +40,7 @@ interface IProps {
   settings: ISettings;
   userId?: string;
   dispatch: IDispatch;
-  loading: ILoading;
-  screenStack: IScreen[];
+  navCommon: INavCommon;
 }
 
 export function ScreenFinishDay(props: IProps): JSX.Element {
@@ -72,14 +70,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
 
   return (
     <Surface
-      navbar={
-        <NavbarView
-          loading={props.loading}
-          dispatch={props.dispatch}
-          screenStack={props.screenStack}
-          title="Congratulations!"
-        />
-      }
+      navbar={<NavbarView dispatch={props.dispatch} navCommon={props.navCommon} title="Congratulations!" />}
       footer={<></>}
     >
       <section className="px-4">
