@@ -34,6 +34,7 @@ export interface INavCommon {
   loading: ILoading;
   screenStack: IScreen[];
   currentProgram?: IProgram;
+  progress?: IHistoryRecord;
   settings: ISettings;
 }
 

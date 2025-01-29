@@ -271,6 +271,7 @@ export function AppView(props: IProps): JSX.Element | null {
     loading: state.loading,
     currentProgram,
     settings: state.storage.settings,
+    progress: Progress.getProgress(state),
   };
 
   let content: JSX.Element;
