@@ -1218,10 +1218,8 @@ export namespace Program {
     updateState(dispatch, [
       lb<IState>().p("editProgram").record({ id }),
       lb<IState>().p("editProgramV2").record(plannerState),
-      lb<IState>()
-        .p("screenStack")
-        .recordModify((s) => Screen.push(s, "editProgram")),
     ]);
+    dispatch(Thunk.pushScreen("editProgram", true));
   }
 
   export function isEligibleForSimpleExercise(programExercise: IProgramExercise): IEither<true, string[]> {

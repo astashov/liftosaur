@@ -98,6 +98,10 @@ export namespace Screen {
     return undefined;
   }
 
+  export function isSameTab(prev: IScreen, next: IScreen): boolean {
+    return tab(prev) === tab(next);
+  }
+
   export function tab(screen: IScreen): ITab {
     switch (screen) {
       case "onboarding": {

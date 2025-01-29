@@ -370,7 +370,7 @@ export namespace Thunk {
     };
   }
 
-  export function pushScreen(screen: IScreen): IThunk {
+  export function pushScreen(screen: IScreen, shouldResetStack?: boolean): IThunk {
     return async (dispatch, getState) => {
       dispatch(postevent("navigate-to-" + screen));
       const confirmation = Screen.shouldConfirmNavigation(getState());
@@ -386,13 +386,14 @@ export namespace Thunk {
         ["musclesProgram", "musclesDay", "graphs"].indexOf(screen) !== -1 &&
         !Subscriptions.hasSubscription(getState().storage.subscription)
       ) {
+        shouldResetStack = false;
         screen = "subscription";
       }
       const screensWithoutCurrentProgram = ["first", "onboarding", "units", "programs", "programPreview"];
       if (getState().storage.currentProgramId == null && screensWithoutCurrentProgram.indexOf(screen) === -1) {
         screen = "programs";
       }
-      dispatch({ type: "PushScreen", screen });
+      dispatch({ type: "PushScreen", screen, shouldResetStack });
       window.scroll(0, 0);
     };
   }
