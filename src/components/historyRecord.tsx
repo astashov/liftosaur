@@ -14,6 +14,7 @@ import { Button } from "./button";
 import { Exercise } from "../models/exercise";
 import { Markdown } from "./markdown";
 import { StringUtils } from "../utils/string";
+import { n } from "../utils/math";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -150,7 +151,7 @@ function HistoryRecordStats(props: IHistoryRecordStats): JSX.Element {
         hasPadding={true}
         unit={timeUnit}
       />
-      <HistoryRecordProperty value={totalWeight.value} unit={totalWeight.unit} />
+      <HistoryRecordProperty value={n(totalWeight.value)} unit={totalWeight.unit} />
       <HistoryRecordProperty value={totalSets} hasPadding={true} unit={setsUnit} />
       <HistoryRecordProperty value={totalReps} hasPadding={true} unit={repsUnit} />
     </div>
