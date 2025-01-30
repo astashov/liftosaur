@@ -396,7 +396,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
               history={props.history}
               record={props.history[0]}
               settings={props.settings}
-              icon={<IconKebab />}
+              icon={<IconKebab className="inline-block" />}
             />
             <div>More</div>
           </div>
