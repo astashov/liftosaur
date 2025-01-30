@@ -1,4 +1,5 @@
-import { IStatsKey } from "../types";
+import { IPercentage, IStats, IStatsKey, IWeight } from "../types";
+import { CollectionUtils } from "../utils/collection";
 
 export namespace Stats {
   export function name(key: IStatsKey): string {
@@ -34,5 +35,15 @@ export namespace Stats {
       case "bodyfat":
         return "Bodyfat";
     }
+  }
+
+  export function getCurrentBodyweight(stats: IStats): IWeight | undefined {
+    const weights = CollectionUtils.sortBy(stats.weight.weight || [], "timestamp", true);
+    return weights[0]?.value;
+  }
+
+  export function getCurrentBodyfat(stats: IStats): IPercentage | undefined {
+    const weights = CollectionUtils.sortBy(stats.percentage.bodyfat || [], "timestamp", true);
+    return weights[0]?.value;
   }
 }

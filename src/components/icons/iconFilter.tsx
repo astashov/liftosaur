@@ -1,4 +1,5 @@
 import { h, JSX } from "preact";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   size?: number;
@@ -7,25 +8,24 @@ interface IProps {
 
 export function IconFilter(props: IProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? "#171718";
+  const color = props.color ?? Tailwind.colors().blackv2;
   return (
     <svg
+      stroke={color}
+      strokeWidth="1.5"
       width={size}
       className="inline-block"
       height={size}
-      viewBox="0 0 48 48"
+      viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
     >
-      <circle cx="34" cy="9" r="5" stroke={color} stroke-width="2" />
-      <circle r="5" transform="matrix(-1 0 0 1 14 24)" stroke={color} stroke-width="2" />
-      <circle r="5" transform="matrix(1 0 0 -1 27 39)" stroke={color} stroke-width="2" />
-      <path d="M3 9H21" stroke={color} stroke-width="2" stroke-linecap="round" />
-      <path d="M3 24L9 24" stroke={color} stroke-width="2" stroke-linecap="round" />
-      <path d="M43 39H32" stroke={color} stroke-width="2" stroke-linecap="round" />
-      <path d="M3 39L13 39" stroke={color} stroke-width="2" stroke-linecap="round" />
-      <path d="M39 9L45 9" stroke={color} stroke-width="2" stroke-linecap="round" />
-      <path d="M43 24H27" stroke={color} stroke-width="2" stroke-linecap="round" />
+      <path d="M19 8L19 20" strokeLinejoin="round" />
+      <path d="M12 3L12 10" strokeLinejoin="round" />
+      <path d="M12 14L12 20" strokeLinejoin="round" />
+      <path d="M5 3L5 16" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="2" />
+      <circle cx="19" cy="6" r="2" />
+      <circle cx="5" cy="18" r="2" />
     </svg>
   );
 }

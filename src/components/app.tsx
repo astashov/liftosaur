@@ -347,6 +347,7 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "settings") {
     content = (
       <ScreenSettings
+        stats={state.storage.stats}
         navCommon={navCommon}
         subscription={state.storage.subscription}
         dispatch={dispatch}
@@ -393,7 +394,9 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "account") {
-    content = <ScreenAccount navCommon={navCommon} dispatch={dispatch} email={state.user?.email} />;
+    content = (
+      <ScreenAccount navCommon={navCommon} settings={state.storage.settings} dispatch={dispatch} user={state.user} />
+    );
   } else if (Screen.current(state.screenStack) === "exerciseStats") {
     const exercise = state.viewExerciseType
       ? Exercise.find(state.viewExerciseType, state.storage.settings.exercises)

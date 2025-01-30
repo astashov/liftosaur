@@ -17,12 +17,20 @@ import { IconGoogle } from "./icons/iconGoogle";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { IconApple } from "./icons/iconApple";
+import { MenuItemEditable } from "./menuItemEditable";
+import { ISettings } from "../types";
+import { IUser } from "../models/user";
+import { lb } from "lens-shmens";
+import { Share } from "../models/share";
+import { ClipboardUtils } from "../utils/clipboard";
+import { InternalLink } from "../internalLink";
 
 declare let __HOST__: string;
 
 interface IProps {
-  email?: string;
+  user?: IUser;
   navCommon: INavCommon;
+  settings: ISettings;
   dispatch: IDispatch;
 }
 
@@ -30,6 +38,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
   const [currentAccount, setCurrentAccount] = useState<IAccount | undefined>(undefined);
   const [otherAccounts, setOtherAccounts] = useState<IAccount[]>([]);
   const [isOtherAccountsEditMode, setIsOtherAccountsEditMode] = useState<boolean>(false);
+  const [isCopiedPublicLink, setIsCopiedPublicLink] = useState<boolean>(false);
 
   function refetchAccounts(): void {
     Account.getAll().then((accounts) => {
@@ -88,12 +97,12 @@ export function ScreenAccount(props: IProps): JSX.Element {
                   ) : (
                     <></>
                   )}
-                  {props.email ? (
-                    props.email === "noemail@example.com" ? (
+                  {props.user?.email ? (
+                    props.user.email === "noemail@example.com" ? (
                       <></>
                     ) : (
                       <>
-                        Signed in as <span className="font-bold">{props.email}</span>
+                        Signed in as <span className="font-bold">{props.user.email}</span>
                       </>
                     )
                   ) : (
@@ -102,7 +111,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 </div>
               }
             />
-            {props.email ? (
+            {props.user?.email ? (
               <div className="text-center">
                 <Button
                   name="account-sign-out"
@@ -144,8 +153,74 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 </div>
               </div>
             )}
+            <MenuItemEditable
+              type="text"
+              name="Nickname"
+              value={props.settings.nickname || ""}
+              nextLine={
+                <div style={{ marginTop: "-0.5rem" }} className="pb-1 text-xs text-grayv2-main">
+                  Used for profile page if you have an account
+                </div>
+              }
+              onChange={(newValue) => {
+                props.dispatch({
+                  type: "UpdateSettings",
+                  lensRecording: lb<ISettings>()
+                    .p("nickname")
+                    .record(newValue ? newValue : undefined),
+                });
+              }}
+            />
+            {props.user && (
+              <MenuItemEditable
+                type="boolean"
+                name="Is Profile Page Public?"
+                value={props.settings.isPublicProfile ? "true" : "false"}
+                nextLine={
+                  props.user?.id && props.settings.isPublicProfile ? (
+                    <div style={{ marginTop: "-0.5rem" }} className="pb-1">
+                      <div className="flex">
+                        <button
+                          className="mr-auto text-xs text-left text-blue-700 underline nm-copy-profile-link-to-clipboard"
+                          onClick={() => {
+                            const text = Share.generateProfileLink(props.user!.id);
+                            if (text != null) {
+                              ClipboardUtils.copy(text);
+                              setIsCopiedPublicLink(true);
+                            }
+                          }}
+                        >
+                          Copy Link To Clipboard
+                        </button>
+                        <InternalLink
+                          name="public-profile-page"
+                          href={`/profile/${props.user.id}`}
+                          className="ml-4 text-xs text-right text-blue-700 underline"
+                        >
+                          Open Public Profile Page
+                        </InternalLink>
+                      </div>
+                      {isCopiedPublicLink && <div className="text-xs italic text-green-600">Copied!</div>}
+                    </div>
+                  ) : undefined
+                }
+                onChange={(newValue) => {
+                  if (props.user != null) {
+                    props.dispatch({
+                      type: "UpdateSettings",
+                      lensRecording: lb<ISettings>()
+                        .p("isPublicProfile")
+                        .record(newValue === "true"),
+                    });
+                  } else {
+                    alert("You should be logged in to enable public profile");
+                  }
+                }}
+              />
+            )}
           </>
         )}
+
         <GroupHeader
           name="Other local accounts"
           topPadding={true}
@@ -260,7 +335,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 Delete Current Local Account
               </Button>
             </div>
-            {props.email && (
+            {props.user?.email && (
               <div>
                 <Button
                   name="account-delete-remote"
