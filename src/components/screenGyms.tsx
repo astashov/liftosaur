@@ -1,11 +1,10 @@
 import { Fragment, h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IEquipment, IGym, ISettings } from "../types";
-import { ILoading, IState, updateState } from "../models/state";
+import { INavCommon, IState, updateState } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
-import { IScreen, Screen } from "../models/screen";
 import { MenuItem } from "./menuItem";
 import { StringUtils } from "../utils/string";
 import { IconDuplicate2 } from "./icons/iconDuplicate2";
@@ -24,9 +23,8 @@ import { Settings } from "../models/settings";
 interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
-  loading: ILoading;
   expandedEquipment?: IEquipment;
-  screenStack: IScreen[];
+  navCommon: INavCommon;
 }
 
 export function ScreenGyms(props: IProps): JSX.Element {
@@ -34,10 +32,8 @@ export function ScreenGyms(props: IProps): JSX.Element {
   const [modalNewGym, setModalNewGym] = useState(false);
   return (
     <Surface
-      navbar={
-        <NavbarView loading={props.loading} dispatch={props.dispatch} screenStack={props.screenStack} title="Gyms" />
-      }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Gyms" />}
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
       addons={[
         <ModalNewGym
           isHidden={!modalNewGym}

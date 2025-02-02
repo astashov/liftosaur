@@ -33,12 +33,12 @@ export function Modal(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (!props.isHidden) {
-      document.body.classList.add("stop-scrolling");
+      document.body.classList.add("stop-scrolling-modal");
     } else {
-      document.body.classList.remove("stop-scrolling");
+      document.body.classList.remove("stop-scrolling-modal");
     }
     return () => {
-      document.body.classList.remove("stop-scrolling");
+      document.body.classList.remove("stop-scrolling-modal");
     };
   }, [props.isHidden]);
 

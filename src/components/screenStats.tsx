@@ -22,10 +22,9 @@ import { Length } from "../models/length";
 import { ModalStats } from "./modalStats";
 import { EditStats } from "../models/editStats";
 import { StringUtils } from "../utils/string";
-import { ILoading } from "../models/state";
+import { INavCommon } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
-import { IScreen, Screen } from "../models/screen";
 import { Footer2View } from "./footer2";
 import { Input } from "./input";
 import { IconFilter } from "./icons/iconFilter";
@@ -38,8 +37,7 @@ interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
   stats: IStats;
-  loading: ILoading;
-  screenStack: IScreen[];
+  navCommon: INavCommon;
 }
 
 interface IUpdates {
@@ -211,7 +209,7 @@ export function ScreenStats(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
           helpContent={<HelpStats />}
           rightButtons={[
@@ -219,11 +217,10 @@ export function ScreenStats(props: IProps): JSX.Element {
               <IconFilter />
             </button>,
           ]}
-          screenStack={props.screenStack}
           title="Add Measurements"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
       addons={
         <ModalStats
           isHidden={!isModalVisible}

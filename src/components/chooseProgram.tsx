@@ -6,9 +6,8 @@ import { Program } from "../models/program";
 import { ModalCreateProgram } from "./modalCreateProgram";
 import { ModalProgramInfo } from "./modalProgramInfo";
 import { Thunk } from "../ducks/thunks";
-import { IScreen, Screen } from "../models/screen";
 import { IProgram, ISettings } from "../types";
-import { ILoading } from "../models/state";
+import { INavCommon } from "../models/state";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { HelpChooseProgramFirstTime } from "./help/helpChooseProgramFirstTime";
@@ -21,11 +20,10 @@ import { EditProgram } from "../models/editProgram";
 interface IProps {
   dispatch: IDispatch;
   programs: IProgram[];
-  loading: ILoading;
   settings: ISettings;
   customPrograms: IProgram[];
-  screenStack: IScreen[];
   editProgramId?: string;
+  navCommon: INavCommon;
 }
 
 export function ChooseProgramView(props: IProps): JSX.Element {
@@ -40,14 +38,13 @@ export function ChooseProgramView(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           title="Choose a program"
           dispatch={props.dispatch}
           helpContent={noPrograms ? <HelpChooseProgramFirstTime /> : <HelpChooseProgram />}
-          screenStack={props.screenStack}
         />
       }
-      footer={noPrograms ? <></> : <Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={noPrograms ? <></> : <Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
       addons={
         <Fragment>
           {program != null && (

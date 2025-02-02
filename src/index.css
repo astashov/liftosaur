@@ -43,7 +43,9 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0.5rem);
 }
 
-.stop-scrolling {
+.stop-scrolling,
+.stop-scrolling-modal,
+.stop-scrolling-bottom-sheet {
   -webkit-overflow-scrolling: touch;
   overflow: hidden;
 }

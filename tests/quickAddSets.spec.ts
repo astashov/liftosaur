@@ -34,12 +34,11 @@ test("creates a new program and runs it", async ({ page }) => {
   await page.getByTestId("save-exercise").click();
 
   await page.getByTestId("navbar-back").click();
-  await page.getByTestId("navbar-back").click();
-  await page.getByTestId("menu-item-my-program").click();
 
   // Running the program
 
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
   await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') [data-cy^=set-]"));
   await expect(page.getByTestId("state-changes-value-lastrep")).toHaveText("0 -> 5");
 

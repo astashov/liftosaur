@@ -1,11 +1,10 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IProgram, ISettings, ISubscription } from "../types";
-import { ILoading, IState, updateState } from "../models/state";
+import { INavCommon, IState, updateState } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
-import { IScreen, Screen } from "../models/screen";
 import { ProgramPreview } from "./programPreview";
 import { MenuItemEditable } from "./menuItemEditable";
 import { lb } from "lens-shmens";
@@ -16,23 +15,15 @@ interface IProps {
   programs: IProgram[];
   selectedProgramId: string;
   subscription: ISubscription;
-  loading: ILoading;
-  screenStack: IScreen[];
+  navCommon: INavCommon;
 }
 
 export function ScreenProgramPreview(props: IProps): JSX.Element {
   const program = props.programs.filter((p) => p.id === props.selectedProgramId)[0];
   return (
     <Surface
-      navbar={
-        <NavbarView
-          loading={props.loading}
-          dispatch={props.dispatch}
-          screenStack={props.screenStack}
-          title="Program Preview"
-        />
-      }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Program Preview" />}
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
       <div>
         <section className="px-4">
