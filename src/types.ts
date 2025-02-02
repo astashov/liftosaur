@@ -209,7 +209,7 @@ Process for adding a new muscle:
 1. Add the muscle to the list below
 2. Add the muscle to screenMuscleToMuscleMapping at src/models/muscle.ts
 3. Add muscle description to src/models/muscleDescriptions.ts
-4. Add the muscle to any pertinent exercise at src/models/exercise.ts
+4. Add the muscle to any pertinent exercises at src/models/exercise.ts
 5. In your PR, ask Anton to find/create and add the muscle image to S3
 */
 export const availableMuscles = [
