@@ -6,7 +6,8 @@ test("converts length units properly", async ({ page }) => {
   await page.click("button:has-text('Basic Beginner Routine')");
   await page.getByTestId("clone-program").click();
 
-  await page.getByTestId("footer-measures").click();
+  await page.getByTestId("footer-me").click();
+  await page.getByTestId("menu-item-measurements").click();
   await page.getByTestId("add-measurements").click();
   await page.getByTestId("modify-stats").click();
   await page.getByTestId("menu-item-name-shoulders").click();
@@ -18,11 +19,11 @@ test("converts length units properly", async ({ page }) => {
   await page.getByTestId("input-stats-forearm-left").fill("30.56");
   await page.getByTestId("add-stats").click();
 
-  await page.getByTestId("footer-settings").click();
+  await page.getByTestId("footer-me").click();
   await expect(page.getByTestId("menu-item-value-length-units")).toHaveText("in");
   await page.getByTestId("menu-item-name-length-units").click();
   await page.getByTestId("menu-item-length-units").getByTestId("scroll-barrel-item-cm").click();
-  await page.getByTestId("navbar-back").click();
+  await page.getByTestId("menu-item-measurements").click();
 
   await page.getByTestId("add-measurements").click();
   await expect(page.locator("text=Shoulders (cm)")).toHaveCount(1);
@@ -40,12 +41,12 @@ test("converts length units properly", async ({ page }) => {
   await expect(page.getByTestId("input-stats-unit").nth(0)).toHaveText("cm");
   await expect(page.getByTestId("input-stats-unit").nth(1)).toHaveText("cm");
 
-  await page.getByTestId("footer-settings").click();
+  await page.getByTestId("footer-me").click();
   await expect(page.getByTestId("menu-item-value-length-units")).toHaveText("cm");
   await page.getByTestId("menu-item-name-length-units").click();
   await page.getByTestId("menu-item-length-units").getByTestId("scroll-barrel-item-in").click();
   await page.waitForTimeout(200);
-  await page.getByTestId("navbar-back").click();
+  await page.getByTestId("menu-item-measurements").click();
 
   await page.getByTestId("menu-item-name-type").click();
   await page.getByTestId("menu-item-type").getByTestId("scroll-barrel-item-shoulders").click();

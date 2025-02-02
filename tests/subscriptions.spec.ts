@@ -19,7 +19,7 @@ test("subscriptions", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1&enforce=1");
   await page.getByTestId("footer-graphs").click();
   await expect(page.getByTestId("screen")).toContainText("Select graphs you want to display");
-  await page.getByTestId("footer-settings").click();
+  await page.getByTestId("footer-me").click();
   await page.getByTestId("menu-item-changelog").click();
   await page.getByTestId("modal-close").and(page.locator(":visible")).click();
   await page.waitForTimeout(2000);

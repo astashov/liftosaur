@@ -8,7 +8,8 @@ test("enters stats and shows graphs", async ({ page }) => {
   await PlaywrightUtils.disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
 
-  await page.getByTestId("footer-measures").click();
+  await page.getByTestId("footer-me").click();
+  await page.getByTestId("menu-item-measurements").click();
   await expect(page.locator("text=No measurements added yet")).toBeVisible();
 
   await page.getByTestId("add-measurements").click();
@@ -77,7 +78,7 @@ test("enters stats and shows graphs", async ({ page }) => {
   await expect(page.getByTestId("input-stats-unit").nth(1)).toHaveText("in");
 
   await page.getByTestId("footer-workout").click();
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
   await page.locator("[data-cy^=exercise-]:has-text('Bent Over Row') [data-cy^=set-]").nth(0).click();
   await page.locator("text=Finish the workout").click();
   await page.locator("text=Continue").click();

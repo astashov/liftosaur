@@ -1,5 +1,5 @@
 import { IThunk, IDispatch } from "./types";
-import { IScreen } from "../models/screen";
+import { IScreen, IScreenParams } from "../models/screen";
 import RB from "rollbar";
 import { IGetStorageResponse, IPostSyncResponse, Service } from "../api/service";
 import { lb } from "lens-shmens";
@@ -370,7 +370,11 @@ export namespace Thunk {
     };
   }
 
-  export function pushScreen(screen: IScreen): IThunk {
+  export function pushScreen<T extends IScreen>(
+    screen: T,
+    params?: IScreenParams<T>,
+    shouldResetStack?: boolean
+  ): IThunk {
     return async (dispatch, getState) => {
       dispatch(postevent("navigate-to-" + screen));
       const confirmation = Screen.shouldConfirmNavigation(getState());
@@ -386,13 +390,14 @@ export namespace Thunk {
         ["musclesProgram", "musclesDay", "graphs"].indexOf(screen) !== -1 &&
         !Subscriptions.hasSubscription(getState().storage.subscription)
       ) {
-        screen = "subscription";
+        shouldResetStack = false;
+        screen = "subscription" as T;
       }
       const screensWithoutCurrentProgram = ["first", "onboarding", "units", "programs", "programPreview"];
       if (getState().storage.currentProgramId == null && screensWithoutCurrentProgram.indexOf(screen) === -1) {
-        screen = "programs";
+        screen = "programs" as T;
       }
-      dispatch({ type: "PushScreen", screen });
+      dispatch({ type: "PushScreen", screen, params, shouldResetStack });
       window.scroll(0, 0);
     };
   }
@@ -831,7 +836,7 @@ export namespace Thunk {
           dispatch(postevent("complete-apple-subscription"));
           dispatch(log("ls-set-apple-receipt"));
           Subscriptions.setAppleReceipt(dispatch, receipt);
-          if (Screen.current(getState().screenStack) === "subscription") {
+          if (Screen.currentName(getState().screenStack) === "subscription") {
             dispatch(Thunk.pullScreen());
           }
         }
@@ -856,7 +861,7 @@ export namespace Thunk {
           dispatch(postevent("complete-google-subscription"));
           dispatch(log("ls-set-google-purchase-token"));
           Subscriptions.setGooglePurchaseToken(dispatch, purchaseToken);
-          if (Screen.current(getState().screenStack) === "subscription") {
+          if (Screen.currentName(getState().screenStack) === "subscription") {
             dispatch(Thunk.pullScreen());
           }
         }

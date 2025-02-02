@@ -1,6 +1,6 @@
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
-import { IScreen } from "./screen";
+import { IScreenStack } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { Storage } from "../models/storage";
 import { ILensRecordingPayload } from "lens-shmens";
@@ -28,6 +28,15 @@ export type IEnv = {
 export interface INotification {
   type: "error" | "success";
   content: string;
+}
+
+export interface INavCommon {
+  loading: ILoading;
+  screenStack: IScreenStack;
+  currentProgram?: IProgram;
+  allPrograms: IProgram[];
+  progress?: IHistoryRecord;
+  settings: ISettings;
 }
 
 export interface ILoadingItem {
@@ -63,7 +72,7 @@ export interface IState {
   lastSyncedStorage?: IStorage;
   programs: IProgram[];
   notification?: INotification;
-  screenStack: IScreen[];
+  screenStack: IScreenStack;
   currentHistoryRecord?: number;
   prices?: Partial<Record<string, string>>;
   loading: ILoading;
@@ -112,7 +121,7 @@ export function buildState(args: {
   nosync?: boolean;
 }): IState {
   return {
-    screenStack: [args.shouldSkipIntro ? "programs" : "first"],
+    screenStack: [{ name: args.shouldSkipIntro ? "programs" : "first" }],
     progress: {},
     programs: [basicBeginnerProgram],
     loading: { items: {} },

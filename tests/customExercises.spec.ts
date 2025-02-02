@@ -27,10 +27,10 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("save-exercise").click();
   await page.waitForTimeout(100);
   await page.getByTestId("navbar-back").click();
-  await page.getByTestId("navbar-back").click();
-  await page.getByTestId("menu-item-my-program").click({ force: true });
 
-  await page.getByTestId("start-workout").click({ force: true });
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
   await page.getByTestId("set-nonstarted").click({ force: true });
   await page.locator("text=Finish the workout").click();
   await page.locator("text=Continue").click();
@@ -47,10 +47,15 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("menu-item-blah-one").click({ force: true });
   await page.getByTestId("save-exercise").click();
   await page.waitForTimeout(100);
-  await page.getByTestId("navbar-back").click();
+  await page.getByTestId("footer-home").click();
 
-  await expect(page.getByTestId("history-entry-exercise-name").nth(0)).toHaveText("Blah One");
-  await expect(page.getByTestId("history-entry-exercise-name").nth(1)).toHaveText("My Exercise 2 🏆");
+  await expect(page.getByTestId("history-entry-exercise-name").nth(0)).toHaveText("My Exercise 2 🏆");
+  await page.getByTestId("footer-workout").click();
+  await expect(page.getByTestId("bottom-sheet").getByTestId("history-entry-exercise-name").nth(0)).toHaveText(
+    "Blah One"
+  );
+  await page.getByTestId("bottom-sheet-close").click();
+  await page.waitForTimeout(200);
 
   await page.getByTestId("footer-program").click({ force: true });
   await page.getByTestId("edit-exercise").click();
@@ -73,10 +78,16 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("menu-item-my-exercise-3").click({ force: true });
   await page.getByTestId("save-exercise").click();
   await page.waitForTimeout(100);
-  await page.getByTestId("navbar-back").click();
+  await page.getByTestId("footer-home").click();
 
-  await expect(page.getByTestId("history-entry-exercise-name").nth(0)).toHaveText("My Exercise 3");
-  await expect(page.getByTestId("history-entry-exercise-name").nth(1)).toHaveText("My Exercise 3 🏆");
+  await expect(page.getByTestId("history-entry-exercise-name").nth(0)).toHaveText("My Exercise 3 🏆");
+
+  await page.getByTestId("footer-workout").click();
+  await expect(page.getByTestId("bottom-sheet").getByTestId("history-entry-exercise-name").nth(0)).toHaveText(
+    "My Exercise 3"
+  );
+  await page.getByTestId("bottom-sheet-close").click();
+  await page.waitForTimeout(200);
 
   await page.getByTestId("footer-program").click({ force: true });
   await page.getByTestId("navbar-3-dot").click({ force: true });

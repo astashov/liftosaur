@@ -4,13 +4,12 @@ import { GroupHeader } from "../groupHeader";
 import { MenuItem } from "../menuItem";
 import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
-import { ILoading, IState, updateSettings, updateState } from "../../models/state";
+import { INavCommon, IState, updateSettings, updateState } from "../../models/state";
 import { Button } from "../button";
 import { useState, useCallback, useEffect, useRef } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
 import { ICustomExercise, IExerciseKind, IMuscle, IProgram, ISettings } from "../../types";
-import { IScreen, Screen } from "../../models/screen";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { Footer2View } from "../footer2";
@@ -47,12 +46,11 @@ interface IProps {
   plannerState: IPlannerState;
   programIndex: number;
   helps: string[];
-  screenStack: IScreen[];
   dispatch: IDispatch;
   adminKey?: string;
   settings: ISettings;
-  loading: ILoading;
   isLoggedIn: boolean;
+  navCommon: INavCommon;
 }
 
 declare let __HOST__: string;
@@ -92,7 +90,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
           rightButtons={[
             <button
@@ -104,11 +102,10 @@ export function EditProgramV2(props: IProps): JSX.Element {
             </button>,
           ]}
           helpContent={<HelpEditProgramV2 />}
-          screenStack={props.screenStack}
           title="Edit Program"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
       addons={
         <>
           <BottomSheetEditProgramV2

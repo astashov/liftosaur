@@ -7,13 +7,13 @@ import { DraggableList } from "../draggableList";
 import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
 import { StringUtils } from "../../utils/string";
-import { ILoading, IState, updateState } from "../../models/state";
+import { INavCommon, IState, updateState } from "../../models/state";
 import { Button } from "../button";
 import { useState } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
 import { IProgram, ISettings } from "../../types";
-import { IScreen, Screen } from "../../models/screen";
+import { Screen } from "../../models/screen";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { Footer2View } from "../footer2";
@@ -36,11 +36,10 @@ import { MigrationBanner } from "../migrationBanner";
 interface IProps {
   editProgram: IProgram;
   programIndex: number;
-  screenStack: IScreen[];
   dispatch: IDispatch;
   adminKey?: string;
   settings: ISettings;
-  loading: ILoading;
+  navCommon: INavCommon;
 }
 
 export function EditProgramDaysList(props: IProps): JSX.Element {
@@ -52,10 +51,9 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
           helpContent={<HelpEditProgramDaysList />}
-          screenStack={props.screenStack}
           rightButtons={[
             <button
               data-cy="navbar-3-dot"
@@ -68,7 +66,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           title="Edit Program"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
       addons={
         <>
           <BottomSheetEditProgram

@@ -25,7 +25,7 @@ test("custom equipment", async ({ page }) => {
   await page.getByText("Finish the workout").click();
   await page.getByText("Continue").click();
 
-  await page.getByTestId("footer-settings").click();
+  await page.getByTestId("footer-me").click();
   await page.getByTestId("menu-item-available-equipment").click();
 
   await page.getByRole("button", { name: "Add New Equipment Type" }).click();
@@ -59,7 +59,7 @@ test("custom equipment", async ({ page }) => {
   await page.getByTestId("exercise-name").click();
   await expect(page.getByTestId("menu-item-value-equipment")).toHaveText("Boom");
 
-  await page.getByTestId("footer-settings").click();
+  await page.getByTestId("footer-me").click();
   await page.getByTestId("menu-item-available-equipment").click();
   await page.getByTestId("group-header-boom").click();
 
@@ -69,7 +69,6 @@ test("custom equipment", async ({ page }) => {
   await expect(page.getByTestId("group-header-boom")).toHaveCount(0);
 
   await page.getByTestId("footer-workout").click();
-  await page.getByTestId("start-workout").click();
 
   await page.getByTestId("exercise-edit-mode").click();
   await expect(page.getByTestId("menu-item-value-equipment")).toHaveText("");

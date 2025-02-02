@@ -564,7 +564,7 @@ export namespace EditProgram {
           .p("storage")
           .p("programs")
           .recordModify((programs, getters) => {
-            if (getters.state.screenStack[getters.state.screenStack.length - 2] === "editProgramDay") {
+            if (getters.state.screenStack[getters.state.screenStack.length - 2]?.name === "editProgramDay") {
               const dayIndex = getters.state.editProgram!.dayIndex!;
               const exerciseId = getters.editExercise!.id;
               return lf(programs)

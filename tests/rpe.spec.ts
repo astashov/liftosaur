@@ -49,7 +49,7 @@ test("rpe", async ({ page }) => {
   await expect(page.getByTestId("history-entry-sets-next").first()).toHaveText("2 × 5 × 135lb @8");
   await expect(page.getByTestId("history-entry-sets-next").nth(1)).toHaveText("2 × 5 × 135lb");
 
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   await expect(page.getByTestId("left-superscript")).toHaveCount(3);
   await expect(page.getByTestId("left-superscript").nth(0)).toHaveText("@8");
@@ -88,6 +88,6 @@ test("rpe", async ({ page }) => {
   await expect(page.getByTestId("history-entry-sets-completed").nth(2)).toHaveText("5 × 135lb");
   await expect(page.getByTestId("history-entry-sets-completed").nth(3)).toHaveText("5 × 135lb @10");
 
-  await expect(page.getByTestId("history-entry-rpe")).toHaveCount(4);
-  await expect(page.getByTestId("history-entry-rpe").nth(0)).toHaveText("@8");
+  await page.getByTestId("footer-workout").click();
+  await expect(page.getByTestId("bottom-sheet").getByTestId("history-entry-rpe").nth(0)).toHaveText("@8");
 });

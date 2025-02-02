@@ -6,10 +6,13 @@ test("edits sets properly", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
   await page.locator("button:has-text('Basic Beginner Routine')").click();
   await page.getByTestId("clone-program").click();
-  await page.getByTestId("start-workout").click();
+
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   await page.getByTestId("exercise-edit-mode").nth(1).click();
   await page.getByTestId("modal-edit-mode-this-workout").click();
+  await page.getByTestId("delete-edit-exercise").scrollIntoViewIfNeeded();
   await page.getByTestId("add-warmup-set").click({ force: true });
   await page.getByTestId("modal-edit-set-reps-input").fill("10");
   await page.getByTestId("modal-edit-set-weight-input").fill("100");

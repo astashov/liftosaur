@@ -2,10 +2,9 @@ import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
-import { IScreen } from "../models/screen";
-import { ILoading, IState, ISubscriptionLoading, updateState } from "../models/state";
+import { INavCommon, IState, ISubscriptionLoading, updateState } from "../models/state";
 import { IconBarbell } from "./icons/iconBarbell";
-import { IconGraphs2 } from "./icons/iconGraphs2";
+import { IconGraphs } from "./icons/iconGraphs";
 import { Button } from "./button";
 import { SendMessage } from "../utils/sendMessage";
 import { LinkButton } from "./linkButton";
@@ -24,12 +23,11 @@ import { lg } from "../utils/posthog";
 import { IconW } from "./icons/iconW";
 
 interface IProps {
-  loading: ILoading;
-  screenStack: IScreen[];
   prices?: Partial<Record<string, string>>;
   subscription: ISubscription;
   subscriptionLoading?: ISubscriptionLoading;
   dispatch: IDispatch;
+  navCommon: INavCommon;
 }
 
 export function ScreenSubscription(props: IProps): JSX.Element {
@@ -49,9 +47,8 @@ export function ScreenSubscription(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          loading={props.loading}
+          navCommon={props.navCommon}
           dispatch={props.dispatch}
-          screenStack={props.screenStack}
           rightButtons={[
             <button
               className="p-2 nm-back"
@@ -179,7 +176,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             onClick={() => setIsPlatesCalculatorShown(true)}
           />
           <Feature
-            icon={<IconGraphs2 />}
+            icon={<IconGraphs />}
             title="Graphs"
             description="So you could visualize your progress over time"
             onClick={() => setIsGraphsShown(true)}

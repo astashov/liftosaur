@@ -6,10 +6,9 @@ import { DraggableList } from "../draggableList";
 import { GroupHeader } from "../groupHeader";
 import { MenuItem } from "../menuItem";
 import { ISettings, IProgram, IProgramWeek } from "../../types";
-import { ILoading } from "../../models/state";
+import { INavCommon } from "../../models/state";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
-import { IScreen, Screen } from "../../models/screen";
 import { Footer2View } from "../footer2";
 import { IconEditSquare } from "../icons/iconEditSquare";
 import { IconTrash } from "../icons/iconTrash";
@@ -17,12 +16,11 @@ import { LinkButton } from "../linkButton";
 import { IconPlus } from "../icons/iconPlus";
 
 interface IProps {
-  screenStack: IScreen[];
   weekIndex: number;
   settings: ISettings;
   editProgram: IProgram;
   editWeek: IProgramWeek;
-  loading: ILoading;
+  navCommon: INavCommon;
   dispatch: IDispatch;
 }
 
@@ -36,15 +34,8 @@ export function EditProgramWeek(props: IProps): JSX.Element {
 
   return (
     <Surface
-      navbar={
-        <NavbarView
-          loading={props.loading}
-          dispatch={props.dispatch}
-          screenStack={props.screenStack}
-          title="Edit Program Week"
-        />
-      }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Edit Program Week" />}
+      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
       <section className="px-4">
         <MenuItemEditable

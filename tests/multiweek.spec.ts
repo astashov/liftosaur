@@ -76,8 +76,6 @@ state.dayInWeek = dayInWeek`
   await page.getByTestId("menu-item-day-2").click();
   await page.getByTestId("navbar-back").click();
 
-  await page.getByTestId("footer-workout").click();
-
   const expectations = [
     { exercise: "squat", name: "Week 1 - Day 1", week: "0 -> 1", day: "0 -> 1", dayinweek: "0 -> 1" },
     { exercise: "bench-press", name: "Week 1 - Day 2", week: "0 -> 1", day: "0 -> 2", dayinweek: "0 -> 2" },
@@ -91,7 +89,8 @@ state.dayInWeek = dayInWeek`
   ];
 
   for (const expectation of expectations) {
-    await page.getByTestId("start-workout").click();
+    await page.getByTestId("footer-workout").click();
+    await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
     await page
       .getByTestId(`entry-${expectation.exercise}`)
       .getByTestId("workout-set")
