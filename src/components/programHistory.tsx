@@ -14,6 +14,7 @@ import { IconUser } from "./icons/iconUser";
 import { ObjectUtils } from "../utils/object";
 import { Markdown } from "./markdown";
 import { GroupHeader } from "./groupHeader";
+import { HistoryRecordsNullState } from "./historyRecordsNullState";
 
 interface IProps {
   program: IProgram;
@@ -69,16 +70,20 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           <Markdown value={weekDescription} />
         </div>
       )}
-      <HistoryRecordsList
-        history={sortedHistory}
-        program={props.program}
-        subscription={props.subscription}
-        progress={props.progress}
-        settings={props.settings}
-        dispatch={dispatch}
-        visibleRecords={visibleRecords}
-        currentUserId={props.userId}
-      />
+      {sortedHistory.length > 0 ? (
+        <HistoryRecordsList
+          history={sortedHistory}
+          program={props.program}
+          subscription={props.subscription}
+          progress={props.progress}
+          settings={props.settings}
+          dispatch={dispatch}
+          visibleRecords={visibleRecords}
+          currentUserId={props.userId}
+        />
+      ) : (
+        <HistoryRecordsNullState />
+      )}
     </Surface>
   );
 }
