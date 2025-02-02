@@ -228,7 +228,6 @@ export const availableMuscles = [
   "Pectineous",
   "Pectoralis Major Clavicular Head",
   "Pectoralis Major Sternal Head",
-  "Pectoralis Minor",
   "Quadriceps",
   "Rectus Abdominis",
   "Rhomboids",
