@@ -152,7 +152,7 @@ export const muscleDescriptions = {
     "The teres minor is a small, cylindrical muscle located in the upper back, specifically within the shoulder region. It is part of the rotator cuff, situated beneath the deltoid muscle and above the teres major. It originates from the lateral border of the scapula and inserts onto the greater tubercle of the humerus.",
     "The primary function of the teres minor is to assist in the external rotation of the shoulder joint. It also plays a role in stabilizing the humeral head within the shallow socket of the scapula during arm movements, contributing to overall shoulder mobility and function.",
   ],
-  "Rhomboids": [
+  Rhomboids: [
     "The rhomboids are a pair of deep muscles located in the upper back, consisting of the rhomboid major and rhomboid minor. These muscles originate from the spinous processes of the cervical and upper thoracic vertebrae and insert onto the medial border of the scapula. Their name comes from their rhomboid-like shape, which resembles a parallelogram.",
     "The primary function of the rhomboids is to retract (pull together) the scapulae, bringing the shoulder blades toward the spine. They also contribute to scapular elevation and downward rotation, which are essential for proper shoulder mechanics. Strong rhomboids help maintain good posture, stabilize the shoulders, and support movements such as pulling, rowing, and lifting.",
   ],
