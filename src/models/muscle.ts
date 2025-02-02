@@ -34,7 +34,6 @@ const screenMuscleToMuscleMapping: Record<IScreenMuscle, IMuscle[]> = {
     "Deltoid Lateral",
     "Deltoid Posterior",
     "Infraspinatus",
-    "Supraspinatus",
     "Teres Major",
     "Teres Minor",
   ],
@@ -49,16 +48,15 @@ const screenMuscleToMuscleMapping: Record<IScreenMuscle, IMuscle[]> = {
     "Trapezius Upper Fibers",
     "Sternocleidomastoid",
     "Splenius",
-    "Subscapularis",
   ],
-  abs: ["Iliopsoas", "Obliques", "Quadratus Lumborum", "Rectus Abdominis", "Transverse Abdominis"],
+  abs: ["Iliopsoas", "Obliques", "Rectus Abdominis"],
   glutes: ["Gluteus Maximus", "Gluteus Medius", "Gluteus Minimus", "Tensor Fasciae Latae"],
   hamstrings: ["Adductor Magnus", "Adductor Brevis", "Adductor Longus", "Hamstrings"],
   quadriceps: ["Adductor Brevis", "Adductor Longus", "Pectineous", "Quadriceps", "Sartorius"],
   chest: ["Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head", "Serratus Anterior"],
   biceps: ["Biceps Brachii", "Brachialis"],
   calves: ["Gastrocnemius", "Soleus", "Tibialis Anterior"],
-  forearms: ["Brachioradialis", "Pronators", "Supinators", "Wrist Extensors", "Wrist Flexors"],
+  forearms: ["Brachioradialis", "Wrist Extensors", "Wrist Flexors"],
 };
 
 const muscleToScreenMuscleMapping = ObjectUtils.keys(screenMuscleToMuscleMapping).reduce<
