@@ -7,6 +7,7 @@ import { Footer2View } from "./footer2";
 import { StatsList } from "./statsList";
 import { HelpMeasurements } from "./help/helpMeasurements";
 import { INavCommon } from "../models/state";
+import { Screen } from "../models/screen";
 
 interface IProps {
   dispatch: IDispatch;
@@ -18,6 +19,9 @@ interface IProps {
 
 export function ScreenMeasurements(props: IProps): JSX.Element {
   const { settings, stats, dispatch } = props;
+  const stack = props.navCommon.screenStack;
+  const screenData = Screen.current(stack);
+  const initialKey = screenData.name === "measurements" ? screenData.params?.key : undefined;
 
   return (
     <Surface
@@ -31,7 +35,13 @@ export function ScreenMeasurements(props: IProps): JSX.Element {
       }
       footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
-      <StatsList subscription={props.subscription} stats={stats} settings={settings} dispatch={dispatch} />
+      <StatsList
+        initialKey={initialKey}
+        subscription={props.subscription}
+        stats={stats}
+        settings={settings}
+        dispatch={dispatch}
+      />
     </Surface>
   );
 }

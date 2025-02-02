@@ -1,39 +1,45 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import { IState } from "./state";
 import { dequal } from "dequal";
 import { Program } from "./program";
 import { Progress } from "./progress";
 import { ObjectUtils } from "../utils/object";
+import { IStatsKey } from "../types";
 
 export type ITab = "home" | "program" | "workout" | "graphs" | "me";
 
-export type IScreen =
-  | "first"
-  | "onboarding"
-  | "main"
-  | "settings"
-  | "account"
-  | "timers"
-  | "plates"
-  | "gyms"
-  | "programs"
-  | "progress"
-  | "graphs"
-  | "finishDay"
-  | "muscles"
-  | "stats"
-  | "units"
-  | "appleHealth"
-  | "googleHealth"
-  | "editProgram"
-  | "editProgramExercise"
-  | "editProgramDay"
-  | "editProgramDayScript"
-  | "editProgramWeek"
-  | "measurements"
-  | "subscription"
-  | "exerciseStats"
-  | "exercises"
-  | "programPreview";
+export type IScreenData =
+  | { name: "first"; params?: {} }
+  | { name: "onboarding"; params?: {} }
+  | { name: "main"; params?: {} }
+  | { name: "settings"; params?: {} }
+  | { name: "account"; params?: {} }
+  | { name: "timers"; params?: {} }
+  | { name: "plates"; params?: {} }
+  | { name: "gyms"; params?: {} }
+  | { name: "programs"; params?: {} }
+  | { name: "progress"; params?: {} }
+  | { name: "graphs"; params?: {} }
+  | { name: "finishDay"; params?: {} }
+  | { name: "muscles"; params?: {} }
+  | { name: "stats"; params?: {} }
+  | { name: "units"; params?: {} }
+  | { name: "appleHealth"; params?: {} }
+  | { name: "googleHealth"; params?: {} }
+  | { name: "editProgram"; params?: {} }
+  | { name: "editProgramExercise"; params?: {} }
+  | { name: "editProgramDay"; params?: {} }
+  | { name: "editProgramDayScript"; params?: {} }
+  | { name: "editProgramWeek"; params?: {} }
+  | { name: "measurements"; params?: { key: IStatsKey } }
+  | { name: "subscription"; params?: {} }
+  | { name: "exerciseStats"; params?: {} }
+  | { name: "exercises"; params?: {} }
+  | { name: "programPreview"; params?: {} };
+
+export type IScreen = IScreenData["name"];
+export type IScreenStack = IScreenData[];
+export type IScreenParams<T extends IScreen> = Extract<IScreenData, { name: T }>["params"];
 
 export namespace Screen {
   export const editProgramScreens: IScreen[] = [
@@ -44,24 +50,33 @@ export namespace Screen {
     "editProgramDayScript",
   ];
 
-  export function current(stack: IScreen[]): IScreen {
+  export function currentName(stack: IScreenStack): IScreen {
+    return stack[stack.length - 1].name;
+  }
+
+  export function current(stack: IScreenStack): IScreenData {
     return stack[stack.length - 1];
   }
 
-  export function push(stack: IScreen[], screen: IScreen): IScreen[] {
-    return [...stack, screen];
+  export function push<T extends IScreenData["name"]>(
+    stack: IScreenStack,
+    name: T,
+    params?: IScreenParams<T>
+  ): IScreenStack {
+    const newEntry: IScreenData = { name, ...(params ? { params } : {}) } as Extract<IScreenData, { name: T }>;
+    return [...stack, newEntry];
   }
 
-  export function pull(stack: IScreen[]): IScreen[] {
+  export function pull(stack: IScreenStack): IScreenStack {
     return stack.length > 1 ? [...stack].slice(0, stack.length - 1) : stack;
   }
 
-  export function previous(stack: IScreen[]): IScreen | undefined {
-    return stack[stack.length - 2];
+  export function previous(stack: IScreenStack): IScreen | undefined {
+    return stack[stack.length - 2]?.name;
   }
 
-  export function enablePtr(stack: IScreen[]): boolean {
-    const curr = Screen.current(stack);
+  export function enablePtr(stack: IScreenStack): boolean {
+    const curr = Screen.currentName(stack);
     return ["first", "onboarding", "finishDay", "subscription", "programs", "measurements"].indexOf(curr) === -1;
   }
 

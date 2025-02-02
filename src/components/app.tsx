@@ -275,13 +275,13 @@ export function AppView(props: IProps): JSX.Element | null {
   };
 
   let content: JSX.Element;
-  if (Screen.current(state.screenStack) === "first") {
+  if (Screen.currentName(state.screenStack) === "first") {
     content = <ScreenFirst dispatch={dispatch} />;
-  } else if (Screen.current(state.screenStack) === "onboarding") {
+  } else if (Screen.currentName(state.screenStack) === "onboarding") {
     content = <ScreenOnboarding dispatch={dispatch} />;
-  } else if (Screen.current(state.screenStack) === "units") {
+  } else if (Screen.currentName(state.screenStack) === "units") {
     content = <ScreenUnitSelector dispatch={dispatch} />;
-  } else if (Screen.current(state.screenStack) === "subscription") {
+  } else if (Screen.currentName(state.screenStack) === "subscription") {
     content = (
       <ScreenSubscription
         prices={state.prices}
@@ -292,8 +292,8 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (
-    Screen.current(state.screenStack) === "programs" ||
-    (Screen.current(state.screenStack) === "main" && currentProgram == null)
+    Screen.currentName(state.screenStack) === "programs" ||
+    (Screen.currentName(state.screenStack) === "main" && currentProgram == null)
   ) {
     content = (
       <ChooseProgramView
@@ -305,7 +305,7 @@ export function AppView(props: IProps): JSX.Element | null {
         editProgramId={state.progress[0]?.programId}
       />
     );
-  } else if (Screen.current(state.screenStack) === "main") {
+  } else if (Screen.currentName(state.screenStack) === "main") {
     if (currentProgram != null) {
       content = (
         <ProgramHistoryView
@@ -325,7 +325,7 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       throw new Error("Program is not selected on the 'main' screen");
     }
-  } else if (Screen.current(state.screenStack) === "progress") {
+  } else if (Screen.currentName(state.screenStack) === "progress") {
     const progress = state.progress[state.currentHistoryRecord!]!;
     const program = Progress.isCurrent(progress)
       ? Program.getFullProgram(state, progress.programId) ||
@@ -344,9 +344,10 @@ export function AppView(props: IProps): JSX.Element | null {
         settings={state.storage.settings}
       />
     );
-  } else if (Screen.current(state.screenStack) === "settings") {
+  } else if (Screen.currentName(state.screenStack) === "settings") {
     content = (
       <ScreenSettings
+        stats={state.storage.stats}
         navCommon={navCommon}
         subscription={state.storage.subscription}
         dispatch={dispatch}
@@ -355,7 +356,7 @@ export function AppView(props: IProps): JSX.Element | null {
         settings={state.storage.settings}
       />
     );
-  } else if (Screen.current(state.screenStack) === "programPreview") {
+  } else if (Screen.currentName(state.screenStack) === "programPreview") {
     if (state.previewProgram?.id == null) {
       setTimeout(() => {
         dispatch(Thunk.pullScreen());
@@ -373,7 +374,7 @@ export function AppView(props: IProps): JSX.Element | null {
         />
       );
     }
-  } else if (Screen.current(state.screenStack) === "stats") {
+  } else if (Screen.currentName(state.screenStack) === "stats") {
     content = (
       <ScreenStats
         navCommon={navCommon}
@@ -382,7 +383,7 @@ export function AppView(props: IProps): JSX.Element | null {
         stats={state.storage.stats}
       />
     );
-  } else if (Screen.current(state.screenStack) === "measurements") {
+  } else if (Screen.currentName(state.screenStack) === "measurements") {
     content = (
       <ScreenMeasurements
         navCommon={navCommon}
@@ -392,9 +393,9 @@ export function AppView(props: IProps): JSX.Element | null {
         stats={state.storage.stats}
       />
     );
-  } else if (Screen.current(state.screenStack) === "account") {
+  } else if (Screen.currentName(state.screenStack) === "account") {
     content = <ScreenAccount navCommon={navCommon} dispatch={dispatch} email={state.user?.email} />;
-  } else if (Screen.current(state.screenStack) === "exerciseStats") {
+  } else if (Screen.currentName(state.screenStack) === "exerciseStats") {
     const exercise = state.viewExerciseType
       ? Exercise.find(state.viewExerciseType, state.storage.settings.exercises)
       : undefined;
@@ -417,15 +418,15 @@ export function AppView(props: IProps): JSX.Element | null {
         />
       );
     }
-  } else if (Screen.current(state.screenStack) === "timers") {
+  } else if (Screen.currentName(state.screenStack) === "timers") {
     content = <ScreenTimers navCommon={navCommon} dispatch={dispatch} timers={state.storage.settings.timers} />;
-  } else if (Screen.current(state.screenStack) === "appleHealth") {
+  } else if (Screen.currentName(state.screenStack) === "appleHealth") {
     content = <ScreenAppleHealthSettings navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />;
-  } else if (Screen.current(state.screenStack) === "googleHealth") {
+  } else if (Screen.currentName(state.screenStack) === "googleHealth") {
     content = (
       <ScreenGoogleHealthSettings navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />
     );
-  } else if (Screen.current(state.screenStack) === "gyms") {
+  } else if (Screen.currentName(state.screenStack) === "gyms") {
     content = (
       <ScreenGyms
         navCommon={navCommon}
@@ -434,7 +435,7 @@ export function AppView(props: IProps): JSX.Element | null {
         settings={state.storage.settings}
       />
     );
-  } else if (Screen.current(state.screenStack) === "plates") {
+  } else if (Screen.currentName(state.screenStack) === "plates") {
     const allEquipment = Equipment.getEquipmentOfGym(state.storage.settings, state.selectedGymId);
     content = (
       <ScreenEquipment
@@ -446,7 +447,7 @@ export function AppView(props: IProps): JSX.Element | null {
         settings={state.storage.settings}
       />
     );
-  } else if (Screen.current(state.screenStack) === "exercises") {
+  } else if (Screen.currentName(state.screenStack) === "exercises") {
     if (currentProgram == null) {
       throw new Error("Opened 'exercises' screen, but 'currentProgram' is null");
     }
@@ -459,7 +460,7 @@ export function AppView(props: IProps): JSX.Element | null {
         history={state.storage.history}
       />
     );
-  } else if (Screen.current(state.screenStack) === "graphs") {
+  } else if (Screen.currentName(state.screenStack) === "graphs") {
     content = (
       <ScreenGraphs
         navCommon={navCommon}
@@ -469,7 +470,7 @@ export function AppView(props: IProps): JSX.Element | null {
         stats={state.storage.stats}
       />
     );
-  } else if (Screen.editProgramScreens.indexOf(Screen.current(state.screenStack)) !== -1) {
+  } else if (Screen.editProgramScreens.indexOf(Screen.currentName(state.screenStack)) !== -1) {
     let editProgram = Program.getEditingProgram(state);
     editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
     if (editProgram != null) {
@@ -493,7 +494,7 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       throw new Error("Opened 'editProgram' screen, but 'state.editProgram' is null");
     }
-  } else if (Screen.current(state.screenStack) === "finishDay") {
+  } else if (Screen.currentName(state.screenStack) === "finishDay") {
     content = (
       <ScreenFinishDay
         navCommon={navCommon}
@@ -503,7 +504,7 @@ export function AppView(props: IProps): JSX.Element | null {
         userId={state.user?.id}
       />
     );
-  } else if (Screen.current(state.screenStack) === "muscles") {
+  } else if (Screen.currentName(state.screenStack) === "muscles") {
     const type = state.muscleView || {
       type: "program",
       programId: state.storage.currentProgramId || state.storage.programs[0]?.id,
@@ -557,7 +558,7 @@ export function AppView(props: IProps): JSX.Element | null {
         }}
       />
       {content}
-      {progress && screensWithoutTimer.indexOf(Screen.current(state.screenStack)) === -1 && (
+      {progress && screensWithoutTimer.indexOf(Screen.currentName(state.screenStack)) === -1 && (
         <RestTimer progress={progress} dispatch={dispatch} />
       )}
       <Notification dispatch={dispatch} notification={state.notification} />

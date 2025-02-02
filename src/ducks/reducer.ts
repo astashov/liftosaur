@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Reducer } from "preact/hooks";
 import { Program } from "../models/program";
 import { Progress } from "../models/progress";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Storage } from "../models/storage";
-import { Screen, IScreen } from "../models/screen";
+import { Screen, IScreen, IScreenStack, IScreenParams } from "../models/screen";
 import { ILensRecordingPayload, lf } from "lens-shmens";
 import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors } from "../models/state";
 import { UidFactory } from "../utils/generator";
@@ -112,11 +113,11 @@ export async function getInitialState(
         ? Storage.validateAndReport(storage.progress, THistoryRecord, "progress").success
         : false;
 
-    const screenStack: IScreen[] = finalStorage.currentProgramId
-      ? ["main"]
+    const screenStack: IScreenStack = finalStorage.currentProgramId
+      ? [{ name: "main" }]
       : shouldSkipIntro
-      ? ["programs"]
-      : ["first"];
+      ? [{ name: "programs" }]
+      : [{ name: "first" }];
     return {
       storage: finalStorage,
       lastSyncedStorage: finalLastSyncedStorage,
@@ -163,9 +164,10 @@ export type ILogoutAction = {
   type: "Logout";
 };
 
-export type IPushScreen = {
+export type IPushScreen<T extends IScreen> = {
   type: "PushScreen";
-  screen: IScreen;
+  screen: T;
+  params?: IScreenParams<T>;
   shouldResetStack?: boolean;
 };
 
@@ -301,7 +303,7 @@ export type IAction =
   | IEditHistoryRecordAction
   | ICancelProgress
   | IDeleteProgress
-  | IPushScreen
+  | IPushScreen<any>
   | IPullScreen
   | IChangeDate
   | IConfirmDate
@@ -535,11 +537,21 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
   };
 }
 
-function pushScreen(screenStack: IScreen[], screen: IScreen, shouldResetStack?: boolean): IScreen[] {
+function pushScreen<T extends IScreen>(
+  screenStack: IScreenStack,
+  name: T,
+  params?: IScreenParams<T>,
+  shouldResetStack?: boolean
+): IScreenStack {
   if (screenStack.length > 0) {
-    const current = Screen.current(screenStack);
-    if (current !== screen) {
-      return shouldResetStack ? [screen] : Screen.push(screenStack, screen);
+    const current = Screen.currentName(screenStack);
+    if (current !== name) {
+      if (shouldResetStack) {
+        return [{ name } as Extract<IScreen, { name: string }>];
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return Screen.push(screenStack, name, params as any);
+      }
     }
   }
   return screenStack;
@@ -562,7 +574,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return {
         ...state,
         currentHistoryRecord: progress.id,
-        screenStack: pushScreen(state.screenStack, "progress", true),
+        screenStack: pushScreen(state.screenStack, "progress", undefined, true),
       };
     } else if (state.storage.currentProgramId != null) {
       const program = Program.getProgram(state, action.programId || state.storage.currentProgramId);
@@ -571,7 +583,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         return {
           ...state,
           currentHistoryRecord: 0,
-          screenStack: pushScreen(state.screenStack, "progress", true),
+          screenStack: pushScreen(state.screenStack, "progress", undefined, true),
           progress: { ...state.progress, 0: newProgress },
         };
       } else {
@@ -623,7 +635,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
             exerciseData: newSettingsExerciseData,
           },
         },
-        screenStack: Progress.isCurrent(progress) ? ["finishDay"] : Screen.pull(state.screenStack),
+        screenStack: Progress.isCurrent(progress) ? [{ name: "finishDay" }] : Screen.pull(state.screenStack),
         currentHistoryRecord: undefined,
         progress: Progress.stop(state.progress, progress.id),
       };
@@ -637,7 +649,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     return {
       ...state,
       currentHistoryRecord: undefined,
-      screenStack: pushScreen(state.screenStack, "main", true),
+      screenStack: pushScreen(state.screenStack, "main", undefined, true),
       progress: Progress.isCurrent(progress)
         ? state.progress
         : Progress.stop(state.progress, state.currentHistoryRecord!),
@@ -652,7 +664,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return {
         ...state,
         currentHistoryRecord: undefined,
-        screenStack: pushScreen(state.screenStack, "main", true),
+        screenStack: pushScreen(state.screenStack, "main", undefined, true),
         storage: { ...state.storage, deletedHistory: [...state.storage.deletedHistory, progress.startTime], history },
         progress: Progress.stop(state.progress, progress.id),
       };
@@ -660,7 +672,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return state;
     }
   } else if (action.type === "PushScreen") {
-    const newScreenStack = pushScreen(state.screenStack, action.screen, action.shouldResetStack);
+    const newScreenStack = pushScreen(state.screenStack, action.screen, action.params, action.shouldResetStack);
     return newScreenStack === state.screenStack ? state : { ...state, screenStack: newScreenStack };
   } else if (action.type === "PullScreen") {
     return { ...state, screenStack: Screen.pull(state.screenStack) };
@@ -733,7 +745,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       .modify((programs) => [...programs, newProgram]);
     newState = lf(newState).p("editProgram").set({ id: newProgram.id });
     newState = lf(newState).p("storage").p("currentProgramId").set(newProgram.id);
-    return lf(newState).p("screenStack").set(pushScreen(state.screenStack, "editProgram", true));
+    return lf(newState).p("screenStack").set(pushScreen(state.screenStack, "editProgram", undefined, true));
   } else if (action.type === "CreateDayAction") {
     const program = Program.getEditingProgram(state)!;
     const programIndex = Program.getEditingProgramIndex(state)!;

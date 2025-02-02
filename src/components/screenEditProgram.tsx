@@ -29,7 +29,7 @@ interface IProps {
 }
 
 export function ScreenEditProgram(props: IProps): JSX.Element {
-  const screen = Screen.current(props.navCommon.screenStack);
+  const screen = Screen.currentName(props.navCommon.screenStack);
   useEffect(() => {
     if (screen === "editProgram" && props.editProgram.planner != null && props.plannerState == null) {
       EditProgram.initializePlanner(props.dispatch, props.editProgram.id, props.editProgram.planner);

@@ -24,6 +24,7 @@ interface IProps {
   stats: IStats;
   settings: ISettings;
   subscription: ISubscription;
+  initialKey?: IStatsKey;
   dispatch: IDispatch;
 }
 
@@ -61,7 +62,7 @@ export function StatsList(props: IProps): JSX.Element {
     ...ObjectUtils.keys(props.stats.percentage).filter((k) => (props.stats.percentage[k] || []).length > 0),
     ...ObjectUtils.keys(props.stats.length).filter((k) => (props.stats.length[k] || []).length > 0),
   ];
-  const [selectedKey, setSelectedKey] = useState<IStatsKey>(statsKeys[0] || "weight");
+  const [selectedKey, setSelectedKey] = useState<IStatsKey>(props.initialKey || statsKeys[0] || "weight");
   const movingAverageWindowSize = props.settings.graphOptions[selectedKey]?.movingAverageWindowSize;
   const values = getValues(props.stats, selectedKey);
 

@@ -21,7 +21,7 @@ interface IFooterProps {
 export function Footer2View(props: IFooterProps): JSX.Element {
   const activeColor = Tailwind.colors().purplev2.main;
   const inactiveColor = Tailwind.colors().grayv2["800"];
-  const screen = Screen.current(props.navCommon.screenStack);
+  const screen = Screen.currentName(props.navCommon.screenStack);
   const [showNextWorkoutSheet, setShowNextWorkoutSheet] = useState(false);
   return (
     <>
