@@ -1554,6 +1554,34 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20250202": {
+    title: <span>Redesigning the navigation</span>,
+    body: (
+      <ul>
+        <li>
+          Changing the navigation quite drastically, to accomodate upcoming calendar. The following things changed:
+        </li>
+        <li>
+          <ul className="pl-4 list-disc">
+            <li>
+              Footer buttons got changed - now there's "Home" for the history, "Settings" is renamed to "Me", and{" "}
+              <strong>"Measurements" got moved into "Me"</strong>.
+            </li>
+            <li>
+              To start a new workout, tap the Dumbbell button in the footer.{" "}
+              <strong>No way to start a workout from the history screen anymore!</strong>
+            </li>
+            <li>If there's ongoing workout, tap the Dumbbell button again to get back to it.</li>
+            <li>
+              Each button in the footer resets the navigation stack. So if you go from Home to Program, there'd be no
+              "Back" button. This is to make the app navigation more similar to other apps (like Instagram, Facebook,
+              etc)
+            </li>
+          </ul>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
