@@ -13,9 +13,10 @@ test("Graphs", async ({ page }) => {
   await expect(page.getByTestId("modal-graphs")).toContainText("You haven't tracked any workouts or measurements yet.");
   await page.getByTestId("modal-close").and(page.locator(":visible")).click();
 
-  await page.getByTestId("navbar-back").click();
+  await page.getByTestId("footer-home").click();
 
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   // Complete workout
   await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Bent Over Row') [data-cy^=set-]"));

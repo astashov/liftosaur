@@ -23,12 +23,12 @@ export function BottomSheet(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (!props.isHidden) {
-      document.body.classList.add("stop-scrolling");
+      document.body.classList.add(`stop-scrolling-bottom-sheet`);
     } else {
-      document.body.classList.remove("stop-scrolling");
+      document.body.classList.remove("stop-scrolling-bottom-sheet");
     }
     return () => {
-      document.body.classList.remove("stop-scrolling");
+      document.body.classList.remove("stop-scrolling-bottom-sheet");
     };
   }, [props.isHidden]);
 
@@ -55,7 +55,7 @@ export function BottomSheet(props: IProps): JSX.Element {
   }, [props.isHidden]);
 
   return (
-    <div className={`fixed inset-0 z-30 ${props.isHidden ? "invisible " : "visible"}`}>
+    <div className={`fixed inset-0 z-30 ${props.isHidden ? "invisible " : "visible"}`} data-cy="bottom-sheet-container">
       <div
         data-name="overlay"
         className={`absolute inset-0 bg-grayv2-700 ${props.isHidden ? "opacity-0" : "opacity-50"}`}
@@ -63,7 +63,8 @@ export function BottomSheet(props: IProps): JSX.Element {
       ></div>
       <div
         ref={bottomSheetRef}
-        className={`absolute left-0 bottom-0 flex w-full bg-white`}
+        className="absolute bottom-0 left-0 flex w-full overflow-y-auto bg-white"
+        data-cy="bottom-sheet"
         style={{
           transition: "transform 0.2s ease-out, visibility 0.2s",
           transform: `translateY(${bottomShift}px)`,
@@ -80,7 +81,7 @@ export function BottomSheet(props: IProps): JSX.Element {
             <IconCloseCircleOutline size={28} />
           </button>
         )}
-        <div className="w-full safe-area-inset-bottom">
+        <div className="flex flex-col w-full safe-area-inset-bottom" style={{ maxHeight: "90vh" }}>
           <div className="flex items-center justify-center pt-2">
             <div className="w-8 rounded-sm bg-grayv3-400" style={{ height: "3px" }} />
           </div>

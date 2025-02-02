@@ -8,7 +8,8 @@ test("Empty Workout", async ({ page }) => {
   PlaywrightUtils.disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
 
-  await page.getByTestId("start-empty-workout").click();
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-empty-workout").click();
   await page.getByTestId("add-exercise-button").click();
   await page.getByTestId("exercise-filter-by-name").fill("Bench Press");
   await page.getByTestId("menu-item-bench-press-barbell").click();
@@ -37,32 +38,32 @@ test("Empty Workout", async ({ page }) => {
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 
-  await expect(page.getByTestId("history-record-program").nth(1)).toHaveText("Ad-Hoc Workout");
+  await expect(page.getByTestId("history-record-program").nth(0)).toHaveText("Ad-Hoc Workout");
   await expect(
     page
       .getByTestId("history-record")
-      .nth(1)
+      .nth(0)
       .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-weight]")
       .first()
   ).toHaveText("100lb");
   await expect(
     page
       .getByTestId("history-record")
-      .nth(1)
+      .nth(0)
       .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-sets-completed]")
       .first()
   ).toHaveText("2 × 7 × 100lb");
   await expect(
     page
       .getByTestId("history-record")
-      .nth(1)
+      .nth(0)
       .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-weight]")
       .first()
   ).toHaveText("150lb");
   await expect(
     page
       .getByTestId("history-record")
-      .nth(1)
+      .nth(0)
       .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-sets-completed]")
       .first()
   ).toHaveText("5 × 150lb");

@@ -8,7 +8,8 @@ test("Clones a program and goes through first day", async ({ page }) => {
   PlaywrightUtils.disableSubscriptions(page);
 
   await page.getByTestId("clone-program").click();
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   // Testing set clicks
   const firstset = page.locator("[data-cy^=exercise-]:has-text('Bent Over Row') [data-cy^=set-]").first();

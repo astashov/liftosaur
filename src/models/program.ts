@@ -1219,7 +1219,7 @@ export namespace Program {
       lb<IState>().p("editProgram").record({ id }),
       lb<IState>().p("editProgramV2").record(plannerState),
     ]);
-    dispatch(Thunk.pushScreen("editProgram", true));
+    dispatch(Thunk.pushScreen("editProgram", undefined, true));
   }
 
   export function isEligibleForSimpleExercise(programExercise: IProgramExercise): IEither<true, string[]> {

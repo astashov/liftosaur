@@ -23,7 +23,8 @@ test("updates reps in a workout", async ({ page }) => {
 
   await page.getByTestId("editor-save-v2-top").click();
   await page.getByTestId("menu-item-my-program").click();
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   await page.getByTestId("workout-set").nth(0).getByTestId("set-amrap-nonstarted").click();
   await page.getByTestId("modal-amrap-input").clear();

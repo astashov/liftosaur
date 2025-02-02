@@ -34,7 +34,7 @@ test("User Prompted State Vars", async ({ page }) => {
   await page.getByTestId("menu-item-squat").click();
 
   await page.getByTestId("footer-workout").click();
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
 
@@ -64,7 +64,8 @@ test("User Prompted State Vars", async ({ page }) => {
   await page.getByRole("button", { name: "Finish the workout" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
 
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   await expect(
     page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]").nth(1).getByTestId("weight-value")

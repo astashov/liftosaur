@@ -45,7 +45,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               screen={screen}
               icon={(isActive) => <IconHome className="inline-block" size={20} isSelected={isActive} />}
               text="Home"
-              onClick={() => props.dispatch(Thunk.pushScreen("main", true))}
+              onClick={() => props.dispatch(Thunk.pushScreen("main", undefined, true))}
             />
             <FooterButton
               name="program"
@@ -65,7 +65,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                 style={{ top: "-27px", left: "50%", marginLeft: "-27px" }}
                 onClick={() => {
                   if (!!props.navCommon.progress) {
-                    props.dispatch(Thunk.pushScreen("progress", true));
+                    props.dispatch(Thunk.pushScreen("progress", undefined, true));
                   } else {
                     setShowNextWorkoutSheet(true);
                   }
@@ -87,20 +87,21 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               screen={screen}
               icon={(isActive) => <IconGraphs color={isActive ? activeColor : inactiveColor} />}
               text="Graphs"
-              onClick={() => props.dispatch(Thunk.pushScreen("graphs", true))}
+              onClick={() => props.dispatch(Thunk.pushScreen("graphs", undefined, true))}
             />
             <FooterButton
               name="me"
               screen={screen}
               icon={(isActive) => <IconMe isSelected={isActive} />}
               text="Me"
-              onClick={() => props.dispatch(Thunk.pushScreen("settings", true))}
+              onClick={() => props.dispatch(Thunk.pushScreen("settings", undefined, true))}
             />
           </div>
         </div>
       </div>
       <BottomSheetNextWorkout
         dispatch={props.dispatch}
+        allPrograms={props.navCommon.allPrograms}
         currentProgram={props.navCommon.currentProgram}
         settings={props.navCommon.settings}
         isHidden={!showNextWorkoutSheet}

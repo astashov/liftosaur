@@ -9,33 +9,33 @@ import { IStatsKey } from "../types";
 export type ITab = "home" | "program" | "workout" | "graphs" | "me";
 
 export type IScreenData =
-  | { name: "first"; params?: {} }
-  | { name: "onboarding"; params?: {} }
-  | { name: "main"; params?: {} }
-  | { name: "settings"; params?: {} }
-  | { name: "account"; params?: {} }
-  | { name: "timers"; params?: {} }
-  | { name: "plates"; params?: {} }
-  | { name: "gyms"; params?: {} }
-  | { name: "programs"; params?: {} }
-  | { name: "progress"; params?: {} }
-  | { name: "graphs"; params?: {} }
-  | { name: "finishDay"; params?: {} }
-  | { name: "muscles"; params?: {} }
-  | { name: "stats"; params?: {} }
-  | { name: "units"; params?: {} }
-  | { name: "appleHealth"; params?: {} }
-  | { name: "googleHealth"; params?: {} }
-  | { name: "editProgram"; params?: {} }
-  | { name: "editProgramExercise"; params?: {} }
-  | { name: "editProgramDay"; params?: {} }
-  | { name: "editProgramDayScript"; params?: {} }
-  | { name: "editProgramWeek"; params?: {} }
+  | { name: "first"; params?: Record<string, never> }
+  | { name: "onboarding"; params?: Record<string, never> }
+  | { name: "main"; params?: Record<string, never> }
+  | { name: "settings"; params?: Record<string, never> }
+  | { name: "account"; params?: Record<string, never> }
+  | { name: "timers"; params?: Record<string, never> }
+  | { name: "plates"; params?: Record<string, never> }
+  | { name: "gyms"; params?: Record<string, never> }
+  | { name: "programs"; params?: Record<string, never> }
+  | { name: "progress"; params?: Record<string, never> }
+  | { name: "graphs"; params?: Record<string, never> }
+  | { name: "finishDay"; params?: Record<string, never> }
+  | { name: "muscles"; params?: Record<string, never> }
+  | { name: "stats"; params?: Record<string, never> }
+  | { name: "units"; params?: Record<string, never> }
+  | { name: "appleHealth"; params?: Record<string, never> }
+  | { name: "googleHealth"; params?: Record<string, never> }
+  | { name: "editProgram"; params?: Record<string, never> }
+  | { name: "editProgramExercise"; params?: Record<string, never> }
+  | { name: "editProgramDay"; params?: Record<string, never> }
+  | { name: "editProgramDayScript"; params?: Record<string, never> }
+  | { name: "editProgramWeek"; params?: Record<string, never> }
   | { name: "measurements"; params?: { key: IStatsKey } }
-  | { name: "subscription"; params?: {} }
-  | { name: "exerciseStats"; params?: {} }
-  | { name: "exercises"; params?: {} }
-  | { name: "programPreview"; params?: {} };
+  | { name: "subscription"; params?: Record<string, never> }
+  | { name: "exerciseStats"; params?: Record<string, never> }
+  | { name: "exercises"; params?: Record<string, never> }
+  | { name: "programPreview"; params?: Record<string, never> };
 
 export type IScreen = IScreenData["name"];
 export type IScreenStack = IScreenData[];
