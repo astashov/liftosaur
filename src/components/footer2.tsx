@@ -30,8 +30,8 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         style={{ marginBottom: "-2px" }}
       >
         <div
-          className="absolute flex items-end"
-          style={{ width: "4000px", marginLeft: "-2000px", left: "50%", height: "83px", bottom: "-11px" }}
+          className="box-content absolute flex items-end safe-area-inset-bottom"
+          style={{ width: "4000px", marginLeft: "-2000px", left: "50%", height: "148px", bottom: "-76px" }}
         >
           <Shape />
         </div>
@@ -130,10 +130,10 @@ function CreateButton(props: { isActive: boolean }): JSX.Element {
 
 function Shape(): JSX.Element {
   return (
-    <svg width="4000" height="83" viewBox="0 0 4000 83" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="4000" height="148" viewBox="0 0 4000 148" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g filter="url(#filter0_d_1724_917)">
         <path
-          d="M1999.5 48.7455C2016.62 48.7455 2030.5 34.8664 2030.5 17.7455C2030.5 15.3048 2030.22 12.93 2029.69 10.6519C2029.02 7.80811 2030.99 4.74554 2033.91 4.74554H3995.99C3998.19 4.74554 3999.99 6.53641 3999.99 8.74554V74.7455C3999.99 76.9547 3998.19 78.7455 3995.99 78.7455H4.03124C1.8221 78.7455 0.03125 76.9547 0.03125 74.7455V8.74555C0.03125 6.53641 1.82211 4.74554 4.03125 4.74554L1931.89 4.74554H1965.09C1968.01 4.74554 1969.98 7.80811 1969.32 10.6519C1968.78 12.93 1968.5 15.3048 1968.5 17.7455C1968.5 34.8664 1982.38 48.7455 1999.5 48.7455Z"
+          d="M1999.5 48.7455C2016.62 48.7455 2030.5 34.8664 2030.5 17.7455C2030.5 15.3048 2030.22 12.93 2029.69 10.6519C2029.02 7.80811 2030.99 4.74554 2033.91 4.74554H3995.99C3998.19 4.74554 3999.99 6.53641 3999.99 8.74554V139.955C3999.99 142.164 3998.19 143.955 3995.99 143.955H4.03124C1.8221 143.955 0.03125 142.164 0.03125 139.955V8.74555C0.03125 6.53641 1.82211 4.74554 4.03125 4.74554L1931.89 4.74554H1965.09C1968.01 4.74554 1969.98 7.80811 1969.32 10.6519C1968.78 12.93 1968.5 15.3048 1968.5 17.7455C1968.5 34.8664 1982.38 48.7455 1999.5 48.7455Z"
           fill="white"
         />
       </g>
@@ -143,7 +143,7 @@ function Shape(): JSX.Element {
           x="-3.96875"
           y="0.745544"
           width="4007.95"
-          height="82"
+          height="147.21"
           filterUnits="userSpaceOnUse"
           color-interpolation-filters="sRGB"
         >
