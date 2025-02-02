@@ -78,7 +78,7 @@ I deploy everything via AWS CDK, the setup is described in [this blog post](lift
 
 # How to run locally
 
-If you want to run liftosaur locally firstly ensure that you have Node 16 and yarn installed
+If you want to run liftosaur locally firstly ensure that you have Node 18 and npm installed
 
 Then comment out the 
 ```
@@ -88,8 +88,8 @@ block from the `webpack.config.js` file
 
 Run
 ```
-$ yarn install
-$ yarn start
+$ npm install
+$ npm start
 ```
 
 Then, open http://localhost:8080/app. That's it! But that will only give you offline-like experience, so there will be no local API server running.
@@ -111,7 +111,7 @@ Running the server is a bit trickier, and frankly still tied to `liftosaur.com` 
 
 Create new secrets in AWS Secrets Manager, with the names listed in `secretArns` variable in `liftosaur-cdk.ts`. Those could be pretty much any random strings.
 
-Then, run `yarn cdk-deploy`, that should create 2 environments - one for prod, one for dev. Again, there could be some things you want to change in `lifosaur-cdk.ts` to make it work. After that, run `yarn start:server`, and it will start a local server.
+Then, run `npm cdk-deploy`, that should create 2 environments - one for prod, one for dev. Again, there could be some things you want to change in `lifosaur-cdk.ts` to make it work. After that, run `npm start:server`, and it will start a local server.
 
 # Contributing
 
