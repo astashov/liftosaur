@@ -520,10 +520,21 @@ export namespace History {
     return undefined;
   }
 
-  export function calories(historyRecord: IHistoryRecord): number {
+  export function calories(historyRecord: IHistoryRecord, currentWeight?: IWeight): number {
     const timeMs = workoutTime(historyRecord);
     const minutes = Math.floor(timeMs / 60000);
-    return minutes * 6;
+
+    // Metabolic Equivalent of Task (MET) value of moderate weight training is 5
+    // https://www.healthline.com/health/what-are-mets#calorie-connection
+    const MET = 5;
+    const weightKg = currentWeight ? Weight.convertTo(currentWeight, "kg").value : undefined;
+
+    // Formula for calculating calories burned from MET
+    // https://blog.nasm.org/metabolic-equivalents-for-weight-loss#:~:text=How%20To%20Calculate%20METS
+    const estimatedCaloriesFromMET = weightKg ? minutes * ((MET * 3.5 * weightKg) / 200) : undefined;
+
+    // If we don't have the user's weight, we'll just use a default multiplier
+    return estimatedCaloriesFromMET ? Math.floor(estimatedCaloriesFromMET) : minutes * 6;
   }
 
   export function getHistoricalAmrapSets(
