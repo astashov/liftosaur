@@ -500,6 +500,7 @@ export function AppView(props: IProps): JSX.Element | null {
       <ScreenFinishDay
         navCommon={navCommon}
         settings={state.storage.settings}
+        stats={state.storage.stats}
         dispatch={dispatch}
         history={state.storage.history}
         userId={state.user?.id}

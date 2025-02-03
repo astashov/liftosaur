@@ -8,7 +8,7 @@ import { Weight } from "../models/weight";
 import { Exercise } from "../models/exercise";
 import { useState } from "preact/hooks";
 import { Confetti } from "./confetti";
-import { IHistoryRecord, IScreenMuscle, ISet, ISettings } from "../types";
+import { IHistoryRecord, IScreenMuscle, ISet, ISettings, IStats, IWeight } from "../types";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { INavCommon } from "../models/state";
@@ -34,10 +34,12 @@ import { ClipboardUtils } from "../utils/clipboard";
 import { InternalLink } from "../internalLink";
 import { LinkButton } from "./linkButton";
 import { IconTiktok } from "./icons/iconTiktok";
+import { Stats } from "../models/stats";
 
 interface IProps {
   history: IHistoryRecord[];
   settings: ISettings;
+  stats: IStats;
   userId?: string;
   dispatch: IDispatch;
   navCommon: INavCommon;
@@ -45,6 +47,8 @@ interface IProps {
 
 export function ScreenFinishDay(props: IProps): JSX.Element {
   const record = props.history[0];
+
+  const currentBodyweight: IWeight | undefined = Stats.getCurrentBodyweight(props.stats);
 
   const allPrs = History.getPersonalRecords(props.history);
   const recordPrs = allPrs[record.id] || {};
@@ -190,7 +194,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                     (HealthSync.eligibleForGoogleHealth() && syncToGoogleHealth)
                       ? "true"
                       : "false",
-                  calories: `${History.calories(record)}`,
+                  calories: `${History.calories(record, currentBodyweight)}`,
                   intervals: JSON.stringify(record.intervals),
                 });
                 ScreenActions.setScreen(props.dispatch, "main");
