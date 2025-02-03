@@ -12,6 +12,7 @@ import { IconDoc2 } from "./icons/iconDoc2";
 import { BottomSheetNextWorkout } from "./bottomSheetNextWorkout";
 import { INavCommon } from "../models/state";
 import { IconBarbell2 } from "./icons/iconBarbell2";
+import { ObjectUtils } from "../utils/object";
 
 interface IFooterProps {
   dispatch: IDispatch;
@@ -24,6 +25,9 @@ export function Footer2View(props: IFooterProps): JSX.Element {
   const screen = Screen.currentName(props.navCommon.screenStack);
   const [showNextWorkoutSheet, setShowNextWorkoutSheet] = useState(false);
   const onClose = useCallback(() => setShowNextWorkoutSheet(false), []);
+  const isUserLoading = ObjectUtils.values(props.navCommon.loading.items).some(
+    (i) => i?.type === "fetchStorage" && !i.endTime
+  );
   return (
     <>
       <div
@@ -31,11 +35,16 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         style={{ marginBottom: "-2px" }}
       >
         <div
-          className="box-content absolute flex items-end safe-area-inset-bottom"
-          style={{ width: "4000px", marginLeft: "-2000px", left: "50%", height: "148px", bottom: "-76px" }}
-        >
-          <Shape />
-        </div>
+          className="box-content absolute flex items-end bg-white safe-area-inset-bottom"
+          style={{
+            width: "4000px",
+            marginLeft: "-2000px",
+            left: "50%",
+            height: "141px",
+            bottom: "-76px",
+            boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)",
+          }}
+        />
         <div
           className="box-content relative z-10 flex px-2 pt-4 pointer-events-auto safe-area-inset-bottom"
           style={{ minHeight: "54px" }}
@@ -93,7 +102,16 @@ export function Footer2View(props: IFooterProps): JSX.Element {
             <FooterButton
               name="me"
               screen={screen}
-              icon={(isActive) => <IconMe isSelected={isActive} />}
+              icon={(isActive) => {
+                const color = isActive
+                  ? undefined
+                  : props.navCommon.userId
+                  ? Tailwind.colors().greenv3[600]
+                  : isUserLoading
+                  ? Tailwind.colors().grayv3.main
+                  : Tailwind.colors().redv3[600];
+                return <IconMe isSelected={isActive} color={color} />;
+              }}
               text="Me"
               onClick={() => props.dispatch(Thunk.pushScreen("settings", undefined, true))}
             />
@@ -126,42 +144,5 @@ function CreateButton(props: { isActive: boolean }): JSX.Element {
     >
       <IconBarbell2 isSelected={props.isActive} />
     </div>
-  );
-}
-
-function Shape(): JSX.Element {
-  return (
-    <svg width="4000" height="148" viewBox="0 0 4000 148" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g filter="url(#filter0_d_1724_917)">
-        <path
-          d="M1999.5 48.7455C2016.62 48.7455 2030.5 34.8664 2030.5 17.7455C2030.5 15.3048 2030.22 12.93 2029.69 10.6519C2029.02 7.80811 2030.99 4.74554 2033.91 4.74554H3995.99C3998.19 4.74554 3999.99 6.53641 3999.99 8.74554V139.955C3999.99 142.164 3998.19 143.955 3995.99 143.955H4.03124C1.8221 143.955 0.03125 142.164 0.03125 139.955V8.74555C0.03125 6.53641 1.82211 4.74554 4.03125 4.74554L1931.89 4.74554H1965.09C1968.01 4.74554 1969.98 7.80811 1969.32 10.6519C1968.78 12.93 1968.5 15.3048 1968.5 17.7455C1968.5 34.8664 1982.38 48.7455 1999.5 48.7455Z"
-          fill="white"
-        />
-      </g>
-      <defs>
-        <filter
-          id="filter0_d_1724_917"
-          x="-3.96875"
-          y="0.745544"
-          width="4007.95"
-          height="147.21"
-          filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
-        >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
-          <feColorMatrix
-            in="SourceAlpha"
-            type="matrix"
-            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-            result="hardAlpha"
-          />
-          <feOffset />
-          <feGaussianBlur stdDeviation="2" />
-          <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0" />
-          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1724_917" />
-          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1724_917" result="shape" />
-        </filter>
-      </defs>
-    </svg>
   );
 }

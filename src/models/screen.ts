@@ -11,7 +11,7 @@ export type ITab = "home" | "program" | "workout" | "graphs" | "me";
 export type IScreenData =
   | { name: "first"; params?: Record<string, never> }
   | { name: "onboarding"; params?: Record<string, never> }
-  | { name: "main"; params?: Record<string, never> }
+  | { name: "main"; params?: { week?: number } }
   | { name: "settings"; params?: Record<string, never> }
   | { name: "account"; params?: Record<string, never> }
   | { name: "timers"; params?: Record<string, never> }

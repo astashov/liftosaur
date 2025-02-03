@@ -54,7 +54,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await expect(page.getByTestId("bottom-sheet").getByTestId("history-entry-exercise-name").nth(0)).toHaveText(
     "Blah One"
   );
-  await page.getByTestId("bottom-sheet-close").click();
+  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
   await page.waitForTimeout(200);
 
   await page.getByTestId("footer-program").click({ force: true });
@@ -86,7 +86,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await expect(page.getByTestId("bottom-sheet").getByTestId("history-entry-exercise-name").nth(0)).toHaveText(
     "My Exercise 3"
   );
-  await page.getByTestId("bottom-sheet-close").click();
+  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
   await page.waitForTimeout(200);
 
   await page.getByTestId("footer-program").click({ force: true });

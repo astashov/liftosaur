@@ -26,6 +26,7 @@ import { ObjectUtils } from "../utils/object";
 import { IDispatch } from "../ducks/types";
 import { SendMessage } from "../utils/sendMessage";
 import memoize from "micro-memoize";
+import { DateUtils } from "../utils/date";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -343,6 +344,48 @@ export namespace History {
       }
     }
     return maxSets;
+  }
+
+  export const getDateToHistory = memoize(
+    (history: IHistoryRecord[]): Partial<Record<string, IHistoryRecord>> => {
+      return history.reduce<Partial<Record<string, IHistoryRecord>>>((memo, hr) => {
+        memo[DateUtils.formatYYYYMMDD(hr.date)] = hr;
+        return memo;
+      }, {});
+    },
+    { maxSize: 10 }
+  );
+
+  export function getHistoryRecordsForTimerange(
+    history: IHistoryRecord[],
+    date: Date,
+    type: "month" | "week" | "day"
+  ): IHistoryRecord[] {
+    // For given date, get the start and end of the timerange, and return history records that fall within that range
+    const start = new Date(date);
+    const end = new Date(date);
+    if (type === "month") {
+      start.setDate(1);
+      end.setMonth(end.getMonth() + 1);
+      end.setDate(0);
+    } else if (type === "week") {
+      start.setDate(start.getDate() - start.getDay());
+      end.setDate(start.getDate() + 7);
+    } else if (type === "day") {
+      start.setHours(0, 0, 0, 0);
+    }
+    end.setHours(23, 59, 59, 999);
+    return history.filter((hr) => {
+      const recordDate = Date.parse(hr.date);
+      const startTime = new Date(recordDate);
+      return startTime >= start && startTime < end;
+    });
+  }
+
+  export function getNumberOfPersonalRecords(history: IHistoryRecord[], prs: IPersonalRecords): number {
+    return history.reduce((memo, r) => {
+      return memo + ObjectUtils.keys(prs[r.id] || {})?.length;
+    }, 0);
   }
 
   export const getPersonalRecords = memoize(

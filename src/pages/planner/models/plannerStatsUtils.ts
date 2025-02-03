@@ -1,10 +1,11 @@
 import { Exercise, IExercise } from "../../../models/exercise";
 import { IPlannerProgramExercise, IPlannerProgramExerciseRepRange, ISetResults, ISetSplit } from "./types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
-import { IAllCustomExercises, IScreenMuscle } from "../../../types";
+import { IAllCustomExercises, IScreenMuscle, IUnit } from "../../../types";
 import { PlannerProgramExercise } from "./plannerProgramExercise";
+import { Weight } from "../../../models/weight";
 
-type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup">;
+type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup" | "volume">;
 
 export class PlannerStatsUtils {
   public static dayApproxTimeMs(exercises: IPlannerProgramExercise[], restTimer: number): number {
@@ -33,9 +34,11 @@ export class PlannerStatsUtils {
   public static calculateSetResults(
     evaluatedDays: IPlannerEvalResult[],
     customExercises: IAllCustomExercises,
-    synergistMultiplier: number
+    synergistMultiplier: number,
+    unit: IUnit
   ): ISetResults {
     const results: ISetResults = {
+      volume: Weight.build(0, unit),
       total: 0,
       strength: 0,
       hypertrophy: 0,

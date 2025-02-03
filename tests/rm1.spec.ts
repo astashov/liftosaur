@@ -44,7 +44,7 @@ test("rm1", async ({ page }) => {
   await expect(
     page.getByTestId("bottom-sheet").getByTestId("history-entry-exercise").nth(0).getByTestId("history-entry-weight")
   ).toHaveText("140lb");
-  await page.getByTestId("bottom-sheet-close").click();
+  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
   await page.getByTestId("history-record").nth(0).click();
   await page.getByTestId("exercise-state-vars-toggle").click();

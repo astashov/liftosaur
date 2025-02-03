@@ -54,6 +54,6 @@ Squat / 1x5 115lb / warmup: none`
     await expect(
       page.getByTestId("bottom-sheet").getByTestId("history-record").first().getByTestId("history-entry-weight").first()
     ).toHaveText(`${weight}lb`);
-    await page.getByTestId("bottom-sheet-close").click();
+    await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
   }
 });
