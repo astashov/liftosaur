@@ -23,7 +23,8 @@ export function PlannerDayStats(props: IPlannerDayStatsProps): JSX.Element {
   const setResults = PlannerStatsUtils.calculateSetResults(
     [evaluatedDay],
     settings.exercises,
-    settings.planner.synergistMultiplier
+    settings.planner.synergistMultiplier,
+    settings.units
   );
 
   return (

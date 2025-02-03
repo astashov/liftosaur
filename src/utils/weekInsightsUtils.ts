@@ -1,16 +1,19 @@
 import { Exercise, IExercise } from "../models/exercise";
+import { Weight } from "../models/weight";
 import { ISetResults, ISetSplit } from "../pages/planner/models/types";
-import { IAllCustomExercises, IHistoryRecord, IScreenMuscle } from "../types";
+import { IAllCustomExercises, IHistoryRecord, IScreenMuscle, IUnit } from "../types";
 
-type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup">;
+type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup" | "volume">;
 
 export class WeekInsightsUtils {
   public static calculateSetResults(
     historyRecords: IHistoryRecord[],
     customExercises: IAllCustomExercises,
-    synergistMultiplier: number
+    synergistMultiplier: number,
+    unit: IUnit
   ): ISetResults {
     const results: ISetResults = {
+      volume: Weight.build(0, unit),
       total: 0,
       strength: 0,
       hypertrophy: 0,
@@ -43,9 +46,10 @@ export class WeekInsightsUtils {
           continue;
         }
         for (const set of entry.sets) {
-          results.total += 1;
-          const completedReps = set.reps;
+          const completedReps = set.completedReps || 0;
           if (completedReps > 0) {
+            results.volume = Weight.add(results.volume, Weight.multiply(set.weight, set.completedReps || 0));
+            results.total += 1;
             if (completedReps < 8) {
               results.strength += 1;
             } else {

@@ -23,7 +23,6 @@ interface IProps {
   prs?: IPersonalRecords;
   settings: ISettings;
   dispatch: IDispatch;
-  userId?: string;
 }
 
 export const HistoryRecordView = memo((props: IProps): JSX.Element => {
@@ -45,7 +44,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
             ? props.isOngoing
               ? "bg-yellowv3-50 border border-yellowv3-300 nm-continue-workout"
               : "bg-purplev3-50 border border-purplev3-200 nm-start-workout"
-            : "bg-grayv2-50 nm-edit-workout"
+            : "bg-purplev3-50 border border-purplev3-200 nm-edit-workout"
         }`}
         style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
         onClick={(event) => {

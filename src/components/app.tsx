@@ -44,9 +44,6 @@ import { AsyncQueue } from "../utils/asyncQueue";
 import { useLoopCatcher } from "../utils/useLoopCatcher";
 import { Equipment } from "../models/equipment";
 import { ScreenGyms } from "./screenGyms";
-import PullToRefresh from "pulltorefreshjs";
-import { renderToString } from "preact-render-to-string";
-import { IconSpinner } from "./icons/iconSpinner";
 import { ScreenExercises } from "./screenExercises";
 import { ScreenAppleHealthSettings } from "./screenAppleHealthSettings";
 import { ScreenGoogleHealthSettings } from "./screenGoogleHealthSettings";
@@ -96,29 +93,6 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       dispatch(Thunk.sync2({ force: true }));
     }
-    const ptr = PullToRefresh.init({
-      mainElement: "body",
-      iconRefreshing: renderToString(<IconSpinner width={12} height={12} />),
-      shouldPullToRefresh: () => {
-        return (
-          !window.scrollY &&
-          Screen.enablePtr(stateRef.current.screenStack) &&
-          !document.body.classList.contains("stop-scrolling")
-        );
-      },
-      onRefresh: () => {
-        return new Promise((resolve) => {
-          dispatch(
-            Thunk.sync2({
-              force: true,
-              cb: () => {
-                dispatch(Thunk.syncHealthKit(() => resolve()));
-              },
-            })
-          );
-        });
-      },
-    });
     window.addEventListener("click", (e) => {
       let button: HTMLElement | undefined;
       let el: HTMLElement | undefined = e.target as HTMLElement;
@@ -257,11 +231,14 @@ export function AppView(props: IProps): JSX.Element | null {
     }
 
     return () => {
-      ptr.destroy();
       window.removeEventListener("error", onerror);
       window.removeEventListener("unhandledrejection", onunhandledexception);
     };
   }, []);
+
+  useEffect(() => {
+    document.body.setAttribute("data-screen", Screen.currentName(state.screenStack));
+  }, [state.screenStack]);
 
   const currentProgram =
     state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
@@ -273,6 +250,7 @@ export function AppView(props: IProps): JSX.Element | null {
     allPrograms: state.storage.programs,
     settings: state.storage.settings,
     progress: state.progress[0],
+    userId: state.user?.id,
   };
 
   let content: JSX.Element;
@@ -311,12 +289,7 @@ export function AppView(props: IProps): JSX.Element | null {
       content = (
         <ProgramHistoryView
           navCommon={navCommon}
-          editProgramId={state.progress[0]?.programId}
-          allPrograms={state.storage.programs}
           program={currentProgram}
-          progress={state.progress?.[0]}
-          userId={state.user?.id}
-          stats={state.storage.stats}
           settings={state.storage.settings}
           history={state.storage.history}
           subscription={state.storage.subscription}

@@ -1,5 +1,5 @@
 import { IThunk, IDispatch } from "./types";
-import { IScreen, IScreenParams } from "../models/screen";
+import { IScreen, IScreenParams, IScreenStack } from "../models/screen";
 import RB from "rollbar";
 import { IGetStorageResponse, IPostSyncResponse, Service } from "../api/service";
 import { lb } from "lens-shmens";
@@ -399,6 +399,20 @@ export namespace Thunk {
       }
       dispatch({ type: "PushScreen", screen, params, shouldResetStack });
       window.scroll(0, 0);
+    };
+  }
+
+  export function updateScreenParams<T extends IScreen>(params?: IScreenParams<T>): IThunk {
+    return async (dispatch, getState) => {
+      updateState(dispatch, [
+        lb<IState>()
+          .p("screenStack")
+          .recordModify((stack) => {
+            const topStack = stack[stack.length - 1];
+            const newTopStack = { ...topStack, params };
+            return [...stack.slice(0, stack.length - 1), newTopStack] as IScreenStack;
+          }),
+      ]);
     };
   }
 

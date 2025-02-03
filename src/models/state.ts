@@ -32,6 +32,7 @@ export interface INotification {
 
 export interface INavCommon {
   loading: ILoading;
+  userId?: string;
   screenStack: IScreenStack;
   currentProgram?: IProgram;
   allPrograms: IProgram[];

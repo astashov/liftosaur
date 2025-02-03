@@ -175,4 +175,21 @@ export namespace DateUtils {
     const d = new Date(date);
     return [d.getUTCFullYear(), d.getUTCMonth()];
   }
+
+  export function formatRange(start: Date | string | number, end: Date | string | number): string {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    if (startDate.getFullYear() !== endDate.getFullYear()) {
+      return `${format(startDate, true)} - ${format(endDate, true)}`;
+    } else {
+      if (startDate.getMonth() !== endDate.getMonth()) {
+        const formattedStart = startDate.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        const formattedEnd = endDate.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        return `${formattedStart} - ${formattedEnd}, ${startDate.getFullYear()}`;
+      } else {
+        const month = startDate.toLocaleDateString(undefined, { month: "short" });
+        return `${month} ${startDate.getDate()}-${endDate.getDate()}, ${startDate.getFullYear()}`;
+      }
+    }
+  }
 }

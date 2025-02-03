@@ -181,6 +181,7 @@ export interface IPlannerMainSettings {
 export type IMuscleGroupSetSplit = { [key in IScreenMuscle]: ISetSplit };
 
 export interface ISetResults {
+  volume: IWeight;
   total: number;
   strength: number;
   hypertrophy: number;

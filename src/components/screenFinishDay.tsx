@@ -1,14 +1,13 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { History, IHistoryEntryPersonalRecords } from "../models/history";
+import { History } from "../models/history";
 import { Button } from "./button";
 import { ScreenActions } from "../actions/screenActions";
 import { StringUtils } from "../utils/string";
 import { Weight } from "../models/weight";
-import { Exercise } from "../models/exercise";
 import { useState } from "preact/hooks";
 import { Confetti } from "./confetti";
-import { IHistoryRecord, IScreenMuscle, ISet, ISettings } from "../types";
+import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { INavCommon } from "../models/state";
@@ -34,6 +33,7 @@ import { ClipboardUtils } from "../utils/clipboard";
 import { InternalLink } from "../internalLink";
 import { LinkButton } from "./linkButton";
 import { IconTiktok } from "./icons/iconTiktok";
+import { PersonalRecords } from "./personalRecords";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -47,7 +47,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const record = props.history[0];
 
   const allPrs = History.getPersonalRecords(props.history);
-  const recordPrs = allPrs[record.id] || {};
   const totalWeight = History.totalRecordWeight(record, props.settings.units);
 
   const startedEntries = History.getStartedEntries(record);
@@ -141,7 +140,9 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           </div>
         </div>
 
-        <PersonalRecords recordPrs={recordPrs} settings={props.settings} />
+        <section className="px-4 py-4 mt-4">
+          <PersonalRecords prs={allPrs} historyRecords={[record]} settings={props.settings} />
+        </section>
 
         {(SendMessage.isIos() && SendMessage.iosAppVersion() >= 11) ||
         (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 20) ? (
@@ -205,129 +206,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
       </section>
       <Confetti />
     </Surface>
-  );
-}
-
-interface IPersonalRecords {
-  recordPrs: Partial<Record<string, IHistoryEntryPersonalRecords>>;
-  settings: ISettings;
-}
-
-interface IPersonalRecordItems {
-  maxWeight: {
-    exerciseKey: string;
-    set: ISet;
-    prev?: ISet;
-  }[];
-  max1RM: {
-    exerciseKey: string;
-    set: ISet;
-    prev?: ISet;
-  }[];
-}
-
-function PersonalRecords(props: IPersonalRecords): JSX.Element {
-  if (ObjectUtils.keys(props.recordPrs).length === 0) {
-    return (
-      <section className="px-4 pt-8 pb-4 text-center">
-        <div>No new personal records this time</div>
-      </section>
-    );
-  }
-
-  const items = ObjectUtils.keys(props.recordPrs).reduce<IPersonalRecordItems>(
-    (memo, key) => {
-      const maxWeight = props.recordPrs[key]?.maxWeightSet;
-      if (maxWeight) {
-        memo.maxWeight.push({ exerciseKey: key, set: maxWeight, prev: props.recordPrs[key]?.prevMaxWeightSet });
-      }
-      const max1RM = props.recordPrs[key]?.max1RMSet;
-      if (max1RM) {
-        memo.max1RM.push({ exerciseKey: key, set: max1RM, prev: props.recordPrs[key]?.prevMax1RMSet });
-      }
-      return memo;
-    },
-    { maxWeight: [], max1RM: [] }
-  );
-
-  return (
-    <section className="px-4 py-4 mt-4">
-      <h3
-        className="pb-1 font-bold text-yellow-600"
-        dangerouslySetInnerHTML={{ __html: "&#x1F3C6 New Personal Records" }}
-      />
-      {items.maxWeight.length > 0 && (
-        <>
-          <h4 className="text-xs text-grayv2-main">Max Weight</h4>
-          <ul className="pb-2">
-            {items.maxWeight.map((item) => {
-              const exerciseType = Exercise.fromKey(item.exerciseKey);
-              const exercise = Exercise.get(exerciseType, props.settings.exercises);
-              return (
-                <li>
-                  <div>
-                    <strong>{exercise.name}</strong>:{" "}
-                    <span className="whitespace-nowrap">
-                      <strong className="text-greenv2-main">{Weight.display(item.set.weight)}</strong>,{" "}
-                      {item.set.completedReps || 0} {StringUtils.pluralize("rep", item.set.completedReps || 0)}
-                    </span>
-                  </div>
-                  {item.prev != null && (
-                    <div className="text-xs italic text-gray-700">
-                      (was {item.prev.completedReps || 0} × {Weight.display(item.prev.weight)})
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </>
-      )}
-      {items.max1RM.length > 0 && (
-        <>
-          <h4 className="text-xs text-grayv2-main">Max Estimated One Rep Max</h4>
-          <ul className="pb-2">
-            {items.max1RM.map((item) => {
-              const exerciseType = Exercise.fromKey(item.exerciseKey);
-              const exercise = Exercise.get(exerciseType, props.settings.exercises);
-              const estimated1RM = Weight.getOneRepMax(
-                item.set.weight,
-                item.set.completedReps || 0,
-                item.set.completedRpe ?? item.set.rpe
-              );
-              const previous1RM = item.prev
-                ? Weight.getOneRepMax(
-                    item.prev.weight || 0,
-                    item.prev.completedReps || 0,
-                    item.prev.completedRpe ?? item.prev.rpe
-                  )
-                : undefined;
-              const setRpe = item.set.completedRpe ?? item.set.rpe;
-              const prevRpe = item.prev?.completedRpe ?? item.prev?.rpe;
-              return (
-                <li>
-                  <div>
-                    <strong>{exercise.name}</strong>:{" "}
-                    <span className="whitespace-nowrap">
-                      <strong className="text-greenv2-main">{Weight.display(estimated1RM)}</strong> (
-                      {item.set.completedReps || 0} × {Weight.display(item.set.weight)}
-                      {setRpe ? ` @${setRpe}` : ""})
-                    </span>
-                  </div>
-                  {item.prev != null && previous1RM && (
-                    <div className="text-xs italic text-gray-700">
-                      (was <strong>{Weight.display(previous1RM)}</strong>, {item.prev.completedReps || 0} ×{" "}
-                      {Weight.display(item.prev.weight)}
-                      {prevRpe ? ` @${prevRpe}` : ""})
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </>
-      )}
-    </section>
   );
 }
 

@@ -1582,6 +1582,18 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20250210": {
+    title: <span>📅 Added calendar</span>,
+    body: (
+      <ul>
+        <li>Now instead of a flat list of workouts on the Workout History screen, there's a calendar now.</li>
+        <li>
+          At the top there's week calendar now, that you can swipe left and right to change the week. If you tap it - it
+          opens monthly calendar.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
