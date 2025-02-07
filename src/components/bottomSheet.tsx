@@ -1,13 +1,5 @@
 import { h, JSX, ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-
-if (typeof window === "undefined") {
-  // @ts-ignore
-  global.window = {} as Window;
-  // @ts-ignore
-  global.ZingTouch = {};
-}
-import ZingTouch from "zingtouch";
 import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
 
 interface IProps {
@@ -23,9 +15,9 @@ export function BottomSheet(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (!props.isHidden) {
-      document.body.classList.add(`stop-scrolling-bottom-sheet`);
+      window.setTimeout(() => document.body.classList.add(`stop-scrolling-bottom-sheet`), 1000);
     } else {
-      document.body.classList.remove("stop-scrolling-bottom-sheet");
+      window.setTimeout(() => document.body.classList.remove("stop-scrolling-bottom-sheet"), 1000);
     }
     return () => {
       document.body.classList.remove("stop-scrolling-bottom-sheet");
@@ -36,18 +28,6 @@ export function BottomSheet(props: IProps): JSX.Element {
     const bottomSheet = bottomSheetRef.current;
     const height = bottomSheet?.clientHeight;
     setBottomShift(height);
-    const zing = new ZingTouch.Region(document.body, false, false);
-    zing.bind(
-      bottomSheet,
-      "swipe",
-      (event) => {
-        if (event.detail.data[0].currentDirection >= 225 && event.detail.data[0].currentDirection <= 315) {
-          props.onClose();
-        }
-      },
-      false
-    );
-    return () => zing.unbind(bottomSheet, "swipe");
   }, []);
 
   useEffect(() => {
@@ -55,15 +35,22 @@ export function BottomSheet(props: IProps): JSX.Element {
   }, [props.isHidden]);
 
   return (
-    <div className={`fixed inset-0 z-30 ${props.isHidden ? "invisible " : "visible"}`} data-cy="bottom-sheet-container">
+    <div className={`fixed inset-0 z-30 pointer-events-none`} data-cy="bottom-sheet-container">
       <div
         data-name="overlay"
-        className={`absolute inset-0 bg-grayv2-700 ${props.isHidden ? "opacity-0" : "opacity-50"}`}
+        className={`pointer-events-auto absolute inset-0 bg-grayv2-700 will-change-transform ${
+          props.isHidden ? "invisible opacity-0" : "visible opacity-50"
+        }`}
+        style={{
+          transition: "visibility 0.2s ease-out, opacity 0.2s ease-out",
+        }}
         onClick={props.onClose}
       ></div>
       <div
         ref={bottomSheetRef}
-        className="absolute bottom-0 left-0 flex w-full overflow-y-auto bg-white"
+        className={`absolute bottom-0 left-0 flex w-full overflow-y-auto bg-white pointer-events-auto will-change-transform ${
+          props.isHidden ? "invisible" : "visible"
+        }`}
         data-cy="bottom-sheet"
         style={{
           transition: "transform 0.2s ease-out, visibility 0.2s",
