@@ -39,7 +39,6 @@ Squat / 1x5 115lb / warmup: none`
 
   await page.getByTestId("editor-v2-save-full").click();
   await page.getByTestId("editor-save-v2-top").click();
-  await page.getByTestId("menu-item-my-program").click();
 
   await expect(page.getByTestId("history-record").first().getByTestId("history-entry-weight").first()).toHaveText(
     "115lb"

@@ -527,6 +527,30 @@ export namespace Thunk {
     };
   }
 
+  export function fetchRevisions(programId: string, cb: () => void): IThunk {
+    return async (dispatch, getState, env) => {
+      const programRevisions = await load(dispatch, "Loading revisions", () =>
+        env.service.getProgramRevisions(programId)
+      );
+      if (programRevisions.success) {
+        updateState(
+          dispatch,
+          [
+            lb<IState>()
+              .p("revisions")
+              .recordModify((revisions) => {
+                return { ...revisions, [programId]: programRevisions.data };
+              }),
+          ],
+          "Set loaded Revisions"
+        );
+      } else {
+        alert("Couldn't fetch program revisions");
+      }
+      cb();
+    };
+  }
+
   export function exportStorage(): IThunk {
     return async (dispatch, getState, env) => {
       dispatch(postevent("export-storage-to-json"));

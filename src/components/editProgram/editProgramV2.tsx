@@ -40,16 +40,19 @@ import { BottomSheetEditProgramV2 } from "../bottomSheetEditProgramV2";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { UrlUtils } from "../../utils/url";
 import { ModalPlannerPictureExport } from "../../pages/planner/components/modalPlannerPictureExport";
+import { ModalPlannerProgramRevisions } from "../../pages/planner/modalPlannerProgramRevisions";
 
 interface IProps {
   editProgram: IProgram;
   plannerState: IPlannerState;
   programIndex: number;
   helps: string[];
+  client: Window["fetch"];
   dispatch: IDispatch;
   adminKey?: string;
   settings: ISettings;
   isLoggedIn: boolean;
+  revisions: string[];
   navCommon: INavCommon;
 }
 
@@ -85,6 +88,8 @@ export function EditProgramV2(props: IProps): JSX.Element {
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const [shouldShowBottomSheet, setShouldShowBottomSheet] = useState<boolean>(false);
   const [shouldShowGenerateImageModal, setShouldShowGenerateImageModal] = useState<boolean>(false);
+  const [isLoadingRevisions, setIsLoadingRevisions] = useState<boolean>(false);
+  const [showRevisions, setShowRevisions] = useState<boolean>(false);
 
   return (
     <Surface
@@ -109,6 +114,8 @@ export function EditProgramV2(props: IProps): JSX.Element {
       addons={
         <>
           <BottomSheetEditProgramV2
+            isLoadingRevisions={isLoadingRevisions}
+            isLoggedIn={props.isLoggedIn}
             onExportProgramToLink={() => {
               setShouldShowBottomSheet(false);
               props.dispatch(
@@ -120,6 +127,16 @@ export function EditProgramV2(props: IProps): JSX.Element {
             onGenerateProgramImage={() => {
               setShouldShowBottomSheet(false);
               setShouldShowGenerateImageModal(true);
+            }}
+            onLoadRevisions={() => {
+              setIsLoadingRevisions(true);
+              props.dispatch(
+                Thunk.fetchRevisions(props.editProgram.id, () => {
+                  setIsLoadingRevisions(false);
+                  setShowRevisions(true);
+                  setShouldShowBottomSheet(false);
+                })
+              );
             }}
             isHidden={!shouldShowBottomSheet}
             onClose={() => setShouldShowBottomSheet(false)}
@@ -375,6 +392,23 @@ export function EditProgramV2(props: IProps): JSX.Element {
               dayIndex={plannerState.ui.editWeekDayModal.dayIndex}
             />
           )}
+          {showRevisions && props.revisions.length > 0 && (
+            <ModalPlannerProgramRevisions
+              programId={props.editProgram.id}
+              client={props.client}
+              revisions={props.revisions}
+              onClose={() => setShowRevisions(false)}
+              onRestore={(text) => {
+                window.isUndoing = true;
+                const weeks = PlannerProgram.evaluateText(text);
+                plannerDispatch(
+                  lb<IPlannerState>().p("current").p("program").p("weeks").record(weeks),
+                  "stop-is-undoing"
+                );
+                setShowRevisions(false);
+              }}
+            />
+          )}
         </>
       }
     >
@@ -487,7 +521,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
                     }),
                   lb<IState>().p("editProgramV2").record(undefined),
                 ]);
-                props.dispatch(Thunk.pullScreen());
+                props.dispatch(Thunk.pushScreen("main", undefined, true));
               }}
             />
           )}

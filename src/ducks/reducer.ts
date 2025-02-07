@@ -126,6 +126,7 @@ export async function getInitialState(
       loading: { items: {} },
       programs: [basicBeginnerProgram],
       currentHistoryRecord: 0,
+      revisions: {},
       screenStack,
       user: undefined,
       freshMigrations: maybeStorage.success && hasUnrunMigrations,

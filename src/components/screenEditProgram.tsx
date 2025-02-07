@@ -24,6 +24,8 @@ interface IProps {
   settings: ISettings;
   adminKey?: string;
   plannerState?: IPlannerState;
+  client: Window["fetch"];
+  revisions: string[];
   isLoggedIn: boolean;
   navCommon: INavCommon;
 }
@@ -42,6 +44,8 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
       } else {
         return (
           <EditProgramV2
+            client={props.client}
+            revisions={props.revisions}
             helps={props.helps}
             settings={props.settings}
             dispatch={props.dispatch}

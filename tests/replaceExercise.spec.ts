@@ -35,7 +35,6 @@ Bicep Curl / 1x5`
 
   await page.getByTestId("editor-v2-save-full").click();
   await page.getByTestId("editor-save-v2-top").click();
-  await page.getByTestId("menu-item-my-program").click();
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("editor-v2-full-program").click();

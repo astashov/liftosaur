@@ -74,6 +74,7 @@ export interface IState {
   notification?: INotification;
   screenStack: IScreenStack;
   currentHistoryRecord?: number;
+  revisions: Partial<Record<string, string[]>>;
   prices?: Partial<Record<string, string>>;
   loading: ILoading;
   defaultEquipmentExpanded?: IEquipment;
@@ -129,6 +130,7 @@ export function buildState(args: {
     storage: args.storage || Storage.getDefault(),
     user: args.userId ? { email: args.userId, id: args.userId } : undefined,
     errors: {},
+    revisions: {},
     freshMigrations: false,
     nosync: !!args.nosync,
   };

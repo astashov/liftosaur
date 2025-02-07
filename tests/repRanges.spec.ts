@@ -40,7 +40,6 @@ test("rep ranges", async ({ page }) => {
   await expect(page.getByTestId("history-entry-sets-next").nth(0)).toHaveText("5 × 135lb");
   await expect(page.getByTestId("history-entry-sets-next").nth(1)).toHaveText("3-5 × 135lb");
 
-  await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   await expect(page.getByTestId("set-nonstarted").nth(0).getByTestId("reps-value")).toHaveText("5");

@@ -1508,6 +1508,22 @@ const postUserPlannerProgramHandler: RouteHandler<
   return ResponseUtils.json(200, event, { id: program.id });
 };
 
+const getProgramRevisionsEndpoint = Endpoint.build("/api/programrevisions/:programid");
+const getProgramRevisionsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getProgramRevisionsEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  const currentUserId = await getCurrentUserId(event, di);
+  if (currentUserId == null) {
+    return ResponseUtils.json(401, event, { error: "not_authorized" });
+  }
+  const userDao = new UserDao(di);
+  const programRevisions = await userDao.listProgramRevisions(currentUserId, params.programid);
+  return ResponseUtils.json(200, event, { data: programRevisions });
+};
+
 const getProgramRevisionEndpoint = Endpoint.build("/api/programrevision/:programid/:revision");
 const getProgramRevisionHandler: RouteHandler<
   IPayload,
@@ -2022,6 +2038,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getProgramEndpoint, getProgramHandler)
       .get(getUserProgramsEndpoint, getUserProgramsHandler)
       .get(getUserProgramEndpoint, getUserProgramHandler)
+      .get(getProgramRevisionsEndpoint, getProgramRevisionsHandler)
       .get(getProgramRevisionEndpoint, getProgramRevisionHandler)
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
       .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)

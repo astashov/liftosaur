@@ -477,6 +477,7 @@ export function AppView(props: IProps): JSX.Element | null {
     if (editProgram != null) {
       content = (
         <ScreenEditProgram
+          client={client}
           helps={state.storage.helps}
           navCommon={navCommon}
           adminKey={state.adminKey}
@@ -489,6 +490,7 @@ export function AppView(props: IProps): JSX.Element | null {
           weekIndex={state.editProgram?.weekIndex}
           editProgram={editProgram}
           plannerState={state.editProgramV2}
+          revisions={(state.revisions || {})[editProgram.id] || []}
           isLoggedIn={state.user != null}
         />
       );
