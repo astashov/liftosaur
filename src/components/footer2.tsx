@@ -5,7 +5,7 @@ import { Screen } from "../models/screen";
 import { FooterButton } from "./footerButton";
 import { IconGraphs } from "./icons/iconGraphs";
 import { IconHome } from "./icons/iconHome";
-import { useState } from "preact/hooks";
+import { useCallback, useState } from "preact/hooks";
 import { IconMe } from "./icons/iconMe";
 import { Tailwind } from "../utils/tailwindConfig";
 import { IconDoc2 } from "./icons/iconDoc2";
@@ -23,6 +23,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
   const inactiveColor = Tailwind.colors().grayv2["800"];
   const screen = Screen.currentName(props.navCommon.screenStack);
   const [showNextWorkoutSheet, setShowNextWorkoutSheet] = useState(false);
+  const onClose = useCallback(() => setShowNextWorkoutSheet(false), []);
   return (
     <>
       <div
@@ -105,7 +106,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         currentProgram={props.navCommon.currentProgram}
         settings={props.navCommon.settings}
         isHidden={!showNextWorkoutSheet}
-        onClose={() => setShowNextWorkoutSheet(false)}
+        onClose={onClose}
       />
     </>
   );

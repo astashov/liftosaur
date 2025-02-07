@@ -10,6 +10,8 @@ import { ModalChangeNextDay } from "./modalChangeNextDay";
 import { IconSwap } from "./icons/iconSwap";
 import { Tailwind } from "../utils/tailwindConfig";
 import { IconPlus2 } from "./icons/iconPlus2";
+import { memo } from "preact/compat";
+import { ComparerUtils } from "../utils/comparer";
 
 interface IProps {
   isHidden: boolean;
@@ -20,7 +22,7 @@ interface IProps {
   onClose: () => void;
 }
 
-export function BottomSheetNextWorkout(props: IProps): JSX.Element {
+export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
   const [showChangeWorkout, setShowChangeWorkout] = useState(false);
   const fullProgram = props.currentProgram ? Program.fullProgram(props.currentProgram, props.settings) : undefined;
 
@@ -88,4 +90,4 @@ export function BottomSheetNextWorkout(props: IProps): JSX.Element {
       )}
     </>
   );
-}
+}, ComparerUtils.noFns);
