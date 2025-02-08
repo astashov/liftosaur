@@ -156,8 +156,12 @@ function Workout(props: IWorkoutProps): JSX.Element {
         </div>
       )}
       {exercises.map((plannerProgramExercise, i) => {
-        const { name } = PlannerExerciseEvaluator.extractNameParts(plannerProgramExercise.fullName, props.settings);
-        const exercise = Exercise.findByNameAndEquipment(name, props.settings.exercises);
+        const { name, equipment } = PlannerExerciseEvaluator.extractNameParts(
+          plannerProgramExercise.fullName,
+          props.settings
+        );
+        const nameAndEquipment = `${name}${equipment ? `, ${equipment}` : ""}`;
+        const exercise = Exercise.findByNameAndEquipment(nameAndEquipment, props.settings.exercises);
         if (!exercise) {
           return <div />;
         }
@@ -177,7 +181,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
               </div>
               <div className={`flex-1 flex flex-col justify-center`}>
                 <div className={`flex gap-2 items-center w-full`}>
-                  <div className="flex-1 font-bold">{Exercise.nameWithEquipment(exercise, props.settings)}</div>
+                  <div className="flex-1 font-bold">{plannerProgramExercise.fullName}</div>
                   <div className="pr-2">
                     {PlannerProgramExercise.sets(plannerProgramExercise).map((set) => {
                       return <Set set={set} />;
