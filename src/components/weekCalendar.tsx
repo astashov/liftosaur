@@ -1,5 +1,5 @@
 import { JSX, h } from "preact";
-import { useRef, useCallback, useEffect } from "preact/hooks";
+import { useRef, useCallback, useLayoutEffect } from "preact/hooks";
 import { IHistoryRecord } from "../types";
 import { DateUtils } from "../utils/date";
 import { History } from "../models/history";
@@ -27,7 +27,7 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
     props.onSelectWeek(selectedWeek);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
         left: props.selectedWeek * scrollRef.current?.clientWidth || 0,
