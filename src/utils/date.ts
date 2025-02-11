@@ -113,14 +113,14 @@ export namespace DateUtils {
     return [year, month, day, hours, minutes, seconds].join("");
   }
 
-  export function firstDayOfWeekTimestamp(date: Date | number): number {
+  export function firstDayOfWeekTimestamp(date: Date | number, startWeekFromMonday?: boolean): number {
     const d = new Date(date);
     let weekDay = d.getDay();
-    if (weekDay === 0) {
+    if (startWeekFromMonday && weekDay === 0) {
       weekDay = 7;
     }
     const currentDay = d.getDate();
-    const beginningOfWeekDay = currentDay - weekDay + 1;
+    const beginningOfWeekDay = currentDay - weekDay + (startWeekFromMonday ? 1 : 0);
     const newDate = new Date(d.getFullYear(), d.getMonth(), beginningOfWeekDay);
     return newDate.getTime();
   }

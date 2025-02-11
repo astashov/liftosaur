@@ -359,7 +359,8 @@ export namespace History {
   export function getHistoryRecordsForTimerange(
     history: IHistoryRecord[],
     date: Date,
-    type: "month" | "week" | "day"
+    type: "month" | "week" | "day",
+    startWeekFromMonday?: boolean
   ): IHistoryRecord[] {
     // For given date, get the start and end of the timerange, and return history records that fall within that range
     const start = new Date(date);
@@ -369,8 +370,8 @@ export namespace History {
       end.setMonth(end.getMonth() + 1);
       end.setDate(0);
     } else if (type === "week") {
-      start.setDate(start.getDate() - start.getDay());
-      end.setDate(start.getDate() + 7);
+      start.setDate(start.getDate() - start.getDay() + (startWeekFromMonday ? 1 : 0));
+      end.setDate(start.getDate() + 6);
     } else if (type === "day") {
       start.setHours(0, 0, 0, 0);
     }

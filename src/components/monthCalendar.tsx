@@ -4,27 +4,20 @@ import { IHistoryRecord } from "../types";
 import { StringUtils } from "../utils/string";
 import { IPersonalRecords, History } from "../models/history";
 import { CollectionUtils } from "../utils/collection";
-import { memo, useEffect, useRef } from "preact/compat";
+import { memo, useLayoutEffect, useRef } from "preact/compat";
 import { ComparerUtils } from "../utils/comparer";
 
 interface IMonthCalendarProps {
   weeks: Date[];
   selectedWeek: number;
+  startWeekFromMonday?: boolean;
   prs: IPersonalRecords;
   history: IHistoryRecord[];
   onClick: (day: Date) => void;
 }
 
 export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
-  const start = new Date(props.weeks[props.weeks.length - 1]);
-  start.setDate(1);
-  const end = new Date(props.weeks[0]);
-  end.setDate(1);
-  const monthsList: Date[] = [];
-  const current = new Date(start.getFullYear(), start.getMonth(), 1);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     const selectedWeek = props.weeks[props.selectedWeek];
     if (selectedWeek) {
       const date = new Date(selectedWeek.getFullYear(), selectedWeek.getMonth(), 1);
@@ -36,11 +29,17 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
     }
   }, [props.weeks, props.selectedWeek]);
 
-  while (current >= end) {
-    monthsList.push(new Date(current));
-    current.setMonth(current.getMonth() - 1);
+  const start = new Date(props.weeks[0]);
+  start.setDate(1);
+  const end = new Date(props.weeks[props.weeks.length - 1]);
+  end.setDate(1);
+  const months: Date[] = [];
+  const current = new Date(start);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  while (current <= end) {
+    months.push(new Date(current));
+    current.setMonth(current.getMonth() + 1);
   }
-  const months = monthsList;
   const today = DateUtils.formatYYYYMMDD(new Date());
   const monthToHistoryRecords = props.history.reduce<
     Partial<Record<string, Partial<Record<string, IHistoryRecord[]>>>>
@@ -62,8 +61,10 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
           const year = month.getFullYear();
           const monthIndex = month.getMonth();
           const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-          let firstDayOfWeek = new Date(year, monthIndex, 1).getDay();
-          firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+          let firstDayOfWeek = month.getDay();
+          if (props.startWeekFromMonday) {
+            firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+          }
 
           const days: number[] = Array.from({ length: daysInMonth }, (_, i) => i + 1);
           const dayToHistoryRecords = monthToHistoryRecords[DateUtils.formatYYYYMMDD(month)] || {};

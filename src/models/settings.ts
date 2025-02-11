@@ -243,6 +243,7 @@ export namespace Settings {
       deletedGyms: [],
       volume: 1.0,
       vibration: false,
+      startWeekFromMonday: false,
       lengthUnits: "in",
       statsEnabled: { weight: { weight: true }, length: {}, percentage: {} },
       equipment: defaultEquipment(),

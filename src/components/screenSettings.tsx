@@ -252,6 +252,23 @@ export function ScreenSettings(props: IProps): JSX.Element {
             });
           }}
         />
+        <MenuItemEditable
+          type="select"
+          name="Week starts from:"
+          value={props.settings.startWeekFromMonday ? "true" : "false"}
+          values={[
+            ["false", "Sunday"],
+            ["true", "Monday"],
+          ]}
+          onChange={(newValue) => {
+            props.dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>()
+                .p("startWeekFromMonday")
+                .record(newValue === "true"),
+            });
+          }}
+        />
         {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 6) ||
           (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 13)) && (
           <MenuItemEditable

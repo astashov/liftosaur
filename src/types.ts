@@ -1049,6 +1049,7 @@ export const TSettings = t.intersection(
       nickname: t.string,
       alwaysOnDisplay: t.boolean,
       vibration: t.boolean,
+      startWeekFromMonday: t.boolean,
     }),
   ],
   "TSettings"

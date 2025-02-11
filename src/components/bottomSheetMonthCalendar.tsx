@@ -10,6 +10,7 @@ import { IPersonalRecords } from "../models/history";
 interface IProps {
   weeks: Date[];
   history: IHistoryRecord[];
+  startWeekFromMonday?: boolean;
   selectedWeek: number;
   prs: IPersonalRecords;
   isHidden: boolean;
@@ -36,6 +37,7 @@ export const BottomSheetMonthCalendar = memo((props: IProps): JSX.Element => {
         <div className="relative flex flex-col flex-1 min-h-0">
           <MonthCalendar
             selectedWeek={props.selectedWeek}
+            startWeekFromMonday={props.startWeekFromMonday}
             prs={props.prs}
             weeks={props.weeks}
             history={props.history}

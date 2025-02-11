@@ -11,6 +11,7 @@ interface IWeekCalendarProps {
   selectedWeek: number;
   forceToggle: boolean;
   isLoading: boolean;
+  startWeekFromMonday?: boolean;
   onSelectWeek: (week: number) => void;
   onClick: () => void;
   history: IHistoryRecord[];
@@ -95,7 +96,7 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
             style={{ scrollSnapAlign: "center", scrollSnapStop: "always" }}
           >
             <div className="flex flex-row justify-around w-full">
-              {getWeekDays(weekStart, dateToHistory).map((day, idx) => {
+              {getWeekDays(weekStart, dateToHistory, props.startWeekFromMonday).map((day, idx) => {
                 return (
                   <div key={day.dayName} className="flex flex-col items-center justify-center rounded-full">
                     <div className="text-xs text-gray-500">{day.dayName}</div>
@@ -125,9 +126,13 @@ interface IWeekDay {
   dayName: string;
 }
 
-const getWeekDays = (startDate: Date, dateToHistory: Partial<Record<string, IHistoryRecord>>): IWeekDay[] => {
+const getWeekDays = (
+  startDate: Date,
+  dateToHistory: Partial<Record<string, IHistoryRecord>>,
+  startWeekFromMonday?: boolean
+): IWeekDay[] => {
   const days = [];
-  const dayNames = ["M", "T", "W", "T", "F", "S", "S"];
+  const dayNames = startWeekFromMonday ? ["M", "T", "W", "T", "F", "S", "S"] : ["S", "M", "T", "W", "T", "F", "S"];
   for (let i = 0; i < 7; i++) {
     const date = new Date(startDate);
     date.setDate(startDate.getDate() + i);

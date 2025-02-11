@@ -27,16 +27,22 @@ interface IProps {
   dispatch: IDispatch;
 }
 
-function getWeeks(history: IHistoryRecord[]): Date[] {
+function getWeeks(history: IHistoryRecord[], startWeekFromMonday?: boolean): Date[] {
   const lastWorkout = history[history.length - 1];
   const firstWeek = new Date(
-    DateUtils.firstDayOfWeekTimestamp(lastWorkout ? new Date(Date.parse(lastWorkout.date)) : new Date())
+    DateUtils.firstDayOfWeekTimestamp(
+      lastWorkout ? new Date(Date.parse(lastWorkout.date)) : new Date(),
+      startWeekFromMonday
+    )
   );
   const firstWorkout = history[0];
   let lastWeek = new Date(
-    DateUtils.firstDayOfWeekTimestamp(firstWorkout ? new Date(Date.parse(firstWorkout.date)) : new Date())
+    DateUtils.firstDayOfWeekTimestamp(
+      firstWorkout ? new Date(Date.parse(firstWorkout.date)) : new Date(),
+      startWeekFromMonday
+    )
   );
-  const currentWeek = DateUtils.firstDayOfWeekTimestamp(new Date());
+  const currentWeek = DateUtils.firstDayOfWeekTimestamp(new Date(), startWeekFromMonday);
   lastWeek = lastWeek.getTime() < currentWeek ? new Date(currentWeek) : lastWeek;
   const weeks: Date[] = [];
   while (firstWeek <= lastWeek) {
@@ -46,12 +52,17 @@ function getWeeks(history: IHistoryRecord[]): Date[] {
   return weeks;
 }
 
-export function getWeekHistory(history: IHistoryRecord[], weeks: Date[], weekIndex: number): IHistoryRecord[] {
+export function getWeekHistory(
+  history: IHistoryRecord[],
+  weeks: Date[],
+  weekIndex: number,
+  startWeekFromMonday?: boolean
+): IHistoryRecord[] {
   const week = weeks[weekIndex];
   if (week == null) {
     return [];
   }
-  return History.getHistoryRecordsForTimerange(history, week, "week");
+  return History.getHistoryRecordsForTimerange(history, week, "week", startWeekFromMonday);
 }
 
 export function ProgramHistoryView(props: IProps): JSX.Element {
@@ -59,7 +70,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const sortedHistory = props.history.sort((a, b) => {
     return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
   });
-  const weeks = getWeeks(sortedHistory);
+  const weeks = getWeeks(sortedHistory, props.settings.startWeekFromMonday);
   const screenData = Screen.current(props.navCommon.screenStack);
   const initialWeek = screenData.name === "main" ? screenData.params?.week : undefined;
   const currentWeek = weeks.findIndex((week) => week.getTime() === DateUtils.firstDayOfWeekTimestamp(new Date()));
@@ -69,8 +80,8 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const [showPlannerSettings, setShowPlannerSettings] = useState(false);
 
   const prs = History.getPersonalRecords(props.history);
-  const thisWeekHistory = getWeekHistory(sortedHistory, weeks, selectedWeek);
-  const lastWeekHistory = getWeekHistory(sortedHistory, weeks, selectedWeek - 1);
+  const thisWeekHistory = getWeekHistory(sortedHistory, weeks, selectedWeek, props.settings.startWeekFromMonday);
+  const lastWeekHistory = getWeekHistory(sortedHistory, weeks, selectedWeek - 1, props.settings.startWeekFromMonday);
   const startTs = weeks[selectedWeek].getTime();
   const endRange = new Date(startTs);
   endRange.setDate(endRange.getDate() + 6);
@@ -84,6 +95,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       navbar={
         <div className="fixed top-0 left-0 z-30 w-full border-b border-grayv3-300">
           <WeekCalendar
+            startWeekFromMonday={props.settings.startWeekFromMonday}
             history={sortedHistory}
             weeks={weeks}
             isLoading={isLoading}
@@ -105,11 +117,12 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
             prs={prs}
             weeks={weeks}
             history={sortedHistory}
+            startWeekFromMonday={props.settings.startWeekFromMonday}
             selectedWeek={selectedWeek}
             isHidden={!showMonthCalendar}
             onClose={() => setShowMonthCalendar(false)}
             onClick={(day) => {
-              const beginningOfWeek = DateUtils.firstDayOfWeekTimestamp(day);
+              const beginningOfWeek = DateUtils.firstDayOfWeekTimestamp(day, props.settings.startWeekFromMonday);
               const newWeek = weeks.findIndex((week) => week.getTime() === beginningOfWeek);
               if (newWeek !== -1) {
                 props.dispatch(

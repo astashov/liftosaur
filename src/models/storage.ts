@@ -374,6 +374,7 @@ export namespace Storage {
         isPublicProfile: merge2("settings", "isPublicProfile"),
         nickname: merge2("settings", "nickname"),
         vibration: merge2("settings", "vibration"),
+        startWeekFromMonday: merge2("settings", "startWeekFromMonday"),
         volume: merge2("settings", "volume"),
         alwaysOnDisplay: merge2("settings", "alwaysOnDisplay"),
         exerciseData: merge2("settings", "exerciseData"),
