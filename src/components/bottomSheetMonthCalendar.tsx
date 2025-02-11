@@ -19,6 +19,9 @@ interface IProps {
 }
 
 export const BottomSheetMonthCalendar = memo((props: IProps): JSX.Element => {
+  const monthNames = props.startWeekFromMonday
+    ? ["M", "T", "W", "T", "F", "S", "S"]
+    : ["S", "M", "T", "W", "T", "F", "S"];
   return (
     <>
       <BottomSheet shouldShowClose={true} onClose={props.onClose} isHidden={props.isHidden}>
@@ -28,7 +31,7 @@ export const BottomSheetMonthCalendar = memo((props: IProps): JSX.Element => {
           </LinkButton>
         </div>
         <div className="flex flex-row justify-around py-2 mx-3 border-b border-grayv3-100">
-          {["M", "T", "W", "T", "F", "S", "S"].map((day) => (
+          {monthNames.map((day) => (
             <div key={day} class="text-gray-500 font-medium p-2 w-10 h-10 text-center">
               {day}
             </div>

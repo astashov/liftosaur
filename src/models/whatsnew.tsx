@@ -1591,6 +1591,7 @@ Squat / 5x5 / progress: lp(5lb)`}
           At the top there's week calendar now, that you can swipe left and right to change the week. If you tap it - it
           opens monthly calendar.
         </li>
+        <li>You can switch whether a week starts from Monday or Sunday in Settings.</li>
       </ul>
     ),
   },
