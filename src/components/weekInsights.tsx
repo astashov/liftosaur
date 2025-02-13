@@ -88,7 +88,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
           <WeekInsightsProperty
             value={setResults.volume.value}
             unit={setResults.volume.unit}
-            increment={setResults.volume.value - lastSetResults.volume.value}
+            increment={Math.round(setResults.volume.value - lastSetResults.volume.value)}
           />
           <WeekInsightsProperty
             value={setResults.total}
