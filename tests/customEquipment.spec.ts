@@ -2,22 +2,28 @@ import { test, expect } from "@playwright/test";
 import { PlaywrightUtils, startpage } from "./playwrightUtils";
 
 test("custom equipment", async ({ page }) => {
-  await page.goto(startpage + "?skipintro=1&legacy=1&nosync=true");
+  await page.goto(startpage + "?skipintro=1&nosync=true");
   await page.getByTestId("create-program").click();
   PlaywrightUtils.disableSubscriptions(page);
 
   await page.getByTestId("modal-create-program-input").clear();
   await page.getByTestId("modal-create-program-input").type("My Program");
-  await page.getByTestId("modal-create-program-submit").click();
+  await page.getByTestId("modal-create-experimental-program-submit").click();
 
-  await page.getByText("Add New Exercise").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils.typeCodeMirror(
+    page,
+    "planner-editor",
+    `# Week 1
+## Day 1
+Bicep Curl / 1x5 20lb / warmup: none`
+  );
 
-  await page.getByTestId("menu-item-exercise").click();
-  await page.getByTestId("modal-exercise").getByTestId("menu-item-bicep-curl-dumbbell").click();
+  await page.getByTestId("editor-v2-save-full").click();
+  await page.getByTestId("editor-save-v2-top").click();
 
-  await page.getByRole("button", { name: "Save" }).click();
-  await page.getByTestId("edit-day").click();
-  await page.getByTestId("menu-item-bicep-curl").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
   await page.getByTestId("set-nonstarted").click();

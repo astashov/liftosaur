@@ -20,8 +20,8 @@ export function MigrationBanner(props: IMigrationBannerProps): JSX.Element {
     <div className="flex flex-col items-center px-8 py-4 mx-4 mb-4 bg-red-100 border border-red-400 rounded-lg sm:flex-row">
       <div>
         <div>
-          This old-style program <strong>WILL STOP</strong> working on <strong>Feb 3, 2025</strong>! You can migrate to
-          the new - plain text style program, but it won't migrate the Finish Day scripts.
+          This is an old-style program, that doesn't work anymore! You can migrate to the new - plain text style
+          program, but it won't migrate the Finish Day scripts.
         </div>
         <div>
           <BuilderCopyLink

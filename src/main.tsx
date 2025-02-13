@@ -1,10 +1,9 @@
 import { h } from "preact";
-import { MainContent } from "./pages/main/mainContent";
-import { IProgramContentSyncerProps } from "./pages/program/programContentSyncer";
+import { IMainContentProps, MainContent } from "./pages/main/mainContent";
 import { HydrateUtils } from "./utils/hydrate";
 
 function main(): void {
-  HydrateUtils.hydratePage<IProgramContentSyncerProps>((pageWrapperProps, data) => (
+  HydrateUtils.hydratePage<IMainContentProps>((pageWrapperProps, data) => (
     <MainContent {...data} client={window.fetch.bind(window)} />
   ));
 }

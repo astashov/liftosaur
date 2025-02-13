@@ -36,6 +36,7 @@ export class MockFetch {
     const response = await this.handler(request, { getRemainingTimeInMillis: () => 10000 });
     return {
       ok: response.statusCode === 200,
+      bytes: async () => new Uint8Array(0),
       status: response.statusCode,
       statusText: response.body,
       json: async () => JSON.parse(response.body),

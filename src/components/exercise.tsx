@@ -39,8 +39,6 @@ import { IconNotebook } from "./icons/iconNotebook";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { Markdown } from "./markdown";
 import { HistoryRecordSetsView } from "./historyRecordSets";
-import { IconPreview } from "./icons/iconPreview";
-import { WorkoutStateVariables } from "./workoutStateVariables";
 import { ExerciseImage } from "./exerciseImage";
 import { UidFactory } from "../utils/generator";
 import { Nux } from "./nux";
@@ -196,7 +194,6 @@ const ExerciseContentView = memo(
     const isSubscribed = Subscriptions.hasSubscription(props.subscription);
 
     const [showNotes, setShowNotes] = useState(!!props.entry.notes);
-    const [showStateVariables, setShowStateVariables] = useState(false);
 
     const programExercise = props.programExercise;
     let description: string | undefined;
@@ -238,15 +235,6 @@ const ExerciseContentView = memo(
               </div>
               {props.showEditButtons && (
                 <div>
-                  {!isCurrentProgress && (
-                    <button
-                      data-cy="exercise-state-vars-toggle"
-                      className="p-2 leading-none align-middle nm-workout-see-statvars"
-                      onClick={() => setShowStateVariables(!showStateVariables)}
-                    >
-                      <IconPreview size={18} className="inline-block" />
-                    </button>
-                  )}
                   <button
                     data-cy="exercise-swap"
                     className="box-content p-2 align-middle nm-workout-edit-mode"
@@ -348,7 +336,6 @@ const ExerciseContentView = memo(
                 <Markdown value={description} />
               </div>
             )}
-            {showStateVariables && <WorkoutStateVariables settings={props.settings} entry={props.entry} />}
             {!props.hidePlatesCalculator ? (
               <div
                 className={`p-2 mt-2 ${getBgColor200(props.entry)} rounded-2xl`}
@@ -695,7 +682,7 @@ function WeightLine(props: IWeightLineProps): JSX.Element {
         </span>
         <button
           data-cy="change-weight"
-          className="text-left underline whitespace-nowrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal nm-workout-open-change-weight-modal"
+          className="text-left underline cursor-pointer whitespace-nowrap text-bluev2 ls-progress-open-change-weight-modal nm-workout-open-change-weight-modal"
           style={{ fontWeight: "inherit" }}
           onClick={() => {
             props.dispatch({

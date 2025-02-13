@@ -1214,12 +1214,17 @@ export namespace Program {
     return isNaN(nd) ? 1 : nd;
   }
 
-  export function editAction(dispatch: IDispatch, id: string, plannerState?: IPlannerState): void {
+  export function editAction(
+    dispatch: IDispatch,
+    id: string,
+    plannerState?: IPlannerState,
+    resetStack?: boolean
+  ): void {
     updateState(dispatch, [
       lb<IState>().p("editProgram").record({ id }),
       lb<IState>().p("editProgramV2").record(plannerState),
     ]);
-    dispatch(Thunk.pushScreen("editProgram", undefined, true));
+    dispatch(Thunk.pushScreen("editProgram", undefined, resetStack));
   }
 
   export function isEligibleForSimpleExercise(programExercise: IProgramExercise): IEither<true, string[]> {

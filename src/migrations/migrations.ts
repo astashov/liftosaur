@@ -17,6 +17,7 @@ import { PlannerKey } from "../pages/planner/plannerKey";
 import { PP } from "../models/pp";
 import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 import { PlannerToProgram } from "../models/plannerToProgram";
+import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 declare let Rollbar: RB;
 
 let latestMigrationVersion: number | undefined;
@@ -862,6 +863,23 @@ export const migrations = {
   "20241207120042_add_reminder_timer": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.timers.reminder = storage.settings.timers.reminder ?? 900;
+    return storage;
+  },
+  "20250211073832_switch_to_planner_programs": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    const currentProgram = storage.programs.find((p) => p.id === storage.currentProgramId);
+    if (currentProgram && currentProgram.planner == null) {
+      const plannerProgram = storage.programs.find((p) => p.planner != null) || {
+        ...basicBeginnerProgram,
+        id: UidFactory.generateUid(8),
+      };
+      storage.programs.push(plannerProgram);
+      storage.currentProgramId = plannerProgram.id;
+      alert(`Old-style programs are not supported anymore, your current program now is '${plannerProgram.name}'`);
+    }
     return storage;
   },
 };

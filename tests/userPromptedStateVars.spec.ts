@@ -2,36 +2,33 @@ import { test, expect } from "@playwright/test";
 import { PlaywrightUtils, startpage } from "./playwrightUtils";
 
 test("User Prompted State Vars", async ({ page }) => {
-  await page.goto(startpage + "?skipintro=1&legacy=1");
+  await page.goto(startpage + "?skipintro=1");
   // Creating the program
 
   await page.getByTestId("create-program").click();
 
-  await page.getByTestId("modal-create-program-input").clear();
-  await page.getByTestId("modal-create-program-input").type("A Program");
-  await page.getByTestId("modal-create-program-submit").click();
+  await page.getByTestId("modal-create-program-input").fill("My Program");
+  await page.getByTestId("modal-create-experimental-program-submit").click();
 
-  await page.getByTestId("add-exercise").click();
-  await page.getByTestId("tab-advanced").click();
-
-  await page.getByTestId("add-state-variable").click();
-  await page.getByTestId("modal-add-state-variable-input-name").clear();
-  await page.getByTestId("modal-add-state-variable-input-name").type("rpe");
-  await page.getByTestId("menu-item-name-user-prompted").click();
-  await page.getByTestId("modal-add-state-variable-submit").click();
-
-  await page.getByTestId("add-new-set").click();
-
-  await PlaywrightUtils.clearCodeMirror(page, "multiline-editor-finish-day");
+  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
   await PlaywrightUtils.typeCodeMirror(
     page,
-    "multiline-editor-finish-day",
-    "if (state.rpe > 7) {\n  state.weight = state.weight - 5lb\n} else if (state.rpe < 3) {\n  state.weight = state.weight + 5lb\n}"
+    "planner-editor",
+    `# Week 1
+## Day 1
+Squat / 5x5 65lb / warmup: none / progress: custom(rpe+: 0) {~
+  if (state.rpe > 7) {
+    weights -= 5lb
+  } else if (state.rpe < 3) {
+    weights += 5lb
+  }
+~}`
   );
 
-  await page.getByTestId("save-exercise").click();
-  await page.getByTestId("edit-day").click();
-  await page.getByTestId("menu-item-squat").click();
+  await page.getByTestId("editor-v2-save-full").click();
+  await page.getByTestId("editor-save-v2-top").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
@@ -43,7 +40,7 @@ test("User Prompted State Vars", async ({ page }) => {
 
   await page.getByTestId("modal-amrap-submit").click();
 
-  await expect(page.getByTestId("state-changes").first()).toContainText("weight: 135 lb -> 130 lb");
+  await expect(page.getByTestId("variable-changes-value-weights")).toHaveText("-= 5lb");
   await expect(page.getByTestId("state-changes").first()).toContainText("rpe: 0 -> 8");
 
   await page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]").nth(4).click();
@@ -58,7 +55,7 @@ test("User Prompted State Vars", async ({ page }) => {
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").type("2");
 
   await page.getByTestId("modal-amrap-submit").click();
-  await expect(page.getByTestId("state-changes").first()).toContainText("weight: 135 lb -> 140 lb");
+  await expect(page.getByTestId("variable-changes-value-weights")).toHaveText("+= 5lb");
   await expect(page.getByTestId("state-changes").first()).toContainText("rpe: 0 -> 2");
 
   await page.getByRole("button", { name: "Finish the workout" }).click();

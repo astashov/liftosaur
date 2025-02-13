@@ -63,7 +63,11 @@ export function ProgramListView(props: IProps): JSX.Element {
               name={program.name}
               onClick={(e) => {
                 if (!isEditMode && !HtmlUtils.classInParents(e.target as Element, "button")) {
-                  Program.selectProgram(props.dispatch, program.id);
+                  if (program.planner == null) {
+                    alert("Old-style programs are not supported anymore");
+                  } else {
+                    Program.selectProgram(props.dispatch, program.id);
+                  }
                 }
               }}
               value={
@@ -73,7 +77,7 @@ export function ProgramListView(props: IProps): JSX.Element {
                       className="p-2 align-middle button nm-program-list-edit-program"
                       onClick={() => {
                         if (props.editProgramId == null || props.editProgramId !== program.id) {
-                          Program.editAction(props.dispatch, program.id);
+                          Program.editAction(props.dispatch, program.id, undefined);
                         } else {
                           alert("You cannot edit the program while that program's workout is in progress");
                         }

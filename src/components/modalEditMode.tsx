@@ -18,7 +18,6 @@ import { EditProgram } from "../models/editProgram";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
 import { MenuItemEditable } from "./menuItemEditable";
-import { EditProgramConvertStateVariables } from "./editProgram/editProgramConvertStateVariables";
 import { IconCalculator } from "./icons/iconCalculator";
 import { useState } from "preact/hooks";
 import { RepMaxCalculator } from "./repMaxCalculator";
@@ -133,18 +132,6 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   newState={newState}
                   programExercise={programExercise}
                   stateMetadata={programExercise.stateMetadata}
-                  onChangeStateVariableUnit={
-                    !program.planner
-                      ? () => {
-                          EditProgram.switchStateVariablesToUnitInPlace(
-                            props.dispatch,
-                            props.program.id,
-                            programExercise,
-                            props.settings
-                          );
-                        }
-                      : undefined
-                  }
                   onEditStateVariable={(stateKey, newValue) => {
                     setNewState({
                       ...newState,
@@ -281,7 +268,6 @@ interface IStateProps {
   onEditStateVariable: (stateKey: string, newValue: string) => void;
   settings: ISettings;
   onOpenCalculator: (stateKey: string, unit: IUnit) => void;
-  onChangeStateVariableUnit?: () => void;
 }
 
 function ProgramStateVariables(props: IStateProps): JSX.Element {
@@ -291,13 +277,6 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
 
   return (
     <section className="px-4 py-2 bg-purple-100 rounded-2xl">
-      {props.onChangeStateVariableUnit && (
-        <EditProgramConvertStateVariables
-          settings={props.settings}
-          programExercise={programExercise}
-          onConvert={props.onChangeStateVariableUnit}
-        />
-      )}
       {ObjectUtils.keys(state).map((stateKey, i) => {
         const value = props.newState[stateKey] || state[stateKey];
         const displayValue = Weight.is(value) || Weight.isPct(value) ? value.value : value;

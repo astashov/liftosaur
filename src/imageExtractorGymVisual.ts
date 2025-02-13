@@ -104,7 +104,7 @@ function findBoundingBox(points: Set<string>): IBox {
 }
 
 function findBoundingBoxes(filename: string): IBox[] {
-  const arrayBuffer: Buffer = fs.readFileSync(filename);
+  const arrayBuffer = (fs.readFileSync(filename) as unknown) as ArrayBuffer;
 
   const image = upng.decode(arrayBuffer);
   const handledPoints = new Set();
@@ -133,7 +133,7 @@ function findBoundingBoxes(filename: string): IBox[] {
 function getColorAt(image: Image, point: IPoint): IColor {
   const { x, y } = point;
   const begin = y * image.width * 4 + x * 4;
-  const color: Uint8Array = image.data.slice(begin, begin + 4) as Uint8Array;
+  const color: Uint8Array = (image.data.slice(begin, begin + 4) as unknown) as Uint8Array;
   return {
     r: color[0],
     g: color[1],

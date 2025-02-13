@@ -17,12 +17,12 @@ import { PlannerEditorView } from "../planner/components/plannerEditorView";
 import { PlannerProgram } from "../planner/models/plannerProgram";
 import { IPlannerState } from "../planner/models/types";
 
-interface IProps {
+export interface IMainContentProps {
   client: Window["fetch"];
   account?: IAccount;
 }
 
-export function MainContent(props: IProps): JSX.Element {
+export function MainContent(props: IMainContentProps): JSX.Element {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     let source = params.get("cpgsrc");
