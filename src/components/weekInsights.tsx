@@ -86,7 +86,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
         </div>
         <div className="flex justify-between mt-2" style={{ marginLeft: "2px" }}>
           <WeekInsightsProperty
-            value={setResults.volume.value}
+            value={Math.round(setResults.volume.value)}
             unit={setResults.volume.unit}
             increment={Math.round(setResults.volume.value - lastSetResults.volume.value)}
           />
