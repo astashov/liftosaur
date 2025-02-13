@@ -89,10 +89,10 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
         <>
           <h4 className="my-1 text-xs text-grayv2-main">Max Estimated One Rep Max</h4>
           <ul className="pb-2">
-            {ObjectUtils.keys(items.maxWeight).map((exerciseKey) => {
+            {ObjectUtils.keys(items.max1RM).map((exerciseKey) => {
               const exerciseType = Exercise.fromKey(exerciseKey);
               const exercise = Exercise.get(exerciseType, props.settings.exercises);
-              return (items.maxWeight[exerciseKey] || []).map((item, i) => {
+              return (items.max1RM[exerciseKey] || []).map((item, i) => {
                 const estimated1RM = Weight.getOneRepMax(
                   item.set.weight,
                   item.set.completedReps || 0,
