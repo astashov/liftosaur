@@ -8,10 +8,12 @@ import {
   IPlannerProgramExerciseRepRange,
   IPlannerProgramExerciseSet,
   IPlannerProgramExerciseSetVariation,
-  IPlannerProgramProperty,
+  IPlannerProgramProgress,
   IPlannerProgramReuse,
+  IPlannerProgramState,
+  IPlannerProgramUpdate,
 } from "./models/types";
-import { IWeight, IProgramState, IDayData, ISettings, IExerciseType, IUnit } from "../../types";
+import { IWeight, IDayData, ISettings, IExerciseType, IUnit } from "../../types";
 import * as W from "../../models/weight";
 import { IPlannerProgramExerciseWarmupSet } from "./models/types";
 import { PlannerNodeName } from "./plannerExerciseStyles";
@@ -21,6 +23,7 @@ import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
 import { Weight } from "../../models/weight";
 import { MathUtils } from "../../utils/math";
 import { PlannerKey } from "./plannerKey";
+import { ObjectUtils } from "../../utils/object";
 
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
@@ -131,8 +134,12 @@ export class PlannerExerciseEvaluator {
     return script;
   }
 
-  public static isEqualProperty(a: IPlannerProgramProperty, b: IPlannerProgramProperty): boolean {
-    return a.fnName === b.fnName && a.fnArgs.join() === b.fnArgs.join() && a.script === b.script && a.body === b.body;
+  public static isEqualProgress(a: IPlannerProgramProgress, b: IPlannerProgramProgress): boolean {
+    return ObjectUtils.isEqual(a, b);
+  }
+
+  public static isEqualUpdate(a: IPlannerProgramUpdate, b: IPlannerProgramUpdate): boolean {
+    return ObjectUtils.isEqual(a, b);
   }
 
   private getPoint(node: SyntaxNode): IPlannerSyntaxPointer {
@@ -229,29 +236,20 @@ export class PlannerExerciseEvaluator {
       const weightNode = expr.getChild(PlannerNodeName.Weight);
       const percentage =
         percentageNode == null ? undefined : parseFloat(this.getValue(percentageNode).replace("%", ""));
-      const weight = this.getWeight(weightNode);
-      if (percentage) {
-        return {
-          type: "warmup",
-          reps,
-          numberOfSets,
-          percentage,
-        };
-      } else {
-        return {
-          type: "warmup",
-          reps,
-          numberOfSets,
-          weight: weight!,
-        };
-      }
+      const weight = this.getWeight(weightNode) ?? (percentage != null ? Weight.buildPct(percentage) : undefined);
+      return {
+        type: "warmup",
+        reps,
+        numberOfSets,
+        weight,
+      };
     } else {
       assert(PlannerNodeName.ExerciseSection);
     }
   }
 
-  public static fnArgsToStateVars(fnArgs: string[], onError?: (message: string) => void): IProgramState {
-    const state: IProgramState = {};
+  public static fnArgsToStateVars(fnArgs: string[], onError?: (message: string) => void): IPlannerProgramState {
+    const state: IPlannerProgramState = [];
     for (const value of fnArgs) {
       // eslint-disable-next-line prefer-const
       let [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
@@ -265,7 +263,7 @@ export class PlannerExerciseEvaluator {
         const fnArgVal = fnArgValStr.match(/(lb|kg)/)
           ? Weight.parse(fnArgValStr)
           : MathUtils.roundFloat(parseFloat(fnArgValStr), 2);
-        state[fnArgKey] = fnArgVal ?? 0;
+        state.push([fnArgKey, fnArgVal ?? 0]);
       } catch (e) {
         if (onError) {
           onError(`Invalid argument ${value}`);
@@ -309,8 +307,7 @@ export class PlannerExerciseEvaluator {
         timer,
         logRpe,
         rpe,
-        weight,
-        percentage,
+        weight: weight ?? (percentage != null ? Weight.buildPct(percentage) : undefined),
         label,
         askWeight,
       };
@@ -319,7 +316,7 @@ export class PlannerExerciseEvaluator {
     }
   }
 
-  private evaluateId(expr: SyntaxNode): IPlannerProgramProperty {
+  private evaluateId(expr: SyntaxNode): number[] {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
       if (valueNode == null) {
@@ -339,17 +336,13 @@ export class PlannerExerciseEvaluator {
           this.error(`You should provide the list of numbers in "tags"`, fnNameNode);
         }
       }
-      return {
-        name: "id",
-        fnName,
-        fnArgs: fnArgs,
-      };
+      return fnArgs.map((arg) => parseInt(arg, 10)).filter((t) => !isNaN(t));
     } else {
       assert(PlannerNodeName.ExerciseProperty);
     }
   }
 
-  private evaluateUpdate(expr: SyntaxNode, exerciseType?: IExerciseType): IPlannerProgramProperty {
+  private evaluateUpdate(expr: SyntaxNode, exerciseType?: IExerciseType): IPlannerProgramUpdate {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
       if (valueNode == null) {
@@ -365,20 +358,19 @@ export class PlannerExerciseEvaluator {
       }
       const fnArgs = valueNode.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
       let script: string | undefined;
-      let body: string | undefined;
-      let meta: { stateKeys: Set<string> } | undefined;
+      let reuse: IPlannerProgramReuse | undefined;
       let liftoscriptNode: SyntaxNode | undefined;
+      let stateKeys: string[] = [];
       if (fnName === "custom") {
         liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript) || undefined;
         script = liftoscriptNode ? this.getValueTrim(liftoscriptNode) : undefined;
         if (fnArgs.length > 0) {
           this.error(`State variables for the update script are taken from "progress" block`, fnNameNode);
         }
-        const reuseLiftoscriptNode = valueNode
+        const reuseSectionWithWeekDayNode = valueNode
           .getChild(PlannerNodeName.ReuseLiftoscript)
-          ?.getChild(PlannerNodeName.ReuseSection)
-          ?.getChild(PlannerNodeName.ExerciseName);
-        body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
+          ?.getChild(PlannerNodeName.ReuseSectionWithWeekDay);
+        reuse = reuseSectionWithWeekDayNode ? this.evaluateReuseNode(reuseSectionWithWeekDayNode)?.data : undefined;
         if (script) {
           const liftoscriptEvaluator = new ScriptRunner(
             script,
@@ -390,10 +382,9 @@ export class PlannerExerciseEvaluator {
             { exerciseType, unit: this.settings.units, prints: [] },
             "update"
           );
-          const stateKeys = liftoscriptEvaluator.getStateVariableKeys();
-          meta = { stateKeys };
+          stateKeys = [...liftoscriptEvaluator.getStateVariableKeys()];
         }
-        if (!script && !body) {
+        if (!script && !reuse) {
           this.error(
             `'custom' update requires either to specify Liftoscript block or specify which one to reuse`,
             valueNode
@@ -401,30 +392,24 @@ export class PlannerExerciseEvaluator {
         }
       }
       return {
-        name: "update",
-        fnName,
-        fnArgs: fnArgs,
+        type: "custom",
+        stateKeys,
         script,
-        body,
-        meta,
         liftoscriptNode,
+        reuse,
       };
     } else {
       assert(PlannerNodeName.ExerciseProperty);
     }
   }
 
-  private evaluateProgress(expr: SyntaxNode, exerciseType?: IExerciseType): IPlannerProgramProperty {
+  private evaluateProgress(expr: SyntaxNode, exerciseType?: IExerciseType): IPlannerProgramProgress {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
       if (valueNode == null) {
         const none = expr.getChild(PlannerNodeName.None);
         if (none != null) {
-          return {
-            name: "progress",
-            fnName: "none",
-            fnArgs: [],
-          };
+          return { type: "none" };
         } else {
           throw this.error(`Missing value for the property 'progress'`, expr);
         }
@@ -439,10 +424,10 @@ export class PlannerExerciseEvaluator {
       }
       const fnArgs = valueNode.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
       let script: string | undefined;
-      let body: string | undefined;
+      let progress: IPlannerProgramProgress;
       if (fnName === "lp") {
         if (fnArgs.length > 6) {
-          this.error(`Linear Progression 'lp' only has 4 arguments max`, valueNode);
+          this.error(`Linear Progression 'lp' only has 6 arguments max`, valueNode);
         } else if (fnArgs[0] && !fnArgs[0].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%")) {
           this.error(
             `1st argument of 'lp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
@@ -473,6 +458,17 @@ export class PlannerExerciseEvaluator {
             valueNode
           );
         }
+        const increment = fnArgs[0] ? Weight.parse(fnArgs[0]) : Weight.build(0, this.settings.units);
+        const decrement = fnArgs[3] ? Weight.parse(fnArgs[3]) : Weight.build(0, this.settings.units);
+        progress = {
+          type: "lp",
+          increment: increment ?? Weight.build(0, this.settings.units),
+          successes: fnArgs[2] ? parseInt(fnArgs[2], 10) : 1,
+          successCounter: fnArgs[3] ? parseInt(fnArgs[3], 10) : 0,
+          decrement: decrement ?? Weight.build(0, this.settings.units),
+          failures: fnArgs[5] ? parseInt(fnArgs[5], 10) : 0,
+          failureCounter: fnArgs[6] ? parseInt(fnArgs[6], 10) : 0,
+        };
       } else if (fnName === "sum") {
         if (fnArgs.length > 2) {
           this.error(`Reps Sum Progression 'sum' only has 2 arguments max`, valueNode);
@@ -487,6 +483,12 @@ export class PlannerExerciseEvaluator {
             valueNode
           );
         }
+        const increment = fnArgs[1] ? Weight.parse(fnArgs[1]) : Weight.build(0, this.settings.units);
+        progress = {
+          type: "sum",
+          increment: increment ?? Weight.build(0, this.settings.units),
+          reps: fnArgs[0] ? parseInt(fnArgs[0], 10) : 0,
+        };
       } else if (fnName === "dp") {
         if (fnArgs.length !== 3) {
           this.error(`Double Progression 'dp' should have 3 arguments`, valueNode);
@@ -503,6 +505,13 @@ export class PlannerExerciseEvaluator {
         } else if (fnArgs[2] == null || isNaN(parseInt(fnArgs[2], 10))) {
           this.error(`3rd argument of 'dp' should be max reps in the range - i.e. a number, like 12`, valueNode);
         }
+        const increment = fnArgs[0] ? Weight.parse(fnArgs[0]) : Weight.build(0, this.settings.units);
+        progress = {
+          type: "dp",
+          increment: increment ?? Weight.build(0, this.settings.units),
+          minReps: fnArgs[1] ? parseInt(fnArgs[1], 10) : 0,
+          maxReps: fnArgs[2] ? parseInt(fnArgs[2], 10) : 0,
+        };
       } else if (fnName === "custom") {
         const liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript);
         script = liftoscriptNode ? this.getValueTrim(liftoscriptNode) : undefined;
@@ -510,7 +519,7 @@ export class PlannerExerciseEvaluator {
         if (script) {
           const liftoscriptEvaluator = new ScriptRunner(
             script,
-            state,
+            ObjectUtils.fromPairs(state),
             {},
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
@@ -535,25 +544,30 @@ export class PlannerExerciseEvaluator {
             }
           }
         }
-        const reuseLiftoscriptNode = valueNode
+        const reuseSectionWithWeekDayNode = valueNode
           .getChild(PlannerNodeName.ReuseLiftoscript)
-          ?.getChild(PlannerNodeName.ReuseSection)
-          ?.getChild(PlannerNodeName.ExerciseName);
-        body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
-        if (!script && !body) {
+          ?.getChild(PlannerNodeName.ReuseSectionWithWeekDay);
+        const reuse = reuseSectionWithWeekDayNode
+          ? this.evaluateReuseNode(reuseSectionWithWeekDayNode)?.data
+          : undefined;
+        if (!script && !reuse) {
           this.error(
             `'custom' progression requires either to specify Liftoscript block or specify which one to reuse`,
             valueNode
           );
         }
+        return {
+          type: "custom",
+          state,
+          script,
+          reuse,
+        };
+      } else if (fnName === "none") {
+        progress = { type: "none" };
+      } else {
+        throw new SyntaxError(`Unknown progression type: ${fnName}`);
       }
-      return {
-        name: "progress",
-        fnName,
-        fnArgs: fnArgs,
-        script,
-        body,
-      };
+      return progress;
     } else {
       assert(PlannerNodeName.ExerciseProperty);
     }
@@ -582,10 +596,10 @@ export class PlannerExerciseEvaluator {
     expr: SyntaxNode,
     exerciseType?: IExerciseType
   ):
-    | { type: "progress"; data: IPlannerProgramProperty }
-    | { type: "update"; data: IPlannerProgramProperty }
+    | { type: "progress"; data: IPlannerProgramProgress }
+    | { type: "update"; data: IPlannerProgramUpdate }
     | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] }
-    | { type: "id"; data: IPlannerProgramProperty }
+    | { type: "id"; data: number[] }
     | { type: "used"; data: "" } {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const nameNode = expr.getChild(PlannerNodeName.ExercisePropertyName);
@@ -652,9 +666,9 @@ export class PlannerExerciseEvaluator {
     exerciseType?: IExerciseType
   ):
     | { type: "sets"; data: IPlannerProgramExerciseSet[]; isCurrent: boolean }
-    | { type: "progress"; data: IPlannerProgramProperty }
-    | { type: "update"; data: IPlannerProgramProperty }
-    | { type: "id"; data: IPlannerProgramProperty }
+    | { type: "progress"; data: IPlannerProgramProgress }
+    | { type: "update"; data: IPlannerProgramUpdate }
+    | { type: "id"; data: number[] }
     | { type: "reuse"; data: IPlannerProgramReuse }
     | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] }
     | { type: "used"; data: "" } {
@@ -845,27 +859,28 @@ export class PlannerExerciseEvaluator {
       let notused: boolean = false;
       const repeat = this.getRepeat(expr);
       const order = this.getOrder(expr);
-      const allProperties: IPlannerProgramProperty[] = [];
       const text = this.getValueTrim(expr).trim();
+      let progress: IPlannerProgramProgress | undefined;
+      let update: IPlannerProgramUpdate | undefined;
       let tags: number[] = [];
       for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode, { id: exercise.id, equipment });
         if (section.type === "sets") {
           allSets.push(...section.data);
           if (section.data.some((set) => set.repRange != null)) {
-            setVariations.push({ sets: section.data, isCurrent: section.isCurrent });
+            setVariations.push({ sets: section.data, expandedSets: [], isCurrent: section.isCurrent });
           }
         } else if (section.type === "warmup") {
           allWarmupSets = allWarmupSets || [];
           allWarmupSets.push(...section.data);
         } else if (section.type === "progress") {
-          allProperties.push(section.data);
+          progress = section.data;
         } else if (section.type === "update") {
-          allProperties.push(section.data);
+          update = section.data;
         } else if (section.type === "reuse") {
           reuse = section.data;
         } else if (section.type === "id") {
-          tags = tags.concat(section.data.fnArgs.map((t) => parseInt(t, 10))).filter((t) => !isNaN(t));
+          tags = section.data;
         } else if (section.type === "used") {
           notused = true;
         } else {
@@ -878,7 +893,6 @@ export class PlannerExerciseEvaluator {
       }
       const rpe = allSets.find((set) => set.repRange == null && set.rpe != null)?.rpe;
       const timer = allSets.find((set) => set.repRange == null && set.timer != null)?.timer;
-      const percentage = allSets.find((set) => set.repRange == null && set.percentage != null)?.percentage;
       const weight = allSets.find((set) => set.repRange == null && set.weight != null)?.weight;
       const logRpe = allSets.find((set) => set.repRange == null && set.logRpe != null)?.logRpe;
       const askWeight = allSets.find((set) => set.repRange == null && set.askWeight != null)?.askWeight;
@@ -949,19 +963,17 @@ export class PlannerExerciseEvaluator {
         line,
         tags,
         notused: notused,
-        sets: allSets,
         setVariations,
         descriptions,
         warmupSets: allWarmupSets,
-        properties: allProperties,
+        progress,
+        update,
         reuse,
-        skipProgress: [],
         globals: {
           rpe,
           logRpe,
           askWeight,
           timer,
-          percentage,
           weight,
         },
         points: {

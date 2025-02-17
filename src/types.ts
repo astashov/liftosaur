@@ -1121,3 +1121,8 @@ export type IDayData = {
   day: number;
   dayInWeek?: number;
 };
+
+export type IWeekAndDay = {
+  week?: number;
+  dayInWeek?: number;
+};

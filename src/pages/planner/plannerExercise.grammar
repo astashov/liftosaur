@@ -1,5 +1,10 @@
 @top Program { expression* }
 
+@precedence {
+  range @left,
+  negative @left
+}
+
 expression { LineComment | TripleLineComment | Week | Day | ExerciseExpression | EmptyExpression }
 
 ExerciseExpression { ExerciseName Repeat? (SectionSeparator ExerciseSection?)* linebreakOrEof }
@@ -20,7 +25,7 @@ ExercisePropertyName { Keyword }
 None { @specialize<Keyword, "none"> }
 CurrentVariation { "!" }
 WeekDay { "[" WeekOrDay (":" WeekOrDay)? "]" }
-WeekOrDay { (Int | Current) }
+WeekOrDay { (Int | Wildcard) }
 Repeat { "[" (Rep | RepRange) ("," (Rep | RepRange))* "]" }
 
 FunctionExpression { 
@@ -28,18 +33,18 @@ FunctionExpression {
   ("(" FunctionArgument? ("," FunctionArgument)* ")")?
   (Liftoscript | ReuseLiftoscript)?
 }
-ReuseLiftoscript { "{" ReuseSection "}" }
+ReuseLiftoscript { "{" ReuseSectionWithWeekDay "}" }
 FunctionName { Keyword }
 FunctionArgument { Number | Weight | Percentage | Rpe | RepRange | KeyValue }
 
 PosNumber { Float | Int }
 Number { (Plus | "-")? PosNumber }
-RepRange { Rep "-" Rep }
+RepRange { Rep !range "-" Rep }
 Rep { Int }
 
 Rpe { "@" (PosNumber | Plus | PosNumber Plus?) }
-Percentage { PosNumber "%" }
-Weight { PosNumber ("kg" | "lb") }
+Percentage { !negative "-"? PosNumber "%" }
+Weight { !negative "-"? PosNumber ("kg" | "lb") }
 Timer { Int "s" }
 SetPart { Rep Plus? "x" (RepRange | Rep) Plus? }
 KeyValue { Keyword Plus? ":" (Number | Weight | Percentage) Plus? }
@@ -61,6 +66,7 @@ WarmupSetPart { (Rep "x")? Rep }
   Week { "#" ![\n]* linebreakOrEof }
   Day { "##" ![\n]* linebreakOrEof }
   Current { "_" }
+  Wildcard { "*" }
   space { $[ \t]+ }
   SectionSeparator { "/" }
   linebreakOrEof { linebreak | @eof }

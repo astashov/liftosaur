@@ -1,5 +1,5 @@
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
-import { IPlannerProgramExercise, IPlannerProgramProperty } from "../pages/planner/models/types";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import {
   IPlannerProgram,
   IProgram,

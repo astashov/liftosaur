@@ -1,6 +1,6 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IExerciseType } from "../../../types";
+import { IExerciseType, IPercentage } from "../../../types";
 import { IPlannerSyntaxPointer } from "../plannerExerciseEvaluator";
 import { SyntaxNode } from "@lezer/common";
 import {
@@ -21,8 +21,7 @@ export interface IPlannerProgramExerciseGlobals {
   logRpe?: boolean;
   rpe?: number;
   timer?: number;
-  percentage?: number;
-  weight?: IWeight;
+  weight?: IWeight | IPercentage;
   askWeight?: boolean;
 }
 
@@ -42,12 +41,11 @@ export type IPlannerProgramExercise = {
   line: number;
   reuse?: IPlannerProgramReuse;
   notused?: boolean;
-  sets: IPlannerProgramExerciseSet[];
   setVariations: IPlannerProgramExerciseSetVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
-  skipProgress: { week: number; day: number }[];
   descriptions: IPlannerProgramExerciseDescription[];
-  properties: IPlannerProgramProperty[];
+  progress?: IPlannerProgramProgress;
+  update?: IPlannerProgramUpdate;
   globals: IPlannerProgramExerciseGlobals;
   points: {
     fullName: IPlannerSyntaxPointer;
@@ -61,7 +59,19 @@ export type IPlannerProgramExercise = {
 
 export interface IPlannerProgramExerciseSetVariation {
   sets: IPlannerProgramExerciseSet[];
+  expandedSets: IPlannerProgramExerciseSetExpanded[];
   isCurrent: boolean;
+}
+
+export interface IPlannerProgramExerciseSetExpanded {
+  minrep?: number;
+  maxrep?: number;
+  isAmrap: boolean;
+  timer?: number;
+  rpe?: number;
+  logRpe: boolean;
+  weight?: IWeight | IPercentage;
+  label?: string;
 }
 
 export interface IPlannerProgramExerciseSet {
@@ -69,8 +79,7 @@ export interface IPlannerProgramExerciseSet {
   timer?: number;
   rpe?: number;
   logRpe?: boolean;
-  percentage?: number;
-  weight?: IWeight;
+  weight?: IWeight | IPercentage;
   label?: string;
   askWeight?: boolean;
 }
@@ -79,8 +88,7 @@ export interface IPlannerProgramExerciseWarmupSet {
   type: "warmup";
   numberOfSets: number;
   reps: number;
-  percentage?: number;
-  weight?: IWeight;
+  weight?: IWeight | IPercentage;
 }
 
 export interface IPlannerProgramReuse {
@@ -93,18 +101,49 @@ export interface IPlannerProgramReuse {
   exerciseDay?: number;
 }
 
-export interface IPlannerProgramProperty {
+export interface IPlannerStateVariable {
   name: string;
-  fnName: string;
-  fnArgs: string[];
-  script?: string;
-  body?: string;
-  reuse?: IPlannerProgramProperty;
-  liftoscriptNode?: SyntaxNode;
-  meta?: {
-    stateKeys?: Set<string>;
-  };
+  value: IWeight | IPercentage | number;
+  isPrompt: boolean;
 }
+
+export type IPlannerProgramUpdate = {
+  type: "custom";
+  stateKeys: string[];
+  liftoscriptNode?: SyntaxNode;
+  script?: string;
+  reuse?: IPlannerProgramReuse;
+};
+
+export type IPlannerProgramState = [string, IWeight | IPercentage | number][];
+
+export type IPlannerProgramProgress =
+  | {
+      type: "custom";
+      state: IPlannerProgramState;
+      script?: string;
+      reuse?: IPlannerProgramReuse;
+      liftoscriptNode?: SyntaxNode;
+    }
+  | {
+      type: "lp";
+      increment: IWeight;
+      successes: number;
+      successCounter: number;
+      decrement: IWeight;
+      failures: number;
+      failureCounter: number;
+      liftoscriptNode?: SyntaxNode;
+    }
+  | {
+      type: "dp";
+      increment: IWeight;
+      minReps: number;
+      maxReps: number;
+      liftoscriptNode?: SyntaxNode;
+    }
+  | { type: "sum"; increment: IWeight; reps: number; liftoscriptNode?: SyntaxNode }
+  | { type: "none" };
 
 export interface IPlannerProgramExerciseRepRange {
   numberOfSets: number;

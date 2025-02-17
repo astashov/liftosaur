@@ -4,6 +4,13 @@ import { CollectionUtils } from "./collection";
 
 /* eslint-disable @typescript-eslint/ban-types */
 export namespace ObjectUtils {
+  export function fromPairs<T extends string | number | symbol, U>(pairs: Array<[T, U]>): Record<T, U> {
+    return pairs.reduce<Record<T, U>>((memo, [key, value]) => {
+      memo[key] = value;
+      return memo;
+    }, {} as Record<T, U>);
+  }
+
   export function keys<T extends {}>(obj: T): Array<keyof T> {
     return Object.keys(obj) as Array<keyof T>;
   }

@@ -1,4 +1,4 @@
-import { IPlannerProgramExerciseWarmupSet, IPlannerProgramProperty, IExportedPlannerProgram } from "./types";
+import { IPlannerProgramExerciseWarmupSet, IExportedPlannerProgram } from "./types";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import {
   IPlannerEvalFullResult,
@@ -32,7 +32,6 @@ import { IEither } from "../../../utils/types";
 import { UidFactory } from "../../../utils/generator";
 import { getLatestMigrationVersion } from "../../../migrations/migrations";
 
-export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
 
 export class PlannerDayDataError extends Error {

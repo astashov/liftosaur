@@ -2,6 +2,7 @@ import {
   IPlannerProgramExercise,
   IPlannerProgramExerciseGlobals,
   IPlannerProgramExerciseSet,
+  IPlannerProgramExerciseSetExpanded,
   IPlannerProgramExerciseSetVariation,
   IPlannerProgramExerciseWarmupSet,
 } from "./types";
@@ -58,12 +59,51 @@ export class PlannerProgramExercise {
   public static setVariations(exercise: IPlannerProgramExercise): IPlannerProgramExerciseSetVariation[] {
     const setVariations = exercise.setVariations;
     return setVariations.length === 0
-      ? [{ sets: PlannerProgramExercise.sets(exercise), isCurrent: true }]
+      ? [{ sets: PlannerProgramExercise.sets(exercise), expandedSets: [], isCurrent: true }]
       : setVariations;
   }
 
   public static warmups(exercise: IPlannerProgramExercise): IPlannerProgramExerciseWarmupSet[] | undefined {
     return exercise.warmupSets || exercise.reuse?.exercise?.warmupSets;
+  }
+
+  public static getExpandedSets(
+    exercise: IPlannerProgramExercise,
+    variationIndex?: number
+  ): IPlannerProgramExerciseSetExpanded[] {
+    const reusedSets = exercise.reuse?.exercise?.sets;
+    const reusedGlobals = exercise.reuse?.exercise?.globals || {};
+    variationIndex = variationIndex ?? this.currentSetVariationIndex(exercise);
+    const currentSets = exercise.setVariations[variationIndex]?.sets;
+    const currentGlobals = exercise.globals;
+    const sets = currentSets || reusedSets || [];
+    const expandedSets: IPlannerProgramExerciseSetExpanded[] = [];
+    for (const set of sets) {
+      const rpe = currentGlobals.rpe != null ? currentGlobals.rpe : set.rpe ?? reusedGlobals.rpe;
+      const timer = currentGlobals.timer != null ? currentGlobals.timer : set.timer ?? reusedGlobals.timer;
+      let weight: IWeight | IPercentage | undefined;
+      if (currentGlobals.weight != null) {
+        weight = currentGlobals.weight;
+      } else {
+        weight = set.weight ?? reusedGlobals.weight;
+      }
+
+      set.logRpe = !!(currentGlobals.rpe != null && currentGlobals.logRpe != null
+        ? currentGlobals.logRpe
+        : set.logRpe ?? reusedGlobals.logRpe);
+      for (let i = 0; i < (set.repRange?.numberOfSets || 0); i++) {
+        expandedSets.push({
+          minrep: set.repRange?.minrep,
+          maxrep: set.repRange?.maxrep,
+          isAmrap: set.repRange?.isAmrap || false,
+          timer,
+          rpe,
+          weight,
+          label: set.label,
+        });
+      }
+    }
+    return expandedSets;
   }
 
   public static sets(exercise: IPlannerProgramExercise, variationIndex?: number): IPlannerProgramExerciseSet[] {
