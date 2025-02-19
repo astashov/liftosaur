@@ -41,7 +41,6 @@ import { StringUtils } from "../utils/string";
 import { ILiftoscriptVariableValue, ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { ProgramToPlanner } from "./programToPlanner";
 import { MathUtils } from "../utils/math";
-import { PlannerToProgram } from "./plannerToProgram";
 import { IPlannerState, IExportedPlannerProgram } from "../pages/planner/models/types";
 import { PlannerKey } from "../pages/planner/plannerKey";
 import memoize from "micro-memoize";
@@ -81,33 +80,7 @@ export namespace Program {
 
   export const fullProgram = memoize(
     (program: IProgram, settings: ISettings): IProgram => {
-      if (program.planner != null) {
-        try {
-          const newProgram = new PlannerToProgram(
-            program,
-            program.nextDay,
-            program.planner,
-            settings
-          ).convertToProgram();
-          return {
-            ...newProgram,
-            url: program.url,
-            author: program.author,
-            tags: program.tags,
-            description: program.description,
-          };
-        } catch (error) {
-          const e = error as Error;
-          if (typeof window !== "undefined" && window.alert != null) {
-            window.alert(
-              `There's an error executing your program code. Go to 'Program' in the footer to fix it.\n\n${e.message}`
-            );
-          }
-          return program;
-        }
-      } else {
-        return program;
-      }
+      return program;
     },
     { maxSize: 10 }
   );
@@ -967,8 +940,7 @@ export namespace Program {
         if (retry) {
           throw e;
         }
-        const reProgram = new PlannerToProgram(program, program.nextDay, planner, settings).convertToProgram();
-        return runAllFinishDayScripts(reProgram, progress, settings, staticStates, true);
+        return runAllFinishDayScripts(program, progress, settings, staticStates, true);
       }
     }
 
