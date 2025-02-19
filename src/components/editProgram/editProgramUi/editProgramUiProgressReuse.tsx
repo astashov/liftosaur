@@ -35,7 +35,7 @@ function getProgressReuseCandidates(fullname: string, evaluatedWeeks: IPlannerEv
 export function EditProgramUiProgressReuse(props: IEditProgramUiProgressReuseProps): JSX.Element {
   const plannerExercise = props.plannerExercise;
   const progress = plannerExercise.properties.find((p) => p.name === "progress");
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const reuseCandidates = getProgressReuseCandidates(plannerExercise.fullName, props.evaluatedWeeks);
 
   return (

@@ -84,7 +84,7 @@ export namespace Program {
       if (program.planner != null) {
         try {
           const newProgram = new PlannerToProgram(
-            program.id,
+            program,
             program.nextDay,
             program.planner,
             settings
@@ -967,7 +967,7 @@ export namespace Program {
         if (retry) {
           throw e;
         }
-        const reProgram = new PlannerToProgram(program.id, program.nextDay, planner, settings).convertToProgram();
+        const reProgram = new PlannerToProgram(program, program.nextDay, planner, settings).convertToProgram();
         return runAllFinishDayScripts(reProgram, progress, settings, staticStates, true);
       }
     }

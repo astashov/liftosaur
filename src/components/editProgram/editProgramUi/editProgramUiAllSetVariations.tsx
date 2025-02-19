@@ -22,7 +22,7 @@ export function EditProgramUiAllSetVariations(props: IEditProgramUiAllSetVariati
     plannerExercise.setVariations.length === 0
       ? plannerExercise.reuse?.exercise?.setVariations ?? []
       : plannerExercise.setVariations;
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const reuse = plannerExercise.reuse;
   let currentSetVariation = plannerExercise.setVariations.findIndex((v) => v.isCurrent) + 1;
   if (currentSetVariation === 0) {

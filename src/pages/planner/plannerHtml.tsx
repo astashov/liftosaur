@@ -1,13 +1,13 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
 import { PlannerContent } from "./plannerContent";
-import { IExportedPlannerProgram } from "./models/types";
 import { IAccount } from "../../models/account";
 import { IPartialStorage } from "../../types";
 import { HtmlUtils } from "../../utils/html";
+import { IExportedProgram } from "../../models/program";
 
 interface IProps {
-  initialProgram?: IExportedPlannerProgram;
+  initialProgram?: IExportedProgram;
   account?: IAccount;
   partialStorage?: IPartialStorage;
   client: Window["fetch"];

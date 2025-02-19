@@ -35,7 +35,7 @@ interface IEditProgramUiSetVariationProps {
 export function EditProgramUiSetVariation(props: IEditProgramUiSetVariationProps): JSX.Element {
   const plannerExercise = props.plannerExercise;
   const sets = PlannerProgramExercise.sets(plannerExercise, props.index);
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
 
   function modify(cb: (ex: IPlannerProgramExercise) => void): void {
     if (props.disabled) {

@@ -1,6 +1,6 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IExerciseType } from "../../../types";
+import { IExerciseType, IProgram } from "../../../types";
 import { IPlannerSyntaxPointer } from "../plannerExerciseEvaluator";
 import { SyntaxNode } from "@lezer/common";
 import {
@@ -156,7 +156,7 @@ export interface IPlannerFullText {
   currentLine?: number;
 }
 
-export interface IPlannerState extends IUndoRedoState<{ program: IPlannerProgram }> {
+export interface IPlannerState extends IUndoRedoState<{ program: IProgram }> {
   id: string;
   ui: IPlannerUi;
   fulltext?: IPlannerFullText;

@@ -24,7 +24,7 @@ export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps):
   if (!evaluatedDay?.success) {
     return <div />;
   }
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
 
   return (
     <div className="w-full">

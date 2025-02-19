@@ -31,7 +31,7 @@ interface IPlannerWeekProps {
 }
 
 export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const showProgramDescription = props.week.description != null;
   return (
     <div key={props.weekIndex} className="flex flex-col md:flex-row">

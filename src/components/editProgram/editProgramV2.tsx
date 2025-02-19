@@ -20,7 +20,6 @@ import { EditProgramV2PerDay } from "./editProgramV2PerDay";
 import { ILensRecordingPayload, lb } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { EditProgramV2Full } from "./editProgramV2Full";
-import { PlannerToProgram } from "../../models/plannerToProgram";
 import { CollectionUtils } from "../../utils/collection";
 import { ProgramPreviewOrPlayground } from "../programPreviewOrPlayground";
 import { Modal } from "../modal";
@@ -90,6 +89,8 @@ export function EditProgramV2(props: IProps): JSX.Element {
   const [shouldShowGenerateImageModal, setShouldShowGenerateImageModal] = useState<boolean>(false);
   const [isLoadingRevisions, setIsLoadingRevisions] = useState<boolean>(false);
   const [showRevisions, setShowRevisions] = useState<boolean>(false);
+  const planner = plannerState.current.program.planner!;
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
 
   return (
     <Surface
@@ -152,7 +153,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
           {shouldShowGenerateImageModal && (
             <ModalPlannerPictureExport
               settings={props.settings}
-              program={plannerState.current.program}
+              program={planner}
               onClose={() => {
                 setShouldShowGenerateImageModal(false);
               }}
@@ -167,12 +168,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
             >
               <GroupHeader size="large" name="Program Preview" />
               <ProgramPreviewOrPlayground
-                program={new PlannerToProgram(
-                  props.editProgram.id,
-                  props.editProgram.nextDay,
-                  plannerState.current.program,
-                  props.settings
-                ).convertToProgram()}
+                program={plannerState.current.program}
                 isMobile={true}
                 hasNavbar={false}
                 settings={props.settings}
@@ -233,7 +229,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
                             : ""
                         }`;
                         const newPlannerProgram = EditProgramUiHelpers.changeCurrentInstance(
-                          plannerState.current.program,
+                          planner,
                           { week: focusedExercise.weekIndex + 1, dayInWeek: focusedExercise.dayIndex + 1, day: 1 },
                           modalExerciseUi.fullName,
                           props.settings,
@@ -241,32 +237,30 @@ export function EditProgramV2(props: IProps): JSX.Element {
                             e.fullName = `${e.label ? `${e.label}: ` : ""}${newShortName}`;
                           }
                         );
-                        plannerDispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
+                        plannerDispatch([lbProgram.record(newPlannerProgram)]);
                       }
                     } else if (modalExerciseUi.change === "duplicate") {
                       const focusedExercise = modalExerciseUi.focusedExercise;
                       const exercise = Exercise.find(exerciseType, props.settings.exercises);
                       if (exercise && modalExerciseUi.fullName) {
                         const newPlannerProgram = EditProgramUiHelpers.duplicateCurrentInstance(
-                          plannerState.current.program,
+                          planner,
                           { week: focusedExercise.weekIndex + 1, dayInWeek: focusedExercise.dayIndex + 1, day: 1 },
                           modalExerciseUi.fullName,
                           exerciseType,
                           props.settings
                         );
-                        plannerDispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
+                        plannerDispatch([lbProgram.record(newPlannerProgram)]);
                       }
                     } else {
                       const newPlannerProgramResult = PlannerProgram.replaceExercise(
-                        plannerState.current.program,
+                        planner,
                         modalExerciseUi.exerciseKey,
                         exerciseType,
                         props.settings
                       );
                       if (newPlannerProgramResult.success) {
-                        plannerDispatch([
-                          lb<IPlannerState>().p("current").p("program").record(newPlannerProgramResult.data),
-                        ]);
+                        plannerDispatch([lbProgram.record(newPlannerProgramResult.data)]);
                       } else {
                         alert(newPlannerProgramResult.error);
                       }
@@ -291,9 +285,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
                             lines.splice(line, 0, exercise.name);
                             return lines.join("\n");
                           })
-                      : lb<IPlannerState>()
-                          .p("current")
-                          .p("program")
+                      : lbProgram
                           .p("weeks")
                           .i(modalExerciseUi.focusedExercise.weekIndex)
                           .p("days")
@@ -368,15 +360,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
                 if (name && modal != null) {
                   if (modal.dayIndex != null) {
                     plannerDispatch(
-                      lb<IPlannerState>()
-                        .p("current")
-                        .p("program")
-                        .p("weeks")
-                        .i(modal.weekIndex)
-                        .p("days")
-                        .i(modal.dayIndex)
-                        .p("name")
-                        .record(name)
+                      lbProgram.p("weeks").i(modal.weekIndex).p("days").i(modal.dayIndex).p("name").record(name)
                     );
                   } else {
                     plannerDispatch(
@@ -387,7 +371,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
                 plannerDispatch(lb<IPlannerState>().p("ui").p("editWeekDayModal").record(undefined));
               }}
               onClose={() => plannerDispatch(lb<IPlannerState>().p("ui").p("editWeekDayModal").record(undefined))}
-              plannerProgram={plannerState.current.program}
+              plannerProgram={planner}
               weekIndex={plannerState.ui.editWeekDayModal.weekIndex}
               dayIndex={plannerState.ui.editWeekDayModal.dayIndex}
             />
@@ -401,10 +385,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
               onRestore={(text) => {
                 window.isUndoing = true;
                 const weeks = PlannerProgram.evaluateText(text);
-                plannerDispatch(
-                  lb<IPlannerState>().p("current").p("program").p("weeks").record(weeks),
-                  "stop-is-undoing"
-                );
+                plannerDispatch(lbProgram.p("weeks").record(weeks), "stop-is-undoing");
                 setShowRevisions(false);
               }}
             />
@@ -493,7 +474,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
         <div ref={programEditorRef}>
           {props.plannerState.fulltext != null ? (
             <EditProgramV2Full
-              plannerProgram={plannerState.current.program}
+              plannerProgram={planner}
               ui={plannerState.ui}
               lbUi={lb<IPlannerState>().pi("ui")}
               fulltext={props.plannerState.fulltext}
@@ -503,14 +484,14 @@ export function EditProgramV2(props: IProps): JSX.Element {
           ) : (
             <EditProgramV2PerDay
               state={plannerState}
-              plannerProgram={plannerState.current.program}
+              plannerProgram={planner}
               ui={plannerState.ui}
               settings={props.settings}
               plannerDispatch={plannerDispatch}
               onSave={() => {
                 const newProgram: IProgram = {
                   ...Program.cleanPlannerProgram(props.editProgram),
-                  planner: props.plannerState.current.program,
+                  planner: planner,
                 };
                 updateState(props.dispatch, [
                   lb<IState>()

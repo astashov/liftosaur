@@ -50,7 +50,7 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
   const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
   const progress = plannerExercise.properties.find((p) => p.name === "progress");
   const update = plannerExercise.properties.find((p) => p.name === "update");
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
 
   return (
     <div

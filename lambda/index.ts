@@ -45,7 +45,6 @@ import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
-import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { ExceptionDao } from "./dao/exceptionDao";
 import { UrlUtils } from "../src/utils/url";
 import { RollbarUtils } from "../src/utils/rollbar";
@@ -1174,7 +1173,7 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   match: { params },
 }) => {
   const { di } = payload;
-  let initialProgram: IExportedPlannerProgram | undefined;
+  let initialProgram: IExportedProgram | undefined;
   const data = params.data;
   if (data) {
     try {

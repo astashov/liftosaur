@@ -21,7 +21,7 @@ interface IEditProgramUiGlobalsProps {
 export function EditProgramUiGlobals(props: IEditProgramUiGlobalsProps): JSX.Element {
   const plannerExercise = props.plannerExercise;
   const globals = plannerExercise.globals;
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
 
   function modify(cb: (ex: IPlannerProgramExercise) => void): void {
     props.plannerDispatch(
