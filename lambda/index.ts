@@ -9,7 +9,7 @@ import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import { Utils } from "./utils";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IPartialStorage, IStorage } from "../src/types";
+import { IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -30,7 +30,6 @@ import { Subscriptions } from "./utils/subscriptions";
 import { NodeEncoder } from "./utils/nodeEncoder";
 import { renderProgramHtml } from "./program";
 import { IExportedProgram, Program } from "../src/models/program";
-import { Storage } from "../src/models/storage";
 import { ImportExporter } from "../src/lib/importexporter";
 import { UrlDao } from "./dao/urlDao";
 import { AffiliateDao } from "./dao/affiliateDao";
@@ -47,7 +46,6 @@ import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
-import { PlannerReformatter } from "./utils/plannerReformatter";
 import { ExceptionDao } from "./dao/exceptionDao";
 import { UrlUtils } from "../src/utils/url";
 import { RollbarUtils } from "../src/utils/rollbar";
@@ -370,94 +368,6 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   }
   return ResponseUtils.json(200, event, { key });
 };
-
-const saveDebugStorageEndpoint = Endpoint.build("/api/debugstorage");
-const saveDebugStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof saveDebugStorageEndpoint> = async ({
-  payload,
-}) => {
-  const { event, di } = payload;
-  const userid = await getCurrentUserId(event, di);
-  if (userid != null) {
-    const bodyJson = getBodyJson(event);
-    const { oldStorage, newStorage, mergedStorage, prefix } = bodyJson;
-    const exceptionDao = new ExceptionDao(di);
-    await exceptionDao.storeStorages(prefix, userid, oldStorage, newStorage, mergedStorage);
-  }
-  return ResponseUtils.json(200, event, {});
-};
-
-const pingEndpoint = Endpoint.build("/api/ping/:originalid");
-const pingHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pingEndpoint> = async ({ payload, match }) => {
-  const { event, di } = payload;
-  const user = await getCurrentLimitedUser(event, di);
-  const originalid = parseInt(match.params.originalid, 10);
-  if (user?.storage.originalId != null && user.storage.id !== originalid) {
-    return ResponseUtils.json(200, event, { status: "stale" });
-  }
-  return ResponseUtils.json(200, event, { status: "ok" });
-};
-
-const saveStorageEndpoint = Endpoint.build("/api/storage");
-const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof saveStorageEndpoint> = async ({
-  payload,
-}) => {
-  const { event, di } = payload;
-  const user = await getCurrentLimitedUser(event, di);
-  if (user != null) {
-    const bodyJson = getBodyJson(event);
-    const fields: string[] | undefined = bodyJson.fields;
-    const storage: IPartialStorage | IStorage = bodyJson.storage;
-    const userDao = new UserDao(di);
-    di.log.log(
-      `IDS: storage.id: ${storage.id}, storage.originalId: ${storage.originalId}, user.storage.id: ${user.storage.id}, user.storage.originalId: ${user.storage.originalId}`
-    );
-
-    if (storage.originalId == null || user.storage.originalId == null || user.storage.id === storage.originalId) {
-      di.log.log("Appendable safe update");
-      Storage.updateIds(storage);
-      await userDao.saveStorage(user, storage);
-      return ResponseUtils.json(200, event, { status: "success", newOriginalId: storage.originalId });
-    } else {
-      di.log.log("Dangerous update, merging");
-      if (storage.programs == null || storage.history == null || storage.stats == null) {
-        di.log.log("Requesting full storage");
-        return ResponseUtils.json(200, event, { status: "request", data: ["programs", "stats", "history"] });
-      } else if (Storage.isFullStorage(storage)) {
-        di.log.log("Merging the storages");
-        const fullUser = await userDao.getById(user.id);
-        if (fullUser != null) {
-          const aStorage = await runMigrations(di.fetch, fullUser.storage);
-          const bStorage = await runMigrations(di.fetch, storage);
-          const oldStorage = (aStorage.id || 0) < (bStorage.id || 0) ? aStorage : bStorage;
-          const newStorage = (aStorage.id || 0) < (bStorage.id || 0) ? bStorage : aStorage;
-          const mergedStorage = Storage.mergeStorage(oldStorage, newStorage, false, fields);
-
-          const exceptionDao = new ExceptionDao(di);
-          await exceptionDao.storeStorages("Merge on lambda", user.id, oldStorage, newStorage, mergedStorage);
-
-          Storage.updateIds(mergedStorage);
-          await userDao.saveStorage(fullUser, mergedStorage);
-          return ResponseUtils.json(200, event, { status: "merged", storage: mergedStorage });
-        } else {
-          throw new Error(`Can't find user ${user.id}`);
-        }
-      } else {
-        throw new Error(`Accepted storage wasn't a full storage for user ${user.id}`);
-      }
-    }
-  }
-  return ResponseUtils.json(200, event, {});
-};
-
-// function printHistoryRecord(historyRecord: IHistoryRecord): string {
-//   return (
-//     historyRecord.entries
-//       .map((entry) => {
-//         return `${entry.exercise.id} - ${entry.sets.map((s) => s.completedReps).join("/")}`;
-//       })
-//       .join("\n") + "\n"
-//   );
-// }
 
 const saveDebugEndpoint = Endpoint.build("/api/debug");
 const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof saveDebugEndpoint> = async ({
@@ -1258,40 +1168,6 @@ const getProgramDetailsHandler: RouteHandler<
   }
 };
 
-const postPlannerReformatterEndpoint = Endpoint.build("/api/plannerreformatter");
-const postPlannerReformatterHandler: RouteHandler<
-  IPayload,
-  APIGatewayProxyResult,
-  typeof postPlannerReformatterEndpoint
-> = async ({ payload }) => {
-  const { event, di } = payload;
-  const { prompt } = getBodyJson(event);
-  const plannerReformatter = new PlannerReformatter(di);
-  const result = await plannerReformatter.generate(prompt);
-  if (result.success) {
-    return ResponseUtils.json(200, event, { data: result.data });
-  } else {
-    return ResponseUtils.json(400, event, { error: result.error });
-  }
-};
-
-const postPlannerReformatterFullEndpoint = Endpoint.build("/api/plannerreformatterfull");
-const postPlannerReformatterFullHandler: RouteHandler<
-  IPayload,
-  APIGatewayProxyResult,
-  typeof postPlannerReformatterEndpoint
-> = async ({ payload }) => {
-  const { event, di } = payload;
-  const { prompt } = getBodyJson(event);
-  const plannerReformatter = new PlannerReformatter(di);
-  const result = await plannerReformatter.generateFull(prompt);
-  if (result.success) {
-    return ResponseUtils.json(200, event, { data: result.data });
-  } else {
-    return ResponseUtils.json(400, event, { error: result.error });
-  }
-};
-
 const getPlannerEndpoint = Endpoint.build("/planner", { data: "string?" });
 const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getPlannerEndpoint> = async ({
   payload,
@@ -1470,42 +1346,6 @@ const getExerciseHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
       headers: { "content-type": "text/html" },
     };
   }
-};
-
-const postUserPlannerProgramEndpoint = Endpoint.build("/api/userplannerprogram");
-const postUserPlannerProgramHandler: RouteHandler<
-  IPayload,
-  APIGatewayProxyResult,
-  typeof postUserPlannerProgramEndpoint
-> = async ({ payload }) => {
-  const { event, di } = payload;
-  const currentUserId = await getCurrentUserId(event, di);
-  if (currentUserId == null) {
-    return ResponseUtils.json(401, event, { error: "not_authorized" });
-  }
-  const userDao = new UserDao(di);
-  const user = await userDao.getLimitedById(currentUserId);
-  if (user == null) {
-    return ResponseUtils.json(404, event, { error: "not_found" });
-  }
-  const bodyJson = getBodyJson(event);
-  const exportedPlannerProgram: IExportedPlannerProgram = bodyJson.program;
-  user.storage.settings = {
-    ...user.storage.settings,
-    exercises: {
-      ...user.storage.settings.exercises,
-      ...exportedPlannerProgram.settings.exercises,
-    },
-  };
-  const program = {
-    ...Program.create(exportedPlannerProgram.program.name, exportedPlannerProgram.id),
-    planner: exportedPlannerProgram.program,
-  };
-
-  await userDao.store(user);
-  await userDao.saveProgram(user.id, program);
-
-  return ResponseUtils.json(200, event, { id: program.id });
 };
 
 const getProgramRevisionsEndpoint = Endpoint.build("/api/programrevisions/:programid");
@@ -2024,9 +1864,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getPlanShorturlResponseEndpoint, getPlanShorturlResponseHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .get(getLoginEndpoint, getLoginHandler)
-      .post(postPlannerReformatterEndpoint, postPlannerReformatterHandler)
       .post(postSaveProgramEndpoint, postSaveProgramHandler)
-      .post(postPlannerReformatterFullEndpoint, postPlannerReformatterFullHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
@@ -2046,8 +1884,6 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(appleLoginEndpoint, appleLoginHandler)
       .post(signoutEndpoint, signoutHandler)
       .get(getProgramsEndpoint, getProgramsHandler)
-      .post(saveStorageEndpoint, saveStorageHandler)
-      .post(saveDebugStorageEndpoint, saveDebugStorageHandler)
       .get(getHistoryRecordEndpoint, getHistoryRecordHandler)
       .get(getHistoryRecordImageEndpoint, getHistoryRecordImageHandler)
       .post(logEndpoint, logHandler)
@@ -2061,10 +1897,8 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(postCreateCouponEndpoint, postCreateCouponHandler)
       .post(postClaimCouponEndpoint, postClaimCouponHandler)
       .post(saveDebugEndpoint, saveDebugHandler)
-      .get(pingEndpoint, pingHandler)
       .delete(deleteAccountEndpoint, deleteAccountHandler)
       .delete(deleteProgramEndpoint, deleteProgramHandler)
-      .post(postUserPlannerProgramEndpoint, postUserPlannerProgramHandler)
       .get(getExerciseEndpoint, getExerciseHandler)
       .get(getAllExercisesEndpoint, getAllExercisesHandler)
       .get(getRepMaxEndpoint, getRepMaxHandler)

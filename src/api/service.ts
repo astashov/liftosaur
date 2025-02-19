@@ -1,5 +1,4 @@
-import { IExportedPlannerProgram } from "../pages/planner/models/types";
-import { IStorage, IHistoryRecord, ISettings, IProgram, IPartialStorage } from "../types";
+import { IStorage, IHistoryRecord, ISettings, IProgram } from "../types";
 import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
 import { IStorageUpdate } from "../utils/sync";
@@ -138,46 +137,6 @@ export class Service {
     });
   }
 
-  public async ping(originalId: number): Promise<boolean> {
-    try {
-      const result = await this.client(`${__API_HOST__}/api/ping/${originalId}`, {
-        method: "GET",
-        credentials: "include",
-      });
-      const json = await result.json();
-      return json.status === "stale";
-    } catch (e) {
-      return false;
-    }
-  }
-
-  public async saveDebugStorage(
-    prefix: string,
-    oldStorage: IStorage,
-    newStorage: IStorage,
-    mergedStorage: IStorage
-  ): Promise<void> {
-    try {
-      const result = await this.client(`${__API_HOST__}/api/debugstorage`, {
-        method: "POST",
-        body: JSON.stringify({ prefix, oldStorage, newStorage, mergedStorage }),
-        credentials: "include",
-      });
-      const json = await result.json();
-      return json;
-    } catch (e) {}
-  }
-
-  public async postStorage(storage: IPartialStorage, fields?: string[]): Promise<IPostStorageResponse> {
-    const result = await this.client(`${__API_HOST__}/api/storage`, {
-      method: "POST",
-      body: JSON.stringify({ storage, fields }),
-      credentials: "include",
-    });
-    const json = await result.json();
-    return json;
-  }
-
   public async getProgramRevisions(programId: string): Promise<IEither<string[], string>> {
     const result = await this.client(`${__API_HOST__}/api/programrevisions/${programId}`, {
       method: "GET",
@@ -253,17 +212,6 @@ export class Service {
     });
   }
 
-  public async postSaveUserProgram(program: IExportedPlannerProgram): Promise<{ id: string }> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/userplannerprogram`);
-    const response = await this.client(url.toString(), {
-      method: "POST",
-      body: JSON.stringify({ program }),
-      credentials: "include",
-    });
-    const json = await response.json();
-    return json;
-  }
-
   public async postSaveProgram(program: IExportedProgram): Promise<IEither<string, string>> {
     const url = UrlUtils.build(`${__API_HOST__}/api/program`);
     try {
@@ -303,28 +251,6 @@ export class Service {
       const e = error as Error;
       return { success: false, error: e.message };
     }
-  }
-
-  public async postPlannerReformatter(prompt: string): Promise<string> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/plannerreformatter`);
-    const result = await this.client(url.toString(), {
-      method: "POST",
-      body: JSON.stringify({ prompt }),
-      credentials: "include",
-    });
-    const json = await result.json();
-    return json.data;
-  }
-
-  public async postPlannerReformatterFull(prompt: string): Promise<string> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/plannerreformatterfull`);
-    const result = await this.client(url.toString(), {
-      method: "POST",
-      body: JSON.stringify({ prompt }),
-      credentials: "include",
-    });
-    const json = await result.json();
-    return json.data;
   }
 
   public async postClaimCoupon(code: string): Promise<IEither<{ key: string; expires: number }, IRedeemCouponError>> {
@@ -483,12 +409,5 @@ export class Service {
     return this.client(`${__API_HOST__}/api/programs`, { credentials: "include" })
       .then((response) => response.json())
       .then((json) => json.programs.map((p: { program: IProgram }) => p.program));
-  }
-
-  public record(user: string, id: string): Promise<{ data: IRecordResponse } | { error: string }> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/record`);
-    url.searchParams.set("user", user);
-    url.searchParams.set("id", id);
-    return this.client(url.toString(), { credentials: "include" }).then((response) => response.json());
   }
 }
