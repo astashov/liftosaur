@@ -6,7 +6,6 @@ import { FooterPage } from "../../components/footerPage";
 import { ProgramPreviewPlaygroundDay } from "../../components/preview/programPreviewPlaygroundDay";
 import { TopNavMenu } from "../../components/topNavMenu";
 import { IAccount } from "../../models/account";
-import { PlannerToProgram } from "../../models/plannerToProgram";
 import { Program } from "../../models/program";
 import { Settings } from "../../models/settings";
 import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, IProgram, ISettings } from "../../types";
@@ -706,9 +705,7 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
       }}
       onSettingsChange={(newSettings) => {
         setSettings(newSettings);
-        const newProgram = new PlannerToProgram(program, 1, planner, newSettings).convertToProgram();
-        setProgram(newProgram);
-        setProgress(Program.nextProgramRecord(newProgram, newSettings, 1, {}));
+        setProgress(Program.nextProgramRecord(program, newSettings, 1, {}));
       }}
       onFinish={() => {
         const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(program, progress, settings, {});

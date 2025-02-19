@@ -16,7 +16,6 @@ import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { PlannerKey } from "../pages/planner/plannerKey";
 import { PP } from "../models/pp";
 import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
-import { PlannerToProgram } from "../models/plannerToProgram";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 declare let Rollbar: RB;
 
@@ -619,16 +618,9 @@ export const migrations = {
 
         for (let i = 0; i < storage.programs.length; i += 1) {
           try {
-            let program = storage.programs[i];
+            const program = storage.programs[i];
             let plannerProgram = program.planner;
             if (plannerProgram) {
-              program = new PlannerToProgram(
-                program,
-                program.nextDay,
-                plannerProgram,
-                storage.settings
-              ).convertToProgram();
-
               for (const exerciseKey of ObjectUtils.keys(newCustom)) {
                 const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, storage.settings);
                 const keys: Set<string> = new Set();
