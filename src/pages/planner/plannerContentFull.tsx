@@ -37,6 +37,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
       lbu<IPlannerState, typeof lensGetters>(lensGetters)
         .p("current")
         .p("program")
+        .pi("planner")
         .p("weeks")
         .recordModify((oldWeeks, getters) => {
           const text = getters.fulltext?.text;

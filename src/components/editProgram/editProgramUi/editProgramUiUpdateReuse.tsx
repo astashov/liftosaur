@@ -35,7 +35,7 @@ function getUpdateReuseCandidates(fullname: string, evaluatedWeeks: IPlannerEval
 export function EditProgramUiUpdateReuse(props: IEditProgramUiUpdateReuseProps): JSX.Element {
   const plannerExercise = props.plannerExercise;
   const update = plannerExercise.properties.find((p) => p.name === "update");
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const reuseCandidates = getUpdateReuseCandidates(plannerExercise.fullName, props.evaluatedWeeks);
 
   return (

@@ -105,7 +105,7 @@ export namespace Screen {
     if (editProgramV2) {
       let editProgram = Program.getEditingProgram(state);
       editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
-      if (editProgram?.planner && !ObjectUtils.isEqual(editProgram.planner, editProgramV2.current.program)) {
+      if (editProgram?.planner && !ObjectUtils.isEqual(editProgram.planner, editProgramV2.current.program.planner!)) {
         return "Are you sure? Your changes won't be saved";
       }
     }

@@ -30,7 +30,7 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
   const reuseWarmups = plannerExercise.reuse?.exercise?.warmupSets;
   const exercise = Exercise.findByName(plannerExercise.name, props.settings.exercises);
   const defaultWarmups = exercise ? PlannerProgramExercise.defaultWarmups(exercise, props.settings) : [];
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
 
   return (
     <div>

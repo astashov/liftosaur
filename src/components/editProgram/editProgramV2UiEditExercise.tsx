@@ -49,7 +49,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
   const repeatStr = PlannerProgramExercise.repeatToRangeStr(plannerExercise);
   const order = plannerExercise.order !== 0 ? plannerExercise.order : undefined;
   const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
 
   const [showMenu, setShowMenu] = useState(false);
   const [showLabel, setShowLabel] = useState(!!plannerExercise.label);

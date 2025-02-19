@@ -130,7 +130,7 @@ export namespace EditProgram {
   export function initPlannerState(id: string, plannerProgram: IPlannerProgram, focusedDay?: IDayData): IPlannerState {
     return {
       id,
-      current: { program: plannerProgram },
+      current: { program: { ...Program.create(plannerProgram.name, id), planner: plannerProgram } },
       ui: { weekIndex: 0, focusedDay, isUiMode: true, exerciseUi: { edit: new Set(), collapsed: new Set() } },
       history: { past: [], future: [] },
     };

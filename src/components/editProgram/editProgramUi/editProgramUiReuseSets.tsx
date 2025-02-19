@@ -53,7 +53,7 @@ export function EditProgramUiReuseSets(props: IEditProgramUiReuseSetsProps): JSX
   const plannerExercise = props.plannerExercise;
   const reuse = plannerExercise.reuse;
   const reuseFullName = reuse?.fullName;
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const reuseCandidates = getReuseSetsCandidates(plannerExercise.fullName, props.evaluatedWeeks, props.dayData);
   const reuseCandidate = reuseFullName ? reuseCandidates[reuseFullName] : undefined;
   const isMultipleSetVariations = plannerExercise.setVariations.length > 1;
@@ -147,7 +147,7 @@ function ReuseAtWeekDay(props: IReuseAtWeekDayProps): JSX.Element {
   const { reuseCandidate, reuse } = props;
   const reuseCandidateWeeksAndDays = reuseCandidate.weekAndDays;
   const currentWeek = reuseCandidate.weekAndDays[props.dayData.week];
-  const lbProgram = lb<IPlannerState>().p("current").p("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const week = reuse.week;
 
   const day =

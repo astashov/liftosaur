@@ -9,8 +9,7 @@ import { IAccount } from "../../models/account";
 import { PlannerToProgram } from "../../models/plannerToProgram";
 import { Program } from "../../models/program";
 import { Settings } from "../../models/settings";
-import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, ISettings } from "../../types";
-import { UidFactory } from "../../utils/generator";
+import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, IProgram, ISettings } from "../../types";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { PlannerCodeBlock } from "../planner/components/plannerCodeBlock";
 import { PlannerEditorView } from "../planner/components/plannerEditorView";
@@ -626,16 +625,17 @@ Leg Curl / 3x8 / progress: dp(5lb, 8, 12)`,
     days: [initialDay],
   };
 
-  const planner: IPlannerProgram = {
+  const initialPlanner: IPlannerProgram = {
     name: "My Program",
     weeks: [initialWeek],
   };
+  const initialProgram = { ...Program.create(initialPlanner.name), planner: initialPlanner };
   const settings = Settings.build();
 
   const initialState: IPlannerState = {
-    id: UidFactory.generateUid(8),
+    id: initialProgram.id,
     current: {
-      program: planner,
+      program: initialProgram,
     },
     ui: { weekIndex: 0, exerciseUi: { edit: new Set(), collapsed: new Set() } },
     history: {
@@ -644,13 +644,13 @@ Leg Curl / 3x8 / progress: dp(5lb, 8, 12)`,
     },
   };
   const [state, dispatch] = useLensReducer(initialState, {});
-  const lbDay = lb<IPlannerState>().p("current").pi("program").p("weeks").i(0).p("days").i(0);
-  const { evaluatedWeeks, exerciseFullNames } = useMemo(
-    () => PlannerProgram.evaluate(state.current.program, settings),
-    [state.current.program]
-  );
+  const planner = state.current.program.planner!;
+  const lbDay = lb<IPlannerState>().p("current").pi("program").pi("planner").p("weeks").i(0).p("days").i(0);
+  const { evaluatedWeeks, exerciseFullNames } = useMemo(() => PlannerProgram.evaluate(planner, settings), [
+    state.current.program,
+  ]);
   const evaluatedDay = evaluatedWeeks[0][0];
-  const text = state.current.program.weeks[0].days[0].exerciseText;
+  const text = planner.weeks[0].days[0].exerciseText;
 
   return (
     <div className="flex flex-col gap-4 mb-1 md:flex-row">
@@ -671,7 +671,7 @@ Leg Curl / 3x8 / progress: dp(5lb, 8, 12)`,
         />
       </div>
       <div className="flex-1">
-        {evaluatedDay.success && <MainPlayground key={text} planner={state.current.program} settings={settings} />}
+        {evaluatedDay.success && <MainPlayground key={text} planner={planner} settings={settings} />}
       </div>
     </div>
   );
@@ -685,9 +685,7 @@ interface IMainPlaygroundProps {
 function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
   const { planner } = props;
   const [settings, setSettings] = useState(props.settings);
-  const [program, setProgram] = useState(
-    new PlannerToProgram(UidFactory.generateUid(8), 1, planner, settings).convertToProgram()
-  );
+  const [program, setProgram] = useState<IProgram>({ ...Program.create("My Program"), planner });
   const [progress, setProgress] = useState(Program.nextProgramRecord(program, settings, 1, {}));
 
   return (
@@ -708,7 +706,7 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
       }}
       onSettingsChange={(newSettings) => {
         setSettings(newSettings);
-        const newProgram = new PlannerToProgram(UidFactory.generateUid(8), 1, planner, newSettings).convertToProgram();
+        const newProgram = new PlannerToProgram(program, 1, planner, newSettings).convertToProgram();
         setProgram(newProgram);
         setProgress(Program.nextProgramRecord(newProgram, newSettings, 1, {}));
       }}

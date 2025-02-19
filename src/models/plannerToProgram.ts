@@ -24,7 +24,7 @@ import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../pages/planner/p
 
 export class PlannerToProgram {
   constructor(
-    private readonly programId: string,
+    private readonly program: IProgram,
     private readonly nextDay: number,
     private readonly plannerProgram: IPlannerProgram,
     private readonly settings: ISettings
@@ -293,7 +293,7 @@ export class PlannerToProgram {
     }
 
     const program: IProgram = {
-      id: this.programId,
+      id: this.program.id,
       name: this.plannerProgram.name,
       description: "Generated from a Workout Planner",
       url: "",

@@ -623,7 +623,7 @@ export const migrations = {
             let plannerProgram = program.planner;
             if (plannerProgram) {
               program = new PlannerToProgram(
-                program.id,
+                program,
                 program.nextDay,
                 plannerProgram,
                 storage.settings

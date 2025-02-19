@@ -20,7 +20,7 @@ export interface IPlannerContentPerDayProps {
 
 export function EditProgramV2PerDay(props: IPlannerContentPerDayProps): JSX.Element {
   const { plannerProgram, settings, ui, plannerDispatch } = props;
-  const lbProgram = lb<IPlannerState>().p("current").pi("program");
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
     return PlannerProgram.evaluate(plannerProgram, settings);
   }, [plannerProgram, settings]);

@@ -1,9 +1,7 @@
-import { PlannerToProgram } from "../../src/models/plannerToProgram";
 import { Program } from "../../src/models/program";
 import { Settings } from "../../src/models/settings";
 import { PlannerProgram } from "../../src/pages/planner/models/plannerProgram";
 import { IProgram, ISettings, IPlannerProgram, IExerciseType } from "../../src/types";
-import { UidFactory } from "../../src/utils/generator";
 import { IWeightChange, ProgramExercise } from "../../src/models/programExercise";
 import { CollectionUtils } from "../../src/utils/collection";
 import { ProgramToPlanner } from "../../src/models/programToPlanner";
@@ -18,9 +16,9 @@ export class PlannerTestUtils {
     text: string,
     settings: ISettings = Settings.build()
   ): { program: IProgram; planner: IPlannerProgram } {
-    const planner: IPlannerProgram = { name: "MyProgram", weeks: PlannerProgram.evaluateText(text) };
-    const program = new PlannerToProgram(UidFactory.generateUid(8), 1, planner, settings).convertToProgram();
-    return { program, planner };
+    const planner = { name: "MyProgram", weeks: PlannerProgram.evaluateText(text) };
+    const program: IProgram = { ...Program.create("MyProgram"), planner };
+    return { program, planner: planner };
   }
 
   public static changeWeight(programText: string, cb: (weightChanges: IWeightChange[]) => IWeightChange[]): string {
