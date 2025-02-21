@@ -4,32 +4,25 @@ import { ExerciseImage } from "../exerciseImage";
 import { ExerciseSets } from "../exerciseSets";
 import { Markdown } from "../markdown";
 import { equipmentName, Exercise } from "../../models/exercise";
-import {
-  IExerciseType,
-  IHistoryEntry,
-  IHistoryRecord,
-  IProgram,
-  IProgramExercise,
-  IProgramState,
-  ISettings,
-} from "../../types";
+import { IExerciseType, IHistoryEntry, IHistoryRecord, IProgramExercise, IProgramState, ISettings } from "../../types";
 import { ComparerUtils } from "../../utils/comparer";
 import { IDispatch } from "../../ducks/types";
 import { Reps } from "../../models/set";
 import { ProgressStateChanges } from "../progressStateChanges";
-import { ProgramExercise } from "../../models/programExercise";
 import { IconCheckCircle } from "../icons/iconCheckCircle";
 import { IconEditSquare } from "../icons/iconEditSquare";
 import { lb } from "lens-shmens";
 import { EditProgressEntry } from "../../models/editProgressEntry";
-import { Program } from "../../models/program";
+import { IEvaluatedProgram, Program } from "../../models/program";
 import { HistoryRecordSetsView } from "../historyRecordSets";
 import { StringUtils } from "../../utils/string";
+import { IPlannerProgramExercise } from "../../pages/planner/models/types";
+import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 
 interface IProps {
   entry: IHistoryEntry;
-  programExercise: IProgramExercise;
-  program: IProgram;
+  programExercise: IPlannerProgramExercise;
+  program: IEvaluatedProgram;
   settings: ISettings;
   progress: IHistoryRecord;
   dayIndex: number;
@@ -71,13 +64,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
   const equipment = exercise.equipment;
   const programExercise = props.programExercise;
   const dayData = Program.getDayData(props.program, props.dayIndex, props.settings);
-  const description = ProgramExercise.getDescription(
-    programExercise,
-    props.program.exercises || [],
-    dayData,
-    props.settings,
-    props.staticState
-  );
+  const description = PlannerProgramExercise.currentDescription(programExercise);
 
   return (
     <div
@@ -99,7 +86,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
                   lb<IHistoryRecord>()
                     .pi("ui")
                     .p("editModal")
-                    .record({ programExercise: programExercise, entryIndex: props.index }),
+                    .record({ programExerciseId: programExercise.key, entryIndex: props.index }),
                 ],
               });
             }}
@@ -150,7 +137,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
               index={props.index}
               progress={props.progress}
               programExercise={props.programExercise}
-              allProgramExercises={props.program.exercises}
+              otherStates={props.program.states}
               showHelp={false}
               settings={props.settings}
               size="small"
@@ -177,7 +164,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
           <Markdown value={description} />
         </div>
       )}
-      {props.programExercise && props.program.exercises && (
+      {props.programExercise && (
         <ProgressStateChanges
           entry={props.entry}
           forceShow={false}
@@ -186,8 +173,6 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
           userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
           programExercise={props.programExercise}
           program={props.program}
-          staticState={props.staticState}
-          mode={Program.programMode(props.program)}
         />
       )}
     </div>

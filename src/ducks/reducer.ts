@@ -17,8 +17,8 @@ import {
   IProgressMode,
   ISettings,
   IHistoryRecord,
-  IProgramExercise,
   IPercentage,
+  IProgramState,
 } from "../types";
 import { IndexedDBUtils } from "../utils/indexeddb";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
@@ -36,6 +36,8 @@ import { Subscriptions } from "../utils/subscriptions";
 import deepmerge from "deepmerge";
 import { Exercise } from "../models/exercise";
 import { SendMessage } from "../utils/sendMessage";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { IByExercise } from "../pages/planner/plannerEvaluator";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
@@ -188,8 +190,8 @@ export type IChangeRepsAction = {
   type: "ChangeRepsAction";
   entryIndex: number;
   setIndex: number;
-  programExercise?: IProgramExercise;
-  allProgramExercises?: IProgramExercise[];
+  programExercise?: IPlannerProgramExercise;
+  otherStates?: IByExercise<IProgramState>;
   mode: IProgressMode;
 };
 
@@ -212,8 +214,8 @@ export type IChangeAMRAPAction = {
   isAmrap?: boolean;
   logRpe?: boolean;
   askWeight?: boolean;
-  programExercise?: IProgramExercise;
-  allProgramExercises?: IProgramExercise[];
+  programExercise?: IPlannerProgramExercise;
+  otherStates?: IByExercise<IProgramState>;
   userVars?: Record<string, number | IWeight | IPercentage>;
 };
 
@@ -221,13 +223,13 @@ export type IChangeWeightAction = {
   type: "ChangeWeightAction";
   weight: IWeight;
   exercise: IExerciseType;
-  programExercise?: IProgramExercise;
+  programExercise?: IPlannerProgramExercise;
 };
 
 export type IConfirmWeightAction = {
   type: "ConfirmWeightAction";
   weight?: IWeight;
-  programExercise?: IProgramExercise;
+  programExercise?: IPlannerProgramExercise;
 };
 
 export type IUpdateSettingsAction = {
@@ -467,9 +469,7 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
     switch (action.type) {
       case "ChangeRepsAction": {
         const hasUserPromptedVars =
-          action.programExercise &&
-          action.allProgramExercises &&
-          ProgramExercise.hasUserPromptedVars(action.programExercise, action.allProgramExercises);
+          action.programExercise && ProgramExercise.hasUserPromptedVars(action.programExercise);
 
         let newProgress = Progress.updateRepsInExercise(
           progress,
@@ -478,11 +478,11 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
           action.mode,
           !!hasUserPromptedVars
         );
-        if (action.programExercise && action.allProgramExercises && !newProgress.ui?.amrapModal) {
+        if (action.programExercise && action.otherStates && !newProgress.ui?.amrapModal) {
           newProgress = Progress.runUpdateScript(
             newProgress,
             action.programExercise,
-            action.allProgramExercises,
+            action.otherStates,
             action.entryIndex,
             action.setIndex,
             action.mode,
@@ -504,15 +504,15 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         if (action.weightValue) {
           progress = Progress.updateWeightInExercise(progress, action.weightValue);
         }
-        const programExerciseId = action.programExercise?.id;
+        const programExerciseId = action.programExercise?.key;
         if (ObjectUtils.keys(action.userVars || {}).length > 0 && programExerciseId != null) {
           progress = Progress.updateUserPromptedStateVars(progress, programExerciseId, action.userVars || {});
         }
-        if (action.programExercise && action.allProgramExercises) {
+        if (action.programExercise && action.otherStates) {
           progress = Progress.runUpdateScript(
             progress,
             action.programExercise,
-            action.allProgramExercises,
+            action.otherStates,
             action.entryIndex,
             action.setIndex,
             "workout",
@@ -580,7 +580,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     } else if (state.storage.currentProgramId != null) {
       const program = Program.getProgram(state, action.programId || state.storage.currentProgramId);
       if (program != null) {
-        const newProgress = Program.nextProgramRecord(program, state.storage.settings);
+        const newProgress = Program.nextHistoryRecord(program, state.storage.settings);
         return {
           ...state,
           currentHistoryRecord: 0,
@@ -782,7 +782,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "ApplyProgramChangesToProgress") {
     const progress = state.progress[0];
     if (progress != null) {
-      const program = Program.fullProgram(Program.getProgram(state, progress.programId)!, state.storage.settings);
+      const program = Program.evaluateProgram(Program.getProgram(state, progress.programId)!, state.storage.settings);
       let newProgress = Progress.applyProgramDay(
         progress,
         program,

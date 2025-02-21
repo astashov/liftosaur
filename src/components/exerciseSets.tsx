@@ -2,7 +2,6 @@ import { h, JSX, Fragment } from "preact";
 import { useCallback } from "preact/hooks";
 import { IDispatch } from "../ducks/types";
 import { EditProgressEntry } from "../models/editProgressEntry";
-import { ProgramExercise } from "../models/programExercise";
 import { Progress } from "../models/progress";
 import {
   ISet,
@@ -10,18 +9,21 @@ import {
   ISettings,
   IHistoryEntry,
   IProgressMode,
-  IProgramExercise,
   IDayData,
   IExerciseType,
+  IProgramState,
 } from "../types";
 import { ExerciseSetView } from "./exerciseSet";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { IByExercise } from "../pages/planner/plannerEvaluator";
 
 type IOnStartSetChanging = (
   isWarmup: boolean,
   entryIndex: number,
   setIndex?: number,
-  programExercise?: IProgramExercise,
+  programExercise?: IPlannerProgramExercise,
   exerciseType?: IExerciseType
 ) => void;
 
@@ -32,8 +34,8 @@ interface IExerciseSetsProps {
   dayData: IDayData;
   size?: "small" | "medium";
   progress: IHistoryRecord;
-  programExercise?: IProgramExercise;
-  allProgramExercises?: IProgramExercise[];
+  programExercise?: IPlannerProgramExercise;
+  otherStates?: IByExercise<IProgramState>;
   showHelp: boolean;
   settings: ISettings;
   entry: IHistoryEntry;
@@ -45,18 +47,9 @@ interface IExerciseSetsProps {
 export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
   const { isEditMode, warmupSets } = props;
   const isCurrentProgress = Progress.isCurrent(props.progress);
-  const currentVariation = props.programExercise
-    ? ProgramExercise.getCurrentVariation(
-        props.programExercise,
-        props.allProgramExercises || [],
-        props.dayData,
-        props.settings
-      )
-    : undefined;
   const quickAddSets = props.programExercise
-    ? currentVariation?.quickAddSets ||
-      ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
-    : false;
+    ? PlannerProgramExercise.sets(props.programExercise).some((set) => !!set.repRange?.isQuickAddSet)
+    : undefined;
 
   const onStartSetChanging = props.onStartSetChanging;
 
@@ -95,7 +88,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                       setIndex,
                       "warmup",
                       props.programExercise,
-                      props.allProgramExercises
+                      props.otherStates
                     );
                     props.onChangeReps("warmup", props.index, setIndex);
                   }
@@ -153,14 +146,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
               if (isEditMode && onStartSetChanging) {
                 onStartSetChanging(false, props.index, setIndex, props.programExercise, props.entry.exercise);
               } else {
-                handleClick(
-                  props.dispatch,
-                  props.index,
-                  setIndex,
-                  "workout",
-                  props.programExercise,
-                  props.allProgramExercises
-                );
+                handleClick(props.dispatch, props.index, setIndex, "workout", props.programExercise, props.otherStates);
                 props.onChangeReps("workout", props.index, setIndex);
               }
             }, [isEditMode, props.index, props.entry, props.dispatch])}
@@ -298,8 +284,8 @@ function handleClick(
   entryIndex: number,
   setIndex: number,
   mode: IProgressMode,
-  programExercise?: IProgramExercise,
-  allProgramExercises?: IProgramExercise[]
+  programExercise?: IPlannerProgramExercise,
+  otherStates?: IByExercise<IProgramState>
 ): void {
-  dispatch({ type: "ChangeRepsAction", entryIndex, setIndex, programExercise, allProgramExercises, mode });
+  dispatch({ type: "ChangeRepsAction", entryIndex, setIndex, programExercise, otherStates, mode });
 }

@@ -9,7 +9,7 @@ import { ObjectUtils } from "../utils/object";
 import { IDispatch } from "../ducks/types";
 import { ScriptRunner } from "../parser";
 
-import { Program } from "./program";
+import { IEvaluatedProgram, Program } from "./program";
 import { IState, updateState } from "./state";
 import {
   IWeight,
@@ -38,6 +38,9 @@ import { CollectionUtils } from "../utils/collection";
 import { MathUtils } from "../utils/math";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { Equipment } from "./equipment";
+import { IByExercise } from "../pages/planner/plannerEvaluator";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 
 export interface IScriptBindings {
   day: number;
@@ -541,7 +544,7 @@ export namespace Progress {
     progress: IHistoryRecord,
     exercise: IExerciseType,
     weight: IWeight,
-    programExercise?: IProgramExercise
+    programExercise?: IPlannerProgramExercise
   ): IHistoryRecord {
     return {
       ...progress,
@@ -550,7 +553,7 @@ export namespace Progress {
         weightModal: {
           exercise,
           weight: weight,
-          programExercise,
+          programExerciseId: programExercise?.key,
         },
       },
     };
@@ -608,38 +611,22 @@ export namespace Progress {
   export function runUpdateScriptForEntry(
     entry: IHistoryEntry,
     dayData: IDayData,
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
+    programExercise: IPlannerProgramExercise,
+    otherStates: IByExercise<IProgramState>,
     setIndex: number,
     settings: ISettings
   ): IHistoryEntry {
     if (setIndex !== -1 && entry?.sets[setIndex]?.completedReps == null) {
       return entry;
     }
-    const script = programExercise
-      ? ProgramExercise.getUpdateDayScript(programExercise, allProgramExercises)
-      : undefined;
+    const script = programExercise.properties.find((p) => p.name === "update")?.script;
     if (!script) {
       return entry;
     }
     const exercise = programExercise.exerciseType;
-    const state = ProgramExercise.getState(programExercise, allProgramExercises);
-    const setVariationIndexResult = Program.runVariationScript(
-      programExercise,
-      allProgramExercises,
-      state,
-      dayData,
-      settings
-    );
-    const descriptionIndexResult = Program.runDescriptionScript(
-      programExercise.descriptionExpr ?? "1",
-      programExercise.exerciseType,
-      state,
-      dayData,
-      settings
-    );
-    const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
-    const descriptionIndex = descriptionIndexResult.success ? descriptionIndexResult.data : 1;
+    const state = PlannerProgramExercise.getState(programExercise);
+    const setVariationIndex = PlannerProgramExercise.currentSetVariationIndex(programExercise);
+    const descriptionIndex = PlannerProgramExercise.currentDescriptionIndex(programExercise);
     const bindings = Progress.createScriptBindings(
       dayData,
       entry,
@@ -648,7 +635,6 @@ export namespace Progress {
       setVariationIndex,
       descriptionIndex
     );
-    const otherStates = Program.getOtherStates(allProgramExercises);
     try {
       const fnContext: IScriptFnContext = { exerciseType: exercise, unit: settings.units, prints: [] };
       const runner = new ScriptRunner(
@@ -679,7 +665,7 @@ export namespace Progress {
   export function runInitialUpdateScripts(
     aProgress: IHistoryRecord,
     programExerciseIds: string[] | undefined,
-    program: IProgram,
+    program: IEvaluatedProgram,
     settings: ISettings
   ): IHistoryRecord {
     const programExercises = programExerciseIds
@@ -703,7 +689,7 @@ export namespace Progress {
           entry,
           Progress.getDayData(aProgress),
           programExercise,
-          program.exercises,
+          program.states,
           -1,
           settings
         );
@@ -713,8 +699,8 @@ export namespace Progress {
 
   export function runUpdateScript(
     aProgress: IHistoryRecord,
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
+    programExercise: IPlannerProgramExercise,
+    otherStates: IByExercise<IProgramState>,
     entryIndex: number,
     setIndex: number,
     mode: IProgressMode,
@@ -728,7 +714,7 @@ export namespace Progress {
       entry,
       Progress.getDayData(aProgress),
       programExercise,
-      allProgramExercises,
+      otherStates,
       setIndex,
       settings
     );
@@ -960,8 +946,9 @@ export namespace Progress {
     progress: IHistoryRecord,
     settings: ISettings,
     weight?: IWeight,
-    programExercise?: IProgramExercise
+    programExercise?: IPlannerProgramExercise
   ): IHistoryRecord {
+    const warmupSets = programExercise ? PlannerProgramExercise.programWarmups(programExercise, settings) : undefined;
     if (weight != null && progress.ui?.weightModal != null) {
       const { exercise, weight: previousWeight } = progress.ui.weightModal;
 
@@ -982,7 +969,7 @@ export namespace Progress {
               }),
               warmupSets:
                 Weight.eq(firstWeight, previousWeight) && weight != null
-                  ? Exercise.getWarmupSets(exercise, weight, settings, programExercise?.warmupSets)
+                  ? Exercise.getWarmupSets(exercise, weight, settings, warmupSets)
                   : progressEntry.warmupSets,
             };
           } else {

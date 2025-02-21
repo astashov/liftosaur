@@ -9,10 +9,18 @@ import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { ObjectUtils } from "../../../utils/object";
 import { IDisplaySet, groupDisplaySets } from "../../../components/historyRecordSets";
 import { Weight } from "../../../models/weight";
-import { IPercentage, ISettings, IWeight } from "../../../types";
+import {
+  IPercentage,
+  IProgramExerciseWarmupSet,
+  IProgramState,
+  IProgramStateMetadata,
+  ISettings,
+  IWeight,
+} from "../../../types";
 import { Exercise, IExercise, warmupValues } from "../../../models/exercise";
 import { ProgramExercise } from "../../../models/programExercise";
 import { MathUtils } from "../../../utils/math";
+import { PlannerToProgram } from "../../../models/plannerToProgram";
 
 export type ILinearProgressionType = {
   type: "linear";
@@ -64,6 +72,27 @@ export class PlannerProgramExercise {
 
   public static warmups(exercise: IPlannerProgramExercise): IPlannerProgramExerciseWarmupSet[] | undefined {
     return exercise.warmupSets || exercise.reuse?.exercise?.warmupSets;
+  }
+
+  public static programWarmups(exercise: IPlannerProgramExercise, settings: ISettings): IProgramExerciseWarmupSet[] {
+    const sets: IProgramExerciseWarmupSet[] = [];
+    for (const ws of PlannerProgramExercise.warmups(exercise) || []) {
+      for (let i = 0; i < ws.numberOfSets; i += 1) {
+        let value: IWeight | number | undefined = ws.percentage ? ws.percentage / 100 : undefined;
+        if (value == null) {
+          value = ws.weight;
+        }
+        if (value == null) {
+          value = MathUtils.roundTo0005(Weight.rpeMultiplier(ws.reps, 4));
+        }
+        sets.push({
+          reps: ws.reps,
+          value,
+          threshold: Weight.build(0, settings.units),
+        });
+      }
+    }
+    return sets;
   }
 
   public static sets(exercise: IPlannerProgramExercise, variationIndex?: number): IPlannerProgramExerciseSet[] {
@@ -206,6 +235,10 @@ export class PlannerProgramExercise {
     return index === -1 ? 0 : index;
   }
 
+  public static currentDescription(exercise: IPlannerProgramExercise): string | undefined {
+    return exercise.descriptions.find((d) => d.isCurrent)?.value;
+  }
+
   public static currentDescriptionIndex(exercise: IPlannerProgramExercise): number {
     const index = exercise.descriptions.findIndex((d) => d.isCurrent);
     return index === -1 ? 0 : index;
@@ -222,6 +255,44 @@ export class PlannerProgramExercise {
         return acc;
       }
     }, 0);
+  }
+
+  public static getState(exercise: IPlannerProgramExercise): IProgramState {
+    const customProgress = exercise.properties.find((p) => p.name === "progress" && p.fnName === "custom");
+    return customProgress ? PlannerToProgram.fnArgsToState(customProgress.fnArgs).state : {};
+  }
+
+  public static getStateMetadata(exercise: IPlannerProgramExercise): IProgramStateMetadata {
+    const customProgress = exercise.properties.find((p) => p.name === "progress" && p.fnName === "custom");
+    const metadata: IProgramStateMetadata = {};
+    if (!customProgress) {
+      return {};
+    }
+    for (const value of customProgress.fnArgs) {
+      const [fnArgKey] = value.split(":").map((v) => v.trim());
+      if (fnArgKey.endsWith("+")) {
+        metadata[fnArgKey.replace("+", "")] = { userPrompted: true };
+      }
+    }
+    return metadata;
+  }
+
+  public static getProgressScript(exercise: IPlannerProgramExercise): string | undefined {
+    return exercise.properties.find((p) => p.name === "progress" && p.fnName === "custom")?.script;
+  }
+
+  public static getUpdateScript(exercise: IPlannerProgramExercise): string | undefined {
+    return exercise.properties.find((p) => p.name === "update" && p.fnName === "custom")?.script;
+  }
+
+  public static getEnableRpe(exercise: IPlannerProgramExercise): boolean {
+    return exercise.setVariations.some((sv, i) => this.sets(exercise, i).some((s) => s.rpe != null));
+  }
+
+  public static getEnableRepRanges(exercise: IPlannerProgramExercise): boolean {
+    return exercise.setVariations.some((sv, i) =>
+      this.sets(exercise, i).some((s) => s.repRange != null && s.repRange.minrep === s.repRange.maxrep)
+    );
   }
 
   public static progressionType(exercise: IPlannerProgramExercise): IProgressionType | undefined {

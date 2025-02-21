@@ -77,7 +77,6 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
         isPlayground={isPlayground}
         program={props.program}
         settings={props.settings}
-        weekSetup={buildWeekSetup(props.program)}
       />
     </div>
   );

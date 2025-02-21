@@ -583,10 +583,10 @@ export const TProgressUi = t.partial(
     weightModal: t.type({
       exercise: TExerciseType,
       weight: TWeight,
-      programExercise: t.union([TProgramExercise, t.undefined]),
+      programExerciseId: t.union([t.string, t.undefined]),
     }),
     editModal: t.type({
-      programExercise: TProgramExercise,
+      programExerciseId: t.string,
       entryIndex: t.number,
     }),
     dateModal: t.type({
@@ -607,7 +607,7 @@ export const TProgressUi = t.partial(
       isWarmup: t.boolean,
       entryIndex: t.number,
       exerciseType: t.union([TExerciseType, t.undefined]),
-      programExercise: t.union([TProgramExercise, t.undefined]),
+      programExerciseId: t.union([t.string, t.undefined]),
       setIndex: t.union([t.number, t.undefined]),
     }),
     exerciseBottomSheet: t.type({

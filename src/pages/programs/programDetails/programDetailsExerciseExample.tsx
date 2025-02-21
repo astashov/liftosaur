@@ -31,7 +31,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
     exerciseData: { ...props.settings.exerciseData, [Exercise.toKey(programExercise.exerciseType)]: { rm1: onerm } },
   };
   const weeks = props.weekSetup.map((week, weekIndex) => {
-    const dayIndex = week.days[day].dayIndex;
+    const dayIndex = week.days[day].day;
     const dayData = Program.getDayData(props.program, dayIndex, props.settings);
 
     return {

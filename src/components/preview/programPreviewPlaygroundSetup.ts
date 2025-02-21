@@ -1,7 +1,7 @@
 import { IProgramState } from "../../types";
 
 export interface IProgramPreviewPlaygroundDaySetup {
-  dayIndex: number;
+  day: number;
   states: Partial<Record<string, IProgramState>>; // key - programExerciseId
 }
 

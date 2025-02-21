@@ -30,6 +30,7 @@ export type IPlannerProgramExercise = {
   key: string;
   fullName: string;
   shortName: string;
+  exerciseType: IExerciseType;
   label?: string;
   repeat: number[];
   repeating: number[];

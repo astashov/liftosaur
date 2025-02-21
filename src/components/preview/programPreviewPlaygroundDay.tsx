@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { useCallback } from "preact/hooks";
 import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
-import { IHistoryRecord, IProgram, IProgramState, ISettings } from "../../types";
+import { IHistoryRecord, IProgram, ISettings } from "../../types";
 import { IDispatch } from "../../ducks/types";
 import { ProgramPreviewPlaygroundExercise } from "./programPreviewPlaygroundExercise";
 import { ModalAmrap } from "../modalAmrap";
@@ -13,20 +13,20 @@ import { EditProgramLenses } from "../../models/editProgramLenses";
 import { Button } from "../button";
 import { ModalEditSet } from "../modalEditSet";
 import { EditProgressEntry } from "../../models/editProgressEntry";
-import { Program } from "../../models/program";
+import { IEvaluatedProgram, IEvaluatedProgramDay, Program } from "../../models/program";
 import { StringUtils } from "../../utils/string";
 import { Exercise } from "../../models/exercise";
 import { Weight } from "../../models/weight";
 import { Markdown } from "../markdown";
 
 interface IProgramPreviewPlaygroundDayProps {
-  program: IProgram;
+  program: IEvaluatedProgram;
+  programDay: IEvaluatedProgramDay;
   weekName?: string;
-  dayIndex: number;
+  day: number;
   isPlayground: boolean;
   settings: ISettings;
   progress: IHistoryRecord;
-  staticStates: Partial<Record<string, IProgramState>>;
   onProgressChange: (newProgress: IHistoryRecord) => void;
   onProgramChange: (newProgram: IProgram) => void;
   onSettingsChange: (newSettings: ISettings) => void;
@@ -43,11 +43,11 @@ export const ProgramPreviewPlaygroundDay = memo(
       [props.settings, props.progress]
     );
 
-    const editModalProgramExerciseId = props.progress.ui?.editModal?.programExercise.id;
+    const editModalProgramExerciseId = props.progress.ui?.editModal?.programExerciseId;
     const editModalProgramExercise = editModalProgramExerciseId
-      ? Program.getProgramExercise(props.program, editModalProgramExerciseId)
+      ? Program.getProgramExercise(props.program, props.day, editModalProgramExerciseId)
       : undefined;
-    const programDay = Program.getProgramDay(props.program, props.dayIndex);
+    const programDay = Program.getProgramDay(props.program, props.day)!;
 
     return (
       <div data-cy={`preview-day-${StringUtils.dashcase(programDay.name)}`}>
@@ -57,14 +57,15 @@ export const ProgramPreviewPlaygroundDay = memo(
         </h3>
         {programDay.description && <Markdown value={programDay.description} />}
         {props.progress.entries.map((entry, index) => {
-          const programExercise = props.program.exercises.find((e) => e.id === entry.programExerciseId)!;
-          const staticState = props.staticStates[programExercise.id];
+          const programExercise = props.programDay.exercises.find((e) => e.key === entry.programExerciseId);
+          if (!programExercise) {
+            return null;
+          }
           return (
             <ProgramPreviewPlaygroundExercise
               entry={entry}
-              dayIndex={props.dayIndex}
+              dayIndex={props.day}
               progress={props.progress}
-              staticState={staticState}
               isPlayground={props.isPlayground}
               programExercise={programExercise}
               program={props.program}
@@ -91,17 +92,22 @@ export const ProgramPreviewPlaygroundDay = memo(
             progress={props.progress}
             dispatch={dispatch}
             settings={props.settings}
-            programExercise={Program.getProgramExerciseFromEntry(
-              props.program.exercises,
-              props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]
+            programExercise={Program.getProgramExercise(
+              props.program,
+              props.day,
+              props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
             )}
-            allProgramExercises={props.program.exercises}
+            otherStates={props.program.states}
           />
         )}
         {props.progress.ui?.weightModal && (
           <ModalWeight
             isHidden={props.progress.ui?.weightModal == null}
-            programExercise={props.progress.ui?.weightModal?.programExercise}
+            programExercise={Program.getProgramExercise(
+              props.program,
+              props.day,
+              props.progress.ui?.weightModal?.programExerciseId
+            )}
             settings={props.settings}
             dispatch={dispatch}
             weight={props.progress.ui?.weightModal?.weight ?? 0}
@@ -117,8 +123,11 @@ export const ProgramPreviewPlaygroundDay = memo(
             dispatch={dispatch}
             settings={props.settings}
             exerciseType={props.progress.ui?.editSetModal?.exerciseType}
-            programExercise={props.progress.ui?.editSetModal?.programExercise}
-            allProgramExercises={props.program.exercises}
+            programExercise={Program.getProgramExercise(
+              props.program,
+              props.day,
+              props.progress.ui?.editSetModal?.programExerciseId
+            )}
             isTimerDisabled={true}
             set={EditProgressEntry.getEditSetData(props.progress)}
             isWarmup={props.progress.ui?.editSetModal?.isWarmup || false}
@@ -160,7 +169,6 @@ export const ProgramPreviewPlaygroundDay = memo(
               props.onSettingsChange(newSettings);
             }}
             programExercise={editModalProgramExercise}
-            isPlanner={!!props.program.planner}
             settings={props.settings}
           />
         )}

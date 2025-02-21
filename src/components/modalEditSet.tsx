@@ -6,7 +6,7 @@ import { Button } from "./button";
 import { Weight } from "../models/weight";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { IconQuestion } from "./icons/iconQuestion";
-import { ISet, IProgramExercise, ISubscription, ISettings, IExerciseType, IWeight } from "../types";
+import { ISet, ISubscription, ISettings, IExerciseType, IWeight } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { Subscriptions } from "../utils/subscriptions";
 import { ProgramExercise } from "../models/programExercise";
@@ -14,16 +14,16 @@ import { InputNumber } from "./inputNumber";
 import { InputWeight } from "./inputWeight";
 import { MathUtils } from "../utils/math";
 import { Equipment } from "../models/equipment";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
 
-interface IModalWeightProps {
+interface IModalEditSetProps {
   subscription: ISubscription;
   dispatch: IDispatch;
   settings: ISettings;
   isWarmup: boolean;
   progressId: number;
   exerciseType?: IExerciseType;
-  programExercise?: IProgramExercise;
-  allProgramExercises?: IProgramExercise[];
+  programExercise?: IPlannerProgramExercise;
   entryIndex: number;
   setIndex?: number;
   setsLength: number;
@@ -52,7 +52,7 @@ function getPlatesStr(
   return { weightDiff, plates: oneside };
 }
 
-export function ModalEditSet(props: IModalWeightProps): JSX.Element {
+export function ModalEditSet(props: IModalEditSetProps): JSX.Element {
   const set = props.set;
   const isAmrapInput = useRef<HTMLInputElement>(null);
   const unit = Equipment.getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
@@ -60,10 +60,8 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const initialRpe = set?.rpe;
   const [rpe, setRpe] = useState(initialRpe ?? 0);
   const [reps, setReps] = useState(set?.reps ?? 5);
-  const quickAddSets = props.programExercise
-    ? ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
-    : false;
-  let enableRpe = props.programExercise?.enableRpe || (props.allProgramExercises || []).some((pe) => pe.enableRpe);
+  const quickAddSets = props.programExercise ? ProgramExercise.getQuickAddSets(props.programExercise) : false;
+  let enableRpe = props.programExercise ? ProgramExercise.getEnableRpe(props.programExercise) : false;
   enableRpe = enableRpe || set?.rpe != null;
 
   const platesStr = getPlatesStr(props.subscription, weight, props.settings, props.exerciseType);

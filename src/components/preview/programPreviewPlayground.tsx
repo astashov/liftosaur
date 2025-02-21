@@ -1,16 +1,16 @@
 import { h, JSX } from "preact";
-import { memo } from "preact/compat";
+import { memo, useMemo } from "preact/compat";
 import { IHistoryRecord, IProgram, ISettings } from "../../types";
 import { Program } from "../../models/program";
 import { ProgramPreviewPlaygroundDay } from "./programPreviewPlaygroundDay";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { Progress } from "../../models/progress";
-import { ObjectUtils } from "../../utils/object";
 import { ScrollableTabs } from "../scrollableTabs";
 import { IProgramPreviewPlaygroundDaySetup, IProgramPreviewPlaygroundWeekSetup } from "./programPreviewPlaygroundSetup";
 import deepmerge from "deepmerge";
 import { Markdown } from "../markdown";
+import { ObjectUtils } from "../../utils/object";
 
 type IProgramPreviewPlaygroundDaySetupWithProgress = IProgramPreviewPlaygroundDaySetup & {
   progress: IHistoryRecord;
@@ -24,7 +24,6 @@ interface IProgramPreviewPlaygroundProps {
   program: IProgram;
   settings: ISettings;
   isPlayground: boolean;
-  weekSetup: IProgramPreviewPlaygroundWeekSetup[];
   hasNavbar?: boolean;
 }
 
@@ -35,36 +34,45 @@ interface IProgramPreviewPlaygroundState {
   progresses: IProgramPreviewPlaygroundProgresses;
 }
 
-function prepareProgram(program: IProgram, settings: ISettings): IProgram {
-  const newProgram = Program.fullProgram(ObjectUtils.clone(program), settings);
-  return newProgram;
-}
-
 export const ProgramPreviewPlayground = memo(
   (props: IProgramPreviewPlaygroundProps): JSX.Element => {
-    const program = prepareProgram(props.program, props.settings);
+    const initialEvaluatedProgram = useMemo(() => Program.evaluate(props.program, props.settings), [
+      props.program,
+      props.settings,
+    ]);
+    let dayNumber = 0;
     const initialState: IProgramPreviewPlaygroundState = {
-      program,
+      program: props.program,
       settings: props.settings,
       isPlayground: props.isPlayground,
-      progresses: props.weekSetup.map((week) => {
+      progresses: (initialEvaluatedProgram.weeks || []).map((week) => {
         return {
-          ...week,
-          days: week.days.map((day) => {
-            const progress = Program.nextProgramRecord(program, props.settings, day.dayIndex, day.states);
-            return { ...day, progress };
+          name: week.name,
+          days: week.days.map(() => {
+            dayNumber += 1;
+            const progress = Program.nextHistoryRecord(props.program, props.settings, dayNumber);
+            const programDay = Program.getProgramDay(initialEvaluatedProgram, dayNumber);
+            const exerciseKeys = new Set(programDay?.exercises.map((e) => e.key));
+            const states = ObjectUtils.filter(initialEvaluatedProgram.states, (key, state) => {
+              return exerciseKeys.has(key);
+            });
+            return { day: dayNumber, states, progress };
           }),
         };
       }),
     };
 
     const [state, dispatch] = useLensReducer(initialState, {}, []);
+    const evaluatedProgram = useMemo(() => Program.evaluate(props.program, props.settings), [
+      state.program,
+      state.settings,
+    ]);
 
     return (
       <ScrollableTabs
         offsetY={props.hasNavbar ? "3rem" : undefined}
         tabs={state.progresses.map((week, weekIndex) => {
-          const programWeekDescription = program.weeks[weekIndex]?.description;
+          const programWeekDescription = evaluatedProgram.weeks[weekIndex]?.description;
           return {
             label: week.name,
             children: (
@@ -72,15 +80,16 @@ export const ProgramPreviewPlayground = memo(
                 {programWeekDescription && <Markdown value={programWeekDescription} />}
                 <div className="flex flex-wrap justify-center mt-4" style={{ gap: "3rem" }}>
                   {week.days.map((d: IProgramPreviewPlaygroundDaySetupWithProgress, i) => {
+                    const evaluatedProgramDay = evaluatedProgram.weeks[weekIndex]?.days[i];
                     return (
                       <div style={{ maxWidth: "24rem", minWidth: "14rem" }} className="flex-1">
                         <ProgramPreviewPlaygroundDay
                           weekName={state.progresses.length > 1 ? week.name : undefined}
-                          dayIndex={d.dayIndex}
-                          program={state.program}
+                          day={d.day}
+                          program={evaluatedProgram}
+                          programDay={evaluatedProgramDay}
                           progress={d.progress}
                           settings={state.settings}
-                          staticStates={d.states}
                           isPlayground={state.isPlayground}
                           onProgressChange={(newProgress) => {
                             dispatch(
@@ -105,7 +114,7 @@ export const ProgramPreviewPlayground = memo(
                                         let newProgress = Progress.applyProgramDay(
                                           day.progress,
                                           newProgram,
-                                          day.dayIndex,
+                                          day.day,
                                           state.settings,
                                           day.states
                                         );
@@ -137,15 +146,15 @@ export const ProgramPreviewPlayground = memo(
                                       days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
                                         let newProgress = Progress.applyProgramDay(
                                           day.progress,
-                                          program,
-                                          day.dayIndex,
+                                          state.program,
+                                          day.day,
                                           newSettings,
                                           day.states
                                         );
                                         newProgress = Progress.runInitialUpdateScripts(
                                           newProgress,
                                           undefined,
-                                          program,
+                                          state.program,
                                           newSettings
                                         );
                                         return {
@@ -178,12 +187,7 @@ export const ProgramPreviewPlayground = memo(
                                     return {
                                       ...wk,
                                       days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
-                                        const newProgress = Program.nextProgramRecord(
-                                          newProgram,
-                                          newSettings,
-                                          day.dayIndex,
-                                          day.states
-                                        );
+                                        const newProgress = Program.nextHistoryRecord(newProgram, newSettings, day.day);
                                         return {
                                           ...day,
                                           progress: newProgress,
