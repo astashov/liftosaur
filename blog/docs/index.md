@@ -13,9 +13,9 @@ If you have any questions, don't hesitate to contact us at <a href="mailto:info@
 
 ## Summary
 
-Liftosaur is an app that combines both weightlifting programming part (that people sometimes use Google Sheets for) and workouts tracking part. I.e. it consists of 2 steps:
+Liftosaur is an app that combines both the weightlifting programming part (that people sometimes use Google Sheets for) and a workout tracking part. i.e. it consists of 2 steps:
 
-* You choose and clone a built-in program **or** create your own program. Program will prescribe what exercises to do over weeks/days, with what sets x reps x weight, and how to progress over time (i.e. applying progressive overload).
+* You choose and clone a built-in program **or** create your own program. The program will prescribe what exercises to do over weeks/days, with what sets x reps x weight, and how to progress over time (i.e. applying progressive overload).
 * You run that program and track your workouts and your progress.
 
 Any built-in program is built using existing Liftosaur features, so those programs are completely customizable - you can change every bit of them.
@@ -300,7 +300,7 @@ You add Linear Progression to exercises by specifying `lp` progress type, like t
 Bench Press / 3x8 / progress: lp(5lb)
 {% endplannercode %}
 
-In parenthesis after `lp` you specify the weight values and conditions for the Linear Progression. It can take 6 arguments max, separated by commas, and this is their meaning:
+In parentheses after `lp` you specify the weight values and conditions for the Linear Progression. It can take 6 arguments max, separated by commas, and this is their meaning:
 
 ```javascript
 lp(weight increase, increase attempts, current increase attempt, weight decrease, decrease attempts, current decrease attempt)
@@ -369,12 +369,12 @@ Bench Press / 3x10+ / progress: sum(30, 5lb)
 ### Ways to make written programs less repetitive
 
 Weightlifting programs are often very repetitive - you usually have multiple exercises with the same set schemes,
-using the same waving progressions over weeks. It's important to have ways to not repeat yourself, so it'd be easier to modify the programs, add exercises, change the set schemes, progressions, etc. E.g. a 12-week program with 4-days per week
-and 5 exercises in each day in total may have 240 places where you specify the sets! And modifying such program would be a very tedious task.
+using the same waving progressions over weeks. It's important to have ways to not repeat yourself, so it'd be easier to modify the programs, add exercises, change the set schemes, progressions, etc. For example a 12-week program with 4-days per week
+and 5 exercises in each day in total may have 240 places where you specify the sets! Modifying such a program would be a very tedious task.
 
 Liftosaur offers a bunch of syntax sugar to make it easier to write and modify the programs.
 
-#### Reusing the exercises's sets/reps/weight/RPE/timer and warmups via `...Squat`
+#### Reusing the exercises' sets/reps/weight/RPE/timer and warmups via `...Squat`
 
 You can reuse the sets/reps/weight/RPE/timer and warmups of another exercise. You can either specify the exact week/day of the exercise to reuse, or by default it'll look into any day of the current week. The syntax for reusing the sets looks like this:
 
@@ -635,9 +635,9 @@ this Liftoscript will look very familiar. If not, no worries, it's a pretty simp
 
 In the example above, we increase the weight of all sets by 5lb if the completed reps of the first set were equal or more than required number of reps of the first set. Let's take a look at the syntax closer.
 
-The logic is written in the curly braces **with tildas** - i.e. between `{~` and `~}`. Inside those curly braces you can access required reps, completed reps, weights, RPE, etc of all the sets that were finished for that exercise, and you can update weights/reps/etc of the program based on that.
+The logic is written in the curly braces **with tildes** - i.e. between `{~` and `~}`. Inside those curly braces you can access required reps, completed reps, weights, RPE, etc of all the sets that were finished for that exercise, and you can update weights/reps/etc of the program based on that.
 
-The conditional logic written with `if (...) { ... }` sentence. In the parenthesis you specify the condition when the block of the `if` should happen. `completedReps[1]` gives you the number of **completed reps** of the first set (`[1]` part - arrays indexes start from 1), and `reps[1]` gives you the number of **required reps** that were defined for that set. So `completedReps[1] >= reps[1]` means that completed reps of the first set are equal or more than the required reps of the first set.
+The conditional logic written with `if (...) { ... }` sentence. In the parentheses you specify the condition when the block of the `if` should happen. `completedReps[1]` gives you the number of **completed reps** of the first set (`[1]` part - arrays indexes start from 1), and `reps[1]` gives you the number of **required reps** that were defined for that set. So `completedReps[1] >= reps[1]` means that completed reps of the first set are equal or more than the required reps of the first set.
 
 For convenience, you can also check if all completed reps of all sets are equal or more than required reps. You could do: `completedReps >= reps` (i.e. omit `[1]` part). It works for all the arrays (`weights`, `reps`, `RPE`, etc) - e.g. you can do `weights >= 50lb` - it is true if all the weights of all the sets are equal or more than 50lb.
 
@@ -713,7 +713,7 @@ But more about those below in the section about "Set Variations" and "Advanced D
 
 Sometimes you need to remember some values between the workouts. For example, you want to increase the weight after 3 successful attempts, so you need to know what is the current attempt, and how many already happened.
 
-For that, you can use **state variables**. Those can hold the value between the workouts. You list them inside the parenthesis of `custom()`, and then refer to them within the `{~ ... ~}` block. For example:
+For that, you can use **state variables**. Those can hold the value between the workouts. You list them inside the parentheses of `custom()`, and then refer to them within the `{~ ... ~}` block. For example:
 
 {% plannercode %}
 Bench Press / 3x8 / progress: custom(attempt: 0) {~
@@ -729,7 +729,7 @@ Bench Press / 3x8 / progress: custom(attempt: 0) {~
 
 The `attempt` variable will be increased across workouts, and then reset to 0 once you hit 3 successful attempts.
 
-Another use case for the state variables is in reusing the `progress: custom()` logic. The scripts can become pretty large, and usually you want multiple exercises to follow the same logic. So, for that you can reuse it! For that, just specify the exercise you're reusing the logic from like this: `Bench Press / 3x8 / progress: custom() { ...Squat }`. I.e. add it within the curly braces - `{` and `}` (without tildas! So the app would know it's not the script itself). For example, if we want to reuse the logic above, it'd look like this:
+Another use case for the state variables is in reusing the `progress: custom()` logic. The scripts can become pretty large, and usually you want multiple exercises to follow the same logic. So, for that you can reuse it! For that, just specify the exercise you're reusing the logic from like this: `Bench Press / 3x8 / progress: custom() { ...Squat }`. I.e. add it within the curly braces - `{` and `}` (without tildes! So the app would know it's not the script itself). For example, if we want to reuse the logic above, it'd look like this:
 
 {% plannercode %}
 Bench Press / 3x8 / progress: custom(attempt: 0) {~
@@ -898,7 +898,7 @@ You can specify both `update: custom()` and any `progress: ` within the same exe
 
 ### Number of sets
 
-To do do number-of-sets-based progressions, you can use `numberOfSets` variable in your `progress` scripts, similar to how you could do it in the `update` scripts. E.g. this is how you could setup a set-based double progression (which would increase sets from 3 to 5, and then would increase weight and reset sets back to 3):
+To do number-of-sets-based progressions, you can use `numberOfSets` variable in your `progress` scripts, similar to how you could do it in the `update` scripts. E.g. this is how you could setup a set-based double progression (which would increase sets from 3 to 5, and then would increase weight and reset sets back to 3):
 
 {% plannercode %}
 Squat / 3x8 / progress: custom() {~
@@ -941,9 +941,9 @@ So, to define the set variations you just list them separated by `/`, and then u
 
 ### Advanced Descriptions
 
-Similarly to set variations, you can specify mutliple descriptions per exercise, and switch between the current one by assigning to the `descriptionIndex` variable. The current one is marked the same as in set variations - by `!`.
+Similarly to set variations, you can specify multiple descriptions per exercise, and switch between the current one by assigning to the `descriptionIndex` variable. The current one is marked the same as in set variations - by `!`.
 
-To add mutliple descriptions, simply leave an empty line between them, like this:
+To add multiple descriptions, simply leave an empty line between them, like this:
 
 {% plannercode %}
 // This is the first description.
