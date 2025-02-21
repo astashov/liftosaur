@@ -4,14 +4,15 @@ import { useState } from "preact/hooks";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { Weight } from "../models/weight";
-import { IProgramExercise, ISettings, IWeight } from "../types";
+import { ISettings, IWeight } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { InputWeight } from "./inputWeight";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
 
 interface IModalWeightProps {
   dispatch: IDispatch;
   weight: number | IWeight;
-  programExercise?: IProgramExercise;
+  programExercise?: IPlannerProgramExercise;
   isHidden: boolean;
   settings: ISettings;
 }

@@ -56,7 +56,7 @@ export class PlannerTestUtils {
     settings: ISettings = Settings.build()
   ): { program: IProgram } {
     const { program } = PlannerTestUtils.get(text, settings);
-    const nextHistoryRecord = Program.nextProgramRecord(program, settings);
+    const nextHistoryRecord = Program.nextHistoryRecord(program, settings);
     for (let entryIndex = 0; entryIndex < completed.completedReps.length; entryIndex++) {
       for (let setIndex = 0; setIndex < completed.completedReps[entryIndex].length; setIndex++) {
         const set = nextHistoryRecord.entries?.[entryIndex]?.sets[setIndex];

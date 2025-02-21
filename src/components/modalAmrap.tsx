@@ -3,21 +3,23 @@ import { useState } from "preact/hooks";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
-import { IHistoryRecord, IPercentage, IProgramExercise, ISettings, IWeight } from "../types";
+import { IHistoryRecord, IPercentage, IProgramState, ISettings, IWeight } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
-import { ProgramExercise } from "../models/programExercise";
 import { InputWeight } from "./inputWeight";
 import { InputNumber } from "./inputNumber";
 import { MathUtils } from "../utils/math";
+import { IByExercise } from "../pages/planner/plannerEvaluator";
+import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
 
 interface IModalAmrapProps {
   progress: IHistoryRecord;
   dispatch: IDispatch;
   settings: ISettings;
-  programExercise?: IProgramExercise;
-  allProgramExercises: IProgramExercise[];
+  programExercise?: IPlannerProgramExercise;
+  otherStates?: IByExercise<IProgramState>;
   onDone?: () => void;
 }
 
@@ -41,10 +43,10 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const [rpeInputValue, setRpeInputValue] = useState<number | undefined>(initialRpe);
 
   const stateMetadata = props.programExercise
-    ? ProgramExercise.getStateMetadata(props.programExercise, props.allProgramExercises) || {}
+    ? PlannerProgramExercise.getStateMetadata(props.programExercise) || {}
     : {};
   const stateMetadataKeys = ObjectUtils.keys(stateMetadata).filter((k) => stateMetadata[k]?.userPrompted);
-  const state = props.programExercise ? ProgramExercise.getState(props.programExercise, props.allProgramExercises) : {};
+  const state = props.programExercise ? PlannerProgramExercise.getState(props.programExercise) : {};
   const initialUserVarInputValues = stateMetadataKeys.reduce<
     Record<keyof typeof stateMetadata, number | IWeight | IPercentage>
   >((memo, k) => {
@@ -66,8 +68,8 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
       weightValue,
       setIndex: setIndex,
       entryIndex: entryIndex,
-      allProgramExercises: props.allProgramExercises,
       programExercise: props.programExercise,
+      otherStates: props.otherStates,
       isAmrap: isAmrap,
       logRpe: logRpe,
       askWeight: askWeight,

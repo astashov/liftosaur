@@ -939,6 +939,7 @@ export class PlannerExerciseEvaluator {
         key,
         fullName,
         shortName,
+        exerciseType: exercise,
         label,
         text,
         repeat,

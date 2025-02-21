@@ -9,7 +9,7 @@ export class PP {
       dayInWeekIndex: number,
       dayIndex: number,
       exerciseIndex: number
-    ) => void
+    ) => boolean | void
   ): void {
     let dayIndex = 0;
     for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex++) {
@@ -19,7 +19,10 @@ export class PP {
         if (day.success) {
           for (let exerciseIndex = 0; exerciseIndex < day.data.length; exerciseIndex++) {
             const exercise = day.data[exerciseIndex];
-            cb(exercise, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex);
+            const shouldReturn = cb(exercise, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex);
+            if (!!shouldReturn) {
+              return;
+            }
           }
         }
         dayIndex += 1;

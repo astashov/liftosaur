@@ -4,7 +4,6 @@ import {
   IProgramExerciseVariation,
   IProgramExerciseWarmupSet,
   ISettings,
-  IHistoryRecord,
   IHistoryEntry,
   IProgramSet,
   IUnit,
@@ -14,7 +13,6 @@ import {
   IPercentage,
 } from "../types";
 import { Program } from "./program";
-import { History } from "./history";
 import { ProgramSet } from "./programSet";
 import { IProgramStateMetadata, IWeight, IPlannerProgram } from "../types";
 import { ObjectUtils } from "../utils/object";
@@ -28,6 +26,8 @@ import { ProgramToPlanner } from "./programToPlanner";
 import { Progress } from "./progress";
 import { PlannerKey } from "../pages/planner/plannerKey";
 import { MathUtils } from "../utils/math";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 
 export interface IWeightChange {
   originalWeight: IWeight | IPercentage;
@@ -67,11 +67,8 @@ export namespace ProgramExercise {
     return getState(programExercise, allProgramExercises);
   }
 
-  export function hasUserPromptedVars(
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[]
-  ): boolean {
-    const stateMetadata = getStateMetadata(programExercise, allProgramExercises) || {};
+  export function hasUserPromptedVars(programExercise: IPlannerProgramExercise): boolean {
+    const stateMetadata = PlannerProgramExercise.getStateMetadata(programExercise) || {};
     return ObjectUtils.keys(stateMetadata).some((key) => stateMetadata[key]?.userPrompted);
   }
 
@@ -177,12 +174,12 @@ export namespace ProgramExercise {
     return getProgramExercise(programExercise, allProgramExercises).timerExpr;
   }
 
-  export function getQuickAddSets(programExercise: IProgramExercise, allProgramExercises: IProgramExercise[]): boolean {
-    return !!getProgramExercise(programExercise, allProgramExercises).quickAddSets;
+  export function getQuickAddSets(programExercise: IPlannerProgramExercise): boolean {
+    return PlannerProgramExercise.sets(programExercise).some((set) => !!set.repRange?.isQuickAddSet);
   }
 
-  export function getEnableRpe(programExercise: IProgramExercise, allProgramExercises: IProgramExercise[]): boolean {
-    return !!getProgramExercise(programExercise, allProgramExercises).enableRpe;
+  export function getEnableRpe(programExercise: IPlannerProgramExercise): boolean {
+    return PlannerProgramExercise.sets(programExercise).some((set) => set.rpe != null);
   }
 
   export function getEnableRepRanges(
@@ -291,36 +288,6 @@ export namespace ProgramExercise {
     }
   }
 
-  export function buildProgress(
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    dayData: IDayData,
-    settings: ISettings
-  ): IHistoryRecord | undefined {
-    let entry: IHistoryEntry | undefined;
-    let variationIndex = 0;
-    const state = ProgramExercise.getState(programExercise, allProgramExercises);
-    try {
-      variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, state, dayData, settings);
-    } catch (_) {}
-    try {
-      entry = Program.nextHistoryEntry(
-        programExercise,
-        allProgramExercises,
-        dayData,
-        ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets,
-        state,
-        settings,
-        !!programExercise.enableRpe,
-        ProgramExercise.getEnableRepRanges(programExercise, allProgramExercises),
-        ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
-      );
-    } catch (e) {
-      entry = undefined;
-    }
-    return entry != null ? History.buildFromEntry(entry, dayData) : undefined;
-  }
-
   export function hasDifferentUnitStateVariables(programExercise: IProgramExercise, unit: IUnit): boolean {
     const reuseLogicId = programExercise.reuseLogic?.selected;
     const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
@@ -392,18 +359,11 @@ export namespace ProgramExercise {
     };
   }
 
-  export function isUsingVariable(programExercise: IProgramExercise, name: string): boolean {
-    const expressions = CollectionUtils.compact(
-      [
-        programExercise.timerExpr,
-        programExercise.descriptionExpr,
-        programExercise.finishDayExpr,
-        programExercise.variationExpr,
-        programExercise.variations.map((v) => {
-          return v.sets.map((s) => [s.repsExpr, s.rpeExpr, s.weightExpr, s.minRepsExpr]);
-        }),
-      ].flat(4)
-    );
+  export function isUsingVariable(programExercise: IPlannerProgramExercise, name: string): boolean {
+    const expressions = CollectionUtils.compact([
+      PlannerProgramExercise.getProgressScript(programExercise),
+      PlannerProgramExercise.getUpdateScript(programExercise),
+    ]);
     return expressions.some((e) => ScriptRunner.hasKeyword(e, name));
   }
 

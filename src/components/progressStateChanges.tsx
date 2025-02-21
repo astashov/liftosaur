@@ -1,39 +1,28 @@
 import { h, JSX, Fragment } from "preact";
-import { IProgramMode, Program } from "../models/program";
+import { IEvaluatedProgram, Program } from "../models/program";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
 import { StringUtils } from "../utils/string";
 import { Reps } from "../models/set";
-import {
-  IHistoryEntry,
-  ISettings,
-  IProgramState,
-  IDayData,
-  IProgramExercise,
-  IProgram,
-  IUnit,
-  IPercentage,
-  IWeight,
-} from "../types";
+import { IHistoryEntry, ISettings, IProgramState, IDayData, IUnit, IPercentage, IWeight } from "../types";
 import { Exercise } from "../models/exercise";
-import { ProgramExercise } from "../models/programExercise";
 import { IScriptBindings } from "../models/progress";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 
 interface IProps {
   entry: IHistoryEntry;
   settings: ISettings;
   dayData: IDayData;
-  programExercise: IProgramExercise;
-  program: IProgram;
+  programExercise: IPlannerProgramExercise;
+  program: IEvaluatedProgram;
   userPromptedStateVars?: IProgramState;
   forceShow?: boolean;
-  staticState?: IProgramState;
-  mode: IProgramMode;
 }
 
 export function ProgressStateChanges(props: IProps): JSX.Element | null {
-  const state = ProgramExercise.getState(props.programExercise, props.program.exercises);
+  const state = PlannerProgramExercise.getState(props.programExercise);
   const { entry, settings, dayData } = props;
   const { units } = settings;
   const mergedState = { ...state, ...props.userPromptedStateVars };
@@ -42,10 +31,8 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
     dayData,
     settings,
     mergedState,
-    props.programExercise,
-    props.program,
-    props.mode,
-    props.staticState
+    props.program.states,
+    props.programExercise
   );
   const isFinished = Reps.isFinished(entry.sets);
   const updatePrints = entry.updatePrints || [];

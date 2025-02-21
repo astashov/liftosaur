@@ -27,7 +27,7 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
   const fullProgram = props.currentProgram ? Program.fullProgram(props.currentProgram, props.settings) : undefined;
 
   const programDay = fullProgram ? Program.getProgramDay(fullProgram, fullProgram.nextDay) : undefined;
-  const nextHistoryRecord = fullProgram ? Program.nextProgramRecord(fullProgram, props.settings) : undefined;
+  const nextHistoryRecord = fullProgram ? Program.nextHistoryRecord(fullProgram, props.settings) : undefined;
 
   const doesProgressNotMatchProgram =
     nextHistoryRecord &&

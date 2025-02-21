@@ -685,12 +685,12 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
   const { planner } = props;
   const [settings, setSettings] = useState(props.settings);
   const [program, setProgram] = useState<IProgram>({ ...Program.create("My Program"), planner });
-  const [progress, setProgress] = useState(Program.nextProgramRecord(program, settings, 1, {}));
+  const [progress, setProgress] = useState(Program.nextHistoryRecord(program, settings, 1, {}));
 
   return (
     <ProgramPreviewPlaygroundDay
       program={Program.fullProgram(program, settings)}
-      dayIndex={0}
+      day={0}
       isPlayground={true}
       settings={settings}
       progress={progress}
@@ -701,11 +701,11 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
       }}
       onProgramChange={(newProgram) => {
         setProgram(newProgram);
-        setProgress(Program.nextProgramRecord(newProgram, settings, 1, {}));
+        setProgress(Program.nextHistoryRecord(newProgram, settings, 1, {}));
       }}
       onSettingsChange={(newSettings) => {
         setSettings(newSettings);
-        setProgress(Program.nextProgramRecord(program, newSettings, 1, {}));
+        setProgress(Program.nextHistoryRecord(program, newSettings, 1, {}));
       }}
       onFinish={() => {
         const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(program, progress, settings, {});
@@ -713,7 +713,7 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
           ...settings,
           exerciseData: deepmerge(settings.exerciseData, exerciseData),
         };
-        const newProgress = Program.nextProgramRecord(newProgram, newSettings, 1, {});
+        const newProgress = Program.nextHistoryRecord(newProgram, newSettings, 1, {});
         setSettings(newSettings);
         setProgram(newProgram);
         setProgress(newProgress);

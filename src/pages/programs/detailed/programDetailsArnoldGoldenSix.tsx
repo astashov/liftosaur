@@ -132,7 +132,7 @@ export function ProgramDetailsArnoldGoldenSix(props: IProgramDetailsArnoldGolden
       <ProgramDetailsWorkoutPlayground
         program={props.program}
         settings={props.settings}
-        weekSetup={[{ name: "Week 1", days: [{ dayIndex: 1, states: {} }] }]}
+        weekSetup={[{ name: "Week 1", days: [{ day: 1, states: {} }] }]}
       />
       <div className="mt-8">
         <ProgramDetailsUpsell />
