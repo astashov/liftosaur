@@ -31,7 +31,7 @@ function getWeeks(history: IHistoryRecord[], startWeekFromMonday?: boolean): Dat
   const lastWorkout = history[history.length - 1];
   const firstWeek = new Date(
     DateUtils.firstDayOfWeekTimestamp(
-      lastWorkout ? new Date(Date.parse(lastWorkout.date)) : new Date(),
+      lastWorkout ? new Date(Math.max(Date.parse(lastWorkout.date), new Date(2015, 1, 1).getTime())) : new Date(),
       startWeekFromMonday
     )
   );
