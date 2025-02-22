@@ -147,6 +147,7 @@ export class Sync {
       ...diffVal(lastSettings, currentSettings, "isPublicProfile"),
       ...diffVal(lastSettings, currentSettings, "nickname"),
       ...diffVal(lastSettings, currentSettings, "alwaysOnDisplay"),
+      ...diffVal(lastSettings, currentSettings, "startWeekFromMonday"),
       ...diffVal(lastSettings, currentSettings, "vibration"),
       ...diffVal(lastSettings, currentSettings, "appleHealthAnchor"),
       ...diffVal(lastSettings, currentSettings, "googleHealthAnchor"),
