@@ -1242,4 +1242,4 @@ You can also email to `info@liftosaur.com`, and I can help with that.
 
 You can delete both local account (all your data stored on a device) and remote account - all your data stored on the servers. All the data there would be deleted permanently.
 
-There're 30 days backups on the servers, so the remote account data will be still in the backups for the next 30 days, and after that it'll be gone completely.
+There are 30 days backups on the servers, so the remote account data will be still in the backups for the next 30 days, and after that it'll be gone completely.
