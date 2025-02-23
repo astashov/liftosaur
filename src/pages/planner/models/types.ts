@@ -1,6 +1,6 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IExerciseType, IProgram } from "../../../types";
+import { IExerciseType, IPercentage, IProgram, IProgramState } from "../../../types";
 import { IPlannerSyntaxPointer } from "../plannerExerciseEvaluator";
 import { SyntaxNode } from "@lezer/common";
 import {
@@ -43,13 +43,14 @@ export type IPlannerProgramExercise = {
   line: number;
   reuse?: IPlannerProgramReuse;
   notused?: boolean;
-  sets: IPlannerProgramExerciseSet[];
+  evaluatedSetVariations: IPlannerProgramExerciseEvaluatedSetVariation[];
   setVariations: IPlannerProgramExerciseSetVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
   skipProgress: { week: number; day: number }[];
   descriptions: IPlannerProgramExerciseDescription[];
   properties: IPlannerProgramProperty[];
   globals: IPlannerProgramExerciseGlobals;
+  state: IProgramState;
   points: {
     fullName: IPlannerSyntaxPointer;
     reuseSetPoint?: IPlannerSyntaxPointer;
@@ -63,6 +64,24 @@ export type IPlannerProgramExercise = {
 export interface IPlannerProgramExerciseSetVariation {
   sets: IPlannerProgramExerciseSet[];
   isCurrent: boolean;
+}
+
+export interface IPlannerProgramExerciseEvaluatedSetVariation {
+  sets: IPlannerProgramExerciseEvaluatedSet[];
+  isCurrent: boolean;
+}
+
+export interface IPlannerProgramExerciseEvaluatedSet {
+  maxrep: number;
+  weight: IWeight | IPercentage;
+  minrep?: number;
+  timer?: number;
+  rpe?: number;
+  logRpe: boolean;
+  label?: string;
+  isAmrap: boolean;
+  isQuickAddSet: boolean;
+  askWeight: boolean;
 }
 
 export interface IPlannerProgramExerciseSet {
@@ -85,6 +104,7 @@ export interface IPlannerProgramExerciseWarmupSet {
 }
 
 export interface IPlannerProgramReuse {
+  text: string;
   fullName: string;
   week?: number;
   day?: number;

@@ -11,7 +11,6 @@ import {
   IUnit,
   IWeight,
   ISettings,
-  IProgram,
   IDayData,
   IScreenMuscle,
   screenMuscles,
@@ -27,6 +26,8 @@ import { IDispatch } from "../ducks/types";
 import { SendMessage } from "../utils/sendMessage";
 import memoize from "micro-memoize";
 import { DateUtils } from "../utils/date";
+import { IEvaluatedProgram, Program } from "./program";
+import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -72,17 +73,22 @@ export namespace History {
     };
   }
 
-  export function finishProgramDay(progress: IHistoryRecord, settings: ISettings, program?: IProgram): IHistoryRecord {
+  export function finishProgramDay(
+    progress: IHistoryRecord,
+    settings: ISettings,
+    day: number,
+    program?: IEvaluatedProgram
+  ): IHistoryRecord {
     const { deletedProgramExercises, ui, ...historyRecord } = progress;
+    const programDay = program ? Program.getProgramDay(program, day) : undefined;
     const updatedAt = Date.now();
     return {
       ...historyRecord,
       entries: historyRecord.entries.map((entry) => {
-        const programExercise = program?.exercises.filter((pe) => pe.id === entry.programExerciseId)[0];
+        const programExercise = programDay?.exercises.find((pe) => pe.key === entry.programExerciseId);
         if (Progress.isCurrent(progress)) {
           if (programExercise != null) {
-            const reuseLogicId = programExercise.reuseLogic?.selected;
-            const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
+            const state = PlannerProgramExercise.getState(programExercise);
             const useRm1 = ProgramExercise.isUsingVariable(programExercise, "rm1");
             entry = {
               ...entry,

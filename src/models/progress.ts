@@ -28,6 +28,7 @@ import {
   IDayData,
   IExerciseDataValue,
   IUnit,
+  IPlannerProgram,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
@@ -1241,7 +1242,7 @@ export namespace Progress {
 
   export function applyProgramDay(
     progress: IHistoryRecord,
-    program: IProgram,
+    program: IEvaluatedProgram,
     dayIndex: number,
     settings: ISettings,
     staticStates?: Partial<Record<string, IProgramState>>,

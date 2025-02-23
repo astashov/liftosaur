@@ -21,6 +21,7 @@ import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
 import { Weight } from "../../models/weight";
 import { MathUtils } from "../../utils/math";
 import { PlannerKey } from "./plannerKey";
+import { PlannerProgramExercise } from "./models/plannerProgramExercise";
 
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
@@ -264,6 +265,8 @@ export class PlannerExerciseEvaluator {
       try {
         const fnArgVal = fnArgValStr.match(/(lb|kg)/)
           ? Weight.parse(fnArgValStr)
+          : fnArgValStr.match(/%/)
+          ? Weight.buildPct(parseFloat(fnArgValStr))
           : MathUtils.roundFloat(parseFloat(fnArgValStr), 2);
         state[fnArgKey] = fnArgVal ?? 0;
       } catch (e) {
@@ -641,7 +644,7 @@ export class PlannerExerciseEvaluator {
       }
       const name = this.getValue(nameNode);
       const { week, day } = this.getReuseWeekDay(expr.getChild(PlannerNodeName.WeekDay));
-      return { type: "reuse", data: { fullName: name, week, day } };
+      return { type: "reuse", data: { fullName: name, text: this.getValue(expr), week, day } };
     } else {
       assert(PlannerNodeName.ReuseSectionWithWeekDay);
     }
@@ -935,6 +938,9 @@ export class PlannerExerciseEvaluator {
         .filter((n) => n)[0];
       const warmupPoint = warmupNode ? this.getPoint(warmupNode) : undefined;
 
+      const progress = allProperties.find((p) => p.name === "progress");
+      const state = progress ? PlannerProgramExercise.getStateFromProperty(progress) : {};
+
       const plannerExercise: IPlannerProgramExercise = {
         key,
         fullName,
@@ -950,13 +956,14 @@ export class PlannerExerciseEvaluator {
         line,
         tags,
         notused: notused,
-        sets: allSets,
+        evaluatedSetVariations: [],
         setVariations,
         descriptions,
         warmupSets: allWarmupSets,
         properties: allProperties,
         reuse,
         skipProgress: [],
+        state,
         globals: {
           rpe,
           logRpe,

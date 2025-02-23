@@ -19,6 +19,7 @@ import {
   IHistoryRecord,
   IPercentage,
   IProgramState,
+  IProgram,
 } from "../types";
 import { IndexedDBUtils } from "../utils/indexeddb";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
@@ -609,8 +610,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     } else {
       const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
       const program = state.storage.programs[programIndex];
+      const evaluatedProgram = Program.evaluate(program, settings);
       Progress.stopTimer(progress);
-      const historyRecord = History.finishProgramDay(progress, state.storage.settings, program);
+      const historyRecord = History.finishProgramDay(progress, state.storage.settings, progress.day, evaluatedProgram);
       let newHistory;
       if (!Progress.isCurrent(progress)) {
         newHistory = state.storage.history.map((h) => (h.id === progress.id ? historyRecord : h));
@@ -620,7 +622,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const exerciseData = state.storage.settings.exerciseData;
       const { program: newProgram, exerciseData: newExerciseData } =
         Progress.isCurrent(progress) && program != null
-          ? Program.runAllFinishDayScripts(program, progress, settings)
+          ? Program.runAllFinishDayScripts(program, evaluatedProgram, progress, settings)
           : { program, exerciseData };
       const newPrograms =
         newProgram != null ? lf(state.storage.programs).i(programIndex).set(newProgram) : state.storage.programs;
@@ -782,7 +784,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "ApplyProgramChangesToProgress") {
     const progress = state.progress[0];
     if (progress != null) {
-      const program = Program.evaluateProgram(Program.getProgram(state, progress.programId)!, state.storage.settings);
+      const program = Program.evaluate(Program.getProgram(state, progress.programId)!, state.storage.settings);
       let newProgress = Progress.applyProgramDay(
         progress,
         program,

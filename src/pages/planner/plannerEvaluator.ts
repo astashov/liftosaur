@@ -12,6 +12,8 @@ import {
   IPlannerProgramExerciseDescription,
   IPlannerProgramProperty,
   IPlannerProgramExerciseWarmupSet,
+  IPlannerProgramExerciseEvaluatedSetVariation,
+  IPlannerProgramExerciseEvaluatedSet,
 } from "./models/types";
 import { PlannerKey } from "./plannerKey";
 import { ObjectUtils } from "../../utils/object";
@@ -25,6 +27,7 @@ import { IPlannerEvaluatedProgramToTextOpts, PlannerEvaluatedProgramToText } fro
 import { IEither } from "../../utils/types";
 import { PlannerProgramExercise } from "./models/plannerProgramExercise";
 
+export type IByTag<T> = Record<number, T>;
 export type IByExercise<T> = Record<string, T>;
 export type IByExerciseWeekDay<T> = Record<string, Record<number, Record<number, T>>>;
 export type IByWeekDayExercise<T> = Record<number, Record<number, Record<string, T>>>;
@@ -298,6 +301,40 @@ export class PlannerEvaluator {
     }
   }
 
+  private static fillEvaluatedSetVariations(exercise: IPlannerProgramExercise): void {
+    const evaluatedSetVariations: IPlannerProgramExerciseEvaluatedSetVariation[] = [];
+    const setVariations = PlannerProgramExercise.setVariations(exercise);
+    for (let i = 0; i < setVariations.length; i++) {
+      const sets = PlannerProgramExercise.sets(exercise, i);
+      const evaluatedSets: IPlannerProgramExerciseEvaluatedSet[] = [];
+      for (const aSet of sets) {
+        if (aSet.repRange == null) {
+          continue;
+        }
+        for (let j = 0; j < aSet.repRange.numberOfSets; j++) {
+          evaluatedSets.push({
+            maxrep: aSet.repRange.maxrep,
+            minrep: aSet.repRange.minrep,
+            weight: aSet.weight
+              ? aSet.weight
+              : aSet.percentage
+              ? Weight.buildPct(aSet.percentage)
+              : Weight.buildPct(Math.round(100 * Weight.rpeMultiplier(aSet.repRange.maxrep, aSet.rpe || 10))),
+            timer: aSet.timer,
+            rpe: aSet.rpe,
+            logRpe: !!aSet.logRpe,
+            label: aSet.label,
+            isAmrap: !!aSet.repRange.isAmrap,
+            isQuickAddSet: !!aSet.repRange.isQuickAddSet,
+            askWeight: !!aSet.askWeight,
+          });
+        }
+      }
+      evaluatedSetVariations.push({ sets: evaluatedSets, isCurrent: setVariations[i].isCurrent });
+    }
+    exercise.evaluatedSetVariations = evaluatedSetVariations;
+  }
+
   private static fillDescriptions(
     exercise: IPlannerProgramExercise,
     evaluatedWeeks: IPlannerEvalResult[][],
@@ -388,9 +425,8 @@ export class PlannerEvaluator {
             point
           );
         }
-        const fnArgs = progress.fnArgs;
-        const originalState = PlannerExerciseEvaluator.fnArgsToStateVars(originalProgress.fnArgs);
-        const state = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs);
+        const originalState = PlannerProgramExercise.getStateFromProperty(originalProgress);
+        const state = PlannerProgramExercise.getStateFromProperty(progress);
         for (const stateKey of ObjectUtils.keys(originalState)) {
           const value = originalState[stateKey];
           if (state[stateKey] == null) {
@@ -412,7 +448,7 @@ export class PlannerEvaluator {
       if (script && liftoscriptNode) {
         const exerciseType = PlannerProgramExercise.getExercise(exercise, settings);
         const progress = exercise.properties.find((p) => p.name === "progress" && p.fnName === "custom");
-        const state = progress ? PlannerExerciseEvaluator.fnArgsToStateVars(progress.fnArgs) : {};
+        const state = progress ? PlannerProgramExercise.getStateFromProperty(progress) : {};
         const liftoscriptEvaluator = new ScriptRunner(
           script,
           state,
@@ -481,7 +517,7 @@ export class PlannerEvaluator {
               point
             );
           }
-          const state = PlannerExerciseEvaluator.fnArgsToStateVars(progress.fnArgs);
+          const state = PlannerProgramExercise.getStateFromProperty(progress);
           for (const stateKey of stateKeys) {
             if (state[stateKey] == null) {
               throw PlannerSyntaxError.fromPoint(
@@ -548,6 +584,9 @@ export class PlannerEvaluator {
         dayInWeek: dayInWeekIndex + 1,
         day: dayInWeekIndex + 1,
       });
+    });
+    this.iterateOverExercises(evaluatedWeeks, (weekIndex, dayInWeekIndex, dayIndex, exerciseIndex, exercise) => {
+      this.fillEvaluatedSetVariations(exercise);
     });
   }
 
@@ -620,6 +659,7 @@ export class PlannerEvaluator {
     } => {
       const { evaluatedWeeks, metadata } = PlannerEvaluator.getPerDayEvaluatedWeeks(plannerProgram, settings);
       PlannerEvaluator.postProcess(evaluatedWeeks, settings, metadata);
+      console.log(evaluatedWeeks);
       return { evaluatedWeeks, exerciseFullNames: Array.from(metadata.fullNames) };
     },
     { maxSize: 10 }
