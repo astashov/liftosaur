@@ -1,6 +1,6 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IExerciseType, IPercentage, IProgram, IProgramState } from "../../../types";
+import { IExerciseType, IPercentage, IProgram, IProgramState, IProgramStateMetadata } from "../../../types";
 import { IPlannerSyntaxPointer } from "../plannerExerciseEvaluator";
 import { SyntaxNode } from "@lezer/common";
 import {
@@ -51,6 +51,7 @@ export type IPlannerProgramExercise = {
   properties: IPlannerProgramProperty[];
   globals: IPlannerProgramExerciseGlobals;
   state: IProgramState;
+  stateMetadata: IProgramStateMetadata;
   points: {
     fullName: IPlannerSyntaxPointer;
     reuseSetPoint?: IPlannerSyntaxPointer;

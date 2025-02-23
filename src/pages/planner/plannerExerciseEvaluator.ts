@@ -940,6 +940,7 @@ export class PlannerExerciseEvaluator {
 
       const progress = allProperties.find((p) => p.name === "progress");
       const state = progress ? PlannerProgramExercise.getStateFromProperty(progress) : {};
+      const stateMetadata = progress ? PlannerProgramExercise.getStateMetadataFromProperty(progress) : {};
 
       const plannerExercise: IPlannerProgramExercise = {
         key,
@@ -964,6 +965,7 @@ export class PlannerExerciseEvaluator {
         reuse,
         skipProgress: [],
         state,
+        stateMetadata,
         globals: {
           rpe,
           logRpe,

@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { useCallback } from "preact/hooks";
 import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
-import { IHistoryRecord, IProgram, ISettings } from "../../types";
+import { IHistoryRecord, ISettings } from "../../types";
 import { IDispatch } from "../../ducks/types";
 import { ProgramPreviewPlaygroundExercise } from "./programPreviewPlaygroundExercise";
 import { ModalAmrap } from "../modalAmrap";
@@ -28,7 +28,7 @@ interface IProgramPreviewPlaygroundDayProps {
   settings: ISettings;
   progress: IHistoryRecord;
   onProgressChange: (newProgress: IHistoryRecord) => void;
-  onProgramChange: (newProgram: IProgram) => void;
+  onProgramChange: (newProgram: IEvaluatedProgram) => void;
   onSettingsChange: (newSettings: ISettings) => void;
   onFinish: () => void;
 }
@@ -144,14 +144,20 @@ export const ProgramPreviewPlaygroundDay = memo(
               })
             }
             onEditStateVariable={(stateKey, newValue) => {
+              console.log("Edit State Variable", editModalProgramExerciseId, stateKey, newValue);
+              const dayData = Program.getDayData(props.program, props.day);
               const lensRecording = EditProgramLenses.properlyUpdateStateVariable(
-                lb<IProgram>()
-                  .pi("exercises")
-                  .find((e) => e.id === editModalProgramExercise.id),
-                editModalProgramExercise,
+                lb<IEvaluatedProgram>()
+                  .p("weeks")
+                  .i(dayData.week - 1)
+                  .p("days")
+                  .i(dayData.dayInWeek - 1)
+                  .p("exercises")
+                  .find((e) => e.key === editModalProgramExerciseId),
                 { [stateKey]: Program.stateValue(editModalProgramExercise.state, stateKey, newValue) }
               );
               const newProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), props.program);
+              console.log("New Program", newProgram);
               props.onProgramChange(newProgram);
             }}
             onEditVariable={(variableKey, newValue) => {

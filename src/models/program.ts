@@ -194,16 +194,8 @@ export namespace Program {
     for (const programSet of programSets) {
       const minReps =
         programSet.minrep != null && programSet.minrep !== programSet.maxrep ? programSet.minrep : undefined;
-      let originalWeight: IWeight;
       const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exercise);
-      if (Weight.is(programSet.weight)) {
-        originalWeight = programSet.weight;
-      } else if (Weight.isPct(programSet.weight)) {
-        const onerm = Exercise.onerm(exercise, settings);
-        originalWeight = Weight.multiply(onerm, programSet.weight.value / 100);
-      } else {
-        originalWeight = Weight.build(0, unit);
-      }
+      const originalWeight = Weight.evaluateWeight(programSet.weight, exercise, settings);
       const weight = Weight.roundConvertTo(originalWeight, settings, unit, exercise);
       sets.push({
         reps: programSet.maxrep,
@@ -257,7 +249,7 @@ export namespace Program {
   export function nextHistoryRecord(aProgram: IProgram, settings: ISettings, dayIndex?: number): IHistoryRecord {
     const program = Program.evaluate(aProgram, settings);
     const day = Math.max(1, Math.min(numberOfDays(program, settings), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
-    const dayData = getDayData(program, day, settings);
+    const dayData = getDayData(program, day);
     const { week, dayInWeek } = dayData;
 
     const dayName = program.weeks[week - 1]?.days[dayInWeek - 1]?.name || "Day 1";
@@ -863,7 +855,7 @@ export namespace Program {
     return 1;
   }
 
-  export function getDayData(program: IEvaluatedProgram, day: number, settings: ISettings): Required<IDayData> {
+  export function getDayData(program: IEvaluatedProgram, day: number): Required<IDayData> {
     return {
       day,
       week: Program.getWeekFromDay(program, day),

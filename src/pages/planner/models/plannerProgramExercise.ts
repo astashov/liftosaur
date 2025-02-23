@@ -322,6 +322,20 @@ export class PlannerProgramExercise {
     return metadata;
   }
 
+  public static getStateMetadataFromProperty(progress: IPlannerProgramProperty): IProgramStateMetadata {
+    const metadata: IProgramStateMetadata = {};
+    if (progress.fnName !== "custom") {
+      return {};
+    }
+    for (const value of progress.fnArgs) {
+      const [fnArgKey] = value.split(":").map((v) => v.trim());
+      if (fnArgKey.endsWith("+")) {
+        metadata[fnArgKey.replace("+", "")] = { userPrompted: true };
+      }
+    }
+    return metadata;
+  }
+
   public static getProgress(exercise: IPlannerProgramExercise): IPlannerProgramProperty | undefined {
     return exercise.properties.find((p) => p.name === "progress");
   }

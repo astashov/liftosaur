@@ -22,13 +22,11 @@ import {
   IProgram,
   IProgramState,
   IEquipment,
-  IProgramExercise,
   ISubscription,
   ISet,
   IDayData,
   IExerciseDataValue,
   IUnit,
-  IPlannerProgram,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
@@ -36,10 +34,9 @@ import { Subscriptions } from "../utils/subscriptions";
 import { IPercentage } from "../types";
 import { History } from "./history";
 import { CollectionUtils } from "../utils/collection";
-import { MathUtils } from "../utils/math";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { Equipment } from "./equipment";
-import { IByExercise } from "../pages/planner/plannerEvaluator";
+import { IByTag } from "../pages/planner/plannerEvaluator";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 
@@ -613,7 +610,7 @@ export namespace Progress {
     entry: IHistoryEntry,
     dayData: IDayData,
     programExercise: IPlannerProgramExercise,
-    otherStates: IByExercise<IProgramState>,
+    otherStates: IByTag<IProgramState>,
     setIndex: number,
     settings: ISettings
   ): IHistoryEntry {
@@ -666,23 +663,23 @@ export namespace Progress {
   export function runInitialUpdateScripts(
     aProgress: IHistoryRecord,
     programExerciseIds: string[] | undefined,
+    day: number,
     program: IEvaluatedProgram,
     settings: ISettings
   ): IHistoryRecord {
+    const programDay = Program.getProgramDay(program, day);
+    if (!programDay) {
+      return aProgress;
+    }
     const programExercises = programExerciseIds
-      ? CollectionUtils.compact(
-          programExerciseIds.map((id) => {
-            const programExercise = program.exercises.find((e) => e.id === id);
-            return programExercise ? ProgramExercise.getProgramExercise(programExercise, program.exercises) : undefined;
-          })
-        )
-      : program.exercises;
+      ? CollectionUtils.compact(programExerciseIds.map((id) => programDay.exercises.find((e) => e.key === id)))
+      : programDay.exercises;
 
     return {
       ...aProgress,
       entries: aProgress.entries.map((entry) => {
         const programExercise =
-          entry.programExerciseId != null ? programExercises.find((e) => e.id === entry.programExerciseId) : undefined;
+          entry.programExerciseId != null ? programExercises.find((e) => e.key === entry.programExerciseId) : undefined;
         if (!programExercise) {
           return entry;
         }
@@ -701,7 +698,7 @@ export namespace Progress {
   export function runUpdateScript(
     aProgress: IHistoryRecord,
     programExercise: IPlannerProgramExercise,
-    otherStates: IByExercise<IProgramState>,
+    otherStates: IByTag<IProgramState>,
     entryIndex: number,
     setIndex: number,
     mode: IProgressMode,
@@ -1078,31 +1075,13 @@ export namespace Progress {
 
   export function applyProgramExercise(
     progressEntry: IHistoryEntry | undefined,
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    dayData: IDayData,
+    programExercise: IPlannerProgramExercise,
     settings: ISettings,
-    forceWarmupSets?: boolean,
-    staticState?: IProgramState
+    forceWarmupSets?: boolean
   ): IHistoryEntry {
-    const state = { ...ProgramExercise.getState(programExercise, allProgramExercises), ...staticState };
-    const variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, state, dayData, settings);
-    const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets;
-    const programExerciseWarmupSets = ProgramExercise.getWarmupSets(programExercise, allProgramExercises);
-
-    const firstWeightExpr = sets[0]?.weightExpr;
-    const firstWeight =
-      firstWeightExpr != null
-        ? executeEntryScript(
-            firstWeightExpr,
-            programExercise.exerciseType,
-            dayData,
-            state,
-            { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
-            settings,
-            "weight"
-          )
-        : undefined;
+    const variationIndex = PlannerProgramExercise.currentSetVariationIndex(programExercise);
+    const sets = programExercise.evaluatedSetVariations[variationIndex].sets;
+    const programExerciseWarmupSets = PlannerProgramExercise.programWarmups(programExercise, settings);
 
     if (progressEntry != null) {
       const newSetsNum = Math.max(progressEntry.sets.length, sets.length);
@@ -1113,52 +1092,16 @@ export namespace Progress {
         if (progressSet?.completedReps != null) {
           newSets.push(progressSet);
         } else if (programSet != null) {
-          const weight = executeEntryScript(
-            programSet.weightExpr,
-            programExercise.exerciseType,
-            dayData,
-            state,
-            { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
-            settings,
-            "weight"
-          );
           const unit = Equipment.getUnitOrDefaultForExerciseType(settings, programExercise.exerciseType);
-          const roundedWeight = Weight.roundConvertTo(weight, settings, unit, programExercise.exerciseType);
+          const originalWeight = Weight.evaluateWeight(programSet.weight, programExercise.exerciseType, settings);
+          const weight = Weight.roundConvertTo(originalWeight, settings, unit, programExercise.exerciseType);
           newSets.push({
             ...progressSet,
-            reps: executeEntryScript(
-              programSet.repsExpr,
-              programExercise.exerciseType,
-              dayData,
-              state,
-              { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
-              settings,
-              "reps"
-            ),
-            minReps: programSet.minRepsExpr
-              ? executeEntryScript(
-                  programSet.minRepsExpr,
-                  programExercise.exerciseType,
-                  dayData,
-                  state,
-                  { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
-                  settings,
-                  "reps"
-                )
-              : undefined,
-            rpe: programSet.rpeExpr
-              ? executeEntryScript(
-                  programSet.rpeExpr,
-                  programExercise.exerciseType,
-                  dayData,
-                  state,
-                  { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
-                  settings,
-                  "rpe"
-                )
-              : undefined,
-            originalWeight: weight,
-            weight: roundedWeight,
+            reps: programSet.maxrep,
+            minReps: programSet.minrep,
+            rpe: programSet.rpe,
+            originalWeight,
+            weight,
             isAmrap: programSet.isAmrap,
             logRpe: programSet.logRpe,
             label: programSet.label,
@@ -1167,6 +1110,7 @@ export namespace Progress {
       }
       forceWarmupSets = forceWarmupSets || Reps.isEmpty(newSets);
 
+      const firstWeight = newSets[0]?.weight;
       return {
         ...progressEntry,
         exercise: progressEntry.changed ? progressEntry.exercise : programExercise.exerciseType,
@@ -1178,60 +1122,27 @@ export namespace Progress {
         sets: newSets,
       };
     } else {
+      const newSets = sets.map((set) => {
+        const unit = Equipment.getUnitOrDefaultForExerciseType(settings, programExercise.exerciseType);
+        const originalWeight = Weight.evaluateWeight(set.weight, programExercise.exerciseType, settings);
+        const weight = Weight.roundConvertTo(originalWeight, settings, unit, programExercise.exerciseType);
+        return {
+          reps: set.maxrep,
+          minReps: set.minrep,
+          originalWeight,
+          weight,
+          rpe: set.rpe,
+          logRpe: set.logRpe,
+          isAmrap: set.isAmrap,
+          label: set.label,
+        };
+      });
+      const firstWeight = newSets[0]?.weight;
+
       return {
         exercise: programExercise.exerciseType,
-        programExerciseId: programExercise.id,
-        sets: sets.map((set) => {
-          const weight = executeEntryScript(
-            set.weightExpr,
-            programExercise.exerciseType,
-            dayData,
-            state,
-            { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
-            settings,
-            "weight"
-          );
-          const unit = Equipment.getUnitOrDefaultForExerciseType(settings, programExercise.exerciseType);
-          const roundedWeight = Weight.roundConvertTo(weight, settings, unit, programExercise.exerciseType);
-          return {
-            reps: executeEntryScript(
-              set.repsExpr,
-              programExercise.exerciseType,
-              dayData,
-              state,
-              { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
-              settings,
-              "reps"
-            ),
-            minReps: set.minRepsExpr
-              ? executeEntryScript(
-                  set.minRepsExpr,
-                  programExercise.exerciseType,
-                  dayData,
-                  state,
-                  { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
-                  settings,
-                  "reps"
-                )
-              : undefined,
-            originalWeight: weight,
-            weight: roundedWeight,
-            rpe: set.rpeExpr
-              ? executeEntryScript(
-                  set.rpeExpr,
-                  programExercise.exerciseType,
-                  dayData,
-                  state,
-                  { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
-                  settings,
-                  "rpe"
-                )
-              : undefined,
-            logRpe: set.logRpe,
-            isAmrap: set.isAmrap,
-            label: set.label,
-          };
-        }),
+        programExerciseId: programExercise.key,
+        sets: newSets,
         warmupSets:
           firstWeight != null
             ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
@@ -1243,32 +1154,19 @@ export namespace Progress {
   export function applyProgramDay(
     progress: IHistoryRecord,
     program: IEvaluatedProgram,
-    dayIndex: number,
+    day: number,
     settings: ISettings,
-    staticStates?: Partial<Record<string, IProgramState>>,
-    programExerciseIds?: string[],
-    checkReused?: boolean
+    programExerciseIds?: string[]
   ): IHistoryRecord {
-    program = Program.fullProgram(program, settings);
-    const programDay = Program.getProgramDay(program, dayIndex);
-    const affectedProgramExerciseIds = programExerciseIds
-      ? checkReused
-        ? CollectionUtils.flat(
-            programExerciseIds.map((id) => {
-              const reusingExerciseIds = program.exercises
-                .filter((e) => e.reuseLogic?.selected === id)
-                .map((e) => e.id);
-              return [id].concat(reusingExerciseIds);
-            })
-          )
-        : programExerciseIds
-      : undefined;
-
+    const programDay = Program.getProgramDay(program, day);
+    if (!programDay) {
+      return progress;
+    }
     const newEntries = progress.entries
       .filter(
         (e) =>
           !e.programExerciseId ||
-          (programDay.exercises.some((ex) => ex.id === e.programExerciseId) &&
+          (programDay.exercises.some((ex) => ex.key === e.programExerciseId) &&
             !(progress.deletedProgramExercises || {})[e.programExerciseId])
       )
       .map((progressEntry) => {
@@ -1276,52 +1174,34 @@ export namespace Progress {
         if (programExerciseId == null) {
           return progressEntry;
         }
-        if (affectedProgramExerciseIds && affectedProgramExerciseIds.indexOf(programExerciseId) === -1) {
+        if (programExerciseIds && programExerciseIds.indexOf(programExerciseId) === -1) {
           return progressEntry;
         }
-        const programExercise = program.exercises.find((e) => e.id === programExerciseId);
+        const programExercise = programDay.exercises.find((e) => e.key === programExerciseId);
         if (programExercise == null) {
           return progressEntry;
         }
-        const staticState = staticStates?.[programExerciseId];
-        return applyProgramExercise(
-          progressEntry,
-          programExercise,
-          program.exercises,
-          Progress.getDayData(progress),
-          settings,
-          false,
-          staticState
-        );
+        return applyProgramExercise(progressEntry, programExercise, settings, false);
       });
 
     const sortedNewEntries = CollectionUtils.sortInOrder(
       newEntries,
       "programExerciseId",
-      programDay.exercises.map((e) => e.id)
+      programDay.exercises.map((e) => e.key)
     );
 
     const newProgramExercises = programDay.exercises.filter(
-      (e) => !progress.entries.some((ent) => ent.programExerciseId === e.id)
+      (e) => !progress.entries.some((ent) => ent.programExerciseId === e.key)
     );
     const additionalEntries =
       programExerciseIds == null
         ? CollectionUtils.compact(
             newProgramExercises.map((programDayExercise) => {
-              const programExercise = program.exercises.find((e) => e.id === programDayExercise.id);
+              const programExercise = programDay.exercises.find((e) => e.key === programDayExercise.key);
               if (!programExercise) {
                 return undefined;
               }
-              const staticState = staticStates?.[programExercise.id];
-              return applyProgramExercise(
-                undefined,
-                programExercise,
-                program.exercises,
-                Progress.getDayData(progress),
-                settings,
-                false,
-                staticState
-              );
+              return applyProgramExercise(undefined, programExercise, settings, false);
             })
           )
         : [];
@@ -1330,89 +1210,5 @@ export namespace Progress {
       ...progress,
       entries: [...sortedNewEntries, ...additionalEntries],
     };
-  }
-
-  export function executeEntryScript(
-    expr: string,
-    exerciseType: IExerciseType,
-    dayData: IDayData,
-    state: IProgramState,
-    context: IScriptFnContext,
-    settings: ISettings,
-    type: "weight"
-  ): IWeight;
-  export function executeEntryScript(
-    expr: string,
-    exerciseType: IExerciseType,
-    dayData: IDayData,
-    state: IProgramState,
-    context: IScriptFnContext,
-    settings: ISettings,
-    type: "reps" | "rpe"
-  ): number;
-  export function executeEntryScript(
-    expr: string,
-    exerciseType: IExerciseType,
-    dayData: IDayData,
-    state: IProgramState,
-    context: IScriptFnContext,
-    settings: ISettings,
-    type: "timer"
-  ): number;
-  export function executeEntryScript(
-    expr: string,
-    exerciseType: IExerciseType,
-    dayData: IDayData,
-    state: IProgramState,
-    context: IScriptFnContext,
-    settings: ISettings,
-    type: "reps" | "weight" | "timer" | "rpe"
-  ): IWeight | IPercentage | number | undefined {
-    const runner = new ScriptRunner(
-      expr,
-      state,
-      {},
-      createEmptyScriptBindings(dayData, settings, exerciseType),
-      createScriptFunctions(settings),
-      settings.units,
-      context,
-      "regular"
-    );
-    if (type === "reps") {
-      return ScriptRunner.safe(
-        () => runner.execute(type),
-        (e) =>
-          `There's an error while calculating reps via expression: ${expr}:\n\n${e.message}.\n\nWe fallback to the default reps 5. Please fix the exercise's reps script.`,
-        5
-      );
-    } else if (type === "timer") {
-      return ScriptRunner.safe(
-        () => runner.execute(type),
-        (e) =>
-          `There's an error while calculating timer script via expression: ${expr}:\n\n${e.message}.\n\nWe fallback to the default timer. Please fix the exercise's timer script.`,
-        undefined
-      );
-    } else if (type === "rpe") {
-      return ScriptRunner.safe(
-        () => runner.execute(type),
-        (e) =>
-          `There's an error while calculating RPE script via expression: ${expr}:\n\n${e.message}.\n\nWe ignore the RPE value. Please fix the exercise's RPE script.`,
-        undefined
-      );
-    } else {
-      return ScriptRunner.safe(
-        () => {
-          let weight = runner.execute(type);
-          if (Weight.isPct(weight)) {
-            const onerm = Exercise.onerm(exerciseType, settings);
-            weight = Weight.multiply(onerm, MathUtils.roundFloat(weight.value / 100, 4));
-          }
-          return weight;
-        },
-        (e) =>
-          `There's an error while executing script ${expr}:\n\n${e.message}.\n\nWe fallback to 100. Please fix the exercise's script.`,
-        Weight.build(100, settings.units)
-      );
-    }
   }
 }
