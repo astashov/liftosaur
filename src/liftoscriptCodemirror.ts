@@ -3,8 +3,8 @@ import { completeFromList, CompletionContext } from "@codemirror/autocomplete";
 import type { IProgramState } from "./types";
 import { PlannerNodeName } from "./pages/planner/plannerExerciseStyles";
 import { SyntaxNode } from "@lezer/common";
-import { PlannerToProgram } from "./models/plannerToProgram";
 import { liftoscriptLanguage } from "./liftoscriptLanguage";
+import { PlannerExerciseEvaluator } from "./pages/planner/plannerExerciseEvaluator";
 
 function findStateInScope(context: CompletionContext, script: string): IProgramState | undefined {
   const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
@@ -16,7 +16,7 @@ function findStateInScope(context: CompletionContext, script: string): IProgramS
     const fnArgs = node.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => {
       return script.slice(argNode.from, argNode.to);
     });
-    const { state } = PlannerToProgram.fnArgsToState(fnArgs);
+    const state = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs);
     return state;
   } else {
     return undefined;

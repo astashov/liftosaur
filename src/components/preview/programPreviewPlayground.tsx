@@ -154,7 +154,7 @@ export const ProgramPreviewPlayground = memo(
                                         newProgress = Progress.runInitialUpdateScripts(
                                           newProgress,
                                           undefined,
-                                          state.program,
+                                          evaluatedProgram,
                                           newSettings
                                         );
                                         return {
@@ -171,9 +171,9 @@ export const ProgramPreviewPlayground = memo(
                           onFinish={() => {
                             const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(
                               state.program,
+                              evaluatedProgram,
                               d.progress,
-                              state.settings,
-                              d.states
+                              state.settings
                             );
                             const newSettings = {
                               ...state.settings,

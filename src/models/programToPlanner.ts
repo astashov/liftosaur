@@ -1,296 +1,90 @@
-import { PlannerProgram, IDereuseDecision } from "../pages/planner/models/plannerProgram";
-import {
-  IPercentage,
-  IPlannerProgram,
-  IPlannerProgramDay,
-  IPlannerProgramWeek,
-  IProgram,
-  IProgramExercise,
-  IProgramExerciseVariation,
-  IProgramSet,
-  IProgramState,
-  ISettings,
-  IWeight,
-} from "../types";
-import { MathUtils } from "../utils/math";
+import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { IPercentage, IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, ISettings, IWeight } from "../types";
+import { n } from "../utils/math";
 import { ObjectUtils } from "../utils/object";
-import { Exercise, equipmentName, IExercise } from "./exercise";
 import { Weight } from "./weight";
-import { IProgramExerciseWarmupSet } from "../types";
-import { ILiftoscriptVariableValue } from "../liftoscriptEvaluator";
-import { IPlannerEvalResult, IPlannerTopLineItem } from "../pages/planner/plannerExerciseEvaluator";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
-import { IPlannerProgramExercise } from "../pages/planner/models/types";
-import { PlannerKey } from "../pages/planner/plannerKey";
-import { PP } from "./pp";
-import { IByExerciseWeekDay } from "../pages/planner/plannerEvaluator";
-
-interface ISimpleSet {
-  reps: number;
-  minReps?: number;
-  rpe?: number;
-  weight?: string;
-  timer?: number;
-}
-
-interface ISimpleGlobals {
-  rpe?: number;
-  weight?: string;
-  timer?: number;
-}
+import {
+  IPlannerProgramExercise,
+  IPlannerProgramExerciseEvaluatedSet,
+  IPlannerProgramExerciseEvaluatedSetVariation,
+  IPlannerProgramExerciseWarmupSet,
+  IPlannerProgramProperty,
+  IPlannerProgramReuse,
+} from "../pages/planner/models/types";
+import { IEvaluatedProgram, Program } from "./program";
 
 interface IPlannerToProgram2Globals {
-  weight?: string;
-  rpe?: string;
-  timer?: string;
+  weight?: IWeight | IPercentage;
+  rpe?: number;
+  timer?: number;
   logRpe?: boolean;
   askWeight?: boolean;
 }
 
+type IDereuseDecision = "weight" | "rpe" | "timer";
+
 export class ProgramToPlanner {
-  private _evaluatedWeeks?: IPlannerEvalResult[][];
-  private _reverseReuseGraph:
-    | Record<
-        string,
-        {
-          exercise: IPlannerProgramExercise;
-          reusingWeekIndex: number;
-          reusingDayInWeekIndex: number;
-          dayIndex: number;
-        }[]
-      >
-    | undefined;
-
-  constructor(
-    private readonly program: IProgram,
-    private readonly plannerProgram: IPlannerProgram,
-    private readonly settings: ISettings,
-    private readonly setVariationIndexMap: Partial<Record<string, ILiftoscriptVariableValue<number>[]>>,
-    private readonly descriptionIndexMap: Partial<Record<string, ILiftoscriptVariableValue<number>[]>>
-  ) {}
-
-  private reverseReuseGraph(): Record<
-    string,
-    { exercise: IPlannerProgramExercise; reusingWeekIndex: number; reusingDayInWeekIndex: number; dayIndex: number }[]
-  > {
-    if (this._reverseReuseGraph != null) {
-      return this._reverseReuseGraph;
-    }
-    const evaluatedWeeks = this.getEvaluatedWeeks();
-    const reverseReuseGraph: Record<
-      string,
-      { exercise: IPlannerProgramExercise; reusingWeekIndex: number; reusingDayInWeekIndex: number; dayIndex: number }[]
-    > = {};
-    this._reverseReuseGraph = {};
-    PP.iterate(evaluatedWeeks, (exercise, weekIndex, dayInWeekIndex, dayIndex) => {
-      if (exercise.reuse) {
-        const { exercise: reuseExercise, exerciseDay, exerciseWeek, exerciseDayInWeek } = exercise.reuse;
-        if (reuseExercise != null && exerciseDay != null && exerciseWeek != null && exerciseDayInWeek != null) {
-          const key = PlannerKey.fromPlannerExercise(reuseExercise, this.settings);
-          reverseReuseGraph[key] = reverseReuseGraph[key] || [];
-          reverseReuseGraph[key].push({
-            exercise,
-            dayIndex: exerciseDay - 1,
-            reusingWeekIndex: weekIndex,
-            reusingDayInWeekIndex: dayInWeekIndex,
-          });
-        }
-      }
-    });
-    this._reverseReuseGraph = reverseReuseGraph;
-    return reverseReuseGraph;
-  }
-
-  public static variationsMap(
-    plannerProgram: IPlannerProgram,
-    settings: ISettings
-  ): Record<string, Record<number, [number, number]>> {
-    const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, settings);
-
-    const variationsMap: Record<string, Record<number, [number, number]>> = {};
-    const variationsRunningIndex: Record<string, number> = {};
-
-    let variationsDayIndex = 0;
-    for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
-      const week = evaluatedWeeks[weekIndex];
-      for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex += 1) {
-        const day = week[dayInWeekIndex];
-        if (day.success) {
-          for (const exercise of day.data) {
-            const key = PlannerKey.fromPlannerExercise(exercise, settings);
-            variationsRunningIndex[key] = variationsRunningIndex[key] || 0;
-            variationsMap[key] = variationsMap[key] || {};
-            const numberOfVariations = PlannerProgramExercise.setVariations(exercise).length;
-            variationsMap[key][variationsDayIndex] = [
-              variationsRunningIndex[key],
-              variationsRunningIndex[key] + numberOfVariations,
-            ];
-            variationsRunningIndex[key] += numberOfVariations;
-          }
-        }
-        variationsDayIndex += 1;
-      }
-    }
-    return variationsMap;
-  }
-
-  private getEvaluatedWeeks(): IPlannerEvalResult[][] {
-    if (this._evaluatedWeeks == null) {
-      const { evaluatedWeeks } = PlannerProgram.evaluate(this.plannerProgram, this.settings);
-      this._evaluatedWeeks = evaluatedWeeks;
-    }
-    return this._evaluatedWeeks;
-  }
+  constructor(private readonly program: IEvaluatedProgram, private readonly settings: ISettings) {}
 
   private getCurrentSetVariationIndex(key: string, weekIndex: number, dayInWeekIndex: number): number {
-    const evaluatedWeeks = this.getEvaluatedWeeks();
-    const exercises = evaluatedWeeks[weekIndex][dayInWeekIndex];
-    if (exercises.success) {
-      const exercise = exercises.data.find((e) => PlannerKey.fromPlannerExercise(e, this.settings) === key);
-      if (exercise != null) {
-        const numberOfVariations = PlannerProgramExercise.setVariations(exercise).length;
-        let isCurrentIndex = exercise.setVariations.findIndex((v) => v.isCurrent);
-        isCurrentIndex = isCurrentIndex === -1 ? 0 : isCurrentIndex;
-        const setVariationIndexAdd = this.setVariationIndexMap[key];
-        if (setVariationIndexAdd != null) {
-          for (const add of setVariationIndexAdd) {
-            const [targetWeek, targetDay] = add.target;
-            if (
-              (targetWeek === "*" || targetWeek === weekIndex + 1) &&
-              (targetDay === "*" || targetDay === dayInWeekIndex + 1)
-            ) {
-              if (add.op === "=") {
-                isCurrentIndex = add.value - 1;
-              } else if (add.op === "+=") {
-                isCurrentIndex += add.value;
-              } else if (add.op === "-=") {
-                isCurrentIndex -= add.value;
-              } else if (add.op === "*=") {
-                isCurrentIndex *= add.value;
-              } else if (add.op === "/=") {
-                isCurrentIndex /= add.value;
-              }
-            }
-          }
-        }
-        isCurrentIndex = isCurrentIndex % numberOfVariations;
-        return isCurrentIndex;
-      }
-    }
-    return 0;
+    const exercise = this.program.weeks[weekIndex]?.days[dayInWeekIndex]?.exercises?.find((e) => e.key === key);
+    const setVariations = exercise?.setVariations || [];
+    const index = setVariations.findIndex((s) => s.isCurrent);
+    return index === -1 ? 0 : index;
   }
 
   private getCurrentDescriptionIndex(key: string, weekIndex: number, dayInWeekIndex: number): number {
-    const evaluatedWeeks = this.getEvaluatedWeeks();
-    const exercises = evaluatedWeeks[weekIndex][dayInWeekIndex];
-    if (exercises.success) {
-      const exercise = exercises.data.find((e) => PlannerKey.fromPlannerExercise(e, this.settings) === key);
-      if (exercise != null) {
-        const numberOfDescriptions = exercise.descriptions.length;
-        let isCurrentIndex = exercise.descriptions.findIndex((v) => v.isCurrent);
-        isCurrentIndex = isCurrentIndex === -1 ? 0 : isCurrentIndex;
-        const descriptionIndexAdd = this.descriptionIndexMap[key];
-        if (descriptionIndexAdd != null) {
-          for (const add of descriptionIndexAdd) {
-            const [targetWeek, targetDay] = add.target;
-            if (
-              (targetWeek === "*" || targetWeek === weekIndex + 1) &&
-              (targetDay === "*" || targetDay === dayInWeekIndex + 1)
-            ) {
-              if (add.op === "=") {
-                isCurrentIndex = add.value - 1;
-              } else if (add.op === "+=") {
-                isCurrentIndex += add.value;
-              } else if (add.op === "-=") {
-                isCurrentIndex -= add.value;
-              } else if (add.op === "*=") {
-                isCurrentIndex *= add.value;
-              } else if (add.op === "/=") {
-                isCurrentIndex /= add.value;
-              }
-            }
-          }
-        }
-        isCurrentIndex = isCurrentIndex % numberOfDescriptions;
-        return isCurrentIndex;
-      }
-    }
-    return 0;
+    const exercise = this.program.weeks[weekIndex]?.days[dayInWeekIndex]?.exercises?.find((e) => e.key === key);
+    const descriptions = exercise?.descriptions || [];
+    const index = descriptions.findIndex((s) => s.isCurrent);
+    return index === -1 ? 0 : index;
   }
 
-  private getDereuseDecisions(): IByExerciseWeekDay<Set<IDereuseDecision>> {
-    const usedProgramExercises = this.program.exercises.filter((e) =>
-      this.program.days.some(
-        (d) =>
-          d.exercises.some((ex) => ex.id === e.id) &&
-          this.program.weeks.some((w) => w.days.some((day) => day.id === d.id))
-      )
-    );
-    const variationsMap = ProgramToPlanner.variationsMap(this.plannerProgram, this.settings);
-    const keyToProgramExercise = usedProgramExercises.reduce<Record<string, IProgramExercise>>((acc, e) => {
-      acc[PlannerKey.fromProgramExercise(e, this.settings)] = e;
-      return acc;
-    }, {});
-
-    const reverseReuseGraph = this.reverseReuseGraph();
-
-    const dereuseDecisions: IByExerciseWeekDay<Set<IDereuseDecision>> = {};
-    PP.iterate(this.getEvaluatedWeeks(), (exercise, weekIndex, dayInWeekIndex, dayIndex) => {
-      const programExercise = keyToProgramExercise[exercise.key];
-      if (programExercise != null) {
-        function addDecisions(key: string, w: number, d: number, decisions: Set<IDereuseDecision>): void {
-          for (const decision of decisions) {
-            dereuseDecisions[key] = dereuseDecisions[key] || {};
-            dereuseDecisions[key][w] = dereuseDecisions[key][w] || {};
-            dereuseDecisions[key][w][d] = dereuseDecisions[key][w][d] || new Set();
-            dereuseDecisions[key][w][d].add(decision);
-          }
+  private getDereuseDecisions(
+    programExercise: IPlannerProgramExercise,
+    reuse?: IPlannerProgramReuse
+  ): IDereuseDecision[] {
+    const dereuseDecisions: IDereuseDecision[] = [];
+    if (!reuse?.exercise) {
+      return dereuseDecisions;
+    }
+    for (let i = 0; i < programExercise.evaluatedSetVariations.length; i += 1) {
+      const programVariation = programExercise.evaluatedSetVariations[i];
+      const reuseVariation = reuse.exercise.evaluatedSetVariations[i];
+      for (let j = 0; j < programVariation.sets.length; j += 1) {
+        const programSet = programVariation.sets[j];
+        const reuseSet = reuseVariation.sets[j];
+        if (!(Weight.eq(programSet.weight, reuseSet.weight) || programSet.askWeight !== reuseSet.askWeight)) {
+          dereuseDecisions.push("weight");
         }
-
-        if (exercise.reuse) {
-          const { exercise: reuseExercise, exerciseDay } = exercise.reuse;
-          if (reuseExercise != null && exerciseDay != null) {
-            const [from, to] = variationsMap[exercise.key][dayIndex];
-            const variations = programExercise.variations.slice(from, to);
-            const sets = variations[0].sets;
-            addDecisions(exercise.key, weekIndex, dayInWeekIndex, this.dereuseDecisionsForReusing(sets, reuseExercise));
-          }
-        } else if (reverseReuseGraph[exercise.key] && reverseReuseGraph[exercise.key].length > 0) {
-          for (const ex of reverseReuseGraph[exercise.key]) {
-            const [from, to] = variationsMap[exercise.key][ex.dayIndex];
-            const variations = programExercise.variations.slice(from, to);
-            const sets = variations[0].sets;
-            addDecisions(
-              ex.exercise.key,
-              ex.reusingWeekIndex,
-              ex.reusingDayInWeekIndex,
-              this.dereuseDecisionsForOriginal(sets, ex.exercise)
-            );
-          }
+        if (!(programSet.rpe !== reuseSet.rpe || programSet.logRpe !== reuseSet.logRpe)) {
+          dereuseDecisions.push("rpe");
+        }
+        if (programSet.timer !== reuseSet.timer) {
+          dereuseDecisions.push("timer");
         }
       }
-    });
+    }
     return dereuseDecisions;
   }
 
   public convertToPlanner(): IPlannerProgram {
     const plannerWeeks: IPlannerProgramWeek[] = [];
-    const topLineMap = PlannerProgram.topLineItems(this.plannerProgram, this.settings);
-    const variationsMap = ProgramToPlanner.variationsMap(this.plannerProgram, this.settings);
+    const plannerProgram = this.program.planner;
+    const topLineMap = PlannerProgram.topLineItems(plannerProgram, this.settings);
     let dayIndex = 0;
     const addedProgressMap: Record<string, boolean> = {};
     const addedUpdateMap: Record<string, boolean> = {};
     const addedWarmupsMap: Record<string, boolean> = {};
     const addedIdMap: Record<string, boolean> = {};
-    const allDereuseDecisions = this.getDereuseDecisions();
 
     for (let weekIndex = 0; weekIndex < this.program.weeks.length; weekIndex += 1) {
       const week = this.program.weeks[weekIndex];
       const plannerWeek: IPlannerProgramWeek = { name: week.name, days: [], description: week.description };
       for (let dayInWeekIndex = 0; dayInWeekIndex < week.days.length; dayInWeekIndex += 1) {
         const topLines = topLineMap[weekIndex][dayInWeekIndex];
-        const weekDay = week.days[dayInWeekIndex];
-        const programDay = this.program.days.find((d) => d.id === weekDay.id)!;
+        const programDay = week.days[dayInWeekIndex];
         const plannerDay: IPlannerProgramDay = { name: programDay.name, exerciseText: "" };
         const exerciseTextArr: string[] = [];
         let descriptionIndex: number | undefined = undefined;
@@ -341,99 +135,84 @@ export class ProgramToPlanner {
             case "exercise": {
               descriptionIndex = undefined;
               addedCurrentDescription = false;
-              const dayExercise = this.program.exercises.find(
-                (e) => PlannerKey.fromProgramExercise(e, this.settings) === line.value
-              )!;
-              const evalDay = this.getEvaluatedWeeks()[weekIndex][dayInWeekIndex];
-              const evalExercise = evalDay.success ? evalDay.data.find((e) => e.key === line.value) : undefined;
-              const programExercise = this.program.exercises.find((e) => e.id === dayExercise.id)!;
-              const notused = this.program.days.every((d) => d.exercises.every((e) => e.id !== programExercise.id));
-              const key = PlannerKey.fromProgramExercise(programExercise, this.settings);
-              const exercise = Exercise.findById(programExercise.exerciseType.id, this.settings.exercises)!;
+              const evalExercise = Program.getProgramExercise(this.program, dayIndex + 1, line.value)!;
+              const key = evalExercise.key;
               let plannerExercise = "";
-              plannerExercise += this.getExerciseName(programExercise, exercise, line);
+              plannerExercise += evalExercise.fullName;
               plannerExercise += " / ";
-              if (notused) {
+              if (evalExercise.notused) {
                 plannerExercise += "used: none / ";
               }
-              const [from, to] = variationsMap[key][dayIndex];
-              const currentSetVariationIndex = this.getCurrentSetVariationIndex(key, weekIndex, dayInWeekIndex);
-              const variations = programExercise.variations.slice(from, to);
+              const currentSetVariationIndex = this.getCurrentSetVariationIndex(
+                evalExercise.key,
+                weekIndex,
+                dayInWeekIndex
+              );
+              const variations = evalExercise.evaluatedSetVariations;
               const globals = this.getGlobals(variations);
 
               const reuse = evalExercise?.reuse;
-              if (reuse) {
-                const dereuseDecisions = allDereuseDecisions[key]?.[weekIndex]?.[dayInWeekIndex] || new Set();
-                let reusedKey = reuse.fullName;
-                if (reuse.week != null || reuse.day != null) {
-                  reusedKey += reuse.week == null ? `[${reuse.day}]` : `[${reuse.week}:${reuse.day ?? "_"}]`;
+              const shouldReuseSets = this.shouldReuseSets(evalExercise, reuse);
+              const dereuseDecisions = shouldReuseSets ? this.getDereuseDecisions(evalExercise, reuse) : [];
+              if (reuse && shouldReuseSets) {
+                plannerExercise += reuse.text;
+                const overriddenGlobals: string[] = [];
+                if (dereuseDecisions.includes("weight") && globals.weight != null) {
+                  overriddenGlobals.push(`${this.weightExprToStr(globals.weight)}${globals.askWeight ? "+" : ""}`);
                 }
-                plannerExercise += `...${reusedKey}`;
-                if (dereuseDecisions.has("all")) {
-                  plannerExercise +=
-                    " / " +
-                    variations
-                      .map((v, i) => {
-                        const sets = this.setsToString(v.sets, globals, v.quickAddSets);
-                        return i !== 0 && i === currentSetVariationIndex ? `! ${sets}` : sets;
-                      })
-                      .join(" / ");
+                if (dereuseDecisions.includes("rpe") && globals.rpe != null) {
+                  overriddenGlobals.push(`@${n(globals.rpe)}${globals.logRpe ? "+" : ""}`);
                 }
-                if (dereuseDecisions.has("weight") && globals.weight != null) {
-                  plannerExercise += ` / ${this.weightExprToStr(globals.weight)}${globals.askWeight ? "+" : ""}`;
+                if (dereuseDecisions.includes("timer") && globals.timer != null) {
+                  overriddenGlobals.push(`${n(globals.timer)}s`);
                 }
-                if (dereuseDecisions.has("rpe") && globals.rpe != null) {
-                  plannerExercise += ` / @${globals.rpe}${globals.logRpe ? "+" : ""}`;
-                }
-                if (dereuseDecisions.has("timer") && globals.timer != null) {
-                  plannerExercise += ` / ${globals.timer}s`;
+                if (overriddenGlobals.length > 0) {
+                  plannerExercise += ` / ${overriddenGlobals.join(" ")}`;
                 }
               } else {
                 plannerExercise += variations
                   .map((v, i) => {
-                    const sets = this.setsToString(v.sets, globals, v.quickAddSets);
+                    const sets = this.variationToString(v, globals);
                     return i !== 0 && i === currentSetVariationIndex ? `! ${sets}` : sets;
                   })
                   .join(" / ");
 
+                const globalsStr: string[] = [];
                 if (globals.weight != null) {
-                  plannerExercise += ` / ${this.weightExprToStr(globals.weight)}${globals.askWeight ? "+" : ""}`;
+                  globalsStr.push(`${this.weightExprToStr(globals.weight)}${globals.askWeight ? "+" : ""}`);
                 }
                 if (globals.rpe != null) {
-                  plannerExercise += ` / @${globals.rpe}${globals.logRpe ? "+" : ""}`;
+                  globalsStr.push(`@${globals.rpe}${globals.logRpe ? "+" : ""}`);
                 }
                 if (globals.timer != null) {
-                  plannerExercise += ` / ${globals.timer}s`;
+                  globalsStr.push(`${globals.timer}s`);
+                }
+                if (globalsStr.length > 0) {
+                  plannerExercise += ` / ${globalsStr.join(" ")}`;
                 }
               }
 
-              if (!addedWarmupsMap[key] && programExercise.warmupSets && evalExercise?.warmupSets) {
-                const warmupSets = this.getWarmupSets(programExercise);
+              if (!addedWarmupsMap[key] && evalExercise?.warmupSets) {
+                const warmupSets = this.getWarmupSets(evalExercise);
                 if (warmupSets != null) {
                   plannerExercise += ` / warmup: ${warmupSets}`;
                 }
               }
 
-              if (!addedIdMap[key] && (programExercise.tags || []).length > 0) {
-                plannerExercise += this.getId(programExercise);
+              if (!addedIdMap[key] && (evalExercise.tags || []).length > 0) {
+                plannerExercise += this.getId(evalExercise);
                 addedIdMap[key] = true;
               }
 
-              if (!addedUpdateMap[key] && (programExercise.updateDayExpr || programExercise.reuseUpdateDayScript)) {
-                plannerExercise += this.getUpdate(programExercise);
+              const update = PlannerProgramExercise.getUpdate(evalExercise);
+              if (!addedUpdateMap[key] && update) {
+                plannerExercise += this.getUpdate(update);
                 addedUpdateMap[key] = true;
               }
 
-              const skip = this.getSkipProgress(programExercise.finishDayExpr);
-              if (skip.some((s) => weekIndex + 1 === s[0] && dayInWeekIndex + 1 === s[1])) {
-                plannerExercise += ` / progress: none`;
-              } else if (
-                !addedProgressMap[key] &&
-                (programExercise.finishDayExpr ||
-                  programExercise.reuseFinishDayScript ||
-                  ObjectUtils.isNotEmpty(programExercise.state))
-              ) {
-                plannerExercise += this.getProgress(programExercise);
+              const progress = PlannerProgramExercise.getProgress(evalExercise);
+              if (!addedProgressMap[key] && progress) {
+                plannerExercise += this.getProgress(evalExercise, progress);
                 addedProgressMap[key] = true;
               }
               exerciseTextArr.push(plannerExercise);
@@ -449,107 +228,149 @@ export class ProgramToPlanner {
       plannerWeeks.push(plannerWeek);
     }
     const result: IPlannerProgram = { name: this.program.name, weeks: plannerWeeks };
-    return PlannerProgram.compact(this.plannerProgram, result, this.settings);
+    return PlannerProgram.compact(this.program.planner, result, this.settings);
   }
 
-  private getUpdate(programExercise: IProgramExercise): string {
-    let plannerExercise = ` / update: custom()`;
-    if (programExercise.reuseUpdateDayScript) {
-      const originalProgramExercise = this.program.exercises.find((e) => e.id === programExercise.reuseUpdateDayScript);
-      if (originalProgramExercise != null) {
-        const originalKey = this.getExerciseKey(originalProgramExercise);
-        plannerExercise += ` { ...${originalKey} }`;
-      }
-    } else if (programExercise.updateDayExpr) {
-      plannerExercise += " " + programExercise.updateDayExpr;
-    }
-    return plannerExercise;
+  private getUpdate(update: IPlannerProgramProperty): string {
+    return ` / update: custom() ${update.body || update.script}`;
   }
 
-  private getId(programExercise: IProgramExercise): string {
+  private getId(programExercise: IPlannerProgramExercise): string {
     return ` / id: tags(${(programExercise.tags || []).join(", ")})`;
   }
 
-  private getProgress(programExercise: IProgramExercise): string {
-    let plannerExercise = "";
-    const progress = this.getBuiltinProgress(programExercise.state, programExercise.finishDayExpr);
-    if (progress != null) {
-      plannerExercise += ` / progress: ${progress}`;
-    } else {
-      const metadata = programExercise.stateMetadata || {};
-      const stateVars = ObjectUtils.keys(programExercise.state).map((k) => {
-        const isUserPrompted = !!metadata[k]?.userPrompted;
-        return `${k}${isUserPrompted ? "+" : ""}: ${this.printVal(programExercise.state[k])}`;
-      });
-      plannerExercise += ` / progress: custom(${stateVars.join(", ")})`;
-      if (programExercise.reuseFinishDayScript) {
-        const originalProgramExercise = this.program.exercises.find(
-          (e) => e.id === programExercise.reuseFinishDayScript
-        );
-        if (originalProgramExercise != null) {
-          const originalKey = this.getExerciseKey(originalProgramExercise);
-          plannerExercise += ` { ...${originalKey} }`;
+  private getProgress(programExercise: IPlannerProgramExercise, progress: IPlannerProgramProperty): string {
+    let plannerExercise = ` / progress: ${progress.fnName}`;
+    if (progress.fnName === "custom") {
+      plannerExercise += `(${ObjectUtils.entries(programExercise.state)
+        .map(([k, v]) => {
+          return `${k}: ${Weight.print(v)}`;
+        })
+        .join(", ")})`;
+    } else if (progress.fnName === "lp") {
+      const increment = programExercise.state.increment as IWeight | IPercentage;
+      const successes = programExercise.state.successes as number;
+      const successCounter = programExercise.state.successCounter as number;
+      const decrement = programExercise.state.decrement as IWeight | IPercentage;
+      const failures = programExercise.state.failures as number;
+      const failureCounter = programExercise.state.failureCounter as number;
+      const args: string[] = [];
+      args.push(Weight.print(increment));
+      if (successes > 1 || decrement.value > 0) {
+        args.push(`${successes}`);
+      }
+      if (successes > 1 || decrement.value > 0) {
+        args.push(`${successCounter}`);
+      }
+      if (decrement.value > 0) {
+        args.push(Weight.print(decrement));
+      }
+      if (failures > 1) {
+        args.push(`${failures}`);
+      }
+      if (failures > 1) {
+        args.push(`${failureCounter}`);
+      }
+      plannerExercise += `(${args.join(", ")})`;
+    } else if (progress.fnName === "dp") {
+      const increment = programExercise.state.increment as IWeight | IPercentage;
+      const minReps = programExercise.state.minReps as number;
+      const maxReps = programExercise.state.maxReps as number;
+      const args = [Weight.print(increment), `${minReps}`, `${maxReps}`];
+      plannerExercise += `(${args.join(", ")})`;
+    } else if (progress.fnName === "sum") {
+      const reps = programExercise.state.reps as number;
+      const increment = programExercise.state.increment as IWeight | IPercentage;
+      const args = [Weight.print(increment), `${reps}`];
+      plannerExercise += `(${args.join(", ")})`;
+    }
+    if (progress.fnName === "custom") {
+      plannerExercise += ` ${progress.script || `{ ...${progress.body} }`}`;
+    }
+    return plannerExercise;
+  }
+
+  private shouldReuseSets(programExercise: IPlannerProgramExercise, reuse?: IPlannerProgramReuse): boolean {
+    if (!reuse?.exercise) {
+      return false;
+    }
+    const globals = this.getGlobals(programExercise.evaluatedSetVariations);
+    if (programExercise.evaluatedSetVariations.length !== reuse.exercise.evaluatedSetVariations.length) {
+      return false;
+    }
+    for (let i = 0; i < programExercise.evaluatedSetVariations.length; i += 1) {
+      const programVariation = programExercise.evaluatedSetVariations[i];
+      const reuseVariation = reuse.exercise.evaluatedSetVariations[i];
+      if (programVariation.sets.length !== reuseVariation.sets.length) {
+        return false;
+      }
+      for (let j = 0; j < programVariation.sets.length; j += 1) {
+        const programSet = programVariation.sets[j];
+        const reuseSet = reuseVariation.sets[j];
+        if (programSet.maxrep !== reuseSet.maxrep || programSet.minrep !== reuseSet.minrep) {
+          return false;
         }
-      } else if (programExercise.finishDayExpr) {
-        const finishDayExpr = programExercise.finishDayExpr.replace(/^[\s\S]*{~/, "{~").replace(/~}[\s\S]*$/, "~}");
-        plannerExercise += " " + finishDayExpr;
-      } else {
-        plannerExercise += " {~ ~}";
+        if (
+          (!(Weight.eq(programSet.weight, reuseSet.weight) || programSet.askWeight !== reuseSet.askWeight) &&
+            !globals.weight) ||
+          ((programSet.rpe !== reuseSet.rpe || programSet.logRpe !== reuseSet.logRpe) && !globals.rpe) ||
+          (programSet.timer !== reuseSet.timer && !globals.timer)
+        ) {
+          return false;
+        }
       }
     }
-    return plannerExercise;
+    return true;
   }
 
-  private getExerciseName(programExercise: IProgramExercise, exercise: IExercise, line: IPlannerTopLineItem): string {
-    let plannerExercise = `${programExercise.name}`;
-    if (
-      programExercise.exerciseType.equipment &&
-      programExercise.exerciseType.equipment !== exercise.defaultEquipment
-    ) {
-      plannerExercise += `, ${equipmentName(programExercise.exerciseType.equipment)}`;
-    }
-    if (line.order != null && line.order !== 0) {
-      plannerExercise += `[${line.order}]`;
-    }
-    return plannerExercise;
-  }
-
-  private getGlobals(variations: IProgramExerciseVariation[]): IPlannerToProgram2Globals {
-    const firstWeight = variations[0]?.sets[0]?.weightExpr;
-    const firstRpe = variations[0]?.sets[0]?.rpeExpr;
+  private getGlobals(variations: IPlannerProgramExerciseEvaluatedSetVariation[]): IPlannerToProgram2Globals {
+    const firstWeight = variations[0]?.sets[0]?.weight;
+    const firstRpe = variations[0]?.sets[0]?.rpe;
     const firstLogRpe = !!variations[0]?.sets[0]?.logRpe;
     const firstAskWeight = !!variations[0]?.sets[0]?.askWeight;
-    const firstTimer = variations[0]?.sets[0]?.timerExpr;
+    const firstTimer = variations[0]?.sets[0]?.timer;
     return {
       weight:
         firstWeight != null &&
-        variations.every((v) => v.sets.every((s) => s.weightExpr === firstWeight && !!s.askWeight === firstAskWeight))
+        variations.every((v) =>
+          v.sets.every((s) => Weight.eq(s.weight, firstWeight) && !!s.askWeight === firstAskWeight)
+        )
           ? firstWeight
           : undefined,
-      askWeight: variations.every((v) => v.sets.every((s) => s.weightExpr === firstWeight && !!s.askWeight)),
+      askWeight: variations.every((v) => v.sets.every((s) => Weight.eq(s.weight, firstWeight) && !!s.askWeight)),
       rpe:
         firstRpe != null &&
-        variations.every((v) => v.sets.every((s) => s.rpeExpr === firstRpe && !!s.logRpe === firstLogRpe))
+        variations.every((v) => v.sets.every((s) => s.rpe === firstRpe && !!s.logRpe === firstLogRpe))
           ? firstRpe
           : undefined,
-      logRpe: variations.every((v) => v.sets.every((s) => s.rpeExpr === firstRpe && !!s.logRpe)),
+      logRpe: variations.every((v) => v.sets.every((s) => s.rpe === firstRpe && !!s.logRpe)),
       timer:
-        firstTimer != null && variations.every((v) => v.sets.every((s) => s.timerExpr === firstTimer))
+        firstTimer != null && variations.every((v) => v.sets.every((s) => s.timer === firstTimer))
           ? firstTimer
           : undefined,
     };
   }
 
-  private printVal(val: number | IWeight | IPercentage): string {
-    return Weight.is(val) || Weight.isPct(val) ? `${val.value}${val.unit}` : `${val}`;
-  }
-
-  private groupVariationSets(sets: IProgramSet[]): [IProgramSet, number][] {
+  private groupVariationSets(
+    sets: IPlannerProgramExerciseEvaluatedSet[]
+  ): [IPlannerProgramExerciseEvaluatedSet, number][] {
     if (sets.length === 0) {
-      return [[{ repsExpr: "1", weightExpr: "0lb" }, 0]];
+      return [
+        [
+          {
+            maxrep: 1,
+            weight: Weight.build(0, "lb"),
+            logRpe: false,
+            isAmrap: false,
+            isQuickAddSet: false,
+            askWeight: false,
+          },
+          0,
+        ],
+      ];
     }
     let lastKey: string | undefined;
-    const groups: [IProgramSet, number][] = [];
+    const groups: [IPlannerProgramExerciseEvaluatedSet, number][] = [];
     for (const set of sets) {
       const key = this.setToKey(set);
       if (lastKey == null || lastKey !== key) {
@@ -561,17 +382,9 @@ export class ProgramToPlanner {
     return groups;
   }
 
-  private getExerciseKey(programExercise: IProgramExercise): string {
-    const originalExercise = Exercise.get(programExercise.exerciseType, this.settings.exercises);
-    const addEqupment =
-      programExercise.exerciseType.equipment != null &&
-      programExercise.exerciseType.equipment !== originalExercise.defaultEquipment;
-    return `${programExercise.name}${addEqupment ? `, ${equipmentName(programExercise.exerciseType.equipment)}` : ""}`;
-  }
-
-  private groupWarmupsSets(sets: IProgramExerciseWarmupSet[]): [IProgramExerciseWarmupSet, number][] {
+  private groupWarmupsSets(sets: IPlannerProgramExerciseWarmupSet[]): [IPlannerProgramExerciseWarmupSet, number][] {
     let lastKey: string | undefined;
-    const groups: [IProgramExerciseWarmupSet, number][] = [];
+    const groups: [IPlannerProgramExerciseWarmupSet, number][] = [];
     for (const set of sets) {
       const key = this.warmupSetToKey(set);
       if (lastKey == null || lastKey !== key) {
@@ -583,7 +396,7 @@ export class ProgramToPlanner {
     return groups;
   }
 
-  private getWarmupSets(programExercise: IProgramExercise): string | undefined {
+  private getWarmupSets(programExercise: IPlannerProgramExercise): string | undefined {
     const warmupSets = programExercise.warmupSets;
     if (warmupSets) {
       const groups = this.groupWarmupsSets(warmupSets);
@@ -591,93 +404,43 @@ export class ProgramToPlanner {
       for (const group of groups) {
         const first = group[0];
         const length = group[1];
-        strs.push(
-          `${length}x${first.reps} ${
-            typeof first.value === "number"
-              ? `${MathUtils.roundFloat(first.value * 100, 0)}%`
-              : Weight.print(first.value)
-          }`
-        );
+        strs.push(`${length}x${first.reps} ${Weight.print(first.weight || first.percentage || 0)}`);
       }
       return strs.length === 0 ? "none" : strs.join(", ");
     }
     return undefined;
   }
 
-  private getBuiltinProgress(state: IProgramState, finishDayExpr?: string): string | undefined {
-    const progressLine = (finishDayExpr || "").split("\n")?.find((l) => l.indexOf("// progress:") !== -1);
-    if (progressLine != null) {
-      const progressMatch = progressLine.match(/progress: ([^(]+)\((.*)\)$/);
-      if (progressMatch) {
-        const name = progressMatch[1];
-        const args = progressMatch[2].split(",").map((a) => a.trim());
-        if (name === "lp") {
-          const [increment, totalSuccess, , decrement, totalFailure] = args;
-          if (totalSuccess === "1" && totalFailure === "0") {
-            return `lp(${increment})`;
-          } else if (Number(totalSuccess) > 1 && totalFailure === "0") {
-            return `lp(${increment}, ${totalSuccess}, ${state.successes})`;
-          } else {
-            return `lp(${increment}, ${totalSuccess}, ${state.successes}, ${decrement}, ${totalFailure}, ${state.failures})`;
-          }
-        } else if (name === "dp" || name === "sum") {
-          return `${name}(${args.join(", ")})`;
-        }
-      }
-    }
-    return undefined;
-  }
-
-  private getSkipProgress(finishDayExpr?: string): [number, number][] {
-    const skipLine = (finishDayExpr || "").split("\n")?.find((l) => l.indexOf("// skip: ") !== -1);
-    if (skipLine != null) {
-      const skipMatch = skipLine.match(/skip: (.*)$/);
-      if (skipMatch) {
-        const arr: [number, number][] = JSON.parse(skipMatch[1]);
-        return arr;
-      }
-    }
-    return [];
-  }
-
-  private weightExprToStr(weightExpr?: string): string {
+  private weightExprToStr(weightExpr?: IWeight | IPercentage): string {
     if (weightExpr != null) {
-      const percentageMatch = weightExpr.match(/(.*)%/);
-      if (percentageMatch != null) {
-        const percentage = Math.max(0, MathUtils.roundFloat(parseFloat(percentageMatch[1]), 2));
-        return `${percentage}%`;
-      } else {
-        const weightMatch = weightExpr.match(/([\d\.\-]+)(lb|kg)?/);
-        if (weightMatch != null) {
-          const weight = Math.max(0, MathUtils.roundFloat(parseFloat(weightMatch[1]), 2));
-          return `${weight}${weightMatch[2]}`;
-        }
-      }
-      return weightExpr;
+      return Weight.print(weightExpr);
     }
     return "";
   }
 
-  private setsToString(sets: IProgramSet[], globals: IPlannerToProgram2Globals, addQuickAddSet?: boolean): string {
-    const groupedVariationSets = this.groupVariationSets(sets);
+  private variationToString(
+    variation: IPlannerProgramExerciseEvaluatedSetVariation,
+    globals: IPlannerToProgram2Globals
+  ): string {
+    const groupedVariationSets = this.groupVariationSets(variation.sets);
     const result: string[] = [];
     for (const group of groupedVariationSets) {
       const set = group[0];
       let setStr = "";
-      setStr += `${group[1]}${addQuickAddSet ? "+" : ""}x`;
-      setStr += set.minRepsExpr ? `${Math.max(0, parseInt(set.minRepsExpr, 10))}-` : "";
-      setStr += `${Math.max(0, parseInt(set.repsExpr, 10))}`;
+      setStr += `${group[1]}${set.isQuickAddSet ? "+" : ""}x`;
+      setStr += set.minrep != null && set.minrep !== set.maxrep ? `${n(Math.max(0, set.minrep))}-` : "";
+      setStr += `${n(Math.max(0, set.maxrep))}`;
       setStr += set.isAmrap ? "+" : "";
       if (globals.weight == null) {
-        const weightValue = this.weightExprToStr(set.weightExpr);
+        const weightValue = this.weightExprToStr(set.weight);
         setStr += weightValue ? ` ${weightValue}${set.askWeight ? "+" : ""}` : "";
       }
       if (globals.rpe == null) {
-        setStr += set.rpeExpr ? ` @${Math.max(0, parseFloat(set.rpeExpr))}` : "";
-        setStr += set.rpeExpr && set.logRpe ? "+" : "";
+        setStr += set.rpe ? ` @${n(Math.max(0, set.rpe))}` : "";
+        setStr += set.rpe && set.logRpe ? "+" : "";
       }
       if (globals.timer == null) {
-        setStr += set.timerExpr ? ` ${Math.max(0, parseInt(set.timerExpr, 10))}s` : "";
+        setStr += set.timer ? ` ${n(Math.max(0, set.timer))}s` : "";
       }
       if (set.label) {
         setStr += ` (${set.label})`;
@@ -687,170 +450,13 @@ export class ProgramToPlanner {
     return result.map((r) => r.trim()).join(", ");
   }
 
-  private warmupSetToKey(set: IProgramExerciseWarmupSet): string {
-    return `${set.reps}-${Weight.print(set.threshold)}-${Weight.printOrNumber(set.value)}`;
+  private warmupSetToKey(set: IPlannerProgramExerciseWarmupSet): string {
+    return `${set.reps}-${set.numberOfSets}-${Weight.print(set.weight || set.percentage || 0)}`;
   }
 
-  private setToKey(set: IProgramSet): string {
-    return `${set.repsExpr}-${set.minRepsExpr}-${set.weightExpr}-${set.isAmrap}-${set.rpeExpr}-${set.logRpe}-${set.timerExpr}-${set.label}`;
-  }
-
-  private dereuseDecisionsForReusing(
-    updatedSets: IProgramSet[],
-    reusedExercise: IPlannerProgramExercise
-  ): Set<IDereuseDecision> {
-    const { sets: normalizedUpdatedSets, globals: updatedGlobals } = this.normalizedProgramSets(updatedSets);
-    const { sets: normalizedReusedSets, globals: reusedGlobals } = this.normalizedSets(reusedExercise);
-    const decisions: Set<IDereuseDecision> = new Set();
-    if (updatedGlobals.weight !== reusedGlobals.weight) {
-      decisions.add("weight");
-    }
-    if (updatedGlobals.rpe !== reusedGlobals.rpe) {
-      decisions.add("rpe");
-    }
-    if (updatedGlobals.timer !== reusedGlobals.timer) {
-      decisions.add("timer");
-    }
-    for (const set of normalizedReusedSets) {
-      for (const field of ["weight", "rpe", "timer"] as const) {
-        if (decisions.has(field)) {
-          delete set[field];
-        }
-      }
-    }
-    for (const set of normalizedUpdatedSets) {
-      for (const field of ["weight", "rpe", "timer"] as const) {
-        if (decisions.has(field)) {
-          delete set[field];
-        }
-      }
-    }
-    if (!ObjectUtils.isEqual(normalizedUpdatedSets, normalizedReusedSets)) {
-      decisions.add("all");
-    }
-
-    return decisions;
-  }
-
-  private dereuseDecisionsForOriginal(
-    updatedSets: IProgramSet[],
-    reusingExercise: IPlannerProgramExercise
-  ): Set<IDereuseDecision> {
-    const { sets: normalizedUpdatedSets, globals: updatedGlobals } = this.normalizedProgramSets(updatedSets);
-    const { sets: normalizedReusingSets, globals: reusingGlobals } = this.normalizedSets(reusingExercise);
-    const decisions: Set<IDereuseDecision> = new Set();
-    if (updatedGlobals.timer !== reusingGlobals.timer) {
-      decisions.add("timer");
-    }
-    if (updatedGlobals.rpe !== reusingGlobals.rpe) {
-      decisions.add("rpe");
-    }
-    if (updatedGlobals.weight !== reusingGlobals.weight) {
-      decisions.add("weight");
-    }
-    for (const set of normalizedReusingSets) {
-      for (const field of ["weight", "rpe", "timer"] as const) {
-        if (decisions.has(field)) {
-          delete set[field];
-        }
-      }
-    }
-    for (const set of normalizedUpdatedSets) {
-      for (const field of ["weight", "rpe", "timer"] as const) {
-        if (decisions.has(field)) {
-          delete set[field];
-        }
-      }
-    }
-    if (!ObjectUtils.isEqual(normalizedUpdatedSets, normalizedReusingSets)) {
-      decisions.add("all");
-    }
-    return decisions;
-  }
-
-  private normalizedProgramSets(
-    sets: IProgramSet[]
-  ): {
-    sets: ISimpleSet[];
-    globals: ISimpleGlobals;
-  } {
-    const firstWeight = sets[0]?.weightExpr;
-    const firstAskWeight = !!sets[0]?.askWeight;
-    const firstRpe = sets[0]?.rpeExpr;
-    const firstLogRpe = !!sets[0]?.logRpe;
-    const firstTimer = sets[0]?.timerExpr;
-    const globals = {
-      weight:
-        firstWeight != null && sets.every((s) => s.weightExpr === firstWeight && !!s.askWeight === firstAskWeight)
-          ? firstWeight
-          : undefined,
-      rpe:
-        firstRpe != null && sets.every((s) => s.rpeExpr === firstRpe && !!s.logRpe === firstLogRpe)
-          ? Number(firstRpe)
-          : undefined,
-      timer: firstTimer != null && sets.every((s) => s.timerExpr === firstTimer) ? Number(firstTimer) : undefined,
-    };
-
-    const normalizedSets = sets.map((s) => {
-      return {
-        reps: Number(s.repsExpr),
-        minReps: s.minRepsExpr ? Number(s.minRepsExpr) : undefined,
-        weight: s.weightExpr && s.weightExpr === globals.weight ? undefined : s.weightExpr,
-        rpe: s.rpeExpr ? (Number(s.rpeExpr) === globals.rpe ? undefined : Number(s.rpeExpr)) : undefined,
-        timer: s.timerExpr ? (Number(s.timerExpr) === globals.timer ? undefined : Number(s.timerExpr)) : undefined,
-      };
-    });
-    return { sets: normalizedSets, globals };
-  }
-
-  private normalizedSets(
-    exercise: IPlannerProgramExercise
-  ): {
-    sets: ISimpleSet[];
-    globals: ISimpleGlobals;
-  } {
-    function toStr(weight: IWeight | number | undefined): string | undefined {
-      if (weight == null) {
-        return undefined;
-      }
-      return typeof weight === "number" ? `${weight}%` : Weight.print(weight);
-    }
-
-    const sets = PlannerProgramExercise.sets(exercise);
-    const firstWeight = sets[0]?.weight;
-    const firstAskWeight = !!sets[0]?.askWeight;
-    const firstRpe = sets[0]?.rpe;
-    const firstLogRpe = !!sets[0]?.logRpe;
-    const firstTimer = sets[0]?.timer;
-    const firstPercentage = sets[0]?.percentage;
-    const globalWeight =
-      firstWeight != null
-        ? sets.every(
-            (set) =>
-              Weight.eq(set.weight || { value: 0, unit: "lb" }, firstWeight || { value: 0, unit: "lb" }) &&
-              !!set.askWeight === firstAskWeight
-          )
-          ? firstWeight
-          : undefined
-        : sets.every((set) => set.percentage === firstPercentage && !!set.askWeight === firstAskWeight)
-        ? firstPercentage
-        : undefined;
-    const globalRpe = sets.every((set) => set.rpe === firstRpe && !!set.logRpe === firstLogRpe) ? firstRpe : undefined;
-    const globalTimer = sets.every((set) => set.timer === firstTimer) ? firstTimer : undefined;
-    const denormalizedSets = [];
-    for (const set of sets) {
-      if (set.repRange) {
-        for (let i = 0; i < set.repRange.numberOfSets; i++) {
-          denormalizedSets.push({
-            reps: set.repRange.maxrep,
-            minReps: set.repRange.maxrep === set.repRange.minrep ? undefined : set.repRange.minrep,
-            rpe: globalRpe ? undefined : set.rpe,
-            weight: toStr(globalWeight ? undefined : set.weight ?? set.percentage),
-            timer: globalTimer ? undefined : set.timer,
-          });
-        }
-      }
-    }
-    return { sets: denormalizedSets, globals: { rpe: globalRpe, weight: toStr(globalWeight), timer: globalTimer } };
+  private setToKey(set: IPlannerProgramExerciseEvaluatedSet): string {
+    return `${set.maxrep}-${set.minrep}-${Weight.print(set.weight)}-${set.isAmrap}-${set.rpe}-${set.logRpe}-${
+      set.timer
+    }-${set.label}-${set.askWeight}`;
   }
 }
