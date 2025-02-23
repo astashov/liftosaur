@@ -18,6 +18,22 @@ export namespace Weight {
     }
   }
 
+  export function evaluateWeight(
+    weight: IWeight | IPercentage,
+    exerciseType: IExerciseType,
+    settings: ISettings
+  ): IWeight {
+    if (Weight.is(weight)) {
+      return weight;
+    } else if (Weight.isPct(weight)) {
+      const exercise = Exercise.get(exerciseType, settings.exercises);
+      const onerm = Exercise.onerm(exercise, settings);
+      return Weight.multiply(onerm, weight.value / 100);
+    } else {
+      return Weight.build(0, settings.units);
+    }
+  }
+
   export function smartConvert(weight: IWeight, toUnit: IUnit): IWeight {
     if (weight.unit === toUnit) {
       return weight;

@@ -20,7 +20,7 @@ import { Weight } from "./weight";
 import { Exercise } from "./exercise";
 import { CollectionUtils } from "../utils/collection";
 import { ScriptRunner } from "../parser";
-import { IAssignmentOp, ILiftoscriptEvaluatorUpdate, ILiftoscriptVariableValue } from "../liftoscriptEvaluator";
+import { IAssignmentOp, ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { MathUtils } from "../utils/math";
 import { IPlannerProgramExercise, IPlannerProgramExerciseEvaluatedSet } from "../pages/planner/models/types";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
@@ -183,13 +183,6 @@ export namespace ProgramExercise {
     allProgramExercises: IProgramExercise[]
   ): boolean {
     return !!getProgramExercise(programExercise, allProgramExercises).enableRepRanges;
-  }
-
-  export function getWarmupSets(
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[]
-  ): IProgramExerciseWarmupSet[] | undefined {
-    return programExercise.warmupSets;
   }
 
   export function getReusedProgramExercise<T>(

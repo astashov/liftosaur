@@ -4,7 +4,7 @@ import { ExerciseImage } from "../exerciseImage";
 import { ExerciseSets } from "../exerciseSets";
 import { Markdown } from "../markdown";
 import { equipmentName, Exercise } from "../../models/exercise";
-import { IExerciseType, IHistoryEntry, IHistoryRecord, IProgramExercise, IProgramState, ISettings } from "../../types";
+import { IExerciseType, IHistoryEntry, IHistoryRecord, IProgramState, ISettings } from "../../types";
 import { ComparerUtils } from "../../utils/comparer";
 import { IDispatch } from "../../ducks/types";
 import { Reps } from "../../models/set";
@@ -63,7 +63,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
   const warmupSets = props.entry.warmupSets;
   const equipment = exercise.equipment;
   const programExercise = props.programExercise;
-  const dayData = Program.getDayData(props.program, props.dayIndex, props.settings);
+  const dayData = Program.getDayData(props.program, props.dayIndex);
   const description = PlannerProgramExercise.currentDescription(programExercise);
 
   return (
@@ -146,7 +146,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
                 isWarmup: boolean,
                 entryIndex: number,
                 setIndex?: number,
-                pe?: IProgramExercise,
+                pe?: IPlannerProgramExercise,
                 exerciseType?: IExerciseType
               ) => {
                 EditProgressEntry.showEditSetModal(props.dispatch, isWarmup, entryIndex, setIndex, pe, exerciseType);
@@ -170,7 +170,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
           forceShow={false}
           settings={props.settings}
           dayData={dayData}
-          userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
+          userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.key]}
           programExercise={props.programExercise}
           program={props.program}
         />

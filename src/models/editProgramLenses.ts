@@ -4,6 +4,7 @@ import { IExerciseType, IPercentage, IProgramExercise, IProgramState, ISettings,
 import { ObjectUtils } from "../utils/object";
 import { Exercise } from "./exercise";
 import { Weight } from "./weight";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
 
 export namespace EditProgramLenses {
   export function changeExercise<T>(
@@ -37,27 +38,8 @@ export namespace EditProgramLenses {
     ];
   }
 
-  function editReuseLogicStateVariable<T>(
-    prefix: LensBuilder<T, IProgramExercise, {}>,
-    reuseLogicId: string,
-    stateKey: string,
-    newValue?: string | number | IWeight | IPercentage
-  ): ILensRecordingPayload<T> {
-    return prefix
-      .pi("reuseLogic")
-      .pi("states")
-      .pi(reuseLogicId)
-      .recordModify((state) => {
-        if (newValue == null || typeof newValue === "string") {
-          return updateStateVariable(state, stateKey, newValue);
-        } else {
-          return { ...state, [stateKey]: newValue };
-        }
-      });
-  }
-
   function editStateVariable<T>(
-    prefix: LensBuilder<T, IProgramExercise, {}>,
+    prefix: LensBuilder<T, IPlannerProgramExercise, {}>,
     stateKey: string,
     newValue?: string | number | IWeight | IPercentage
   ): ILensRecordingPayload<T> {
@@ -71,7 +53,7 @@ export namespace EditProgramLenses {
   }
 
   function removeStateVariableMetadata<T>(
-    prefix: LensBuilder<T, IProgramExercise, {}>,
+    prefix: LensBuilder<T, IPlannerProgramExercise, {}>,
     stateKey: string
   ): ILensRecordingPayload<T> {
     return prefix.p("stateMetadata").recordModify((state) => {
@@ -82,24 +64,16 @@ export namespace EditProgramLenses {
   }
 
   export function properlyUpdateStateVariable<T>(
-    prefix: LensBuilder<T, IProgramExercise, {}>,
-    programExercise: IProgramExercise,
+    prefix: LensBuilder<T, IPlannerProgramExercise, {}>,
     values: Partial<IProgramState>
   ): ILensRecordingPayload<T>[] {
-    const reuseLogicId = programExercise.reuseLogic?.selected;
-    if (reuseLogicId) {
-      return ObjectUtils.entries(values).map(([stateKey, newValue]) => {
-        return editReuseLogicStateVariable(prefix, reuseLogicId, stateKey, newValue);
-      });
-    } else {
-      return ObjectUtils.entries(values).flatMap(([stateKey, newValue]) => {
-        if (newValue == null) {
-          return [removeStateVariableMetadata(prefix, stateKey), editStateVariable(prefix, stateKey, newValue)];
-        } else {
-          return [editStateVariable(prefix, stateKey, newValue)];
-        }
-      });
-    }
+    return ObjectUtils.entries(values).flatMap(([stateKey, newValue]) => {
+      if (newValue == null) {
+        return [removeStateVariableMetadata(prefix, stateKey), editStateVariable(prefix, stateKey, newValue)];
+      } else {
+        return [editStateVariable(prefix, stateKey, newValue)];
+      }
+    });
   }
 }
 

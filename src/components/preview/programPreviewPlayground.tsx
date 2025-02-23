@@ -11,6 +11,8 @@ import { IProgramPreviewPlaygroundDaySetup, IProgramPreviewPlaygroundWeekSetup }
 import deepmerge from "deepmerge";
 import { Markdown } from "../markdown";
 import { ObjectUtils } from "../../utils/object";
+import { ProgramToPlanner } from "../../models/programToPlanner";
+import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 
 type IProgramPreviewPlaygroundDaySetupWithProgress = IProgramPreviewPlaygroundDaySetup & {
   progress: IHistoryRecord;
@@ -52,9 +54,9 @@ export const ProgramPreviewPlayground = memo(
             dayNumber += 1;
             const progress = Program.nextHistoryRecord(props.program, props.settings, dayNumber);
             const programDay = Program.getProgramDay(initialEvaluatedProgram, dayNumber);
-            const exerciseKeys = new Set(programDay?.exercises.map((e) => e.key));
+            const exerciseTags = new Set(programDay?.exercises.map((e) => e.tags).flat());
             const states = ObjectUtils.filter(initialEvaluatedProgram.states, (key, state) => {
-              return exerciseKeys.has(key);
+              return exerciseTags.has(key);
             });
             return { day: dayNumber, states, progress };
           }),
@@ -63,10 +65,11 @@ export const ProgramPreviewPlayground = memo(
     };
 
     const [state, dispatch] = useLensReducer(initialState, {}, []);
-    const evaluatedProgram = useMemo(() => Program.evaluate(props.program, props.settings), [
-      state.program,
-      state.settings,
-    ]);
+    const evaluatedProgram = useMemo(() => {
+      console.log("Evaluating program");
+      return Program.evaluate(state.program, state.settings);
+    }, [state.program, state.settings]);
+    console.log("New Evaluated Program 2", evaluatedProgram);
 
     return (
       <ScrollableTabs
@@ -102,7 +105,13 @@ export const ProgramPreviewPlayground = memo(
                                 .record(newProgress)
                             );
                           }}
-                          onProgramChange={(newProgram) => {
+                          onProgramChange={(newEvaluatedProgram) => {
+                            const newPlanner = new ProgramToPlanner(
+                              newEvaluatedProgram,
+                              state.settings
+                            ).convertToPlanner();
+                            console.log("New Planner", PlannerProgram.generateFullText(newPlanner.weeks));
+                            const newProgram = { ...state.program, planner: newPlanner };
                             dispatch([
                               lb<IProgramPreviewPlaygroundState>()
                                 .p("progresses")
@@ -113,15 +122,15 @@ export const ProgramPreviewPlayground = memo(
                                       days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
                                         let newProgress = Progress.applyProgramDay(
                                           day.progress,
-                                          newProgram,
+                                          newEvaluatedProgram,
                                           day.day,
-                                          state.settings,
-                                          day.states
+                                          state.settings
                                         );
                                         newProgress = Progress.runInitialUpdateScripts(
                                           newProgress,
                                           undefined,
-                                          newProgram,
+                                          day.day,
+                                          newEvaluatedProgram,
                                           state.settings
                                         );
                                         return {
@@ -146,14 +155,14 @@ export const ProgramPreviewPlayground = memo(
                                       days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
                                         let newProgress = Progress.applyProgramDay(
                                           day.progress,
-                                          state.program,
+                                          evaluatedProgram,
                                           day.day,
-                                          newSettings,
-                                          day.states
+                                          newSettings
                                         );
                                         newProgress = Progress.runInitialUpdateScripts(
                                           newProgress,
                                           undefined,
+                                          day.day,
                                           evaluatedProgram,
                                           newSettings
                                         );
