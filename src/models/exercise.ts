@@ -3577,13 +3577,18 @@ export namespace Exercise {
     return customExercises[id] != null;
   }
 
-  export function fullName(exercise: IExercise, settings?: ISettings): string {
+  export function fullName(exercise: IExercise, settings: ISettings, label?: string): string {
+    let str: string;
     if (exercise.equipment && exercise.defaultEquipment !== exercise.equipment) {
       const equipment = equipmentName(exercise.equipment, settings?.equipment);
-      return `${exercise.name}, ${equipment}`;
+      str = `${exercise.name}, ${equipment}`;
     } else {
-      return exercise.name;
+      str = exercise.name;
     }
+    if (label) {
+      str = `${label}: ${str}`;
+    }
+    return str;
   }
 
   export function reverseName(exercise: IExercise, settings?: ISettings): string {

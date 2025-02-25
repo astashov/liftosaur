@@ -17,7 +17,7 @@ import { ExerciseSetView } from "./exerciseSet";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
-import { IByExercise } from "../pages/planner/plannerEvaluator";
+import { IByExercise, IByTag } from "../pages/planner/plannerEvaluator";
 
 type IOnStartSetChanging = (
   isWarmup: boolean,
@@ -35,7 +35,7 @@ interface IExerciseSetsProps {
   size?: "small" | "medium";
   progress: IHistoryRecord;
   programExercise?: IPlannerProgramExercise;
-  otherStates?: IByExercise<IProgramState>;
+  otherStates?: IByTag<IProgramState>;
   showHelp: boolean;
   settings: ISettings;
   entry: IHistoryEntry;

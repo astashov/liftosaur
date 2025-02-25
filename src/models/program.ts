@@ -40,7 +40,6 @@ import { StringUtils } from "../utils/string";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { ProgramToPlanner } from "./programToPlanner";
 import { IPlannerState, IExportedPlannerProgram, IPlannerProgramExercise } from "../pages/planner/models/types";
-import { PlannerKey } from "../pages/planner/plannerKey";
 import memoize from "micro-memoize";
 import { Equipment } from "./equipment";
 import { showAlert } from "../lib/alert";
@@ -66,6 +65,7 @@ export interface IEvaluatedProgramWeek {
 
 export interface IEvaluatedProgramDay {
   name: string;
+  dayData: Required<IDayData>;
   description?: string;
   exercises: IPlannerProgramExercise[];
 }
@@ -376,38 +376,6 @@ export namespace Program {
     return { success: true, data: { state: newState, updates, bindings, prints: fnContext.prints } };
   }
 
-  export function runDescriptionScript(
-    script: string,
-    exercise: IExerciseType,
-    state: IProgramState,
-    dayData: IDayData,
-    settings: ISettings
-  ): IEither<number, string> {
-    try {
-      if (script) {
-        const scriptRunnerResult = new ScriptRunner(
-          script,
-          state,
-          {},
-          Progress.createEmptyScriptBindings(dayData, settings, exercise),
-          Progress.createScriptFunctions(settings),
-          settings.units,
-          { exerciseType: exercise, unit: settings.units, prints: [] },
-          "regular"
-        );
-        return { success: true, data: scriptRunnerResult.execute("reps") };
-      } else {
-        return { success: false, error: "Empty expression" };
-      }
-    } catch (e) {
-      if (e instanceof SyntaxError) {
-        return { success: false, error: e.message };
-      } else {
-        throw e;
-      }
-    }
-  }
-
   export function runVariationScript(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
@@ -450,82 +418,6 @@ export namespace Program {
         throw e;
       }
     }
-  }
-
-  export function runScript(
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    script: string,
-    dayData: IDayData,
-    settings: ISettings,
-    type: "reps" | "rpe"
-  ): IEither<number, string>;
-  export function runScript(
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    script: string,
-    dayData: IDayData,
-    settings: ISettings,
-    type: "weight"
-  ): IEither<IWeight, string>;
-  export function runScript(
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    script: string,
-    dayData: IDayData,
-    settings: ISettings,
-    type: "reps" | "rpe" | "weight"
-  ): IEither<IWeight | number, string> {
-    try {
-      if (script) {
-        const scriptRunnerResult = new ScriptRunner(
-          script,
-          ProgramExercise.getState(programExercise, allProgramExercises),
-          {},
-          Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
-          Progress.createScriptFunctions(settings),
-          settings.units,
-          { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
-          "regular"
-        );
-        return { success: true, data: scriptRunnerResult.execute(type as "reps") };
-      } else {
-        return { success: false, error: "Empty expression" };
-      }
-    } catch (e) {
-      if (e instanceof SyntaxError) {
-        return { success: false, error: e.message };
-      } else {
-        throw e;
-      }
-    }
-  }
-
-  export function calculatePlannerSetVariationIndex(
-    programExercise: IProgramExercise,
-    planner: IPlannerProgram,
-    settings: ISettings,
-    setVariationIndex: number
-  ): number {
-    let dayIndex = 0;
-    const key = PlannerKey.fromProgramExercise(programExercise, settings);
-    const variationIndexes = ProgramToPlanner.variationsMap(planner, settings)?.[key];
-    if (variationIndexes != null) {
-      for (let weekIndex = 0; weekIndex < planner.weeks.length; weekIndex++) {
-        for (let dayInWeekIndex = 0; dayInWeekIndex < planner.weeks[weekIndex].days.length; dayInWeekIndex++) {
-          const result = variationIndexes[dayIndex];
-          if (result != null) {
-            const [start, end] = variationIndexes[dayIndex];
-            if (setVariationIndex >= start && setVariationIndex <= end) {
-              setVariationIndex = setVariationIndex - start;
-              return setVariationIndex;
-            }
-          }
-          dayIndex += 1;
-        }
-      }
-    }
-    return setVariationIndex;
   }
 
   export function runFinishDayScript(
@@ -790,12 +682,23 @@ export namespace Program {
       throw new Error("Program.evaluate: Program is not a planner program");
     }
     const { evaluatedWeeks } = PlannerEvaluator.evaluate(program.planner!, settings);
+    let dayNum = 0;
     const weeks = planner.weeks.map((week, weekIndex) => {
       const evaluatedWeek = evaluatedWeeks[weekIndex];
-      const days = week.days.map((day, dayIndex) => {
-        const evaluatedDay = evaluatedWeek[dayIndex];
+      const days = week.days.map((day, dayInWeekIndex) => {
+        dayNum += 1;
+        const evaluatedDay = evaluatedWeek[dayInWeekIndex];
         const evaluatedExercises = evaluatedDay.success ? evaluatedDay.data : [];
-        return { name: day.name, description: day.description, exercises: evaluatedExercises };
+        return {
+          name: day.name,
+          description: day.description,
+          dayData: {
+            day: dayNum,
+            week: weekIndex + 1,
+            dayInWeek: dayInWeekIndex + 1,
+          },
+          exercises: evaluatedExercises,
+        };
       });
       return { name: week.name, description: week.description, days };
     });
@@ -874,38 +777,25 @@ export namespace Program {
     return 1;
   }
 
-  export function getDayName(program: IProgram, day: number, settings: ISettings): string {
-    const dayData = getDayData(program, day, settings);
+  export function getDayName(program: IEvaluatedProgram, day: number): string {
+    const dayData = getDayData(program, day);
     const programDay = getProgramDay(program, day);
     const week = program.weeks[(dayData.week || 1) - 1];
-    const isMultiweek = program.isMultiweek && program.weeks.length > 1 && week != null;
-    return `${isMultiweek ? `${week.name} - ` : ""}${programDay.name}`;
+    const isMultiweek = program.weeks.length > 1 && program.weeks.length > 1 && week != null;
+    return `${isMultiweek ? `${week.name} - ` : ""}${programDay?.name}`;
   }
 
-  export function getListOfDays(program: IProgram, settings: ISettings): [string, string][] {
-    program = fullProgram(program, settings);
-    if (program.isMultiweek) {
-      const result: [string, string][] = [];
-      let dayIndex = 1;
-      const isReallyMultiweek = program.weeks.length > 1;
-      for (const week of program.weeks) {
-        for (const day of week.days) {
-          const programDay = program.days.find((d) => d.id === day.id);
-          if (programDay) {
-            result.push([`${dayIndex}`, `${isReallyMultiweek ? `${week.name} - ` : ""}${programDay.name}`]);
-            dayIndex += 1;
-          }
-        }
+  export function getListOfDays(program: IEvaluatedProgram, settings: ISettings): [string, string][] {
+    let days: [string, string][] = [];
+    const isReallyMultiweek = program.weeks.length > 1;
+    let dayIndex = 0;
+    for (const week of program.weeks) {
+      for (const day of week.days) {
+        dayIndex += 1;
+        days.push([`${dayIndex + 1}`, `${isReallyMultiweek ? `${week.name} - ` : ""}${day.name}`]);
       }
-      return result;
-    } else {
-      return program.days.map<[string, string]>((day, i) => [`${i + 1}`, day.name]);
     }
-  }
-
-  export function getProgramDayIndex(program: IProgram, day: number): number {
-    const programDay = getProgramDay(program, day);
-    return program.days.findIndex((d) => d.id === programDay.id);
+    return days;
   }
 
   export function getProgramWeek(program: IEvaluatedProgram, settings: ISettings, day?: number): IEvaluatedProgramWeek {
@@ -926,11 +816,11 @@ export namespace Program {
   }
 
   export function getProgramExercise(
-    program: IEvaluatedProgram,
     day: number,
+    program?: IEvaluatedProgram,
     key?: string
   ): IPlannerProgramExercise | undefined {
-    if (key == null) {
+    if (key == null || program == null) {
       return undefined;
     }
     const programDay = getProgramDay(program, day);

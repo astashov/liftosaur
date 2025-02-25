@@ -941,6 +941,11 @@ export class PlannerExerciseEvaluator {
       const progress = allProperties.find((p) => p.name === "progress");
       const state = progress ? PlannerProgramExercise.getStateFromProperty(progress) : {};
       const stateMetadata = progress ? PlannerProgramExercise.getStateMetadataFromProperty(progress) : {};
+      for (const property of allProperties) {
+        property.exerciseType = exercise;
+        property.exerciseKey = key;
+        property.label = label;
+      }
 
       const plannerExercise: IPlannerProgramExercise = {
         key,

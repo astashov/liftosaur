@@ -3,7 +3,7 @@ import { Modal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { IProgram, IScreenMuscle, ISettings } from "../types";
 import { MenuItemEditable } from "./menuItemEditable";
-import { Program } from "../models/program";
+import { IEvaluatedProgram, Program } from "../models/program";
 import { MenuItemWrapper } from "./menuItem";
 import { GroupHeader } from "./groupHeader";
 import { EditProgram } from "../models/editProgram";
@@ -18,16 +18,15 @@ import { IconArrowRight } from "./icons/iconArrowRight";
 
 interface IModalChangeNextDayProps {
   dispatch: IDispatch;
-  currentProgram: IProgram;
+  currentProgram: IEvaluatedProgram;
   allPrograms: IProgram[];
   settings: ISettings;
   onClose: () => void;
 }
 
 export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element {
-  const fullProgram = Program.fullProgram(props.currentProgram, props.settings);
   const programsValues = props.allPrograms.map<[string, string]>((p) => [p.id, p.name]);
-  const days = Program.getListOfDays(fullProgram, props.settings);
+  const days = Program.getListOfDays(props.currentProgram, props.settings);
   return (
     <Modal shouldShowClose={true} onClose={props.onClose} isFullWidth>
       <MenuItemEditable
@@ -43,18 +42,19 @@ export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element
       />
       <div className="pt-8 text-xs">
         <span className="text-grayv2-main">Next Workout: </span>
-        <strong>{Program.getDayName(fullProgram, fullProgram.nextDay, props.settings)}</strong>
+        <strong>{Program.getDayName(props.currentProgram, props.currentProgram.nextDay)}</strong>
       </div>
       <GroupHeader name="Change next workout:" />
       {days.map(([dayId, dayName], dayIndex) => {
-        const day = Program.getProgramDay(fullProgram, dayIndex + 1);
+        const day = Program.getProgramDay(props.currentProgram, dayIndex + 1);
         const exerciseTypes = CollectionUtils.compact(
-          day.exercises.map((exercise) => {
-            const programExercise = Program.getProgramExerciseById(fullProgram, exercise.id);
-            return programExercise ? Exercise.find(programExercise.exerciseType, props.settings.exercises) : undefined;
+          (day?.exercises || []).map((exercise) => {
+            return Exercise.find(exercise.exerciseType, props.settings.exercises);
           })
         );
-        const points = Muscle.normalizeUnifiedPoints(Muscle.getUnifiedPointsForDay(fullProgram, day, props.settings));
+        const points = Muscle.normalizeUnifiedPoints(
+          Muscle.getUnifiedPointsForDay(props.currentProgram, day, props.settings)
+        );
         const muscleData = ObjectUtils.keys(points.screenMusclePoints).reduce<
           Partial<Record<IScreenMuscle, IMuscleStyle>>
         >((memo, key) => {

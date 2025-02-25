@@ -4,16 +4,7 @@ import { IDispatch } from "../ducks/types";
 import { Progress } from "../models/progress";
 import { Button } from "./button";
 import { memo } from "preact/compat";
-import {
-  IHistoryRecord,
-  IProgram,
-  ISettings,
-  IProgressMode,
-  IProgramExercise,
-  ISubscription,
-  IExerciseType,
-  IProgramDay,
-} from "../types";
+import { IHistoryRecord, ISettings, IProgressMode, ISubscription, IExerciseType } from "../types";
 import { IState, updateState } from "../models/state";
 import { Thunk } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
@@ -22,17 +13,18 @@ import { GroupHeader } from "./groupHeader";
 import { inputClassName } from "./input";
 import { IconNotebook } from "./icons/iconNotebook";
 import { LinkButton } from "./linkButton";
-import { Program } from "../models/program";
+import { IEvaluatedProgram, IEvaluatedProgramDay, Program } from "../models/program";
 import { lb } from "lens-shmens";
 import { EditProgram } from "../models/editProgram";
 import { Exercise } from "../models/exercise";
 import { Markdown } from "./markdown";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
   progress: IHistoryRecord;
-  program?: IProgram;
-  programDay?: IProgramDay;
+  program?: IEvaluatedProgram;
+  programDay?: IEvaluatedProgramDay;
   userId?: string;
   nickname?: string;
   helps: string[];
@@ -45,7 +37,7 @@ interface ICardsViewProps {
     isWarmup: boolean,
     entryIndex: number,
     setIndex?: number,
-    programExercise?: IProgramExercise,
+    programExercise?: IPlannerProgramExercise,
     exerciseType?: IExerciseType
   ) => void;
   setIsShareShown: (isShown: boolean) => void;
@@ -69,15 +61,9 @@ export const CardsView = memo(
                 <button
                   className="px-2 ml-1 align-middle nm-workout-edit-day"
                   onClick={() => {
-                    if (program.planner) {
-                      const dayData = Program.getDayData(program, props.progress.day, props.settings);
-                      const plannerState = EditProgram.initPlannerState(program.id, program.planner, dayData);
-                      Program.editAction(props.dispatch, program.id, plannerState);
-                    } else {
-                      const programDay = Program.getProgramDay(program, props.progress.day);
-                      const dayIndex = programDay ? program.days.indexOf(programDay) : props.progress.day - 1;
-                      Progress.editDayAction(props.dispatch, props.progress.programId, dayIndex);
-                    }
+                    const dayData = Program.getDayData(program, props.progress.day);
+                    const plannerState = EditProgram.initPlannerState(program.id, program.planner, dayData);
+                    Program.editAction(props.dispatch, program.id, plannerState);
                   }}
                 >
                   <IconEditSquare />
@@ -86,9 +72,10 @@ export const CardsView = memo(
               {program && (
                 <button
                   onClick={() => {
-                    const dayIndex = Program.getProgramDayIndex(program, props.progress.day);
                     updateState(props.dispatch, [
-                      lb<IState>().p("muscleView").record({ type: "day", programId: program.id, dayIndex }),
+                      lb<IState>()
+                        .p("muscleView")
+                        .record({ type: "day", programId: program.id, day: props.progress.day }),
                     ]);
                     props.dispatch(Thunk.pushScreen("muscles"));
                   }}
@@ -116,10 +103,9 @@ export const CardsView = memo(
         </div>
         {props.programDay?.description && <Markdown value={props.programDay.description} />}
         {props.progress.entries.map((entry, index) => {
-          let programExercise: IProgramExercise | undefined;
-          if (props.program) {
-            programExercise = props.program.exercises.find((e) => e.id === entry.programExerciseId);
-          }
+          const programExercise = props.program
+            ? Program.getProgramExercise(props.progress.day, program, entry.programExerciseId)
+            : undefined;
           const currentGymId = props.settings.currentGymId || props.settings.gyms[0]?.id || "";
           const currentEquipment =
             props.settings.exerciseData[Exercise.toKey(entry.exercise)]?.equipment?.[currentGymId];
@@ -127,7 +113,6 @@ export const CardsView = memo(
 
           return (
             <ExerciseView
-              programMode={Program.programMode(props.program)}
               history={props.history}
               helps={props.helps}
               showHelp={true}

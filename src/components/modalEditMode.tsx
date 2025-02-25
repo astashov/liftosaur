@@ -1,15 +1,7 @@
 import { JSX, h, Fragment } from "preact";
 import { Modal } from "./modal";
 import { Button } from "./button";
-import {
-  ISettings,
-  IProgramExercise,
-  IProgram,
-  IProgramStateMetadata,
-  IUnit,
-  IExerciseType,
-  IProgramState,
-} from "../types";
+import { ISettings, IUnit, IExerciseType, IProgramState } from "../types";
 import { Exercise } from "../models/exercise";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
@@ -23,16 +15,17 @@ import { useState } from "preact/hooks";
 import { RepMaxCalculator } from "./repMaxCalculator";
 import { StringUtils } from "../utils/string";
 import { IWeightChange, ProgramExercise } from "../models/programExercise";
-import { Program } from "../models/program";
+import { IEvaluatedProgram, Program } from "../models/program";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { CollectionUtils } from "../utils/collection";
 import { ProgramToPlanner } from "../models/programToPlanner";
 import { InputWeight } from "./inputWeight";
 import { ExerciseDataSettings } from "./exerciseDataSettings";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
 
 interface IModalEditModeProps {
   programExerciseId: string;
-  program: IProgram;
+  program: IEvaluatedProgram;
   day: number;
   entryIndex: number;
   progressId: number;
@@ -41,7 +34,7 @@ interface IModalEditModeProps {
 }
 
 export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
-  const programExercise = props.program.exercises.filter((e) => e.id === props.programExerciseId)[0];
+  const programExercise = Program.getProgramExercise(props.day, props.program, props.programExerciseId);
   if (programExercise == null) {
     return <Fragment />;
   }
@@ -52,41 +45,18 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
     ]);
   };
   const onSave = (): void => {
-    EditProgram.properlyUpdateStateVariableInPlace(
-      props.dispatch,
-      props.program,
-      programExercise,
-      props.settings,
-      newState
-    );
-    if (planner != null) {
-      const newProgramExercise = PlannerProgram.replaceWeight(programExercise, weightChanges);
-      if (programExercise !== newProgramExercise) {
-        let newProgram = {
-          ...program,
-          exercises: CollectionUtils.setBy(program.exercises, "id", programExercise.id, newProgramExercise),
-        };
-        const newPlanner = new ProgramToPlanner(newProgram, planner, props.settings, {}, {}).convertToPlanner();
-        newProgram.planner = newPlanner;
-        newProgram = Program.cleanPlannerProgram(newProgram);
-        updateState(props.dispatch, [
-          lb<IState>()
-            .p("storage")
-            .p("programs")
-            .recordModify((programs) => {
-              return CollectionUtils.setBy(programs, "id", program.id, newProgram);
-            }),
-        ]);
-      }
-    }
+    let newEvaluatedProgram = EditProgram.properlyUpdateStateVariableInPlace(props.program, programExercise, newState);
+    newEvaluatedProgram = PlannerProgram.replaceWeight(newEvaluatedProgram, programExercise.key, weightChanges);
+    const newPlanner = new ProgramToPlanner(newEvaluatedProgram, props.settings).convertToPlanner();
+    updateState(props.dispatch, [
+      lb<IState>().p("storage").p("programs").findBy("id", props.program.id).p("planner").record(newPlanner),
+    ]);
     onClose();
   };
   const hasStateVariables = ObjectUtils.keys(programExercise.state).length > 0;
   const [newState, setNewState] = useState<Partial<IProgramState>>({});
-  const dayData = Program.getDayData(props.program, props.day, props.settings);
-  const [weightChanges, setWeightChanges] = useState(
-    ProgramExercise.weightChanges(dayData, programExercise, props.program.exercises, props.settings)
-  );
+  const dayData = Program.getDayData(props.program, props.day);
+  const [weightChanges, setWeightChanges] = useState(ProgramExercise.weightChanges(programExercise));
   const [showCalculator, setShowCalculator] = useState<
     { type: "state"; value: [string, IUnit] } | { type: "weight"; value: [number, IUnit] } | undefined
   >(undefined);
@@ -101,7 +71,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
             <h2 className="mb-4 text-xl font-bold text-center">{exercise.name}</h2>
             <ExerciseDataSettings
               fullExercise={exercise}
-              programExerciseIds={[programExercise.id]}
+              programExerciseIds={[programExercise.key]}
               settings={props.settings}
               dispatch={props.dispatch}
               show1RM={false}
@@ -131,7 +101,6 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   settings={props.settings}
                   newState={newState}
                   programExercise={programExercise}
-                  stateMetadata={programExercise.stateMetadata}
                   onEditStateVariable={(stateKey, newValue) => {
                     setNewState({
                       ...newState,
@@ -199,17 +168,8 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   kind="purple"
                   buttonSize="md"
                   onClick={() => {
-                    if (props.program.planner) {
-                      const plannerState = EditProgram.initPlannerState(
-                        props.program.id,
-                        props.program.planner,
-                        dayData
-                      );
-                      Program.editAction(props.dispatch, props.program.id, plannerState);
-                    } else {
-                      updateState(props.dispatch, [lb<IState>().p("editProgram").record({ id: props.program.id })]);
-                      EditProgram.editProgramExercise(props.dispatch, programExercise);
-                    }
+                    const plannerState = EditProgram.initPlannerState(props.program.id, props.program.planner, dayData);
+                    Program.editAction(props.dispatch, props.program.id, plannerState);
                     onClose();
                   }}
                   data-cy="modal-edit-mode-program"
@@ -262,8 +222,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
 }
 
 interface IStateProps {
-  programExercise: IProgramExercise;
-  stateMetadata?: IProgramStateMetadata;
+  programExercise: IPlannerProgramExercise;
   newState: Partial<IProgramState>;
   onEditStateVariable: (stateKey: string, newValue: string) => void;
   settings: ISettings;
@@ -272,8 +231,8 @@ interface IStateProps {
 
 function ProgramStateVariables(props: IStateProps): JSX.Element {
   const { programExercise } = props;
-  const reuseLogicId = programExercise.reuseLogic?.selected;
-  const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
+  const state = programExercise.state;
+  const stateMetadata = programExercise.stateMetadata;
 
   return (
     <section className="px-4 py-2 bg-purple-100 rounded-2xl">
@@ -286,7 +245,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
             name={stateKey}
             isBorderless={i === Object.keys(state).length - 1}
             nextLine={
-              props.stateMetadata?.[stateKey]?.userPrompted ? (
+              stateMetadata?.[stateKey]?.userPrompted ? (
                 <div style={{ marginTop: "-0.75rem" }} className="mb-1 text-xs text-grayv2-main">
                   User Prompted
                 </div>

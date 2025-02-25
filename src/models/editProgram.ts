@@ -1,34 +1,29 @@
 import { lb } from "lens-shmens";
-import { Program } from "./program";
+import { IEvaluatedProgram, Program } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
-import {
-  IProgram,
-  IProgramExercise,
-  ISettings,
-  IExerciseType,
-  IPlannerProgram,
-  IDayData,
-  IProgramState,
-} from "../types";
-import { EditProgramLenses, updateStateVariable } from "./editProgramLenses";
-import { IPlannerState } from "../pages/planner/models/types";
-import { ProgramToPlanner } from "./programToPlanner";
+import { IProgram, IPlannerProgram, IDayData, IProgramState } from "../types";
+import { updateStateVariable } from "./editProgramLenses";
+import { IPlannerProgramExercise, IPlannerState } from "../pages/planner/models/types";
+import { PP } from "./pp";
+import { Weight } from "./weight";
 
 export namespace EditProgram {
   export function properlyUpdateStateVariableInPlace(
-    dispatch: IDispatch,
-    program: IProgram,
-    programExercise: IProgramExercise,
-    settings: ISettings,
+    program: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise,
     values: Partial<IProgramState>
-  ): void {
-    if (program.planner) {
-      const programCopy = ObjectUtils.clone(program);
-      const ex = programCopy.exercises.find((e) => e.id === programExercise.id);
-      if (ex != null) {
+  ): IEvaluatedProgram {
+    if (
+      ObjectUtils.entries(values).some(([key, value]) => value == null || Weight.eq(programExercise.state[key], value))
+    ) {
+      return program;
+    }
+    const newEvalutedProgram = ObjectUtils.clone(program);
+    PP.iterate2(newEvalutedProgram.weeks, (ex) => {
+      if (ex.key === programExercise.key) {
         for (const [stateKey, newValue] of ObjectUtils.entries(values)) {
           if (newValue == null) {
             delete ex?.stateMetadata?.[stateKey];
@@ -39,52 +34,9 @@ export namespace EditProgram {
             ex.state = { ...ex.state, [stateKey]: newValue };
           }
         }
-        const newPlanner = new ProgramToPlanner(programCopy, program.planner, settings, {}, {}).convertToPlanner();
-        updateState(dispatch, [
-          lb<IState>().p("storage").p("programs").findBy("id", program.id).p("planner").record(newPlanner),
-        ]);
       }
-    } else {
-      updateState(
-        dispatch,
-        EditProgramLenses.properlyUpdateStateVariable(
-          lb<IState>()
-            .p("storage")
-            .p("programs")
-            .findBy("id", program.id)
-            .p("exercises")
-            .findBy("id", programExercise.id),
-          programExercise,
-          values
-        )
-      );
-    }
-  }
-
-  export function swapExercise(
-    dispatch: IDispatch,
-    settings: ISettings,
-    programId: string,
-    programExerciseId: string,
-    oldExerciseType: IExerciseType,
-    newExerciseType?: IExerciseType
-  ): void {
-    if (newExerciseType != null) {
-      updateState(
-        dispatch,
-        EditProgramLenses.changeExercise(
-          lb<IState>()
-            .p("storage")
-            .p("programs")
-            .find((p) => p.id === programId)
-            .p("exercises")
-            .find((e) => e.id === programExerciseId),
-          settings,
-          oldExerciseType,
-          newExerciseType
-        )
-      );
-    }
+    });
+    return newEvalutedProgram;
   }
 
   export function deleteProgram(dispatch: IDispatch, program: IProgram, customPrograms: IProgram[]): void {
@@ -115,15 +67,6 @@ export namespace EditProgram {
   export function setNextDay(dispatch: IDispatch, program: IProgram, nextDay: number): void {
     updateState(dispatch, [
       lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(nextDay),
-    ]);
-  }
-
-  export function editProgramExercise(dispatch: IDispatch, exercise: IProgramExercise): void {
-    updateState(dispatch, [
-      lb<IState>().p("editExercise").record(exercise),
-      lb<IState>()
-        .p("screenStack")
-        .recordModify((stack) => Screen.push(stack, "editProgramExercise")),
     ]);
   }
 

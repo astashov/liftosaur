@@ -13,6 +13,8 @@ import {
   IPlannerProgramReuse,
 } from "../pages/planner/models/types";
 import { IEvaluatedProgram, Program } from "./program";
+import { Exercise } from "./exercise";
+import { CollectionUtils } from "../utils/collection";
 
 interface IPlannerToProgram2Globals {
   weight?: IWeight | IPercentage;
@@ -135,7 +137,7 @@ export class ProgramToPlanner {
             case "exercise": {
               descriptionIndex = undefined;
               addedCurrentDescription = false;
-              const evalExercise = Program.getProgramExercise(this.program, dayIndex + 1, line.value)!;
+              const evalExercise = Program.getProgramExercise(dayIndex + 1, this.program, line.value)!;
               const key = evalExercise.key;
               let plannerExercise = "";
               plannerExercise += evalExercise.fullName;
@@ -155,7 +157,7 @@ export class ProgramToPlanner {
               const shouldReuseSets = this.shouldReuseSets(evalExercise, reuse);
               const dereuseDecisions = shouldReuseSets ? this.getDereuseDecisions(evalExercise, reuse) : [];
               if (reuse && shouldReuseSets) {
-                plannerExercise += reuse.text;
+                plannerExercise += this.reuseToStr(reuse);
                 const overriddenGlobals: string[] = [];
                 if (dereuseDecisions.includes("weight") && globals.weight != null) {
                   overriddenGlobals.push(`${this.weightExprToStr(globals.weight)}${globals.askWeight ? "+" : ""}`);
@@ -231,8 +233,28 @@ export class ProgramToPlanner {
     return PlannerProgram.compact(this.program.planner, result, this.settings);
   }
 
+  private reuseToStr(reuse: IPlannerProgramReuse): string {
+    if (!reuse.exercise) {
+      return reuse.text;
+    }
+    const exercise = Exercise.get(reuse.exercise.exerciseType, this.settings.exercises);
+    const reuseStr = Exercise.fullName(exercise, this.settings, reuse.exercise.label);
+    let str = `...${reuseStr}`;
+    if (reuse.week || reuse.day) {
+      const weekAndDay = CollectionUtils.compact([reuse.week, reuse.day]).join(":");
+      str += `[${weekAndDay}]`;
+    }
+    return str;
+  }
+
   private getUpdate(update: IPlannerProgramProperty): string {
-    return ` / update: custom() ${update.body || update.script}`;
+    if (update.reuse?.exerciseType) {
+      const exercise = Exercise.get(update.reuse.exerciseType, this.settings.exercises);
+      const fullName = Exercise.fullName(exercise, this.settings, update.reuse.label);
+      return ` / update: custom() { ...${fullName})`;
+    } else {
+      return ` / update: custom() ${update.script}`;
+    }
   }
 
   private getId(programExercise: IPlannerProgramExercise): string {
@@ -285,7 +307,13 @@ export class ProgramToPlanner {
       plannerExercise += `(${args.join(", ")})`;
     }
     if (progress.fnName === "custom") {
-      plannerExercise += ` ${progress.script || `{ ...${progress.body} }`}`;
+      if (progress.reuse?.exerciseType) {
+        const exercise = Exercise.get(progress.reuse.exerciseType, this.settings.exercises);
+        const fullName = Exercise.fullName(exercise, this.settings, progress.reuse.label);
+        plannerExercise += `{ ...${fullName})`;
+      } else {
+        plannerExercise += progress.script;
+      }
     }
     return plannerExercise;
   }

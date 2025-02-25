@@ -149,7 +149,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
       footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
       <section className="px-4">
-        <h1 className="text-xl font-bold">{Exercise.fullName(fullExercise)}</h1>
+        <h1 className="text-xl font-bold">{Exercise.fullName(fullExercise, props.settings)}</h1>
         <div className="text-xs text-grayv2-main" style={{ marginTop: "-0.25rem" }}>
           {Exercise.isCustom(fullExercise.id, props.settings.exercises) ? "Custom exercise" : "Built-in exercise"}
         </div>
@@ -276,7 +276,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
         <section data-cy="exercise-stats-history">
           <GroupHeader
             topPadding={true}
-            name={`${Exercise.fullName(fullExercise)} History`}
+            name={`${Exercise.fullName(fullExercise, props.settings)} History`}
             rightAddOn={
               <button
                 className="p-2 nm-exercise-stats-navbar-filter"

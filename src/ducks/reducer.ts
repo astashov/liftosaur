@@ -19,7 +19,6 @@ import {
   IHistoryRecord,
   IPercentage,
   IProgramState,
-  IProgram,
 } from "../types";
 import { IndexedDBUtils } from "../utils/indexeddb";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
@@ -790,13 +789,12 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         program,
         progress.day,
         state.storage.settings,
-        undefined,
-        action.programExerciseIds,
-        action.checkReused
+        action.programExerciseIds
       );
       newProgress = Progress.runInitialUpdateScripts(
         newProgress,
         action.programExerciseIds,
+        progress.day,
         program,
         state.storage.settings
       );

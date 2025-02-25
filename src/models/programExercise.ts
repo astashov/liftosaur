@@ -136,33 +136,6 @@ export namespace ProgramExercise {
     return getVariations(programExercise, allProgramExercises)[nextVariationIndex];
   }
 
-  export function getDescription(
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    dayData: IDayData,
-    settings: ISettings,
-    staticState?: IProgramState
-  ): string {
-    let reusedProgramExercise: IProgramExercise;
-    if (isDescriptionReused(programExercise)) {
-      reusedProgramExercise = getProgramExercise(programExercise, allProgramExercises);
-    } else {
-      reusedProgramExercise = programExercise;
-    }
-    const state = { ...getState(programExercise, allProgramExercises), ...staticState };
-    if (reusedProgramExercise.descriptions.length < 2) {
-      return reusedProgramExercise.descriptions[0] || "";
-    } else {
-      const script = reusedProgramExercise.descriptionExpr || "1";
-      const resultIndex = Program.runDescriptionScript(script, programExercise.exerciseType, state, dayData, settings);
-      if (resultIndex.success) {
-        return reusedProgramExercise.descriptions[resultIndex.data - 1] || "";
-      } else {
-        return "";
-      }
-    }
-  }
-
   export function getTimerExpr(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]
@@ -295,10 +268,10 @@ export namespace ProgramExercise {
     });
   }
 
-  export function doesUse1RM(programExercise: IProgramExercise): boolean {
-    const usesPercentageWeights = programExercise.variations.some((v) => {
+  export function doesUse1RM(programExercise: IPlannerProgramExercise): boolean {
+    const usesPercentageWeights = programExercise.evaluatedSetVariations.some((v) => {
       return v.sets.some((set) => {
-        return set.weightExpr && set.weightExpr.includes("%");
+        return Weight.isPct(set.weight);
       });
     });
     const usesRM1Var = ProgramExercise.isUsingVariable(programExercise, "rm1");
@@ -442,36 +415,20 @@ export namespace ProgramExercise {
     });
   }
 
-  export function weightChanges(
-    dayData: IDayData,
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    settings: ISettings
-  ): IWeightChange[] {
+  export function weightChanges(programExercise: IPlannerProgramExercise): IWeightChange[] {
     const results: Record<string, IWeightChange> = {};
-    const state = ProgramExercise.getState(programExercise, allProgramExercises);
-    const currentVariationIndexResult = Program.runVariationScript(
-      programExercise,
-      allProgramExercises,
-      state,
-      dayData,
-      settings
-    );
-    const currentVariationIndex = currentVariationIndexResult.success ? currentVariationIndexResult.data : 0;
-
-    for (let variationIndex = 0; variationIndex < programExercise.variations.length; variationIndex += 1) {
-      const variation = programExercise.variations[variationIndex];
+    const currentVariationIndex = PlannerProgramExercise.currentSetVariationIndex(programExercise);
+    for (let variationIndex = 0; variationIndex < programExercise.evaluatedSetVariations.length; variationIndex += 1) {
+      const variation = programExercise.evaluatedSetVariations[variationIndex];
       for (let setIndex = 0; setIndex < variation.sets.length; setIndex += 1) {
         const set = variation.sets[setIndex];
-        if (set.weightExpr) {
-          const weight = Weight.parsePct(set.weightExpr);
-          if (weight != null) {
-            results[set.weightExpr] = {
-              originalWeight: weight,
-              weight,
-              current: results[set.weightExpr]?.current || variationIndex + 1 === currentVariationIndex,
-            };
-          }
+        if (set.weight) {
+          const key = Weight.print(set.weight);
+          results[key] = {
+            originalWeight: set.weight,
+            weight: set.weight,
+            current: results[key]?.current || variationIndex + 1 === currentVariationIndex,
+          };
         }
       }
     }

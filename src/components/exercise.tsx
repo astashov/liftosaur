@@ -10,7 +10,6 @@ import { memo } from "preact/compat";
 import {
   IHistoryEntry,
   ISettings,
-  IProgramExercise,
   IProgressMode,
   IExerciseType,
   IWeight,
@@ -18,7 +17,6 @@ import {
   ISet,
   ISubscription,
   IDayData,
-  IProgram,
 } from "../types";
 import { DateUtils } from "../utils/date";
 import { IState, updateState } from "../models/state";
@@ -43,10 +41,12 @@ import { ExerciseImage } from "./exerciseImage";
 import { UidFactory } from "../utils/generator";
 import { Nux } from "./nux";
 import { WeightLinesUnsubscribed } from "./weightLinesUnsubscribed";
-import { IProgramMode } from "../models/program";
+import { IEvaluatedProgram } from "../models/program";
 import { n } from "../utils/math";
 import { IconSwap } from "./icons/iconSwap";
 import { Equipment } from "../models/equipment";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 
 interface IProps {
   showHelp: boolean;
@@ -55,21 +55,20 @@ interface IProps {
   history: IHistoryRecord[];
   progress: IHistoryRecord;
   dayData: IDayData;
-  programExercise?: IProgramExercise;
-  program?: IProgram;
+  programExercise?: IPlannerProgramExercise;
+  program?: IEvaluatedProgram;
   helps: string[];
   index: number;
   showEditButtons: boolean;
   forceShowStateChanges?: boolean;
   subscription: ISubscription;
   hidePlatesCalculator?: boolean;
-  programMode: IProgramMode;
   dispatch: IDispatch;
   onStartSetChanging?: (
     isWarmup: boolean,
     entryIndex: number,
     setIndex?: number,
-    programExercise?: IProgramExercise,
+    programExercise?: IPlannerProgramExercise,
     exerciseType?: IExerciseType
   ) => void;
   onExerciseInfoClick?: (exercise: IExerciseType) => void;
@@ -141,14 +140,13 @@ export const ExerciseView = memo(
           <ExerciseContentView {...props} />
           {props.programExercise && props.program && (
             <ProgressStateChanges
-              mode={props.programMode}
               entry={props.entry}
               forceShow={props.forceShowStateChanges}
               settings={props.settings}
               dayData={props.dayData}
               programExercise={props.programExercise}
               program={props.program}
-              userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
+              userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.key]}
             />
           )}
         </section>
@@ -196,15 +194,7 @@ const ExerciseContentView = memo(
     const [showNotes, setShowNotes] = useState(!!props.entry.notes);
 
     const programExercise = props.programExercise;
-    let description: string | undefined;
-    if (programExercise != null && props.program != null) {
-      description = ProgramExercise.getDescription(
-        programExercise,
-        props.program.exercises,
-        props.dayData,
-        props.settings
-      );
-    }
+    const description = programExercise ? PlannerProgramExercise.currentDescription(programExercise) : undefined;
     const volume = Reps.volume(props.entry.sets);
     const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
     const onerm = Exercise.onerm(exercise, props.settings);
@@ -273,7 +263,7 @@ const ExerciseContentView = memo(
                             .pi(props.progress.id)
                             .pi("ui")
                             .p("editModal")
-                            .record({ programExercise: programExercise, entryIndex: props.index }),
+                            .record({ programExerciseId: programExercise.key, entryIndex: props.index }),
                         ]);
                       }
                     }}
@@ -431,7 +421,7 @@ const ExerciseContentView = memo(
             index={props.index}
             progress={props.progress}
             programExercise={props.programExercise}
-            allProgramExercises={props.program?.exercises}
+            otherStates={props.program?.states}
             showHelp={props.showHelp}
             settings={props.settings}
             entry={props.entry}
@@ -458,7 +448,7 @@ const ExerciseContentView = memo(
                   updateState(props.dispatch, [
                     lbp
                       .p("deletedProgramExercises")
-                      .recordModify((dpe) => (programExercise ? { ...dpe, [programExercise.id]: true } : dpe)),
+                      .recordModify((dpe) => (programExercise ? { ...dpe, [programExercise.key]: true } : dpe)),
                     lbp.pi("ui").p("entryIndexEditMode").record(undefined),
                     lbp.p("entries").recordModify((entries) => {
                       return CollectionUtils.removeAt(entries, props.index);
@@ -654,7 +644,7 @@ interface IWeightLineProps {
   entry: IHistoryEntry;
   weight: { rounded: IWeight; original: IWeight };
   nextSet: ISet;
-  programExercise?: IProgramExercise;
+  programExercise?: IPlannerProgramExercise;
   dispatch: IDispatch;
 }
 

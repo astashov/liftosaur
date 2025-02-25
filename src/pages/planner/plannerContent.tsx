@@ -533,35 +533,36 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 return;
               }
               if (state.fulltext) {
-                const newProgram = {
+                const newPlanner = {
                   name: state.current.program.name,
                   weeks: PlannerProgram.evaluateText(state.fulltext.text),
                 };
-                const newPlannerProgramResult = PlannerProgram.replaceExercise(
+                const newProgram = { ...program, planner: newPlanner };
+                const newProgramResult = PlannerProgram.replaceExercise(
                   newProgram,
                   modalExerciseUi.exerciseKey,
                   exerciseType,
                   settings
                 );
-                if (newPlannerProgramResult.success) {
-                  const newText = PlannerProgram.generateFullText(newPlannerProgramResult.data.weeks);
+                if (newProgramResult.success && newProgramResult.data.planner) {
+                  const newText = PlannerProgram.generateFullText(newProgramResult.data.planner.weeks);
                   dispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)]);
-                } else {
-                  alert(newPlannerProgramResult.error);
+                } else if (!newProgramResult.success) {
+                  alert(newProgramResult.error);
                 }
               } else {
-                const newPlannerProgramResult = PlannerProgram.replaceExercise(
-                  planner,
+                const newProgramResult = PlannerProgram.replaceExercise(
+                  program,
                   modalExerciseUi.exerciseKey,
                   exerciseType,
                   settings
                 );
-                if (newPlannerProgramResult.success) {
+                if (newProgramResult.success && newProgramResult.data.planner) {
                   dispatch([
-                    lb<IPlannerState>().p("current").p("program").pi("planner").record(newPlannerProgramResult.data),
+                    lb<IPlannerState>().p("current").p("program").pi("planner").record(newProgramResult.data.planner),
                   ]);
-                } else {
-                  alert(newPlannerProgramResult.error);
+                } else if (!newProgramResult.success) {
+                  alert(newProgramResult.error);
                 }
               }
             } else {

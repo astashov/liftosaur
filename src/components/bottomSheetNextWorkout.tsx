@@ -24,14 +24,17 @@ interface IProps {
 
 export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
   const [showChangeWorkout, setShowChangeWorkout] = useState(false);
-  const fullProgram = props.currentProgram ? Program.fullProgram(props.currentProgram, props.settings) : undefined;
+  const evaluatedProgram = props.currentProgram ? Program.evaluate(props.currentProgram, props.settings) : undefined;
 
-  const programDay = fullProgram ? Program.getProgramDay(fullProgram, fullProgram.nextDay) : undefined;
-  const nextHistoryRecord = fullProgram ? Program.nextHistoryRecord(fullProgram, props.settings) : undefined;
+  const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, evaluatedProgram.nextDay) : undefined;
+  const nextHistoryRecord = props.currentProgram
+    ? Program.nextHistoryRecord(props.currentProgram, props.settings)
+    : undefined;
 
   const doesProgressNotMatchProgram =
     nextHistoryRecord &&
-    (nextHistoryRecord.programId !== fullProgram?.id || nextHistoryRecord.day !== fullProgram.nextDay);
+    (nextHistoryRecord.programId !== props.currentProgram?.id ||
+      nextHistoryRecord.day !== props.currentProgram.nextDay);
 
   return (
     <>
@@ -79,11 +82,11 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
           </div>
         </div>
       </BottomSheet>
-      {showChangeWorkout && fullProgram && (
+      {showChangeWorkout && evaluatedProgram && (
         <ModalChangeNextDay
           onClose={() => setShowChangeWorkout(false)}
           dispatch={props.dispatch}
-          currentProgram={fullProgram}
+          currentProgram={evaluatedProgram}
           allPrograms={props.allPrograms}
           settings={props.settings}
         />

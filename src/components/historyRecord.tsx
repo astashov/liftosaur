@@ -5,7 +5,7 @@ import { TimeUtils } from "../utils/time";
 import { Progress } from "../models/progress";
 import { ComparerUtils } from "../utils/comparer";
 import { memo } from "preact/compat";
-import { IHistoryRecord, IProgramDay, ISettings } from "../types";
+import { IHistoryRecord, ISettings } from "../types";
 import { HtmlUtils } from "../utils/html";
 import { History, IPersonalRecords } from "../models/history";
 import { IconWatch } from "./icons/iconWatch";
@@ -15,10 +15,11 @@ import { Exercise } from "../models/exercise";
 import { Markdown } from "./markdown";
 import { StringUtils } from "../utils/string";
 import { n } from "../utils/math";
+import { IEvaluatedProgramDay } from "../models/program";
 
 interface IProps {
   historyRecord: IHistoryRecord;
-  programDay?: IProgramDay;
+  programDay?: IEvaluatedProgramDay;
   isOngoing: boolean;
   prs?: IPersonalRecords;
   settings: ISettings;

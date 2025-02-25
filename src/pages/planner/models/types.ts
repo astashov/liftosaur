@@ -123,6 +123,9 @@ export interface IPlannerProgramProperty {
   body?: string;
   reuse?: IPlannerProgramProperty;
   liftoscriptNode?: SyntaxNode;
+  exerciseType?: IExerciseType;
+  exerciseKey?: string;
+  label?: string;
   meta?: {
     stateKeys?: Set<string>;
   };

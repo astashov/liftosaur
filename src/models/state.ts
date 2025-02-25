@@ -94,7 +94,7 @@ export interface IState {
   muscleView?: {
     type: "program" | "day";
     programId?: string;
-    dayIndex?: number;
+    day?: number;
   };
   viewExerciseType?: IExerciseType;
   editExercise?: IProgramExercise;

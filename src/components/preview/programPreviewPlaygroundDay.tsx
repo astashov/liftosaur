@@ -45,7 +45,7 @@ export const ProgramPreviewPlaygroundDay = memo(
 
     const editModalProgramExerciseId = props.progress.ui?.editModal?.programExerciseId;
     const editModalProgramExercise = editModalProgramExerciseId
-      ? Program.getProgramExercise(props.program, props.day, editModalProgramExerciseId)
+      ? Program.getProgramExercise(props.day, props.program, editModalProgramExerciseId)
       : undefined;
     const programDay = Program.getProgramDay(props.program, props.day)!;
 
@@ -93,8 +93,8 @@ export const ProgramPreviewPlaygroundDay = memo(
             dispatch={dispatch}
             settings={props.settings}
             programExercise={Program.getProgramExercise(
-              props.program,
               props.day,
+              props.program,
               props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
             )}
             otherStates={props.program.states}
@@ -104,8 +104,8 @@ export const ProgramPreviewPlaygroundDay = memo(
           <ModalWeight
             isHidden={props.progress.ui?.weightModal == null}
             programExercise={Program.getProgramExercise(
-              props.program,
               props.day,
+              props.program,
               props.progress.ui?.weightModal?.programExerciseId
             )}
             settings={props.settings}
@@ -124,8 +124,8 @@ export const ProgramPreviewPlaygroundDay = memo(
             settings={props.settings}
             exerciseType={props.progress.ui?.editSetModal?.exerciseType}
             programExercise={Program.getProgramExercise(
-              props.program,
               props.day,
+              props.program,
               props.progress.ui?.editSetModal?.programExerciseId
             )}
             isTimerDisabled={true}

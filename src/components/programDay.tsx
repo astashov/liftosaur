@@ -10,15 +10,7 @@ import { INavCommon, IState, updateState } from "../models/state";
 import { useState } from "preact/hooks";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
-import {
-  IHistoryRecord,
-  IProgram,
-  ISettings,
-  IProgressMode,
-  ISubscription,
-  IProgramExercise,
-  IExerciseType,
-} from "../types";
+import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISubscription, IExerciseType } from "../types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
@@ -33,15 +25,13 @@ import { ModalExercise } from "./modalExercise";
 import { EditCustomExercise } from "../models/editCustomExercise";
 import { lb } from "lens-shmens";
 import { Program } from "../models/program";
-import { EditProgram } from "../models/editProgram";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
-import { CollectionUtils } from "../utils/collection";
-import { PlannerKey } from "../pages/planner/plannerKey";
 import { ModalEquipment } from "./modalEquipment";
 import { Modal1RM } from "./modal1RM";
 import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
 import { SendMessage } from "../utils/sendMessage";
 import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -59,11 +49,12 @@ interface IProps {
 
 export function ProgramDayView(props: IProps): JSX.Element | null {
   const progress = props.progress;
+  const evaluatedProgram = props.program ? Program.evaluate(props.program, props.settings) : undefined;
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
-  const editModalProgramExercise = progress.ui?.editModal?.programExercise.id;
+  const editModalProgramExerciseId = progress.ui?.editModal?.programExerciseId;
   const dateModal = progress.ui?.dateModal;
-  const programDay = props.program ? Program.getProgramDay(props.program, progress.day) : undefined;
+  const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, progress.day) : undefined;
 
   if (progress != null) {
     return (
@@ -125,11 +116,11 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               <ModalAmrap
                 settings={props.settings}
                 dispatch={props.dispatch}
-                programExercise={Program.getProgramExerciseFromEntry(
-                  props.program?.exercises || [],
-                  progress.entries[progress.ui?.amrapModal?.entryIndex || 0]
+                programExercise={Program.getProgramExercise(
+                  progress.day,
+                  evaluatedProgram,
+                  progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
                 )}
-                allProgramExercises={props.program?.exercises || []}
                 progress={progress}
                 onDone={() => {
                   const amrapModal = progress.ui?.amrapModal;
@@ -141,17 +132,21 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             )}
             {progress.ui?.weightModal && (
               <ModalWeight
-                programExercise={progress.ui?.weightModal?.programExercise}
+                programExercise={Program.getProgramExercise(
+                  progress.day,
+                  evaluatedProgram,
+                  progress.ui?.weightModal?.programExerciseId
+                )}
                 isHidden={progress.ui?.weightModal == null}
                 settings={props.settings}
                 dispatch={props.dispatch}
                 weight={progress.ui?.weightModal?.weight ?? 0}
               />
             )}
-            {editModalProgramExercise && props.program && (
+            {editModalProgramExerciseId && evaluatedProgram && (
               <ModalEditMode
-                program={props.program}
-                programExerciseId={editModalProgramExercise}
+                program={evaluatedProgram}
+                programExerciseId={editModalProgramExerciseId}
                 entryIndex={progress.ui?.editModal?.entryIndex || 0}
                 progressId={props.progress.id}
                 day={props.progress.day}
@@ -205,43 +200,28 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                         program &&
                         confirm("This will change it for the current workout. Change in the program too?")
                       ) {
-                        const programExercise = Program.getProgramExerciseFromEntry(
-                          program.exercises || [],
-                          progress.entries[entryIndex]
+                        const programExercise = Program.getProgramExercise(
+                          progress.day,
+                          evaluatedProgram,
+                          progress.entries[entryIndex]?.programExerciseId
                         );
                         if (program && programExercise) {
-                          if (program.planner) {
-                            const newPlannerResult = PlannerProgram.replaceExercise(
-                              program.planner,
-                              PlannerKey.fromProgramExercise(programExercise, props.settings),
-                              exerciseType,
-                              props.settings
-                            );
-                            if (newPlannerResult.success) {
-                              const newProgram = Program.cleanPlannerProgram({
-                                ...program,
-                                planner: newPlannerResult.data,
-                              });
-                              updateState(props.dispatch, [
-                                lb<IState>()
-                                  .p("storage")
-                                  .p("programs")
-                                  .recordModify((programs) => {
-                                    return CollectionUtils.setBy(programs, "id", program.id, newProgram);
-                                  }),
-                              ]);
-                            } else {
-                              alert(newPlannerResult.error);
-                            }
+                          const newEvaluatedProgram = PlannerProgram.replaceExercise(
+                            program,
+                            programExercise.key,
+                            exerciseType,
+                            props.settings
+                          );
+                          if (newEvaluatedProgram.success) {
+                            updateState(props.dispatch, [
+                              lb<IState>()
+                                .p("storage")
+                                .p("programs")
+                                .findBy("id", program.id)
+                                .record(newEvaluatedProgram.data),
+                            ]);
                           } else {
-                            EditProgram.swapExercise(
-                              props.dispatch,
-                              props.settings,
-                              program.id,
-                              programExercise.id,
-                              programExercise.exerciseType,
-                              exerciseType
-                            );
+                            alert(newEvaluatedProgram.error);
                           }
                         }
                       } else {
@@ -266,8 +246,11 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 dispatch={props.dispatch}
                 settings={props.settings}
                 exerciseType={progress.ui?.editSetModal?.exerciseType}
-                programExercise={progress.ui?.editSetModal?.programExercise}
-                allProgramExercises={props.program?.exercises}
+                programExercise={Program.getProgramExercise(
+                  progress.day,
+                  evaluatedProgram,
+                  progress.ui?.editSetModal?.programExerciseId
+                )}
                 set={EditProgressEntry.getEditSetData(props.progress)}
                 isWarmup={progress.ui?.editSetModal?.isWarmup || false}
                 entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
@@ -320,7 +303,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           history={props.history}
           helps={props.helps}
           settings={props.settings}
-          program={props.program}
+          program={evaluatedProgram}
           programDay={programDay}
           userId={props.userId}
           progress={progress}
@@ -340,7 +323,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             isWarmup: boolean,
             entryIndex: number,
             setIndex?: number,
-            programExercise?: IProgramExercise,
+            programExercise?: IPlannerProgramExercise,
             exerciseType?: IExerciseType
           ) => {
             EditProgressEntry.showEditSetModal(
