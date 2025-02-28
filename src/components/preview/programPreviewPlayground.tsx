@@ -188,6 +188,7 @@ export const ProgramPreviewPlayground = memo(
                               ...state.settings,
                               exerciseData: deepmerge(state.settings.exerciseData, exerciseData),
                             };
+                            console.log("New Program", newProgram);
                             dispatch([
                               lb<IProgramPreviewPlaygroundState>()
                                 .p("progresses")
@@ -205,9 +206,7 @@ export const ProgramPreviewPlayground = memo(
                                     };
                                   });
                                 }),
-                              lb<IProgramPreviewPlaygroundState>()
-                                .p("program")
-                                .record(Program.fullProgram(newProgram, newSettings)),
+                              lb<IProgramPreviewPlaygroundState>().p("program").record(newProgram),
                               lb<IProgramPreviewPlaygroundState>().p("settings").record(newSettings),
                             ]);
                           }}

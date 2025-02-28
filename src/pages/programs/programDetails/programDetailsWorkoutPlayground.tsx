@@ -2,13 +2,11 @@ import { h, JSX } from "preact";
 import { memo, useState } from "preact/compat";
 import { IProgram, ISettings, IUnit } from "../../../types";
 import { MenuItemValue } from "../../../components/menuItemEditable";
-import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
 import { ProgramPreviewPlayground } from "../../../components/preview/programPreviewPlayground";
 
 interface IPlaygroundProps {
   program: IProgram;
   settings: ISettings;
-  weekSetup: IProgramPreviewPlaygroundWeekSetup[];
 }
 
 export const ProgramDetailsWorkoutPlayground = memo(
@@ -39,13 +37,7 @@ export const ProgramDetailsWorkoutPlayground = memo(
           </label>
           <div className="flex-1" />
         </div>
-        <ProgramPreviewPlayground
-          key={units}
-          program={props.program}
-          settings={settings}
-          weekSetup={props.weekSetup}
-          isPlayground={true}
-        />
+        <ProgramPreviewPlayground key={units} program={props.program} settings={settings} isPlayground={true} />
       </div>
     );
   }

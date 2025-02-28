@@ -19,7 +19,6 @@ import {
   IProgressMode,
   IExerciseType,
   IProgressUi,
-  IProgram,
   IProgramState,
   IEquipment,
   ISubscription,
@@ -29,7 +28,6 @@ import {
   IUnit,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
-import { ProgramExercise } from "./programExercise";
 import { Subscriptions } from "../utils/subscriptions";
 import { IPercentage } from "../types";
 import { History } from "./history";
@@ -354,69 +352,8 @@ export namespace Progress {
     return progress.id === 0;
   }
 
-  export function getCustomWorkoutTimerValue(
-    progress: IHistoryRecord,
-    program: IProgram,
-    entryIndex: number,
-    setIndex: number,
-    settings: ISettings
-  ): number | undefined {
-    let timer: number | undefined;
-    const entry = progress.entries[entryIndex];
-    const programExercise =
-      entry && program ? program.exercises.filter((p) => p.id === entry.programExerciseId)[0] : null;
-    if (programExercise != null && program != null) {
-      const set = entry.sets[setIndex];
-      const exercise = programExercise.exerciseType;
-      const state = ProgramExercise.getState(programExercise, program.exercises);
-      const setVariationIndexResult = Program.runVariationScript(
-        programExercise,
-        program.exercises,
-        state,
-        Progress.getDayData(progress),
-        settings
-      );
-      const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
-      const setTimerExpr = programExercise.variations[setVariationIndex - 1]?.sets[setIndex]?.timerExpr;
-      const timerExpr = set.timer ?? (setTimerExpr || ProgramExercise.getTimerExpr(programExercise, program.exercises));
-      const bindings = Progress.createScriptBindings(
-        Progress.getDayData(progress),
-        entry,
-        settings,
-        setIndex + 1,
-        setVariationIndex
-      );
-      if (timerExpr != null && `${timerExpr}`.trim() && state) {
-        timer = ScriptRunner.safe(
-          () =>
-            new ScriptRunner(
-              `${timerExpr}`.trim(),
-              state,
-              {},
-              bindings,
-              Progress.createScriptFunctions(settings),
-              settings.units,
-              {
-                exerciseType: exercise,
-                unit: settings.units,
-                prints: [],
-              },
-              "regular"
-            ).execute("timer"),
-          (e) => {
-            return `There's an error while calculating timer for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default timer. Please fix the program's timer script.`;
-          },
-          undefined,
-          false
-        );
-      }
-    }
-    return timer;
-  }
-
   export function startTimer(
     progress: IHistoryRecord,
-    program: IProgram,
     timestamp: number,
     mode: IProgressMode,
     entryIndex: number,
@@ -425,8 +362,8 @@ export namespace Progress {
     settings: ISettings,
     timer?: number
   ): IHistoryRecord {
-    if (timer == null && Progress.isCurrent(progress) && mode === "workout") {
-      timer = getCustomWorkoutTimerValue(progress, program, entryIndex, setIndex, settings);
+    if (Progress.isCurrent(progress) && mode === "workout") {
+      timer = progress.entries[entryIndex]?.sets[setIndex]?.timer;
     }
     if (timer == null) {
       timer = settings.timers[mode] || undefined;

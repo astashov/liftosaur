@@ -1,5 +1,4 @@
 import { h, JSX } from "preact";
-import { IProgramPreviewPlaygroundWeekSetup } from "./preview/programPreviewPlaygroundSetup";
 import { ProgramPreviewPlayground } from "./preview/programPreviewPlayground";
 import { IProgram, ISettings, IUnit } from "../types";
 import { IconEditSquare } from "./icons/iconEditSquare";
@@ -80,31 +79,4 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
       />
     </div>
   );
-}
-
-export function buildWeekSetup(program: IProgram): IProgramPreviewPlaygroundWeekSetup[] {
-  if (!program.isMultiweek) {
-    const days = [];
-    for (let day = 1; day <= program.days.length; day++) {
-      days.push({ dayIndex: day, states: {} });
-    }
-    return [
-      {
-        name: "Week 1",
-        days,
-      },
-    ];
-  } else {
-    const weekSetup: IProgramPreviewPlaygroundWeekSetup[] = [];
-    let dayIndex = 1;
-    for (const week of program.weeks) {
-      const days = [];
-      for (const _ of week.days) {
-        days.push({ dayIndex, states: {} });
-        dayIndex += 1;
-      }
-      weekSetup.push({ name: week.name, days });
-    }
-    return weekSetup;
-  }
 }

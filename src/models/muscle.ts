@@ -1,7 +1,7 @@
 import { IEvaluatedProgram, IEvaluatedProgramDay, Program } from "./program";
 import { Exercise } from "./exercise";
 import { ObjectUtils } from "../utils/object";
-import { IProgram, ISettings, IProgramDay, IProgramExercise, IMuscle, IDayData, IScreenMuscle } from "../types";
+import { ISettings, IMuscle, IDayData, IScreenMuscle } from "../types";
 import { StringUtils } from "../utils/string";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 
@@ -167,17 +167,7 @@ export namespace Muscle {
       hypertrophy: {},
     };
 
-    const firstDay = Program.getProgramDay(program, 1);
-    const nextIndex = program.days
-      .slice(1)
-      .findIndex(
-        (d) =>
-          d.exercises === firstDay.exercises &&
-          firstDay.exercises.every((e) => d.exercises.map((ex) => ex.id).indexOf(e.id) !== -1)
-      );
-    const cycle = nextIndex === -1 ? program.days : program.days.slice(nextIndex - 1);
-
-    return cycle.reduce((memo, day) => mergePoints(memo, getPointsForDay(program, day, settings)), {
+    return program.weeks[0].days.reduce((memo, day) => mergePoints(memo, getPointsForDay(program, day, settings)), {
       screenMusclePoints,
       exercisePoints,
     });

@@ -1,5 +1,6 @@
 import {
   IPlannerProgramExercise,
+  IPlannerProgramExerciseEvaluatedSetVariation,
   IPlannerProgramExerciseGlobals,
   IPlannerProgramExerciseSet,
   IPlannerProgramExerciseSetVariation,
@@ -241,6 +242,13 @@ export class PlannerProgramExercise {
     return index === -1 ? 0 : index;
   }
 
+  public static currentEvaluatedSetVariation(
+    exercise: IPlannerProgramExercise
+  ): IPlannerProgramExerciseEvaluatedSetVariation {
+    const index = this.currentSetVariationIndex(exercise);
+    return exercise.evaluatedSetVariations[index];
+  }
+
   public static currentDescription(exercise: IPlannerProgramExercise): string | undefined {
     return exercise.descriptions.find((d) => d.isCurrent)?.value;
   }
@@ -360,20 +368,21 @@ export class PlannerProgramExercise {
       return property.script;
     } else if (property.fnName === "lp") {
       return `if (completedReps >= reps && completedRPE <= RPE) {
-  state.successes += 1;
-  if (state.successes >= state.successCount) {
+  state.successCounter += 1;
+  if (state.successCounter >= state.successes) {
     weights += state.increment
-    state.successes = 0
-    state.failures = 0
+    state.successCounter = 0
+    state.failureCounter = 0
   }
 }
-if (state.decrement > 0 && state.failureCount > 0) {
+if (state.decrement > 0 && state.failureCounter > 0) {
   if (!(completedReps >= minReps && completedRPE <= RPE)) {
-    state.failureCount += 1;
-    if (state.failureCount >= state.failures) {
-    weights -= state.decrement
-    state.failures = 0
-    state.successes = 0
+    state.failureCounter += 1;
+    if (state.failureCounter >= state.failures) {
+      weights -= state.decrement
+      state.failureCounter = 0
+      state.successCounter = 0
+    }
   }
 }`;
     } else if (property.fnName === "dp") {

@@ -42,7 +42,6 @@ import { ProgramToPlanner } from "./programToPlanner";
 import { IPlannerState, IExportedPlannerProgram, IPlannerProgramExercise } from "../pages/planner/models/types";
 import memoize from "micro-memoize";
 import { Equipment } from "./equipment";
-import { showAlert } from "../lib/alert";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { PlannerEvaluator, IByExercise, IByTag } from "../pages/planner/plannerEvaluator";
 import { PP } from "./pp";
@@ -248,7 +247,7 @@ export namespace Program {
 
   export function nextHistoryRecord(aProgram: IProgram, settings: ISettings, dayIndex?: number): IHistoryRecord {
     const program = Program.evaluate(aProgram, settings);
-    const day = Math.max(1, Math.min(numberOfDays(program, settings), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
+    const day = Math.max(1, Math.min(numberOfDays(program), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
     const dayData = getDayData(program, day);
     const { week, dayInWeek } = dayData;
 
@@ -277,36 +276,6 @@ export namespace Program {
         return nextHistoryEntry(program, dayData, exercise, settings);
       }),
     };
-  }
-
-  export function nextVariationIndex(
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    state: IProgramState,
-    dayData: IDayData,
-    settings: ISettings,
-    shouldFallback?: boolean
-  ): number {
-    const variationIndexResult = runVariationScript(
-      programExercise,
-      allProgramExercises,
-      state,
-      dayData,
-      settings,
-      shouldFallback
-    );
-    let variationIndex: number;
-    if (!variationIndexResult.success) {
-      showAlert(
-        `There's an error while calculating variation index for the next workout for '${programExercise.name}' exercise:\n\n${variationIndexResult.error}.\n\nWe fallback to the first variation index. Please fix the program exercise set variation script.`,
-        10000
-      );
-      variationIndex = 1;
-    } else {
-      variationIndex = variationIndexResult.data;
-    }
-    const variations = ProgramExercise.getVariations(programExercise, allProgramExercises);
-    return Math.floor(Math.max(0, Math.min(variationIndex - 1, variations.length - 1)));
   }
 
   export function getOtherStates(allProgramExercises: IProgramExercise[]): Record<number, IProgramState> {
@@ -352,6 +321,8 @@ export namespace Program {
     const newState: IProgramState = { ...state };
 
     const fnContext = { exerciseType: entry.exercise, unit: settings.units, prints: [] };
+    console.log("script", script);
+    console.log("state", newState);
     try {
       const runner = new ScriptRunner(
         script,
@@ -374,50 +345,6 @@ export namespace Program {
     }
 
     return { success: true, data: { state: newState, updates, bindings, prints: fnContext.prints } };
-  }
-
-  export function runVariationScript(
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    state: IProgramState,
-    dayData: IDayData,
-    settings: ISettings,
-    shouldFallback?: boolean
-  ): IEither<number, string> {
-    const script = ProgramExercise.getVariationScript(programExercise, allProgramExercises);
-    try {
-      if (script) {
-        const scriptRunnerResult = ScriptRunner.safe(
-          () => {
-            return new ScriptRunner(
-              script,
-              state,
-              {},
-              Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
-              Progress.createScriptFunctions(settings),
-              settings.units,
-              { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
-              "regular"
-            ).execute("reps");
-          },
-          (e) => {
-            return `There's an error while calculating variation script for the next workout for '${programExercise.exerciseType.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default - 1st variation. Please fix the program's variation script.`;
-          },
-          1,
-          !shouldFallback
-        );
-
-        return { success: true, data: scriptRunnerResult };
-      } else {
-        return { success: false, error: "Empty expression" };
-      }
-    } catch (e) {
-      if (e instanceof SyntaxError) {
-        return { success: false, error: e.message };
-      } else {
-        throw e;
-      }
-    }
   }
 
   export function runFinishDayScript(
@@ -493,23 +420,19 @@ export namespace Program {
     return { success: true, data: { state: newState, otherStates: diffOtherStates, updates, bindings } };
   }
 
-  export function dayAverageTimeMs(program: IProgram, settings: ISettings): number {
-    const dayApproxTimes = program.days.map((d, i) => {
-      const dayData = Program.getDayData(program, i + 1, settings);
-      return dayApproxTimeMs(dayData, program, settings);
-    });
+  export function dayAverageTimeMs(program: IEvaluatedProgram, settings: ISettings): number {
+    const dayApproxTimes: number[] = [];
+    for (const week of program.weeks) {
+      for (const day of week.days) {
+        dayApproxTimes.push(dayApproxTimeMs(day, settings));
+      }
+    }
     return dayApproxTimes.reduce((acc, t) => acc + t, 0) / dayApproxTimes.length;
   }
 
-  export function dayApproxTimeMs(dayData: IDayData, program: IProgram, settings: ISettings): number {
-    const day = program.days[dayData.day - 1];
-    return day.exercises.reduce((acc, e) => {
-      const programExercise = program.exercises.find((pe) => pe.id === e.id);
-      if (programExercise) {
-        return acc + ProgramExercise.approxTimeMs(dayData, programExercise, program.exercises, settings);
-      } else {
-        return acc;
-      }
+  export function dayApproxTimeMs(programDay: IEvaluatedProgramDay, settings: ISettings): number {
+    return programDay.exercises.reduce((acc, e) => {
+      return acc + ProgramExercise.approxTimeMs(e, settings);
     }, 0);
   }
 
@@ -566,7 +489,7 @@ export namespace Program {
       }
     }
 
-    const theNextDay = Program.nextDay(newEvaluatedProgram, settings, progress.day);
+    const theNextDay = Program.nextDay(newEvaluatedProgram, progress.day);
     const newPlanner = new ProgramToPlanner(newEvaluatedProgram, settings).convertToPlanner();
     console.log(PlannerProgram.generateFullText(newPlanner.weeks));
     const newProgram = ObjectUtils.clone(program);
@@ -718,7 +641,7 @@ export namespace Program {
     };
   }
 
-  export function numberOfDays(program: IEvaluatedProgram, settings: ISettings): number {
+  export function numberOfDays(program: IEvaluatedProgram): number {
     return program.weeks.reduce((memo, week) => memo + week.days.length, 0);
   }
 
@@ -785,8 +708,8 @@ export namespace Program {
     return `${isMultiweek ? `${week.name} - ` : ""}${programDay?.name}`;
   }
 
-  export function getListOfDays(program: IEvaluatedProgram, settings: ISettings): [string, string][] {
-    let days: [string, string][] = [];
+  export function getListOfDays(program: IEvaluatedProgram): [string, string][] {
+    const days: [string, string][] = [];
     const isReallyMultiweek = program.weeks.length > 1;
     let dayIndex = 0;
     for (const week of program.weeks) {
@@ -798,7 +721,7 @@ export namespace Program {
     return days;
   }
 
-  export function getProgramWeek(program: IEvaluatedProgram, settings: ISettings, day?: number): IEvaluatedProgramWeek {
+  export function getProgramWeek(program: IEvaluatedProgram, day?: number): IEvaluatedProgramWeek {
     return program.weeks[Program.getWeekFromDay(program, day || 1) - 1] || program.weeks[0];
   }
 
@@ -813,6 +736,17 @@ export namespace Program {
       }
     }
     return undefined;
+  }
+
+  export function applyEvaluatedProgram(
+    program: IProgram,
+    evaluatedProgram: IEvaluatedProgram,
+    settings: ISettings
+  ): IProgram {
+    const newProgram = ObjectUtils.clone(program);
+    newProgram.planner = new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
+    newProgram.nextDay = evaluatedProgram.nextDay;
+    return newProgram;
   }
 
   export function getProgramExercise(
@@ -835,7 +769,7 @@ export namespace Program {
   ): IPlannerProgramExercise | undefined {
     const { weeks: evaluatedWeeks } = Program.evaluate(program, settings);
     let plannerProgramExercise: IPlannerProgramExercise | undefined;
-    PP.iterate(evaluatedWeeks, (exercise, weekIndex, dayInWeekIndex, dayIndex) => {
+    PP.iterate2(evaluatedWeeks, (exercise, weekIndex, dayInWeekIndex, dayIndex) => {
       if (dayIndex === day - 1 && exercise.key === key) {
         plannerProgramExercise = exercise;
         return true;
@@ -846,8 +780,8 @@ export namespace Program {
     return plannerProgramExercise;
   }
 
-  export function nextDay(program: IEvaluatedProgram, settings: ISettings, day?: number): number {
-    const nd = (day != null ? day % numberOfDays(program, settings) : 0) + 1;
+  export function nextDay(program: IEvaluatedProgram, day?: number): number {
+    const nd = (day != null ? day % numberOfDays(program) : 0) + 1;
     return isNaN(nd) ? 1 : nd;
   }
 

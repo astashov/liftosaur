@@ -64,9 +64,9 @@ export namespace EditProgram {
     updateState(dispatch, [lb<IState>().p("storage").p("programs").findBy("id", program.id).p("name").record(name)]);
   }
 
-  export function setNextDay(dispatch: IDispatch, program: IProgram, nextDay: number): void {
+  export function setNextDay(dispatch: IDispatch, programId: string, nextDay: number): void {
     updateState(dispatch, [
-      lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(nextDay),
+      lb<IState>().p("storage").p("programs").findBy("id", programId).p("nextDay").record(nextDay),
     ]);
   }
 

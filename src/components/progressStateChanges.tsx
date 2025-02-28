@@ -26,6 +26,7 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
   const { entry, settings, dayData } = props;
   const { units } = settings;
   const mergedState = { ...state, ...props.userPromptedStateVars };
+  console.log("entry", entry);
   const result = Program.runExerciseFinishDayScript(
     entry,
     dayData,
@@ -39,6 +40,7 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
   const showEndOfDay = props.forceShow || isFinished;
 
   if (result.success) {
+    console.log("result", result);
     const { state: newState, updates, bindings } = result.data;
     const diffState = getDiffState(state, newState, units);
     const diffVars = getDiffVars(entry, updates, bindings, settings);

@@ -4,11 +4,12 @@ import { ExerciseImage } from "../../../components/exerciseImage";
 import { IAudioInterface } from "../../../lib/audioInterface";
 import { MusclesTypeView } from "../../../components/muscles/musclesView";
 import { Muscle } from "../../../models/muscle";
-import { ObjectUtils } from "../../../utils/object";
 import { IconEditSquare } from "../../../components/icons/iconEditSquare";
 import { IconCheckCircle } from "../../../components/icons/iconCheckCircle";
 import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
+import { Program } from "../../../models/program";
+import { ObjectUtils } from "../../../utils/object";
 
 export interface IProgramDetailsArnoldGoldenSixProps {
   settings: ISettings;
@@ -19,20 +20,9 @@ export interface IProgramDetailsArnoldGoldenSixProps {
 
 export function ProgramDetailsArnoldGoldenSix(props: IProgramDetailsArnoldGoldenSixProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
-  const chinupvariation = program.exercises.find((e) => e.exerciseType.id === "chinUp")?.variations[0];
-  if (chinupvariation) {
-    chinupvariation.sets.push({ repsExpr: "10", weightExpr: "0" });
-    chinupvariation.sets.push({ repsExpr: "10", weightExpr: "0" });
-    chinupvariation.sets.push({ repsExpr: "10", weightExpr: "0" });
-  }
-
-  const crunchvariation = program.exercises.find((e) => e.exerciseType.id === "crunch")?.variations[0];
-  if (crunchvariation) {
-    crunchvariation.sets.push({ repsExpr: "10", weightExpr: "0" });
-    crunchvariation.sets.push({ repsExpr: "10", weightExpr: "0" });
-    crunchvariation.sets.push({ repsExpr: "10", weightExpr: "0" });
-  }
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(program, props.settings));
+  const points = Muscle.normalizePoints(
+    Muscle.getPointsForProgram(Program.evaluate(program, props.settings), props.settings)
+  );
 
   return (
     <section className="px-4">
@@ -129,11 +119,7 @@ export function ProgramDetailsArnoldGoldenSix(props: IProgramDetailsArnoldGolden
         exercise variables (weight, reps, TM, RIR, etc.) by clicking on the <IconEditSquare className="inline-block" />{" "}
         icon.
       </p>
-      <ProgramDetailsWorkoutPlayground
-        program={props.program}
-        settings={props.settings}
-        weekSetup={[{ name: "Week 1", days: [{ day: 1, states: {} }] }]}
-      />
+      <ProgramDetailsWorkoutPlayground program={program} settings={props.settings} />
       <div className="mt-8">
         <ProgramDetailsUpsell />
       </div>

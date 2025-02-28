@@ -91,6 +91,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
   const [showRevisions, setShowRevisions] = useState<boolean>(false);
   const planner = plannerState.current.program.planner!;
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
+  const evaluatedProgram = Program.evaluate(plannerState.current.program, props.settings);
 
   return (
     <Surface
@@ -202,18 +203,22 @@ export function EditProgramV2(props: IProps): JSX.Element {
                     return;
                   }
                   if (plannerState.fulltext) {
-                    const program = {
-                      name: plannerState.current.program.name,
-                      weeks: PlannerProgram.evaluateText(plannerState.fulltext.text),
+                    const newProgram = {
+                      ...plannerState.current.program,
+                      planner: {
+                        name: plannerState.current.program.name,
+                        weeks: PlannerProgram.evaluateText(plannerState.fulltext.text),
+                      },
                     };
+
                     const newPlannerProgramResult = PlannerProgram.replaceExercise(
-                      program,
+                      newProgram,
                       modalExerciseUi.exerciseKey,
                       exerciseType,
                       props.settings
                     );
                     if (newPlannerProgramResult.success) {
-                      const newText = PlannerProgram.generateFullText(newPlannerProgramResult.data.weeks);
+                      const newText = PlannerProgram.generateFullText(newPlannerProgramResult.data.planner!.weeks);
                       plannerDispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)]);
                     } else {
                       alert(newPlannerProgramResult.error);
@@ -254,13 +259,15 @@ export function EditProgramV2(props: IProps): JSX.Element {
                       }
                     } else {
                       const newPlannerProgramResult = PlannerProgram.replaceExercise(
-                        planner,
+                        plannerState.current.program,
                         modalExerciseUi.exerciseKey,
                         exerciseType,
                         props.settings
                       );
                       if (newPlannerProgramResult.success) {
-                        plannerDispatch([lbProgram.record(newPlannerProgramResult.data)]);
+                        plannerDispatch([
+                          lb<IPlannerState>().p("current").p("program").record(newPlannerProgramResult.data),
+                        ]);
                       } else {
                         alert(newPlannerProgramResult.error);
                       }
@@ -450,13 +457,13 @@ export function EditProgramV2(props: IProps): JSX.Element {
           <MenuItemEditable
             type="select"
             name="Next Day:"
-            values={Program.getListOfDays(props.editProgram, props.settings)}
+            values={Program.getListOfDays(evaluatedProgram)}
             value={props.editProgram.nextDay.toString()}
             onChange={(newValueStr) => {
               const newValue = newValueStr != null ? parseInt(newValueStr, 10) : undefined;
               if (newValue != null && !isNaN(newValue)) {
-                const newDay = Math.max(1, Math.min(newValue, Program.numberOfDays(props.editProgram, props.settings)));
-                EditProgram.setNextDay(props.dispatch, props.editProgram, newDay);
+                const newDay = Math.max(1, Math.min(newValue, Program.numberOfDays(evaluatedProgram)));
+                EditProgram.setNextDay(props.dispatch, props.editProgram.id, newDay);
               }
             }}
           />

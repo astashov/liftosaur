@@ -251,7 +251,7 @@ export class ProgramToPlanner {
     if (update.reuse?.exerciseType) {
       const exercise = Exercise.get(update.reuse.exerciseType, this.settings.exercises);
       const fullName = Exercise.fullName(exercise, this.settings, update.reuse.label);
-      return ` / update: custom() { ...${fullName})`;
+      return ` / update: custom() { ...${fullName} }`;
     } else {
       return ` / update: custom() ${update.script}`;
     }
@@ -310,7 +310,7 @@ export class ProgramToPlanner {
       if (progress.reuse?.exerciseType) {
         const exercise = Exercise.get(progress.reuse.exerciseType, this.settings.exercises);
         const fullName = Exercise.fullName(exercise, this.settings, progress.reuse.label);
-        plannerExercise += `{ ...${fullName})`;
+        plannerExercise += `{ ...${fullName} }`;
       } else {
         plannerExercise += progress.script;
       }

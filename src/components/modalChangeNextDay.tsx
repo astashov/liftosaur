@@ -26,7 +26,7 @@ interface IModalChangeNextDayProps {
 
 export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element {
   const programsValues = props.allPrograms.map<[string, string]>((p) => [p.id, p.name]);
-  const days = Program.getListOfDays(props.currentProgram, props.settings);
+  const days = Program.getListOfDays(props.currentProgram);
   return (
     <Modal shouldShowClose={true} onClose={props.onClose} isFullWidth>
       <MenuItemEditable
@@ -47,6 +47,9 @@ export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element
       <GroupHeader name="Change next workout:" />
       {days.map(([dayId, dayName], dayIndex) => {
         const day = Program.getProgramDay(props.currentProgram, dayIndex + 1);
+        if (!day) {
+          return null;
+        }
         const exerciseTypes = CollectionUtils.compact(
           (day?.exercises || []).map((exercise) => {
             return Exercise.find(exercise.exerciseType, props.settings.exercises);
@@ -67,7 +70,7 @@ export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element
             name="modal-change-day-day"
             key={dayId}
             onClick={() => {
-              EditProgram.setNextDay(props.dispatch, fullProgram, dayIndex + 1);
+              EditProgram.setNextDay(props.dispatch, props.currentProgram.id, dayIndex + 1);
               props.onClose();
             }}
           >

@@ -26,10 +26,6 @@ body {
   display: none;
 }
 
-.program-details-header {
-  padding-left: 1em;
-}
-
 .block.code {
   font-family: "Iosevka Web" !important;
 }
@@ -37,9 +33,6 @@ body {
 @media (max-width: 600px) {
   .program-details-exercise-switch {
     display: block;
-  }
-  .program-details-header {
-    padding-left: 0em;
   }
   .program-details-header,
   .program-details-settings {

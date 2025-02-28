@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IProgram, ISettings, ISubscription, IExerciseType } from "../types";
 import { IconMuscles2 } from "./icons/iconMuscles2";
@@ -9,7 +9,7 @@ import { MusclesView } from "./muscles/musclesView";
 import { ModalExerciseInfo } from "./modalExerciseInfo";
 import { Locker } from "./locker";
 import { Subscriptions } from "../utils/subscriptions";
-import { Program } from "../models/program";
+import { IEvaluatedProgram, Program } from "../models/program";
 import { TimeUtils } from "../utils/time";
 import { IconWatch } from "./icons/iconWatch";
 import { ProgramPreviewOrPlayground } from "./programPreviewOrPlayground";
@@ -33,7 +33,8 @@ interface IProps {
 }
 
 export function ProgramPreview(props: IProps): JSX.Element {
-  const program = Program.fullProgram(props.program, props.settings);
+  const program = props.program;
+  const evaluatedProgram = Program.evaluate(program, props.settings);
   const [musclesModal, setMusclesModal] = useState<IPreviewProgramMuscles | undefined>(undefined);
   const [exerciseTypeInfo, setExerciseTypeInfo] = useState<IExerciseType | undefined>(undefined);
 
@@ -68,7 +69,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
         <IconWatch />{" "}
         <span className="align-middle">
           Average time to finish a workout:{" "}
-          <strong>{TimeUtils.formatHHMM(Program.dayAverageTimeMs(program, props.settings))}</strong>
+          <strong>{TimeUtils.formatHHMM(Program.dayAverageTimeMs(evaluatedProgram, props.settings))}</strong>
         </span>
       </div>
       <div className="py-1 text-grayv2-main">
@@ -91,7 +92,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
         <ProgramPreviewMusclesModal
           muscles={musclesModal}
           onClose={() => setMusclesModal(undefined)}
-          program={program}
+          program={evaluatedProgram}
           subscription={props.subscription}
           dispatch={props.dispatch}
           settings={props.settings}
@@ -111,7 +112,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
 
 interface IProgramPreviewMusclesModalProps {
   muscles: IPreviewProgramMuscles;
-  program: IProgram;
+  program: IEvaluatedProgram;
   settings: ISettings;
   dispatch?: IDispatch;
   subscription: ISubscription;
@@ -119,17 +120,23 @@ interface IProgramPreviewMusclesModalProps {
 }
 
 export function ProgramPreviewMusclesModal(props: IProgramPreviewMusclesModalProps): JSX.Element {
-  let points: IPoints;
+  let points: IPoints | undefined;
+  let name = "";
   if (props.muscles.type === "program") {
     points = Muscle.normalizePoints(Muscle.getPointsForProgram(props.program, props.settings));
+    name = props.program.name;
   } else {
-    const day = props.program.days[props.muscles.dayIndex];
-    points = Muscle.normalizePoints(Muscle.getPointsForDay(props.program, day, props.settings));
+    const programDay = Program.getProgramDay(props.program, props.muscles.dayIndex + 1);
+    if (programDay) {
+      points = Muscle.normalizePoints(Muscle.getPointsForDay(props.program, programDay, props.settings));
+      name = programDay.name;
+    }
+  }
+  if (!points || !name) {
+    return <></>;
   }
   const title =
-    props.muscles.type === "program"
-      ? `Muscles for program '${props.program.name}'`
-      : `Muscles for day '${props.program.days[props.muscles.dayIndex].name}'`;
+    props.muscles.type === "program" ? `Muscles for program '${props.program.name}'` : `Muscles for day '${name}'`;
 
   return (
     <Modal

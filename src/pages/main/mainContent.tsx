@@ -685,35 +685,42 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
   const { planner } = props;
   const [settings, setSettings] = useState(props.settings);
   const [program, setProgram] = useState<IProgram>({ ...Program.create("My Program"), planner });
-  const [progress, setProgress] = useState(Program.nextHistoryRecord(program, settings, 1, {}));
+  const [progress, setProgress] = useState(Program.nextHistoryRecord(program, settings, 1));
+  const evaluatedProgram = Program.evaluate(program, settings);
+  const programDay = Program.getProgramDay(evaluatedProgram, 1)!;
 
   return (
     <ProgramPreviewPlaygroundDay
-      program={Program.fullProgram(program, settings)}
-      day={0}
+      program={evaluatedProgram}
+      programDay={programDay}
+      day={1}
       isPlayground={true}
       settings={settings}
       progress={progress}
-      staticStates={{}}
       onProgressChange={(newProgress) => {
-        console.log(newProgress);
         setProgress(newProgress);
       }}
-      onProgramChange={(newProgram) => {
+      onProgramChange={(newEvaluatedProgram) => {
+        const newProgram = Program.applyEvaluatedProgram(program, newEvaluatedProgram, settings);
         setProgram(newProgram);
-        setProgress(Program.nextHistoryRecord(newProgram, settings, 1, {}));
+        setProgress(Program.nextHistoryRecord(newProgram, settings, 1));
       }}
       onSettingsChange={(newSettings) => {
         setSettings(newSettings);
-        setProgress(Program.nextHistoryRecord(program, newSettings, 1, {}));
+        setProgress(Program.nextHistoryRecord(program, newSettings, 1));
       }}
       onFinish={() => {
-        const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(program, progress, settings, {});
+        const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(
+          program,
+          evaluatedProgram,
+          progress,
+          settings
+        );
         const newSettings = {
           ...settings,
           exerciseData: deepmerge(settings.exerciseData, exerciseData),
         };
-        const newProgress = Program.nextHistoryRecord(newProgram, newSettings, 1, {});
+        const newProgress = Program.nextHistoryRecord(newProgram, newSettings, 1);
         setSettings(newSettings);
         setProgram(newProgram);
         setProgress(newProgress);

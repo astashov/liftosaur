@@ -5,6 +5,7 @@ import { ScreenMuscles } from "./screenMuscles";
 import { ISettings, IProgram } from "../../types";
 import { INavCommon } from "../../models/state";
 import { HelpMuscles } from "../help/helpMuscles";
+import { Program } from "../../models/program";
 
 interface IProps {
   dispatch: IDispatch;
@@ -14,7 +15,8 @@ interface IProps {
 }
 
 export function ScreenMusclesProgram(props: IProps): JSX.Element {
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(props.program, props.settings));
+  const evaluatedProgram = Program.evaluate(props.program, props.settings);
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
   return (
     <ScreenMuscles
       dispatch={props.dispatch}

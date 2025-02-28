@@ -8,11 +8,10 @@ import {
   IProgramSet,
   IUnit,
   IProgramExerciseReuseLogic,
-  IDayData,
   IProgram,
   IPercentage,
 } from "../types";
-import { IEvaluatedProgram, Program } from "./program";
+import { IEvaluatedProgram } from "./program";
 import { ProgramSet } from "./programSet";
 import { IProgramStateMetadata, IWeight } from "../types";
 import { ObjectUtils } from "../utils/object";
@@ -119,23 +118,6 @@ export namespace ProgramExercise {
     return getProgramExercise(programExercise, allProgramExercises).variations;
   }
 
-  export function getCurrentVariation(
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    dayData: IDayData,
-    settings: ISettings
-  ): IProgramExerciseVariation {
-    const state = getState(programExercise, allProgramExercises);
-    const nextVariationIndex = Program.nextVariationIndex(
-      programExercise,
-      allProgramExercises,
-      state,
-      dayData,
-      settings
-    );
-    return getVariations(programExercise, allProgramExercises)[nextVariationIndex];
-  }
-
   export function getTimerExpr(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]
@@ -220,24 +202,10 @@ export namespace ProgramExercise {
     return groups;
   }
 
-  export function approxTimeMs(
-    dayData: IDayData,
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    settings: ISettings
-  ): number {
-    const programExerciseVariations = getVariations(programExercise, allProgramExercises);
-    const state = getState(programExercise, allProgramExercises);
-    const nextVariationIndex = Program.nextVariationIndex(
-      programExercise,
-      allProgramExercises,
-      state,
-      dayData,
-      settings
-    );
-    const variation = programExerciseVariations[nextVariationIndex];
-    return variation.sets.reduce(
-      (memo, set) => memo + ProgramSet.approxTimeMs(set, dayData, programExercise, allProgramExercises, settings),
+  export function approxTimeMs(programExercise: IPlannerProgramExercise, settings: ISettings): number {
+    const index = PlannerProgramExercise.currentSetVariationIndex(programExercise);
+    return programExercise.evaluatedSetVariations[index].sets.reduce(
+      (memo, set) => memo + ProgramSet.approxTimeMs(set, settings),
       0
     );
   }

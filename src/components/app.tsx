@@ -503,7 +503,7 @@ export function AppView(props: IProps): JSX.Element | null {
         />
       );
     } else {
-      const day = program.days[type.dayIndex ?? 0];
+      const day = program.days[type.day ?? 1];
       content = (
         <ScreenMusclesDay
           navCommon={navCommon}
