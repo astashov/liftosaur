@@ -645,23 +645,20 @@ export namespace Program {
     return program.weeks.reduce((memo, week) => memo + week.days.length, 0);
   }
 
-  export function daysRange(program: IProgram): string {
-    if (program.isMultiweek) {
-      const minDays = Math.min(...program.weeks.map((w) => w.days.length));
-      const maxDays = Math.max(...program.weeks.map((w) => w.days.length));
-      if (minDays === maxDays) {
-        return `${minDays} ${StringUtils.pluralize("day", minDays)} per week`;
-      } else {
-        return `${minDays}-${maxDays} days per week`;
-      }
+  export function daysRange(program: IEvaluatedProgram): string {
+    const minDays = Math.min(...program.weeks.map((w) => w.days.length));
+    const maxDays = Math.max(...program.weeks.map((w) => w.days.length));
+    if (minDays === maxDays) {
+      return `${minDays} ${StringUtils.pluralize("day", minDays)} per week`;
     } else {
-      return `${program.days.length} ${StringUtils.pluralize("day", program.days.length)}`;
+      return `${minDays}-${maxDays} days per week`;
     }
   }
 
-  export function exerciseRange(program: IProgram): string {
-    const minExs = Math.min(...program.days.map((w) => w.exercises.length));
-    const maxExs = Math.max(...program.days.map((w) => w.exercises.length));
+  export function exerciseRange(program: IEvaluatedProgram): string {
+    const days = program.weeks.flatMap((w) => w.days);
+    const minExs = Math.min(...days.map((w) => w.exercises.length));
+    const maxExs = Math.max(...days.map((w) => w.exercises.length));
     if (minExs === maxExs) {
       return `${minExs} ${StringUtils.pluralize("exercise", minExs)} per day`;
     } else {

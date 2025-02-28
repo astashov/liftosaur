@@ -644,7 +644,7 @@ export class PlannerExerciseEvaluator {
       }
       const name = this.getValue(nameNode);
       const { week, day } = this.getReuseWeekDay(expr.getChild(PlannerNodeName.WeekDay));
-      return { type: "reuse", data: { fullName: name, text: this.getValue(expr), week, day } };
+      return { type: "reuse", data: { fullName: name, week, day } };
     } else {
       assert(PlannerNodeName.ReuseSectionWithWeekDay);
     }

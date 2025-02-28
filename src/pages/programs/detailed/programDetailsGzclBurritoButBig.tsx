@@ -5,11 +5,11 @@ import { ObjectUtils } from "../../../utils/object";
 import { IconEditSquare } from "../../../components/icons/iconEditSquare";
 import { IconCheckCircle } from "../../../components/icons/iconCheckCircle";
 import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
-import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
 import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
+import { Program } from "../../../models/program";
 
 export interface IProgramDetailsGzclBurritoButBigProps {
   settings: ISettings;
@@ -20,8 +20,8 @@ export interface IProgramDetailsGzclBurritoButBigProps {
 
 export function ProgramDetailsGzclBurritoButBig(props: IProgramDetailsGzclBurritoButBigProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
-  const weekSetup = buildWeekSetup(program);
   const programForMuscles = ObjectUtils.clone(program);
+  const evaluatedProgram = Program.evaluate(program, props.settings);
   const t3Exercises = programForMuscles.exercises.filter((e) => /(T3a|T3b)/.test(e.description || ""));
   for (const exercise of t3Exercises) {
     for (const variation of exercise.variations) {
@@ -30,7 +30,7 @@ export function ProgramDetailsGzclBurritoButBig(props: IProgramDetailsGzclBurrit
       }
     }
   }
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(programForMuscles, props.settings));
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
 
   return (
     <section className="px-4">
@@ -98,24 +98,10 @@ export function ProgramDetailsGzclBurritoButBig(props: IProgramDetailsGzclBurrit
         exercise variables (weight, reps, TM, RIR, etc) by clicking on the <IconEditSquare className="inline-block" />{" "}
         icon.
       </p>
-      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} weekSetup={weekSetup} />
+      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} />
       <div className="mt-8">
         <ProgramDetailsUpsell />
       </div>
     </section>
   );
-}
-
-function buildWeekSetup(program: IProgram): IProgramPreviewPlaygroundWeekSetup[] {
-  const weekSetup: IProgramPreviewPlaygroundWeekSetup[] = [];
-  let dayIndex = 1;
-  for (const week of program.weeks) {
-    const days = [];
-    for (const _ of week.days) {
-      days.push({ dayIndex, states: {} });
-      dayIndex += 1;
-    }
-    weekSetup.push({ name: week.name, days });
-  }
-  return weekSetup;
 }

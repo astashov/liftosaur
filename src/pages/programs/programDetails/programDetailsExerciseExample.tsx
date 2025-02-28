@@ -5,40 +5,55 @@ import { HistoryRecordSetsView } from "../../../components/historyRecordSets";
 import { Input } from "../../../components/input";
 import { Scroller } from "../../../components/scroller";
 import { equipmentName, Exercise } from "../../../models/exercise";
-import { Program } from "../../../models/program";
-import { IProgram, IProgramExercise, ISettings, IWeight } from "../../../types";
-import { ObjectUtils } from "../../../utils/object";
+import { IEvaluatedProgram, Program } from "../../../models/program";
+import { IExerciseType, ISettings, IWeight } from "../../../types";
 import { ProgramDetailsExerciseExampleGraph } from "./programDetailsExerciseExampleGraph";
-import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
 import { Weight } from "../../../models/weight";
+import { PP } from "../../../models/pp";
+import { CollectionUtils } from "../../../utils/collection";
 
 export interface IProgramDetailsExerciseExampleProps {
   settings: ISettings;
-  program: IProgram;
-  programExercise: IProgramExercise;
-  weekSetup: IProgramPreviewPlaygroundWeekSetup[];
+  program: IEvaluatedProgram;
+  exerciseType: IExerciseType;
+  programExerciseKey: string;
+  weekRange?: [number, number];
 }
 
 export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExampleProps): JSX.Element {
-  const programExercise = ObjectUtils.clone(props.programExercise);
-  const exerciseType = programExercise.exerciseType;
+  const exerciseType = props.exerciseType;
   const exercise = Exercise.get(exerciseType, props.settings.exercises);
-  const day = props.program.days.findIndex((d) => d.exercises.some((e) => e.id === programExercise.id));
+  let dayInWeek: number | undefined;
+  const [weekFrom, weekTo] = props.weekRange ?? [1, props.program.weeks.length];
+  const weeks = props.program.weeks.slice(weekFrom - 1, weekTo);
+  PP.iterate2(weeks, (ex, weekIndex, dayInWeekIndex, dayIndex) => {
+    if (ex.key === props.programExerciseKey) {
+      dayInWeek = dayInWeekIndex + 1;
+      return true;
+    }
+    return false;
+  });
+  dayInWeek = dayInWeek ?? 1;
 
-  const [onerm, setOnerm] = useState<IWeight>(Exercise.onerm(programExercise.exerciseType, props.settings));
+  const [onerm, setOnerm] = useState<IWeight>(Exercise.onerm(props.exerciseType, props.settings));
   const settings = {
     ...props.settings,
-    exerciseData: { ...props.settings.exerciseData, [Exercise.toKey(programExercise.exerciseType)]: { rm1: onerm } },
+    exerciseData: { ...props.settings.exerciseData, [Exercise.toKey(props.exerciseType)]: { rm1: onerm } },
   };
-  const weeks = props.weekSetup.map((week, weekIndex) => {
-    const dayIndex = week.days[day].day;
-    const dayData = Program.getDayData(props.program, dayIndex, props.settings);
+  const weekEntries = CollectionUtils.compact(
+    weeks.map((week) => {
+      const programDay = week.days[(dayInWeek ?? 1) - 1];
+      const programExercise = CollectionUtils.findBy(programDay.exercises, "key", props.programExerciseKey);
+      if (!programExercise) {
+        return undefined;
+      }
 
-    return {
-      label: week.name,
-      entry: Program.programExerciseToHistoryEntry(programExercise, props.program.exercises, dayData, settings, {}),
-    };
-  });
+      return {
+        label: week.name,
+        entry: Program.nextHistoryEntry(props.program, programDay.dayData, programExercise, settings),
+      };
+    })
+  );
 
   return (
     <div>
@@ -74,7 +89,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
             </div>
             <Scroller>
               <section className="relative flex items-center mt-1 ml-2">
-                {weeks.map((week, i) => {
+                {weekEntries.map((week, i) => {
                   return (
                     <>
                       {i !== 0 && <div className="h-12 mr-2 border-l border-grayv2-200" />}
@@ -93,7 +108,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
         </div>
         <div className="mb-2">
           <ProgramDetailsExerciseExampleGraph
-            weeksData={weeks}
+            weeksData={weekEntries}
             key={onerm.value}
             title="Weight week over week"
             yAxisLabel="Weight"
@@ -103,7 +118,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
         </div>
         <div>
           <ProgramDetailsExerciseExampleGraph
-            weeksData={weeks}
+            weeksData={weekEntries}
             key={onerm.value}
             title="Volume (reps * weight) week over week"
             yAxisLabel="Volume"

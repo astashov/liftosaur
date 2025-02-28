@@ -235,7 +235,7 @@ export class ProgramToPlanner {
 
   private reuseToStr(reuse: IPlannerProgramReuse): string {
     if (!reuse.exercise) {
-      return reuse.text;
+      throw new Error("reuse.exercise is required");
     }
     const exercise = Exercise.get(reuse.exercise.exerciseType, this.settings.exercises);
     const reuseStr = Exercise.fullName(exercise, this.settings, reuse.exercise.label);

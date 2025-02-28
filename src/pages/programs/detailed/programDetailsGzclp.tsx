@@ -8,9 +8,9 @@ import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
-import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
+import { Program } from "../../../models/program";
 
 export interface IProgramDetailsGzclpProps {
   settings: ISettings;
@@ -21,8 +21,8 @@ export interface IProgramDetailsGzclpProps {
 
 export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
-  const weekSetup = buildWeekSetup();
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(program, props.settings));
+  const evaluatedProgram = Program.evaluate(program, props.settings);
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
 
   return (
     <section className="px-4">
@@ -225,23 +225,10 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
         exercise variables (weight, reps, TM, RIR, etc) by clicking on the <IconEditSquare className="inline-block" />{" "}
         icon.
       </p>
-      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} weekSetup={weekSetup} />
+      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} />
       <div className="mt-8">
         <ProgramDetailsUpsell />
       </div>
     </section>
   );
-}
-
-function buildWeekSetup(): IProgramPreviewPlaygroundWeekSetup[] {
-  const days = [];
-  for (let day = 1; day <= 4; day++) {
-    days.push({ dayIndex: day, states: {} });
-  }
-  return [
-    {
-      name: "Week 1",
-      days,
-    },
-  ];
 }

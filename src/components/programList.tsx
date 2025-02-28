@@ -20,6 +20,7 @@ import { ExerciseImageUtils } from "../models/exerciseImage";
 import { EditProgram } from "../models/editProgram";
 import { IconDoc } from "./icons/iconDoc";
 import { StringUtils } from "../utils/string";
+import { PP } from "../models/pp";
 
 interface IProps {
   onSelectProgram: (id: string) => void;
@@ -142,26 +143,21 @@ interface IBuiltInProgramProps {
 }
 
 function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
-  const program = props.program.weeks.length === 0 ? Program.fullProgram(props.program, props.settings) : props.program;
   const exerciseObj: Partial<Record<string, IExercise>> = {};
   const equipmentSet: Set<IEquipment | undefined> = new Set();
-  for (const day of program.days) {
-    for (const ex of day.exercises) {
-      const programExercise = Program.getProgramExerciseById(program, ex.id);
-      if (programExercise) {
-        const exercise = Exercise.find(programExercise.exerciseType, props.settings.exercises);
-        if (exercise) {
-          exerciseObj[Exercise.toKey(programExercise.exerciseType)] = exercise;
-          if (exercise.equipment !== "bodyweight") {
-            equipmentSet.add(exercise.equipment);
-          }
-        }
+  const evaluatedProgram = Program.evaluate(props.program, props.settings);
+  PP.iterate2(evaluatedProgram.weeks, (ex) => {
+    const exercise = Exercise.find(ex.exerciseType, props.settings.exercises);
+    if (exercise) {
+      exerciseObj[Exercise.toKey(ex.exerciseType)] = exercise;
+      if (exercise.equipment !== "bodyweight") {
+        equipmentSet.add(exercise.equipment);
       }
     }
-  }
+  });
   const exercises = CollectionUtils.nonnull(ObjectUtils.values(exerciseObj));
   const equipment = CollectionUtils.nonnull(Array.from(equipmentSet));
-  const time = Program.dayAverageTimeMs(program, props.settings);
+  const time = Program.dayAverageTimeMs(evaluatedProgram, props.settings);
   const formattedTime = time > 0 ? TimeUtils.formatHHMM(time) : undefined;
 
   return (
@@ -172,7 +168,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
     >
       <div className="flex-1">
         <div className="flex items-center">
-          <h3 className="flex-1 mr-2 text-lg font-bold">{program.name}</h3>
+          <h3 className="flex-1 mr-2 text-lg font-bold">{props.program.name}</h3>
           {formattedTime && (
             <div>
               <IconWatch className="mb-1 align-middle" />
@@ -183,11 +179,12 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
         <div className="py-1 text-grayv2-main">
           <IconDoc width={15} height={20} color="#607284" />{" "}
           <span className="align-middle">
-            {program.isMultiweek && `${program.weeks.length} ${StringUtils.pluralize("week", program.weeks.length)}, `}
-            {Program.daysRange(program)}, {Program.exerciseRange(program)}
+            {evaluatedProgram.weeks.length > 0 &&
+              `${evaluatedProgram.weeks.length} ${StringUtils.pluralize("week", evaluatedProgram.weeks.length)}, `}
+            {Program.daysRange(evaluatedProgram)}, {Program.exerciseRange(evaluatedProgram)}
           </span>
         </div>
-        <h4 className="text-sm text-grayv2-main">{program.shortDescription}</h4>
+        <h4 className="text-sm text-grayv2-main">{props.program.shortDescription}</h4>
         <div className="py-3">
           {exercises
             .filter((e) => ExerciseImageUtils.exists(e, "small"))

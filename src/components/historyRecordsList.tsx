@@ -16,7 +16,7 @@ interface IHistoryRecordsListProps {
 
 export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element {
   const { history, settings, dispatch } = props;
-  const program = Program.fullProgram(props.program, props.settings);
+  const program = Program.evaluate(props.program, props.settings);
   const programDay = Program.getProgramDay(program, program.nextDay);
   return (
     <Fragment>

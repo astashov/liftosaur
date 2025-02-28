@@ -105,7 +105,6 @@ export interface IPlannerProgramExerciseWarmupSet {
 }
 
 export interface IPlannerProgramReuse {
-  text: string;
   fullName: string;
   week?: number;
   day?: number;

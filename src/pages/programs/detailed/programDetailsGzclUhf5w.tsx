@@ -5,12 +5,12 @@ import { ObjectUtils } from "../../../utils/object";
 import { IconEditSquare } from "../../../components/icons/iconEditSquare";
 import { IconCheckCircle } from "../../../components/icons/iconCheckCircle";
 import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
-import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
 import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsExerciseExample } from "../programDetails/programDetailsExerciseExample";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
+import { Program } from "../../../models/program";
 
 export interface IProgramDetailsGzclUhf9wProps {
   settings: ISettings;
@@ -21,13 +21,9 @@ export interface IProgramDetailsGzclUhf9wProps {
 
 export function ProgramDetailsGzclUhf5w(props: IProgramDetailsGzclUhf9wProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
-  const weekSetup = buildWeekSetup(program);
   const programForMuscles = ObjectUtils.clone(program);
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(programForMuscles, props.settings));
-
-  const t1Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "squat")!;
-  const t2Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "inclineBenchPress")!;
-  const t3Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "bicepCurl")!;
+  const evaluatedProgram = Program.evaluate(programForMuscles, props.settings);
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
 
   return (
     <section className="px-4">
@@ -79,10 +75,10 @@ export function ProgramDetailsGzclUhf5w(props: IProgramDetailsGzclUhf9wProps): J
           </p>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={props.program}
-              programExercise={t1Exercise}
+              program={evaluatedProgram}
+              programExerciseKey="t1-squat"
+              exerciseType={{ id: "squat", equipment: "barbell" }}
               settings={props.settings}
-              weekSetup={weekSetup}
             />
           </div>
           <h3>T2 Exercise</h3>
@@ -98,10 +94,10 @@ export function ProgramDetailsGzclUhf5w(props: IProgramDetailsGzclUhf9wProps): J
           <p></p>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={props.program}
-              programExercise={t2Exercise}
+              program={evaluatedProgram}
               settings={props.settings}
-              weekSetup={weekSetup}
+              programExerciseKey="t2-incline bench press"
+              exerciseType={{ id: "inclineBenchPress", equipment: "barbell" }}
             />
           </div>
           <h3>T3 Exercise</h3>
@@ -129,10 +125,10 @@ export function ProgramDetailsGzclUhf5w(props: IProgramDetailsGzclUhf9wProps): J
           </p>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={props.program}
-              programExercise={t3Exercise}
+              program={evaluatedProgram}
               settings={props.settings}
-              weekSetup={weekSetup}
+              programExerciseKey="t3-bicep curl"
+              exerciseType={{ id: "bicepCurl", equipment: "dumbbell" }}
             />
           </div>
           <p>
@@ -166,24 +162,10 @@ export function ProgramDetailsGzclUhf5w(props: IProgramDetailsGzclUhf9wProps): J
         exercise variables (weight, reps, TM, RIR, etc) by clicking on the <IconEditSquare className="inline-block" />{" "}
         icon.
       </p>
-      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} weekSetup={weekSetup} />
+      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} />
       <div className="mt-8">
         <ProgramDetailsUpsell />
       </div>
     </section>
   );
-}
-
-function buildWeekSetup(program: IProgram): IProgramPreviewPlaygroundWeekSetup[] {
-  const weekSetup: IProgramPreviewPlaygroundWeekSetup[] = [];
-  let dayIndex = 1;
-  for (const week of program.weeks) {
-    const days = [];
-    for (const _ of week.days) {
-      days.push({ dayIndex, states: {} });
-      dayIndex += 1;
-    }
-    weekSetup.push({ name: week.name, days });
-  }
-  return weekSetup;
 }

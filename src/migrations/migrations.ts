@@ -17,6 +17,7 @@ import { PlannerKey } from "../pages/planner/plannerKey";
 import { PP } from "../models/pp";
 import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
+import { Program } from "../models/program";
 declare let Rollbar: RB;
 
 let latestMigrationVersion: number | undefined;
@@ -618,11 +619,11 @@ export const migrations = {
 
         for (let i = 0; i < storage.programs.length; i += 1) {
           try {
-            const program = storage.programs[i];
-            let plannerProgram = program.planner;
-            if (plannerProgram) {
+            let program = storage.programs[i];
+            const plannerProgram = program.planner;
+            if (plannerProgram != null) {
               for (const exerciseKey of ObjectUtils.keys(newCustom)) {
-                const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, storage.settings);
+                const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram!, storage.settings);
                 const keys: Set<string> = new Set();
                 const custom = newCustom[exerciseKey];
                 PP.iterate(evaluatedWeeks, (ex) => {
@@ -636,23 +637,15 @@ export const migrations = {
                 });
                 const newExerciseType = { id: custom.exercise.id };
                 for (const key of keys) {
-                  const plannerProgramResult = PlannerProgram.replaceExercise(
-                    plannerProgram,
-                    key,
-                    newExerciseType,
-                    storage.settings
-                  );
-                  if (plannerProgramResult.success) {
-                    plannerProgram = plannerProgramResult.data;
+                  const programResult = PlannerProgram.replaceExercise(program, key, newExerciseType, storage.settings);
+                  if (programResult.success) {
+                    program = programResult.data;
                   }
                 }
               }
               const newPlanner = new ProgramToPlanner(
-                program,
-                plannerProgram,
-                storage.settings,
-                {},
-                {}
+                Program.evaluate(program, storage.settings),
+                storage.settings
               ).convertToPlanner();
               program.planner = newPlanner;
               storage.programs[i] = program;
