@@ -687,12 +687,10 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
   const [program, setProgram] = useState<IProgram>({ ...Program.create("My Program"), planner });
   const [progress, setProgress] = useState(Program.nextHistoryRecord(program, settings, 1));
   const evaluatedProgram = Program.evaluate(program, settings);
-  const programDay = Program.getProgramDay(evaluatedProgram, 1)!;
 
   return (
     <ProgramPreviewPlaygroundDay
       program={evaluatedProgram}
-      programDay={programDay}
       day={1}
       isPlayground={true}
       settings={settings}

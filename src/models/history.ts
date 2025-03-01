@@ -81,11 +81,12 @@ export namespace History {
   ): IHistoryRecord {
     const { deletedProgramExercises, ui, ...historyRecord } = progress;
     const programDay = program ? Program.getProgramDay(program, day) : undefined;
+    const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
     const updatedAt = Date.now();
     return {
       ...historyRecord,
       entries: historyRecord.entries.map((entry) => {
-        const programExercise = programDay?.exercises.find((pe) => pe.key === entry.programExerciseId);
+        const programExercise = dayExercises.find((pe) => pe.key === entry.programExerciseId);
         if (Progress.isCurrent(progress)) {
           if (programExercise != null) {
             const state = PlannerProgramExercise.getState(programExercise);

@@ -77,9 +77,16 @@ export class PlannerProgramExercise {
     return exercise.warmupSets || exercise.reuse?.exercise?.warmupSets;
   }
 
-  public static programWarmups(exercise: IPlannerProgramExercise, settings: ISettings): IProgramExerciseWarmupSet[] {
+  public static programWarmups(
+    exercise: IPlannerProgramExercise,
+    settings: ISettings
+  ): IProgramExerciseWarmupSet[] | undefined {
+    const exerciseWarmups = PlannerProgramExercise.warmups(exercise);
+    if (exerciseWarmups == null) {
+      return undefined;
+    }
     const sets: IProgramExerciseWarmupSet[] = [];
-    for (const ws of PlannerProgramExercise.warmups(exercise) || []) {
+    for (const ws of exerciseWarmups) {
       for (let i = 0; i < ws.numberOfSets; i += 1) {
         let value: IWeight | number | undefined = ws.percentage ? ws.percentage / 100 : undefined;
         if (value == null) {
@@ -287,25 +294,26 @@ export class PlannerProgramExercise {
     if (property.fnName === "custom") {
       return PlannerExerciseEvaluator.fnArgsToStateVars(property.fnArgs, () => undefined);
     } else if (property.fnName === "lp") {
-      const increment = fnArgs[0] ? Weight.parse(fnArgs[0]) : Weight.build(0, "lb");
-      const decrement = fnArgs[3] ? Weight.parse(fnArgs[3]) : Weight.build(0, "lb");
+      console.log("LP", fnArgs);
+      const increment = fnArgs[0] ? Weight.parsePct(fnArgs[0]) : Weight.build(0, "lb");
+      const decrement = fnArgs[3] ? Weight.parsePct(fnArgs[3]) : Weight.build(0, "lb");
       return {
         increment: increment ?? Weight.build(0, "lb"),
-        successes: fnArgs[2] ? parseInt(fnArgs[2], 10) : 1,
-        successCounter: fnArgs[3] ? parseInt(fnArgs[3], 10) : 0,
+        successes: fnArgs[1] ? parseInt(fnArgs[1], 10) : 1,
+        successCounter: fnArgs[2] ? parseInt(fnArgs[2], 10) : 0,
         decrement: decrement ?? Weight.build(0, "lb"),
-        failures: fnArgs[5] ? parseInt(fnArgs[5], 10) : 0,
-        failureCounter: fnArgs[6] ? parseInt(fnArgs[6], 10) : 0,
+        failures: fnArgs[4] ? parseInt(fnArgs[4], 10) : (decrement?.value ?? 0) > 0 ? 1 : 0,
+        failureCounter: fnArgs[5] ? parseInt(fnArgs[5], 10) : 0,
       };
     } else if (property.fnName === "dp") {
-      const increment = fnArgs[0] ? Weight.parse(fnArgs[0]) : Weight.build(0, "lb");
+      const increment = fnArgs[0] ? Weight.parsePct(fnArgs[0]) : Weight.build(0, "lb");
       return {
         increment: increment ?? Weight.build(0, "lb"),
         minReps: fnArgs[1] ? parseInt(fnArgs[1], 10) : 0,
         maxReps: fnArgs[2] ? parseInt(fnArgs[2], 10) : 0,
       };
     } else if (property.fnName === "sum") {
-      const increment = fnArgs[1] ? Weight.parse(fnArgs[1]) : Weight.build(0, "lb");
+      const increment = fnArgs[1] ? Weight.parsePct(fnArgs[1]) : Weight.build(0, "lb");
       return {
         reps: fnArgs[0] ? parseInt(fnArgs[0], 10) : 0,
         increment: increment ?? Weight.build(0, "lb"),
@@ -375,7 +383,7 @@ export class PlannerProgramExercise {
     state.failureCounter = 0
   }
 }
-if (state.decrement > 0 && state.failureCounter > 0) {
+if (state.decrement > 0 && state.failures > 0) {
   if (!(completedReps >= minReps && completedRPE <= RPE)) {
     state.failureCounter += 1;
     if (state.failureCounter >= state.failures) {

@@ -839,7 +839,7 @@ export class PlannerExerciseEvaluator {
       let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings);
       const key = PlannerKey.fromFullName(fullName, this.settings);
       const shortName = `${name}${equipment ? `, ${equipmentName(equipment)}` : ""}`;
-      const exercise = Exercise.findByNameAndEquipment(name, this.settings.exercises);
+      const exercise = Exercise.findByNameAndEquipment(shortName, this.settings.exercises);
       if (exercise == null) {
         this.error(`Unknown exercise ${name}`, nameNode);
       }

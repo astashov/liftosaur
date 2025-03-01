@@ -198,6 +198,7 @@ export namespace Program {
     const programSets =
       programExercise.evaluatedSetVariations[PlannerProgramExercise.currentSetVariationIndex(programExercise)]?.sets;
     const warmupSets = PlannerProgramExercise.programWarmups(programExercise, settings);
+    console.log("Warup Sets", warmupSets);
     const sets: ISet[] = [];
     for (const programSet of programSets) {
       const minReps =
@@ -256,7 +257,7 @@ export namespace Program {
     const dayData = getDayData(program, day);
     const { week, dayInWeek } = dayData;
 
-    const dayName = program.weeks[week - 1]?.days[dayInWeek - 1]?.name || "Day 1";
+    const dayName = program.weeks[week - 1]?.days[dayInWeek - 1]?.name;
     const dayNameParts: string[] = [];
     if (program.weeks.length > 1) {
       dayNameParts.push(program.weeks[week - 1]?.name ?? "");
@@ -264,7 +265,8 @@ export namespace Program {
     dayNameParts.push(dayName);
     const fullDayName = dayNameParts.join(" - ");
     const now = Date.now();
-    const dayExercises = Program.getProgramDay(program, day);
+    const programDay = Program.getProgramDay(program, day);
+    const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
     return {
       id: 0,
       date: new Date().toISOString(),
@@ -277,7 +279,7 @@ export namespace Program {
       dayName: fullDayName,
       startTime: now,
       updatedAt: now,
-      entries: (dayExercises?.exercises || []).map((exercise) => {
+      entries: dayExercises.map((exercise) => {
         return nextHistoryEntry(program, dayData, exercise, settings);
       }),
     };
@@ -358,7 +360,7 @@ export namespace Program {
     },
     string
   > {
-    const state = PlannerProgramExercise.getState(programExercise);
+    const state = programExercise.state;
     const setVariationIndex = PlannerProgramExercise.currentSetVariationIndex(programExercise);
     const descriptionIndex = PlannerProgramExercise.currentDescriptionIndex(programExercise);
     const bindings = Progress.createScriptBindings(
@@ -375,12 +377,16 @@ export namespace Program {
       ...state,
       ...userPromptedStateVars,
     };
+    console.log("Before state", newState);
     const otherStates = ObjectUtils.clone(program.states);
 
+    const script = PlannerProgramExercise.getProgressScript(programExercise) || "";
+    console.log("script", script);
+    console.log("bindings", bindings);
     let updates: ILiftoscriptEvaluatorUpdate[] = [];
     try {
       const runner = new ScriptRunner(
-        PlannerProgramExercise.getProgressScript(programExercise) || "",
+        script,
         newState,
         otherStates,
         bindings,
@@ -398,6 +404,7 @@ export namespace Program {
         throw e;
       }
     }
+    console.log("After state", newState);
 
     const diffOtherStates = ObjectUtils.keys(otherStates).reduce<IByTag<IProgramState>>((memo, key) => {
       if (!ObjectUtils.isEqual(otherStates[key], program.states[key])) {
@@ -425,8 +432,22 @@ export namespace Program {
     return dayApproxTimes.reduce((acc, t) => acc + t, 0) / dayApproxTimes.length;
   }
 
+  export function getReuseExercise(
+    program: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise | undefined {
+    const reuseKey = programExercise.reuse?.exerciseKey;
+    const weekIndex = (programExercise.reuse?.exerciseWeek ?? 1) - 1;
+    const dayInWeekIndex = (programExercise.reuse?.exerciseDayInWeek ?? 1) - 1;
+    if (reuseKey != null && weekIndex != null && dayInWeekIndex != null) {
+      return program.weeks[weekIndex]?.days[dayInWeekIndex]?.exercises.find((e) => e.key === reuseKey);
+    } else {
+      return undefined;
+    }
+  }
+
   export function dayApproxTimeMs(programDay: IEvaluatedProgramDay, settings: ISettings): number {
-    return programDay.exercises.reduce((acc, e) => {
+    return Program.getProgramDayExercises(programDay).reduce((acc, e) => {
       return acc + ProgramExercise.approxTimeMs(e, settings);
     }, 0);
   }
@@ -446,7 +467,8 @@ export namespace Program {
     }
     for (const entry of progress.entries) {
       if (entry != null && entry.sets.some((s) => s.completedReps != null)) {
-        const programExercise = programDay.exercises.find((e) => e.key === entry.programExerciseId);
+        const dayExercises = Program.getProgramDayExercises(programDay);
+        const programExercise = dayExercises.find((e) => e.key === entry.programExerciseId);
         if (programExercise) {
           const newStateResult = Program.runFinishDayScript(
             programExercise,
@@ -477,9 +499,6 @@ export namespace Program {
               });
             }
           }
-        } else {
-          const exercise = Exercise.get(entry.exercise, settings.exercises);
-          alert(`Missing program exercise for '${exercise.name}' during executing 'progress' block`);
         }
       }
     }
@@ -550,9 +569,13 @@ export namespace Program {
       url: "",
       author: "",
       nextDay: 1,
-      days: [{ exercises: [], id: "emptyworkoutday", name: "Day 1" }],
+      days: [],
       weeks: [],
       isMultiweek: false,
+      planner: {
+        name: "Ad-Hoc Workout",
+        weeks: [{ name: "", days: [{ name: "", exerciseText: "" }] }],
+      },
       tags: [],
     };
   }
@@ -630,7 +653,7 @@ export namespace Program {
         states[tag] = { ...states[tag], ...PlannerProgramExercise.getState(exercise) };
       }
     });
-    return {
+    const result: IEvaluatedProgram = {
       type: "evaluatedProgram",
       id: program.id,
       planner,
@@ -639,6 +662,11 @@ export namespace Program {
       weeks: weeks,
       states,
     };
+    console.log("Evaluted Program", result);
+    result.weeks.forEach((w) =>
+      w.days.forEach((d) => d.exercises.forEach((e) => console.log("State", [e.key, e.state])))
+    );
+    return result;
   }
 
   export function numberOfDays(program: IEvaluatedProgram): number {
@@ -663,8 +691,8 @@ export namespace Program {
 
   export function exerciseRange(program: IEvaluatedProgram): string {
     const days = program.weeks.flatMap((w) => w.days);
-    const minExs = Math.min(...days.map((w) => w.exercises.length));
-    const maxExs = Math.max(...days.map((w) => w.exercises.length));
+    const minExs = Math.min(...days.map((d) => Program.getProgramDayExercises(d).length));
+    const maxExs = Math.max(...days.map((d) => Program.getProgramDayExercises(d).length));
     if (minExs === maxExs) {
       return `${minExs} ${StringUtils.pluralize("exercise", minExs)} per day`;
     } else {
@@ -718,7 +746,7 @@ export namespace Program {
     for (const week of program.weeks) {
       for (const day of week.days) {
         dayIndex += 1;
-        days.push([`${dayIndex + 1}`, `${isReallyMultiweek ? `${week.name} - ` : ""}${day.name}`]);
+        days.push([`${dayIndex}`, `${isReallyMultiweek ? `${week.name} - ` : ""}${day.name}`]);
       }
     }
     return days;
@@ -739,6 +767,10 @@ export namespace Program {
       }
     }
     return undefined;
+  }
+
+  export function getProgramDayExercises(programDay: IEvaluatedProgramDay): IPlannerProgramExercise[] {
+    return programDay.exercises.filter((e) => !e.notused);
   }
 
   export function applyEvaluatedProgram(

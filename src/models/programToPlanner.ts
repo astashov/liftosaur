@@ -10,7 +10,6 @@ import {
   IPlannerProgramExerciseEvaluatedSetVariation,
   IPlannerProgramExerciseWarmupSet,
   IPlannerProgramProperty,
-  IPlannerProgramReuse,
 } from "../pages/planner/models/types";
 import { IEvaluatedProgram, Program } from "./program";
 import { Exercise } from "./exercise";
@@ -24,7 +23,7 @@ interface IPlannerToProgram2Globals {
   askWeight?: boolean;
 }
 
-type IDereuseDecision = "weight" | "rpe" | "timer";
+type IDereuseDecision = "sets" | "weight" | "rpe" | "timer";
 
 export class ProgramToPlanner {
   constructor(private readonly program: IEvaluatedProgram, private readonly settings: ISettings) {}
@@ -43,32 +42,58 @@ export class ProgramToPlanner {
     return index === -1 ? 0 : index;
   }
 
-  private getDereuseDecisions(
-    programExercise: IPlannerProgramExercise,
-    reuse?: IPlannerProgramReuse
-  ): IDereuseDecision[] {
-    const dereuseDecisions: IDereuseDecision[] = [];
-    if (!reuse?.exercise) {
-      return dereuseDecisions;
+  private shouldReuseSets(programExercise: IPlannerProgramExercise): boolean {
+    const reuseExercise = Program.getReuseExercise(this.program, programExercise);
+    if (!reuseExercise) {
+      return false;
+    }
+    const globals = this.getGlobals(programExercise.evaluatedSetVariations);
+    const dereuseDecisions = new Set(this.getDereuseDecisions(programExercise));
+    if (globals.weight == null) {
+      dereuseDecisions.delete("weight");
+    }
+    if (globals.rpe == null) {
+      dereuseDecisions.delete("rpe");
+    }
+    if (globals.timer == null) {
+      dereuseDecisions.delete("timer");
+    }
+    return new Set(["sets", "weight", "rpe", "timer"]).difference(dereuseDecisions).size !== 0;
+  }
+
+  private getDereuseDecisions(programExercise: IPlannerProgramExercise): IDereuseDecision[] {
+    const dereuseDecisions: Set<IDereuseDecision> = new Set();
+    const reuseExercise = Program.getReuseExercise(this.program, programExercise);
+    if (!reuseExercise) {
+      return Array.from(dereuseDecisions);
+    }
+    if (programExercise.evaluatedSetVariations.length !== reuseExercise.evaluatedSetVariations.length) {
+      dereuseDecisions.add("sets");
     }
     for (let i = 0; i < programExercise.evaluatedSetVariations.length; i += 1) {
       const programVariation = programExercise.evaluatedSetVariations[i];
-      const reuseVariation = reuse.exercise.evaluatedSetVariations[i];
+      const reuseVariation = reuseExercise.evaluatedSetVariations[i];
+      if (programVariation.sets.length !== reuseVariation.sets.length) {
+        dereuseDecisions.add("sets");
+      }
       for (let j = 0; j < programVariation.sets.length; j += 1) {
         const programSet = programVariation.sets[j];
         const reuseSet = reuseVariation.sets[j];
+        if (programSet.maxrep !== reuseSet.maxrep || programSet.minrep !== reuseSet.minrep) {
+          dereuseDecisions.add("sets");
+        }
         if (!(Weight.eq(programSet.weight, reuseSet.weight) || programSet.askWeight !== reuseSet.askWeight)) {
-          dereuseDecisions.push("weight");
+          dereuseDecisions.add("weight");
         }
         if (!(programSet.rpe !== reuseSet.rpe || programSet.logRpe !== reuseSet.logRpe)) {
-          dereuseDecisions.push("rpe");
+          dereuseDecisions.add("rpe");
         }
         if (programSet.timer !== reuseSet.timer) {
-          dereuseDecisions.push("timer");
+          dereuseDecisions.add("timer");
         }
       }
     }
-    return dereuseDecisions;
+    return Array.from(dereuseDecisions);
   }
 
   public convertToPlanner(): IPlannerProgram {
@@ -140,7 +165,7 @@ export class ProgramToPlanner {
               const evalExercise = Program.getProgramExercise(dayIndex + 1, this.program, line.value)!;
               const key = evalExercise.key;
               let plannerExercise = "";
-              plannerExercise += evalExercise.fullName;
+              plannerExercise += this.getExerciseName(evalExercise);
               plannerExercise += " / ";
               if (evalExercise.notused) {
                 plannerExercise += "used: none / ";
@@ -153,11 +178,23 @@ export class ProgramToPlanner {
               const variations = evalExercise.evaluatedSetVariations;
               const globals = this.getGlobals(variations);
 
-              const reuse = evalExercise?.reuse;
-              const shouldReuseSets = this.shouldReuseSets(evalExercise, reuse);
-              const dereuseDecisions = shouldReuseSets ? this.getDereuseDecisions(evalExercise, reuse) : [];
-              if (reuse && shouldReuseSets) {
-                plannerExercise += this.reuseToStr(reuse);
+              const shouldReuseSets = this.shouldReuseSets(evalExercise);
+              const dereuseDecisions = shouldReuseSets ? this.getDereuseDecisions(evalExercise) : [];
+              console.log("should reuse sets", shouldReuseSets, dereuseDecisions);
+              if (shouldReuseSets) {
+                plannerExercise += this.reuseToStr(evalExercise);
+
+                if (dereuseDecisions.includes("sets")) {
+                  plannerExercise +=
+                    ` / ` +
+                    variations
+                      .map((v, i) => {
+                        const sets = this.variationToString(v, globals);
+                        return i !== 0 && i === currentSetVariationIndex ? `! ${sets}` : sets;
+                      })
+                      .join(" / ");
+                }
+
                 const overriddenGlobals: string[] = [];
                 if (dereuseDecisions.includes("weight") && globals.weight != null) {
                   overriddenGlobals.push(`${this.weightExprToStr(globals.weight)}${globals.askWeight ? "+" : ""}`);
@@ -213,7 +250,9 @@ export class ProgramToPlanner {
               }
 
               const progress = PlannerProgramExercise.getProgress(evalExercise);
-              if (!addedProgressMap[key] && progress) {
+              if (progress && progress.fnName === "none") {
+                plannerExercise += ` / progress: none`;
+              } else if (!addedProgressMap[key] && progress) {
                 plannerExercise += this.getProgress(evalExercise, progress);
                 addedProgressMap[key] = true;
               }
@@ -230,15 +269,31 @@ export class ProgramToPlanner {
       plannerWeeks.push(plannerWeek);
     }
     const result: IPlannerProgram = { name: this.program.name, weeks: plannerWeeks };
-    return PlannerProgram.compact(this.program.planner, result, this.settings);
+    const newPlanner = PlannerProgram.compact(this.program.planner, result, this.settings);
+    console.log(PlannerProgram.generateFullText(newPlanner.weeks));
+    return newPlanner;
   }
 
-  private reuseToStr(reuse: IPlannerProgramReuse): string {
-    if (!reuse.exercise) {
+  private getExerciseName(programExercise: IPlannerProgramExercise): string {
+    const exercise = Exercise.get(programExercise.exerciseType, this.settings.exercises);
+    let name = Exercise.fullName(exercise, this.settings, programExercise.label);
+    if (programExercise.order > 0) {
+      name = `${name}[${programExercise.order}]`;
+    }
+    return name;
+  }
+
+  private reuseToStr(programExercise: IPlannerProgramExercise): string {
+    const reuseExercise = Program.getReuseExercise(this.program, programExercise);
+    if (!reuseExercise) {
       throw new Error("reuse.exercise is required");
     }
-    const exercise = Exercise.get(reuse.exercise.exerciseType, this.settings.exercises);
-    const reuseStr = Exercise.fullName(exercise, this.settings, reuse.exercise.label);
+    const reuse = programExercise.reuse;
+    if (!reuse) {
+      throw new Error("reuse is required");
+    }
+    const exercise = Exercise.get(reuseExercise.exerciseType, this.settings.exercises);
+    const reuseStr = Exercise.fullName(exercise, this.settings, reuseExercise.label);
     let str = `...${reuseStr}`;
     if (reuse.week || reuse.day) {
       const weekAndDay = CollectionUtils.compact([reuse.week, reuse.day]).join(":");
@@ -276,6 +331,7 @@ export class ProgramToPlanner {
       const decrement = programExercise.state.decrement as IWeight | IPercentage;
       const failures = programExercise.state.failures as number;
       const failureCounter = programExercise.state.failureCounter as number;
+      console.log(increment, successes, successCounter, decrement, failures, failureCounter);
       const args: string[] = [];
       args.push(Weight.print(increment));
       if (successes > 1 || decrement.value > 0) {
@@ -310,45 +366,12 @@ export class ProgramToPlanner {
       if (progress.reuse?.exerciseType) {
         const exercise = Exercise.get(progress.reuse.exerciseType, this.settings.exercises);
         const fullName = Exercise.fullName(exercise, this.settings, progress.reuse.label);
-        plannerExercise += `{ ...${fullName} }`;
+        plannerExercise += ` { ...${fullName} }`;
       } else {
         plannerExercise += ` ${progress.script}`;
       }
     }
     return plannerExercise;
-  }
-
-  private shouldReuseSets(programExercise: IPlannerProgramExercise, reuse?: IPlannerProgramReuse): boolean {
-    if (!reuse?.exercise) {
-      return false;
-    }
-    const globals = this.getGlobals(programExercise.evaluatedSetVariations);
-    if (programExercise.evaluatedSetVariations.length !== reuse.exercise.evaluatedSetVariations.length) {
-      return false;
-    }
-    for (let i = 0; i < programExercise.evaluatedSetVariations.length; i += 1) {
-      const programVariation = programExercise.evaluatedSetVariations[i];
-      const reuseVariation = reuse.exercise.evaluatedSetVariations[i];
-      if (programVariation.sets.length !== reuseVariation.sets.length) {
-        return false;
-      }
-      for (let j = 0; j < programVariation.sets.length; j += 1) {
-        const programSet = programVariation.sets[j];
-        const reuseSet = reuseVariation.sets[j];
-        if (programSet.maxrep !== reuseSet.maxrep || programSet.minrep !== reuseSet.minrep) {
-          return false;
-        }
-        if (
-          (!(Weight.eq(programSet.weight, reuseSet.weight) || programSet.askWeight !== reuseSet.askWeight) &&
-            !globals.weight) ||
-          ((programSet.rpe !== reuseSet.rpe || programSet.logRpe !== reuseSet.logRpe) && !globals.rpe) ||
-          (programSet.timer !== reuseSet.timer && !globals.timer)
-        ) {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 
   private getGlobals(variations: IPlannerProgramExerciseEvaluatedSetVariation[]): IPlannerToProgram2Globals {

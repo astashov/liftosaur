@@ -357,7 +357,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                       <div>
                         {exerciseEntries.map((entry) => {
                           const prs = allPrs[historyRecord.id]?.[Exercise.toKey(entry.exercise)];
-                          const state = entry.state || {};
+                          const state = { ...entry.state };
                           const vars = entry.vars || {};
                           for (const key of ObjectUtils.keys(vars)) {
                             const name = { rm1: "1 Rep Max" }[key] || key;
@@ -384,7 +384,8 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                                 <div className="text-xs text-grayv2-main">
                                   {ObjectUtils.keys(state).map((stateKey, i) => {
                                     const value = state[stateKey];
-                                    const displayValue = Weight.is(value) ? Weight.display(value) : value;
+                                    const displayValue =
+                                      Weight.is(value) || Weight.isPct(value) ? Weight.display(value) : value;
                                     return (
                                       <>
                                         {i !== 0 && ", "}

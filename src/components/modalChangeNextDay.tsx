@@ -51,7 +51,7 @@ export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element
           return null;
         }
         const exerciseTypes = CollectionUtils.compact(
-          (day?.exercises || []).map((exercise) => {
+          Program.getProgramDayExercises(day).map((exercise) => {
             return Exercise.find(exercise.exerciseType, props.settings.exercises);
           })
         );

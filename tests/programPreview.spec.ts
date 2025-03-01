@@ -25,8 +25,8 @@ test("Program Preview", async ({ page }) => {
     .getByTestId("bent-over-row")
     .getByTestId("program-preview-edit-exercise")
     .click();
-  await expect(page.getByTestId("menu-item-value-successes")).toHaveValue("0");
-  await expect(page.getByTestId("menu-item-value-failures")).toHaveValue("0");
+  await expect(page.getByTestId("menu-item-value-successes")).toHaveValue("1");
+  await expect(page.getByTestId("menu-item-value-failures")).toHaveValue("1");
   await page.getByTestId("modal-edit-mode-save-statvars").click();
   await page.getByTestId("menu-item-value-enable-playground").click();
 
@@ -79,7 +79,7 @@ test("Program Preview", async ({ page }) => {
   ).toHaveCount(3);
   await expect(
     page.getByTestId("preview-day-workout-a").first().getByTestId("bench-press").getByTestId("set-nonstarted")
-  ).toHaveCount(3);
+  ).toHaveCount(2);
   await expect(
     page.getByTestId("preview-day-workout-a").first().getByTestId("bench-press").getByTestId("set-amrap-nonstarted")
   ).toHaveCount(1);

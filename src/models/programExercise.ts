@@ -1,5 +1,5 @@
 import { IProgramState, IProgramExerciseWarmupSet, ISettings, IProgramSet, IPercentage } from "../types";
-import { IEvaluatedProgram } from "./program";
+import { IEvaluatedProgram, Program } from "./program";
 import { ProgramSet } from "./programSet";
 import { IWeight } from "../types";
 import { ObjectUtils } from "../utils/object";
@@ -125,7 +125,8 @@ export namespace ProgramExercise {
         const programWeek = program.weeks[weekIndex];
         for (let dayInWeekIndex = 0; dayInWeekIndex < programWeek.days.length; dayInWeekIndex += 1) {
           const programDay = programWeek.days[dayInWeekIndex];
-          const exercises = programDay.exercises.filter((e) => e.key === programExerciseKey);
+          const dayExercises = Program.getProgramDayExercises(programDay);
+          const exercises = dayExercises.filter((e) => e.key === programExerciseKey);
           for (const exercise of exercises) {
             for (let variationIndex = 0; variationIndex < exercise.evaluatedSetVariations.length; variationIndex += 1) {
               const setVariation = exercise.evaluatedSetVariations[variationIndex];

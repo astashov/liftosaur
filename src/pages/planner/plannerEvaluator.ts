@@ -26,6 +26,7 @@ import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
 import { IPlannerEvaluatedProgramToTextOpts, PlannerEvaluatedProgramToText } from "./plannerEvaluatedProgramToText";
 import { IEither } from "../../utils/types";
 import { PlannerProgramExercise } from "./models/plannerProgramExercise";
+import { MathUtils } from "../../utils/math";
 
 export type IByTag<T> = Record<number, T>;
 export type IByExercise<T> = Record<string, T>;
@@ -295,6 +296,7 @@ export class PlannerEvaluator {
         );
       }
       exercise.reuse.exercise = originalExercise.exercise;
+      exercise.reuse.exerciseKey = originalExercise.exercise.key;
       exercise.reuse.exerciseWeek = originalExercise.dayData.week;
       exercise.reuse.exerciseDayInWeek = originalExercise.dayData.dayInWeek;
       exercise.reuse.exerciseDay = originalExercise.dayData.day;
@@ -319,7 +321,9 @@ export class PlannerEvaluator {
               ? aSet.weight
               : aSet.percentage
               ? Weight.buildPct(aSet.percentage)
-              : Weight.buildPct(Math.round(100 * Weight.rpeMultiplier(aSet.repRange.maxrep, aSet.rpe || 10))),
+              : Weight.buildPct(
+                  MathUtils.roundFloat(100 * Weight.rpeMultiplier(aSet.repRange.maxrep, aSet.rpe || 10), 2)
+                ),
             timer: aSet.timer,
             rpe: aSet.rpe,
             logRpe: !!aSet.logRpe,
@@ -381,8 +385,16 @@ export class PlannerEvaluator {
       exercise.skipProgress = metadata.skipProgresses[exercise.key];
     }
 
-    if (metadata.properties.progress[exercise.key] != null && exercise.properties.every((p) => p.name !== "progress")) {
-      exercise.properties.push(metadata.properties.progress[exercise.key].property);
+    if (metadata.properties.progress[exercise.key] != null) {
+      const existingProgress = exercise.properties.find((p) => p.name === "progress");
+      if (!existingProgress) {
+        exercise.properties.push(metadata.properties.progress[exercise.key].property);
+      }
+      if (!existingProgress || existingProgress.fnName === "none") {
+        exercise.state = PlannerProgramExercise.getStateFromProperty(
+          metadata.properties.progress[exercise.key].property
+        );
+      }
     }
 
     if (metadata.properties.update[exercise.key] != null && exercise.properties.every((p) => p.name !== "update")) {

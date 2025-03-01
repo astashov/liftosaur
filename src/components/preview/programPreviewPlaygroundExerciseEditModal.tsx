@@ -77,7 +77,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
     <section className="px-4 py-2 bg-purple-100 rounded-2xl">
       {ObjectUtils.keys(props.state).map((stateKey, i) => {
         const value = props.state[stateKey];
-        const displayValue = Weight.is(value) ? value.value : value;
+        const displayValue = Weight.is(value) || Weight.isPct(value) ? value.value : value;
 
         return (
           <MenuItemEditable
@@ -93,7 +93,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
             isNameBold={true}
             type="number"
             value={displayValue.toString()}
-            valueUnits={Weight.is(value) ? value.unit : undefined}
+            valueUnits={Weight.is(value) || Weight.isPct(value) ? value.unit : undefined}
             hasClear={false}
             onChange={(newValue) => {
               if (newValue) {

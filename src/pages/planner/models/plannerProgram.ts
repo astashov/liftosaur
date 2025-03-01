@@ -28,6 +28,9 @@ import { PP } from "../../../models/pp";
 import { IEither } from "../../../utils/types";
 import { getLatestMigrationVersion } from "../../../migrations/migrations";
 import { ProgramToPlanner } from "../../../models/programToPlanner";
+import { PlannerKey } from "../plannerKey";
+import { UidFactory } from "../../../utils/generator";
+import { CollectionUtils } from "../../../utils/collection";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -77,19 +80,55 @@ export class PlannerProgram {
     settings: ISettings
   ): IEither<IProgram, string> {
     const evaluatedProgram = Program.evaluate(program, settings);
+    const allExercises = Program.getAllProgramExercises(evaluatedProgram);
+    let labelSuffix: string | undefined = undefined;
+    let noConflicts = false;
+
+    function getLabel(label?: string): string | undefined {
+      return label || labelSuffix ? CollectionUtils.compact([label, labelSuffix]).join("-") : undefined;
+    }
+
+    while (!noConflicts) {
+      const conflictingExercises = allExercises.filter((e) => {
+        const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, getLabel(e.label));
+        return e.key === newKey;
+      });
+      console.log("Conflicting ex", conflictingExercises);
+      if (conflictingExercises.length > 0) {
+        noConflicts = false;
+        labelSuffix = UidFactory.generateUid(3);
+      } else {
+        noConflicts = true;
+      }
+    }
+    console.log("label suffix", labelSuffix);
+
     PP.iterate2(evaluatedProgram.weeks, (exercise) => {
       if (exercise.key === key) {
+        console.log("Start renaming");
         exercise.exerciseType = toExerciseType;
+        exercise.label = getLabel(exercise.label);
         for (const property of exercise.properties) {
+          const newLabel = getLabel(property.label);
+          const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
+          property.exerciseKey = newKey;
           property.exerciseType = toExerciseType;
+          property.exerciseLabel = newLabel;
         }
       }
-      if (exercise.reuse?.exercise?.key === key) {
-        exercise.reuse.exercise.exerciseType = toExerciseType;
+      if (exercise.reuse?.exerciseKey === key) {
+        const newLabel = getLabel(exercise.reuse?.exerciseLabel);
+        const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
+        exercise.reuse.exerciseKey = newKey;
+        exercise.reuse.exerciseLabel = newLabel;
       }
       for (const property of exercise.properties) {
         if (property.reuse?.exerciseKey === key) {
+          const newLabel = getLabel(property.reuse?.exerciseLabel);
+          const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
           property.reuse.exerciseType = toExerciseType;
+          property.reuse.exerciseKey = newKey;
+          property.reuse.exerciseLabel = newLabel;
         }
       }
     });

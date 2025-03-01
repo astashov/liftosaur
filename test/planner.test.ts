@@ -365,7 +365,7 @@ Bench Press / ...Squat / progress: lp(5lb)
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x5 105lb+, 1x3 105lb / 60s / progress: lp(5lb)
-Bench Press / ...Squat / 1x5 105lb+, 1x3 105lb / progress: lp(5lb)
+Bench Press / ...Squat / progress: lp(5lb)
 
 
 `);
@@ -377,7 +377,7 @@ Bench Press / ...Squat / 1x5 105lb+, 1x3 105lb / progress: lp(5lb)
 Squat / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
 
 ## Day 2
-Bench Press / 3x8 / progress: dp(5lb, 8, 12)
+Bench Press / 3x8 150lb / progress: dp(5lb, 8, 12)
 `;
     const newText = PlannerTestUtils.changeExercise(programText, "Squat", {
       id: "overheadPress",
@@ -388,7 +388,7 @@ Bench Press / 3x8 / progress: dp(5lb, 8, 12)
 Overhead Press / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
 
 ## Day 2
-Bench Press / 3x8 / progress: dp(5lb, 8, 12)`);
+Bench Press / 3x8 / 150lb / progress: dp(5lb, 8, 12)`);
   });
 
   it("replace exercise to the one that already exists in the program", () => {
@@ -406,7 +406,7 @@ Bench Press / 3x8 / progress: dp(5lb, 8, 12)
     expect(newText).to.contain(`Bench Press / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
 
 ## Day 2
-Bench Press / 3x8 / progress: dp(5lb, 8, 12)`);
+Bench Press / 3x8 / 78.6% / progress: dp(5lb, 8, 12)`);
     expect(newText.split("\n")[2]).to.match(/^[a-z]{3}: Bench Press/);
   });
 
@@ -435,7 +435,7 @@ Squat / 1x5 100lb, 1x3 200lb / 80lb / 60s / progress: lp(80lb)
     });
     expect(newText.trim()).to.equal(`# Week 1
 ## Day 1
-Squat / 1x5, 1x3 / 100lb / 60s / progress: lp(80lb)`);
+Squat / 1x5, 1x3 / 100lb 60s / progress: lp(80lb)`);
   });
 
   it("properly update default weights", () => {
@@ -515,8 +515,8 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
 tmp: Squat[1-5] / used: none / 2x5 / 86.53% / progress: custom() {~
   weights[3:*:*:*] += 10lb
 ~}
-Squat[1-2] / ...tmp: Squat / 86.53% / progress: custom() { ...tmp: Squat }
-Bench Press[1-2] / ...tmp: Squat / 86.53% / progress: custom() { ...tmp: Squat }
+Squat[1-2] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
+Bench Press[1-2] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
 
 
 # Week 2
@@ -532,8 +532,8 @@ Bench Press / ...tmp: Squat / 126.8lb
 
 # Week 4
 ## Day 1
-Squat[4-5] / ...tmp: Squat / 86.53%
-Bench Press[4-5] / ...tmp: Squat / 86.53%
+Squat[4-5] / ...tmp: Squat
+Bench Press[4-5] / ...tmp: Squat
 
 
 # Week 5
@@ -603,8 +603,8 @@ Bicep Curl[2-5] / 5x5
     expect(newText).to.equal(`# Week 1
 ## Day 1
 tmp: Squat[1-5] / used: none / 2x5 / 86.53%
-Squat[3,1-5] / ...tmp: Squat / 86.53%
-Bench Press[2,1-5] / ...tmp: Squat / 86.53%
+Squat[3,1-5] / ...tmp: Squat
+Bench Press[2,1-5] / ...tmp: Squat
 
 
 # Week 2

@@ -13,7 +13,7 @@ import { EditProgramLenses } from "../../models/editProgramLenses";
 import { Button } from "../button";
 import { ModalEditSet } from "../modalEditSet";
 import { EditProgressEntry } from "../../models/editProgressEntry";
-import { IEvaluatedProgram, IEvaluatedProgramDay, Program } from "../../models/program";
+import { IEvaluatedProgram, Program } from "../../models/program";
 import { StringUtils } from "../../utils/string";
 import { Exercise } from "../../models/exercise";
 import { Weight } from "../../models/weight";
@@ -21,7 +21,6 @@ import { Markdown } from "../markdown";
 
 interface IProgramPreviewPlaygroundDayProps {
   program: IEvaluatedProgram;
-  programDay: IEvaluatedProgramDay;
   weekName?: string;
   day: number;
   isPlayground: boolean;
@@ -57,7 +56,8 @@ export const ProgramPreviewPlaygroundDay = memo(
         </h3>
         {programDay.description && <Markdown value={programDay.description} />}
         {props.progress.entries.map((entry, index) => {
-          const programExercise = props.programDay.exercises.find((e) => e.key === entry.programExerciseId);
+          const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
+          const programExercise = dayExercises.find((e) => e.key === entry.programExerciseId);
           if (!programExercise) {
             return null;
           }

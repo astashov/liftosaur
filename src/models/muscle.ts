@@ -187,7 +187,8 @@ export namespace Muscle {
       hypertrophy: {},
     };
 
-    return programDay.exercises.reduce(
+    const dayExercises = Program.getProgramDayExercises(programDay);
+    return dayExercises.reduce(
       (memo, exercise) => {
         return mergePoints(memo, getPointsForExercise(program, exercise, programDay.dayData, settings));
       },
@@ -203,7 +204,8 @@ export namespace Muscle {
     const screenMusclePoints: IScreenMusclePointsColl = {};
     const exercisePoints: IExercisePointsColl = {};
 
-    return programDay.exercises.reduce(
+    const dayExercises = Program.getProgramDayExercises(programDay);
+    return dayExercises.reduce(
       (memo, exercise) => {
         return mergeUnifiedPoints(memo, getUnifiedPointsForExercise(program, exercise, programDay.dayData, settings));
       },

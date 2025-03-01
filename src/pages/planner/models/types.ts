@@ -109,6 +109,8 @@ export interface IPlannerProgramReuse {
   week?: number;
   day?: number;
   exercise?: IPlannerProgramExercise;
+  exerciseKey?: string;
+  exerciseLabel?: string;
   exerciseWeek?: number;
   exerciseDayInWeek?: number;
   exerciseDay?: number;
@@ -123,6 +125,7 @@ export interface IPlannerProgramProperty {
   reuse?: IPlannerProgramProperty;
   liftoscriptNode?: SyntaxNode;
   exerciseType?: IExerciseType;
+  exerciseLabel?: string;
   exerciseKey?: string;
   label?: string;
   meta?: {

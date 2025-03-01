@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Reducer } from "preact/hooks";
-import { Program } from "../models/program";
+import { emptyProgramId, Program } from "../models/program";
 import { Progress } from "../models/progress";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
@@ -577,7 +577,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       throw new StateError("FinishProgramDayAction: no progress");
     } else {
       const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
-      const program = state.storage.programs[programIndex];
+      const program =
+        progress.programId === emptyProgramId ? Program.createEmptyProgram() : state.storage.programs[programIndex];
       const evaluatedProgram = Program.evaluate(program, settings);
       Progress.stopTimer(progress);
       const historyRecord = History.finishProgramDay(progress, state.storage.settings, progress.day, evaluatedProgram);

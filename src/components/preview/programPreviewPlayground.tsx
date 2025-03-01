@@ -54,7 +54,8 @@ export const ProgramPreviewPlayground = memo(
             dayNumber += 1;
             const progress = Program.nextHistoryRecord(props.program, props.settings, dayNumber);
             const programDay = Program.getProgramDay(initialEvaluatedProgram, dayNumber);
-            const exerciseTags = new Set(programDay?.exercises.map((e) => e.tags).flat());
+            const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
+            const exerciseTags = new Set(dayExercises.map((e) => e.tags).flat());
             const states = ObjectUtils.filter(initialEvaluatedProgram.states, (key, state) => {
               return exerciseTags.has(key);
             });
@@ -83,14 +84,12 @@ export const ProgramPreviewPlayground = memo(
                 {programWeekDescription && <Markdown value={programWeekDescription} />}
                 <div className="flex flex-wrap justify-center mt-4" style={{ gap: "3rem" }}>
                   {week.days.map((d: IProgramPreviewPlaygroundDaySetupWithProgress, i) => {
-                    const evaluatedProgramDay = evaluatedProgram.weeks[weekIndex]?.days[i];
                     return (
                       <div style={{ maxWidth: "24rem", minWidth: "14rem" }} className="flex-1">
                         <ProgramPreviewPlaygroundDay
                           weekName={state.progresses.length > 1 ? week.name : undefined}
                           day={d.day}
                           program={evaluatedProgram}
-                          programDay={evaluatedProgramDay}
                           progress={d.progress}
                           settings={state.settings}
                           isPlayground={state.isPlayground}

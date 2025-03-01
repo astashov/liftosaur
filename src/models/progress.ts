@@ -607,9 +607,10 @@ export namespace Progress {
     if (!programDay) {
       return aProgress;
     }
+    const dayExercises = Program.getProgramDayExercises(programDay);
     const programExercises = programExerciseIds
-      ? CollectionUtils.compact(programExerciseIds.map((id) => programDay.exercises.find((e) => e.key === id)))
-      : programDay.exercises;
+      ? CollectionUtils.compact(programExerciseIds.map((id) => dayExercises.find((e) => e.key === id)))
+      : dayExercises;
 
     return {
       ...aProgress,
@@ -1089,11 +1090,12 @@ export namespace Progress {
     if (!programDay) {
       return progress;
     }
+    const dayExercises = Program.getProgramDayExercises(programDay);
     const newEntries = progress.entries
       .filter(
         (e) =>
           !e.programExerciseId ||
-          (programDay.exercises.some((ex) => ex.key === e.programExerciseId) &&
+          (dayExercises.some((ex) => ex.key === e.programExerciseId) &&
             !(progress.deletedProgramExercises || {})[e.programExerciseId])
       )
       .map((progressEntry) => {
@@ -1104,7 +1106,7 @@ export namespace Progress {
         if (programExerciseIds && programExerciseIds.indexOf(programExerciseId) === -1) {
           return progressEntry;
         }
-        const programExercise = programDay.exercises.find((e) => e.key === programExerciseId);
+        const programExercise = dayExercises.find((e) => e.key === programExerciseId);
         if (programExercise == null) {
           return progressEntry;
         }
@@ -1114,17 +1116,17 @@ export namespace Progress {
     const sortedNewEntries = CollectionUtils.sortInOrder(
       newEntries,
       "programExerciseId",
-      programDay.exercises.map((e) => e.key)
+      dayExercises.map((e) => e.key)
     );
 
-    const newProgramExercises = programDay.exercises.filter(
+    const newProgramExercises = dayExercises.filter(
       (e) => !progress.entries.some((ent) => ent.programExerciseId === e.key)
     );
     const additionalEntries =
       programExerciseIds == null
         ? CollectionUtils.compact(
             newProgramExercises.map((programDayExercise) => {
-              const programExercise = programDay.exercises.find((e) => e.key === programDayExercise.key);
+              const programExercise = dayExercises.find((e) => e.key === programDayExercise.key);
               if (!programExercise) {
                 return undefined;
               }
