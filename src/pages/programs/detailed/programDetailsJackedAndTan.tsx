@@ -5,12 +5,13 @@ import { ObjectUtils } from "../../../utils/object";
 import { IconEditSquare } from "../../../components/icons/iconEditSquare";
 import { IconCheckCircle } from "../../../components/icons/iconCheckCircle";
 import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
-import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
 import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsExerciseExample } from "../programDetails/programDetailsExerciseExample";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
+import { Program } from "../../../models/program";
+import { PP } from "../../../models/pp";
 
 export interface IProgramDetailsJackedAndTanProps {
   settings: ISettings;
@@ -21,20 +22,19 @@ export interface IProgramDetailsJackedAndTanProps {
 
 export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
-  const weekSetup = buildWeekSetup(program);
   const programForMuscles = ObjectUtils.clone(program);
-  const t3Exercises = programForMuscles.exercises.filter((e) => /(T3|T2b)/.test(e.description || ""));
-  for (const exercise of t3Exercises) {
-    for (const variation of exercise.variations) {
-      for (const sets of variation.sets) {
-        sets.repsExpr = "10";
+  const evaluatedProgram = Program.evaluate(programForMuscles, props.settings);
+  PP.iterate2(evaluatedProgram.weeks, (exercise) => {
+    if (exercise.descriptions.some((d) => /(T3|T2b)/.test(d.value))) {
+      for (const setVariation of exercise.evaluatedSetVariations) {
+        for (const set of setVariation.sets) {
+          set.maxrep = 10;
+        }
       }
     }
-  }
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(programForMuscles, props.settings));
-  const t1Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "squat")!;
-  const t2Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "deficitDeadlift")!;
-  const t3Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "tricepsPushdown")!;
+  });
+
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
 
   return (
     <section className="px-4">
@@ -127,10 +127,10 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
           <p className="text-xs text-grayv2-main">Note that first RM sets are approximate in this example</p>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={props.program}
-              programExercise={t1Exercise}
+              program={evaluatedProgram}
               settings={props.settings}
-              weekSetup={weekSetup}
+              programExerciseKey="squat"
+              exerciseType={{ id: "squat", equipment: "barbell" }}
             />
           </div>
           <h3>T2a Exercise</h3>
@@ -144,10 +144,10 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
           </p>
           <p>You skip the exercise on the Week 6 and Week 12, when you measure your 1RM for T1 exercise.</p>
           <ProgramDetailsExerciseExample
-            program={props.program}
-            programExercise={t2Exercise}
+            program={evaluatedProgram}
             settings={props.settings}
-            weekSetup={weekSetup}
+            programExerciseKey="deficit deadlift"
+            exerciseType={{ id: "deficitDeadlift", equipment: "barbell" }}
           />
           <h3>T2b and T3 Exercises</h3>
           <p>
@@ -160,10 +160,10 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
           <p>You skip these exercises on the Week 7 and Week 12</p>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={props.program}
-              programExercise={t3Exercise}
+              program={evaluatedProgram}
               settings={props.settings}
-              weekSetup={weekSetup}
+              programExerciseKey="triceps pushdown"
+              exerciseType={{ id: "tricepsPushdown", equipment: "cable" }}
             />
           </div>
           <p>
@@ -197,24 +197,10 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
         exercise variables (weight, reps, TM, RIR, etc) by clicking on the <IconEditSquare className="inline-block" />{" "}
         icon.
       </p>
-      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} weekSetup={weekSetup} />
+      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} />
       <div className="mt-8">
         <ProgramDetailsUpsell />
       </div>
     </section>
   );
-}
-
-function buildWeekSetup(program: IProgram): IProgramPreviewPlaygroundWeekSetup[] {
-  const weekSetup: IProgramPreviewPlaygroundWeekSetup[] = [];
-  let dayIndex = 1;
-  for (const week of program.weeks) {
-    const days = [];
-    for (const _ of week.days) {
-      days.push({ dayIndex, states: {} });
-      dayIndex += 1;
-    }
-    weekSetup.push({ name: week.name, days });
-  }
-  return weekSetup;
 }

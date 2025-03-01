@@ -25,10 +25,6 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
   const evaluatedProgram = Program.evaluate(programForMuscles, props.settings);
   const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
 
-  const t1Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "squat")!;
-  const t2Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "inclineBenchPress")!;
-  const t3Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "bicepCurl")!;
-
   return (
     <section className="px-4">
       <h1 className="text-2xl font-bold leading-8 text-center">
@@ -79,8 +75,9 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
           </p>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={props.program}
-              programExercise={t1Exercise}
+              program={evaluatedProgram}
+              programExerciseKey="t1-squat"
+              exerciseType={{ id: "squat", equipment: "barbell" }}
               settings={props.settings}
             />
           </div>
@@ -98,10 +95,11 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
           <p></p>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={props.program}
-              programExercise={t2Exercise}
+              program={evaluatedProgram}
               settings={props.settings}
-              weekRange={[0, 8]}
+              programExerciseKey="t2-incline bench press"
+              exerciseType={{ id: "inclineBenchPress", equipment: "barbell" }}
+              weekSetup={evaluatedProgram.weeks.slice(0, 8).map((w) => ({ name: w.name }))}
             />
           </div>
           <h3>T3 Exercise</h3>
@@ -129,9 +127,10 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
           </p>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={props.program}
-              programExercise={t3Exercise}
+              program={evaluatedProgram}
               settings={props.settings}
+              programExerciseKey="t3-bicep curl"
+              exerciseType={{ id: "bicepCurl", equipment: "dumbbell" }}
             />
           </div>
           <p>

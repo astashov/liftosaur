@@ -88,7 +88,7 @@ export namespace ParserTestUtils {
       fns,
       "lb",
       { unit: "lb", prints: [] },
-      "regular"
+      "planner"
     );
     return scriptRunner.execute();
   }

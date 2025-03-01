@@ -10,8 +10,8 @@ import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
-import { buildWeekSetup } from "../../../components/programPreviewOrPlayground";
 import { Program } from "../../../models/program";
+import { PP } from "../../../models/pp";
 
 export interface IProgramDetailsTheRipplerProps {
   settings: ISettings;
@@ -22,17 +22,18 @@ export interface IProgramDetailsTheRipplerProps {
 
 export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps): JSX.Element {
   const program = Program.fullProgram(ObjectUtils.clone(props.program), props.settings);
-  const weekSetup = buildWeekSetup(program);
   const programForMuscles = ObjectUtils.clone(program);
-  const t3Exercises = programForMuscles.exercises.filter((e) => /(T3a|T3b)/.test(e.description || ""));
-  for (const exercise of t3Exercises) {
-    for (const variation of exercise.variations) {
-      for (const sets of variation.sets) {
-        sets.repsExpr = "10";
+  const evaluatedProgram = Program.evaluate(programForMuscles, props.settings);
+  PP.iterate2(evaluatedProgram.weeks, (exercise) => {
+    if (exercise.descriptions.some((d) => /(T3|T2b)/.test(d.value))) {
+      for (const setVariation of exercise.evaluatedSetVariations) {
+        for (const set of setVariation.sets) {
+          set.maxrep = 10;
+        }
       }
     }
-  }
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(programForMuscles, props.settings));
+  });
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
   const t1Pct = [80, 85, 82.5, 87.5, 85, 90, 87.5, 92.5, 90, 95, 85, 95];
   const t2Pct = [68, 72, 76, 70, 74, 78, 72, 76, 80, 85];
 
@@ -76,10 +77,13 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
           <h3>Example of a T1 exercise sets/reps/weight week over week</h3>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={program}
-              programExercise={program.exercises.find((pe) => pe.exerciseType.id === "benchPress")!}
+              program={evaluatedProgram}
               settings={props.settings}
-              weekSetup={weekSetup.slice(0, 12).map((w, i) => ({ ...w, name: `${w.name} (${t1Pct[i]}%)` }))}
+              programExerciseKey="bench press"
+              exerciseType={{ id: "benchPress", equipment: "barbell" }}
+              weekSetup={evaluatedProgram.weeks
+                .slice(0, 12)
+                .map((w, i) => ({ ...w, name: `${w.name} (${t1Pct[i]}%)` }))}
             />
           </div>
           <p>
@@ -91,10 +95,13 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
           <h3>Example of a T2 exercise sets/reps/weight week over week</h3>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={program}
-              programExercise={program.exercises.find((pe) => pe.exerciseType.id === "inclineBenchPress")!}
+              program={evaluatedProgram}
+              programExerciseKey="incline bench press"
+              exerciseType={{ id: "inclineBenchPress", equipment: "barbell" }}
               settings={props.settings}
-              weekSetup={weekSetup.slice(0, 10).map((w, i) => ({ ...w, name: `${w.name} (${t2Pct[i]}%)` }))}
+              weekSetup={evaluatedProgram.weeks
+                .slice(0, 10)
+                .map((w, i) => ({ ...w, name: `${w.name} (${t2Pct[i]}%)` }))}
             />
           </div>
           <p>
@@ -149,7 +156,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
         exercise variables (weight, reps, TM, RIR, etc) by clicking on the <IconEditSquare className="inline-block" />{" "}
         icon.
       </p>
-      <ProgramDetailsWorkoutPlayground program={program} settings={props.settings} weekSetup={weekSetup} />
+      <ProgramDetailsWorkoutPlayground program={program} settings={props.settings} />
       <div className="mt-8">
         <ProgramDetailsUpsell />
       </div>

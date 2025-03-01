@@ -5,11 +5,11 @@ import { ObjectUtils } from "../../../utils/object";
 import { IconEditSquare } from "../../../components/icons/iconEditSquare";
 import { IconCheckCircle } from "../../../components/icons/iconCheckCircle";
 import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
-import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
 import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
+import { Program } from "../../../models/program";
 
 export interface IProgramDetailsGzclVdipProps {
   settings: ISettings;
@@ -21,8 +21,8 @@ export interface IProgramDetailsGzclVdipProps {
 export function ProgramDetailsGzclVdip(props: IProgramDetailsGzclVdipProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
   const programForMuscles = ObjectUtils.clone(program);
-  const weekSetup = buildWeekSetup();
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(programForMuscles, props.settings));
+  const evaluatedProgram = Program.evaluate(programForMuscles, props.settings);
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
 
   return (
     <section className="px-4">
@@ -121,23 +121,10 @@ export function ProgramDetailsGzclVdip(props: IProgramDetailsGzclVdipProps): JSX
         exercise variables (weight, reps, TM, RIR, etc) by clicking on the <IconEditSquare className="inline-block" />{" "}
         icon.
       </p>
-      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} weekSetup={weekSetup} />
+      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} />
       <div className="mt-8">
         <ProgramDetailsUpsell />
       </div>
     </section>
   );
-}
-
-function buildWeekSetup(): IProgramPreviewPlaygroundWeekSetup[] {
-  const days = [];
-  for (let day = 1; day <= 5; day++) {
-    days.push({ dayIndex: day, states: {} });
-  }
-  return [
-    {
-      name: "Week 1",
-      days,
-    },
-  ];
 }

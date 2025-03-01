@@ -6,7 +6,7 @@ import { Input } from "../../../components/input";
 import { Scroller } from "../../../components/scroller";
 import { equipmentName, Exercise } from "../../../models/exercise";
 import { IEvaluatedProgram, Program } from "../../../models/program";
-import { IExerciseType, ISettings, IWeight } from "../../../types";
+import { IExerciseType, IHistoryEntry, ISettings, IWeight } from "../../../types";
 import { ProgramDetailsExerciseExampleGraph } from "./programDetailsExerciseExampleGraph";
 import { Weight } from "../../../models/weight";
 import { PP } from "../../../models/pp";
@@ -17,16 +17,15 @@ export interface IProgramDetailsExerciseExampleProps {
   program: IEvaluatedProgram;
   exerciseType: IExerciseType;
   programExerciseKey: string;
-  weekRange?: [number, number];
+  weekSetup?: { name?: string }[];
 }
 
 export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExampleProps): JSX.Element {
   const exerciseType = props.exerciseType;
   const exercise = Exercise.get(exerciseType, props.settings.exercises);
   let dayInWeek: number | undefined;
-  const [weekFrom, weekTo] = props.weekRange ?? [1, props.program.weeks.length];
-  const weeks = props.program.weeks.slice(weekFrom - 1, weekTo);
-  PP.iterate2(weeks, (ex, weekIndex, dayInWeekIndex, dayIndex) => {
+  const weekSetup = props.weekSetup || props.program.weeks.map((w) => ({ name: w.name }));
+  PP.iterate2(props.program.weeks, (ex, weekIndex, dayInWeekIndex, dayIndex) => {
     if (ex.key === props.programExerciseKey) {
       dayInWeek = dayInWeekIndex + 1;
       return true;
@@ -41,17 +40,25 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
     exerciseData: { ...props.settings.exerciseData, [Exercise.toKey(props.exerciseType)]: { rm1: onerm } },
   };
   const weekEntries = CollectionUtils.compact(
-    weeks.map((week) => {
+    weekSetup.map((w, weekIndex) => {
+      const week = props.program.weeks[weekIndex];
       const programDay = week.days[(dayInWeek ?? 1) - 1];
       const programExercise = CollectionUtils.findBy(programDay.exercises, "key", props.programExerciseKey);
-      if (!programExercise) {
-        return undefined;
-      }
+      const entry: IHistoryEntry = programExercise
+        ? Program.nextHistoryEntry(props.program, programDay.dayData, programExercise, settings)
+        : {
+            exercise: exerciseType,
+            warmupSets: [],
+            sets: [
+              {
+                originalWeight: Weight.build(0, settings.units),
+                weight: Weight.build(0, settings.units),
+                reps: 0,
+              },
+            ],
+          };
 
-      return {
-        label: week.name,
-        entry: Program.nextHistoryEntry(props.program, programDay.dayData, programExercise, settings),
-      };
+      return { label: w.name ?? week.name, entry };
     })
   );
 
