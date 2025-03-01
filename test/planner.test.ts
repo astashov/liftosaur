@@ -6,7 +6,6 @@ import { IPlannerProgram, IUnit } from "../src/types";
 import { Settings } from "../src/models/settings";
 import { PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
 import { Weight } from "../src/models/weight";
-import { Program } from "../src/models/program";
 
 describe("Planner", () => {
   it("updates weight after completing", () => {
@@ -594,22 +593,12 @@ Bicep Curl[2-5] / 5x5
 # Week 5
 ## Day 1
 `;
-    let { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils.finish(programText, {
       completedReps: [
         [5, 5],
         [5, 5],
       ],
     });
-    program = Program.fullProgram(program, Settings.build());
-    const exerciseNamesWeek3 = program.weeks[2].days
-      .map((d1) =>
-        program.days
-          .find((d2) => d1.id === d2.id)!
-          .exercises.map((e1) => program.exercises.find((e2) => e1.id === e2.id))
-      )
-      .flat(3)
-      .map((e) => e!.name);
-    expect(exerciseNamesWeek3).to.eql(["Bicep Curl", "Bench Press", "Squat"]);
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
@@ -650,13 +639,10 @@ Squat, Smith Machine / 1x1 100lb / progress: custom() { ...Squat }
 ## Day 2
 Squat / 1x1 100lb / progress: custom() {~ weights += 5lb ~}
 `;
-    let { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils.finish(programText, {
       completedReps: [[1], [1]],
     });
-    program = Program.fullProgram(program, Settings.build());
-    const weight = program.exercises.find((e) => e.name === "Pec Deck")!.variations[0].sets[0].weightExpr;
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
-    expect(weight).to.equal("105lb");
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Pec Deck / 1x1 / 105lb / progress: custom() { ...Squat }

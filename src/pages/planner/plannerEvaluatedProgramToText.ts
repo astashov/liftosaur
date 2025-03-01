@@ -229,7 +229,7 @@ export class PlannerEvaluatedProgramToText {
         continue;
       }
       setStr += `${repRange.numberOfSets}${addQuickAddSet ? "+" : ""}x`;
-      setStr += repRange.minrep !== repRange.maxrep ? `${Math.max(0, repRange.minrep)}-` : "";
+      setStr += repRange.minrep != null ? `${Math.max(0, repRange.minrep)}-` : "";
       setStr += `${Math.max(0, repRange.maxrep)}`;
       setStr += repRange.isAmrap ? "+" : "";
       const weightValue =

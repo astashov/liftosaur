@@ -2,7 +2,6 @@
 import { Exercise } from "./exercise";
 import { Reps } from "./set";
 import { Weight } from "./weight";
-import { Screen } from "./screen";
 import { DateUtils } from "../utils/date";
 import { lf, lb } from "lens-shmens";
 import { ObjectUtils } from "../utils/object";
@@ -929,15 +928,6 @@ export namespace Progress {
         [programExerciseId]: userPromptedStateVars,
       },
     };
-  }
-
-  export function editDayAction(dispatch: IDispatch, programId: string, dayIndex: number): void {
-    updateState(dispatch, [
-      lb<IState>().p("editProgram").record({ id: programId, dayIndex: dayIndex }),
-      lb<IState>()
-        .p("screenStack")
-        .recordModify((s) => Screen.push(s, "editProgramDay")),
-    ]);
   }
 
   export function editExerciseNotes(dispatch: IDispatch, progressId: number, entryIndex: number, notes: string): void {

@@ -371,7 +371,14 @@ export function EditProgramV2(props: IProps): JSX.Element {
                     );
                   } else {
                     plannerDispatch(
-                      lb<IPlannerState>().p("current").p("program").p("weeks").i(modal.weekIndex).p("name").record(name)
+                      lb<IPlannerState>()
+                        .p("current")
+                        .p("program")
+                        .pi("planner")
+                        .p("weeks")
+                        .i(modal.weekIndex)
+                        .p("name")
+                        .record(name)
                     );
                   }
                 }

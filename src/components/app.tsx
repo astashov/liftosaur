@@ -447,6 +447,7 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.editProgramScreens.indexOf(Screen.currentName(state.screenStack)) !== -1) {
     let editProgram = Program.getEditingProgram(state);
     editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
+    const evaluatedProgram = editProgram ? Program.evaluate(editProgram, state.storage.settings) : undefined;
     if (editProgram != null) {
       content = (
         <ScreenEditProgram
@@ -459,7 +460,10 @@ export function AppView(props: IProps): JSX.Element | null {
           editExercise={state.editExercise}
           dispatch={dispatch}
           programIndex={Program.getEditingProgramIndex(state)}
-          dayIndex={Math.min(state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 0, editProgram.days.length - 1)}
+          dayIndex={Math.min(
+            state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 0,
+            evaluatedProgram ? Program.numberOfDays(evaluatedProgram) - 1 : 1
+          )}
           weekIndex={state.editProgram?.weekIndex}
           editProgram={editProgram}
           plannerState={state.editProgramV2}

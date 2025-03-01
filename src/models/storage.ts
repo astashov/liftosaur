@@ -150,15 +150,6 @@ export namespace Storage {
     return storage.programs != null && storage.history != null && storage.stats != null;
   }
 
-  export function updateIds(storage: IStorage | IPartialStorage): void {
-    storage.originalId = storage.id;
-    for (const program of storage.programs || []) {
-      for (const exercise of program.exercises) {
-        exercise.diffPaths = [];
-      }
-    }
-  }
-
   export function partialStorageToStorage(partialStorage: IPartialStorage): IStorage {
     if (partialStorage.history != null && partialStorage.programs != null && partialStorage.stats != null) {
       return partialStorage as IStorage;

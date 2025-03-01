@@ -193,9 +193,12 @@ export class PlannerExerciseEvaluator {
     }
     const [numberOfSetsStr, repRangeStr] = setParts.split("x", 2);
     // eslint-disable-next-line prefer-const
-    let [minrepStr, maxrepStr] = repRangeStr.split("-", 2);
+    const reprange = repRangeStr.split("-", 2);
+    let minrepStr: string | undefined = reprange[0];
+    let maxrepStr: string | undefined = reprange[1];
     if (!maxrepStr) {
       maxrepStr = minrepStr;
+      minrepStr = undefined;
     }
     let isAmrap = false;
     if (maxrepStr.endsWith("+")) {
@@ -204,7 +207,7 @@ export class PlannerExerciseEvaluator {
     }
     return {
       numberOfSets: parseInt(numberOfSetsStr, 10),
-      minrep: parseInt(minrepStr, 10),
+      minrep: minrepStr != null ? parseInt(minrepStr, 10) : undefined,
       maxrep: parseInt(maxrepStr, 10),
       isAmrap: isAmrap,
       isQuickAddSet: numberOfSetsStr.endsWith("+"),

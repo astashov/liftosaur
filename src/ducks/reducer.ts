@@ -271,16 +271,6 @@ export type ICreateProgramAction = {
   name: string;
 };
 
-export type ICreateDayAction = {
-  type: "CreateDayAction";
-  weekIndex?: number;
-};
-
-export type IEditDayAction = {
-  type: "EditDayAction";
-  index: number;
-};
-
 export type IApplyProgramChangesToProgress = {
   type: "ApplyProgramChangesToProgress";
   programExerciseIds?: string[];
@@ -318,8 +308,6 @@ export type IAction =
   | IReplaceStateAction
   | IUpdateSettingsAction
   | ICreateProgramAction
-  | ICreateDayAction
-  | IEditDayAction
   | IApplyProgramChangesToProgress;
 
 let timerId: number | undefined = undefined;
@@ -337,26 +325,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
         const oldProgram = Program.getProgram(oldState, progress.programId);
         const newProgram = Program.getProgram(newState, progress.programId);
         if (oldProgram != null && newProgram != null && !ObjectUtils.isEqual(oldProgram, newProgram)) {
-          const programChanges = ObjectUtils.changedKeys(oldProgram, newProgram);
-          if (ObjectUtils.keys(programChanges).length === 1 && programChanges.exercises === "update") {
-            const changedExerciseIds = Array.from(
-              new Set(CollectionUtils.diff(oldProgram.exercises, newProgram.exercises).map((e) => e.id))
-            );
-            const onlyState = changedExerciseIds.every((id) => {
-              const oldExercise = oldProgram.exercises.find((e) => e.id === id);
-              const newExercise = newProgram.exercises.find((e) => e.id === id);
-              const exerciseChanges =
-                oldExercise && newExercise ? ObjectUtils.changedKeys(oldExercise, newExercise) : {};
-              return ObjectUtils.keys(exerciseChanges).length === 1 && exerciseChanges.state === "update";
-            });
-            dispatch({
-              type: "ApplyProgramChangesToProgress",
-              programExerciseIds: changedExerciseIds,
-              checkReused: !onlyState,
-            });
-          } else {
-            dispatch({ type: "ApplyProgramChangesToProgress" });
-          }
+          dispatch({ type: "ApplyProgramChangesToProgress" });
         }
       }
     },
@@ -745,38 +714,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     newState = lf(newState).p("editProgram").set({ id: newProgram.id });
     newState = lf(newState).p("storage").p("currentProgramId").set(newProgram.id);
     return lf(newState).p("screenStack").set(pushScreen(state.screenStack, "editProgram", undefined, true));
-  } else if (action.type === "CreateDayAction") {
-    const program = Program.getEditingProgram(state)!;
-    const programIndex = Program.getEditingProgramIndex(state)!;
-    const days = program.days;
-    const dayName = `Day ${days.length + 1}`;
-    const day = Program.createDay(dayName);
-    let newProgram = lf(program)
-      .p("days")
-      .modify((d) => [...d, day]);
-    if (action.weekIndex != null && newProgram.weeks[action.weekIndex] != null) {
-      newProgram = lf(newProgram)
-        .p("weeks")
-        .i(action.weekIndex)
-        .p("days")
-        .modify((d) => [...d, { id: day.id }]);
-    }
-
-    let newState = lf(state).p("storage").p("programs").i(programIndex).set(newProgram);
-    newState = lf(newState)
-      .pi("editProgram")
-      .p("dayIndex")
-      .set(newProgram.days.length - 1);
-    return lf(newState).p("screenStack").set(pushScreen(state.screenStack, "editProgramDay"));
-  } else if (action.type === "EditDayAction") {
-    return {
-      ...state,
-      editProgram: {
-        ...state.editProgram!,
-        dayIndex: action.index,
-      },
-      screenStack: pushScreen(state.screenStack, "editProgramDay"),
-    };
   } else if (action.type === "ApplyProgramChangesToProgress") {
     const progress = state.progress[0];
     if (progress != null) {

@@ -31,6 +31,7 @@ import { lb } from "lens-shmens";
 import { updateSettings } from "../models/state";
 import { ObjectUtils } from "../utils/object";
 import { Settings } from "../models/settings";
+import { Program } from "../models/program";
 
 interface IExercisesListProps {
   dispatch: IDispatch;
@@ -60,15 +61,16 @@ function buildExercises(exerciseTypes: IExerciseType[], settings: ISettings): IE
 }
 
 export function ExercisesList(props: IExercisesListProps): JSX.Element {
+  const evaluatedProgram = Program.evaluate(props.program, props.settings);
   const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>("");
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
   const [showCustomExerciseModal, setShowCustomExerciseModal] = useState<boolean>(false);
 
   let programExercises = buildExercises(
-    CollectionUtils.uniqByExpr(props.program.exercises, (e) => Exercise.toKey(e.exerciseType)).map(
-      (e) => e.exerciseType
-    ),
+    CollectionUtils.uniqByExpr(Program.getAllProgramExercises(evaluatedProgram), (e) =>
+      Exercise.toKey(e.exerciseType)
+    ).map((e) => e.exerciseType),
     props.settings
   );
   const programExercisesKeys = new Set(programExercises.map((e) => Exercise.toKey(e)));

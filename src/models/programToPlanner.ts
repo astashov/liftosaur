@@ -312,7 +312,7 @@ export class ProgramToPlanner {
         const fullName = Exercise.fullName(exercise, this.settings, progress.reuse.label);
         plannerExercise += `{ ...${fullName} }`;
       } else {
-        plannerExercise += progress.script;
+        plannerExercise += ` ${progress.script}`;
       }
     }
     return plannerExercise;
@@ -456,7 +456,7 @@ export class ProgramToPlanner {
       const set = group[0];
       let setStr = "";
       setStr += `${group[1]}${set.isQuickAddSet ? "+" : ""}x`;
-      setStr += set.minrep != null && set.minrep !== set.maxrep ? `${n(Math.max(0, set.minrep))}-` : "";
+      setStr += set.minrep != null ? `${n(Math.max(0, set.minrep))}-` : "";
       setStr += `${n(Math.max(0, set.maxrep))}`;
       setStr += set.isAmrap ? "+" : "";
       if (globals.weight == null) {

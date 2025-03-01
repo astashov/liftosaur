@@ -30,12 +30,11 @@ import {
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
 import { DateUtils } from "../utils/date";
-import { ICustomExercise, IProgramContentSettings, IAllCustomExercises, IPlannerProgram, IPercentage } from "../types";
+import { ICustomExercise, IProgramContentSettings, IPlannerProgram, IPercentage } from "../types";
 import { ProgramExercise } from "./programExercise";
 import { Thunk } from "../ducks/thunks";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { Encoder } from "../utils/encoder";
-import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { ProgramToPlanner } from "./programToPlanner";
@@ -70,6 +69,7 @@ export interface IEvaluatedProgramDay {
 }
 
 export interface IEvaluatedProgram {
+  type: "evaluatedProgram";
   id: string;
   planner: IPlannerProgram;
   name: string;
@@ -77,9 +77,22 @@ export interface IEvaluatedProgram {
   weeks: IEvaluatedProgramWeek[];
   states: IByTag<IProgramState>;
 }
+export type IEProgram = IProgram | IEvaluatedProgram;
 
 export type IProgramMode = "planner" | "update";
 export const emptyProgramId = "emptyprogram";
+
+function isEvaluatedProgram(program: IEProgram): program is IEvaluatedProgram {
+  return "type" in program && program.type === "evaluatedProgram";
+}
+
+export function ev(program: IEProgram, settings: ISettings): IEvaluatedProgram {
+  if (isEvaluatedProgram(program)) {
+    return program;
+  } else {
+    return Program.evaluate(program, settings);
+  }
+}
 
 export namespace Program {
   export function getProgram(state: IState, id?: string): IProgram | undefined {
@@ -127,18 +140,14 @@ export namespace Program {
   }
 
   export function getProgramExercisesFromExerciseType(
-    program: IProgram,
+    program: IEvaluatedProgram,
     exerciseType: IExerciseType
-  ): IProgramExercise[] {
-    return program.exercises.filter((p) => Exercise.eq(p.exerciseType, exerciseType));
+  ): IPlannerProgramExercise[] {
+    return Program.getAllProgramExercises(program).filter((p) => Exercise.eq(p.exerciseType, exerciseType));
   }
 
   export function getEditingProgramIndex(state: IState): number {
     return state.storage.programs.findIndex((p) => p.id === state.editProgram?.id);
-  }
-
-  export function getEditingDay(state: IState): IProgramDay | undefined {
-    return state.storage.programs.find((p) => p.id === state.editProgram?.id)?.days?.[state.editProgram?.dayIndex || 0];
   }
 
   export function getProgramIndex(state: IState, id: string): number {
@@ -220,10 +229,6 @@ export namespace Program {
     return newEntry;
   }
 
-  export function getProgramExerciseById(program: IProgram, id: string): IProgramExercise | undefined {
-    return program.exercises.find((e) => e.id === id);
-  }
-
   export function stateValue(
     state: IProgramState,
     key: string,
@@ -276,16 +281,6 @@ export namespace Program {
         return nextHistoryEntry(program, dayData, exercise, settings);
       }),
     };
-  }
-
-  export function getOtherStates(allProgramExercises: IProgramExercise[]): Record<number, IProgramState> {
-    return allProgramExercises.reduce<Record<number, IProgramState>>((acc, e) => {
-      const tags = e.tags || [];
-      for (const tag of tags) {
-        acc[tag] = ObjectUtils.clone(ProgramExercise.getState(e, allProgramExercises));
-      }
-      return acc;
-    }, {});
   }
 
   export function runExerciseFinishDayScript(
@@ -599,6 +594,10 @@ export namespace Program {
     ]);
   }
 
+  export function getAllProgramExercises(evaluatedProgram: IEvaluatedProgram): IPlannerProgramExercise[] {
+    return evaluatedProgram.weeks.flatMap((w) => w.days.flatMap((d) => d.exercises));
+  }
+
   export function evaluate(program: IProgram, settings: ISettings): IEvaluatedProgram {
     const planner = program.planner;
     if (!planner) {
@@ -632,6 +631,7 @@ export namespace Program {
       }
     });
     return {
+      type: "evaluatedProgram",
       id: program.id,
       planner,
       name: program.name,
@@ -643,6 +643,12 @@ export namespace Program {
 
   export function numberOfDays(program: IEvaluatedProgram): number {
     return program.weeks.reduce((memo, week) => memo + week.days.length, 0);
+  }
+
+  export function weeksRange(program: IEvaluatedProgram): string | undefined {
+    return program.weeks.length > 1
+      ? `${program.weeks.length} ${StringUtils.pluralize("week", program.weeks.length)}`
+      : "";
   }
 
   export function daysRange(program: IEvaluatedProgram): string {
@@ -859,8 +865,8 @@ export namespace Program {
   }
 
   export function exportProgram(program: IProgram, settings: ISettings, version?: string): IExportedProgram {
-    const aFullProgram = Program.fullProgram(program, settings);
-    const customExerciseIds = aFullProgram.exercises.reduce<string[]>((memo, programExercise) => {
+    const aFullProgram = Program.evaluate(program, settings);
+    const customExerciseIds = Program.getAllProgramExercises(aFullProgram).reduce<string[]>((memo, programExercise) => {
       const id = programExercise.exerciseType.id;
       const isBuiltIn = !!Exercise.findById(id, {});
       if (!isBuiltIn) {
@@ -901,16 +907,6 @@ export namespace Program {
       },
     };
     return exportedProgram;
-  }
-
-  export function switchToUnit(program: IProgram, settings: ISettings): IProgram {
-    return { ...program, exercises: program.exercises.map((ex) => ProgramExercise.switchToUnit(ex, settings)) };
-  }
-
-  export function filterCustomExercises(program: IProgram, customExercises: IAllCustomExercises): IAllCustomExercises {
-    return ObjectUtils.filter(customExercises, (id) => {
-      return program.exercises.some((pe) => pe.exerciseType.id === id);
-    });
   }
 
   export function create(name: string, id?: string): IProgram {
@@ -958,36 +954,14 @@ export namespace Program {
       url: newProgram.url,
       author: newProgram.author,
       nextDay: newProgram.nextDay,
-      days: newProgram.planner
-        ? newProgram.days
-        : CollectionUtils.concatBy(oldProgram.days, newProgram.days, (p) => p.id)
-            .map((d) => ({ ...d, exercises: d.exercises.filter((e) => !deletedExercises.has(e.id)) }))
-            .filter((d) => !deletedDays.has(d.id)),
+      days: newProgram.days,
       deletedDays: Array.from(deletedDays),
-      weeks: newProgram.planner
-        ? newProgram.weeks
-        : CollectionUtils.concatBy(oldProgram.weeks, newProgram.weeks, (p) => p.id)
-            .map((d) => ({ ...d, days: d.days.filter((e) => !deletedDays.has(e.id)) }))
-            .filter((d) => !deletedWeeks.has(d.id)),
+      weeks: newProgram.weeks,
       deletedWeeks: Array.from(deletedWeeks),
       isMultiweek: newProgram.isMultiweek,
       tags: newProgram.tags,
       shortDescription: newProgram.shortDescription,
-      exercises: newProgram.planner
-        ? newProgram.exercises
-        : CollectionUtils.concatBy(
-            oldProgram.exercises,
-            newProgram.exercises.map((e) => {
-              const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);
-              if (oldExercise) {
-                const mergedExercise = ProgramExercise.mergeExercises(oldExercise, e, enforceNew);
-                return mergedExercise;
-              } else {
-                return e;
-              }
-            }),
-            (e) => e.id
-          ).filter((e) => !deletedExercises.has(e.id)),
+      exercises: newProgram.exercises,
       deletedExercises: Array.from(deletedExercises),
       clonedAt: newProgram.clonedAt || oldProgram.clonedAt,
       planner: newProgram.planner,

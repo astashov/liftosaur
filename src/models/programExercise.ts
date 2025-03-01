@@ -4,11 +4,9 @@ import {
   IProgramExerciseVariation,
   IProgramExerciseWarmupSet,
   ISettings,
-  IHistoryEntry,
   IProgramSet,
   IUnit,
   IProgramExerciseReuseLogic,
-  IProgram,
   IPercentage,
 } from "../types";
 import { IEvaluatedProgram } from "./program";
@@ -54,12 +52,6 @@ export namespace ProgramExercise {
     }
 
     return programExercise.state;
-  }
-
-  export function getStateForEntry(program: IProgram, entry: IHistoryEntry): IProgramState | undefined {
-    const programExercise = program.exercises.filter((pe) => pe.id === entry.programExerciseId)[0];
-    const allProgramExercises = program.exercises;
-    return getState(programExercise, allProgramExercises);
   }
 
   export function hasUserPromptedVars(programExercise: IPlannerProgramExercise): boolean {

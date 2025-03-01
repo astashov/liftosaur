@@ -10,7 +10,6 @@ import { UidFactory } from "../../utils/generator";
 import { Service } from "../../api/service";
 import { ExerciseImageUtils } from "../../models/exerciseImage";
 import { ExerciseImage } from "../../components/exerciseImage";
-import { StringUtils } from "../../utils/string";
 import { Button } from "../../components/button";
 import { useState } from "preact/hooks";
 import { ModalCreateProgram } from "../../components/modalCreateProgram";
@@ -21,6 +20,7 @@ import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { UrlUtils } from "../../utils/url";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { lb } from "lens-shmens";
+import { ObjectUtils } from "../../utils/object";
 
 export interface IProgramContentListProps {
   service: Service;
@@ -94,9 +94,14 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
       </div>
       <ul>
         {CollectionUtils.sortByExpr(state.storage.programs, (p) => p.clonedAt || 0, true).map((program) => {
-          program = Program.fullProgram(program, state.storage.settings);
-          const usedExerciseIds = new Set(program.days.flatMap((d) => d.exercises.map((e) => e.id)));
-          const usedExercises = program.exercises.filter((e) => usedExerciseIds.has(e.id));
+          const evaluatedProgram = Program.evaluate(program, state.storage.settings);
+          const usedExerciseIds = CollectionUtils.groupByExprUniq(
+            Program.getAllProgramExercises(evaluatedProgram),
+            (e) => Exercise.toKey(e.exerciseType)
+          );
+          const usedExercises = CollectionUtils.compact(
+            ObjectUtils.values(usedExerciseIds).map((e) => e?.exerciseType)
+          );
 
           return (
             <li className="mb-8">
@@ -168,23 +173,23 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                 </span>
               </div>
               <div className="pt-2">
-                {CollectionUtils.uniqByExpr(usedExercises, (e) => Exercise.toKey(e.exerciseType))
-                  .filter((e) => ExerciseImageUtils.exists(e.exerciseType, "small"))
+                {usedExercises
+                  .filter((e) => ExerciseImageUtils.exists(e, "small"))
                   .map((e) => (
                     <ExerciseImage
                       settings={state.storage.settings}
-                      exerciseType={e.exerciseType}
+                      exerciseType={e}
                       size="small"
                       className="w-6 mr-1"
                     />
                   ))}
               </div>
               <div className="pt-1 text-grayv2-main">
-                {program.isMultiweek
-                  ? `${program.weeks.length} ${StringUtils.pluralize("week", program.weeks.length)}, `
-                  : ""}
-                {program.days.length} {StringUtils.pluralize("day", program.days.length)}, {usedExercises.length}{" "}
-                {StringUtils.pluralize("exercise", usedExercises.length)}
+                {CollectionUtils.compact([
+                  Program.weeksRange(evaluatedProgram),
+                  Program.daysRange(evaluatedProgram),
+                  Program.exerciseRange(evaluatedProgram),
+                ]).join(", ")}
               </div>
             </li>
           );

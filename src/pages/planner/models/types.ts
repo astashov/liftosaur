@@ -133,7 +133,7 @@ export interface IPlannerProgramProperty {
 export interface IPlannerProgramExerciseRepRange {
   numberOfSets: number;
   maxrep: number;
-  minrep: number;
+  minrep?: number;
   isAmrap: boolean;
   isQuickAddSet: boolean;
 }

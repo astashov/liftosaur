@@ -20,13 +20,14 @@ export interface IProgramDetailsGzclBurritoButBigProps {
 
 export function ProgramDetailsGzclBurritoButBig(props: IProgramDetailsGzclBurritoButBigProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
-  const programForMuscles = ObjectUtils.clone(program);
   const evaluatedProgram = Program.evaluate(program, props.settings);
-  const t3Exercises = programForMuscles.exercises.filter((e) => /(T3a|T3b)/.test(e.description || ""));
+  const t3Exercises = Program.getAllProgramExercises(evaluatedProgram).filter((e) =>
+    /(T3a|T3b)/.test(e.descriptions.join("") || "")
+  );
   for (const exercise of t3Exercises) {
-    for (const variation of exercise.variations) {
+    for (const variation of exercise.evaluatedSetVariations) {
       for (const sets of variation.sets) {
-        sets.repsExpr = "10";
+        sets.maxrep = 10;
       }
     }
   }

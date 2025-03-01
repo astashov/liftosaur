@@ -132,6 +132,14 @@ export namespace CollectionUtils {
     }, {});
   }
 
+  export function groupByExprUniq<T>(arr: T[], expr: (item: T) => string): Partial<Record<string, T>> {
+    return arr.reduce<Partial<Record<string, T>>>((memo, item) => {
+      const value = expr(item);
+      memo[value] = item;
+      return memo;
+    }, {});
+  }
+
   export function collectToSet<T, K extends keyof T>(arr: T[], key: K): Set<T[K]> {
     const set = new Set<T[K]>();
     for (const el of arr) {

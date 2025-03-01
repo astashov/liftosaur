@@ -75,7 +75,8 @@ export function ProgramPreview(props: IProps): JSX.Element {
       <div className="py-1 text-grayv2-main">
         <IconDoc width={15} height={20} color="#607284" />{" "}
         <span className="align-middle">
-          {program.isMultiweek && `${program.weeks.length} ${StringUtils.pluralize("week", program.weeks.length)}, `}
+          {evaluatedProgram.weeks.length > 1 &&
+            `${evaluatedProgram.weeks.length} ${StringUtils.pluralize("week", evaluatedProgram.weeks.length)}, `}
           {Program.daysRange(evaluatedProgram)}, {Program.exerciseRange(evaluatedProgram)}
         </span>
       </div>

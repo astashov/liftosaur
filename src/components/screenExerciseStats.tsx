@@ -54,8 +54,9 @@ interface IProps {
 export function ScreenExerciseStats(props: IProps): JSX.Element {
   const [showFilters, setShowFilters] = useState(false);
   const exerciseType = props.exerciseType;
-  const programExerciseIds = props.currentProgram
-    ? Program.getProgramExercisesFromExerciseType(props.currentProgram, exerciseType).map((pe) => pe.id)
+  const evaluatedProgram = props.currentProgram ? Program.evaluate(props.currentProgram, props.settings) : undefined;
+  const programExerciseIds = evaluatedProgram
+    ? Program.getProgramExercisesFromExerciseType(evaluatedProgram, exerciseType).map((pe) => pe.key)
     : [];
   const fullExercise = Exercise.get(props.exerciseType, props.settings.exercises);
   const customExercise = props.settings.exercises[exerciseType.id];

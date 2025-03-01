@@ -91,16 +91,6 @@ export namespace Screen {
       }
     }
 
-    const editExercise = state.editExercise;
-    if (editExercise) {
-      let editProgram = Program.getEditingProgram(state);
-      editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
-      const exercise = editProgram?.exercises.find((e) => e.id === editExercise.id);
-      if (exercise == null || !dequal(editExercise, exercise)) {
-        return "Are you sure? Your changes won't be saved";
-      }
-    }
-
     const editProgramV2 = state.editProgramV2;
     if (editProgramV2) {
       let editProgram = Program.getEditingProgram(state);
