@@ -56,7 +56,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
   const hasStateVariables = ObjectUtils.keys(programExercise.state).length > 0;
   const [newState, setNewState] = useState<Partial<IProgramState>>({});
   const dayData = Program.getDayData(props.program, props.day);
-  const [weightChanges, setWeightChanges] = useState(ProgramExercise.weightChanges(programExercise));
+  const [weightChanges, setWeightChanges] = useState(ProgramExercise.weightChanges(props.program, programExercise.key));
   const [showCalculator, setShowCalculator] = useState<
     { type: "state"; value: [string, IUnit] } | { type: "weight"; value: [number, IUnit] } | undefined
   >(undefined);

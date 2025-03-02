@@ -662,10 +662,6 @@ export namespace Program {
       weeks: weeks,
       states,
     };
-    console.log("Evaluted Program", result);
-    result.weeks.forEach((w) =>
-      w.days.forEach((d) => d.exercises.forEach((e) => console.log("State", [e.key, e.state])))
-    );
     return result;
   }
 

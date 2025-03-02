@@ -27,6 +27,7 @@ export interface IPlannerProgramExerciseGlobals {
 }
 
 export type IPlannerProgramExercise = {
+  id: string;
   key: string;
   fullName: string;
   shortName: string;

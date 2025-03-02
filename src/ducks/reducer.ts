@@ -447,11 +447,11 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
           action.mode,
           !!hasUserPromptedVars
         );
-        if (action.programExercise && action.otherStates && !newProgress.ui?.amrapModal) {
+        if (action.programExercise && !newProgress.ui?.amrapModal) {
           newProgress = Progress.runUpdateScript(
             newProgress,
             action.programExercise,
-            action.otherStates,
+            action.otherStates || {},
             action.entryIndex,
             action.setIndex,
             action.mode,
@@ -477,11 +477,11 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         if (ObjectUtils.keys(action.userVars || {}).length > 0 && programExerciseId != null) {
           progress = Progress.updateUserPromptedStateVars(progress, programExerciseId, action.userVars || {});
         }
-        if (action.programExercise && action.otherStates) {
+        if (action.programExercise) {
           progress = Progress.runUpdateScript(
             progress,
             action.programExercise,
-            action.otherStates,
+            action.otherStates || {},
             action.entryIndex,
             action.setIndex,
             "workout",

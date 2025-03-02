@@ -103,17 +103,23 @@ export class PlannerProgram {
     }
     console.log("label suffix", labelSuffix);
 
+    console.log("BEFORE WEEKS", ObjectUtils.clone(evaluatedProgram.weeks));
+    const renameMapping: Record<string, string> = {};
     PP.iterate2(evaluatedProgram.weeks, (exercise) => {
       if (exercise.key === key) {
         console.log("Start renaming");
         exercise.exerciseType = toExerciseType;
-        exercise.label = getLabel(exercise.label);
+        const newLabel = getLabel(exercise.label);
+        exercise.label = newLabel;
+        const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
+        renameMapping[exercise.key] = newKey;
+        exercise.key = newKey;
         for (const property of exercise.properties) {
-          const newLabel = getLabel(property.label);
-          const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
-          property.exerciseKey = newKey;
+          const newPropLabel = getLabel(property.label);
+          const newPropKey = PlannerKey.fromExerciseType(toExerciseType, settings, newPropLabel);
+          property.exerciseKey = newPropKey;
           property.exerciseType = toExerciseType;
-          property.exerciseLabel = newLabel;
+          property.exerciseLabel = newPropLabel;
         }
       }
       if (exercise.reuse?.exerciseKey === key) {
@@ -132,7 +138,8 @@ export class PlannerProgram {
         }
       }
     });
-    const newPlanner = new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
+    console.log("AFTER WEEKS", ObjectUtils.clone(evaluatedProgram.weeks));
+    const newPlanner = new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(renameMapping);
     const newProgram = { ...program, planner: newPlanner };
     const { evaluatedWeeks } = PlannerEvaluator.evaluate(newPlanner, settings);
     let error: PlannerSyntaxError | undefined;
@@ -265,12 +272,15 @@ export class PlannerProgram {
   public static compact(
     oldPlannerProgram: IPlannerProgram,
     plannerProgram: IPlannerProgram,
-    settings: ISettings
+    settings: ISettings,
+    additionalRepeatingExercises?: Set<string>
   ): IPlannerProgram {
     let dayIndex = 0;
     const repeatingExercises = new Set<string>();
     const { evaluatedWeeks } = PlannerProgram.evaluate(ObjectUtils.clone(oldPlannerProgram), settings);
     const { evaluatedWeeks: newEvaluatedWeeks } = PlannerProgram.evaluate(ObjectUtils.clone(plannerProgram), settings);
+    console.log("Compact old evaluated weeks", evaluatedWeeks);
+    console.log("Compact new evaluated weeks", newEvaluatedWeeks);
     for (const ev of [evaluatedWeeks, newEvaluatedWeeks]) {
       PP.iterate(ev, (exercise) => {
         if (exercise.repeat != null && exercise.repeat.length > 0) {
@@ -278,6 +288,10 @@ export class PlannerProgram {
         }
       });
     }
+    for (const ex of additionalRepeatingExercises || []) {
+      repeatingExercises.add(ex);
+    }
+    console.log("Repeating exercises", repeatingExercises);
 
     const lastDescriptions: Partial<Record<number, string | undefined>> = {};
     plannerProgram.weeks.forEach((week) => {

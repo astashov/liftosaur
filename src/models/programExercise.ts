@@ -11,6 +11,7 @@ import { IAssignmentOp, ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvalua
 import { MathUtils } from "../utils/math";
 import { IPlannerProgramExercise, IPlannerProgramExerciseEvaluatedSet } from "../pages/planner/models/types";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { PP } from "./pp";
 
 export interface IWeightChange {
   originalWeight: IWeight | IPercentage;
@@ -89,23 +90,27 @@ export namespace ProgramExercise {
     return expressions.some((e) => ScriptRunner.hasKeyword(e, name));
   }
 
-  export function weightChanges(programExercise: IPlannerProgramExercise): IWeightChange[] {
+  export function weightChanges(program: IEvaluatedProgram, programExerciseKey: string): IWeightChange[] {
     const results: Record<string, IWeightChange> = {};
-    const currentVariationIndex = PlannerProgramExercise.currentSetVariationIndex(programExercise);
-    for (let variationIndex = 0; variationIndex < programExercise.evaluatedSetVariations.length; variationIndex += 1) {
-      const variation = programExercise.evaluatedSetVariations[variationIndex];
-      for (let setIndex = 0; setIndex < variation.sets.length; setIndex += 1) {
-        const set = variation.sets[setIndex];
-        if (set.weight) {
-          const key = Weight.print(set.weight);
-          results[key] = {
-            originalWeight: set.weight,
-            weight: set.weight,
-            current: results[key]?.current || variationIndex + 1 === currentVariationIndex,
-          };
+    PP.iterate2(program.weeks, (exercise) => {
+      if (exercise.key === programExerciseKey) {
+        const currentVariationIndex = PlannerProgramExercise.currentSetVariationIndex(exercise);
+        for (let variationIndex = 0; variationIndex < exercise.evaluatedSetVariations.length; variationIndex += 1) {
+          const variation = exercise.evaluatedSetVariations[variationIndex];
+          for (let setIndex = 0; setIndex < variation.sets.length; setIndex += 1) {
+            const set = variation.sets[setIndex];
+            if (set.weight) {
+              const key = Weight.print(set.weight);
+              results[key] = {
+                originalWeight: set.weight,
+                weight: set.weight,
+                current: results[key]?.current || variationIndex + 1 === currentVariationIndex,
+              };
+            }
+          }
         }
       }
-    }
+    });
     return CollectionUtils.sortBy(ObjectUtils.values(results), "current", true);
   }
 

@@ -14,6 +14,8 @@ import {
 import { IEvaluatedProgram, Program } from "./program";
 import { Exercise } from "./exercise";
 import { CollectionUtils } from "../utils/collection";
+import { PP } from "./pp";
+import { PlannerKey } from "../pages/planner/plannerKey";
 
 interface IPlannerToProgram2Globals {
   weight?: IWeight | IPercentage;
@@ -96,7 +98,7 @@ export class ProgramToPlanner {
     return Array.from(dereuseDecisions);
   }
 
-  public convertToPlanner(): IPlannerProgram {
+  public convertToPlanner(renameMapping: Record<string, string> = {}): IPlannerProgram {
     const plannerWeeks: IPlannerProgramWeek[] = [];
     const plannerProgram = this.program.planner;
     const topLineMap = PlannerProgram.topLineItems(plannerProgram, this.settings);
@@ -162,7 +164,8 @@ export class ProgramToPlanner {
             case "exercise": {
               descriptionIndex = undefined;
               addedCurrentDescription = false;
-              const evalExercise = Program.getProgramExercise(dayIndex + 1, this.program, line.value)!;
+              const value = renameMapping[line.value] || line.value;
+              const evalExercise = Program.getProgramExercise(dayIndex + 1, this.program, value)!;
               const key = evalExercise.key;
               let plannerExercise = "";
               plannerExercise += this.getExerciseName(evalExercise);
@@ -269,7 +272,15 @@ export class ProgramToPlanner {
       plannerWeeks.push(plannerWeek);
     }
     const result: IPlannerProgram = { name: this.program.name, weeks: plannerWeeks };
-    const newPlanner = PlannerProgram.compact(this.program.planner, result, this.settings);
+    const repeatingExercises = new Set<string>();
+    PP.iterate2(this.program.weeks, (exercise) => {
+      if (exercise.repeat != null && exercise.repeat.length > 0) {
+        const key = PlannerKey.fromExerciseType(exercise.exerciseType, this.settings, exercise.label);
+        repeatingExercises.add(key);
+      }
+    });
+    console.log("Pre repeatint exercises", repeatingExercises);
+    const newPlanner = PlannerProgram.compact(this.program.planner, result, this.settings, repeatingExercises);
     console.log(PlannerProgram.generateFullText(newPlanner.weeks));
     return newPlanner;
   }

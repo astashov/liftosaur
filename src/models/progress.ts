@@ -361,7 +361,7 @@ export namespace Progress {
     settings: ISettings,
     timer?: number
   ): IHistoryRecord {
-    if (Progress.isCurrent(progress) && mode === "workout") {
+    if (timer == null && Progress.isCurrent(progress) && mode === "workout") {
       timer = progress.entries[entryIndex]?.sets[setIndex]?.timer;
     }
     if (timer == null) {

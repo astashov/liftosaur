@@ -21,7 +21,7 @@ export class PlannerTestUtils {
     const settings = Settings.build();
     const evaluatedProgram = Program.evaluate(program, settings);
     const programExercise = evaluatedProgram.weeks[0].days[0].exercises[0];
-    const weightChanges = ProgramExercise.weightChanges(programExercise);
+    const weightChanges = ProgramExercise.weightChanges(evaluatedProgram, programExercise.key);
     const newWeightChanges = cb(weightChanges);
     const newEvaluatedProgram = PlannerProgram.replaceWeight(evaluatedProgram, programExercise.key, newWeightChanges);
     const newProgram = Program.applyEvaluatedProgram(program, newEvaluatedProgram, settings);

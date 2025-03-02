@@ -22,6 +22,7 @@ import { Weight } from "../../models/weight";
 import { MathUtils } from "../../utils/math";
 import { PlannerKey } from "./plannerKey";
 import { PlannerProgramExercise } from "./models/plannerProgramExercise";
+import { UidFactory } from "../../utils/generator";
 
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
@@ -951,6 +952,7 @@ export class PlannerExerciseEvaluator {
       }
 
       const plannerExercise: IPlannerProgramExercise = {
+        id: UidFactory.generateUid(8),
         key,
         fullName,
         shortName,
