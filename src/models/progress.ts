@@ -593,7 +593,6 @@ export namespace Progress {
       alert(`Error during executing 'update: custom()' script: ${e.message}`);
       return entry;
     }
-    return entry;
   }
 
   export function runInitialUpdateScripts(

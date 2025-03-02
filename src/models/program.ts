@@ -491,6 +491,8 @@ export namespace Program {
                 }
               });
             }
+          } else {
+            alert(`There was an error executing progress script: ${newStateResult.error}`);
           }
         }
       }
