@@ -33,7 +33,7 @@ Squat / 5x5 65lb / warmup: none / progress: custom(rpe+: 0) {~
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
+  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
 
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").clear();
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").type("8");
@@ -68,7 +68,7 @@ Squat / 5x5 65lb / warmup: none / progress: custom(rpe+: 0) {~
     page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]").nth(1).getByTestId("weight-value")
   ).toContainText("70");
 
-  PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
+  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").clear();
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").type("5");
   await page.getByTestId("modal-amrap-submit").click();

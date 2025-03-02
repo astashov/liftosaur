@@ -24,7 +24,6 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
   const hoursStr = hours.toString().padStart(2, "0");
   const minutes = Math.floor((props.time % 3600000) / 60000);
   const minutesStr = minutes.toString().padStart(2, "0");
-  console.log(props.time, hours, minutes);
   return (
     <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
       <form onSubmit={(e) => e.preventDefault()}>

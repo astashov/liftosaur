@@ -89,7 +89,6 @@ export function EditProgramUiAllSetVariations(props: IEditProgramUiAllSetVariati
                             sets: [
                               {
                                 repRange: {
-                                  minrep: 1,
                                   maxrep: 1,
                                   isAmrap: false,
                                   isQuickAddSet: false,
@@ -151,7 +150,7 @@ export function EditProgramUiAllSetVariations(props: IEditProgramUiAllSetVariati
                       e.setVariations.push({
                         sets: [
                           {
-                            repRange: { minrep: 1, maxrep: 1, isAmrap: false, isQuickAddSet: false, numberOfSets: 1 },
+                            repRange: { maxrep: 1, isAmrap: false, isQuickAddSet: false, numberOfSets: 1 },
                           },
                         ],
                         isCurrent: false,

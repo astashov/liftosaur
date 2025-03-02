@@ -217,7 +217,7 @@ export class PlannerProgramExercise {
     const displaySets: IDisplaySet[] = [];
     for (const set of sets) {
       for (let setIndex = 0; setIndex < (set.repRange?.numberOfSets || 0); setIndex++) {
-        const minReps = set.repRange?.minrep || 0;
+        const minReps = set.repRange?.minrep;
         const maxReps = set.repRange?.maxrep || 0;
         const weight =
           set.percentage != null
@@ -231,7 +231,7 @@ export class PlannerProgramExercise {
           dimRpe: !hasCurrentSets && globals.rpe == null,
           dimWeight: !hasCurrentSets && globals.weight == null && globals.percentage == null,
           dimTimer: !hasCurrentSets && globals.timer == null,
-          reps: `${minReps !== maxReps ? `${minReps}-` : ""}${maxReps}${set.repRange?.isAmrap ? "+" : ""}`,
+          reps: `${minReps != null ? `${minReps}-` : ""}${maxReps}${set.repRange?.isAmrap ? "+" : ""}`,
           rpe: set.rpe?.toString(),
           weight: weight,
           unit,
@@ -294,7 +294,6 @@ export class PlannerProgramExercise {
     if (property.fnName === "custom") {
       return PlannerExerciseEvaluator.fnArgsToStateVars(property.fnArgs, () => undefined);
     } else if (property.fnName === "lp") {
-      console.log("LP", fnArgs);
       const increment = fnArgs[0] ? Weight.parsePct(fnArgs[0]) : Weight.build(0, "lb");
       const decrement = fnArgs[3] ? Weight.parsePct(fnArgs[3]) : Weight.build(0, "lb");
       return {

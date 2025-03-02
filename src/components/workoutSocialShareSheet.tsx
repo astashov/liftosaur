@@ -239,7 +239,6 @@ function WorkoutShareImage(props: IWorkoutShareImageProps): JSX.Element {
 
   const width = 420;
   const ratio = (rect.width / width) * multiplier;
-  console.log("ratio", rect.width / width, ratio);
   return (
     <div
       ref={mainRef}

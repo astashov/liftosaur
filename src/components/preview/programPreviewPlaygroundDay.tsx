@@ -144,7 +144,6 @@ export const ProgramPreviewPlaygroundDay = memo(
               })
             }
             onEditStateVariable={(stateKey, newValue) => {
-              console.log("Edit State Variable", editModalProgramExerciseId, stateKey, newValue);
               const dayData = Program.getDayData(props.program, props.day);
               const lensRecording = EditProgramLenses.properlyUpdateStateVariable(
                 lb<IEvaluatedProgram>()
@@ -157,7 +156,6 @@ export const ProgramPreviewPlaygroundDay = memo(
                 { [stateKey]: Program.stateValue(editModalProgramExercise.state, stateKey, newValue) }
               );
               const newProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), props.program);
-              console.log("New Program", newProgram);
               props.onProgramChange(newProgram);
             }}
             onEditVariable={(variableKey, newValue) => {

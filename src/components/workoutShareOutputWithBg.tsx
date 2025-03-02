@@ -20,7 +20,6 @@ export function WorkoutShareOutputWithBg(props: IWorkoutShareOutputWithBgProps):
   useEffect(() => {
     const workoutHeight = workoutRef.current?.clientHeight || 0;
     const newMultiplier = Math.min(1.0, (height * 0.9) / workoutHeight);
-    console.log("Multiplier", height, height * 0.9, workoutHeight, newMultiplier);
     setMultiplier(newMultiplier);
   }, []);
 

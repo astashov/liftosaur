@@ -118,7 +118,7 @@ export function EditProgramUiSetVariation(props: IEditProgramUiSetVariationProps
             onClick={() => {
               modify((ex) => {
                 ex.setVariations[props.index].sets.push({
-                  repRange: { isAmrap: false, isQuickAddSet: false, minrep: 1, maxrep: 1, numberOfSets: 1 },
+                  repRange: { isAmrap: false, isQuickAddSet: false, maxrep: 1, numberOfSets: 1 },
                 });
               });
             }}
@@ -153,7 +153,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
     return null;
   }
   weight = weight ?? Weight.buildPct(Math.round(Weight.rpeMultiplier(repRange.maxrep, set.rpe ?? 10) * 100));
-  const [showMinReps, setShowMinReps] = useState(repRange.maxrep !== repRange.minrep);
+  const [showMinReps, setShowMinReps] = useState(repRange.minrep != null);
   const [showRpe, setShowRpe] = useState(set.rpe != null);
   const [showTimer, setShowTimer] = useState(set.timer != null);
   const [showMenu, setShowMenu] = useState(false);
@@ -226,6 +226,8 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
                   data-cy="edit-exercise-set-group-more-toggle-rep-range"
                   onClick={() => {
                     if (showMinReps) {
+                      props.onUpdate({ ...set, repRange: { ...repRange, minrep: undefined } });
+                    } else {
                       props.onUpdate({ ...set, repRange: { ...repRange, minrep: repRange.maxrep } });
                     }
                     setShowMinReps(!showMinReps);
@@ -293,9 +295,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
               disabled={props.disabled}
               min={0}
               value={repRange.maxrep}
-              onUpdate={(val) =>
-                props.onUpdate({ ...set, repRange: { ...repRange, minrep: val ?? 1, maxrep: val ?? 1 } })
-              }
+              onUpdate={(val) => props.onUpdate({ ...set, repRange: { ...repRange, maxrep: val ?? 1 } })}
             />
           </div>
         )}

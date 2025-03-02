@@ -12,7 +12,6 @@ import deepmerge from "deepmerge";
 import { Markdown } from "../markdown";
 import { ObjectUtils } from "../../utils/object";
 import { ProgramToPlanner } from "../../models/programToPlanner";
-import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 
 type IProgramPreviewPlaygroundDaySetupWithProgress = IProgramPreviewPlaygroundDaySetup & {
   progress: IHistoryRecord;
@@ -67,10 +66,8 @@ export const ProgramPreviewPlayground = memo(
 
     const [state, dispatch] = useLensReducer(initialState, {}, []);
     const evaluatedProgram = useMemo(() => {
-      console.log("Evaluating program");
       return Program.evaluate(state.program, state.settings);
     }, [state.program, state.settings]);
-    console.log("New Evaluated Program 2", evaluatedProgram);
 
     return (
       <ScrollableTabs
@@ -109,7 +106,6 @@ export const ProgramPreviewPlayground = memo(
                               newEvaluatedProgram,
                               state.settings
                             ).convertToPlanner();
-                            console.log("New Planner", PlannerProgram.generateFullText(newPlanner.weeks));
                             const newProgram = { ...state.program, planner: newPlanner };
                             dispatch([
                               lb<IProgramPreviewPlaygroundState>()
@@ -187,7 +183,6 @@ export const ProgramPreviewPlayground = memo(
                               ...state.settings,
                               exerciseData: deepmerge(state.settings.exerciseData, exerciseData),
                             };
-                            console.log("New Program", newProgram);
                             dispatch([
                               lb<IProgramPreviewPlaygroundState>()
                                 .p("progresses")

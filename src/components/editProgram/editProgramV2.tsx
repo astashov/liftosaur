@@ -92,7 +92,6 @@ export function EditProgramV2(props: IProps): JSX.Element {
   const planner = plannerState.current.program.planner!;
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const evaluatedProgram = Program.evaluate(plannerState.current.program, props.settings);
-  console.log("Next day", props.editProgram.nextDay);
 
   return (
     <Surface

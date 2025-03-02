@@ -198,7 +198,6 @@ export namespace Program {
     const programSets =
       programExercise.evaluatedSetVariations[PlannerProgramExercise.currentSetVariationIndex(programExercise)]?.sets;
     const warmupSets = PlannerProgramExercise.programWarmups(programExercise, settings);
-    console.log("Warup Sets", warmupSets);
     const sets: ISet[] = [];
     for (const programSet of programSets) {
       const minReps =
@@ -318,8 +317,6 @@ export namespace Program {
     const newState: IProgramState = { ...state };
 
     const fnContext = { exerciseType: entry.exercise, unit: settings.units, prints: [] };
-    console.log("script", script);
-    console.log("state", newState);
     try {
       const runner = new ScriptRunner(
         script,
@@ -377,12 +374,9 @@ export namespace Program {
       ...state,
       ...userPromptedStateVars,
     };
-    console.log("Before state", newState);
     const otherStates = ObjectUtils.clone(program.states);
 
     const script = PlannerProgramExercise.getProgressScript(programExercise) || "";
-    console.log("script", script);
-    console.log("bindings", bindings);
     let updates: ILiftoscriptEvaluatorUpdate[] = [];
     try {
       const runner = new ScriptRunner(
@@ -404,7 +398,6 @@ export namespace Program {
         throw e;
       }
     }
-    console.log("After state", newState);
 
     const diffOtherStates = ObjectUtils.keys(otherStates).reduce<IByTag<IProgramState>>((memo, key) => {
       if (!ObjectUtils.isEqual(otherStates[key], program.states[key])) {
@@ -505,7 +498,6 @@ export namespace Program {
 
     const theNextDay = Program.nextDay(newEvaluatedProgram, progress.day);
     const newPlanner = new ProgramToPlanner(newEvaluatedProgram, settings).convertToPlanner();
-    console.log(PlannerProgram.generateFullText(newPlanner.weeks));
     const newProgram = ObjectUtils.clone(program);
     newProgram.nextDay = theNextDay;
     newProgram.planner = newPlanner;

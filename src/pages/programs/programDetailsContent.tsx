@@ -38,7 +38,6 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   };
   const [state, dispatch] = useLensReducer(initialState, { audio: props.audio, service });
   const program = state.programs.filter((p) => p.id === state.selectedProgramId)[0] || state.programs[0];
-  console.log("Program", program);
 
   if (props.selectedProgramId === "arnoldgoldensix") {
     return (

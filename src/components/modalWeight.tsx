@@ -21,7 +21,6 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
   const [weight, setWeight] = useState(
     typeof props.weight == "number" ? Weight.build(props.weight, props.settings.units) : props.weight
   );
-  console.log("Weight", weight);
   return (
     <Modal
       isHidden={props.isHidden}

@@ -93,7 +93,6 @@ export class PlannerProgram {
         const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, getLabel(e.label));
         return e.key === newKey;
       });
-      console.log("Conflicting ex", conflictingExercises);
       if (conflictingExercises.length > 0) {
         noConflicts = false;
         labelSuffix = UidFactory.generateUid(3);
@@ -101,13 +100,10 @@ export class PlannerProgram {
         noConflicts = true;
       }
     }
-    console.log("label suffix", labelSuffix);
 
-    console.log("BEFORE WEEKS", ObjectUtils.clone(evaluatedProgram.weeks));
     const renameMapping: Record<string, string> = {};
     PP.iterate2(evaluatedProgram.weeks, (exercise) => {
       if (exercise.key === key) {
-        console.log("Start renaming");
         exercise.exerciseType = toExerciseType;
         const newLabel = getLabel(exercise.label);
         exercise.label = newLabel;
@@ -138,7 +134,6 @@ export class PlannerProgram {
         }
       }
     });
-    console.log("AFTER WEEKS", ObjectUtils.clone(evaluatedProgram.weeks));
     const newPlanner = new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(renameMapping);
     const newProgram = { ...program, planner: newPlanner };
     const { evaluatedWeeks } = PlannerEvaluator.evaluate(newPlanner, settings);
@@ -279,8 +274,6 @@ export class PlannerProgram {
     const repeatingExercises = new Set<string>();
     const { evaluatedWeeks } = PlannerProgram.evaluate(ObjectUtils.clone(oldPlannerProgram), settings);
     const { evaluatedWeeks: newEvaluatedWeeks } = PlannerProgram.evaluate(ObjectUtils.clone(plannerProgram), settings);
-    console.log("Compact old evaluated weeks", evaluatedWeeks);
-    console.log("Compact new evaluated weeks", newEvaluatedWeeks);
     for (const ev of [evaluatedWeeks, newEvaluatedWeeks]) {
       PP.iterate(ev, (exercise) => {
         if (exercise.repeat != null && exercise.repeat.length > 0) {
@@ -291,7 +284,6 @@ export class PlannerProgram {
     for (const ex of additionalRepeatingExercises || []) {
       repeatingExercises.add(ex);
     }
-    console.log("Repeating exercises", repeatingExercises);
 
     const lastDescriptions: Partial<Record<number, string | undefined>> = {};
     plannerProgram.weeks.forEach((week) => {

@@ -394,6 +394,9 @@ export class PlannerEvaluator {
         exercise.state = PlannerProgramExercise.getStateFromProperty(
           metadata.properties.progress[exercise.key].property
         );
+        exercise.stateMetadata = PlannerProgramExercise.getStateMetadataFromProperty(
+          metadata.properties.progress[exercise.key].property
+        );
       }
     }
 
@@ -568,7 +571,6 @@ export class PlannerEvaluator {
     const { evaluatedWeeks: newEvaluatedWeeks } = this.evaluate(result, settings);
     const error = this.getFirstErrorFromEvaluatedWeeks(newEvaluatedWeeks);
     if (error) {
-      console.log(result.weeks);
       return { success: false, error: error };
     } else {
       return { success: true, data: result };
@@ -671,7 +673,6 @@ export class PlannerEvaluator {
     } => {
       const { evaluatedWeeks, metadata } = PlannerEvaluator.getPerDayEvaluatedWeeks(plannerProgram, settings);
       PlannerEvaluator.postProcess(evaluatedWeeks, settings, metadata);
-      console.log(evaluatedWeeks);
       return { evaluatedWeeks, exerciseFullNames: Array.from(metadata.fullNames) };
     },
     { maxSize: 10 }

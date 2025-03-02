@@ -183,7 +183,6 @@ export class ProgramToPlanner {
 
               const shouldReuseSets = this.shouldReuseSets(evalExercise);
               const dereuseDecisions = shouldReuseSets ? this.getDereuseDecisions(evalExercise) : [];
-              console.log("should reuse sets", shouldReuseSets, dereuseDecisions);
               if (shouldReuseSets) {
                 plannerExercise += this.reuseToStr(evalExercise);
 
@@ -279,9 +278,7 @@ export class ProgramToPlanner {
         repeatingExercises.add(key);
       }
     });
-    console.log("Pre repeatint exercises", repeatingExercises);
     const newPlanner = PlannerProgram.compact(this.program.planner, result, this.settings, repeatingExercises);
-    console.log(PlannerProgram.generateFullText(newPlanner.weeks));
     return newPlanner;
   }
 
@@ -332,7 +329,7 @@ export class ProgramToPlanner {
     if (progress.fnName === "custom") {
       plannerExercise += `(${ObjectUtils.entries(programExercise.state)
         .map(([k, v]) => {
-          return `${k}: ${Weight.print(v)}`;
+          return `${k}${programExercise.stateMetadata[k]?.userPrompted ? "+" : ""}: ${Weight.print(v)}`;
         })
         .join(", ")})`;
     } else if (progress.fnName === "lp") {
@@ -342,7 +339,6 @@ export class ProgramToPlanner {
       const decrement = programExercise.state.decrement as IWeight | IPercentage;
       const failures = programExercise.state.failures as number;
       const failureCounter = programExercise.state.failureCounter as number;
-      console.log(increment, successes, successCounter, decrement, failures, failureCounter);
       const args: string[] = [];
       args.push(Weight.print(increment));
       if (successes > 1 || decrement.value > 0) {
