@@ -309,8 +309,8 @@ export namespace Program {
       entry,
       settings,
       undefined,
-      setVariationIndex,
-      descriptionIndex
+      setVariationIndex + 1,
+      descriptionIndex + 1
     );
     const fns = Progress.createScriptFunctions(settings);
     let updates: ILiftoscriptEvaluatorUpdate[] = [];
@@ -365,8 +365,8 @@ export namespace Program {
       entry,
       settings,
       undefined,
-      setVariationIndex,
-      descriptionIndex
+      setVariationIndex + 1,
+      descriptionIndex + 1
     );
     const fns = Progress.createScriptFunctions(settings);
 

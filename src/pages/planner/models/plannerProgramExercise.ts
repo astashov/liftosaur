@@ -257,7 +257,8 @@ export class PlannerProgramExercise {
   }
 
   public static currentDescription(exercise: IPlannerProgramExercise): string | undefined {
-    return exercise.descriptions.find((d) => d.isCurrent)?.value;
+    const index = this.currentDescriptionIndex(exercise);
+    return exercise.descriptions[index]?.value;
   }
 
   public static currentDescriptionIndex(exercise: IPlannerProgramExercise): number {

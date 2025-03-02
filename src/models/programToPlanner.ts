@@ -30,13 +30,6 @@ type IDereuseDecision = "sets" | "weight" | "rpe" | "timer";
 export class ProgramToPlanner {
   constructor(private readonly program: IEvaluatedProgram, private readonly settings: ISettings) {}
 
-  private getCurrentSetVariationIndex(key: string, weekIndex: number, dayInWeekIndex: number): number {
-    const exercise = this.program.weeks[weekIndex]?.days[dayInWeekIndex]?.exercises?.find((e) => e.key === key);
-    const setVariations = exercise?.setVariations || [];
-    const index = setVariations.findIndex((s) => s.isCurrent);
-    return index === -1 ? 0 : index;
-  }
-
   private getCurrentDescriptionIndex(key: string, weekIndex: number, dayInWeekIndex: number): number {
     const exercise = this.program.weeks[weekIndex]?.days[dayInWeekIndex]?.exercises?.find((e) => e.key === key);
     const descriptions = exercise?.descriptions || [];
@@ -173,11 +166,6 @@ export class ProgramToPlanner {
               if (evalExercise.notused) {
                 plannerExercise += "used: none / ";
               }
-              const currentSetVariationIndex = this.getCurrentSetVariationIndex(
-                evalExercise.key,
-                weekIndex,
-                dayInWeekIndex
-              );
               const variations = evalExercise.evaluatedSetVariations;
               const globals = this.getGlobals(variations);
 
@@ -188,13 +176,7 @@ export class ProgramToPlanner {
 
                 if (dereuseDecisions.includes("sets")) {
                   plannerExercise +=
-                    ` / ` +
-                    variations
-                      .map((v, i) => {
-                        const sets = this.variationToString(v, globals);
-                        return i !== 0 && i === currentSetVariationIndex ? `! ${sets}` : sets;
-                      })
-                      .join(" / ");
+                    ` / ` + variations.map((v, i) => this.variationToString(v, globals, i)).join(" / ");
                 }
 
                 const overriddenGlobals: string[] = [];
@@ -211,12 +193,7 @@ export class ProgramToPlanner {
                   plannerExercise += ` / ${overriddenGlobals.join(" ")}`;
                 }
               } else {
-                plannerExercise += variations
-                  .map((v, i) => {
-                    const sets = this.variationToString(v, globals);
-                    return i !== 0 && i === currentSetVariationIndex ? `! ${sets}` : sets;
-                  })
-                  .join(" / ");
+                plannerExercise += variations.map((v, i) => this.variationToString(v, globals, i)).join(" / ");
 
                 const globalsStr: string[] = [];
                 if (globals.weight != null) {
@@ -279,6 +256,7 @@ export class ProgramToPlanner {
       }
     });
     const newPlanner = PlannerProgram.compact(this.program.planner, result, this.settings, repeatingExercises);
+    console.log(PlannerProgram.generateFullText(newPlanner.weeks));
     return newPlanner;
   }
 
@@ -478,7 +456,8 @@ export class ProgramToPlanner {
 
   private variationToString(
     variation: IPlannerProgramExerciseEvaluatedSetVariation,
-    globals: IPlannerToProgram2Globals
+    globals: IPlannerToProgram2Globals,
+    index: number
   ): string {
     const groupedVariationSets = this.groupVariationSets(variation.sets);
     const result: string[] = [];
@@ -505,7 +484,11 @@ export class ProgramToPlanner {
       }
       result.push(setStr);
     }
-    return result.map((r) => r.trim()).join(", ");
+    let resultStr = "";
+    if (index > 0 && variation.isCurrent) {
+      resultStr += "! ";
+    }
+    return resultStr + result.map((r) => r.trim()).join(", ");
   }
 
   private warmupSetToKey(set: IPlannerProgramExerciseWarmupSet): string {

@@ -32,6 +32,7 @@
     "upload-source-maps": "./uploadsourcemaps.sh",
     "cdk-deploy": "npm run build:lambda && rm -rf ./dist-lambda/node_modules && cdk deploy --all",
     "test": "mocha -r ts-node/register test/**/*.test.ts",
+    "playwright": "playwright test --retries 3",
     "onetest": "TS_NODE_TRANSPILE_ONLY=1 mocha -r ts-node/register",
     "sitemap": "TS_NODE_TRANSPILE_ONLY=1 ts-node ./src/sitemap.ts",
     "testgen": "playwright codegen --test-id-attribute data-cy 'https://local.liftosaur.com:8080/app/?skipintro=1'",

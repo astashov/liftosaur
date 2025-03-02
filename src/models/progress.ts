@@ -264,7 +264,7 @@ export namespace Progress {
     bindings.numberOfSets = entry.sets.length;
     bindings.setIndex = setIndex ?? 1;
     bindings.setVariationIndex = setVariationIndex ?? 1;
-    bindings.descriptionIndex = descriptionIndex != null ? descriptionIndex - 1 : 1;
+    bindings.descriptionIndex = descriptionIndex ?? 1;
     return bindings;
   }
 

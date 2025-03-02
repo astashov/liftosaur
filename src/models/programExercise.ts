@@ -182,13 +182,39 @@ export namespace ProgramExercise {
             if ((week === "*" || week === weekIndex + 1) && (day === "*" || day === dayInWeekIndex + 1)) {
               if (key === "setVariationIndex" && typeof update.value.value === "number") {
                 exercise.evaluatedSetVariations.forEach((s) => (s.isCurrent = false));
-                const sv = exercise.evaluatedSetVariations[update.value.value];
+                let indexValue: number;
+                if (update.value.op === "=") {
+                  indexValue = update.value.value - 1;
+                } else {
+                  const currentSetVariationIndex = PlannerProgramExercise.currentSetVariationIndex(exercise);
+                  indexValue = Weight.applyOp(
+                    undefined,
+                    currentSetVariationIndex,
+                    update.value.value,
+                    update.value.op
+                  ) as number;
+                }
+                indexValue = indexValue % exercise.evaluatedSetVariations.length;
+                const sv = exercise.evaluatedSetVariations[indexValue];
                 if (sv != null) {
                   sv.isCurrent = true;
                 }
               } else if (key === "descriptionIndex" && typeof update.value.value === "number") {
                 exercise.descriptions.forEach((s) => (s.isCurrent = false));
-                const d = exercise.descriptions[update.value.value];
+                let indexValue: number;
+                if (update.value.op === "=") {
+                  indexValue = update.value.value - 1;
+                } else {
+                  const currentDescriptionIndex = PlannerProgramExercise.currentDescriptionIndex(exercise);
+                  indexValue = Weight.applyOp(
+                    undefined,
+                    currentDescriptionIndex,
+                    update.value.value,
+                    update.value.op
+                  ) as number;
+                }
+                indexValue = indexValue % exercise.descriptions.length;
+                const d = exercise.descriptions[indexValue];
                 if (d != null) {
                   d.isCurrent = true;
                 }
