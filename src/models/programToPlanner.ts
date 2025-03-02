@@ -440,7 +440,9 @@ export class ProgramToPlanner {
       for (const group of groups) {
         const first = group[0];
         const length = group[1];
-        strs.push(`${length}x${first.reps} ${Weight.print(first.weight || first.percentage || 0)}`);
+        const weight =
+          first.weight ?? (first.percentage != null ? Weight.buildPct(first.percentage) : Weight.build(0, "lb"));
+        strs.push(`${length}x${first.reps} ${Weight.print(weight)}`);
       }
       return strs.length === 0 ? "none" : strs.join(", ");
     }
