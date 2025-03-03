@@ -226,6 +226,7 @@ export namespace Program {
       warmupSets: sets[0]?.weight != null ? Exercise.getWarmupSets(exercise, sets[0].weight, settings, warmupSets) : [],
     };
     const newEntry = Progress.runUpdateScriptForEntry(entry, dayData, programExercise, program.states, -1, settings);
+    console.log("Entry", newEntry);
     return newEntry;
   }
 
@@ -656,6 +657,7 @@ export namespace Program {
       weeks: weeks,
       states,
     };
+    console.log(result);
     return result;
   }
 

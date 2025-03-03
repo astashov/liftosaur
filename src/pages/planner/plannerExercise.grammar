@@ -12,8 +12,6 @@ ExerciseSection {  (ExerciseProperty | ExerciseSets | ReuseSectionWithWeekDay) (
 ReuseSectionWithWeekDay { ReuseSection WeekDay? }
 ReuseSection { "..." ExerciseName }
 ExerciseSet { (Rpe | Timer | SetPart | WeightWithPlus | PercentageWithPlus | SetLabel)+ }
-WeightWithPlus { Weight Plus? }
-PercentageWithPlus { Percentage Plus? }
 WarmupExerciseSet { (WarmupSetPart | Weight | Percentage)+ }
 ExerciseProperty { ExercisePropertyName ":" (FunctionExpression | WarmupExerciseSets | None ) }
 ExercisePropertyName { Keyword }
@@ -38,11 +36,11 @@ RepRange { Rep "-" Rep }
 Rep { Int }
 
 Rpe { "@" (PosNumber | Plus | PosNumber Plus?) }
-Percentage { PosNumber "%" }
-Weight { PosNumber ("kg" | "lb") }
+PercentageWithPlus { Percentage Plus? }
+WeightWithPlus { Weight Plus? }
 Timer { Int "s" }
 SetPart { Rep Plus? "x" (RepRange | Rep) Plus? }
-KeyValue { Keyword Plus? ":" (Number | Weight | Percentage) Plus? }
+KeyValue { Keyword Plus? ":" (Number | Weight | Percentage) }
 SetLabel { "(" NonSeparator+ ")" }
 
 WarmupSetPart { (Rep "x")? Rep }
@@ -50,13 +48,16 @@ WarmupSetPart { (Rep "x")? Rep }
 @skip { space }
 
 @tokens {
-  @precedence { Float, Int }
+  @precedence { Weight, Keyword }
+  @precedence { Weight, Percentage, Float, Int }
   @precedence { Day, Week }
   @precedence { TripleLineComment, LineComment }
   @precedence { "\\", "[", "]", NonSeparator }
   TripleLineComment { "///" ![\n]* linebreakOrEof }
   LineComment { "//" ![\n]* linebreakOrEof }
   Liftoscript { "{~" ![~]* "~}" }
+  Percentage { ("+" | "-")? (Float | Int) "%" }
+  Weight { ("+" | "-")? (Float | Int) ("lb" | "kg") }
   Plus { "+" }
   Week { "#" ![\n]* linebreakOrEof }
   Day { "##" ![\n]* linebreakOrEof }

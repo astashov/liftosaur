@@ -550,6 +550,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const program = Program.getProgram(state, action.programId || state.storage.currentProgramId);
       if (program != null) {
         const newProgress = Program.nextHistoryRecord(program, state.storage.settings);
+        console.log("New Progress", newProgress);
         return {
           ...state,
           currentHistoryRecord: 0,

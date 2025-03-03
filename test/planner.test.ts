@@ -349,6 +349,28 @@ Bench Press / ...Squat / 1x5, 1x3 / 125lb / progress: lp(5lb)
 `);
   });
 
+  it("should work with negative weights", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 2x5 / -40lb / progress: lp(5lb)
+Bench Press / 2x3-5 -20lb / progress: lp(-5lb)
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [
+        [5, 5],
+        [5, 5],
+      ],
+    });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 2x5 / -35lb / progress: lp(5lb)
+Bench Press / 2x3-5 / -25lb / progress: lp(-5lb)
+
+
+`);
+  });
+
   it("updates group states", () => {
     const programText = `# Week 1
 ## Day 1

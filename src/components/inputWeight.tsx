@@ -24,9 +24,8 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
 
   function getValue(): IWeight | IPercentage | undefined {
     const inputValue = inputRef.current.value;
-    let value = Number(inputValue);
+    const value = Number(inputValue);
     if (inputValue && !isNaN(value)) {
-      value = Math.abs(value);
       const unit = unitRef.current.value as IUnit | "%";
       if (unit === "%") {
         return Weight.buildPct(value);
@@ -49,8 +48,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               const value = getValue();
               if (value) {
                 if (value.unit === "%") {
-                  const newValue = Math.max(0, value.value - 1);
-                  props.onUpdate(Weight.buildPct(newValue));
+                  props.onUpdate(Weight.buildPct(value.value));
                 } else {
                   const newWeight = Weight.decrement(value, props.settings, props.exerciseType);
                   props.onUpdate(newWeight);

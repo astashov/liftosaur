@@ -157,6 +157,7 @@ export const ExerciseView = memo(
 
 const ExerciseContentView = memo(
   (props: IProps): JSX.Element => {
+    console.log("Ex props", props.entry);
     const isCurrentProgress = Progress.isCurrent(props.progress);
     const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
     const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(props.settings, exercise);
@@ -171,6 +172,7 @@ const ExerciseContentView = memo(
       props.entry.sets.map((s) => ({ original: s.originalWeight, rounded: s.weight })),
       (w) => w.rounded.value.toString()
     );
+    console.log("Workout weights", workoutWeights);
     const hasUnequalWeights = workoutWeights.some((w) => !Weight.eq(w.original, w.rounded));
     workoutWeights.sort((a, b) => Weight.compare(a.rounded, b.rounded));
     const warmupWeights = CollectionUtils.compatBy(
