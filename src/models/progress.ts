@@ -553,7 +553,7 @@ export namespace Progress {
     if (setIndex !== -1 && entry?.sets[setIndex]?.completedReps == null) {
       return entry;
     }
-    const script = programExercise.properties.find((p) => p.name === "update")?.script;
+    const script = PlannerProgramExercise.getUpdateScript(programExercise);
     if (!script) {
       return entry;
     }

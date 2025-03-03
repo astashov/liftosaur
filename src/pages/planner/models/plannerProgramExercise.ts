@@ -288,9 +288,6 @@ export class PlannerProgramExercise {
   }
 
   public static getStateFromProperty(property: IPlannerProgramProperty): IProgramState {
-    if (property.reuse) {
-      return this.getStateFromProperty(property.reuse);
-    }
     const fnArgs = property.fnArgs;
     if (property.fnName === "custom") {
       return PlannerExerciseEvaluator.fnArgsToStateVars(property.fnArgs, () => undefined);
@@ -413,9 +410,19 @@ if (completedReps >= reps && completedRPE <= RPE) {
   }
 
   public static getUpdateScript(exercise: IPlannerProgramExercise): string | undefined {
-    const update = this.getUpdate(exercise);
-    if (update && update.fnName === "custom") {
-      return update.script;
+    const property = this.getUpdate(exercise);
+    if (!property) {
+      return "";
+    }
+    return this.getUpdateScriptFromProperty(property);
+  }
+
+  public static getUpdateScriptFromProperty(property: IPlannerProgramProperty): string | undefined {
+    if (property.reuse) {
+      return this.getUpdateScriptFromProperty(property.reuse);
+    }
+    if (property.fnName === "custom") {
+      return property.script;
     } else {
       return undefined;
     }
