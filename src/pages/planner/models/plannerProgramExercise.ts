@@ -401,7 +401,7 @@ if (completedReps >= reps && completedRPE <= RPE) {
   }
 }`;
     } else if (property.fnName === "sum") {
-      return `if (sum(completedReps) >= state.reps}) {
+      return `if (sum(completedReps) >= state.reps) {
   weights += state.increment
 }`;
     } else {

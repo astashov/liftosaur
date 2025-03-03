@@ -344,7 +344,7 @@ export class ProgramToPlanner {
     } else if (progress.fnName === "sum") {
       const reps = programExercise.state.reps as number;
       const increment = programExercise.state.increment as IWeight | IPercentage;
-      const args = [Weight.print(increment), `${reps}`];
+      const args = [`${reps}`, Weight.print(increment)];
       plannerExercise += `(${args.join(", ")})`;
     }
     if (progress.fnName === "custom") {
