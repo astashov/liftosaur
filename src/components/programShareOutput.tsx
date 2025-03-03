@@ -3,7 +3,7 @@ import { ISettings, IPlannerProgram, IPlannerProgramWeek, IPlannerProgramDay } f
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { StringUtils } from "../utils/string";
 import { ExerciseImage } from "./exerciseImage";
-import { Exercise } from "../models/exercise";
+import { equipmentName, Exercise } from "../models/exercise";
 import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerProgramExerciseSet } from "../pages/planner/models/types";
@@ -92,10 +92,12 @@ export const ProgramShareOutput = forwardRef(
                 return (
                   <div className="flex gap-2">
                     {days.map((day) => {
+                      console.log(day);
                       const evaluatedDay = evaluatedWeeks[weekIndex][dayInWeekIndex];
                       if (!evaluatedDay.success) {
                         return <div />;
                       }
+                      console.log("Evaluated day", evaluatedDay);
                       const data = evaluatedDay.data;
                       const item = (
                         <div className="mt-2" style={{ width: "24rem" }}>
@@ -160,7 +162,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
           plannerProgramExercise.fullName,
           props.settings
         );
-        const nameAndEquipment = `${name}${equipment ? `, ${equipment}` : ""}`;
+        const nameAndEquipment = `${name}${equipment ? `, ${equipmentName(equipment, props.settings.equipment)}` : ""}`;
         const exercise = Exercise.findByNameAndEquipment(nameAndEquipment, props.settings.exercises);
         if (!exercise) {
           return <div />;
