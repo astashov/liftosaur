@@ -1612,6 +1612,30 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20250305": {
+    title: <span>Added negative weights support</span>,
+    body: (
+      <ul>
+        <li>
+          You can now use negative values for weights, e.g. <strong>-5lb</strong>.
+        </li>
+        <li>
+          That could be useful e.g. for the assisted Pull Ups with Leverage Machine, e.g. you can define it as:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock script={`Pull Up / 3x8 40lb / progress: lp(-5lb)`} />
+          </div>
+          and it will decrease the weight you load on the machine by 5lb each time you finish a workout.
+        </li>
+        <li>
+          Or you could do it like:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock script={`Pull Up / 3x8 -40lb / progress: lp(5lb)`} />
+          </div>
+          i.e. use negative weight as a base, and incrementing it over time.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

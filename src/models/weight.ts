@@ -71,7 +71,7 @@ export namespace Weight {
     if (str == null) {
       return undefined;
     }
-    const match = str.match(/^([0-9.]+)%$/);
+    const match = str.match(/^([\-+]?[0-9.]+)%$/);
     if (match) {
       return buildPct(MathUtils.roundFloat(parseFloat(match[1]), 2));
     } else {
@@ -80,7 +80,7 @@ export namespace Weight {
   }
 
   export function parse(str: string): IWeight | undefined {
-    const match = str.match(/^([0-9.]+)\s*(kg|lb)$/);
+    const match = str.match(/^([\-+]?[0-9.]+)\s*(kg|lb)$/);
     if (match) {
       return build(MathUtils.roundFloat(parseFloat(match[1]), 2), match[2] as IUnit);
     } else {
@@ -120,6 +120,17 @@ export namespace Weight {
     return build(value.value, value.unit);
   }
 
+  export function isOrPct(object: unknown): object is IWeight | IPercentage {
+    const objWeight = object as IWeight | IPercentage;
+    return (
+      objWeight &&
+      typeof objWeight === "object" &&
+      "unit" in objWeight &&
+      "value" in objWeight &&
+      (objWeight.unit === "kg" || objWeight.unit === "lb" || objWeight.unit === "%")
+    );
+  }
+
   export function is(object: unknown): object is IWeight {
     const objWeight = object as IWeight;
     return (
@@ -153,7 +164,10 @@ export namespace Weight {
     const roundWeight = Weight.round(weight, settings, weight.unit, exerciseType);
     const equipmentData = Equipment.getEquipmentDataForExerciseType(settings, exerciseType);
     if (equipmentData) {
-      const smallestPlate = Equipment.smallestPlate(equipmentData, weight.unit);
+      const smallestPlate = Weight.multiply(
+        Equipment.smallestPlate(equipmentData, weight.unit),
+        equipmentData.multiplier
+      );
       let newWeight = roundWeight;
       let attempt = 0;
       do {
@@ -171,12 +185,16 @@ export namespace Weight {
     const roundWeight = Weight.round(weight, settings, weight.unit, exerciseType);
     const equipmentData = exerciseType ? Equipment.getEquipmentDataForExerciseType(settings, exerciseType) : undefined;
     if (equipmentData) {
-      const smallestPlate = Equipment.smallestPlate(equipmentData, weight.unit);
-      const newWeight = Weight.round(Weight.subtract(roundWeight, smallestPlate), settings, weight.unit, exerciseType);
-      return Weight.build(Math.max(0, newWeight.value), newWeight.unit);
+      const smallestPlate = Weight.multiply(
+        Equipment.smallestPlate(equipmentData, weight.unit),
+        equipmentData.multiplier
+      );
+      const subtracted = Weight.subtract(roundWeight, smallestPlate);
+      const newWeight = Weight.round(subtracted, settings, weight.unit, exerciseType);
+      return Weight.build(newWeight.value, newWeight.unit);
     } else {
       const rounding = exerciseType ? Exercise.defaultRounding(exerciseType, settings) : 1;
-      return Weight.build(Math.max(0, roundWeight.value - rounding), roundWeight.unit);
+      return Weight.build(roundWeight.value - rounding, roundWeight.unit);
     }
   }
 
@@ -258,19 +276,22 @@ export namespace Weight {
       return { plates: [], platesWeight: allWeight, totalWeight: allWeight };
     }
 
+    const absAllWeight = Weight.abs(allWeight);
+    const inverted = allWeight.value < 0;
     if (equipmentType.isFixed) {
       const fixed = CollectionUtils.sort(
         equipmentType.fixed.filter((w) => w.unit === units),
         (a, b) => b.value - a.value
       );
-      const weight = fixed.find((w) => Weight.lte(w, allWeight)) || fixed[fixed.length - 1] || allWeight;
-      const roundedWeight = roundTo005(weight);
+      const weight = fixed.find((w) => Weight.lte(w, absAllWeight)) || fixed[fixed.length - 1] || absAllWeight;
+      let roundedWeight = roundTo005(weight);
+      roundedWeight = inverted ? Weight.invert(roundedWeight) : roundedWeight;
       return { plates: [], platesWeight: roundedWeight, totalWeight: roundedWeight };
     }
     const availablePlatesArr = equipmentType.plates.filter((p) => p.weight.unit === units);
     const barWeight = equipmentType.bar[units];
     const multiplier = equipmentType.multiplier || 1;
-    const weight = Weight.roundTo005(Weight.subtract(allWeight, barWeight));
+    const weight = Weight.roundTo005(Weight.subtract(absAllWeight, barWeight));
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
     availablePlates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
     const useFastMethod = true;
@@ -283,7 +304,17 @@ export namespace Weight {
         Weight.build(0, allWeight.unit)
       )
     );
-    return { plates, platesWeight: total, totalWeight: Weight.add(total, barWeight) };
+    const totalWeight = inverted ? Weight.invert(Weight.add(total, barWeight)) : Weight.add(total, barWeight);
+    const thePlatesWeight = inverted ? Weight.invert(total) : total;
+    return { plates, platesWeight: thePlatesWeight, totalWeight };
+  }
+
+  export function abs(weight: IWeight): IWeight {
+    return Weight.build(Math.abs(weight.value), weight.unit);
+  }
+
+  export function invert(weight: IWeight): IWeight {
+    return Weight.build(-weight.value, weight.unit);
   }
 
   function calculatePlatesInternal(targetWeight: IWeight, plates: IPlate[], multiplier: number): IPlate[] {
