@@ -618,7 +618,29 @@ export namespace Program {
   export function evaluate(program: IProgram, settings: ISettings): IEvaluatedProgram {
     const planner = program.planner;
     if (!planner) {
-      throw new Error("Program.evaluate: Program is not a planner program");
+      return {
+        type: "evaluatedProgram",
+        id: program.id,
+        planner: {
+          name: program.name,
+          weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
+        },
+        name: program.name,
+        nextDay: program.nextDay,
+        weeks: [
+          {
+            name: "Week 1",
+            days: [
+              {
+                name: "Day 1",
+                dayData: { day: 1, week: 1, dayInWeek: 1 },
+                exercises: [],
+              },
+            ],
+          },
+        ],
+        states: {},
+      };
     }
     const { evaluatedWeeks } = PlannerEvaluator.evaluate(program.planner!, settings);
     let dayNum = 0;
