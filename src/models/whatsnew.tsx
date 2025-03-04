@@ -1595,6 +1595,23 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20250304": {
+    title: <span>Massive update where nothing is changed</span>,
+    body: (
+      <ul>
+        <li>
+          I rewrote the Liftoscript engine from the ground up, to simplify it and remove the dependency on the old-style
+          programs. It's now way easier to add new features to it, but that also means I'm replacing a system that was
+          battle-tested for years with a new one. So, there could be bugs.
+        </li>
+        <li>
+          In case you see any issues with the Liftoscript or your programs - please please please let me know at{" "}
+          <strong>info@liftosaur.com</strong>! Please include the account name (from Me -&gt; Account) in the email.
+          Thanks!
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
