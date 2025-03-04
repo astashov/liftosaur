@@ -321,7 +321,7 @@ export namespace Program {
       const runner = new ScriptRunner(
         script,
         newState,
-        otherStates,
+        ObjectUtils.clone(otherStates),
         bindings,
         fns,
         settings.units,
