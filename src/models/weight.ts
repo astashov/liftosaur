@@ -8,6 +8,7 @@ import { Exercise } from "./exercise";
 const prebuiltWeights: Partial<Record<string, IWeight>> = {};
 
 export namespace Weight {
+  export const zero: IWeight = { value: 0, unit: "lb" } as const;
   export function display(weight: IWeight | IPercentage | number, withUnit: boolean = true): string {
     if (typeof weight === "number") {
       return `${weight}`;

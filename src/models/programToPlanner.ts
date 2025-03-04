@@ -38,22 +38,7 @@ export class ProgramToPlanner {
   }
 
   private shouldReuseSets(programExercise: IPlannerProgramExercise): boolean {
-    const reuseExercise = Program.getReuseExercise(this.program, programExercise);
-    if (!reuseExercise) {
-      return false;
-    }
-    const globals = this.getGlobals(programExercise.evaluatedSetVariations);
-    const dereuseDecisions = new Set(this.getDereuseDecisions(programExercise));
-    if (globals.weight == null) {
-      dereuseDecisions.delete("weight");
-    }
-    if (globals.rpe == null) {
-      dereuseDecisions.delete("rpe");
-    }
-    if (globals.timer == null) {
-      dereuseDecisions.delete("timer");
-    }
-    return new Set(["sets", "weight", "rpe", "timer"]).difference(dereuseDecisions).size !== 0;
+    return !!Program.getReuseExercise(this.program, programExercise);
   }
 
   private getDereuseDecisions(programExercise: IPlannerProgramExercise): IDereuseDecision[] {
@@ -62,33 +47,41 @@ export class ProgramToPlanner {
     if (!reuseExercise) {
       return Array.from(dereuseDecisions);
     }
+    const globals = this.getGlobals(programExercise);
+    const reusedGlobals = this.getGlobals(reuseExercise);
     if (programExercise.evaluatedSetVariations.length !== reuseExercise.evaluatedSetVariations.length) {
       dereuseDecisions.add("sets");
-    }
-    for (let i = 0; i < programExercise.evaluatedSetVariations.length; i += 1) {
-      const programVariation = programExercise.evaluatedSetVariations[i];
-      const reuseVariation = reuseExercise.evaluatedSetVariations[i];
-      if (programVariation.sets.length !== reuseVariation.sets.length) {
-        dereuseDecisions.add("sets");
-        dereuseDecisions.add("weight");
-        dereuseDecisions.add("rpe");
-        dereuseDecisions.add("timer");
-        break;
-      }
-      for (let j = 0; j < programVariation.sets.length; j += 1) {
-        const programSet = programVariation.sets[j];
-        const reuseSet = reuseVariation.sets[j];
-        if (programSet.maxrep !== reuseSet.maxrep || programSet.minrep !== reuseSet.minrep) {
+    } else {
+      for (let i = 0; i < programExercise.evaluatedSetVariations.length; i += 1) {
+        const programVariation = programExercise.evaluatedSetVariations[i];
+        const reuseVariation = reuseExercise.evaluatedSetVariations[i];
+        if (programVariation.sets.length !== reuseVariation.sets.length) {
           dereuseDecisions.add("sets");
         }
-        if (!(Weight.eq(programSet.weight, reuseSet.weight) || programSet.askWeight !== reuseSet.askWeight)) {
-          dereuseDecisions.add("weight");
-        }
-        if (!(programSet.rpe !== reuseSet.rpe || programSet.logRpe !== reuseSet.logRpe)) {
-          dereuseDecisions.add("rpe");
-        }
-        if (programSet.timer !== reuseSet.timer) {
-          dereuseDecisions.add("timer");
+        for (let j = 0; j < programVariation.sets.length; j += 1) {
+          const programSet = programVariation.sets[j];
+          const reuseSet = reuseVariation.sets[j];
+          if (programSet.maxrep !== reuseSet?.maxrep || programSet.minrep !== reuseSet?.minrep) {
+            dereuseDecisions.add("sets");
+          }
+          if (
+            reuseSet
+              ? !Weight.eq(programSet.weight, reuseSet.weight) || programSet.askWeight !== reuseSet.askWeight
+              : !Weight.eq(globals.weight || Weight.zero, reusedGlobals.weight || Weight.zero) ||
+                globals.askWeight !== reusedGlobals.askWeight
+          ) {
+            dereuseDecisions.add("weight");
+          }
+          if (
+            reuseSet
+              ? programSet.rpe !== reuseSet.rpe || programSet.logRpe !== reuseSet.logRpe
+              : globals.rpe !== reusedGlobals.rpe || globals.logRpe !== reusedGlobals.logRpe
+          ) {
+            dereuseDecisions.add("rpe");
+          }
+          if (reuseSet ? programSet.timer !== reuseSet.timer : globals.timer !== reusedGlobals.timer) {
+            dereuseDecisions.add("timer");
+          }
         }
       }
     }
@@ -171,7 +164,7 @@ export class ProgramToPlanner {
                 plannerExercise += "used: none / ";
               }
               const variations = evalExercise.evaluatedSetVariations;
-              const globals = this.getGlobals(variations);
+              const globals = this.getGlobals(evalExercise);
 
               const shouldReuseSets = this.shouldReuseSets(evalExercise);
               const dereuseDecisions = shouldReuseSets ? this.getDereuseDecisions(evalExercise) : [];
@@ -180,7 +173,12 @@ export class ProgramToPlanner {
 
                 if (dereuseDecisions.includes("sets")) {
                   plannerExercise +=
-                    ` / ` + variations.map((v, i) => this.variationToString(v, globals, i)).join(" / ");
+                    ` / ` +
+                    variations
+                      .map((v, i) => {
+                        return this.variationToString(v, globals, i, evalExercise);
+                      })
+                      .join(" / ");
                 }
 
                 const overriddenGlobals: string[] = [];
@@ -197,7 +195,9 @@ export class ProgramToPlanner {
                   plannerExercise += ` / ${overriddenGlobals.join(" ")}`;
                 }
               } else {
-                plannerExercise += variations.map((v, i) => this.variationToString(v, globals, i)).join(" / ");
+                plannerExercise += variations
+                  .map((v, i) => this.variationToString(v, globals, i, evalExercise))
+                  .join(" / ");
 
                 const globalsStr: string[] = [];
                 if (globals.weight != null) {
@@ -363,7 +363,19 @@ export class ProgramToPlanner {
     return plannerExercise;
   }
 
-  private getGlobals(variations: IPlannerProgramExerciseEvaluatedSetVariation[]): IPlannerToProgram2Globals {
+  private getGlobals(exercise: IPlannerProgramExercise): IPlannerToProgram2Globals {
+    const variations = exercise.evaluatedSetVariations;
+    if (variations.length === 0 || variations[0].sets.length === 0) {
+      const globals = exercise.globals;
+      const reusedGlobals = exercise.reuse?.exercise?.globals || {};
+      return {
+        weight: globals?.weight ?? reusedGlobals.weight,
+        rpe: globals?.rpe ?? reusedGlobals.rpe,
+        timer: globals?.timer ?? reusedGlobals.timer,
+        logRpe: globals?.logRpe ?? reusedGlobals.logRpe,
+        askWeight: globals?.askWeight ?? reusedGlobals.askWeight,
+      };
+    }
     const firstWeight = variations[0]?.sets[0]?.weight;
     const firstRpe = variations[0]?.sets[0]?.rpe;
     const firstLogRpe = !!variations[0]?.sets[0]?.logRpe;
@@ -392,18 +404,25 @@ export class ProgramToPlanner {
   }
 
   private groupVariationSets(
-    sets: IPlannerProgramExerciseEvaluatedSet[]
+    sets: IPlannerProgramExerciseEvaluatedSet[],
+    exercise: IPlannerProgramExercise,
+    index: number
   ): [IPlannerProgramExerciseEvaluatedSet, number][] {
     if (sets.length === 0) {
+      const originalSets = PlannerProgramExercise.sets(exercise, index)[0];
       return [
         [
           {
-            maxrep: 1,
-            weight: Weight.build(0, "lb"),
-            logRpe: false,
-            isAmrap: false,
-            isQuickAddSet: false,
-            askWeight: false,
+            maxrep: originalSets?.repRange?.maxrep || 1,
+            minrep: originalSets?.repRange?.minrep,
+            weight: originalSets?.weight || Weight.zero,
+            logRpe: originalSets?.logRpe || false,
+            isAmrap: originalSets?.repRange?.isAmrap || false,
+            isQuickAddSet: originalSets?.repRange?.isQuickAddSet || false,
+            askWeight: originalSets?.askWeight || false,
+            rpe: originalSets?.rpe,
+            timer: originalSets?.timer,
+            label: originalSets?.label,
           },
           0,
         ],
@@ -463,9 +482,10 @@ export class ProgramToPlanner {
   private variationToString(
     variation: IPlannerProgramExerciseEvaluatedSetVariation,
     globals: IPlannerToProgram2Globals,
-    index: number
+    index: number,
+    exercise: IPlannerProgramExercise
   ): string {
-    const groupedVariationSets = this.groupVariationSets(variation.sets);
+    const groupedVariationSets = this.groupVariationSets(variation.sets, exercise, index);
     const result: string[] = [];
     for (const group of groupedVariationSets) {
       const set = group[0];

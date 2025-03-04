@@ -118,7 +118,7 @@ Squat / 3x5 / 100lb / progress: custom() {~
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
-Squat / 0x1 0lb / progress: custom() {~
+Squat / 0x5 / 100lb / progress: custom() {~
   numberOfSets -= 6
 ~}
 
