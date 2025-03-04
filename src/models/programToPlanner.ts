@@ -70,6 +70,10 @@ export class ProgramToPlanner {
       const reuseVariation = reuseExercise.evaluatedSetVariations[i];
       if (programVariation.sets.length !== reuseVariation.sets.length) {
         dereuseDecisions.add("sets");
+        dereuseDecisions.add("weight");
+        dereuseDecisions.add("rpe");
+        dereuseDecisions.add("timer");
+        break;
       }
       for (let j = 0; j < programVariation.sets.length; j += 1) {
         const programSet = programVariation.sets[j];
