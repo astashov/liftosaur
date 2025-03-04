@@ -66,6 +66,7 @@ import { MathUtils } from "../src/utils/math";
 import { EventDao } from "./dao/eventDao";
 import { StorageDao } from "./dao/storageDao";
 import { renderUserDashboardHtml } from "./userDashboard";
+import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1178,7 +1179,12 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   if (data) {
     try {
       const initialProgramJson = await NodeEncoder.decode(data);
-      initialProgram = JSON.parse(initialProgramJson);
+      const programData: IExportedProgram | IExportedPlannerProgram = JSON.parse(initialProgramJson);
+      if ("type" in programData && programData.type === "v2") {
+        initialProgram = Program.exportedPlannerProgramToExportedProgram(programData);
+      } else {
+        initialProgram = programData as IExportedProgram;
+      }
     } catch (e) {
       di.log.log(e);
     }
