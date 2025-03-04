@@ -171,24 +171,33 @@ export function AppView(props: IProps): JSX.Element | null {
     Subscriptions.cleanupOutdatedAppleReceipts(dispatch, userId, service, state.storage.subscription);
     Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, state.storage.subscription);
     dispatch(Thunk.fetchInitial());
-    const onerror = (error: string | ErrorEvent): void => {
-      Rollbar.error(error, (_err, data) => {
-        const uuid = data?.result?.uuid;
-        service.postEvent({
-          type: "error",
-          userId: userId,
-          timestamp: Date.now(),
-          message: typeof error === "string" ? error : error?.error?.message || "",
-          stack: typeof error === "string" ? "" : error?.error?.stack || "",
-          rollbar_id: uuid || "",
+    const onerror = (event: string | ErrorEvent): void => {
+      console.log("Error Event", event);
+      const error = typeof event === "string" ? event : "error" in event ? event.error : event;
+      console.log("Error", error);
+      const message = error instanceof Error ? error.message : error;
+      if (message != null) {
+        console.log("Error Message", message);
+        Rollbar.error(error, (_err, data) => {
+          const uuid = data?.result?.uuid;
+          if (exceptionIgnores.every((ignore) => !message.includes(ignore))) {
+            service.postEvent({
+              type: "error",
+              userId: userId,
+              timestamp: Date.now(),
+              message: typeof error === "string" ? error : error?.error?.message || "",
+              stack: typeof error === "string" ? "" : error?.error?.stack || "",
+              rollbar_id: uuid || "",
+            });
+          }
         });
-      });
+      }
     };
     const onunhandledexception = (event: PromiseRejectionEvent): void => {
       const reason = event.reason;
       const message = typeof reason === "string" ? reason : reason.message;
       if (message != null) {
-        console.log("Message", message);
+        console.log("Exception Message", message);
         Rollbar.error(reason, (_err, data) => {
           const uuid = data?.result?.uuid;
           if (exceptionIgnores.every((ignore) => !message.includes(ignore))) {
