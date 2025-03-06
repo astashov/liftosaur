@@ -867,4 +867,29 @@ export const migrations = {
     }
     return storage;
   },
+  "20250305183455_cleanup_custom_exercises": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const customExerciseKey of ObjectUtils.keys(storage.settings.exercises)) {
+      const customExercise = storage.settings.exercises[customExerciseKey]!;
+      delete customExercise.defaultEquipment;
+      for (const record of storage.history) {
+        for (const entry of record.entries) {
+          if (entry.exercise.id === customExerciseKey) {
+            entry.exercise = { id: customExerciseKey };
+            record.updatedAt = Date.now();
+          }
+        }
+      }
+      for (const key of ObjectUtils.keys(storage.settings.exerciseData)) {
+        if (key.includes(customExerciseKey)) {
+          if (!storage.settings.exerciseData[customExerciseKey]) {
+            const value = storage.settings.exerciseData[key];
+            delete storage.settings.exerciseData[key];
+            storage.settings.exerciseData[customExercise.id] = value;
+          }
+        }
+      }
+    }
+    return storage;
+  },
 };
