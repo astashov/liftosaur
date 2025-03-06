@@ -9,7 +9,11 @@ import { CollectionUtils } from "../utils/collection";
 import { ScriptRunner } from "../parser";
 import { IAssignmentOp, ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { MathUtils } from "../utils/math";
-import { IPlannerProgramExercise, IPlannerProgramExerciseEvaluatedSet } from "../pages/planner/models/types";
+import {
+  IPlannerProgramExercise,
+  IPlannerProgramExerciseEvaluatedSet,
+  IPlannerProgramExerciseUsed,
+} from "../pages/planner/models/types";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { PP } from "./pp";
 
@@ -65,10 +69,11 @@ export namespace ProgramExercise {
   }
 
   export function approxTimeMs(programExercise: IPlannerProgramExercise, settings: ISettings): number {
-    const index = PlannerProgramExercise.currentSetVariationIndex(programExercise);
-    return programExercise.evaluatedSetVariations[index].sets.reduce(
-      (memo, set) => memo + ProgramSet.approxTimeMs(set, settings),
-      0
+    return (
+      PlannerProgramExercise.currentEvaluatedSetVariation(programExercise)?.sets.reduce(
+        (memo, set) => memo + ProgramSet.approxTimeMs(set, settings),
+        0
+      ) || 0
     );
   }
 
@@ -94,7 +99,7 @@ export namespace ProgramExercise {
     const results: Record<string, IWeightChange> = {};
     PP.iterate2(program.weeks, (exercise) => {
       if (exercise.key === programExerciseKey) {
-        const currentVariationIndex = PlannerProgramExercise.currentSetVariationIndex(exercise);
+        const currentVariationIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(exercise);
         for (let variationIndex = 0; variationIndex < exercise.evaluatedSetVariations.length; variationIndex += 1) {
           const variation = exercise.evaluatedSetVariations[variationIndex];
           for (let setIndex = 0; setIndex < variation.sets.length; setIndex += 1) {
@@ -181,12 +186,11 @@ export namespace ProgramExercise {
             }
             if ((week === "*" || week === weekIndex + 1) && (day === "*" || day === dayInWeekIndex + 1)) {
               if (key === "setVariationIndex" && typeof update.value.value === "number") {
-                exercise.evaluatedSetVariations.forEach((s) => (s.isCurrent = false));
                 let indexValue: number;
                 if (update.value.op === "=") {
                   indexValue = update.value.value - 1;
                 } else {
-                  const currentSetVariationIndex = PlannerProgramExercise.currentSetVariationIndex(exercise);
+                  const currentSetVariationIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(exercise);
                   indexValue = Weight.applyOp(
                     undefined,
                     currentSetVariationIndex,
@@ -195,12 +199,12 @@ export namespace ProgramExercise {
                   ) as number;
                 }
                 indexValue = indexValue % exercise.evaluatedSetVariations.length;
+                exercise.evaluatedSetVariations.forEach((s) => (s.isCurrent = false));
                 const sv = exercise.evaluatedSetVariations[indexValue];
                 if (sv != null) {
                   sv.isCurrent = true;
                 }
               } else if (key === "descriptionIndex" && typeof update.value.value === "number") {
-                exercise.descriptions.forEach((s) => (s.isCurrent = false));
                 let indexValue: number;
                 if (update.value.op === "=") {
                   indexValue = update.value.value - 1;
@@ -213,8 +217,9 @@ export namespace ProgramExercise {
                     update.value.op
                   ) as number;
                 }
-                indexValue = indexValue % exercise.descriptions.length;
-                const d = exercise.descriptions[indexValue];
+                indexValue = indexValue % exercise.descriptions.values.length;
+                exercise.descriptions.values.forEach((s) => (s.isCurrent = false));
+                const d = exercise.descriptions.values[indexValue];
                 if (d != null) {
                   d.isCurrent = true;
                 }
@@ -228,7 +233,7 @@ export namespace ProgramExercise {
   }
 
   function operation(
-    programExercise: IPlannerProgramExercise,
+    programExercise: IPlannerProgramExerciseUsed,
     set: IPlannerProgramExerciseEvaluatedSet,
     settings: ISettings,
     key: "maxrep" | "minrep" | "weight" | "rpe" | "timer",

@@ -166,6 +166,9 @@ export const ProgramPreviewPlaygroundDay = memo(
               props.onProgramChange(newProgram);
             }}
             onEditVariable={(variableKey, newValue) => {
+              if (!editModalProgramExercise.exerciseType) {
+                return;
+              }
               const exerciseType = Exercise.toKey(editModalProgramExercise.exerciseType);
               const newSettings = {
                 ...props.settings,

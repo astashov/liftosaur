@@ -1636,6 +1636,43 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20250309": {
+    title: <span>Big changes in Liftoscript reuse syntax</span>,
+    body: (
+      <ul>
+        <li>
+          The reuse syntax like <strong>Squat / ...Bench Press</strong> just became way more powerful.
+        </li>
+        <li>
+          <ul className="pl-4 list-disc">
+            <li>
+              It now reuses <strong>progress</strong> and <strong>update</strong> scripts as well, including built-in
+              like <strong>lp</strong> or <strong>dp</strong>.
+            </li>
+            <li>
+              For "template" exercises (the <strong>/ used: none /</strong> ones) it's not required to have a custom or
+              built-in exercise matching the name anymore. So, you can name your templates like <strong>T1</strong> or
+              something like that, and don't create custom exercises with <strong>T1</strong> name.
+            </li>
+            <li>
+              If you reuse <strong>progress: custom()</strong>, you don't have to list all the state variables again in
+              the reusing <strong>progress: custom()</strong> arguments. They will be inherited, you only need to list
+              the ones that have different value from the original ones.
+            </li>
+            <li>You can reuse exercises with multiple set variations too now.</li>
+          </ul>
+        </li>
+        <li>
+          It's a slightly breaking change because if you previously used <strong>...Squat</strong> it didn't reuse
+          progress and update scripts, and now it does. So, if you want to reuse everything except progress/update -
+          you'd need to overwrite them in the reusing exercise, like:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock script={`Squat / ...Bench Press / progress: custom() {~ ~}`} />
+          </div>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

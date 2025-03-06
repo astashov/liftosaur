@@ -9,12 +9,12 @@ import {
 } from "./plannerExerciseEvaluator";
 import {
   IPlannerProgramExercise,
-  IPlannerProgramExerciseDescription,
   IPlannerProgramExerciseWarmupSet,
   IPlannerProgramExerciseEvaluatedSetVariation,
   IPlannerProgramExerciseEvaluatedSet,
   IProgramExerciseProgress,
   IProgramExerciseUpdate,
+  IProgramExerciseDescriptions,
 } from "./models/types";
 import { PlannerKey } from "./plannerKey";
 import { ObjectUtils } from "../../utils/object";
@@ -329,13 +329,29 @@ export class PlannerEvaluator {
           exercise.points.reuseSetPoint
         );
       }
-      if (originalExercise.exercise.setVariations.length > 1) {
+      if (originalExercise.exercise.progress?.reuse != null && exercise.progress == null) {
         throw PlannerSyntaxError.fromPoint(
           exercise.fullName,
-          `Original exercise cannot have mutliple set variations`,
+          `This exercise doesn't specify progress - so the original exercise's progress cannot reuse another exercise's progress`,
           exercise.points.reuseSetPoint
         );
       }
+      if (originalExercise.exercise.update?.reuse != null && exercise.update == null) {
+        throw PlannerSyntaxError.fromPoint(
+          exercise.fullName,
+          `This exercise doesn't specify 'update' - so the original exercise's 'update' cannot reuse another exercise's 'update'`,
+          exercise.points.reuseSetPoint
+        );
+      }
+      if (originalExercise.exercise.progress != null && exercise.progress == null) {
+        exercise.progress = {
+          type: originalExercise.exercise.progress.type,
+          state: ObjectUtils.clone(originalExercise.exercise.progress.state),
+          stateMetadata: ObjectUtils.clone(originalExercise.exercise.progress.stateMetadata),
+          reuse: { fullName: originalExercise.exercise.fullName },
+        };
+      }
+
       exercise.reuse.exercise = originalExercise.exercise;
     }
   }
@@ -357,10 +373,10 @@ export class PlannerEvaluator {
             weight: aSet.weight
               ? aSet.weight
               : aSet.percentage
-              ? Weight.buildPct(aSet.percentage)
-              : Weight.buildPct(
-                  MathUtils.roundFloat(100 * Weight.rpeMultiplier(aSet.repRange.maxrep, aSet.rpe || 10), 2)
-                ),
+                ? Weight.buildPct(aSet.percentage)
+                : Weight.buildPct(
+                    MathUtils.roundFloat(100 * Weight.rpeMultiplier(aSet.repRange.maxrep, aSet.rpe || 10), 2)
+                  ),
             timer: aSet.timer,
             rpe: aSet.rpe,
             logRpe: !!aSet.logRpe,
@@ -382,7 +398,7 @@ export class PlannerEvaluator {
     weekIndex: number,
     dayIndex: number
   ): void {
-    if (exercise.descriptions == null || exercise.descriptions.length === 0) {
+    if (exercise.descriptions == null || exercise.descriptions.values.length === 0) {
       const lastWeekExercise = this.findLastWeekExercise(
         evaluatedWeeks,
         weekIndex,
@@ -390,7 +406,9 @@ export class PlannerEvaluator {
         exercise,
         (ex) => ex.descriptions != null
       );
-      exercise.descriptions = lastWeekExercise?.descriptions || [];
+      if (lastWeekExercise && lastWeekExercise.descriptions) {
+        exercise.descriptions = ObjectUtils.clone(lastWeekExercise.descriptions);
+      }
     }
   }
 
@@ -402,13 +420,17 @@ export class PlannerEvaluator {
   ): void {
     if (
       exercise.descriptions != null &&
-      exercise.descriptions.length === 1 &&
-      exercise.descriptions[0].value?.startsWith("...")
+      exercise.descriptions.values.length === 1 &&
+      exercise.descriptions.values[0].value?.startsWith("...")
     ) {
-      const reusingName = exercise.descriptions[0].value.slice(3).trim();
-      const descriptions = this.findReusedDescriptions(reusingName, weekIndex, byExerciseWeekDay, settings);
-      if (descriptions != null) {
-        exercise.descriptions = descriptions;
+      const reusingName = exercise.descriptions.values[0].value.slice(3).trim();
+      const result = this.findReusedDescriptions(reusingName, weekIndex, byExerciseWeekDay, settings);
+      if (result != null) {
+        const { descriptions, exercise: originalExercise } = result;
+        exercise.descriptions = {
+          ...ObjectUtils.clone(descriptions),
+          reuse: { fullName: originalExercise.fullName, exercise: originalExercise },
+        };
       }
     }
   }
@@ -473,10 +495,7 @@ export class PlannerEvaluator {
         const state = progress.state;
         for (const stateKey of ObjectUtils.keys(originalState)) {
           const value = originalState[stateKey];
-          if (state[stateKey] == null) {
-            throw PlannerSyntaxError.fromPoint(exercise.fullName, `Missing state variable ${stateKey}`, point);
-          }
-          if (Weight.type(value) !== Weight.type(state[stateKey])) {
+          if (state[key] != null && Weight.type(value) !== Weight.type(state[stateKey])) {
             throw PlannerSyntaxError.fromPoint(exercise.fullName, `Wrong type of state variable ${stateKey}`, point);
           }
         }
@@ -634,6 +653,7 @@ export class PlannerEvaluator {
       this.fillDescriptions(exercise, evaluatedWeeks, weekIndex, dayInWeekIndex);
       this.fillRepeats(exercise, evaluatedWeeks, dayInWeekIndex, metadata.byExerciseWeekDay);
       this.fillSingleProperties(exercise, metadata);
+      this.checkUnknownExercises(exercise, metadata);
     });
 
     this.iterateOverExercises(evaluatedWeeks, (weekIndex, dayInWeekIndex, dayIndex, exerciseIndex, exercise) => {
@@ -652,12 +672,22 @@ export class PlannerEvaluator {
     });
   }
 
+  public static checkUnknownExercises(exercise: IPlannerProgramExercise, metadata: IPlannerEvalMetadata): void {
+    if (exercise.exerciseType == null && !metadata.notused.has(exercise.key)) {
+      throw PlannerSyntaxError.fromPoint(
+        exercise.fullName,
+        `Unknown exercise ${exercise.name}`,
+        exercise.points.fullName
+      );
+    }
+  }
+
   public static findReusedDescriptions(
     reusingName: string,
     currentWeekIndex: number,
     byExerciseWeekDay: IByExerciseWeekDay<IPlannerProgramExercise>,
     settings: ISettings
-  ): IPlannerProgramExerciseDescription[] | undefined {
+  ): { descriptions: IProgramExerciseDescriptions; exercise: IPlannerProgramExercise } | undefined {
     const weekDayMatch = reusingName.match(/\[([^]+)\]/);
     let weekIndex: number | undefined;
     let dayIndex: number | undefined;
@@ -677,10 +707,11 @@ export class PlannerEvaluator {
     const key = PlannerKey.fromFullName(reusingName, settings);
     const weekExercises = ObjectUtils.values(byExerciseWeekDay[key]?.[weekIndex ?? currentWeekIndex] || []);
     const weekDescriptions = weekExercises.map((d) => d.descriptions);
-    if (dayIndex != null) {
-      return weekDescriptions[dayIndex];
+    const index = dayIndex ?? 0;
+    if (weekDescriptions[index]) {
+      return { descriptions: weekDescriptions[index], exercise: weekExercises[index] };
     } else {
-      return weekDescriptions[0];
+      return undefined;
     }
   }
 

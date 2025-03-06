@@ -18,9 +18,9 @@ export function EditProgramUiDescriptions(props: IEditProgramUiDescriptionsProps
   const [descriptionIndex, setDescriptionIndex] = useState(
     PlannerProgramExercise.currentDescriptionIndex(plannerExercise)
   );
-  const description = (plannerExercise.descriptions[descriptionIndex]?.value ?? "").replace(/^!\s*/, "");
+  const description = (plannerExercise.descriptions.values[descriptionIndex]?.value ?? "").replace(/^!\s*/, "");
   const atLeft = descriptionIndex === 0;
-  const atRight = descriptionIndex === plannerExercise.descriptions.length - 1;
+  const atRight = descriptionIndex === plannerExercise.descriptions.values.length - 1;
 
   return (
     <div className="my-4">
@@ -63,7 +63,7 @@ export function EditProgramUiDescriptions(props: IEditProgramUiDescriptionsProps
               right: "-20px",
             }}
             onClick={() => {
-              const newValue = Math.min(plannerExercise.descriptions.length - 1, descriptionIndex + 1);
+              const newValue = Math.min(plannerExercise.descriptions.values.length - 1, descriptionIndex + 1);
               setDescriptionIndex(newValue);
               if (props.onUpdate) {
                 props.onUpdate(newValue);
@@ -75,8 +75,8 @@ export function EditProgramUiDescriptions(props: IEditProgramUiDescriptionsProps
         )}
         <div className="mx-4">
           {props.showCurrent &&
-            props.plannerExercise.descriptions.length > 1 &&
-            props.plannerExercise.descriptions[descriptionIndex]?.isCurrent && (
+            props.plannerExercise.descriptions.values.length > 1 &&
+            props.plannerExercise.descriptions.values[descriptionIndex]?.isCurrent && (
               <div
                 className="absolute px-1 text-xs font-bold text-white rounded bg-grayv2-main"
                 style={{ top: "-23px", right: "2rem" }}

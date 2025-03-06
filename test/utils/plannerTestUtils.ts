@@ -43,10 +43,11 @@ export class PlannerTestUtils {
   public static finish(
     text: string,
     completed: ICompletedEntries,
-    settings: ISettings = Settings.build()
+    settings: ISettings = Settings.build(),
+    dayIndex?: number
   ): { program: IProgram } {
     const { program } = PlannerTestUtils.get(text);
-    const nextHistoryRecord = Program.nextHistoryRecord(program, settings);
+    const nextHistoryRecord = Program.nextHistoryRecord(program, settings, dayIndex);
     for (let entryIndex = 0; entryIndex < completed.completedReps.length; entryIndex++) {
       for (let setIndex = 0; setIndex < completed.completedReps[entryIndex].length; setIndex++) {
         const set = nextHistoryRecord.entries?.[entryIndex]?.sets[setIndex];

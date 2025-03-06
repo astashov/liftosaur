@@ -184,7 +184,7 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
       </div>
       {!isCollapsed && (
         <>
-          {plannerExercise.descriptions.length > 0 && (
+          {plannerExercise.descriptions.values.length > 0 && (
             <EditProgramUiDescriptions header="Descriptions" showCurrent={true} plannerExercise={plannerExercise} />
           )}
           <div className="px-1">

@@ -82,6 +82,13 @@ export function EditProgramUiProgressReuse(props: IEditProgramUiProgressReusePro
                         ex.progress = newProgress;
                       }
                     }
+                  } else if (ex.reuse?.exercise?.progress != null) {
+                    ex.progress = {
+                      state: {},
+                      stateMetadata: {},
+                      type: "custom",
+                      script: "{~ ~}",
+                    };
                   } else {
                     ex.progress = undefined;
                   }
@@ -92,8 +99,13 @@ export function EditProgramUiProgressReuse(props: IEditProgramUiProgressReusePro
         }}
       >
         {["", ...reuseCandidates].map((fullName) => {
+          const isSelected =
+            progress?.reuse?.fullName.trim() === fullName.trim() ||
+            (plannerExercise.reuse?.fullName.trim() === fullName.trim() &&
+              plannerExercise.reuse?.exercise?.progress != null &&
+              plannerExercise.progress == null);
           return (
-            <option value={fullName.trim()} selected={progress?.reuse?.fullName?.trim() === fullName.trim()}>
+            <option value={fullName.trim()} selected={isSelected}>
               {fullName.trim()}
             </option>
           );

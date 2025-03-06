@@ -38,7 +38,12 @@ import { Encoder } from "../utils/encoder";
 import { StringUtils } from "../utils/string";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { ProgramToPlanner } from "./programToPlanner";
-import { IPlannerState, IExportedPlannerProgram, IPlannerProgramExercise } from "../pages/planner/models/types";
+import {
+  IPlannerState,
+  IExportedPlannerProgram,
+  IPlannerProgramExercise,
+  IPlannerProgramExerciseUsed,
+} from "../pages/planner/models/types";
 import memoize from "micro-memoize";
 import { Equipment } from "./equipment";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
@@ -144,7 +149,7 @@ export namespace Program {
     program: IEvaluatedProgram,
     exerciseType: IExerciseType
   ): IPlannerProgramExercise[] {
-    return Program.getAllProgramExercises(program).filter((p) => Exercise.eq(p.exerciseType, exerciseType));
+    return Program.getAllUsedProgramExercises(program).filter((p) => Exercise.eq(p.exerciseType, exerciseType));
   }
 
   export function getEditingProgramIndex(state: IState): number {
@@ -192,12 +197,11 @@ export namespace Program {
   export function nextHistoryEntry(
     program: IEvaluatedProgram,
     dayData: IDayData,
-    programExercise: IPlannerProgramExercise,
+    programExercise: IPlannerProgramExerciseUsed,
     settings: ISettings
   ): IHistoryEntry {
     const exercise = programExercise.exerciseType;
-    const programSets =
-      programExercise.evaluatedSetVariations[PlannerProgramExercise.currentSetVariationIndex(programExercise)]?.sets;
+    const programSets = PlannerProgramExercise.currentEvaluatedSetVariation(programExercise)?.sets;
     const warmupSets = PlannerProgramExercise.programWarmups(programExercise, settings);
     const sets: ISet[] = [];
     for (const programSet of programSets) {
@@ -303,7 +307,7 @@ export namespace Program {
     string
   > {
     const script = PlannerProgramExercise.getProgressScript(programExercise) || "";
-    const setVariationIndex = PlannerProgramExercise.currentSetVariationIndex(programExercise);
+    const setVariationIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(programExercise);
     const descriptionIndex = PlannerProgramExercise.currentDescriptionIndex(programExercise);
 
     const bindings = Progress.createScriptBindings(
@@ -361,7 +365,7 @@ export namespace Program {
     string
   > {
     const state = PlannerProgramExercise.getState(programExercise);
-    const setVariationIndex = PlannerProgramExercise.currentSetVariationIndex(programExercise);
+    const setVariationIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(programExercise);
     const descriptionIndex = PlannerProgramExercise.currentDescriptionIndex(programExercise);
     const bindings = Progress.createScriptBindings(
       dayData,
@@ -486,11 +490,6 @@ export namespace Program {
         }
       }
     }
-    console.log(
-      "new ev program",
-      newEvaluatedProgram.weeks[0].days[0].exercises.map((e) => e.evaluatedSetVariations[0].sets)
-    );
-
     const theNextDay = Program.nextDay(newEvaluatedProgram, progress.day);
     const newPlanner = new ProgramToPlanner(newEvaluatedProgram, settings).convertToPlanner();
     const newProgram = ObjectUtils.clone(program);
@@ -606,6 +605,11 @@ export namespace Program {
 
   export function getAllProgramExercises(evaluatedProgram: IEvaluatedProgram): IPlannerProgramExercise[] {
     return evaluatedProgram.weeks.flatMap((w) => w.days.flatMap((d) => d.exercises));
+  }
+
+  export function getAllUsedProgramExercises(evaluatedProgram: IEvaluatedProgram): IPlannerProgramExerciseUsed[] {
+    const used = getAllProgramExercises(evaluatedProgram).filter((e) => !e.notused && e.exerciseType != null);
+    return used as IPlannerProgramExerciseUsed[];
   }
 
   export function evaluate(program: IProgram, settings: ISettings): IEvaluatedProgram {
@@ -774,8 +778,9 @@ export namespace Program {
     return undefined;
   }
 
-  export function getProgramDayExercises(programDay: IEvaluatedProgramDay): IPlannerProgramExercise[] {
-    return programDay.exercises.filter((e) => !e.notused);
+  export function getProgramDayExercises(programDay: IEvaluatedProgramDay): IPlannerProgramExerciseUsed[] {
+    const list = programDay.exercises.filter((e) => !e.notused && e.exerciseType != null);
+    return list as IPlannerProgramExerciseUsed[];
   }
 
   export function applyEvaluatedProgram(
@@ -904,10 +909,12 @@ export namespace Program {
   export function exportProgram(program: IProgram, settings: ISettings, version?: string): IExportedProgram {
     const aFullProgram = Program.evaluate(program, settings);
     const customExerciseIds = Program.getAllProgramExercises(aFullProgram).reduce<string[]>((memo, programExercise) => {
-      const id = programExercise.exerciseType.id;
-      const isBuiltIn = !!Exercise.findById(id, {});
-      if (!isBuiltIn) {
-        memo.push(id);
+      const id = programExercise.exerciseType?.id;
+      if (id) {
+        const isBuiltIn = !!Exercise.findById(id, {});
+        if (!isBuiltIn) {
+          memo.push(id);
+        }
       }
       return memo;
     }, []);

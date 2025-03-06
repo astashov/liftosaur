@@ -22,7 +22,7 @@ export function ProgramDetailsGzclBurritoButBig(props: IProgramDetailsGzclBurrit
   const program = ObjectUtils.clone(props.program);
   const evaluatedProgram = Program.evaluate(program, props.settings);
   const t3Exercises = Program.getAllProgramExercises(evaluatedProgram).filter((e) =>
-    /(T3a|T3b)/.test(e.descriptions.join("") || "")
+    /(T3a|T3b)/.test(e.descriptions.values.join("") || "")
   );
   for (const exercise of t3Exercises) {
     for (const variation of exercise.evaluatedSetVariations) {

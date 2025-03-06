@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { CollectionUtils } from "./collection";
+import { INonNullObject } from "./types";
 
 /* eslint-disable @typescript-eslint/ban-types */
 export namespace ObjectUtils {
@@ -116,7 +117,7 @@ export namespace ObjectUtils {
   export function changedKeys<T extends {}>(
     oldObj: T,
     newObj: T,
-    eq: (a: any, b: any) => boolean = (a, b) => a === b
+    eq: (a: any, b: any) => boolean = (a, b) => a === b,
   ): Partial<Record<keyof T, "delete" | "update" | "add">> {
     let oldKeys = keys(oldObj);
     const newKeys = keys(newObj);
@@ -143,10 +144,13 @@ export namespace ObjectUtils {
   }
 
   export function mapValues<U, V, T extends Record<any, U>>(obj: T, fn: (x: U) => V): Record<keyof T, V> {
-    return ObjectUtils.keys(obj).reduce<Record<keyof T, V>>((memo, k) => {
-      memo[k] = fn(obj[k]);
-      return memo;
-    }, {} as Record<keyof T, V>);
+    return ObjectUtils.keys(obj).reduce<Record<keyof T, V>>(
+      (memo, k) => {
+        memo[k] = fn(obj[k]);
+        return memo;
+      },
+      {} as Record<keyof T, V>,
+    );
   }
 
   export function filter<T extends {}>(obj: T, cb: (key: keyof T, value: T[keyof T]) => boolean): Partial<T> {
@@ -158,6 +162,10 @@ export namespace ObjectUtils {
       memo[k] = obj[k];
       return memo;
     }, {});
+  }
+
+  export function compact<T extends Record<string, any>>(obj: T): INonNullObject<T> {
+    return Object.fromEntries(Object.entries(obj).filter(([_, value]) => value !== null)) as INonNullObject<T>;
   }
 
   export function sortedByKeys<T extends {}>(obj: T, sortedKeys: Array<keyof T>): Array<[keyof T, T[keyof T]]> {
@@ -193,7 +201,7 @@ export namespace ObjectUtils {
 
   export function combinedKeys<T extends Record<string, unknown>, U extends Record<string, unknown>>(
     obj1: T,
-    obj2: U
+    obj2: U,
   ): Array<keyof T | keyof U> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return Array.from(new Set(ObjectUtils.keys(obj1).concat(ObjectUtils.keys(obj2) as any)));

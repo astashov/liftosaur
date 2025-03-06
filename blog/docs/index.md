@@ -374,7 +374,7 @@ and 5 exercises in each day in total may have 240 places where you specify the s
 
 Liftosaur offers a bunch of syntax sugar to make it easier to write and modify the programs.
 
-#### Reusing the exercises's sets/reps/weight/RPE/timer and warmups via `...Squat`
+#### Reusing the exercises's sets/reps/weight/RPE/timer, warmups and update/progress scripts via `...Squat`
 
 You can reuse the sets/reps/weight/RPE/timer and warmups of another exercise. You can either specify the exact week/day of the exercise to reuse, or by default it'll look into any day of the current week. The syntax for reusing the sets looks like this:
 
@@ -383,7 +383,7 @@ Bench Press / 5x5 / progress: lp(5lb)
 Squat / ...Bench Press
 {% endplannercode %}
 
-The Squat would reuse 5x5 sets of the Bench Press from the current week. And if you change 5x5 of Bench Press to e.g. 3x8, that would be applied to Squat as well. Note that we don't reuse the `progress: lp(5lb)` of Bench Press, only the sets!
+The Squat would reuse 5x5 sets of the Bench Press from the current week. And if you change 5x5 of Bench Press to e.g. 3x8, that would be applied to Squat as well. The progress part `progress: lp(5lb)` of the Bench Press also would be reused!
 
 For multi-week programs it may look like this:
 
@@ -435,7 +435,7 @@ Deadlift / 3x3
 
 And this way Squat also would use `5x5` from Bench Press on week 2, day 1.
 
-You can also override weight, timer or RPE of the reused exercise, like this:
+You can also override anything in the reusing exercise, like this:
 
 {% plannercode %}
 # Week 1
@@ -444,20 +444,31 @@ Squat / 3x8 200lb 60s
 Bench Press / ...Squat / 150lb
 {% endplannercode %}
 
-Bench Press would be `3x8 150lb 60s` in this case.
+Bench Press would be `3x8 150lb 60s` in this case. Or like this:
+
+{% plannercode %}
+# Week 1
+## Day 1
+Squat / 3x8 200lb 60s / update: custom() {~
+  // some update logic
+~} / progress: lp(10lb)
+Bench Press / ...Squat / 150lb / progress: lp(5lb)
+{% endplannercode %}
+
+In this case, Bench Press would have the same `update` logic as Squat, but instead of 10lb Linear Progression, it'd have 5lb.
 
 One thing to note that if the reused exercise changes their weight, sets, reps, etc - after finishing a workout the app would try to extract the new values into overrides. For example, if you have the following setup:
 
 {% plannercode %}
 Bench Press / 3x8 75% / progress: lp(5lb)
-Squat / ...Bench Press / progress: lp(5lb)
+Squat / ...Bench Press
 {% endplannercode %}
 
 And then you finished all sets of Squat successfully. That will change the weight of Squat, and the program now would look like this:
 
 {% plannercode %}
 Bench Press / 3x8 75% / progress: lp(5lb)
-Squat / ...Bench Press / 185lb / progress: lp(5lb)
+Squat / ...Bench Press / 185lb
 {% endplannercode %}
 
 I.e. the app notices that the weight of the Bench Press and Squat are not the same anymore, so it extracts the weight
@@ -555,10 +566,18 @@ With the features like above, it's often pretty convenient to specify a "templat
 
 {% plannercode %}
 Squat / 1x10+, 3x10 / 70% / used: none / progress: lp(5lb)
-Bench Press / ...Squat / progress: lp(5lb)
+Bench Press / ...Squat
 {% endplannercode %}
 
 In this case, the Squat would be used as a template for Bench Press, but wouldn't be used in the program itself.
+
+It's not required that the exercise existed if it's marked as `used: none`, so you can give the templates arbitrary names:
+
+{% plannercode %}
+T1 / used: none / 1x10+, 3x10 / 70% / progress: lp(5lb)
+t1: Bench Press / ...T1
+{% endplannercode %}
+
 
 Templates also solve the problem of the original exercise changing e.g. their weight and therefore breaking the reusing.
 Since templates would never progress, they would never break the reusing. The reused exercises still may break reusing on progression, but at least only for that specific reused exercise, not for all of them.
@@ -570,46 +589,46 @@ These features work the best when combined together. For example, you can have a
 {% plannercode %}
 # Week 1
 ## Day 1
-/// Specifying templates for our exercises, prefixing with `t:` label
-t: Squat / used: none / 1x6, 3x3 / 80%
-t: Romanian Deadlift / used: none / 1x8, 3x4 / 70%
-t: Bicep Curl[1-4] / used: none / 3x10+ / 60% / progress: sum(30, 5lb)
+/// Specifying templates for our exercises
+t1 / used: none / 1x6, 3x3 / 80%
+t2 / used: none / 1x8, 3x4 / 70%
+t3[1-4] / used: none / 3x10+ / 60% / progress: sum(30, 5lb)
 
 /// Now the actual exercises:
-Squat[1,1-4] / ...t: Squat
-Romanian Deadlift[2,1-4] / ...t: Romanian Deadlift
-Bicep Curl[3,1-4] / ...t: Bicep Curl / progress: sum(30, 5lb)
+Squat[1,1-4] / ...t1
+Romanian Deadlift[2,1-4] / ...t2
+Bicep Curl[3,1-4] / ...t3
 
 ## Day 2
-Bench Press[1,1-4] / ...t: Squat
-Overhead Press[2,1-4] / ...t: Romanian Deadlift
-Lat Pulldown[3,1-4] / ...t: Bicep Curl / progress: sum(30, 5lb)
+Bench Press[1,1-4] / ...t1
+Overhead Press[2,1-4] / ...t2
+Lat Pulldown[3,1-4] / ...t3
 
 ## Day 3
-Deadlift[1,1-4] / ...t: Squat
-Front Squat[2,1-4] / ...t: Romanian Deadlift
-Hanging Leg Raise[3,1-4] / ...t: Bicep Curl / progress: sum(30, 5lb)
+Deadlift[1,1-4] / ...t1
+Front Squat[2,1-4] / ...t2
+Hanging Leg Raise[3,1-4] / ...t3
 
 
 # Week 2
 ## Day 1
 /// Now we only need to specify undulating sets for main templates exercises 
-t: Squat / 1x7, 3x4 / 80%
-t: Romanian Deadlift / 1x9, 3x5 / 70%
+t1 / 1x7, 3x4 / 80%
+t2 / 1x9, 3x5 / 70%
 ## Day 2
 ## Day 3
 
 # Week 3
 ## Day 1
-t: Squat / 1x8, 3x4 / 80%
-t: Romanian Deadlift / 1x10, 3x5 / 70%
+t1 / 1x8, 3x4 / 80%
+t2 / 1x10, 3x5 / 70%
 ## Day 2
 ## Day 3
 
 # Week 4
 ## Day 1
-t: Squat / 1x9, 3x5 / 80%
-t: Romanian Deadlift / 1x11, 3x6 / 70%
+t1 / 1x9, 3x5 / 80%
+t2 / 1x11, 3x6 / 70%
 ## Day 2
 ## Day 3
 {% endplannercode %}
@@ -775,6 +794,29 @@ Bench Press / 3x8 / progress: custom(shouldBumpWeight+: 0) {~
 
 In this case, after the last set the app will ask the user for the `shouldBumpWeight` value. And if user
 enters 1, the weight would be increased. Otherwise - it'd stay the same.
+
+When reusing progress logic, you may omit the variables with the same value. I.e., this:
+
+{% plannercode %}
+Bench Press / 3x8 / progress: custom(attempt: 0, increment: 5lb) {~
+  // ...some logic
+~}
+
+Squat / 3x8 / progress: custom(attempt: 0, increment: 10lb) { ...Bench Press }
+{% endplannercode %}
+
+and this:
+
+{% plannercode %}
+Bench Press / 3x8 / progress: custom(attempt: 0, increment: 5lb) {~
+  // ...some logic
+~}
+
+Squat / 3x8 / progress: custom(increment: 10lb) { ...Bench Press }
+{% endplannercode %}
+
+are equivalent (note we skipped `attempt: 0` in the second example).
+
 
 ### Temporary Variables
 

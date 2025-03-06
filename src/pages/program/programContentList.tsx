@@ -96,7 +96,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
         {CollectionUtils.sortByExpr(state.storage.programs, (p) => p.clonedAt || 0, true).map((program) => {
           const evaluatedProgram = Program.evaluate(program, state.storage.settings);
           const usedExerciseIds = CollectionUtils.groupByExprUniq(
-            Program.getAllProgramExercises(evaluatedProgram),
+            Program.getAllUsedProgramExercises(evaluatedProgram),
             (e) => Exercise.toKey(e.exerciseType)
           );
           const usedExercises = CollectionUtils.compact(

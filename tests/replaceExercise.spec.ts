@@ -51,7 +51,7 @@ Bicep Curl / 1x5`
   );
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
-    "Bicep Curl / ...Bent Over Row, Dumbbell / update: custom() { ...Bent Over Row, Dumbbell } / progress: custom() { ...Bent Over Row, Dumbbell }"
+    "Bicep Curl / ...Bent Over Row, Dumbbell"
   );
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
     "t1: Bench Press / 3x5"
@@ -95,7 +95,7 @@ Bicep Curl / 1x5`
   );
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
-    "Bicep Curl / ...Bent Over Row, Dumbbell / update: custom() { ...Bent Over Row, Dumbbell } / progress: custom() { ...Bent Over Row, Dumbbell }t1: Bench Press / 3x5"
+    "Bicep Curl / ...Bent Over Row, Dumbbellt1: Bench Press / 3x5"
   );
 
   await page.getByTestId("tab-week-2").click();

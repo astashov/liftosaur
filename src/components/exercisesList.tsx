@@ -68,7 +68,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
   const [showCustomExerciseModal, setShowCustomExerciseModal] = useState<boolean>(false);
 
   let programExercises = buildExercises(
-    CollectionUtils.uniqByExpr(Program.getAllProgramExercises(evaluatedProgram), (e) =>
+    CollectionUtils.uniqByExpr(Program.getAllUsedProgramExercises(evaluatedProgram), (e) =>
       Exercise.toKey(e.exerciseType)
     ).map((e) => e.exerciseType),
     props.settings

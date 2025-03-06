@@ -20,11 +20,14 @@ interface IProgramPreviewPlaygroundExerciseEditModalProps {
 
 export function ProgramPreviewPlaygroundExerciseEditModal(
   props: IProgramPreviewPlaygroundExerciseEditModalProps
-): JSX.Element {
+): JSX.Element | null {
   const programExercise = props.programExercise;
   const state = PlannerProgramExercise.getState(props.programExercise);
   const stateMetadata = PlannerProgramExercise.getStateMetadata(props.programExercise);
   const hasStateVariables = ObjectUtils.keys(state).length > 0;
+  if (!programExercise.exerciseType) {
+    return null;
+  }
   const exercise = Exercise.get(programExercise.exerciseType, props.settings.exercises);
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>

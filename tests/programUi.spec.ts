@@ -196,7 +196,7 @@ Bicep Curl / 3x3`
   await expect(page.getByTestId("edit-program-progress").nth(5)).toContainText("Progress: dp(5lb, 8, 12)");
   await page.getByTestId("edit-exercise-reuse-progress-select").selectOption("Overhead Press");
   await expect(page.getByTestId("edit-program-progress").nth(5)).toContainText(
-    "Progress: custom(foo: 1) { ...Overhead Press }"
+    "Progress: custom() { ...Overhead Press }"
   );
 });
 

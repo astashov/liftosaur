@@ -36,7 +36,7 @@ interface IModalEditModeProps {
 
 export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
   const programExercise = Program.getProgramExercise(props.day, props.program, props.programExerciseId);
-  if (programExercise == null) {
+  if (programExercise == null || programExercise.exerciseType == null) {
     return <Fragment />;
   }
   const exercise = Exercise.get(programExercise.exerciseType, props.settings.exercises);
@@ -91,7 +91,6 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                 onEditWeight={(index, weight, unit) => {
                   const weightChange = weightChanges[index];
                   const newValue: IWeightChange = { ...weightChange, weight: { value: weight, unit } };
-                  console.log("newValue", newValue);
                   setWeightChanges(CollectionUtils.setAt(weightChanges, index, newValue));
                 }}
               />

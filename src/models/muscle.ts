@@ -3,7 +3,7 @@ import { Exercise } from "./exercise";
 import { ObjectUtils } from "../utils/object";
 import { ISettings, IMuscle, IDayData, IScreenMuscle } from "../types";
 import { StringUtils } from "../utils/string";
-import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { IPlannerProgramExerciseUsed } from "../pages/planner/models/types";
 
 export type IScreenMusclePointsColl = Partial<Record<IScreenMuscle, number>>;
 
@@ -215,7 +215,7 @@ export namespace Muscle {
 
   export function getUnifiedPointsForExercise(
     program: IEvaluatedProgram,
-    programExercise: IPlannerProgramExercise,
+    programExercise: IPlannerProgramExerciseUsed,
     dayData: IDayData,
     settings: ISettings
   ): IUnifiedPoints {
@@ -251,7 +251,7 @@ export namespace Muscle {
 
   export function getPointsForExercise(
     program: IEvaluatedProgram,
-    programExercise: IPlannerProgramExercise,
+    programExercise: IPlannerProgramExerciseUsed,
     dayData: IDayData,
     settings: ISettings
   ): IPoints {

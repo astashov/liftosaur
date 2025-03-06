@@ -5,7 +5,7 @@ import { Exercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";
 import { ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { IPlannerProgramExercise, IPlannerState } from "../models/types";
+import { IPlannerProgramExerciseUsed, IPlannerState } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
 import { PlannerKey } from "../plannerKey";
@@ -117,10 +117,12 @@ function getIntensityPerWeeks(
   const data: [number[], number[]] = [[], []];
   for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex++) {
     const evaluatedWeek = evaluatedWeeks[weekIndex];
-    let exercise: IPlannerProgramExercise | undefined;
+    let exercise: IPlannerProgramExerciseUsed | undefined;
     const evaluatedDay = evaluatedWeek[dayIndex] as IPlannerEvalResult | undefined;
     if (evaluatedDay?.success) {
-      exercise = evaluatedDay.data.find((e) => e.name === exerciseName);
+      exercise = PlannerProgramExercise.toUsed(
+        evaluatedDay.data.find((e) => e.name === exerciseName && e.exerciseType != null)
+      );
     }
     if (!exercise) {
       continue;
@@ -145,10 +147,12 @@ function getVolumePerWeeks(
   const data: [number[], number[]] = [[], []];
   for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex++) {
     const evaluatedWeek = evaluatedWeeks[weekIndex];
-    let exercise: IPlannerProgramExercise | undefined;
+    let exercise: IPlannerProgramExerciseUsed | undefined;
     const evaluatedDay = evaluatedWeek[dayIndex] as IPlannerEvalResult | undefined;
     if (evaluatedDay?.success) {
-      exercise = evaluatedDay.data.find((e) => e.name === exerciseName);
+      exercise = PlannerProgramExercise.toUsed(
+        evaluatedDay.data.find((e) => e.name === exerciseName && e.exerciseType != null)
+      );
     }
     if (!exercise) {
       continue;

@@ -97,7 +97,7 @@ export class PlannerEvaluatedProgramToText {
                   const evalExercise = evalDay.success
                     ? evalDay.data.find((e) => e.key === exerciseLine?.value)
                     : undefined;
-                  if (descriptionIndex > 0 && evalExercise?.descriptions?.[descriptionIndex]?.isCurrent) {
+                  if (descriptionIndex > 0 && evalExercise?.descriptions.values?.[descriptionIndex]?.isCurrent) {
                     value = `// ! ${value}`;
                   } else {
                     value = `// ${value}`;

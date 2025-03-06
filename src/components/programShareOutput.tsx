@@ -92,12 +92,10 @@ export const ProgramShareOutput = forwardRef(
                 return (
                   <div className="flex gap-2">
                     {days.map((day) => {
-                      console.log(day);
                       const evaluatedDay = evaluatedWeeks[weekIndex][dayInWeekIndex];
                       if (!evaluatedDay.success) {
                         return <div />;
                       }
-                      console.log("Evaluated day", evaluatedDay);
                       const data = evaluatedDay.data;
                       const item = (
                         <div className="mt-2" style={{ width: "24rem" }}>
@@ -167,9 +165,9 @@ function Workout(props: IWorkoutProps): JSX.Element {
         if (!exercise) {
           return <div />;
         }
-        const descriptions = plannerProgramExercise.descriptions.filter((d) => d.isCurrent);
+        const descriptions = plannerProgramExercise.descriptions.values.filter((d) => d.isCurrent);
         if (descriptions.length === 0) {
-          const firstDescription = plannerProgramExercise.descriptions[0];
+          const firstDescription = plannerProgramExercise.descriptions.values[0];
           if (firstDescription != null) {
             descriptions.push(firstDescription);
           }

@@ -69,11 +69,19 @@ export function EditProgramUiUpdateReuse(props: IEditProgramUiUpdateReuseProps):
                             : {
                                 ...reusedUpdate,
                                 script: undefined,
-                                body: value,
+                                reuse: {
+                                  fullName: value,
+                                  exercise: reusedExercise,
+                                },
                               };
                         ex.update = newUpdate;
                       }
                     }
+                  } else if (ex.reuse?.exercise?.update != null) {
+                    ex.update = {
+                      type: "custom",
+                      script: "{~ ~}",
+                    };
                   } else {
                     ex.update = undefined;
                   }
@@ -84,8 +92,13 @@ export function EditProgramUiUpdateReuse(props: IEditProgramUiUpdateReuseProps):
         }}
       >
         {["", ...reuseCandidates].map((fullName) => {
+          const isSelected =
+            update?.reuse?.fullName.trim() === fullName.trim() ||
+            (plannerExercise.reuse?.fullName.trim() === fullName.trim() &&
+              plannerExercise.reuse?.exercise?.update != null &&
+              plannerExercise.update == null);
           return (
-            <option value={fullName.trim()} selected={update?.reuse?.fullName?.trim() === fullName.trim()}>
+            <option value={fullName.trim()} selected={isSelected}>
               {fullName.trim()}
             </option>
           );

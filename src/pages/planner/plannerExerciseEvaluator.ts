@@ -298,8 +298,8 @@ export class PlannerExerciseEvaluator {
         const fnArgVal = fnArgValStr.match(/(lb|kg)/)
           ? Weight.parse(fnArgValStr)
           : fnArgValStr.match(/%/)
-          ? Weight.buildPct(parseFloat(fnArgValStr))
-          : MathUtils.roundFloat(parseFloat(fnArgValStr), 2);
+            ? Weight.buildPct(parseFloat(fnArgValStr))
+            : MathUtils.roundFloat(parseFloat(fnArgValStr), 2);
         state[fnArgKey] = fnArgVal ?? 0;
       } catch (e) {
         if (onError) {
@@ -894,6 +894,26 @@ if (completedReps >= reps && completedRPE <= RPE) {
     return ranges;
   }
 
+  private getIsNotUsed(expr: SyntaxNode): boolean {
+    if (expr.type.name === PlannerNodeName.ExerciseExpression) {
+      const sections = expr.getChildren(PlannerNodeName.ExerciseSection);
+      for (const section of sections) {
+        const properties = section.getChildren(PlannerNodeName.ExerciseProperty);
+        for (const property of properties) {
+          const nameNode = property.getChild(PlannerNodeName.ExercisePropertyName);
+          const name = nameNode ? this.getValueTrim(nameNode) : undefined;
+          const valueNode = property.getChild(PlannerNodeName.None);
+          if (name === "used" && valueNode != null) {
+            return true;
+          }
+        }
+      }
+      return false;
+    } else {
+      assert(PlannerNodeName.ExerciseSection);
+    }
+  }
+
   private evaluateExercise(expr: SyntaxNode): void {
     if (expr.type.name === PlannerNodeName.EmptyExpression || expr.type.name === PlannerNodeName.TripleLineComment) {
       if (this.latestDescriptions.length > 0) {
@@ -950,15 +970,12 @@ if (completedReps >= reps && completedRPE <= RPE) {
       const key = PlannerKey.fromFullName(fullName, this.settings);
       const shortName = `${name}${equipment ? `, ${equipmentName(equipment)}` : ""}`;
       const exercise = Exercise.findByNameAndEquipment(shortName, this.settings.exercises);
-      if (exercise == null) {
-        this.error(`Unknown exercise ${name}`, nameNode);
-      }
+      let notused = this.getIsNotUsed(expr);
       const sectionNodes = expr.getChildren(PlannerNodeName.ExerciseSection);
       const setVariations: IPlannerProgramExerciseSetVariation[] = [];
       const allSets: IPlannerProgramExerciseSet[] = [];
       let allWarmupSets: IPlannerProgramExerciseWarmupSet[] | undefined;
       let reuse: IPlannerProgramReuse | undefined;
-      let notused: boolean = false;
       const repeat = this.getRepeat(expr);
       const order = this.getOrder(expr);
       const text = this.getValueTrim(expr).trim();
@@ -966,7 +983,7 @@ if (completedReps >= reps && completedRPE <= RPE) {
       let progress: IProgramExerciseProgress | undefined;
       let update: IProgramExerciseUpdate | undefined;
       for (const sectionNode of sectionNodes) {
-        const section = this.evaluateSection(sectionNode, { id: exercise.id, equipment });
+        const section = this.evaluateSection(sectionNode, exercise ? { id: exercise.id, equipment } : undefined);
         if (section.type === "sets") {
           allSets.push(...section.data);
           if (section.data.some((set) => set.repRange != null)) {
@@ -1071,7 +1088,9 @@ if (completedReps >= reps && completedRPE <= RPE) {
         notused: notused,
         evaluatedSetVariations: [],
         setVariations,
-        descriptions,
+        descriptions: {
+          values: descriptions,
+        },
         warmupSets: allWarmupSets,
         reuse,
         progress,

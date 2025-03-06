@@ -417,7 +417,7 @@ Bench Press / ...Squat / progress: lp(5lb)
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x5 105lb+, 1x3 105lb / 60s / progress: lp(5lb)
-Bench Press / ...Squat / progress: lp(5lb)
+Bench Press / ...Squat
 
 
 `);
@@ -567,8 +567,8 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
 tmp: Squat[1-5] / used: none / 2x5 / 86.53% / progress: custom() {~
   weights[3:*:*:*] += 10lb
 ~}
-Squat[1-2] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
-Bench Press[1-2] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
+Squat[1-2] / ...tmp: Squat
+Bench Press[1-2] / ...tmp: Squat
 
 
 # Week 2
@@ -682,6 +682,162 @@ Bicep Curl[2-5] / 5x5 / 86.53%
 `);
   });
 
+  it("dereuses the custom progress when diverges", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x2 100lb / progress: custom(increase: 5lb) {~
+  if (completedReps >= reps) {
+    weights += 5lb
+  } else {
+    state.increase = 2.5lb
+  }
+~}
+Bench Press / ...Squat
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [[2], [1]],
+    });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x2 / 105lb / progress: custom(increase: 5lb) {~
+  if (completedReps >= reps) {
+    weights += 5lb
+  } else {
+    state.increase = 2.5lb
+  }
+~}
+Bench Press / ...Squat / 100lb / progress: custom(increase: 2.5lb) { ...Squat }
+
+
+`);
+  });
+
+  it("doesn't dereuse if the custom progress still matches", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x2 100lb / progress: custom(increase: 5lb) {~
+  if (completedReps >= reps) {
+    weights += 5lb
+  } else {
+    state.increase = 2.5lb
+  }
+~}
+Bench Press / ...Squat
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [[2], [2]],
+    });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x2 / 105lb / progress: custom(increase: 5lb) {~
+  if (completedReps >= reps) {
+    weights += 5lb
+  } else {
+    state.increase = 2.5lb
+  }
+~}
+Bench Press / ...Squat
+
+
+`);
+  });
+
+  it("combine reuse if the custom progress starts to match", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x2 100lb / progress: custom(increase: 5lb) {~
+  if (completedReps >= reps) {
+    weights += 5lb
+  } else {
+    state.increase = 2.5lb
+  }
+~}
+Bench Press / ...Squat / progress: custom(increase: 2.5lb) { ...Squat }
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [[1], [2]],
+    });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x2 / 100lb / progress: custom(increase: 2.5lb) {~
+  if (completedReps >= reps) {
+    weights += 5lb
+  } else {
+    state.increase = 2.5lb
+  }
+~}
+Bench Press / ...Squat / 105lb
+
+
+`);
+  });
+
+  it("dereuse lp in case of mismatch", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x2 100lb / progress: lp(5lb, 2, 0, 10lb, 2, 0)
+Bench Press / ...Squat
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [[1], [2]],
+    });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x2 / 100lb / progress: lp(5lb, 2, 0, 10lb, 2, 1)
+Bench Press / ...Squat / progress: lp(5lb, 2, 1, 10lb, 2, 0)
+
+
+`);
+  });
+
+  it("combine lp in case it matches again", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x2 100lb / progress: lp(5lb)
+Bench Press[1-3] / ...Squat
+
+# Week 2
+## Day 1
+Squat / 1x3 100lb
+
+# Week 3
+## Day 1
+Squat / 1x4 100lb
+
+
+`;
+    const { program } = PlannerTestUtils.finish(
+      programText,
+      {
+        completedReps: [[3], [2]],
+      },
+      Settings.build(),
+      2
+    );
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x2 / 105lb / progress: lp(5lb)
+Bench Press[1-3] / ...Squat / 100lb
+
+
+# Week 2
+## Day 1
+Squat / 1x3 / 105lb
+
+
+# Week 3
+## Day 1
+Squat / 1x4 / 105lb
+
+
+`);
+  });
+
   it("updates the state from update scripts", () => {
     const programText = `# Week 1
 ## Day 1
@@ -697,7 +853,6 @@ Squat / 1x1 100lb / update: custom() {~
       completedReps: [[1], [1]],
     });
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
-    console.log(newText);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x1 / 100lb / update: custom() {~

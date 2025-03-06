@@ -226,56 +226,58 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
           </div>
         </div>
       </div>
-      <div className="mb-2 leading-none">
-        <LinkButton
-          name="change-exercise-this-week-day"
-          data-cy="edit-exercise-change-here"
-          className="mr-4 text-xs"
-          onClick={() => {
-            props.plannerDispatch(
-              lb<IPlannerState>().p("ui").p("modalExercise").record({
-                focusedExercise: {
-                  weekIndex,
-                  dayIndex,
-                  exerciseLine,
-                },
-                types: [],
-                muscleGroups: [],
-                exerciseKey,
-                fullName: plannerExercise.fullName,
-                exerciseType,
-                change: "one",
-              })
-            );
-          }}
-        >
-          Change here
-        </LinkButton>
-        <LinkButton
-          name="change-exercise-this-week-day"
-          data-cy="edit-exercise-change-everywhere"
-          className="text-xs"
-          onClick={() => {
-            props.plannerDispatch(
-              lb<IPlannerState>().p("ui").p("modalExercise").record({
-                focusedExercise: {
-                  weekIndex,
-                  dayIndex,
-                  exerciseLine,
-                },
-                types: [],
-                muscleGroups: [],
-                exerciseKey,
-                fullName: plannerExercise.fullName,
-                exerciseType,
-                change: "all",
-              })
-            );
-          }}
-        >
-          Change everywhere
-        </LinkButton>
-      </div>
+      {exerciseType && (
+        <div className="mb-2 leading-none">
+          <LinkButton
+            name="change-exercise-this-week-day"
+            data-cy="edit-exercise-change-here"
+            className="mr-4 text-xs"
+            onClick={() => {
+              props.plannerDispatch(
+                lb<IPlannerState>().p("ui").p("modalExercise").record({
+                  focusedExercise: {
+                    weekIndex,
+                    dayIndex,
+                    exerciseLine,
+                  },
+                  types: [],
+                  muscleGroups: [],
+                  exerciseKey,
+                  fullName: plannerExercise.fullName,
+                  exerciseType,
+                  change: "one",
+                })
+              );
+            }}
+          >
+            Change here
+          </LinkButton>
+          <LinkButton
+            name="change-exercise-this-week-day"
+            data-cy="edit-exercise-change-everywhere"
+            className="text-xs"
+            onClick={() => {
+              props.plannerDispatch(
+                lb<IPlannerState>().p("ui").p("modalExercise").record({
+                  focusedExercise: {
+                    weekIndex,
+                    dayIndex,
+                    exerciseLine,
+                  },
+                  types: [],
+                  muscleGroups: [],
+                  exerciseKey,
+                  fullName: plannerExercise.fullName,
+                  exerciseType,
+                  change: "all",
+                })
+              );
+            }}
+          >
+            Change everywhere
+          </LinkButton>
+        </div>
+      )}
       {showLabel && (
         <label className="flex items-center mb-2">
           <span className="mr-2">Label:</span>
@@ -355,9 +357,9 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
         plannerExercise={plannerExercise}
         onUpdate={(index) => {
           modify((ex) => {
-            const description = ex.descriptions[index];
+            const description = ex.descriptions.values[index];
             if (description != null) {
-              ex.descriptions.forEach((d) => (d.isCurrent = false));
+              ex.descriptions.values.forEach((d) => (d.isCurrent = false));
               description.isCurrent = true;
             }
           });

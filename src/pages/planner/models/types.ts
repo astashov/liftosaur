@@ -26,13 +26,16 @@ export interface IPlannerProgramExerciseGlobals {
   askWeight?: boolean;
 }
 
+export type IPlannerProgramExerciseUsed = IPlannerProgramExercise &
+  Required<Pick<IPlannerProgramExercise, "exerciseType">>;
+
 export type IPlannerProgramExercise = {
   id: string;
   key: string;
   fullName: string;
   shortName: string;
-  exerciseType: IExerciseType;
   dayData: Required<IDayData>;
+  exerciseType?: IExerciseType;
   label?: string;
   repeat: number[];
   repeating: number[];
@@ -48,7 +51,7 @@ export type IPlannerProgramExercise = {
   evaluatedSetVariations: IPlannerProgramExerciseEvaluatedSetVariation[];
   setVariations: IPlannerProgramExerciseSetVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
-  descriptions: IPlannerProgramExerciseDescription[];
+  descriptions: IProgramExerciseDescriptions;
   globals: IPlannerProgramExerciseGlobals;
   progress?: IProgramExerciseProgress;
   update?: IProgramExerciseUpdate;
@@ -113,6 +116,11 @@ export interface IPlannerProgramReuse {
 
 type IProgramExerciseProgressType = "custom" | "lp" | "dp" | "sum" | "none";
 type IProgramExerciseUpdateType = "custom" | "lp" | "dp" | "sum";
+
+export interface IProgramExerciseDescriptions {
+  values: IPlannerProgramExerciseDescription[];
+  reuse?: IPlannerProgramReuse;
+}
 
 export interface IProgramExerciseProgress {
   type: IProgramExerciseProgressType;

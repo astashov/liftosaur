@@ -20,7 +20,6 @@ import { ExerciseImageUtils } from "../models/exerciseImage";
 import { EditProgram } from "../models/editProgram";
 import { IconDoc } from "./icons/iconDoc";
 import { StringUtils } from "../utils/string";
-import { PP } from "../models/pp";
 
 interface IProps {
   onSelectProgram: (id: string) => void;
@@ -146,7 +145,8 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
   const exerciseObj: Partial<Record<string, IExercise>> = {};
   const equipmentSet: Set<IEquipment | undefined> = new Set();
   const evaluatedProgram = Program.evaluate(props.program, props.settings);
-  PP.iterate2(evaluatedProgram.weeks, (ex) => {
+  const allExercises = Program.getAllUsedProgramExercises(evaluatedProgram);
+  for (const ex of allExercises) {
     const exercise = Exercise.find(ex.exerciseType, props.settings.exercises);
     if (exercise) {
       exerciseObj[Exercise.toKey(ex.exerciseType)] = exercise;
@@ -154,7 +154,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
         equipmentSet.add(exercise.equipment);
       }
     }
-  });
+  }
   const exercises = CollectionUtils.nonnull(ObjectUtils.values(exerciseObj));
   const equipment = CollectionUtils.nonnull(Array.from(equipmentSet));
   const time = Program.dayAverageTimeMs(evaluatedProgram, props.settings);

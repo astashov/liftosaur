@@ -118,8 +118,8 @@ export async function getInitialState(
     const screenStack: IScreenStack = finalStorage.currentProgramId
       ? [{ name: "main" }]
       : shouldSkipIntro
-      ? [{ name: "programs" }]
-      : [{ name: "first" }];
+        ? [{ name: "programs" }]
+        : [{ name: "first" }];
     return {
       storage: finalStorage,
       lastSyncedStorage: finalLastSyncedStorage,
@@ -386,52 +386,54 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   ];
 }
 
-export const reducerWrapper = (storeToLocalStorage: boolean): Reducer<IState, IAction> => (state, action) => {
-  if (typeof window !== "undefined") {
-    window.reducerLastState = state;
-    window.reducerLastActions = [
-      { ...action, time: DateUtils.formatHHMMSS(Date.now(), true) },
-      ...(window.reducerLastActions || []).slice(0, 30),
-    ];
-  }
-  const newState = reducer(state, action);
-  if (!newState.reportedCorruptedStorage && newState.storage !== state.storage) {
-    const validateResult = Storage.validateAndReportStorage(newState.storage);
-    if (!validateResult.success) {
-      newState.reportedCorruptedStorage = true;
+export const reducerWrapper =
+  (storeToLocalStorage: boolean): Reducer<IState, IAction> =>
+  (state, action) => {
+    if (typeof window !== "undefined") {
+      window.reducerLastState = state;
+      window.reducerLastActions = [
+        { ...action, time: DateUtils.formatHHMMSS(Date.now(), true) },
+        ...(window.reducerLastActions || []).slice(0, 30),
+      ];
     }
-  }
+    const newState = reducer(state, action);
+    if (!newState.reportedCorruptedStorage && newState.storage !== state.storage) {
+      const validateResult = Storage.validateAndReportStorage(newState.storage);
+      if (!validateResult.success) {
+        newState.reportedCorruptedStorage = true;
+      }
+    }
 
-  if (typeof window !== "undefined" && window.setTimeout && window.clearTimeout) {
-    window.tempUserId = newState.storage.tempUserId;
-    if (timerId != null) {
-      window.clearTimeout(timerId);
+    if (typeof window !== "undefined" && window.setTimeout && window.clearTimeout) {
+      window.tempUserId = newState.storage.tempUserId;
+      if (timerId != null) {
+        window.clearTimeout(timerId);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).state = newState;
+      if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
+        timerId = window.setTimeout(async () => {
+          clearTimeout(timerId);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const newState2: IState = (window as any).state;
+          timerId = undefined;
+          const userId = newState2.user?.id || newState.storage.tempUserId;
+          const localStorage: ILocalStorage = {
+            storage: newState2.storage,
+            lastSyncedStorage: newState2.lastSyncedStorage,
+            progress: newState2.progress[0],
+          };
+          try {
+            await IndexedDBUtils.set("current_account", userId);
+            await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
+          } catch (e) {
+            console.error(e);
+          }
+        }, 100);
+      }
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).state = newState;
-    if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
-      timerId = window.setTimeout(async () => {
-        clearTimeout(timerId);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const newState2: IState = (window as any).state;
-        timerId = undefined;
-        const userId = newState2.user?.id || newState.storage.tempUserId;
-        const localStorage: ILocalStorage = {
-          storage: newState2.storage,
-          lastSyncedStorage: newState2.lastSyncedStorage,
-          progress: newState2.progress[0],
-        };
-        try {
-          await IndexedDBUtils.set("current_account", userId);
-          await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
-        } catch (e) {
-          console.error(e);
-        }
-      }, 100);
-    }
-  }
-  return newState;
-};
+    return newState;
+  };
 
 export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, ICardsAction> {
   return (progress, action): IHistoryRecord => {
@@ -550,7 +552,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const program = Program.getProgram(state, action.programId || state.storage.currentProgramId);
       if (program != null) {
         const newProgress = Program.nextHistoryRecord(program, state.storage.settings);
-        console.log("New Progress", newProgress);
         return {
           ...state,
           currentHistoryRecord: 0,
@@ -715,7 +716,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       .modify((programs) => [...programs, newProgram]);
     newState = lf(newState).p("editProgram").set({ id: newProgram.id });
     newState = lf(newState).p("storage").p("currentProgramId").set(newProgram.id);
-    return lf(newState).p("screenStack").set(pushScreen(state.screenStack, "editProgram", undefined, true));
+    return lf(newState)
+      .p("screenStack")
+      .set(pushScreen(state.screenStack, "editProgram", undefined, true));
   } else if (action.type === "ApplyProgramChangesToProgress") {
     const progress = state.progress[0];
     if (progress != null) {

@@ -4,6 +4,7 @@ import {
   IPlannerProgramExerciseGlobals,
   IPlannerProgramExerciseSet,
   IPlannerProgramExerciseSetVariation,
+  IPlannerProgramExerciseUsed,
   IPlannerProgramExerciseWarmupSet,
 } from "./types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
@@ -66,7 +67,7 @@ export class PlannerProgramExercise {
   public static setVariations(exercise: IPlannerProgramExercise): IPlannerProgramExerciseSetVariation[] {
     const originalSetVariations = exercise.setVariations;
     const reuseSetVariations = exercise.reuse?.exercise?.setVariations;
-    const setVariations = originalSetVariations || reuseSetVariations || [];
+    const setVariations = (originalSetVariations?.length > 0 ? originalSetVariations : reuseSetVariations) || [];
     return setVariations.length === 0
       ? [{ sets: PlannerProgramExercise.sets(exercise), isCurrent: true }]
       : setVariations;
@@ -104,6 +105,14 @@ export class PlannerProgramExercise {
     return sets;
   }
 
+  public static toUsed(exercise?: IPlannerProgramExercise): IPlannerProgramExerciseUsed | undefined {
+    if (exercise?.exerciseType != null) {
+      return exercise as IPlannerProgramExerciseUsed;
+    } else {
+      return undefined;
+    }
+  }
+
   public static sets(exercise: IPlannerProgramExercise, variationIndex?: number): IPlannerProgramExerciseSet[] {
     const reusedSets = exercise.reuse?.exercise
       ? exercise.reuse?.exercise?.setVariations[
@@ -117,8 +126,8 @@ export class PlannerProgramExercise {
     const sets = currentSets || reusedSets || [];
     return sets.map((aSet) => {
       const set: IPlannerProgramExerciseSet = ObjectUtils.clone(aSet);
-      set.rpe = currentGlobals.rpe != null ? currentGlobals.rpe : set.rpe ?? reusedGlobals.rpe;
-      set.timer = currentGlobals.timer != null ? currentGlobals.timer : set.timer ?? reusedGlobals.timer;
+      set.rpe = currentGlobals.rpe != null ? currentGlobals.rpe : (set.rpe ?? reusedGlobals.rpe);
+      set.timer = currentGlobals.timer != null ? currentGlobals.timer : (set.timer ?? reusedGlobals.timer);
       if (currentGlobals.weight != null || currentGlobals.percentage != null) {
         if (currentGlobals.weight != null) {
           set.weight = currentGlobals.weight;
@@ -134,11 +143,11 @@ export class PlannerProgramExercise {
 
       set.logRpe = !!(currentGlobals.rpe != null && currentGlobals.logRpe != null
         ? currentGlobals.logRpe
-        : set.logRpe ?? reusedGlobals.logRpe);
+        : (set.logRpe ?? reusedGlobals.logRpe));
       set.askWeight = !!((currentGlobals.weight != null || currentGlobals.percentage != null) &&
       currentGlobals.askWeight != null
         ? currentGlobals.askWeight
-        : set.askWeight ?? reusedGlobals.askWeight);
+        : (set.askWeight ?? reusedGlobals.askWeight));
       return set;
     });
   }
@@ -187,8 +196,8 @@ export class PlannerProgramExercise {
           set.percentage != null
             ? `${set.percentage}%`
             : set.weight?.value != null
-            ? set.weight.value.toString()
-            : `${Math.round(Weight.rpeMultiplier(set.reps, 10) * 100)}%`;
+              ? set.weight.value.toString()
+              : `${Math.round(Weight.rpeMultiplier(set.reps, 10) * 100)}%`;
         displaySets.push({
           reps: `${set.reps}`,
           weight: weight,
@@ -214,8 +223,8 @@ export class PlannerProgramExercise {
           set.percentage != null
             ? `${set.percentage}%`
             : set.weight?.value != null
-            ? set.weight.value.toString()
-            : `${Math.round(Weight.rpeMultiplier(maxReps, set.rpe || 10) * 100)}%`;
+              ? set.weight.value.toString()
+              : `${Math.round(Weight.rpeMultiplier(maxReps, set.rpe || 10) * 100)}%`;
         const unit = set.percentage == null ? set.weight?.unit || settings.units : undefined;
         displaySets.push({
           dimReps: !hasCurrentSets,
@@ -240,20 +249,25 @@ export class PlannerProgramExercise {
     return index === -1 ? 0 : index;
   }
 
+  public static currentEvaluatedSetVariationIndex(exercise: IPlannerProgramExercise): number {
+    const index = exercise.evaluatedSetVariations.findIndex((sv) => sv.isCurrent);
+    return index === -1 ? 0 : index;
+  }
+
   public static currentEvaluatedSetVariation(
     exercise: IPlannerProgramExercise
   ): IPlannerProgramExerciseEvaluatedSetVariation {
-    const index = this.currentSetVariationIndex(exercise);
+    const index = this.currentEvaluatedSetVariationIndex(exercise);
     return exercise.evaluatedSetVariations[index];
   }
 
   public static currentDescription(exercise: IPlannerProgramExercise): string | undefined {
     const index = this.currentDescriptionIndex(exercise);
-    return exercise.descriptions[index]?.value;
+    return exercise.descriptions.values[index]?.value;
   }
 
   public static currentDescriptionIndex(exercise: IPlannerProgramExercise): number {
-    const index = exercise.descriptions.findIndex((d) => d.isCurrent);
+    const index = exercise.descriptions.values.findIndex((d) => d.isCurrent);
     return index === -1 ? 0 : index;
   }
 
@@ -271,19 +285,52 @@ export class PlannerProgramExercise {
   }
 
   public static getProgressScript(exercise: IPlannerProgramExercise): string | undefined {
-    return exercise.progress?.script ?? exercise.progress?.reuse?.exercise?.progress?.script;
+    return (
+      exercise.progress?.script ??
+      exercise.progress?.reuse?.exercise?.progress?.script ??
+      exercise.reuse?.exercise?.progress?.script
+    );
   }
 
   public static getState(exercise: IPlannerProgramExercise): IProgramState {
-    return exercise.progress?.state || {};
+    const originalState = exercise.progress?.reuse?.exercise
+      ? this.getState(exercise.progress.reuse.exercise)
+      : exercise.reuse?.exercise
+        ? this.getState(exercise.reuse.exercise)
+        : {};
+
+    return { ...originalState, ...exercise.progress?.state };
+  }
+
+  public static getOnlyChangedState(exercise: IPlannerProgramExercise): IProgramState {
+    const originalState = exercise.progress?.reuse?.exercise
+      ? exercise.progress.reuse.exercise.progress?.state || {}
+      : exercise.reuse?.exercise
+        ? exercise.reuse.exercise.progress?.state || {}
+        : {};
+    const state = exercise.progress?.state || {};
+    return ObjectUtils.filter(
+      state,
+      (key, value) => originalState[key] == null || !Weight.eq(originalState[key], value)
+    ) as IProgramState;
   }
 
   public static getStateMetadata(exercise: IPlannerProgramExercise): IProgramStateMetadata {
-    return exercise.progress?.stateMetadata || {};
+    const originalState = exercise.progress?.reuse?.exercise
+      ? this.getStateMetadata(exercise.progress.reuse.exercise)
+      : exercise.reuse?.exercise
+        ? this.getStateMetadata(exercise.reuse.exercise)
+        : {};
+
+    return { ...originalState, ...exercise.progress?.stateMetadata };
   }
 
   public static getUpdateScript(exercise: IPlannerProgramExercise): string | undefined {
-    return exercise.update?.script ?? exercise.update?.reuse?.exercise?.update?.script;
+    return (
+      exercise.update?.script ??
+      exercise.update?.reuse?.exercise?.update?.script ??
+      exercise.reuse?.exercise?.update?.script
+    );
   }
 
   public static getEnableRpe(exercise: IPlannerProgramExercise): boolean {

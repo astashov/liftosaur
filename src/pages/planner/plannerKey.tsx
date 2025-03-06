@@ -6,7 +6,11 @@ import memoize from "micro-memoize";
 
 export class PlannerKey {
   public static fromPlannerExercise(plannerExercise: IPlannerProgramExercise, settings: ISettings): string {
-    return this.fromFullName(plannerExercise.fullName, settings);
+    if (plannerExercise.exerciseType) {
+      return this.fromExerciseType(plannerExercise.exerciseType, settings, plannerExercise.label);
+    } else {
+      return this.fromFullName(plannerExercise.fullName, settings);
+    }
   }
 
   public static fromExerciseType(exerciseType: IExerciseType, settings: ISettings, label?: string): string {

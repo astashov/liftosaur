@@ -11,6 +11,7 @@ import { ProgramDetailsExerciseExampleGraph } from "./programDetailsExerciseExam
 import { Weight } from "../../../models/weight";
 import { PP } from "../../../models/pp";
 import { CollectionUtils } from "../../../utils/collection";
+import { PlannerProgramExercise } from "../../planner/models/plannerProgramExercise";
 
 export interface IProgramDetailsExerciseExampleProps {
   settings: ISettings;
@@ -43,7 +44,9 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
     weekSetup.map((w, weekIndex) => {
       const week = props.program.weeks[weekIndex];
       const programDay = week.days[(dayInWeek ?? 1) - 1];
-      const programExercise = CollectionUtils.findBy(programDay.exercises, "key", props.programExerciseKey);
+      const programExercise = PlannerProgramExercise.toUsed(
+        CollectionUtils.findBy(programDay.exercises, "key", props.programExerciseKey)
+      );
       const entry: IHistoryEntry = programExercise
         ? Program.nextHistoryEntry(props.program, programDay.dayData, programExercise, settings)
         : {

@@ -483,10 +483,12 @@ export namespace Weight {
     } else if (typeof weight !== "number" && typeof value === "number") {
       return o(weight.value, value);
     } else if (typeof weight !== "number" && typeof value !== "number") {
-      if (weight.unit === "%" || value.unit === "%") {
+      if (weight.unit === "%" && value.unit === "%") {
         return o(weight.value, value.value);
-      } else {
+      } else if (Weight.is(weight) && Weight.is(value)) {
         return o(weight.value, convertTo(value, weight.unit).value);
+      } else {
+        return false;
       }
     } else {
       return false;

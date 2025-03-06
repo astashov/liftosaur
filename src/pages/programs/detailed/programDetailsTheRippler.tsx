@@ -25,7 +25,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
   const programForMuscles = ObjectUtils.clone(program);
   const evaluatedProgram = Program.evaluate(programForMuscles, props.settings);
   PP.iterate2(evaluatedProgram.weeks, (exercise) => {
-    if (exercise.descriptions.some((d) => /(T3|T2b)/.test(d.value))) {
+    if (exercise.descriptions.values.some((d) => /(T3|T2b)/.test(d.value))) {
       for (const setVariation of exercise.evaluatedSetVariations) {
         for (const set of setVariation.sets) {
           set.maxrep = 10;

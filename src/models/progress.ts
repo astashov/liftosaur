@@ -34,7 +34,7 @@ import { CollectionUtils } from "../utils/collection";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { Equipment } from "./equipment";
 import { IByTag } from "../pages/planner/plannerEvaluator";
-import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { IPlannerProgramExercise, IPlannerProgramExerciseUsed } from "../pages/planner/models/types";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 
 export interface IScriptBindings {
@@ -559,7 +559,7 @@ export namespace Progress {
     }
     const exercise = programExercise.exerciseType;
     const state = ObjectUtils.clone(PlannerProgramExercise.getState(programExercise));
-    const setVariationIndex = PlannerProgramExercise.currentSetVariationIndex(programExercise);
+    const setVariationIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(programExercise);
     const descriptionIndex = PlannerProgramExercise.currentDescriptionIndex(programExercise);
     const bindings = Progress.createScriptBindings(
       dayData,
@@ -1003,7 +1003,7 @@ export namespace Progress {
 
   export function applyProgramExercise(
     progressEntry: IHistoryEntry | undefined,
-    programExercise: IPlannerProgramExercise,
+    programExercise: IPlannerProgramExerciseUsed,
     settings: ISettings,
     forceWarmupSets?: boolean
   ): IHistoryEntry {
