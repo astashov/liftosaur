@@ -9,7 +9,6 @@ import {
   IPlannerProgramExerciseEvaluatedSet,
   IPlannerProgramExerciseEvaluatedSetVariation,
   IPlannerProgramExerciseWarmupSet,
-  IPlannerProgramProperty,
 } from "../pages/planner/models/types";
 import { IEvaluatedProgram, Program } from "./program";
 import { Exercise } from "./exercise";
@@ -38,12 +37,12 @@ export class ProgramToPlanner {
   }
 
   private shouldReuseSets(programExercise: IPlannerProgramExercise): boolean {
-    return !!Program.getReuseExercise(this.program, programExercise);
+    return !!programExercise.reuse;
   }
 
   private getDereuseDecisions(programExercise: IPlannerProgramExercise): IDereuseDecision[] {
     const dereuseDecisions: Set<IDereuseDecision> = new Set();
-    const reuseExercise = Program.getReuseExercise(this.program, programExercise);
+    const reuseExercise = programExercise.reuse?.exercise;
     if (!reuseExercise) {
       return Array.from(dereuseDecisions);
     }
@@ -61,6 +60,7 @@ export class ProgramToPlanner {
         for (let j = 0; j < programVariation.sets.length; j += 1) {
           const programSet = programVariation.sets[j];
           const reuseSet = reuseVariation.sets[j];
+          console.log(programSet, reuseSet);
           if (programSet.maxrep !== reuseSet?.maxrep || programSet.minrep !== reuseSet?.minrep) {
             dereuseDecisions.add("sets");
           }
@@ -226,17 +226,23 @@ export class ProgramToPlanner {
                 addedIdMap[key] = true;
               }
 
-              const update = PlannerProgramExercise.getUpdate(evalExercise);
+              const update = evalExercise.update;
               if (!addedUpdateMap[key] && update) {
-                plannerExercise += this.getUpdate(update);
+                const updateStr = ProgramToPlanner.getUpdate(evalExercise, this.settings);
+                if (updateStr) {
+                  plannerExercise += ` / ${updateStr}`;
+                }
                 addedUpdateMap[key] = true;
               }
 
-              const progress = PlannerProgramExercise.getProgress(evalExercise);
-              if (progress && progress.fnName === "none") {
+              const progress = evalExercise.progress;
+              if (progress && progress.type === "none") {
                 plannerExercise += ` / progress: none`;
               } else if (!addedProgressMap[key] && progress) {
-                plannerExercise += this.getProgress(evalExercise, progress);
+                const progressStr = ProgramToPlanner.getProgress(evalExercise, this.settings);
+                if (progressStr) {
+                  plannerExercise += ` / ${progressStr}`;
+                }
                 addedProgressMap[key] = true;
               }
               exerciseTextArr.push(plannerExercise);
@@ -274,7 +280,7 @@ export class ProgramToPlanner {
   }
 
   private reuseToStr(programExercise: IPlannerProgramExercise): string {
-    const reuseExercise = Program.getReuseExercise(this.program, programExercise);
+    const reuseExercise = programExercise.reuse?.exercise;
     if (!reuseExercise) {
       throw new Error("reuse.exercise is required");
     }
@@ -292,13 +298,17 @@ export class ProgramToPlanner {
     return str;
   }
 
-  private getUpdate(update: IPlannerProgramProperty): string {
-    if (update.reuse?.exerciseType) {
-      const exercise = Exercise.get(update.reuse.exerciseType, this.settings.exercises);
-      const fullName = Exercise.fullName(exercise, this.settings, update.reuse.label);
-      return ` / update: custom() { ...${fullName} }`;
+  public static getUpdate(programExercise: IPlannerProgramExercise, settings: ISettings, hideScript?: boolean): string {
+    const update = programExercise.update;
+    if (!update) {
+      return "";
+    }
+    if (update.reuse?.exercise) {
+      const exercise = Exercise.get(update.reuse.exercise.exerciseType, settings.exercises);
+      const fullName = Exercise.fullName(exercise, settings, update.reuse.exercise.label);
+      return `update: custom() { ...${fullName} }`;
     } else {
-      return ` / update: custom() ${update.script}`;
+      return `update: custom() ${hideScript ? "{~ ... ~}" : update.script}`;
     }
   }
 
@@ -306,21 +316,31 @@ export class ProgramToPlanner {
     return ` / id: tags(${(programExercise.tags || []).join(", ")})`;
   }
 
-  private getProgress(programExercise: IPlannerProgramExercise, progress: IPlannerProgramProperty): string {
-    let plannerExercise = ` / progress: ${progress.fnName}`;
-    if (progress.fnName === "custom") {
-      plannerExercise += `(${ObjectUtils.entries(programExercise.state)
+  public static getProgress(
+    programExercise: IPlannerProgramExercise,
+    settings: ISettings,
+    hideScript?: boolean
+  ): string {
+    const progress = programExercise.progress;
+    if (!progress) {
+      return "";
+    }
+    let plannerExercise = `progress: ${progress.type}`;
+    const state = PlannerProgramExercise.getState(programExercise);
+    const stateMetadata = PlannerProgramExercise.getStateMetadata(programExercise);
+    if (progress.type === "custom") {
+      plannerExercise += `(${ObjectUtils.entries(state)
         .map(([k, v]) => {
-          return `${k}${programExercise.stateMetadata[k]?.userPrompted ? "+" : ""}: ${Weight.print(v)}`;
+          return `${k}${stateMetadata[k]?.userPrompted ? "+" : ""}: ${Weight.print(v)}`;
         })
         .join(", ")})`;
-    } else if (progress.fnName === "lp") {
-      const increment = programExercise.state.increment as IWeight | IPercentage;
-      const successes = programExercise.state.successes as number;
-      const successCounter = programExercise.state.successCounter as number;
-      const decrement = programExercise.state.decrement as IWeight | IPercentage;
-      const failures = programExercise.state.failures as number;
-      const failureCounter = programExercise.state.failureCounter as number;
+    } else if (progress.type === "lp") {
+      const increment = state.increment as IWeight | IPercentage;
+      const successes = state.successes as number;
+      const successCounter = state.successCounter as number;
+      const decrement = state.decrement as IWeight | IPercentage;
+      const failures = state.failures as number;
+      const failureCounter = state.failureCounter as number;
       const args: string[] = [];
       args.push(Weight.print(increment));
       if (successes > 1 || decrement.value > 0) {
@@ -339,25 +359,25 @@ export class ProgramToPlanner {
         args.push(`${failureCounter}`);
       }
       plannerExercise += `(${args.join(", ")})`;
-    } else if (progress.fnName === "dp") {
-      const increment = programExercise.state.increment as IWeight | IPercentage;
-      const minReps = programExercise.state.minReps as number;
-      const maxReps = programExercise.state.maxReps as number;
+    } else if (progress.type === "dp") {
+      const increment = state.increment as IWeight | IPercentage;
+      const minReps = state.minReps as number;
+      const maxReps = state.maxReps as number;
       const args = [Weight.print(increment), `${minReps}`, `${maxReps}`];
       plannerExercise += `(${args.join(", ")})`;
-    } else if (progress.fnName === "sum") {
-      const reps = programExercise.state.reps as number;
-      const increment = programExercise.state.increment as IWeight | IPercentage;
+    } else if (progress.type === "sum") {
+      const reps = state.reps as number;
+      const increment = state.increment as IWeight | IPercentage;
       const args = [`${reps}`, Weight.print(increment)];
       plannerExercise += `(${args.join(", ")})`;
     }
-    if (progress.fnName === "custom") {
-      if (progress.reuse?.exerciseType) {
-        const exercise = Exercise.get(progress.reuse.exerciseType, this.settings.exercises);
-        const fullName = Exercise.fullName(exercise, this.settings, progress.reuse.label);
+    if (progress.type === "custom") {
+      if (progress.reuse?.exercise?.exerciseType) {
+        const exercise = Exercise.get(progress.reuse.exercise.exerciseType, settings.exercises);
+        const fullName = Exercise.fullName(exercise, settings, progress.reuse.exercise.label);
         plannerExercise += ` { ...${fullName} }`;
       } else {
-        plannerExercise += ` ${progress.script}`;
+        plannerExercise += hideScript ? ` {~ ... ~}` : ` ${progress.script}`;
       }
     }
     return plannerExercise;

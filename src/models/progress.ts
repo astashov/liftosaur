@@ -558,7 +558,7 @@ export namespace Progress {
       return entry;
     }
     const exercise = programExercise.exerciseType;
-    const state = PlannerProgramExercise.getState(programExercise);
+    const state = ObjectUtils.clone(PlannerProgramExercise.getState(programExercise));
     const setVariationIndex = PlannerProgramExercise.currentSetVariationIndex(programExercise);
     const descriptionIndex = PlannerProgramExercise.currentDescriptionIndex(programExercise);
     const bindings = Progress.createScriptBindings(
@@ -574,7 +574,7 @@ export namespace Progress {
       const runner = new ScriptRunner(
         script,
         state,
-        otherStates,
+        ObjectUtils.clone(otherStates),
         bindings,
         Progress.createScriptFunctions(settings),
         settings.units,
@@ -583,6 +583,7 @@ export namespace Progress {
       );
       runner.execute();
       const newEntry = Progress.applyBindings(entry, bindings);
+      newEntry.state = { ...newEntry.state, ...state };
       if (fnContext.prints.length > 0) {
         newEntry.updatePrints = fnContext.prints;
       }

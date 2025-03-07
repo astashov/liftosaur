@@ -5,9 +5,8 @@ import {
   IPlannerProgramExerciseSet,
   IPlannerProgramExerciseSetVariation,
   IPlannerProgramExerciseWarmupSet,
-  IPlannerProgramProperty,
 } from "./types";
-import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../plannerExerciseEvaluator";
+import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { ObjectUtils } from "../../../utils/object";
 import { IDisplaySet, groupDisplaySets } from "../../../components/historyRecordSets";
 import { Weight } from "../../../models/weight";
@@ -180,14 +179,6 @@ export class PlannerProgramExercise {
     return ranges.map((r) => `${r[0]}-${r[1]}`).join(", ");
   }
 
-  public static progressToStr(plannerExercise: IPlannerProgramExercise): string {
-    const progress = plannerExercise.properties.find((p) => p.name === "progress");
-    if (!progress) {
-      return "";
-    }
-    return `${progress.fnName}(${progress.fnArgs.join(", ")})`;
-  }
-
   public static warmupSetsToDisplaySets(sets: IPlannerProgramExerciseWarmupSet[]): IDisplaySet[][] {
     const displaySets: IDisplaySet[] = [];
     for (const set of sets) {
@@ -279,153 +270,20 @@ export class PlannerProgramExercise {
     }, 0);
   }
 
-  public static getState(exercise: IPlannerProgramExercise): IProgramState {
-    const progress = exercise.properties.find((p) => p.name === "progress");
-    if (!progress) {
-      return {};
-    }
-    return this.getStateFromProperty(progress);
+  public static getProgressScript(exercise: IPlannerProgramExercise): string | undefined {
+    return exercise.progress?.script ?? exercise.progress?.reuse?.exercise?.progress?.script;
   }
 
-  public static getStateFromProperty(property: IPlannerProgramProperty): IProgramState {
-    const fnArgs = property.fnArgs;
-    if (property.fnName === "custom") {
-      return PlannerExerciseEvaluator.fnArgsToStateVars(property.fnArgs, () => undefined);
-    } else if (property.fnName === "lp") {
-      const increment = fnArgs[0] ? Weight.parsePct(fnArgs[0]) : Weight.build(0, "lb");
-      const decrement = fnArgs[3] ? Weight.parsePct(fnArgs[3]) : Weight.build(0, "lb");
-      return {
-        increment: increment ?? Weight.build(0, "lb"),
-        successes: fnArgs[1] ? parseInt(fnArgs[1], 10) : 1,
-        successCounter: fnArgs[2] ? parseInt(fnArgs[2], 10) : 0,
-        decrement: decrement ?? Weight.build(0, "lb"),
-        failures: fnArgs[4] ? parseInt(fnArgs[4], 10) : (decrement?.value ?? 0) > 0 ? 1 : 0,
-        failureCounter: fnArgs[5] ? parseInt(fnArgs[5], 10) : 0,
-      };
-    } else if (property.fnName === "dp") {
-      const increment = fnArgs[0] ? Weight.parsePct(fnArgs[0]) : Weight.build(0, "lb");
-      return {
-        increment: increment ?? Weight.build(0, "lb"),
-        minReps: fnArgs[1] ? parseInt(fnArgs[1], 10) : 0,
-        maxReps: fnArgs[2] ? parseInt(fnArgs[2], 10) : 0,
-      };
-    } else if (property.fnName === "sum") {
-      const increment = fnArgs[1] ? Weight.parsePct(fnArgs[1]) : Weight.build(0, "lb");
-      return {
-        reps: fnArgs[0] ? parseInt(fnArgs[0], 10) : 0,
-        increment: increment ?? Weight.build(0, "lb"),
-      };
-    } else {
-      return {};
-    }
+  public static getState(exercise: IPlannerProgramExercise): IProgramState {
+    return exercise.progress?.state || {};
   }
 
   public static getStateMetadata(exercise: IPlannerProgramExercise): IProgramStateMetadata {
-    const customProgress = exercise.properties.find((p) => p.name === "progress" && p.fnName === "custom");
-    const metadata: IProgramStateMetadata = {};
-    if (!customProgress) {
-      return {};
-    }
-    for (const value of customProgress.fnArgs) {
-      const [fnArgKey] = value.split(":").map((v) => v.trim());
-      if (fnArgKey.endsWith("+")) {
-        metadata[fnArgKey.replace("+", "")] = { userPrompted: true };
-      }
-    }
-    return metadata;
-  }
-
-  public static getStateMetadataFromProperty(progress: IPlannerProgramProperty): IProgramStateMetadata {
-    const metadata: IProgramStateMetadata = {};
-    if (progress.fnName !== "custom") {
-      return {};
-    }
-    for (const value of progress.fnArgs) {
-      const [fnArgKey] = value.split(":").map((v) => v.trim());
-      if (fnArgKey.endsWith("+")) {
-        metadata[fnArgKey.replace("+", "")] = { userPrompted: true };
-      }
-    }
-    return metadata;
-  }
-
-  public static getProgress(exercise: IPlannerProgramExercise): IPlannerProgramProperty | undefined {
-    return exercise.properties.find((p) => p.name === "progress");
-  }
-
-  public static getUpdate(exercise: IPlannerProgramExercise): IPlannerProgramProperty | undefined {
-    return exercise.properties.find((p) => p.name === "update");
-  }
-
-  public static getProgressScript(exercise: IPlannerProgramExercise): string | undefined {
-    const progress = this.getProgress(exercise);
-    if (!progress) {
-      return "";
-    }
-    return this.getProgressScriptFromProperty(progress);
-  }
-
-  public static getProgressScriptFromProperty(property: IPlannerProgramProperty): string | undefined {
-    if (property.reuse) {
-      return this.getProgressScriptFromProperty(property.reuse);
-    }
-    if (property.fnName === "custom") {
-      return property.script;
-    } else if (property.fnName === "lp") {
-      return `if (completedReps >= reps && completedRPE <= RPE) {
-  state.successCounter += 1;
-  if (state.successCounter >= state.successes) {
-    weights += state.increment
-    state.successCounter = 0
-    state.failureCounter = 0
-  }
-}
-if (state.decrement > 0 && state.failures > 0) {
-  if (!(completedReps >= minReps && completedRPE <= RPE)) {
-    state.failureCounter += 1;
-    if (state.failureCounter >= state.failures) {
-      weights -= state.decrement
-      state.failureCounter = 0
-      state.successCounter = 0
-    }
-  }
-}`;
-    } else if (property.fnName === "dp") {
-      return `
-if (completedReps >= reps && completedRPE <= RPE) {
-  if (reps[ns] < state.maxReps) {
-    reps += 1
-  } else {
-    reps = state.minReps
-    weights += state.increment
-  }
-}`;
-    } else if (property.fnName === "sum") {
-      return `if (sum(completedReps) >= state.reps) {
-  weights += state.increment
-}`;
-    } else {
-      return undefined;
-    }
+    return exercise.progress?.stateMetadata || {};
   }
 
   public static getUpdateScript(exercise: IPlannerProgramExercise): string | undefined {
-    const property = this.getUpdate(exercise);
-    if (!property) {
-      return "";
-    }
-    return this.getUpdateScriptFromProperty(property);
-  }
-
-  public static getUpdateScriptFromProperty(property: IPlannerProgramProperty): string | undefined {
-    if (property.reuse) {
-      return this.getUpdateScriptFromProperty(property.reuse);
-    }
-    if (property.fnName === "custom") {
-      return property.script;
-    } else {
-      return undefined;
-    }
+    return exercise.update?.script ?? exercise.update?.reuse?.exercise?.update?.script;
   }
 
   public static getEnableRpe(exercise: IPlannerProgramExercise): boolean {
@@ -439,44 +297,32 @@ if (completedReps >= reps && completedRPE <= RPE) {
   }
 
   public static progressionType(exercise: IPlannerProgramExercise): IProgressionType | undefined {
-    const progress = exercise.properties.find((p) => p.name === "progress");
+    const progress = exercise.progress;
     if (!progress) {
       return undefined;
     }
-    const name = progress.fnName;
-    const args = progress.fnArgs;
+    const name = progress.type;
+    const state = PlannerProgramExercise.getState(exercise);
     if (name === "lp") {
-      const increase = Weight.parsePct(args[0]);
-      if (increase == null) {
-        return undefined;
-      }
       return {
         type: "linear",
-        increase: increase,
-        successesRequired: MathUtils.parse(args[2]),
-        decrease: Weight.parsePct(args[3]),
-        failuresRequired: MathUtils.parse(args[5]),
+        increase: state.increment as IWeight,
+        successesRequired: state.successes as number,
+        decrease: state.decrement as IWeight,
+        failuresRequired: state.failures as number,
       };
     } else if (name === "dp") {
-      const increase = Weight.parsePct(args[0]);
-      if (increase == null) {
-        return undefined;
-      }
       return {
         type: "double",
-        increase: increase,
-        minReps: MathUtils.parse(args[1]) || 0,
-        maxReps: MathUtils.parse(args[2]) || 0,
+        increase: state.increment as IWeight,
+        minReps: state.minReps as number,
+        maxReps: state.maxReps as number,
       };
     } else if (name === "sum") {
-      const increase = Weight.parsePct(args[1]);
-      if (increase == null) {
-        return undefined;
-      }
       return {
         type: "sumreps",
-        increase: increase,
-        reps: MathUtils.parse(args[0]) || 0,
+        increase: state.increment as IWeight,
+        reps: state.reps as number,
       };
     } else if (name === "custom") {
       return { type: "custom" };

@@ -10,10 +10,12 @@ import {
   IPlannerProgramExerciseSetVariation,
   IPlannerProgramProperty,
   IPlannerProgramReuse,
+  IPlannerProgramExerciseWarmupSet,
+  IProgramExerciseProgress,
+  IProgramExerciseUpdate,
 } from "./models/types";
-import { IWeight, IProgramState, IDayData, ISettings, IExerciseType, IUnit } from "../../types";
+import { IWeight, IProgramState, IDayData, ISettings, IExerciseType, IUnit, IProgramStateMetadata } from "../../types";
 import * as W from "../../models/weight";
-import { IPlannerProgramExerciseWarmupSet } from "./models/types";
 import { PlannerNodeName } from "./plannerExerciseStyles";
 import { ScriptRunner } from "../../parser";
 import { Progress } from "../../models/progress";
@@ -21,8 +23,8 @@ import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
 import { Weight } from "../../models/weight";
 import { MathUtils } from "../../utils/math";
 import { PlannerKey } from "./plannerKey";
-import { PlannerProgramExercise } from "./models/plannerProgramExercise";
 import { UidFactory } from "../../utils/generator";
+import { ObjectUtils } from "../../utils/object";
 
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
@@ -102,13 +104,13 @@ type IPlannerExerciseEvaluatorMode = "perday" | "full" | "onset";
 export class PlannerExerciseEvaluator {
   private readonly script: string;
   private readonly mode: IPlannerExerciseEvaluatorMode;
-  private dayData: IDayData;
+  private dayData: Required<IDayData>;
   private readonly settings: ISettings;
   private weeks: IPlannerExerciseEvaluatorWeek[] = [];
 
   private latestDescriptions: string[][] = [];
 
-  constructor(script: string, settings: ISettings, mode: IPlannerExerciseEvaluatorMode, dayData?: IDayData) {
+  constructor(script: string, settings: ISettings, mode: IPlannerExerciseEvaluatorMode, dayData?: Required<IDayData>) {
     this.script = script;
     this.settings = settings;
     this.dayData = dayData || { day: 1, week: 1, dayInWeek: 1 };
@@ -135,6 +137,24 @@ export class PlannerExerciseEvaluator {
 
   public static isEqualProperty(a: IPlannerProgramProperty, b: IPlannerProgramProperty): boolean {
     return a.fnName === b.fnName && a.fnArgs.join() === b.fnArgs.join() && a.script === b.script && a.body === b.body;
+  }
+
+  public static isEqualProgress(a: IProgramExerciseProgress, b: IProgramExerciseProgress): boolean {
+    const pickA = {
+      ...ObjectUtils.pick(a, ["type", "state", "stateMetadata", "script"]),
+      reuse: a.reuse?.fullName,
+    };
+    const pickB = {
+      ...ObjectUtils.pick(b, ["type", "state", "stateMetadata", "script"]),
+      reuse: b.reuse?.fullName,
+    };
+    return ObjectUtils.isEqual(pickA, pickB);
+  }
+
+  public static isEqualUpdate(a: IProgramExerciseUpdate, b: IProgramExerciseUpdate): boolean {
+    const pickA = { ...ObjectUtils.pick(a, ["type", "script"]), reuse: a.reuse?.fullName };
+    const pickB = { ...ObjectUtils.pick(b, ["type", "script"]), reuse: b.reuse?.fullName };
+    return ObjectUtils.isEqual(pickA, pickB);
   }
 
   private getPoint(node: SyntaxNode): IPlannerSyntaxPointer {
@@ -255,8 +275,15 @@ export class PlannerExerciseEvaluator {
     }
   }
 
-  public static fnArgsToStateVars(fnArgs: string[], onError?: (message: string) => void): IProgramState {
+  public static fnArgsToStateVars(
+    fnArgs: string[],
+    onError?: (message: string) => void
+  ): {
+    state: IProgramState;
+    stateMetadata: IProgramStateMetadata;
+  } {
     const state: IProgramState = {};
+    const stateMetadata: IProgramStateMetadata = {};
     for (const value of fnArgs) {
       // eslint-disable-next-line prefer-const
       let [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
@@ -265,6 +292,7 @@ export class PlannerExerciseEvaluator {
       }
       if (fnArgKey.endsWith("+")) {
         fnArgKey = fnArgKey.replace("+", "");
+        stateMetadata[fnArgKey] = { userPrompted: true };
       }
       try {
         const fnArgVal = fnArgValStr.match(/(lb|kg)/)
@@ -281,7 +309,7 @@ export class PlannerExerciseEvaluator {
         }
       }
     }
-    return state;
+    return { state, stateMetadata };
   }
 
   private evaluateSet(expr: SyntaxNode): IPlannerProgramExerciseSet {
@@ -326,7 +354,7 @@ export class PlannerExerciseEvaluator {
     }
   }
 
-  private evaluateId(expr: SyntaxNode): IPlannerProgramProperty {
+  private evaluateId(expr: SyntaxNode): number[] {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
       if (valueNode == null) {
@@ -346,17 +374,13 @@ export class PlannerExerciseEvaluator {
           this.error(`You should provide the list of numbers in "tags"`, fnNameNode);
         }
       }
-      return {
-        name: "id",
-        fnName,
-        fnArgs: fnArgs,
-      };
+      return fnArgs.map((t) => parseInt(t, 10)).filter((t) => !isNaN(t));
     } else {
       assert(PlannerNodeName.ExerciseProperty);
     }
   }
 
-  private evaluateUpdate(expr: SyntaxNode, exerciseType?: IExerciseType): IPlannerProgramProperty {
+  private evaluateUpdate(expr: SyntaxNode, exerciseType?: IExerciseType): IProgramExerciseUpdate {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
       if (valueNode == null) {
@@ -367,9 +391,6 @@ export class PlannerExerciseEvaluator {
         assert(PlannerNodeName.FunctionName);
       }
       const fnName = this.getValue(fnNameNode);
-      if (["custom"].indexOf(fnName) === -1) {
-        this.error(`There's no such update progression exists - '${fnName}'`, fnNameNode);
-      }
       const fnArgs = valueNode.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
       let script: string | undefined;
       let body: string | undefined;
@@ -406,31 +427,115 @@ export class PlannerExerciseEvaluator {
             valueNode
           );
         }
+        return {
+          type: "custom",
+          script,
+          liftoscriptNode,
+          meta,
+          reuse: body ? { fullName: body } : undefined,
+        };
+      } else {
+        this.error(`There's no such update progression exists - '${fnName}'`, fnNameNode);
       }
-      return {
-        name: "update",
-        fnName,
-        fnArgs: fnArgs,
-        script,
-        body,
-        meta,
-        liftoscriptNode,
-      };
     } else {
       assert(PlannerNodeName.ExerciseProperty);
     }
   }
 
-  private evaluateProgress(expr: SyntaxNode, exerciseType?: IExerciseType): IPlannerProgramProperty {
+  private validateProgress(fnName: string, fnArgs: string[], fnNameNode: SyntaxNode, valueNode: SyntaxNode): void {
+    if (["lp", "sum", "dp", "custom", "none"].indexOf(fnName) === -1) {
+      this.error(`There's no such progression exists - '${fnName}'`, fnNameNode);
+    }
+    if (fnName === "lp") {
+      if (fnArgs.length > 6) {
+        this.error(`Linear Progression 'lp' only has 6 arguments max`, valueNode);
+      } else if (fnArgs[0] && !fnArgs[0].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%")) {
+        this.error(
+          `1st argument of 'lp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
+          valueNode
+        );
+      } else if (fnArgs[1] != null && isNaN(parseInt(fnArgs[1], 10))) {
+        this.error(`2nd argument of 'lp' should be a number of attempts - i.e. a number`, valueNode);
+      } else if (fnArgs[2] != null && isNaN(parseInt(fnArgs[2], 10))) {
+        this.error(
+          `3rd argument of 'lp' should be a current number of successful attempts up to date - i.e. a number`,
+          valueNode
+        );
+      } else if (
+        fnArgs[3] != null &&
+        !fnArgs[3].endsWith("lb") &&
+        !fnArgs[3].endsWith("kg") &&
+        !fnArgs[3].endsWith("%")
+      ) {
+        this.error(
+          `4th argument of 'lp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
+          valueNode
+        );
+      } else if (fnArgs[4] != null && isNaN(parseInt(fnArgs[4], 10))) {
+        this.error(`5th argument of 'lp' should be a number of failed attempts - i.e. a number`, valueNode);
+      } else if (fnArgs[5] != null && isNaN(parseInt(fnArgs[5], 10))) {
+        this.error(
+          `6th argument of 'lp' should be a current number of failed attempts up to date - i.e. a number`,
+          valueNode
+        );
+      }
+    } else if (fnName === "sum") {
+      if (fnArgs.length > 2) {
+        this.error(`Reps Sum Progression 'sum' only has 2 arguments max`, valueNode);
+      } else if (fnArgs[0] == null || isNaN(parseInt(fnArgs[0], 10))) {
+        this.error(`1st argument of 'sum' should be a number of reps - i.e. a number`, valueNode);
+      } else if (
+        fnArgs[1] == null ||
+        (!fnArgs[1].endsWith("lb") && !fnArgs[1].endsWith("kg") && !fnArgs[1].endsWith("%"))
+      ) {
+        this.error(
+          `2nd argument of 'sum' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
+          valueNode
+        );
+      }
+    } else if (fnName === "dp") {
+      if (fnArgs.length !== 3) {
+        this.error(`Double Progression 'dp' should have 3 arguments`, valueNode);
+      } else if (
+        fnArgs[0] == null ||
+        (!fnArgs[0].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%"))
+      ) {
+        this.error(
+          `1st argument of 'dp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
+          valueNode
+        );
+      } else if (fnArgs[1] == null || isNaN(parseInt(fnArgs[1], 10))) {
+        this.error(`2nd argument of 'dp' should be min reps in the range - i.e. a number, like 8`, valueNode);
+      } else if (fnArgs[2] == null || isNaN(parseInt(fnArgs[2], 10))) {
+        this.error(`3rd argument of 'dp' should be max reps in the range - i.e. a number, like 12`, valueNode);
+      }
+    } else if (fnName === "custom") {
+      const liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript);
+      const script = liftoscriptNode ? this.getValueTrim(liftoscriptNode) : undefined;
+      const reuseLiftoscriptNode = valueNode
+        .getChild(PlannerNodeName.ReuseLiftoscript)
+        ?.getChild(PlannerNodeName.ReuseSection)
+        ?.getChild(PlannerNodeName.ExerciseName);
+      const body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
+      if (!script && !body) {
+        this.error(
+          `'custom' progression requires either to specify Liftoscript block or specify which one to reuse`,
+          valueNode
+        );
+      }
+    }
+  }
+
+  private evaluateProgress(expr: SyntaxNode, exerciseType?: IExerciseType): IProgramExerciseProgress {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
       if (valueNode == null) {
         const none = expr.getChild(PlannerNodeName.None);
         if (none != null) {
           return {
-            name: "progress",
-            fnName: "none",
-            fnArgs: [],
+            type: "none",
+            state: {},
+            stateMetadata: {},
           };
         } else {
           throw this.error(`Missing value for the property 'progress'`, expr);
@@ -441,79 +546,87 @@ export class PlannerExerciseEvaluator {
         assert(PlannerNodeName.FunctionName);
       }
       const fnName = this.getValue(fnNameNode);
-      if (["lp", "sum", "dp", "custom", "none"].indexOf(fnName) === -1) {
-        this.error(`There's no such progression exists - '${fnName}'`, fnNameNode);
-      }
       const fnArgs = valueNode.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
-      let script: string | undefined;
-      let body: string | undefined;
+      this.validateProgress(fnName, fnArgs, fnNameNode, valueNode);
+
       if (fnName === "lp") {
-        if (fnArgs.length > 6) {
-          this.error(`Linear Progression 'lp' only has 4 arguments max`, valueNode);
-        } else if (fnArgs[0] && !fnArgs[0].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%")) {
-          this.error(
-            `1st argument of 'lp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
-            valueNode
-          );
-        } else if (fnArgs[1] != null && isNaN(parseInt(fnArgs[1], 10))) {
-          this.error(`2nd argument of 'lp' should be a number of attempts - i.e. a number`, valueNode);
-        } else if (fnArgs[2] != null && isNaN(parseInt(fnArgs[2], 10))) {
-          this.error(
-            `3rd argument of 'lp' should be a current number of successful attempts up to date - i.e. a number`,
-            valueNode
-          );
-        } else if (
-          fnArgs[3] != null &&
-          !fnArgs[3].endsWith("lb") &&
-          !fnArgs[3].endsWith("kg") &&
-          !fnArgs[3].endsWith("%")
-        ) {
-          this.error(
-            `4th argument of 'lp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
-            valueNode
-          );
-        } else if (fnArgs[4] != null && isNaN(parseInt(fnArgs[4], 10))) {
-          this.error(`5th argument of 'lp' should be a number of failed attempts - i.e. a number`, valueNode);
-        } else if (fnArgs[5] != null && isNaN(parseInt(fnArgs[5], 10))) {
-          this.error(
-            `6th argument of 'lp' should be a current number of failed attempts up to date - i.e. a number`,
-            valueNode
-          );
-        }
-      } else if (fnName === "sum") {
-        if (fnArgs.length > 2) {
-          this.error(`Reps Sum Progression 'sum' only has 2 arguments max`, valueNode);
-        } else if (fnArgs[0] == null || isNaN(parseInt(fnArgs[0], 10))) {
-          this.error(`1st argument of 'sum' should be a number of reps - i.e. a number`, valueNode);
-        } else if (
-          fnArgs[1] == null ||
-          (!fnArgs[1].endsWith("lb") && !fnArgs[1].endsWith("kg") && !fnArgs[1].endsWith("%"))
-        ) {
-          this.error(
-            `2nd argument of 'sum' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
-            valueNode
-          );
-        }
+        const increment = fnArgs[0] ? Weight.parsePct(fnArgs[0]) : Weight.build(0, "lb");
+        const decrement = fnArgs[3] ? Weight.parsePct(fnArgs[3]) : Weight.build(0, "lb");
+        const state: IProgramState = {
+          increment: increment ?? Weight.build(0, "lb"),
+          successes: fnArgs[1] ? parseInt(fnArgs[1], 10) : 1,
+          successCounter: fnArgs[2] ? parseInt(fnArgs[2], 10) : 0,
+          decrement: decrement ?? Weight.build(0, "lb"),
+          failures: fnArgs[4] ? parseInt(fnArgs[4], 10) : (decrement?.value ?? 0) > 0 ? 1 : 0,
+          failureCounter: fnArgs[5] ? parseInt(fnArgs[5], 10) : 0,
+        };
+        const script = `if (completedReps >= reps && completedRPE <= RPE) {
+  state.successCounter += 1;
+  if (state.successCounter >= state.successes) {
+    weights += state.increment
+    state.successCounter = 0
+    state.failureCounter = 0
+  }
+}
+if (state.decrement > 0 && state.failures > 0) {
+  if (!(completedReps >= minReps && completedRPE <= RPE)) {
+    state.failureCounter += 1;
+    if (state.failureCounter >= state.failures) {
+      weights -= state.decrement
+      state.failureCounter = 0
+      state.successCounter = 0
+    }
+  }
+}`;
+        return {
+          type: "lp",
+          state,
+          stateMetadata: {},
+          script,
+        };
       } else if (fnName === "dp") {
-        if (fnArgs.length !== 3) {
-          this.error(`Double Progression 'dp' should have 3 arguments`, valueNode);
-        } else if (
-          fnArgs[0] == null ||
-          (!fnArgs[0].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%"))
-        ) {
-          this.error(
-            `1st argument of 'dp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
-            valueNode
-          );
-        } else if (fnArgs[1] == null || isNaN(parseInt(fnArgs[1], 10))) {
-          this.error(`2nd argument of 'dp' should be min reps in the range - i.e. a number, like 8`, valueNode);
-        } else if (fnArgs[2] == null || isNaN(parseInt(fnArgs[2], 10))) {
-          this.error(`3rd argument of 'dp' should be max reps in the range - i.e. a number, like 12`, valueNode);
-        }
+        const increment = fnArgs[0] ? Weight.parsePct(fnArgs[0]) : Weight.build(0, "lb");
+        const state: IProgramState = {
+          increment: increment ?? Weight.build(0, "lb"),
+          minReps: fnArgs[1] ? parseInt(fnArgs[1], 10) : 0,
+          maxReps: fnArgs[2] ? parseInt(fnArgs[2], 10) : 0,
+        };
+        const script = `
+if (completedReps >= reps && completedRPE <= RPE) {
+  if (reps[ns] < state.maxReps) {
+    reps += 1
+  } else {
+    reps = state.minReps
+    weights += state.increment
+  }
+}`;
+        return {
+          type: "dp",
+          state,
+          stateMetadata: {},
+          script,
+        };
+      } else if (fnName === "sum") {
+        const increment = fnArgs[1] ? Weight.parsePct(fnArgs[1]) : Weight.build(0, "lb");
+        const state: IProgramState = {
+          reps: fnArgs[0] ? parseInt(fnArgs[0], 10) : 0,
+          increment: increment ?? Weight.build(0, "lb"),
+        };
+        const script = `if (sum(completedReps) >= state.reps) {
+        weights += state.increment
+      }`;
+        return {
+          type: "sum",
+          state,
+          stateMetadata: {},
+          script,
+        };
       } else if (fnName === "custom") {
         const liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript);
-        script = liftoscriptNode ? this.getValueTrim(liftoscriptNode) : undefined;
-        const state = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs, (message) => this.error(message, fnNameNode));
+        const script = liftoscriptNode ? this.getValueTrim(liftoscriptNode) : undefined;
+        const { state, stateMetadata } = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs, (message) =>
+          this.error(message, fnNameNode)
+        );
         if (script) {
           const liftoscriptEvaluator = new ScriptRunner(
             script,
@@ -546,21 +659,17 @@ export class PlannerExerciseEvaluator {
           .getChild(PlannerNodeName.ReuseLiftoscript)
           ?.getChild(PlannerNodeName.ReuseSection)
           ?.getChild(PlannerNodeName.ExerciseName);
-        body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
-        if (!script && !body) {
-          this.error(
-            `'custom' progression requires either to specify Liftoscript block or specify which one to reuse`,
-            valueNode
-          );
-        }
+        const body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
+        return {
+          type: "custom",
+          state,
+          stateMetadata,
+          script,
+          reuse: body ? { fullName: body } : undefined,
+        };
+      } else {
+        this.error(`Unknown progression type - '${fnName}'`, fnNameNode);
       }
-      return {
-        name: "progress",
-        fnName,
-        fnArgs: fnArgs,
-        script,
-        body,
-      };
     } else {
       assert(PlannerNodeName.ExerciseProperty);
     }
@@ -589,10 +698,10 @@ export class PlannerExerciseEvaluator {
     expr: SyntaxNode,
     exerciseType?: IExerciseType
   ):
-    | { type: "progress"; data: IPlannerProgramProperty }
-    | { type: "update"; data: IPlannerProgramProperty }
+    | { type: "progress"; data: IProgramExerciseProgress }
+    | { type: "update"; data: IProgramExerciseUpdate }
     | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] }
-    | { type: "id"; data: IPlannerProgramProperty }
+    | { type: "id"; data: number[] }
     | { type: "used"; data: "" } {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const nameNode = expr.getChild(PlannerNodeName.ExercisePropertyName);
@@ -659,9 +768,9 @@ export class PlannerExerciseEvaluator {
     exerciseType?: IExerciseType
   ):
     | { type: "sets"; data: IPlannerProgramExerciseSet[]; isCurrent: boolean }
-    | { type: "progress"; data: IPlannerProgramProperty }
-    | { type: "update"; data: IPlannerProgramProperty }
-    | { type: "id"; data: IPlannerProgramProperty }
+    | { type: "progress"; data: IProgramExerciseProgress }
+    | { type: "update"; data: IProgramExerciseUpdate }
+    | { type: "id"; data: number[] }
     | { type: "reuse"; data: IPlannerProgramReuse }
     | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] }
     | { type: "used"; data: "" } {
@@ -852,9 +961,10 @@ export class PlannerExerciseEvaluator {
       let notused: boolean = false;
       const repeat = this.getRepeat(expr);
       const order = this.getOrder(expr);
-      const allProperties: IPlannerProgramProperty[] = [];
       const text = this.getValueTrim(expr).trim();
       let tags: number[] = [];
+      let progress: IProgramExerciseProgress | undefined;
+      let update: IProgramExerciseUpdate | undefined;
       for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode, { id: exercise.id, equipment });
         if (section.type === "sets") {
@@ -866,13 +976,13 @@ export class PlannerExerciseEvaluator {
           allWarmupSets = allWarmupSets || [];
           allWarmupSets.push(...section.data);
         } else if (section.type === "progress") {
-          allProperties.push(section.data);
+          progress = section.data;
         } else if (section.type === "update") {
-          allProperties.push(section.data);
+          update = section.data;
         } else if (section.type === "reuse") {
           reuse = section.data;
         } else if (section.type === "id") {
-          tags = tags.concat(section.data.fnArgs.map((t) => parseInt(t, 10))).filter((t) => !isNaN(t));
+          tags = tags.concat(section.data);
         } else if (section.type === "used") {
           notused = true;
         } else {
@@ -942,15 +1052,6 @@ export class PlannerExerciseEvaluator {
         .filter((n) => n)[0];
       const warmupPoint = warmupNode ? this.getPoint(warmupNode) : undefined;
 
-      const progress = allProperties.find((p) => p.name === "progress");
-      const state = progress ? PlannerProgramExercise.getStateFromProperty(progress) : {};
-      const stateMetadata = progress ? PlannerProgramExercise.getStateMetadataFromProperty(progress) : {};
-      for (const property of allProperties) {
-        property.exerciseType = exercise;
-        property.exerciseKey = key;
-        property.label = label;
-      }
-
       const plannerExercise: IPlannerProgramExercise = {
         id: UidFactory.generateUid(8),
         key,
@@ -958,6 +1059,7 @@ export class PlannerExerciseEvaluator {
         shortName,
         exerciseType: exercise,
         label,
+        dayData: this.dayData,
         text,
         repeat,
         repeating: [...repeat],
@@ -971,11 +1073,9 @@ export class PlannerExerciseEvaluator {
         setVariations,
         descriptions,
         warmupSets: allWarmupSets,
-        properties: allProperties,
         reuse,
-        skipProgress: [],
-        state,
-        stateMetadata,
+        progress,
+        update,
         globals: {
           rpe,
           logRpe,

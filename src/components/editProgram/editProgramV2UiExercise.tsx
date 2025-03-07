@@ -48,8 +48,6 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
   const repeatStr = PlannerProgramExercise.repeatToRangeStr(plannerExercise);
   const order = plannerExercise.order !== 0 ? plannerExercise.order : undefined;
   const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
-  const progress = plannerExercise.properties.find((p) => p.name === "progress");
-  const update = plannerExercise.properties.find((p) => p.name === "update");
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
 
   return (
@@ -252,8 +250,8 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
             })}
           </div>
           <div className="px-1 pb-2 text-xs text-grayv2-main">
-            {progress && <EditProgramUiProgress progress={progress} />}
-            {update && <EditProgramUiUpdate update={update} />}
+            <EditProgramUiProgress exercise={plannerExercise} settings={props.settings} />
+            <EditProgramUiUpdate exercise={plannerExercise} settings={props.settings} />
           </div>
         </>
       )}

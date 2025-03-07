@@ -56,13 +56,7 @@ export class PlannerTestUtils {
         }
       }
     }
-    const evaluatedProgram = Program.evaluate(program, settings);
-    const { program: newProgram } = Program.runAllFinishDayScripts(
-      program,
-      evaluatedProgram,
-      nextHistoryRecord,
-      settings
-    );
+    const { program: newProgram } = Program.runAllFinishDayScripts(program, nextHistoryRecord, settings);
     return { program: newProgram };
   }
 }

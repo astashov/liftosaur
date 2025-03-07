@@ -9,6 +9,7 @@ import { updateStateVariable } from "./editProgramLenses";
 import { IPlannerProgramExercise, IPlannerState } from "../pages/planner/models/types";
 import { PP } from "./pp";
 import { Weight } from "./weight";
+import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 
 export namespace EditProgram {
   export function properlyUpdateStateVariableInPlace(
@@ -16,9 +17,12 @@ export namespace EditProgram {
     programExercise: IPlannerProgramExercise,
     values: Partial<IProgramState>
   ): IEvaluatedProgram {
-    if (
-      ObjectUtils.entries(values).some(([key, value]) => value == null || Weight.eq(programExercise.state[key], value))
-    ) {
+    const state = PlannerProgramExercise.getState(programExercise);
+    if (ObjectUtils.entries(values).some(([key, value]) => value == null || Weight.eq(state[key], value))) {
+      return program;
+    }
+    const progress = programExercise.progress;
+    if (!progress) {
       return program;
     }
     const newEvalutedProgram = ObjectUtils.clone(program);
@@ -26,12 +30,12 @@ export namespace EditProgram {
       if (ex.key === programExercise.key) {
         for (const [stateKey, newValue] of ObjectUtils.entries(values)) {
           if (newValue == null) {
-            delete ex?.stateMetadata?.[stateKey];
+            delete progress.stateMetadata?.[stateKey];
           }
           if (newValue == null || typeof newValue === "string") {
-            ex.state = updateStateVariable(ex.state, stateKey, newValue);
+            progress.state = updateStateVariable(state, stateKey, newValue);
           } else {
-            ex.state = { ...ex.state, [stateKey]: newValue };
+            progress.state = { ...progress.state, [stateKey]: newValue };
           }
         }
       }

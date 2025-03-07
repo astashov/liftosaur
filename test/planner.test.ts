@@ -682,6 +682,36 @@ Bicep Curl[2-5] / 5x5 / 86.53%
 `);
   });
 
+  it("updates the state from update scripts", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x1 100lb / update: custom() {~
+  state.foo = 3
+  state.zzz = 5
+~} / progress: custom(foo: 0, bar: 0, zzz: 0) {~
+  state.bar = 4
+  state.zzz = 6
+~}
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [[1], [1]],
+    });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    console.log(newText);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x1 / 100lb / update: custom() {~
+  state.foo = 3
+  state.zzz = 5
+~} / progress: custom(foo: 3, bar: 4, zzz: 6) {~
+  state.bar = 4
+  state.zzz = 6
+~}
+
+
+`);
+  });
+
   it("uses the right exercise for reuse", () => {
     const programText = `# Week 1
 ## Day 1

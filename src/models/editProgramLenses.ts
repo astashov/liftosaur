@@ -43,24 +43,30 @@ export namespace EditProgramLenses {
     stateKey: string,
     newValue?: string | number | IWeight | IPercentage
   ): ILensRecordingPayload<T> {
-    return prefix.p("state").recordModify((state) => {
-      if (newValue == null || typeof newValue === "string") {
-        return updateStateVariable(state, stateKey, newValue);
-      } else {
-        return { ...state, [stateKey]: newValue };
-      }
-    });
+    return prefix
+      .pi("progress")
+      .p("state")
+      .recordModify((state) => {
+        if (newValue == null || typeof newValue === "string") {
+          return updateStateVariable(state, stateKey, newValue);
+        } else {
+          return { ...state, [stateKey]: newValue };
+        }
+      });
   }
 
   function removeStateVariableMetadata<T>(
     prefix: LensBuilder<T, IPlannerProgramExercise, {}>,
     stateKey: string
   ): ILensRecordingPayload<T> {
-    return prefix.p("stateMetadata").recordModify((state) => {
-      const newState = { ...state };
-      delete newState[stateKey];
-      return newState;
-    });
+    return prefix
+      .pi("progress")
+      .p("stateMetadata")
+      .recordModify((state) => {
+        const newState = { ...state };
+        delete newState[stateKey];
+        return newState;
+      });
   }
 
   export function properlyUpdateStateVariable<T>(

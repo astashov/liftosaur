@@ -592,7 +592,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const exerciseData = state.storage.settings.exerciseData;
       const { program: newProgram, exerciseData: newExerciseData } =
         Progress.isCurrent(progress) && program != null
-          ? Program.runAllFinishDayScripts(program, evaluatedProgram, progress, settings)
+          ? Program.runAllFinishDayScripts(program, progress, settings)
           : { program, exerciseData };
       const newPrograms =
         newProgram != null ? lf(state.storage.programs).i(programIndex).set(newProgram) : state.storage.programs;

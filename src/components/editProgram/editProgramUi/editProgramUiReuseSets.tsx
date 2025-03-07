@@ -151,7 +151,7 @@ function ReuseAtWeekDay(props: IReuseAtWeekDayProps): JSX.Element {
   const week = reuse.week;
 
   const day =
-    reuse.exerciseDayInWeek ??
+    reuse.exercise?.dayData.dayInWeek ??
     (week != null || (currentWeek != null && currentWeek.size > 1)
       ? Array.from(reuseCandidate.weekAndDays[week ?? props.dayData.week])[0]
       : undefined);
@@ -227,7 +227,7 @@ function ReuseAtWeekDay(props: IReuseAtWeekDayProps): JSX.Element {
           );
         }}
       >
-        {Array.from(reuseCandidateWeeksAndDays[week ?? reuse.exerciseWeek ?? 0]).map((d) => {
+        {Array.from(reuseCandidateWeeksAndDays[week ?? reuse.exercise?.dayData.week ?? 1]).map((d) => {
           return (
             <option value={d} selected={day === d}>
               {d}

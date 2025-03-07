@@ -1,22 +1,25 @@
 import { JSX, h, Fragment } from "preact";
-import { IPlannerProgramProperty } from "../../../pages/planner/models/types";
+import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
+import { ProgramToPlanner } from "../../../models/programToPlanner";
+import { ISettings } from "../../../types";
 
 interface IEditProgramUiProgressProps {
-  progress: IPlannerProgramProperty;
+  exercise: IPlannerProgramExercise;
+  settings: ISettings;
 }
 
 export function EditProgramUiProgress(props: IEditProgramUiProgressProps): JSX.Element {
-  const progress = props.progress;
+  const progress = props.exercise.progress;
+  if (!progress) {
+    return <></>;
+  }
   return (
     <div className="text-xs text-grayv2-main" data-cy="edit-program-progress">
       <span className="font-bold">Progress: </span>
-      {progress.fnName === "none" ? (
+      {progress.type === "none" ? (
         "none"
       ) : (
-        <>
-          {progress.fnName}({progress.fnArgs.join(", ")}){progress.body && ` { ...${progress.body} }`}
-          {progress.script && ` { ... }`}
-        </>
+        <>{ProgramToPlanner.getProgress(props.exercise, props.settings, true).replace("progress: ", "")}</>
       )}
     </div>
   );

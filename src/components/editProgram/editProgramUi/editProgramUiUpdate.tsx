@@ -1,23 +1,22 @@
 import { JSX, h, Fragment } from "preact";
-import { IPlannerProgramProperty } from "../../../pages/planner/models/types";
+import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
+import { ISettings } from "../../../types";
+import { ProgramToPlanner } from "../../../models/programToPlanner";
 
 interface IEditProgramUiUpdateProps {
-  update: IPlannerProgramProperty;
+  exercise: IPlannerProgramExercise;
+  settings: ISettings;
 }
 
 export function EditProgramUiUpdate(props: IEditProgramUiUpdateProps): JSX.Element {
-  const update = props.update;
+  const update = props.exercise.update;
+  if (!update) {
+    return <></>;
+  }
   return (
     <div className="text-xs text-grayv2-main" data-cy="edit-program-update">
       <span className="font-bold">Update: </span>
-      {update.fnName === "none" ? (
-        "none"
-      ) : (
-        <>
-          {update.fnName}({update.fnArgs.join(", ")}){update.body && ` { ...${update.body} }`}
-          {update.script && ` { ... }`}
-        </>
-      )}
+      {ProgramToPlanner.getUpdate(props.exercise, props.settings, true)}
     </div>
   );
 }

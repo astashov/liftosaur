@@ -180,7 +180,11 @@ export class EditProgramUiHelpers {
           const reuse = e.reuse;
           if (reuse) {
             if (reuse.fullName === fullName && newFullName != null) {
-              if (newFullNameDays.some(([w, d]) => w === reuse.exerciseWeek && d === reuse.exerciseDayInWeek)) {
+              if (
+                newFullNameDays.some(
+                  ([w, d]) => w === reuse.exercise?.dayData.week && d === reuse.exercise?.dayData.dayInWeek
+                )
+              ) {
                 reuse.fullName = newFullName;
               }
             }

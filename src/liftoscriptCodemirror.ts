@@ -16,7 +16,7 @@ function findStateInScope(context: CompletionContext, script: string): IProgramS
     const fnArgs = node.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => {
       return script.slice(argNode.from, argNode.to);
     });
-    const state = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs);
+    const state = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs).state;
     return state;
   } else {
     return undefined;

@@ -110,28 +110,6 @@ export class PlannerProgram {
         const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
         renameMapping[exercise.key] = newKey;
         exercise.key = newKey;
-        for (const property of exercise.properties) {
-          const newPropLabel = getLabel(property.label);
-          const newPropKey = PlannerKey.fromExerciseType(toExerciseType, settings, newPropLabel);
-          property.exerciseKey = newPropKey;
-          property.exerciseType = toExerciseType;
-          property.exerciseLabel = newPropLabel;
-        }
-      }
-      if (exercise.reuse?.exerciseKey === key) {
-        const newLabel = getLabel(exercise.reuse?.exerciseLabel);
-        const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
-        exercise.reuse.exerciseKey = newKey;
-        exercise.reuse.exerciseLabel = newLabel;
-      }
-      for (const property of exercise.properties) {
-        if (property.reuse?.exerciseKey === key) {
-          const newLabel = getLabel(property.reuse?.exerciseLabel);
-          const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
-          property.reuse.exerciseType = toExerciseType;
-          property.reuse.exerciseKey = newKey;
-          property.reuse.exerciseLabel = newLabel;
-        }
       }
     });
     const newPlanner = new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(renameMapping);

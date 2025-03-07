@@ -25,14 +25,14 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
   const state = PlannerProgramExercise.getState(props.programExercise);
   const { entry, settings, dayData } = props;
   const { units } = settings;
-  const mergedState = { ...state, ...props.userPromptedStateVars };
   const result = Program.runExerciseFinishDayScript(
     entry,
     dayData,
     settings,
-    mergedState,
+    state,
     props.program.states,
-    props.programExercise
+    props.programExercise,
+    props.userPromptedStateVars
   );
   const isFinished = Reps.isFinished(entry.sets);
   const updatePrints = entry.updatePrints || [];
@@ -140,7 +140,7 @@ function getDiffState(state: IProgramState, newState: IProgramState, units: IUni
   return ObjectUtils.keys(state).reduce<Record<string, string | undefined>>((memo, key) => {
     const oldValue = state[key];
     const newValue = newState[key];
-    if (!Weight.eq(oldValue, newValue)) {
+    if (newValue != null && !Weight.eq(oldValue, newValue)) {
       const oldValueStr = Weight.display(Weight.convertTo(oldValue as number, units));
       const newValueStr = Weight.display(Weight.convertTo(newValue as number, units));
       memo[key] = `${oldValueStr} -> ${newValueStr}`;

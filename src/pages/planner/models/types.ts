@@ -32,6 +32,7 @@ export type IPlannerProgramExercise = {
   fullName: string;
   shortName: string;
   exerciseType: IExerciseType;
+  dayData: Required<IDayData>;
   label?: string;
   repeat: number[];
   repeating: number[];
@@ -47,12 +48,10 @@ export type IPlannerProgramExercise = {
   evaluatedSetVariations: IPlannerProgramExerciseEvaluatedSetVariation[];
   setVariations: IPlannerProgramExerciseSetVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
-  skipProgress: { week: number; day: number }[];
   descriptions: IPlannerProgramExerciseDescription[];
-  properties: IPlannerProgramProperty[];
   globals: IPlannerProgramExerciseGlobals;
-  state: IProgramState;
-  stateMetadata: IProgramStateMetadata;
+  progress?: IProgramExerciseProgress;
+  update?: IProgramExerciseUpdate;
   points: {
     fullName: IPlannerSyntaxPointer;
     reuseSetPoint?: IPlannerSyntaxPointer;
@@ -110,11 +109,28 @@ export interface IPlannerProgramReuse {
   week?: number;
   day?: number;
   exercise?: IPlannerProgramExercise;
-  exerciseKey?: string;
-  exerciseLabel?: string;
-  exerciseWeek?: number;
-  exerciseDayInWeek?: number;
-  exerciseDay?: number;
+}
+
+type IProgramExerciseProgressType = "custom" | "lp" | "dp" | "sum" | "none";
+type IProgramExerciseUpdateType = "custom" | "lp" | "dp" | "sum";
+
+export interface IProgramExerciseProgress {
+  type: IProgramExerciseProgressType;
+  state: IProgramState;
+  stateMetadata: IProgramStateMetadata;
+  script?: string;
+  reuse?: IPlannerProgramReuse;
+  liftoscriptNode?: SyntaxNode;
+}
+
+export interface IProgramExerciseUpdate {
+  type: IProgramExerciseUpdateType;
+  script?: string;
+  reuse?: IPlannerProgramReuse;
+  liftoscriptNode?: SyntaxNode;
+  meta?: {
+    stateKeys?: Set<string>;
+  };
 }
 
 export interface IPlannerProgramProperty {

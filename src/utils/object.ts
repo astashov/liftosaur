@@ -101,6 +101,18 @@ export namespace ObjectUtils {
     return result;
   }
 
+  export function diff<T extends Record<string, any>>(oldObj: T, newObj: T): T {
+    const chKeys = ObjectUtils.changedKeys(oldObj, newObj);
+    const result: Partial<T> = {};
+    for (const key of ObjectUtils.keys(chKeys)) {
+      const value = chKeys[key];
+      if (value === "add" || value === "update") {
+        result[key] = newObj[key];
+      }
+    }
+    return result as any;
+  }
+
   export function changedKeys<T extends {}>(
     oldObj: T,
     newObj: T,

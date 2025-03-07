@@ -6,6 +6,7 @@ import { IPlannerProgramExerciseSet, IPlannerProgramExerciseWarmupSet } from "./
 import { Weight } from "../../models/weight";
 import { ObjectUtils } from "../../utils/object";
 import { PlannerProgramExercise } from "./models/plannerProgramExercise";
+import { ProgramToPlanner } from "../../models/programToPlanner";
 
 export interface IPlannerEvaluatedProgramToTextOpts {
   reorder?: { dayData: Required<IDayData>; fromIndex: number; toIndex: number }[];
@@ -179,28 +180,18 @@ export class PlannerEvaluatedProgramToText {
                   addedIdMap[key] = true;
                 }
 
-                const update = evalExercise.properties.find((p) => p.name === "update");
-                if (!addedUpdateMap[key] && update != null && (update.body || update.script)) {
-                  plannerExercise += ` / update: ${update.fnName}(${update.fnArgs.join(", ")})`;
-                  if (update.body) {
-                    plannerExercise += ` { ...${update.body} }`;
-                  } else if (update.script) {
-                    plannerExercise += ` ${update.script}`;
-                  }
+                const update = evalExercise.update;
+                if (!addedUpdateMap[key] && update != null && (update.reuse?.fullName || update.script)) {
+                  plannerExercise += ` / ${ProgramToPlanner.getUpdate(evalExercise, this.settings)}`;
                   addedUpdateMap[key] = true;
                 }
 
-                const progress = evalExercise.properties.find((p) => p.name === "progress");
+                const progress = evalExercise.progress;
                 if (progress != null) {
-                  if (progress.fnName === "none") {
+                  if (progress.type === "none") {
                     plannerExercise += ` / progress: none`;
                   } else if (!addedProgressMap[key]) {
-                    plannerExercise += ` / progress: ${progress.fnName}(${progress.fnArgs.join(", ")})`;
-                    if (progress.body) {
-                      plannerExercise += ` { ...${progress.body} }`;
-                    } else if (progress.script) {
-                      plannerExercise += ` ${progress.script}`;
-                    }
+                    plannerExercise += ` / ${ProgramToPlanner.getProgress(evalExercise, this.settings)}`;
                     addedProgressMap[key] = true;
                   }
                 }

@@ -175,7 +175,6 @@ export const ProgramPreviewPlayground = memo(
                           onFinish={() => {
                             const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(
                               state.program,
-                              evaluatedProgram,
                               d.progress,
                               state.settings
                             );

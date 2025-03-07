@@ -4,7 +4,6 @@ import { PP } from "../../../models/pp";
 import { IPlannerProgramExercise, IPlannerState } from "../../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../../pages/planner/plannerExerciseEvaluator";
 import { IDayData, ISettings } from "../../../types";
-import { CollectionUtils } from "../../../utils/collection";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { EditProgramUiHelpers } from "./editProgramUiHelpers";
 
@@ -23,7 +22,7 @@ function getUpdateReuseCandidates(fullname: string, evaluatedWeeks: IPlannerEval
     if (exercise.fullName === fullname) {
       return;
     }
-    const update = exercise.properties.find((p) => p.name === "update");
+    const update = exercise.update;
     if (!update || update.reuse) {
       return;
     }
@@ -34,7 +33,7 @@ function getUpdateReuseCandidates(fullname: string, evaluatedWeeks: IPlannerEval
 
 export function EditProgramUiUpdateReuse(props: IEditProgramUiUpdateReuseProps): JSX.Element {
   const plannerExercise = props.plannerExercise;
-  const update = plannerExercise.properties.find((p) => p.name === "update");
+  const update = plannerExercise.update;
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const reuseCandidates = getUpdateReuseCandidates(plannerExercise.fullName, props.evaluatedWeeks);
 
@@ -57,31 +56,26 @@ export function EditProgramUiUpdateReuse(props: IEditProgramUiUpdateReuseProps):
                   if (value) {
                     let reusedExercise: IPlannerProgramExercise | undefined;
                     PP.iterate(props.evaluatedWeeks, (exercise) => {
-                      if (
-                        !reusedExercise &&
-                        exercise.fullName === value &&
-                        exercise.properties.some((p) => p.name === "update" && p.fnName !== "none")
-                      ) {
+                      if (!reusedExercise && exercise.fullName === value && exercise.update) {
                         reusedExercise = exercise;
                       }
                     });
                     if (reusedExercise) {
-                      const reusedUpdate = reusedExercise.properties.find((p) => p.name === "update");
+                      const reusedUpdate = reusedExercise.update;
                       if (reusedUpdate) {
                         const newUpdate =
-                          reusedUpdate.fnName !== "custom"
+                          reusedUpdate.type !== "custom"
                             ? { ...reusedUpdate }
                             : {
                                 ...reusedUpdate,
                                 script: undefined,
                                 body: value,
                               };
-                        ex.properties = CollectionUtils.removeBy(ex.properties, "name", "update");
-                        ex.properties.push(newUpdate);
+                        ex.update = newUpdate;
                       }
                     }
                   } else {
-                    ex.properties = CollectionUtils.removeBy(ex.properties, "name", "update");
+                    ex.update = undefined;
                   }
                 }
               );
@@ -91,7 +85,7 @@ export function EditProgramUiUpdateReuse(props: IEditProgramUiUpdateReuseProps):
       >
         {["", ...reuseCandidates].map((fullName) => {
           return (
-            <option value={fullName.trim()} selected={update?.body?.trim() === fullName.trim()}>
+            <option value={fullName.trim()} selected={update?.reuse?.fullName?.trim() === fullName.trim()}>
               {fullName.trim()}
             </option>
           );

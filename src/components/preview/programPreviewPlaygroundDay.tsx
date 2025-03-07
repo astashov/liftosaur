@@ -18,6 +18,7 @@ import { StringUtils } from "../../utils/string";
 import { Exercise } from "../../models/exercise";
 import { Weight } from "../../models/weight";
 import { Markdown } from "../markdown";
+import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 
 interface IProgramPreviewPlaygroundDayProps {
   program: IEvaluatedProgram;
@@ -153,7 +154,13 @@ export const ProgramPreviewPlaygroundDay = memo(
                   .i(dayData.dayInWeek - 1)
                   .p("exercises")
                   .find((e) => e.key === editModalProgramExerciseId),
-                { [stateKey]: Program.stateValue(editModalProgramExercise.state, stateKey, newValue) }
+                {
+                  [stateKey]: Program.stateValue(
+                    PlannerProgramExercise.getState(editModalProgramExercise),
+                    stateKey,
+                    newValue
+                  ),
+                }
               );
               const newProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), props.program);
               props.onProgramChange(newProgram);

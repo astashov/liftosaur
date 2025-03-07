@@ -708,12 +708,7 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
         setProgress(Program.nextHistoryRecord(program, newSettings, 1));
       }}
       onFinish={() => {
-        const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(
-          program,
-          evaluatedProgram,
-          progress,
-          settings
-        );
+        const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(program, progress, settings);
         const newSettings = {
           ...settings,
           exerciseData: deepmerge(settings.exerciseData, exerciseData),

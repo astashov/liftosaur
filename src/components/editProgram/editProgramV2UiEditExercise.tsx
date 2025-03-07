@@ -56,9 +56,6 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
   const [showRepeat, setShowRepeat] = useState(plannerExercise.repeating.length > 0);
   const [showOrder, setShowOrder] = useState(plannerExercise.order !== 0);
 
-  const progress = plannerExercise.properties.find((p) => p.name === "progress");
-  const update = plannerExercise.properties.find((p) => p.name === "update");
-
   function modify(cb: (ex: IPlannerProgramExercise) => void): void {
     props.plannerDispatch(
       lbProgram.recordModify((program) => {
@@ -407,7 +404,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
           plannerExercise={plannerExercise}
           settings={props.settings}
         />
-        {progress && <EditProgramUiProgress progress={progress} />}
+        <EditProgramUiProgress exercise={plannerExercise} settings={props.settings} />
       </div>
       <div className="my-2">
         <EditProgramUiUpdateReuse
@@ -418,7 +415,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
           plannerExercise={plannerExercise}
           settings={props.settings}
         />
-        {update && <EditProgramUiUpdate update={update} />}
+        <EditProgramUiUpdate exercise={plannerExercise} settings={props.settings} />
       </div>
       <div className="mt-2 text-xs text-grayv2-main">
         To edit <strong>progress</strong>, <strong>update</strong> scripts, and <strong>tags</strong> - switch to the{" "}

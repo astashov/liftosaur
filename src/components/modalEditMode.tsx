@@ -22,6 +22,7 @@ import { ProgramToPlanner } from "../models/programToPlanner";
 import { InputWeight } from "./inputWeight";
 import { ExerciseDataSettings } from "./exerciseDataSettings";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 
 interface IModalEditModeProps {
   programExerciseId: string;
@@ -53,7 +54,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
     ]);
     onClose();
   };
-  const hasStateVariables = ObjectUtils.keys(programExercise.state).length > 0;
+  const hasStateVariables = ObjectUtils.keys(PlannerProgramExercise.getState(programExercise)).length > 0;
   const [newState, setNewState] = useState<Partial<IProgramState>>({});
   const dayData = Program.getDayData(props.program, props.day);
   const [weightChanges, setWeightChanges] = useState(ProgramExercise.weightChanges(props.program, programExercise.key));
@@ -105,7 +106,11 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   onEditStateVariable={(stateKey, newValue) => {
                     setNewState({
                       ...newState,
-                      [stateKey]: Program.stateValue(programExercise.state, stateKey, newValue),
+                      [stateKey]: Program.stateValue(
+                        PlannerProgramExercise.getState(programExercise),
+                        stateKey,
+                        newValue
+                      ),
                     });
                   }}
                   onOpenCalculator={(key, unit) => setShowCalculator({ type: "state", value: [key, unit] })}
@@ -199,7 +204,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   setNewState({
                     ...newState,
                     [showCalculator.value[0]]: Program.stateValue(
-                      programExercise.state,
+                      PlannerProgramExercise.getState(programExercise),
                       showCalculator.value[0],
                       `${weightValue}`
                     ),
@@ -232,8 +237,8 @@ interface IStateProps {
 
 function ProgramStateVariables(props: IStateProps): JSX.Element {
   const { programExercise } = props;
-  const state = programExercise.state;
-  const stateMetadata = programExercise.stateMetadata;
+  const state = PlannerProgramExercise.getState(programExercise);
+  const stateMetadata = PlannerProgramExercise.getStateMetadata(programExercise);
 
   return (
     <section className="px-4 py-2 bg-purple-100 rounded-2xl">
