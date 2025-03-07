@@ -892,4 +892,15 @@ export const migrations = {
     }
     return storage;
   },
+  "20250306192146_fix_empty_graphs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const customExerciseKey of ObjectUtils.keys(storage.settings.exercises)) {
+      for (const graph of storage.settings.graphs) {
+        if (graph.type === "exercise" && graph.id.includes(customExerciseKey) && graph.id !== customExerciseKey) {
+          graph.id = customExerciseKey;
+        }
+      }
+    }
+    return storage;
+  },
 };
