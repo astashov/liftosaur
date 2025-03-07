@@ -45,6 +45,7 @@ import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { PlannerEvaluator, IByExercise, IByTag } from "../pages/planner/plannerEvaluator";
 import { PP } from "./pp";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { CollectionUtils } from "../utils/collection";
 
 declare let __HOST__: string;
 
@@ -649,7 +650,7 @@ export namespace Program {
       const days = week.days.map((day, dayInWeekIndex) => {
         dayNum += 1;
         const evaluatedDay = evaluatedWeek[dayInWeekIndex];
-        const evaluatedExercises = evaluatedDay.success ? evaluatedDay.data : [];
+        const evaluatedExercises = CollectionUtils.sortBy(evaluatedDay.success ? evaluatedDay.data : [], "order");
         return {
           name: day.name,
           description: day.description,
