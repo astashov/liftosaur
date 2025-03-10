@@ -45,15 +45,7 @@
 User debug page:
 - Programs, their version history
 
-Evaluated Program
-- planner
-- evaluatedWeeks
-
-Helpers:
-- exercises per day
-- exkey -> state
-- 
-
-- exercises per day
-- state
-- 
+* warmups
+* templates
+* completedWeights/weights
+* initial/completed number of sets
