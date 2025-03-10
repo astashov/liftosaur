@@ -61,14 +61,9 @@ export class PlannerEvaluator {
       );
     }
     const tagsProp = exercise.tags;
-    if (tagsProp != null) {
+    if (tagsProp != null && tagsProp.length > 0) {
       const existingTags = metadata.properties.id[exercise.key];
-      if (
-        existingTags != null &&
-        existingTags.property.length > 0 &&
-        tagsProp.length > 0 &&
-        !ObjectUtils.isEqual(existingTags.property, tagsProp)
-      ) {
+      if (existingTags != null && !ObjectUtils.isEqual(existingTags.property, tagsProp)) {
         const point = exercise.points.idPoint || exercise.points.fullName;
         throw PlannerSyntaxError.fromPoint(
           exercise.fullName,
