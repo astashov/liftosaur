@@ -22,21 +22,23 @@ export namespace EditProgram {
     if (ObjectUtils.entries(values).some(([key, value]) => value == null || Weight.eq(state[key], value))) {
       return program;
     }
-    const progress = programExercise.progress;
-    if (!progress) {
+    if (!programExercise.progress) {
       return program;
     }
     const newEvalutedProgram = ObjectUtils.clone(program);
     PP.iterate2(newEvalutedProgram.weeks, (ex) => {
       if (ex.key === programExercise.key) {
-        for (const [stateKey, newValue] of ObjectUtils.entries(values)) {
-          if (newValue == null) {
-            delete progress.stateMetadata?.[stateKey];
-          }
-          if (newValue == null || typeof newValue === "string") {
-            progress.state = updateStateVariable(state, stateKey, newValue);
-          } else {
-            progress.state = { ...progress.state, [stateKey]: newValue };
+        const progress = ex.progress;
+        if (progress) {
+          for (const [stateKey, newValue] of ObjectUtils.entries(values)) {
+            if (newValue == null) {
+              delete progress.stateMetadata?.[stateKey];
+            }
+            if (newValue == null || typeof newValue === "string") {
+              progress.state = updateStateVariable(state, stateKey, newValue);
+            } else {
+              progress.state = { ...progress.state, [stateKey]: newValue };
+            }
           }
         }
       }
