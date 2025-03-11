@@ -15,7 +15,6 @@ import { Exercise } from "./exercise";
 import { CollectionUtils } from "../utils/collection";
 import { PP } from "./pp";
 import { PlannerKey } from "../pages/planner/plannerKey";
-import { PlannerEvaluator } from '../pages/planner/plannerEvaluator';
 
 interface IPlannerToProgram2Globals {
   weight?: IWeight | IPercentage;
@@ -134,7 +133,7 @@ export class ProgramToPlanner {
     if (this.program.errors.length > 0) {
       const error = this.program.errors[0];
       const msg = `There's an error during evaluating a program, week ${error.dayData.week}, day: ${error.dayData.dayInWeek}. Please fix it to proceed.\n\n${error.error.toString()}`;
-      console.log(PlannerProgram.generateFullText(plannerProgram.weeks)):
+      console.log(PlannerProgram.generateFullText(plannerProgram.weeks));
       if (typeof window !== "undefined" && window.alert != null) {
         window.alert(msg);
       }
