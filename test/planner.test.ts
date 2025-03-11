@@ -713,6 +713,36 @@ Bench Press / ...Squat / 100lb / progress: custom(increase: 2.5lb) { ...Squat }
 `);
   });
 
+  it("uses the inherited state for update blocks", () => {
+    const programText = `# Week 1
+## Day 1
+Leg Press / 2x2 100lb / progress: custom(foo: 1) {~
+  state.foo += 1
+~}
+Squat / 2x2 200lb / update: custom() {~
+  state.foo += 1
+~} / progress: custom() { ...Leg Press }
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [
+        [2, 2],
+        [2, 2],
+      ],
+    });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Leg Press / 2x2 / 100lb / progress: custom(foo: 2) {~
+  state.foo += 1
+~}
+Squat / 2x2 / 200lb / update: custom() {~
+  state.foo += 1
+~} / progress: custom(foo: 3) { ...Leg Press }
+
+
+`);
+  });
+
   it("doesn't dereuse if the custom progress still matches", () => {
     const programText = `# Week 1
 ## Day 1

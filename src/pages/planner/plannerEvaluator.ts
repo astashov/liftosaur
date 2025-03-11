@@ -524,8 +524,7 @@ export class PlannerEvaluator {
       const { script, liftoscriptNode } = update;
       if (script && liftoscriptNode) {
         const exerciseType = PlannerProgramExercise.getExercise(exercise, settings);
-        const progress = exercise.progress;
-        const state = progress?.state || {};
+        const state = PlannerProgramExercise.getState(exercise);
         const liftoscriptEvaluator = new ScriptRunner(
           script,
           state,
@@ -598,7 +597,7 @@ export class PlannerEvaluator {
               point
             );
           }
-          const state = progress.state;
+          const state = PlannerProgramExercise.getState(exercise);
           for (const stateKey of stateKeys) {
             if (state[stateKey] == null) {
               throw PlannerSyntaxError.fromPoint(
