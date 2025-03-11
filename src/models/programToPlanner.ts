@@ -130,6 +130,12 @@ export class ProgramToPlanner {
   public convertToPlanner(renameMapping: Record<string, string> = {}): IPlannerProgram {
     const plannerWeeks: IPlannerProgramWeek[] = [];
     const plannerProgram = this.program.planner;
+    if (this.program.errors.length > 0) {
+      const error = this.program.errors[0];
+      const msg = `There's an error during evaluating a program, week ${error.dayData.week}, day: ${error.dayData.dayInWeek}. Please fix it to proceed.\n\n${error.error.toString()}`;
+      alert(msg);
+      throw error.error;
+    }
     const topLineMap = PlannerProgram.topLineItems(plannerProgram, this.settings);
     let dayIndex = 0;
     const addedProgressMap: Record<string, boolean> = {};

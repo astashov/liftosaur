@@ -51,6 +51,7 @@ import { PlannerEvaluator, IByExercise, IByTag } from "../pages/planner/plannerE
 import { PP } from "./pp";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { CollectionUtils } from "../utils/collection";
+import { PlannerSyntaxError } from "../pages/planner/plannerExerciseEvaluator";
 
 declare let __HOST__: string;
 
@@ -74,12 +75,18 @@ export interface IEvaluatedProgramDay {
   exercises: IPlannerProgramExercise[];
 }
 
+export interface IEvaluatedProgramError {
+  error: PlannerSyntaxError;
+  dayData: Required<IDayData>;
+}
+
 export interface IEvaluatedProgram {
   type: "evaluatedProgram";
   id: string;
   planner: IPlannerProgram;
   name: string;
   nextDay: number;
+  errors: IEvaluatedProgramError[];
   weeks: IEvaluatedProgramWeek[];
   states: IByTag<IProgramState>;
 }
@@ -623,6 +630,7 @@ export namespace Program {
           weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
         },
         name: program.name,
+        errors: [],
         nextDay: program.nextDay,
         weeks: [
           {
@@ -641,20 +649,25 @@ export namespace Program {
     }
     const { evaluatedWeeks } = PlannerEvaluator.evaluate(program.planner!, settings);
     let dayNum = 0;
+    const errors: IEvaluatedProgramError[] = [];
     const weeks = planner.weeks.map((week, weekIndex) => {
       const evaluatedWeek = evaluatedWeeks[weekIndex];
       const days = week.days.map((day, dayInWeekIndex) => {
         dayNum += 1;
         const evaluatedDay = evaluatedWeek[dayInWeekIndex];
+        const dayData = {
+          day: dayNum,
+          week: weekIndex + 1,
+          dayInWeek: dayInWeekIndex + 1,
+        };
         const evaluatedExercises = CollectionUtils.sortBy(evaluatedDay.success ? evaluatedDay.data : [], "order");
+        if (!evaluatedDay.success) {
+          errors.push({ error: evaluatedDay.error, dayData });
+        }
         return {
           name: day.name,
           description: day.description,
-          dayData: {
-            day: dayNum,
-            week: weekIndex + 1,
-            dayInWeek: dayInWeekIndex + 1,
-          },
+          dayData,
           exercises: evaluatedExercises,
         };
       });
@@ -669,6 +682,7 @@ export namespace Program {
     const result: IEvaluatedProgram = {
       type: "evaluatedProgram",
       id: program.id,
+      errors,
       planner,
       name: program.name,
       nextDay: program.nextDay,
