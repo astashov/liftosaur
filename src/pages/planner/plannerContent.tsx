@@ -336,6 +336,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               value={state.current.program.name}
               onInputString={(v) => {
                 dispatch(lbProgram.p("name").record(v));
+                dispatch(lb<IPlannerState>().p("current").p("program").p("name").record(v));
                 document.title = `Liftosaur: Weight Lifting Tracking App | ${HtmlUtils.escapeHtml(v)}`;
               }}
             />
