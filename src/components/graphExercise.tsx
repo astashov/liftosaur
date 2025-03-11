@@ -202,16 +202,16 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                   return;
                 }
                 text += "</div>";
-                const entryNotes = historyRecord.entries
+                const entryNotes = (historyRecord?.entries || [])
                   .filter((e) => Exercise.eq(props.exercise, e.exercise))
                   .map((e) => e.notes)
                   .filter((e) => e);
-                if (historyRecord.notes || entryNotes.length > 0) {
+                if (historyRecord?.notes || entryNotes.length > 0) {
                   text += "<div class='text-sm text-grayv2-main'>";
                   if (entryNotes.length > 0) {
                     text += `<ul>${entryNotes.map((e) => `<li>${HtmlUtils.escapeHtml(e || "")}</li>`)}</ul>`;
                   }
-                  if (historyRecord.notes) {
+                  if (historyRecord?.notes) {
                     text += `<div><span class='font-bold'>Workout: </span><span>${HtmlUtils.escapeHtml(
                       historyRecord.notes || ""
                     )}</span></div>`;
@@ -219,7 +219,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                   text += "</div>";
                 }
 
-                const entries = historyRecord.entries.filter((e) => e.exercise.id === props.exercise.id);
+                const entries = (historyRecord?.entries || []).filter((e) => e.exercise.id === props.exercise.id);
                 const stateVars = [];
                 for (const entry of entries) {
                   for (const key of ObjectUtils.keys(entry.state || {})) {
