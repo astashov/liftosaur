@@ -133,7 +133,9 @@ export class ProgramToPlanner {
     if (this.program.errors.length > 0) {
       const error = this.program.errors[0];
       const msg = `There's an error during evaluating a program, week ${error.dayData.week}, day: ${error.dayData.dayInWeek}. Please fix it to proceed.\n\n${error.error.toString()}`;
-      alert(msg);
+      if (typeof window !== "undefined" && window.alert != null) {
+        window.alert(msg);
+      }
       throw error.error;
     }
     const topLineMap = PlannerProgram.topLineItems(plannerProgram, this.settings);
