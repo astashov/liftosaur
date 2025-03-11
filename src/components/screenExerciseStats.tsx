@@ -40,6 +40,7 @@ import { MuscleGroupsView, ModalCustomExercise } from "./modalExercise";
 import { LinkButton } from "./linkButton";
 import { Thunk } from "../ducks/thunks";
 import { Program } from "../models/program";
+import { EditProgram } from "../models/editProgram";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -139,6 +140,13 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                   exercise
                 );
                 updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));
+                if (props.currentProgram && exercise) {
+                  const newProgram = Program.changeExerciseName(exercise.name, name, props.currentProgram, {
+                    ...props.settings,
+                    exercises,
+                  });
+                  EditProgram.updateProgram(props.dispatch, newProgram);
+                }
                 if (shouldClose) {
                   setShowCustomExerciseModal(false);
                 }

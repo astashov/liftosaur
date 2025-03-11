@@ -4,12 +4,13 @@ import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
-import { IProgram, IPlannerProgram, IDayData, IProgramState } from "../types";
+import { IProgram, IPlannerProgram, IDayData, IProgramState, ISettings } from "../types";
 import { updateStateVariable } from "./editProgramLenses";
 import { IPlannerProgramExercise, IPlannerState } from "../pages/planner/models/types";
 import { PP } from "./pp";
 import { Weight } from "./weight";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { ProgramToPlanner } from "./programToPlanner";
 
 export namespace EditProgram {
   export function properlyUpdateStateVariableInPlace(
@@ -114,5 +115,18 @@ export namespace EditProgram {
         .recordModify((stack) => Screen.push(stack, "editProgram")),
       lb<IState>().p("editProgram").record({ id: newProgram.id }),
     ]);
+  }
+
+  export function updateProgram(dispatch: IDispatch, program: IProgram): void {
+    updateState(dispatch, [lb<IState>().p("storage").p("programs").findBy("id", program.id).record(program)]);
+  }
+
+  export function regenerateProgram(
+    program: IProgram,
+    evaluatedProgram: IEvaluatedProgram,
+    settings: ISettings
+  ): IProgram {
+    const newPlanner = new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
+    return { ...program, planner: newPlanner };
   }
 }

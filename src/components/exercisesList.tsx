@@ -32,6 +32,7 @@ import { updateSettings } from "../models/state";
 import { ObjectUtils } from "../utils/object";
 import { Settings } from "../models/settings";
 import { Program } from "../models/program";
+import { EditProgram } from "../models/editProgram";
 
 interface IExercisesListProps {
   dispatch: IDispatch;
@@ -204,6 +205,13 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
               exercise
             );
             updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));
+            if (exercise) {
+              const newProgram = Program.changeExerciseName(exercise.name, name, props.program, {
+                ...props.settings,
+                exercises,
+              });
+              EditProgram.updateProgram(props.dispatch, newProgram);
+            }
             if (shouldClose) {
               setShowCustomExerciseModal(false);
             }

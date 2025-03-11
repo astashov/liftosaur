@@ -73,9 +73,9 @@ test("Change exercise", async ({ page }) => {
   await page.getByTestId("edit-exercise-change-here").click();
   await page.getByText("Around The World").click();
   await page.getByTestId("close-edit-exercise").click();
-  await expect(page.getByTestId("exercise-around the world")).toContainText("Around The World");
-  await expect(page.getByTestId("exercise-arnold press")).toContainText("Arnold Press");
-  await page.getByTestId("exercise-arnold press").getByTestId("edit-exercise").click();
+  await expect(page.getByTestId("exercise-aroundtheworld_dumbbell")).toContainText("Around The World");
+  await expect(page.getByTestId("exercise-arnoldpress_dumbbell")).toContainText("Arnold Press");
+  await page.getByTestId("exercise-arnoldpress_dumbbell").getByTestId("edit-exercise").click();
   await page.getByTestId("edit-exercise-change-here").click();
   await page.getByTestId("menu-item-around-the-world-dumbbell").click();
   await page.getByTestId("edit-exercise-change-everywhere").click();
@@ -107,7 +107,7 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
   await page.getByPlaceholder("Filter by name").click();
   await page.getByPlaceholder("Filter by name").fill("bench");
   await page.getByTestId("menu-item-bench-press-barbell").click();
-  await page.getByTestId("exercise-bench press").getByTestId("edit-exercise").click();
+  await page.getByTestId("exercise-benchpress_barbell").getByTestId("edit-exercise").click();
   await page.getByTestId("edit-exercise-reuse-sets-select").selectOption("Squat");
   await page.getByTestId("num-input-edit-exercise-globals-rpe-value").click();
   await page.getByTestId("num-input-edit-exercise-globals-rpe-value").fill("8");
@@ -136,7 +136,7 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
   await page.getByTestId("planner-add-day").click();
   await page.getByTestId("add-exercise").nth(1).click();
   await page.getByTestId("menu-item-bench-press-barbell").click();
-  await page.getByTestId("exercise-bench press").getByTestId("edit-exercise").click();
+  await page.getByTestId("exercise-benchpress_barbell").getByTestId("edit-exercise").click();
   await page.getByTestId("edit-exercise-reuse-sets-select").selectOption("Squat");
   await page.getByTestId("edit-exercise-warmups-customize").click();
   await page.getByTestId("num-input-edit-exercise-warmupset-numofsets-plus").first().click();
@@ -187,7 +187,7 @@ Bicep Curl / 3x3`
   );
 
   await page.getByTestId("editor-v2-save-full").click();
-  await page.getByTestId("exercise-bicep curl").getByTestId("edit-exercise").click();
+  await page.getByTestId("exercise-bicepcurl_dumbbell").getByTestId("edit-exercise").click();
   await page.getByTestId("edit-exercise-reuse-progress-select").selectOption("Squat");
   await expect(page.getByTestId("edit-program-progress").nth(5)).toContainText("Progress: lp(5lb)");
   await page.getByTestId("edit-exercise-reuse-progress-select").selectOption("Bench Press");
@@ -221,7 +221,7 @@ Bench Press / 3x3`
 
   await page.getByTestId("editor-v2-save-full").click();
 
-  await page.getByTestId("exercise-bench press").getByTestId("edit-exercise").click();
+  await page.getByTestId("exercise-benchpress_barbell").getByTestId("edit-exercise").click();
   await page.getByTestId("edit-exercise-reuse-progress-select").selectOption("Squat");
   await page.getByTestId("editor-v2-full-program").click();
 

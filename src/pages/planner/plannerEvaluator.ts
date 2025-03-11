@@ -222,6 +222,13 @@ export class PlannerEvaluator {
     return { evaluatedWeeks, metadata };
   }
 
+  public static changeExerciseName(text: string, from: string, to: string, settings: ISettings): string {
+    const evaluator = new PlannerExerciseEvaluator(text, settings, "perday");
+    const tree = plannerExerciseParser.parse(text);
+    const result = evaluator.changeExerciseName(tree.topNode, from, to);
+    return result;
+  }
+
   private static getFullEvaluatedWeeks(
     fullProgramText: string,
     settings: ISettings

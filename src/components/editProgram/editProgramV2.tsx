@@ -337,6 +337,16 @@ export function EditProgramV2(props: IProps): JSX.Element {
                   exercise
                 );
                 updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));
+                if (exercise) {
+                  const newProgram = Program.changeExerciseName(exercise.name, name, plannerState.current.program, {
+                    ...props.settings,
+                    exercises,
+                  });
+                  window.isUndoing = true;
+                  EditProgram.updateProgram(props.dispatch, newProgram);
+                  plannerDispatch(lbProgram.record(newProgram.planner!));
+                  plannerDispatch(lbProgram.record(newProgram.planner!), "stop-is-undoing");
+                }
                 if (shouldClose) {
                   plannerDispatch(lb<IPlannerState>().p("ui").p("modalExercise").record(undefined));
                 }

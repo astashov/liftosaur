@@ -3674,6 +3674,19 @@ export namespace Exercise {
     return { ...exercise, equipment: exercise.defaultEquipment };
   }
 
+  export function findByNameEquipment(
+    customExercises: IAllCustomExercises,
+    name: string,
+    equipment?: string
+  ): IExercise | undefined {
+    let exerciseId = findIdByName(name, customExercises);
+    const exercise = exerciseId ? findById(exerciseId, customExercises) : undefined;
+    if (exercise == null) {
+      return undefined;
+    }
+    return { ...exercise, equipment };
+  }
+
   export function findByNameAndEquipment(
     nameAndEquipment: string,
     customExercises: IAllCustomExercises

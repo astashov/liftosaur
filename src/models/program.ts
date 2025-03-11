@@ -678,6 +678,30 @@ export namespace Program {
     return result;
   }
 
+  export function changeExerciseName(from: string, to: string, program: IProgram, settings: ISettings): IProgram {
+    const planner = program.planner;
+    if (!planner) {
+      return program;
+    }
+    return {
+      ...program,
+      planner: {
+        ...planner,
+        weeks: planner.weeks.map((week) => {
+          return {
+            ...week,
+            days: week.days.map((day) => {
+              return {
+                ...day,
+                exerciseText: PlannerEvaluator.changeExerciseName(day.exerciseText, from, to, settings),
+              };
+            }),
+          };
+        }),
+      },
+    };
+  }
+
   export function numberOfDays(program: IEvaluatedProgram): number {
     return program.weeks.reduce((memo, week) => memo + week.days.length, 0);
   }

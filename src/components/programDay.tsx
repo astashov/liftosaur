@@ -6,7 +6,7 @@ import { ModalWeight } from "./modalWeight";
 import { Progress } from "../models/progress";
 import { History } from "../models/history";
 import { ModalDate } from "./modalDate";
-import { INavCommon, IState, updateState } from "../models/state";
+import { INavCommon, IState, updateSettings, updateState } from "../models/state";
 import { useState } from "preact/hooks";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
@@ -32,6 +32,8 @@ import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
 import { SendMessage } from "../utils/sendMessage";
 import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { Exercise } from "../models/exercise";
+import { EditProgram } from "../models/editProgram";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -177,8 +179,8 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                   largeImageUrl,
                   exercise
                 ) => {
-                  EditCustomExercise.createOrUpdate(
-                    props.dispatch,
+                  const exercises = Exercise.createOrUpdateCustomExercise(
+                    props.settings.exercises,
                     name,
                     targetMuscles,
                     synergistMuscles,
@@ -187,6 +189,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                     largeImageUrl,
                     exercise
                   );
+                  updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));
+                  if (props.program && exercise) {
+                    const newProgram = Program.changeExerciseName(exercise.name, name, props.program, {
+                      ...props.settings,
+                      exercises,
+                    });
+                    EditProgram.updateProgram(props.dispatch, newProgram);
+                  }
                 }}
                 onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
                 onChange={(exerciseType, shouldClose) => {

@@ -1197,6 +1197,24 @@ if (completedReps >= reps && completedRPE <= RPE) {
     return script;
   }
 
+  public changeExerciseName(node: SyntaxNode, from: string, to: string): string {
+    const cursor = node.cursor();
+    let script = this.script;
+    let shift = 0;
+    do {
+      if (cursor.node.type.name === PlannerNodeName.ExerciseName) {
+        const name = this.getValue(cursor.node);
+        if (name === from) {
+          const fromNode = cursor.node.from;
+          const toNode = cursor.node.to;
+          script = script.substring(0, fromNode + shift) + to + script.substring(toNode + shift);
+          shift = shift + to.length - name.length;
+        }
+      }
+    } while (cursor.next());
+    return script;
+  }
+
   public topLineMap(programNode: SyntaxNode): IPlannerTopLineItem[] {
     if (programNode.type.name !== PlannerNodeName.Program) {
       this.error(`Unexpected node type ${programNode.type.name} - should be Program`, programNode);

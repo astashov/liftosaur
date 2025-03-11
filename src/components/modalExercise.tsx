@@ -173,166 +173,164 @@ interface IExercisesListProps {
   textInput: Ref<HTMLInputElement>;
 }
 
-const ExercisesList = forwardRef(
-  (props: IExercisesListProps): JSX.Element => {
-    const { textInput, setFilter, filter } = props;
+const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
+  const { textInput, setFilter, filter } = props;
 
-    let exercises = Exercise.allExpanded({});
-    let customExercises = props.settings.exercises;
-    const filterOptions = [
-      ...equipments.map((e) => equipmentName(e)),
-      ...exerciseKinds.map(StringUtils.capitalize),
-      ...screenMuscles,
-    ];
-    const initialFilterOptions = (props.initialFilterTypes || []).filter((ft) => filterOptions.indexOf(ft) !== -1);
-    const [filterTypes, setFilterTypes] = useState<string[]>(initialFilterOptions);
-    if (filter) {
-      exercises = Exercise.filterExercises(exercises, filter);
-      customExercises = Exercise.filterCustomExercises(customExercises, filter);
-    }
-    if (filterTypes && filterTypes.length > 0) {
-      exercises = Exercise.filterExercisesByType(exercises, filterTypes, props.settings);
-      customExercises = Exercise.filterCustomExercisesByType(customExercises, filterTypes);
-    }
+  let exercises = Exercise.allExpanded({});
+  let customExercises = props.settings.exercises;
+  const filterOptions = [
+    ...equipments.map((e) => equipmentName(e)),
+    ...exerciseKinds.map(StringUtils.capitalize),
+    ...screenMuscles,
+  ];
+  const initialFilterOptions = (props.initialFilterTypes || []).filter((ft) => filterOptions.indexOf(ft) !== -1);
+  const [filterTypes, setFilterTypes] = useState<string[]>(initialFilterOptions);
+  if (filter) {
+    exercises = Exercise.filterExercises(exercises, filter);
+    customExercises = Exercise.filterCustomExercises(customExercises, filter);
+  }
+  if (filterTypes && filterTypes.length > 0) {
+    exercises = Exercise.filterExercisesByType(exercises, filterTypes, props.settings);
+    customExercises = Exercise.filterCustomExercisesByType(customExercises, filterTypes);
+  }
 
-    exercises = Exercise.sortExercises(exercises, props.isSubstitute, props.settings, filterTypes, props.exerciseType);
-    const exercise = props.exerciseType ? Exercise.get(props.exerciseType, props.settings.exercises) : undefined;
+  exercises = Exercise.sortExercises(exercises, props.isSubstitute, props.settings, filterTypes, props.exerciseType);
+  const exercise = props.exerciseType ? Exercise.get(props.exerciseType, props.settings.exercises) : undefined;
 
-    return (
-      <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
-        {props.isSubstitute && (
-          <p className="text-xs italic">Similar exercises are sorted by the same muscles as the current one.</p>
-        )}
-        {exercise && (
-          <div className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
-            <GroupHeader name="Current" />
+  return (
+    <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
+      {props.isSubstitute && (
+        <p className="text-xs italic">Similar exercises are sorted by the same muscles as the current one.</p>
+      )}
+      {exercise && (
+        <div className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
+          <GroupHeader name="Current" />
+          <ExerciseItem
+            shouldAddExternalLinks={props.shouldAddExternalLinks}
+            showMuscles={props.isSubstitute}
+            settings={props.settings}
+            exercise={exercise}
+            equipment={exercise.equipment}
+          />
+        </div>
+      )}
+      <input
+        ref={textInput}
+        className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+        type="text"
+        value={filter}
+        data-cy="exercise-filter-by-name"
+        placeholder="Filter by name"
+        onInput={() => {
+          setFilter(textInput.current.value.toLowerCase());
+        }}
+      />
+      <Multiselect
+        id="filtertypes"
+        label=""
+        data-cy="exercise-filter-by-type"
+        placeholder="Filter by type"
+        values={filterOptions}
+        initialSelectedValues={new Set(initialFilterOptions)}
+        onChange={(ft) => setFilterTypes(Array.from(ft))}
+      />
+      {!props.isSubstitute && (
+        <>
+          <GroupHeader name="Custom exercises" />
+          {ObjectUtils.keys(customExercises)
+            .filter((id) => !customExercises[id]?.isDeleted)
+            .map((id) => {
+              const e = customExercises[id]!;
+              return (
+                <section
+                  key={customExercises.id}
+                  data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
+                  className="w-full px-2 py-1 text-left border-b border-gray-200"
+                  onClick={(event) => {
+                    if (!HtmlUtils.classInParents(event.target as Element, "button")) {
+                      props.onChange({ id: e.id }, true);
+                    }
+                  }}
+                >
+                  <section className="flex items-center">
+                    <div className="w-12 pr-2" style={{ minHeight: "2.5rem" }}>
+                      <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
+                    </div>
+                    <div className="flex-1 py-2 text-left">
+                      <div>{e.name}</div>
+                      <CustomMuscleGroupsView exercise={e} />
+                    </div>
+                    <div>
+                      <button
+                        className={`px-3 py-4 button nm-edit-custom-exercise-${StringUtils.dashcase(e.name)}`}
+                        data-cy={`custom-exercise-edit-${StringUtils.dashcase(e.name)}`}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          props.setEditingExercise(e);
+                          props.setIsCustomExerciseDisplayed(true);
+                        }}
+                      >
+                        <IconEditSquare />
+                      </button>
+                      <button
+                        className={`px-1 py-4 button nm-delete-custom-exercise-${StringUtils.dashcase(e.name)}`}
+                        data-cy={`custom-exercise-delete-${StringUtils.dashcase(e.name)}`}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          if (confirm(`Are you sure you want to delete ${e.name}?`)) {
+                            props.onDelete(e.id);
+                          }
+                        }}
+                      >
+                        <IconTrash />
+                      </button>
+                    </div>
+                  </section>
+                </section>
+              );
+            })}
+          <div className="mb-4">
+            <LinkButton
+              name="custom-exercise-create"
+              data-cy="custom-exercise-create"
+              onClick={(event) => {
+                event.preventDefault();
+                props.setEditingExercise(undefined);
+                props.setIsCustomExerciseDisplayed(true);
+              }}
+            >
+              Add Custom Exercise
+            </LinkButton>
+          </div>
+        </>
+      )}
+      <GroupHeader name="Built-in exercises" />
+      {exercises.map((e) => {
+        return (
+          <section
+            key={Exercise.toKey(e)}
+            data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
+              e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
+            }`}
+            className="w-full px-2 py-1 text-left border-b border-gray-200"
+            onClick={() => {
+              props.onChange(e, true);
+            }}
+          >
             <ExerciseItem
               shouldAddExternalLinks={props.shouldAddExternalLinks}
               showMuscles={props.isSubstitute}
               settings={props.settings}
-              exercise={exercise}
-              equipment={exercise.equipment}
+              currentExerciseType={props.exerciseType}
+              exercise={e}
+              equipment={e.equipment}
             />
-          </div>
-        )}
-        <input
-          ref={textInput}
-          className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-          type="text"
-          value={filter}
-          data-cy="exercise-filter-by-name"
-          placeholder="Filter by name"
-          onInput={() => {
-            setFilter(textInput.current.value.toLowerCase());
-          }}
-        />
-        <Multiselect
-          id="filtertypes"
-          label=""
-          data-cy="exercise-filter-by-type"
-          placeholder="Filter by type"
-          values={filterOptions}
-          initialSelectedValues={new Set(initialFilterOptions)}
-          onChange={(ft) => setFilterTypes(Array.from(ft))}
-        />
-        {!props.isSubstitute && (
-          <>
-            <GroupHeader name="Custom exercises" />
-            {ObjectUtils.keys(customExercises)
-              .filter((id) => !customExercises[id]?.isDeleted)
-              .map((id) => {
-                const e = customExercises[id]!;
-                return (
-                  <section
-                    key={customExercises.id}
-                    data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
-                    className="w-full px-2 py-1 text-left border-b border-gray-200"
-                    onClick={(event) => {
-                      if (!HtmlUtils.classInParents(event.target as Element, "button")) {
-                        props.onChange({ id: e.id }, true);
-                      }
-                    }}
-                  >
-                    <section className="flex items-center">
-                      <div className="w-12 pr-2" style={{ minHeight: "2.5rem" }}>
-                        <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
-                      </div>
-                      <div className="flex-1 py-2 text-left">
-                        <div>{e.name}</div>
-                        <CustomMuscleGroupsView exercise={e} />
-                      </div>
-                      <div>
-                        <button
-                          className={`px-3 py-4 button nm-edit-custom-exercise-${StringUtils.dashcase(e.name)}`}
-                          data-cy={`custom-exercise-edit-${StringUtils.dashcase(e.name)}`}
-                          onClick={(event) => {
-                            event.preventDefault();
-                            props.setEditingExercise(e);
-                            props.setIsCustomExerciseDisplayed(true);
-                          }}
-                        >
-                          <IconEditSquare />
-                        </button>
-                        <button
-                          className={`px-1 py-4 button nm-delete-custom-exercise-${StringUtils.dashcase(e.name)}`}
-                          data-cy={`custom-exercise-delete-${StringUtils.dashcase(e.name)}`}
-                          onClick={(event) => {
-                            event.preventDefault();
-                            if (confirm(`Are you sure you want to delete ${e.name}?`)) {
-                              props.onDelete(e.id);
-                            }
-                          }}
-                        >
-                          <IconTrash />
-                        </button>
-                      </div>
-                    </section>
-                  </section>
-                );
-              })}
-            <div className="mb-4">
-              <LinkButton
-                name="custom-exercise-create"
-                data-cy="custom-exercise-create"
-                onClick={(event) => {
-                  event.preventDefault();
-                  props.setEditingExercise(undefined);
-                  props.setIsCustomExerciseDisplayed(true);
-                }}
-              >
-                Add Custom Exercise
-              </LinkButton>
-            </div>
-          </>
-        )}
-        <GroupHeader name="Built-in exercises" />
-        {exercises.map((e) => {
-          return (
-            <section
-              key={Exercise.toKey(e)}
-              data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
-                e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
-              }`}
-              className="w-full px-2 py-1 text-left border-b border-gray-200"
-              onClick={() => {
-                props.onChange(e, true);
-              }}
-            >
-              <ExerciseItem
-                shouldAddExternalLinks={props.shouldAddExternalLinks}
-                showMuscles={props.isSubstitute}
-                settings={props.settings}
-                currentExerciseType={props.exerciseType}
-                exercise={e}
-                equipment={e.equipment}
-              />
-            </section>
-          );
-        })}
-      </form>
-    );
-  }
-);
+          </section>
+        );
+      })}
+    </form>
+  );
+});
 
 interface IExerciseItemProps {
   settings: ISettings;

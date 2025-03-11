@@ -629,6 +629,15 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               exercise
             );
             setSettings(lf(settings).p("exercises").set(exercises));
+            if (exercise) {
+              const newProgram = Program.changeExerciseName(exercise.name, name, state.current.program, {
+                ...settings,
+                exercises,
+              });
+              window.isUndoing = true;
+              dispatch(lbProgram.record(newProgram.planner!));
+              dispatch(lbProgram.record(newProgram.planner!), "stop-is-undoing");
+            }
             if (shouldClose) {
               dispatch(lb<IPlannerState>().p("ui").p("modalExercise").record(undefined));
             }
