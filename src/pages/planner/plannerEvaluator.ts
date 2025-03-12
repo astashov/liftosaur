@@ -514,7 +514,7 @@ export class PlannerEvaluator {
           dayData.dayInWeek
         );
         const originalExercise = originalExercises[0]?.exercise;
-        if (originalExercise.reuse != null) {
+        if (originalExercise?.reuse != null) {
           throw PlannerSyntaxError.fromPoint(
             exercise.fullName,
             "Original exercise should not reuse other exercise",
@@ -624,7 +624,7 @@ export class PlannerEvaluator {
           dayData.dayInWeek
         );
         const originalExercise = originalExercises[0]?.exercise;
-        if (originalExercise.reuse != null) {
+        if (originalExercise?.reuse != null) {
           throw PlannerSyntaxError.fromPoint(
             exercise.fullName,
             "Original exercise should not reuse other exercise",
