@@ -62,7 +62,7 @@ export namespace Thunk {
       } else {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
-        const result = await env.service.googleSignIn("test", userId, { forcedUserEmail });
+        const result = await env.service.googleSignIn(forcedUserEmail, userId, { forcedUserEmail });
         await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
         dispatch(sync2());
       }

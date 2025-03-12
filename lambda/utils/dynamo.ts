@@ -269,6 +269,24 @@ export class DynamoUtil implements IDynamoUtil {
             `${group.length} items`,
             ` - ${Date.now() - startTime}ms`
           );
+          if (e instanceof Error && e.message.includes("Item size has exceeded the maximum allowed size")) {
+            try {
+              const json = JSON.stringify(group);
+              this.log.log(`batchPut payload length: ${json.length}`);
+              for (let i = 0; i < group.length; i++) {
+                const item = group[i];
+                const jsonItem = JSON.stringify(item);
+                this.log.log(`batchPut payload[${i}] length: ${JSON.stringify(jsonItem).length}`);
+                if (jsonItem.length > 100000) {
+                  this.log.log(`batchPut payload[${i}]: ${jsonItem.slice(0, 100000)}`);
+                }
+              }
+              this.log.log(JSON);
+            } catch (e) {
+              this.log.log("Failed to log batchPut payload");
+              this.log.log(e);
+            }
+          }
           throw e;
         }
         this.log.log(`Dynamo batch put: ${args.tableName}`, `${group.length} items`, ` - ${Date.now() - startTime}ms`);
