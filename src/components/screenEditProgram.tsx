@@ -8,9 +8,10 @@ import { EditProgramV2 } from "./editProgram/editProgramV2";
 import { useEffect } from "preact/hooks";
 import { EditProgram } from "../models/editProgram";
 import { IPlannerState } from "../pages/planner/models/types";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
-  editProgram: IProgram;
+  editProgram?: IProgram;
   editExercise?: IProgramExercise;
   helps: string[];
   dispatch: IDispatch;
@@ -30,10 +31,21 @@ interface IProps {
 export function ScreenEditProgram(props: IProps): JSX.Element {
   const screen = Screen.currentName(props.navCommon.screenStack);
   useEffect(() => {
-    if (screen === "editProgram" && props.editProgram.planner != null && props.plannerState == null) {
+    if (screen === "editProgram" && props.editProgram?.planner != null && props.plannerState == null) {
       EditProgram.initializePlanner(props.dispatch, props.editProgram.id, props.editProgram.planner);
     }
-  }, [screen, props.editProgram.planner, props.plannerState]);
+  }, [screen, props.editProgram?.planner, props.plannerState]);
+
+  useEffect(() => {
+    if (props.editProgram == null) {
+      props.dispatch(Thunk.pushScreen("main", undefined, true));
+    }
+  }, [props.editProgram]);
+
+  if (props.editProgram == null) {
+    return <div />;
+  }
+
   if (screen === "editProgram") {
     if (props.editProgram.planner != null) {
       if (props.plannerState == null) {

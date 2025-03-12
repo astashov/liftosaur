@@ -457,32 +457,28 @@ export function AppView(props: IProps): JSX.Element | null {
     let editProgram = Program.getEditingProgram(state);
     editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
     const evaluatedProgram = editProgram ? Program.evaluate(editProgram, state.storage.settings) : undefined;
-    if (editProgram != null) {
-      content = (
-        <ScreenEditProgram
-          client={client}
-          helps={state.storage.helps}
-          navCommon={navCommon}
-          adminKey={state.adminKey}
-          subscription={state.storage.subscription}
-          settings={state.storage.settings}
-          editExercise={state.editExercise}
-          dispatch={dispatch}
-          programIndex={Program.getEditingProgramIndex(state)}
-          dayIndex={Math.min(
-            state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 0,
-            evaluatedProgram ? Program.numberOfDays(evaluatedProgram) - 1 : 1
-          )}
-          weekIndex={state.editProgram?.weekIndex}
-          editProgram={editProgram}
-          plannerState={state.editProgramV2}
-          revisions={(state.revisions || {})[editProgram.id] || []}
-          isLoggedIn={state.user != null}
-        />
-      );
-    } else {
-      throw new Error("Opened 'editProgram' screen, but 'state.editProgram' is null");
-    }
+    content = (
+      <ScreenEditProgram
+        client={client}
+        helps={state.storage.helps}
+        navCommon={navCommon}
+        adminKey={state.adminKey}
+        subscription={state.storage.subscription}
+        settings={state.storage.settings}
+        editExercise={state.editExercise}
+        dispatch={dispatch}
+        programIndex={Program.getEditingProgramIndex(state)}
+        dayIndex={Math.min(
+          state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 0,
+          evaluatedProgram ? Program.numberOfDays(evaluatedProgram) - 1 : 1
+        )}
+        weekIndex={state.editProgram?.weekIndex}
+        editProgram={editProgram}
+        plannerState={state.editProgramV2}
+        revisions={editProgram ? (state.revisions || {})[editProgram.id] || [] : []}
+        isLoggedIn={state.user != null}
+      />
+    );
   } else if (Screen.currentName(state.screenStack) === "finishDay") {
     content = (
       <ScreenFinishDay
