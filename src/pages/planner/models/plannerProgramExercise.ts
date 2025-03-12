@@ -308,10 +308,19 @@ export class PlannerProgramExercise {
       : exercise.reuse?.exercise
         ? exercise.reuse.exercise.progress?.state || {}
         : {};
+    const originalStateMetadata = exercise.progress?.reuse?.exercise
+      ? exercise.progress.reuse.exercise.progress?.stateMetadata || {}
+      : exercise.reuse?.exercise
+        ? exercise.reuse.exercise.progress?.stateMetadata || {}
+        : {};
     const state = exercise.progress?.state || {};
+    const stateMetadata = exercise.progress?.stateMetadata || {};
     return ObjectUtils.filter(
       state,
-      (key, value) => originalState[key] == null || !Weight.eq(originalState[key], value)
+      (key, value) =>
+        originalState[key] == null ||
+        !Weight.eq(originalState[key], value) ||
+        originalStateMetadata[key]?.userPrompted != stateMetadata[key]?.userPrompted
     ) as IProgramState;
   }
 

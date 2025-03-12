@@ -743,6 +743,29 @@ Squat / 2x2 / 200lb / update: custom() {~
 `);
   });
 
+  it("doesn't combine different user prompted vars", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x1 / 100% / progress: custom(foo: 0) {~
+
+~}
+Bench Press / ...Squat / progress: custom(foo+: 0) { ...Squat }
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [[1], [1]],
+    });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x1 / 100% / progress: custom(foo: 0) {~
+
+~}
+Bench Press / ...Squat / progress: custom(foo+: 0) { ...Squat }
+
+
+`);
+  });
+
   it("doesn't dereuse if the custom progress still matches", () => {
     const programText = `# Week 1
 ## Day 1

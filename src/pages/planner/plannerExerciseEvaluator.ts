@@ -293,6 +293,8 @@ export class PlannerExerciseEvaluator {
       if (fnArgKey.endsWith("+")) {
         fnArgKey = fnArgKey.replace("+", "");
         stateMetadata[fnArgKey] = { userPrompted: true };
+      } else {
+        stateMetadata[fnArgKey] = { userPrompted: false };
       }
       try {
         const fnArgVal = fnArgValStr.match(/(lb|kg)/)
