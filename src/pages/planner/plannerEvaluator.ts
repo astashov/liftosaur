@@ -513,7 +513,15 @@ export class PlannerEvaluator {
           dayData.week,
           dayData.dayInWeek
         );
-        progress.reuse.exercise = originalExercises[0]?.exercise;
+        const originalExercise = originalExercises[0]?.exercise;
+        if (originalExercise.reuse != null) {
+          throw PlannerSyntaxError.fromPoint(
+            exercise.fullName,
+            "Original exercise should not reuse other exercise",
+            point
+          );
+        }
+        progress.reuse.exercise = originalExercise;
       }
     }
   }
@@ -615,7 +623,15 @@ export class PlannerEvaluator {
           dayData.week,
           dayData.dayInWeek
         );
-        update.reuse.exercise = originalExercises[0]?.exercise;
+        const originalExercise = originalExercises[0]?.exercise;
+        if (originalExercise.reuse != null) {
+          throw PlannerSyntaxError.fromPoint(
+            exercise.fullName,
+            "Original exercise should not reuse other exercise",
+            point
+          );
+        }
+        update.reuse.exercise = originalExercise;
       }
     }
   }

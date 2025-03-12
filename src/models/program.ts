@@ -689,6 +689,7 @@ export namespace Program {
       weeks: weeks,
       states,
     };
+    // console.log("Program text", PlannerProgram.generateFullText(program.planner?.weeks || []));
     return result;
   }
 
