@@ -31,11 +31,11 @@ export function BottomSheet(props: IProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    setBottomShift(props.isHidden ? bottomSheetRef.current?.clientHeight ?? 0 : 0);
+    setBottomShift(props.isHidden ? (bottomSheetRef.current?.clientHeight ?? 0) : 0);
   }, [props.isHidden]);
 
   return (
-    <div className={`fixed inset-0 z-30 pointer-events-none`} data-cy="bottom-sheet-container">
+    <div className={`fixed inset-0 z-40 pointer-events-none`} data-cy="bottom-sheet-container">
       <div
         data-name="overlay"
         className={`pointer-events-auto absolute inset-0 bg-grayv2-700 will-change-transform ${
@@ -48,7 +48,7 @@ export function BottomSheet(props: IProps): JSX.Element {
       ></div>
       <div
         ref={bottomSheetRef}
-        className={`absolute bottom-0 left-0 flex w-full overflow-y-auto bg-white pointer-events-auto will-change-transform ${
+        className={`bottom-sticked absolute bottom-0 left-0 flex w-full overflow-y-auto bg-white pointer-events-auto will-change-transform ${
           props.isHidden ? "invisible" : "visible"
         }`}
         data-cy="bottom-sheet"

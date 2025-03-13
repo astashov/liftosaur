@@ -22,6 +22,7 @@ interface IMenuItemEditableValueProps {
 }
 
 interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
+  size?: "sm" | "base";
   isNameBold?: boolean;
   hasClear?: boolean;
   after?: JSX.Element;
@@ -63,7 +64,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
             className={`flex flex-col min-w-0 break-all items-center pr-2 ${props.isNameBold ? "font-bold" : ""}`}
             {...(props.isNameHtml ? { dangerouslySetInnerHTML: { __html: props.name } } : {})}
           >
-            <div>{props.isNameHtml ? "" : props.name}</div>
+            <div className={props.size === "sm" ? "text-sm" : ""}>{props.isNameHtml ? "" : props.name}</div>
             {props.underName}
           </span>
           <div className="flex-1" style={{ minWidth: "3rem" }}>

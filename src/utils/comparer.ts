@@ -6,7 +6,7 @@ export namespace ComparerUtils {
     if (Object.keys(prev).length !== Object.keys(next).length) {
       return false;
     } else {
-      return ObjectUtils.keys(prev).every((key) => {
+      const result = ObjectUtils.keys(prev).every((key) => {
         if (typeof prev[key] !== "function") {
           const result = prev[key] === next[key];
           return result;
@@ -14,6 +14,7 @@ export namespace ComparerUtils {
           return true;
         }
       });
+      return result;
     }
   }
 }

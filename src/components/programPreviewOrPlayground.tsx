@@ -17,7 +17,7 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
   const [isPlayground, setIsPlayground] = useState<boolean>(false);
   return (
     <div>
-      <div className="mt-2">
+      <div className="mx-4 mt-2">
         {props.isMobile ? (
           <MenuItemEditable
             type="boolean"
@@ -63,7 +63,7 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
         )}
       </div>
       {isPlayground && (
-        <div className="py-2">
+        <div className="py-2 mx-4">
           Playground mode emulates the workout, you can complete sets by tapping on squares below, and see how the
           program logic works. Some programs may do nothing, some may update the weights, some may switch to different
           set schemes. You can adjust your weights and other variables by clicking on the{" "}

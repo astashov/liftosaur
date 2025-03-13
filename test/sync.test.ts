@@ -247,7 +247,7 @@ function completeRepsActions(program: IProgram, progress: IHistoryRecord, reps: 
       const setActions: IAction[] = [];
       if (set.isAmrap) {
         setActions.push({
-          type: "ChangeRepsAction",
+          type: "CompleteSetAction",
           entryIndex,
           setIndex,
           programExercise,
@@ -267,7 +267,7 @@ function completeRepsActions(program: IProgram, progress: IHistoryRecord, reps: 
       } else {
         for (let i = set.reps; i >= r; i -= 1) {
           setActions.push({
-            type: "ChangeRepsAction",
+            type: "CompleteSetAction",
             entryIndex,
             setIndex,
             programExercise,

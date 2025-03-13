@@ -1,41 +1,37 @@
 import { h, JSX, Fragment } from "preact";
-import { CardsView } from "./cards";
+import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
+import { useRef, useState } from "preact/hooks";
 import { IDispatch } from "../ducks/types";
-import { ModalAmrap } from "./modalAmrap";
-import { ModalWeight } from "./modalWeight";
-import { Progress } from "../models/progress";
+import { Program } from "../models/program";
 import { History } from "../models/history";
-import { ModalDate } from "./modalDate";
+import { Progress } from "../models/progress";
 import { INavCommon, IState, updateSettings, updateState } from "../models/state";
-import { useState } from "preact/hooks";
-import { ModalEditSet } from "./modalEditSet";
-import { EditProgressEntry } from "../models/editProgressEntry";
-import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISubscription, IExerciseType } from "../types";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
-import { IconTrash } from "./icons/iconTrash";
-import { Timer } from "./timer";
-import { BottomSheetEditExercise } from "./bottomSheetEditExercise";
-import { HelpWorkout } from "./help/helpWorkout";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
+import { Footer2View } from "./footer2";
+import { IconTrash } from "./icons/iconTrash";
+import { NavbarView } from "./navbar";
+import { Surface } from "./surface";
+import { Timer } from "./timer";
+import { Button } from "./button";
+import { Workout } from "./workout";
+import { ModalAmrap } from "./modalAmrap";
 import { ModalEditMode } from "./modalEditMode";
+import { ModalDate } from "./modalDate";
 import { ModalExercise } from "./modalExercise";
-import { EditCustomExercise } from "../models/editCustomExercise";
-import { lb } from "lens-shmens";
-import { Program } from "../models/program";
-import { PlannerProgram } from "../pages/planner/models/plannerProgram";
-import { ModalEquipment } from "./modalEquipment";
-import { Modal1RM } from "./modal1RM";
-import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
-import { SendMessage } from "../utils/sendMessage";
-import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
-import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { Exercise } from "../models/exercise";
 import { EditProgram } from "../models/editProgram";
+import { EditCustomExercise } from "../models/editCustomExercise";
+import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { lb } from "lens-shmens";
+import { Modal1RM } from "./modal1RM";
+import { ModalEquipment } from "./modalEquipment";
+import { BottomSheetEditTarget } from "./bottomSheetEditTarget";
+import { SendMessage } from "../utils/sendMessage";
+import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
+import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
 
-interface IProps {
+interface IScreenWorkoutProps {
   progress: IHistoryRecord;
   history: IHistoryRecord[];
   program?: IProgram;
@@ -44,12 +40,10 @@ interface IProps {
   helps: string[];
   dispatch: IDispatch;
   subscription: ISubscription;
-  timerSince?: number;
-  timerMode?: IProgressMode;
   navCommon: INavCommon;
 }
 
-export function ProgramDayView(props: IProps): JSX.Element | null {
+export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const progress = props.progress;
   const evaluatedProgram = props.program ? Program.evaluate(props.program, props.settings) : undefined;
   const dispatch = props.dispatch;
@@ -57,15 +51,16 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   const editModalProgramExerciseId = progress.ui?.editModal?.programExerciseId;
   const dateModal = progress.ui?.dateModal;
   const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, progress.day) : undefined;
+  const surfaceRef = useRef<HTMLElement>(null);
 
   if (progress != null) {
     return (
       <Surface
+        ref={surfaceRef}
         navbar={
           <NavbarView
             navCommon={props.navCommon}
             dispatch={dispatch}
-            helpContent={<HelpWorkout />}
             onTitleClick={() => {
               if (!Progress.isCurrent(progress)) {
                 props.dispatch({
@@ -94,7 +89,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             }
             rightButtons={[
               <button
-                className="p-2 nm-delete-progress ls-delete-progress"
+                className="p-2 mr-2 nm-delete-progress ls-delete-progress"
                 onClick={() => {
                   if (confirm("Are you sure?")) {
                     props.dispatch({ type: "DeleteProgress" });
@@ -103,17 +98,29 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               >
                 <IconTrash />
               </button>,
+              <Button
+                name={Progress.isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
+                kind="purple"
+                buttonSize="md"
+                data-cy="finish-workout"
+                className={Progress.isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
+                onClick={() => {
+                  if (
+                    (Progress.isCurrent(props.progress) && Progress.isFullyFinishedSet(props.progress)) ||
+                    confirm("Are you sure?")
+                  ) {
+                    props.dispatch({ type: "FinishProgramDayAction" });
+                  }
+                }}
+              >
+                {Progress.isCurrent(props.progress) ? "Finish" : "Save"}
+              </Button>,
             ]}
           />
         }
         footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
         addons={
           <>
-            <BottomSheetEditExercise
-              progress={props.progress}
-              isHidden={progress.ui?.exerciseBottomSheet == null}
-              dispatch={props.dispatch}
-            />
             {progress?.ui?.amrapModal && (
               <ModalAmrap
                 settings={props.settings}
@@ -124,25 +131,6 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                   progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
                 )}
                 progress={progress}
-                onDone={() => {
-                  const amrapModal = progress.ui?.amrapModal;
-                  if (amrapModal != null) {
-                    maybeStartTimer("workout", amrapModal.entryIndex, amrapModal.setIndex, dispatch);
-                  }
-                }}
-              />
-            )}
-            {progress.ui?.weightModal && (
-              <ModalWeight
-                programExercise={Program.getProgramExercise(
-                  progress.day,
-                  evaluatedProgram,
-                  progress.ui?.weightModal?.programExerciseId
-                )}
-                isHidden={progress.ui?.weightModal == null}
-                settings={props.settings}
-                dispatch={props.dispatch}
-                weight={progress.ui?.weightModal?.weight ?? 0}
               />
             )}
             {editModalProgramExerciseId && evaluatedProgram && (
@@ -247,26 +235,19 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 }}
               />
             )}
-            {progress.ui?.editSetModal && (
-              <ModalEditSet
-                isHidden={progress.ui?.editSetModal == null}
-                setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
-                subscription={props.subscription}
-                progressId={progress.id}
-                dispatch={props.dispatch}
-                settings={props.settings}
-                exerciseType={progress.ui?.editSetModal?.exerciseType}
-                programExercise={Program.getProgramExercise(
-                  progress.day,
-                  evaluatedProgram,
-                  progress.ui?.editSetModal?.programExerciseId
-                )}
-                set={EditProgressEntry.getEditSetData(props.progress)}
-                isWarmup={progress.ui?.editSetModal?.isWarmup || false}
-                entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
-                setIndex={progress.ui?.editSetModal?.setIndex}
-              />
-            )}
+            <BottomSheetEditTarget
+              settings={props.settings}
+              progress={progress}
+              dispatch={dispatch}
+              editSetModal={progress.ui?.editSetModal}
+              isHidden={progress.ui?.editSetModal == null}
+              onClose={() => {
+                dispatch({
+                  type: "UpdateProgress",
+                  lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
+                });
+              }}
+            />
             {progress.ui?.equipmentModal?.exerciseType && (
               <ModalEquipment
                 progressId={progress.id}
@@ -308,57 +289,22 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           </>
         }
       >
-        <CardsView
+        <Workout
+          setIsShareShown={setIsShareShown}
+          surfaceRef={surfaceRef}
           subscription={props.subscription}
           history={props.history}
           helps={props.helps}
           settings={props.settings}
           program={evaluatedProgram}
+          isTimerShown={true}
           programDay={programDay}
-          userId={props.userId}
           progress={progress}
-          isTimerShown={!!props.timerSince}
           dispatch={props.dispatch}
-          setIsShareShown={setIsShareShown}
-          onChangeReps={(mode, entryIndex, setIndex) => {
-            const isAmrapSet =
-              mode === "workout" &&
-              (!!progress.entries[entryIndex]?.sets[setIndex]?.isAmrap ||
-                !!progress.entries[entryIndex]?.sets[setIndex]?.logRpe);
-            if (!isAmrapSet) {
-              maybeStartTimer(mode, entryIndex, setIndex, dispatch);
-            }
-          }}
-          onStartSetChanging={(
-            isWarmup: boolean,
-            entryIndex: number,
-            setIndex?: number,
-            programExercise?: IPlannerProgramExercise,
-            exerciseType?: IExerciseType
-          ) => {
-            EditProgressEntry.showEditSetModal(
-              props.dispatch,
-              isWarmup,
-              entryIndex,
-              setIndex,
-              programExercise,
-              exerciseType
-            );
-          }}
         />
       </Surface>
     );
   } else {
     return null;
   }
-}
-
-function maybeStartTimer(mode: "warmup" | "workout", entryIndex: number, setIndex: number, dispatch: IDispatch): void {
-  dispatch({
-    type: "StartTimer",
-    timestamp: new Date().getTime(),
-    mode,
-    entryIndex,
-    setIndex,
-  });
 }

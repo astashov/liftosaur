@@ -20,6 +20,11 @@ const bindings: IScriptBindings = {
     { value: 40, unit: "lb" },
     { value: 40, unit: "lb" },
   ],
+  completedWeights: [
+    { value: 40, unit: "lb" },
+    { value: 40, unit: "lb" },
+    { value: 40, unit: "lb" },
+  ],
   reps: [1, 2, 3],
   minReps: [1, 2, 3],
   amraps: [0, 0, 0],
@@ -28,7 +33,13 @@ const bindings: IScriptBindings = {
   timers: [0, 0, 0],
   completedRPE: [0, 0, 0],
   completedReps: [1, 2, 3],
+  isCompleted: [1, 1, 1],
   w: [
+    { value: 40, unit: "lb" },
+    { value: 40, unit: "lb" },
+    { value: 40, unit: "lb" },
+  ],
+  cw: [
     { value: 40, unit: "lb" },
     { value: 40, unit: "lb" },
     { value: 40, unit: "lb" },

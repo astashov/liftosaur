@@ -3529,7 +3529,13 @@ function warmup(
         const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
         const warmupWeight = typeof value === "number" ? Weight.multiply(weight, value) : value;
         const roundedWeight = Weight.roundConvertTo(warmupWeight, settings, unit, exerciseType);
-        memo.push({ reps: programExerciseWarmupSet.reps, weight: roundedWeight, originalWeight: warmupWeight });
+        memo.push({
+          id: UidFactory.generateUid(6),
+          reps: programExerciseWarmupSet.reps,
+          weight: roundedWeight,
+          originalWeight: warmupWeight,
+          isCompleted: false,
+        });
       }
       return memo;
     }, []);

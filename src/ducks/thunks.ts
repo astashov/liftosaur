@@ -465,16 +465,13 @@ export namespace Thunk {
   }
 
   function cleanup(dispatch: IDispatch, state: IState): void {
-    if (state.currentHistoryRecord) {
-      const progress = state.progress[state.currentHistoryRecord];
-      if (progress && !Progress.isCurrent(progress)) {
-        updateState(dispatch, [
-          lb<IState>().p("currentHistoryRecord").record(undefined),
-          lb<IState>()
-            .p("progress")
-            .recordModify((progresses) => Progress.stop(progresses, progress.id)),
-        ]);
-      }
+    const progress = Progress.getProgress(state);
+    if (progress && !Progress.isCurrent(progress)) {
+      updateState(dispatch, [
+        lb<IState>()
+          .p("progress")
+          .recordModify((progresses) => Progress.stop(progresses, progress.id)),
+      ]);
     }
 
     const editExercise = state.editExercise;

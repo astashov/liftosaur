@@ -164,17 +164,23 @@ export namespace Weight {
     const roundWeight = Weight.round(weight, settings, weight.unit, exerciseType);
     const equipmentData = Equipment.getEquipmentDataForExerciseType(settings, exerciseType);
     if (equipmentData) {
-      const smallestPlate = Weight.multiply(
-        Equipment.smallestPlate(equipmentData, weight.unit),
-        equipmentData.multiplier
-      );
-      let newWeight = roundWeight;
-      let attempt = 0;
-      do {
-        newWeight = Weight.add(newWeight, smallestPlate);
-        attempt += 1;
-      } while (attempt < 20 && Weight.eq(Weight.round(newWeight, settings, weight.unit, exerciseType), roundWeight));
-      return newWeight;
+      if (equipmentData.isFixed) {
+        const items = CollectionUtils.sort(equipmentData.fixed, (a, b) => Weight.compare(a, b));
+        const item = items.find((i) => Weight.gt(i, roundWeight));
+        return item ?? items[items.length - 1] ?? roundWeight;
+      } else {
+        const smallestPlate = Weight.multiply(
+          Equipment.smallestPlate(equipmentData, weight.unit),
+          equipmentData.multiplier
+        );
+        let newWeight = roundWeight;
+        let attempt = 0;
+        do {
+          newWeight = Weight.add(newWeight, smallestPlate);
+          attempt += 1;
+        } while (attempt < 20 && Weight.eq(Weight.round(newWeight, settings, weight.unit, exerciseType), roundWeight));
+        return newWeight;
+      }
     } else {
       const rounding = exerciseType ? Exercise.defaultRounding(exerciseType, settings) : 1;
       return Weight.build(roundWeight.value + rounding, roundWeight.unit);
@@ -185,13 +191,19 @@ export namespace Weight {
     const roundWeight = Weight.round(weight, settings, weight.unit, exerciseType);
     const equipmentData = exerciseType ? Equipment.getEquipmentDataForExerciseType(settings, exerciseType) : undefined;
     if (equipmentData) {
-      const smallestPlate = Weight.multiply(
-        Equipment.smallestPlate(equipmentData, weight.unit),
-        equipmentData.multiplier
-      );
-      const subtracted = Weight.subtract(roundWeight, smallestPlate);
-      const newWeight = Weight.round(subtracted, settings, weight.unit, exerciseType);
-      return Weight.build(newWeight.value, newWeight.unit);
+      if (equipmentData.isFixed) {
+        const items = CollectionUtils.sort(equipmentData.fixed, (a, b) => Weight.compareReverse(a, b));
+        const item = items.find((i) => Weight.lt(i, roundWeight));
+        return item ?? items[items.length - 1] ?? roundWeight;
+      } else {
+        const smallestPlate = Weight.multiply(
+          Equipment.smallestPlate(equipmentData, weight.unit),
+          equipmentData.multiplier
+        );
+        const subtracted = Weight.subtract(roundWeight, smallestPlate);
+        const newWeight = Weight.round(subtracted, settings, weight.unit, exerciseType);
+        return Weight.build(newWeight.value, newWeight.unit);
+      }
     } else {
       const rounding = exerciseType ? Exercise.defaultRounding(exerciseType, settings) : 1;
       return Weight.build(roundWeight.value - rounding, roundWeight.unit);

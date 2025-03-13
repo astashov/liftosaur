@@ -211,13 +211,16 @@ export namespace Program {
     const programSets = PlannerProgramExercise.currentEvaluatedSetVariation(programExercise)?.sets;
     const warmupSets = PlannerProgramExercise.programWarmups(programExercise, settings);
     const sets: ISet[] = [];
-    for (const programSet of programSets) {
+    for (let i = 0; i < programSets.length; i++) {
+      const programSet = programSets[i];
       const minReps =
         programSet.minrep != null && programSet.minrep !== programSet.maxrep ? programSet.minrep : undefined;
       const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exercise);
-      const originalWeight = Weight.evaluateWeight(programSet.weight, exercise, settings);
-      const weight = Weight.roundConvertTo(originalWeight, settings, unit, exercise);
+      const originalWeight = programSet.weight;
+      const evaluatedWeight = Weight.evaluateWeight(programSet.weight, programExercise.exerciseType, settings);
+      const weight = Weight.roundConvertTo(evaluatedWeight, settings, unit, programExercise.exerciseType);
       sets.push({
+        id: UidFactory.generateUid(6),
         reps: programSet.maxrep,
         minReps,
         weight,
@@ -228,10 +231,13 @@ export namespace Program {
         originalWeight,
         isAmrap: programSet.isAmrap,
         label: programSet.label,
+        isCompleted: false,
+        programSetIndex: i,
       });
     }
 
     const entry = {
+      id: UidFactory.generateUid(6),
       exercise: exercise,
       programExerciseId: programExercise.key,
       sets,
@@ -459,7 +465,7 @@ export namespace Program {
       return { program, exerciseData };
     }
     for (const entry of progress.entries) {
-      if (entry != null && entry.sets.some((s) => s.completedReps != null)) {
+      if (entry != null && entry.sets.some((s) => s.isCompleted)) {
         const dayExercises = Program.getProgramDayExercises(programDay);
         const programExercise = dayExercises.find((e) => e.key === entry.programExerciseId);
         if (programExercise) {
@@ -842,6 +848,16 @@ export namespace Program {
       return undefined;
     }
     const programDay = getProgramDay(program, day);
+    return programDay?.exercises.find((e) => e.key === key);
+  }
+
+  export function getProgramExerciseFromDay(
+    programDay?: IEvaluatedProgramDay,
+    key?: string
+  ): IPlannerProgramExercise | undefined {
+    if (key == null || programDay == null) {
+      return undefined;
+    }
     return programDay?.exercises.find((e) => e.key === key);
   }
 

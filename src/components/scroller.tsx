@@ -63,7 +63,7 @@ export function Scroller(props: IProps): JSX.Element {
       )}
 
       <div
-        className="overflow-x-auto"
+        className="overflow-x-auto scrollbar-hide"
         ref={tabsRef}
         onScroll={() => {
           setAtLeft(tabsRef.current?.scrollLeft === 0);

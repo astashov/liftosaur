@@ -1,8 +1,12 @@
 import { CollectionUtils } from "../utils/collection";
 import { Weight } from "./weight";
 import { ISet, IHistoryRecord, IHistoryEntry, IWeight } from "../types";
+import { ObjectUtils } from "../utils/object";
+import { UidFactory } from "../utils/generator";
 
 export type IProgramReps = number;
+
+export type ISetsStatus = "success" | "in-range" | "failed" | "not-finished";
 
 export namespace Reps {
   export function display(sets: ISet[], isNext: boolean = false): string {
@@ -13,6 +17,15 @@ export namespace Reps {
       const groups = CollectionUtils.inGroupsOf(5, arr);
       return groups.map((g) => g.join("/")).join("/ ");
     }
+  }
+
+  export function addSet(sets: ISet[]): ISet[] {
+    let lastSet: ISet = sets[sets.length - 1];
+    if (lastSet == null) {
+      lastSet = newSet();
+    }
+
+    return [...sets, { ...ObjectUtils.clone(lastSet), id: UidFactory.generateUid(6), isCompleted: false }];
   }
 
   export function isSameSet(set1: ISet, set2: ISet): boolean {
@@ -40,17 +53,42 @@ export namespace Reps {
   }
 
   export function isEmpty(sets: ISet[]): boolean {
-    return sets.every((s) => s.completedReps == null);
+    return sets.every((s) => !s.isCompleted);
+  }
+
+  export function newSet(): ISet {
+    return {
+      id: UidFactory.generateUid(6),
+      originalWeight: Weight.build(0, "lb"),
+      weight: Weight.build(0, "lb"),
+      reps: 1,
+      isAmrap: false,
+      askWeight: false,
+      isCompleted: false,
+    };
   }
 
   export function isCompleted(sets: ISet[]): boolean {
     return sets.every((set) => Reps.isCompletedSet(set));
   }
 
+  export function setsStatus(sets: ISet[]): ISetsStatus {
+    if (Reps.isCompleted(sets)) {
+      return "success";
+    } else if (Reps.isInRangeCompleted(sets)) {
+      return "in-range";
+    } else if (!Reps.isFinished(sets)) {
+      return "not-finished";
+    } else {
+      return "failed";
+    }
+  }
+
   export function isCompletedSet(set: ISet): boolean {
-    if (set.completedReps != null) {
+    if (set.completedReps != null && set.completedWeight != null) {
       return (
         set.completedReps >= set.reps &&
+        Weight.gte(set.completedWeight, set.weight) &&
         (set.rpe != null && set.completedRpe != null ? set.completedRpe <= set.rpe : true)
       );
     } else {
@@ -59,11 +97,15 @@ export namespace Reps {
   }
 
   export function isInRangeCompletedSet(set: ISet): boolean {
-    return (
-      set.completedReps != null &&
-      (set.rpe != null && set.completedRpe != null ? set.completedRpe <= set.rpe : true) &&
-      (set.minReps != null ? set.completedReps >= set.minReps : set.completedReps >= set.reps)
-    );
+    if (set.completedReps != null && set.completedWeight != null) {
+      return (
+        Weight.gte(set.completedWeight, set.weight) &&
+        (set.rpe != null && set.completedRpe != null ? set.completedRpe <= set.rpe : true) &&
+        (set.minReps != null ? set.completedReps >= set.minReps : set.completedReps >= set.reps)
+      );
+    } else {
+      return false;
+    }
   }
 
   export function isFinished(sets: ISet[]): boolean {
@@ -71,11 +113,22 @@ export namespace Reps {
   }
 
   export function isFinishedSet(s: ISet): boolean {
-    return s.completedReps != null;
+    return !!s.isCompleted;
+  }
+
+  export function toKey(set: ISet): string {
+    return `${Weight.print(set.weight)}-${set.completedWeight ? Weight.print(set.completedWeight) : ""}-${set.reps}-${set.minReps}-${set.isAmrap}-${set.rpe}-${set.askWeight}-${set.completedReps}-${set.completedRpe}-${set.isCompleted}`;
   }
 
   export function isInRangeCompleted(sets: ISet[]): boolean {
     return sets.some((s) => s.minReps != null) && sets.every((s) => Reps.isInRangeCompletedSet(s));
+  }
+
+  export function enforceCompletedSet(set: ISet): ISet {
+    return {
+      ...set,
+      isCompleted: set.completedReps == null || set.completedWeight == null ? false : !!set.isCompleted,
+    };
   }
 
   export function group(sets: ISet[], isNext?: boolean): ISet[][] {
@@ -105,7 +158,7 @@ export namespace Reps {
   }
 
   export function findNextSet(entry: IHistoryEntry): ISet | undefined {
-    return [...entry.warmupSets, ...entry.sets].filter((s) => s.completedReps == null)[0];
+    return [...entry.warmupSets, ...entry.sets].filter((s) => !s.isCompleted)[0];
   }
 
   export function findNextEntryAndSet(

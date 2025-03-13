@@ -162,12 +162,15 @@ export function EditProgramV2(props: IProps): JSX.Element {
           )}
           {plannerState.ui.showPreview && (
             <Modal
+              noPaddings={true}
               isFullWidth={true}
               name="program-preview"
               shouldShowClose={true}
               onClose={() => plannerDispatch(lb<IPlannerState>().pi("ui").p("showPreview").record(false))}
             >
-              <GroupHeader size="large" name="Program Preview" />
+              <div className="mx-4 mt-4">
+                <GroupHeader size="large" name="Program Preview" />
+              </div>
               <ProgramPreviewOrPlayground
                 program={plannerState.current.program}
                 isMobile={true}

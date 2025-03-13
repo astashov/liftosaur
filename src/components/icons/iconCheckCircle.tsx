@@ -4,18 +4,20 @@ interface IProps {
   isChecked: boolean;
   color?: string;
   style?: JSX.CSSProperties;
+  size?: number;
   className?: string;
 }
 
 export function IconCheckCircle(props: IProps): JSX.Element {
   const color = props.color || "#28839F";
+  const size = props.size || 19;
   if (props.isChecked) {
     return (
       <svg
         style={props.style}
         className={props.className}
-        width="18"
-        height="19"
+        width={size - 1}
+        height={size}
         viewBox="0 0 18 19"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

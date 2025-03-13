@@ -157,7 +157,7 @@ export namespace Equipment {
   }
 
   export function isBuiltIn(key: string): boolean {
-    return ((equipments as unknown) as string[]).indexOf(key) !== -1;
+    return (equipments as unknown as string[]).indexOf(key) !== -1;
   }
 
   export function availableEquipmentNames(equipmentSettings?: IAllEquipment): string[] {
