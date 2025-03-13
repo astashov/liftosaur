@@ -1,5 +1,6 @@
 import {
   IPlannerProgramExercise,
+  IPlannerProgramExerciseEvaluatedSet,
   IPlannerProgramExerciseEvaluatedSetVariation,
   IPlannerProgramExerciseGlobals,
   IPlannerProgramExerciseSet,
@@ -21,7 +22,7 @@ import {
 } from "../../../types";
 import { Exercise, IExercise, warmupValues } from "../../../models/exercise";
 import { ProgramExercise } from "../../../models/programExercise";
-import { MathUtils } from "../../../utils/math";
+import { MathUtils, n } from "../../../utils/math";
 
 export type ILinearProgressionType = {
   type: "linear";
@@ -282,6 +283,19 @@ export class PlannerProgramExercise {
         return acc;
       }
     }, 0);
+  }
+
+  public static evaluatedSetToString(set: IPlannerProgramExerciseEvaluatedSet): string {
+    let setStr = "";
+    setStr += set.minrep != null ? `${n(Math.max(0, set.minrep))}-` : "";
+    setStr += `${n(Math.max(0, set.maxrep))}`;
+    setStr += " × ";
+    setStr += set.isAmrap ? "+" : "";
+    const weightValue = set.weight ? Weight.print(set.weight) : undefined;
+    setStr += weightValue ? ` ${weightValue}${set.askWeight ? "+" : ""}` : "";
+    setStr += set.rpe ? ` @${n(Math.max(0, set.rpe))}` : "";
+    setStr += set.rpe && set.logRpe ? "+" : "";
+    return setStr;
   }
 
   public static getProgressScript(exercise: IPlannerProgramExercise): string | undefined {

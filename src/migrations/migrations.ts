@@ -903,4 +903,18 @@ export const migrations = {
     }
     return storage;
   },
+  "20250322014249_add_is_completed": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const record of storage.history) {
+      for (const entry of record.entries) {
+        for (const set of entry.sets) {
+          if (set.completedReps != null) {
+            set.isCompleted = set.isCompleted ?? true;
+            set.completedWeight = ObjectUtils.clone(set.weight);
+          }
+        }
+      }
+    }
+    return storage;
+  },
 };

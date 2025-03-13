@@ -18,7 +18,7 @@ export type IScreenData =
   | { name: "plates"; params?: Record<string, never> }
   | { name: "gyms"; params?: Record<string, never> }
   | { name: "programs"; params?: Record<string, never> }
-  | { name: "progress"; params?: Record<string, never> }
+  | { name: "progress"; params?: { id?: number } }
   | { name: "graphs"; params?: Record<string, never> }
   | { name: "finishDay"; params?: Record<string, never> }
   | { name: "muscles"; params?: Record<string, never> }
@@ -81,13 +81,11 @@ export namespace Screen {
   }
 
   export function shouldConfirmNavigation(state: IState): string | undefined {
-    if (state.currentHistoryRecord) {
-      const progress = state.progress[state.currentHistoryRecord];
-      if (progress && !Progress.isCurrent(progress)) {
-        const oldHistoryRecord = state.storage.history.find((hr) => hr.id === state.currentHistoryRecord);
-        if (oldHistoryRecord != null && !dequal(oldHistoryRecord, progress)) {
-          return "Are you sure? Changes won't be saved.";
-        }
+    const progress = Progress.getProgress(state);
+    if (progress && !Progress.isCurrent(progress)) {
+      const oldHistoryRecord = state.storage.history.find((hr) => hr.id === progress.id);
+      if (oldHistoryRecord != null && !dequal(oldHistoryRecord, progress)) {
+        return "Are you sure? Changes won't be saved.";
       }
     }
 

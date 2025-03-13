@@ -74,7 +74,6 @@ export interface IState {
   programs: IProgram[];
   notification?: INotification;
   screenStack: IScreenStack;
-  currentHistoryRecord?: number;
   revisions: Partial<Record<string, string[]>>;
   prices?: Partial<Record<string, string>>;
   loading: ILoading;
@@ -143,4 +142,12 @@ export function updateState(dispatch: IDispatch, lensRecording: ILensRecordingPa
 
 export function updateSettings(dispatch: IDispatch, lensRecording: ILensRecordingPayload<ISettings>): void {
   dispatch({ type: "UpdateSettings", lensRecording });
+}
+
+export function updateProgress(
+  dispatch: IDispatch,
+  lensRecordings: ILensRecordingPayload<IHistoryRecord>[] | ILensRecordingPayload<IHistoryRecord>
+): void {
+  const recordings = Array.isArray(lensRecordings) ? lensRecordings : [lensRecordings];
+  dispatch({ type: "UpdateProgress", lensRecordings: recordings });
 }

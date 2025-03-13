@@ -1,6 +1,7 @@
 import { h, ComponentChildren, JSX, RefObject } from "preact";
 import { useRef, useEffect } from "preact/hooks";
 import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
+import { createPortal } from "preact/compat";
 
 interface IProps {
   name?: string;
@@ -21,7 +22,7 @@ interface IProps {
 export function Modal(props: IProps): JSX.Element {
   const modalRef = useRef<HTMLElement>();
 
-  let className = "fixed inset-0 flex items-center justify-center";
+  let className = "fixed inset-0 flex items-center justify-center bottom-sticked";
   if (props.isHidden) {
     className += " invisible";
   }
@@ -54,8 +55,8 @@ export function Modal(props: IProps): JSX.Element {
     }
   }
 
-  return (
-    <section ref={modalRef} className={className} style={{ zIndex: 100 }}>
+  return createPortal(
+    <section ref={modalRef} className={className} style={{ zIndex: 40 }}>
       <div
         data-name="overlay"
         onClick={props.shouldShowClose ? props.onClose : undefined}
@@ -90,6 +91,7 @@ export function Modal(props: IProps): JSX.Element {
           </button>
         )}
       </div>
-    </section>
+    </section>,
+    document.getElementById("modal")!
   );
 }

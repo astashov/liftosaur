@@ -74,8 +74,8 @@ function getChildren(node: SyntaxNode): SyntaxNode[] {
 }
 
 function comparing(
-  left: number | IWeight | IPercentage | (number | IWeight | undefined)[],
-  right: number | IWeight | IPercentage | (number | IWeight | undefined)[],
+  left: number | IWeight | IPercentage | (number | IWeight | IPercentage | undefined)[],
+  right: number | IWeight | IPercentage | (number | IWeight | IPercentage | undefined)[],
   operator: ">" | "<" | ">=" | "<=" | "==" | "!="
 ): boolean {
   function comparator(l: number | IWeight | IPercentage, r: number | IWeight | IPercentage): boolean {
@@ -329,10 +329,12 @@ export class LiftoscriptEvaluator {
             "reps",
             "minReps",
             "completedReps",
+            "completedWeights",
             "timers",
             "w",
             "r",
             "cr",
+            "cw",
             "mr",
             "completedRPE",
             "RPE",
@@ -385,7 +387,7 @@ export class LiftoscriptEvaluator {
           this.bindings.weights[ns]?.value ?? 0,
           this.bindings.weights[ns]?.unit || "lb"
         );
-        this.bindings.originalWeights[i] = Weight.build(
+        this.bindings.originalWeights[i] = Weight.buildAny(
           this.bindings.originalWeights[ns]?.value ?? 0,
           this.bindings.originalWeights[ns]?.unit || "lb"
         );
@@ -424,7 +426,7 @@ export class LiftoscriptEvaluator {
     let value: number | IWeight | IPercentage = 0;
     if (key === "weights") {
       for (let i = 0; i < this.bindings.weights.length; i += 1) {
-        if (this.bindings.completedReps[i] == null && (setIndex === "*" || setIndex === i + 1)) {
+        if (!this.bindings.isCompleted[i] && (setIndex === "*" || setIndex === i + 1)) {
           const evalutedValue = this.evaluateToNumberOrWeightOrPercentage(expression);
           const newValue = Weight.applyOp(this.bindings.rm1, this.bindings.weights[i], evalutedValue, op);
           value = Weight.convertToWeight(this.bindings.rm1, newValue, this.unit);
@@ -434,7 +436,7 @@ export class LiftoscriptEvaluator {
       }
     } else {
       for (let i = 0; i < this.bindings[key].length; i += 1) {
-        if (this.bindings.completedReps[i] == null && (setIndex === "*" || setIndex === i + 1)) {
+        if (!this.bindings.isCompleted && (setIndex === "*" || setIndex === i + 1)) {
           const evaluatedValue = this.evaluateToNumber(expression);
           value = MathUtils.applyOp(this.bindings[key][i] ?? 0, evaluatedValue, op);
           if (key === "RPE") {
@@ -526,7 +528,9 @@ export class LiftoscriptEvaluator {
     return newTarget;
   }
 
-  private toNumber(value: number | boolean | IWeight | IPercentage | (number | undefined)[] | IWeight[]): number {
+  private toNumber(
+    value: number | boolean | IWeight | IPercentage | (IWeight | IPercentage | number | undefined)[]
+  ): number {
     if (typeof value === "number") {
       return value;
     } else if (typeof value === "boolean") {
@@ -542,9 +546,11 @@ export class LiftoscriptEvaluator {
     }
   }
 
-  public evaluate(expr: SyntaxNode): number | boolean | IWeight | IPercentage | (number | undefined)[] | IWeight[] {
+  public evaluate(
+    expr: SyntaxNode
+  ): number | boolean | IWeight | IPercentage | (IWeight | IPercentage | number | undefined)[] {
     if (expr.type.name === NodeName.Program || expr.type.name === NodeName.BlockExpression) {
-      let result: number | boolean | IWeight | (number | undefined)[] | IWeight[] | IPercentage = 0;
+      let result: number | boolean | IWeight | (IWeight | IPercentage | number | undefined)[] | IPercentage = 0;
       for (const child of getChildren(expr)) {
         if (!child.type.isSkipped) {
           result = this.evaluate(child);
@@ -980,7 +986,7 @@ export class LiftoscriptEvaluator {
         }
         let value = binding[index];
         if (value == null) {
-          value = name === "minReps" ? this.bindings.reps[index] ?? 0 : 0;
+          value = name === "minReps" ? (this.bindings.reps[index] ?? 0) : 0;
         }
         return value;
       } else {

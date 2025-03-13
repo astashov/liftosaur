@@ -56,7 +56,6 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
   };
   const hasStateVariables = ObjectUtils.keys(PlannerProgramExercise.getState(programExercise)).length > 0;
   const [newState, setNewState] = useState<Partial<IProgramState>>({});
-  const dayData = Program.getDayData(props.program, props.day);
   const [weightChanges, setWeightChanges] = useState(ProgramExercise.weightChanges(props.program, programExercise.key));
   const [showCalculator, setShowCalculator] = useState<
     { type: "state"; value: [string, IUnit] } | { type: "weight"; value: [number, IUnit] } | undefined
@@ -116,81 +115,15 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                 />
               </>
             )}
-            {hasStateVariables || planner ? (
-              <>
-                <div className="mt-4 text-center">
-                  <Button
-                    name="edit-mode-stave-statvars"
-                    kind="orange"
-                    onClick={() => onSave()}
-                    data-cy="modal-edit-mode-save-statvars"
-                  >
-                    Save
-                  </Button>
-                </div>
-                <h2 className="mt-8 text-lg text-center">Or edit the whole exercise</h2>
-              </>
-            ) : (
-              <h2 className="my-4 text-lg text-center">Edit the exercise</h2>
-            )}
-
-            <div className="flex items-center mt-2">
-              <div className="flex-1 text-center">
-                <Button
-                  name="edit-mode-this-workout"
-                  kind="purple"
-                  style={{ minHeight: "3.25rem", width: "7rem" }}
-                  buttonSize="md"
-                  onClick={() => {
-                    updateState(props.dispatch, [
-                      lb<IState>()
-                        .p("progress")
-                        .pi(props.progressId)
-                        .pi("ui")
-                        .p("entryIndexEditMode")
-                        .record(props.entryIndex),
-                      lb<IState>()
-                        .p("progress")
-                        .pi(props.progressId)
-                        .pi("ui")
-                        .p("exerciseBottomSheet")
-                        .record(undefined),
-                    ]);
-                    onClose();
-                  }}
-                  data-cy="modal-edit-mode-this-workout"
-                >
-                  Only in this workout
-                </Button>
-              </div>
-              <div className="flex items-center mx-2 font-bold">
-                <div>or</div>
-              </div>
-              <div className="flex-1 text-center">
-                <Button
-                  name="edit-mode-in-a-program"
-                  style={{ minHeight: "3.25rem", width: "7rem" }}
-                  kind="purple"
-                  buttonSize="md"
-                  onClick={() => {
-                    const plannerState = EditProgram.initPlannerState(props.program.id, props.program.planner, dayData);
-                    Program.editAction(props.dispatch, props.program.id, plannerState);
-                    onClose();
-                  }}
-                  data-cy="modal-edit-mode-program"
-                >
-                  In a program
-                </Button>
-              </div>
-            </div>
-            <div className="flex">
-              <div className="flex-1"></div>
-              <div className="invisible mx-2">or</div>
-              <div className="flex-1 text-center">
-                <div className="mx-auto mt-1 text-xs text-grayv2-main" style={{ maxWidth: "12rem" }}>
-                  So it will apply to <strong>this workout</strong> and <strong>all future workouts</strong>
-                </div>
-              </div>
+            <div className="mt-4 text-center">
+              <Button
+                name="edit-mode-stave-statvars"
+                kind="orange"
+                onClick={() => onSave()}
+                data-cy="modal-edit-mode-save-statvars"
+              >
+                Save
+              </Button>
             </div>
           </>
         ) : (
