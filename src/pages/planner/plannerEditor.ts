@@ -280,13 +280,13 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
               },
             });
 
-            if (from != null && to != null) {
+            if (from != null && to != null && state.doc.length >= to) {
               return [{ from: from, to: to, severity: "error", message: "Syntax Error" }];
             }
           }
 
           const error = plannerEditor.args.error;
-          if (error != null) {
+          if (error != null && state.doc.length >= error.to) {
             return [{ from: error.from, to: error.to, severity: "error", message: error.message }];
           }
 
