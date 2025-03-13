@@ -31,6 +31,7 @@ export const exceptionIgnores = [
   "Load failed",
   "Function timed out",
   "is out of range for changeset",
+  "when attempting to fetch resource",
   "Selection points outside of document",
   "Invalid position",
   "outdated_client_storage",
