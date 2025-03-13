@@ -24,6 +24,7 @@ test("edits sets properly", async ({ page }) => {
   await page.getByTestId("modal-edit-set-submit").click();
 
   await page.getByTestId("set-edit-mode-remove").nth(2).click({ force: true });
+  await page.getByTestId("entry-bench-press").scrollIntoViewIfNeeded();
   await page
     .locator("[data-cy^=exercise-]:has-text('Bench Press') [data-cy=set-nonstarted]")
     .nth(1)

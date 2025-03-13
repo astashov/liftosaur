@@ -596,21 +596,18 @@ Bench Press[4-5] / ...tmp: Squat
 `);
   });
 
-  it("show an error if original exercise progress reuses another exercise", () => {
+  it("doesn't show an error if original exercise progress reuses another exercise but overrides progress", () => {
     const programText = `# Week 1
 ## Day 1
 Squat / 1x1 100lb / progress: custom(increment: 10lb) { ...Bench Press }
-Bench Press / ...Squat / progress: custom(increment: 10lb) {~ ~}
+Bench Press / ...Squat / progress: custom() {~ ~}
 `;
     const planner: IPlannerProgram = { name: "MyProgram", weeks: PlannerProgram.evaluateText(programText) };
     const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
-    expect(evaluatedWeeks[0][0]).to.deep.equal({
-      success: false,
-      error: new PlannerSyntaxError("Squat: Original exercise should not reuse other exercise (1:20)", 0, 0, 0, 0),
-    });
+    expect(evaluatedWeeks[0][0].success).to.be.true;
   });
 
-  it("show an error if original exercise update reuses another exercise", () => {
+  it("doesn't show an error if original exercise update reuses another exercise but overrides update", () => {
     const programText = `# Week 1
 ## Day 1
 Squat / 1x1 100lb / update: custom() { ...Bench Press }
@@ -618,10 +615,7 @@ Bench Press / ...Squat / update: custom() {~ ~}
 `;
     const planner: IPlannerProgram = { name: "MyProgram", weeks: PlannerProgram.evaluateText(programText) };
     const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
-    expect(evaluatedWeeks[0][0]).to.deep.equal({
-      success: false,
-      error: new PlannerSyntaxError("Squat: Original exercise should not reuse other exercise (1:20)", 0, 0, 0, 0),
-    });
+    expect(evaluatedWeeks[0][0].success).to.be.true;
   });
 
   it("show an error for reuse/repeat mismatch", () => {
