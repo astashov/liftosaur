@@ -9,7 +9,7 @@ import { IDispatch } from "../ducks/types";
 import { ScriptRunner } from "../parser";
 
 import { IEvaluatedProgram, Program } from "./program";
-import { IState, updateState } from "./state";
+import { IState, updateProgress, updateState } from "./state";
 import {
   IWeight,
   IHistoryEntry,
@@ -36,13 +36,15 @@ import { Equipment } from "./equipment";
 import { IByTag } from "../pages/planner/plannerEvaluator";
 import { IPlannerProgramExercise, IPlannerProgramExerciseUsed } from "../pages/planner/models/types";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { IScreenStack, Screen } from "./screen";
 
 export interface IScriptBindings {
   day: number;
   week: number;
   dayInWeek: number;
-  originalWeights: IWeight[];
+  originalWeights: (IWeight | IPercentage)[];
   weights: IWeight[];
+  completedWeights: (IWeight | undefined)[];
   rm1: IWeight;
   reps: number[];
   minReps: (number | undefined)[];
@@ -52,10 +54,12 @@ export interface IScriptBindings {
   RPE: (number | undefined)[];
   completedRPE: (number | undefined)[];
   completedReps: (number | undefined)[];
+  isCompleted: (0 | 1)[];
   w: IWeight[];
   r: number[];
   mr: (number | undefined)[];
   cr: (number | undefined)[];
+  cw: (IWeight | undefined)[];
   ns: number;
   numberOfSets: number;
   setVariationIndex: number;
@@ -99,7 +103,7 @@ export interface IScriptFunctions {
   max(vals: number[]): number;
   max(vals: IWeight[]): IWeight;
   zeroOrGte(a: number[] | IWeight[], b: number[] | IWeight[]): boolean;
-  print(...args: unknown[]): typeof args[0];
+  print(...args: unknown[]): (typeof args)[0];
   sets(
     from: number,
     to: number,
@@ -212,6 +216,7 @@ export namespace Progress {
       day: dayData.day,
       week: dayData.week ?? 1,
       dayInWeek: dayData.dayInWeek ?? dayData.day,
+      completedWeights: [],
       originalWeights: [],
       weights: [],
       reps: [],
@@ -221,10 +226,12 @@ export namespace Progress {
       logrpes: [],
       completedReps: [],
       completedRPE: [],
+      isCompleted: [],
       timers: [],
       w: [],
       r: [],
       cr: [],
+      cw: [],
       mr: [],
       numberOfSets: 0,
       ns: 0,
@@ -246,19 +253,22 @@ export namespace Progress {
     const bindings = createEmptyScriptBindings(dayData, settings, entry.exercise);
     for (const set of entry.sets) {
       bindings.weights.push(set.weight);
-      bindings.originalWeights.push(set.originalWeight);
+      bindings.originalWeights.push(set.originalWeight ?? Weight.build(0, settings.units));
       bindings.reps.push(set.reps);
       bindings.minReps.push(set.minReps);
       bindings.completedReps.push(set.completedReps);
       bindings.completedRPE.push(set.completedRpe);
+      bindings.completedWeights.push(set.completedWeight);
       bindings.RPE.push(set.rpe);
       bindings.amraps.push(set.isAmrap ? 1 : undefined);
       bindings.logrpes.push(set.logRpe ? 1 : undefined);
       bindings.timers.push(set.timer);
+      bindings.isCompleted.push(set.isCompleted ? 1 : 0);
     }
     bindings.w = bindings.weights;
     bindings.r = bindings.reps;
     bindings.cr = bindings.completedReps;
+    bindings.cw = bindings.completedWeights;
     bindings.mr = bindings.minReps;
     bindings.ns = entry.sets.length;
     bindings.numberOfSets = entry.sets.length;
@@ -296,8 +306,8 @@ export namespace Progress {
             ? Weight.is(rpeRawOrContext)
               ? rpeRawOrContext.value
               : typeof rpeRawOrContext === "number"
-              ? rpeRawOrContext
-              : 10
+                ? rpeRawOrContext
+                : 10
             : 10;
         return Weight.rpeMultiplier(reps, rpe);
       },
@@ -357,8 +367,8 @@ export namespace Progress {
     mode: IProgressMode,
     entryIndex: number,
     setIndex: number,
-    subscription: ISubscription,
     settings: ISettings,
+    subscription?: ISubscription,
     timer?: number
   ): IHistoryRecord {
     if (timer == null && Progress.isCurrent(progress) && mode === "workout") {
@@ -377,7 +387,7 @@ export namespace Progress {
         timerSetIndex: undefined,
       };
     }
-    if (Subscriptions.hasSubscription(subscription)) {
+    if (subscription && Subscriptions.hasSubscription(subscription)) {
       const timerForPush = timer - Math.round((Date.now() - timestamp) / 1000);
       const title = "It's time for the next set!";
       let subtitle = "";
@@ -471,7 +481,7 @@ export namespace Progress {
   }
 
   export function hasLastUnfinishedSet(entry: IHistoryEntry): boolean {
-    return entry.sets.filter((s) => s.completedReps == null).length === 1;
+    return entry.sets.filter((s) => !s.isCompleted).length === 1;
   }
 
   export function showUpdateWeightModal(
@@ -530,16 +540,20 @@ export namespace Progress {
     };
   }
 
-  export function getProgress(state: Pick<IState, "currentHistoryRecord" | "progress">): IHistoryRecord | undefined {
-    return state.currentHistoryRecord != null ? state.progress[state.currentHistoryRecord] : undefined;
+  export function getProgressId(screenStack: IScreenStack): number {
+    const currentScreen = Screen.current(screenStack);
+    if (currentScreen.name === "progress") {
+      return currentScreen.params?.id ?? 0;
+    }
+    return 0;
+  }
+
+  export function getProgress(state: Pick<IState, "screenStack" | "progress">): IHistoryRecord | undefined {
+    return state.progress[getProgressId(state.screenStack)];
   }
 
   export function setProgress(state: IState, progress: IHistoryRecord): IState {
-    if (state.currentHistoryRecord != null) {
-      return lf(state).p("progress").p(state.currentHistoryRecord).set(progress);
-    } else {
-      return state;
-    }
+    return lf(state).p("progress").p(getProgressId(state.screenStack)).set(progress);
   }
 
   export function runUpdateScriptForEntry(
@@ -550,7 +564,7 @@ export namespace Progress {
     setIndex: number,
     settings: ISettings
   ): IHistoryEntry {
-    if (setIndex !== -1 && entry?.sets[setIndex]?.completedReps == null) {
+    if (setIndex !== -1 && !entry?.sets[setIndex]?.isCompleted) {
       return entry;
     }
     const script = PlannerProgramExercise.getUpdateScript(programExercise);
@@ -667,7 +681,7 @@ export namespace Progress {
         if (entry.sets[i] == null) {
           entry.sets[i] = { reps: 0, weight: Weight.build(0, "lb"), originalWeight: Weight.build(0, "lb") };
         }
-        if (entry.sets[i].completedReps == null) {
+        if (!entry.sets[i].isCompleted) {
           if (key === "RPE") {
             const value = bindings.RPE[i];
             entry.sets[i].rpe = value !== 0 ? value : undefined;
@@ -699,7 +713,24 @@ export namespace Progress {
     return entry;
   }
 
-  export function updateRepsInExercise(
+  export function completeAmrapSet(progress: IHistoryRecord, entryIndex: number, setIndex: number): IHistoryRecord {
+    return lf(progress)
+      .p("entries")
+      .i(entryIndex)
+      .p("sets")
+      .i(setIndex)
+      .modify((progressSet) => {
+        return {
+          ...progressSet,
+          timestamp: !progressSet.isCompleted ? Date.now() : progressSet.timestamp,
+          completedReps: progressSet.completedReps ?? progressSet.reps,
+          completedWeight: progressSet.completedWeight ?? progressSet.weight,
+          isCompleted: !progressSet.isCompleted,
+        };
+      });
+  }
+
+  export function completeSet(
     progress: IHistoryRecord,
     entryIndex: number,
     setIndex: number,
@@ -707,92 +738,45 @@ export namespace Progress {
     hasUserPromptedVars: boolean
   ): IHistoryRecord {
     const entry = progress.entries[entryIndex];
+    const set = entry.sets[setIndex];
+    const shouldLogRpe = !!set.logRpe;
+    const shouldPromptUserVars = hasUserPromptedVars && Progress.hasLastUnfinishedSet(entry);
     if (mode === "warmup") {
-      const firstWeight = entry?.sets[0]?.weight;
-      if (firstWeight != null) {
-        return {
-          ...progress,
-          entries: progress.entries.map((progressEntry, i) => {
-            if (i === entryIndex) {
-              const progressSets = progressEntry.warmupSets;
-              const progressSet = progressSets[setIndex];
-              if (progressSet?.completedReps == null) {
-                progressSets[setIndex] = { ...progressSet, completedReps: progressSet.reps as number };
-              } else if (progressSet.completedReps > 0) {
-                progressSets[setIndex] = {
-                  ...progressSet,
-                  completedReps: progressSet.completedReps - 1,
-                };
-              } else {
-                progressSets[setIndex] = { ...progressSet, completedReps: undefined };
-              }
-              return { ...progressEntry, warmupSets: progressSets };
-            } else {
-              return progressEntry;
-            }
-          }),
-        };
-      } else {
-        return progress;
-      }
+      return lf(progress)
+        .p("entries")
+        .i(entryIndex)
+        .p("warmupSets")
+        .i(setIndex)
+        .modify((progressSet) => {
+          return {
+            ...progressSet,
+            timestamp: !progressSet.isCompleted ? Date.now() : progressSet.timestamp,
+            completedReps: progressSet.completedReps ?? progressSet.reps,
+            completedWeight: progressSet.completedWeight ?? progressSet.weight,
+            isCompleted: !progressSet.isCompleted,
+          };
+        });
+    } else if (!set.isCompleted && (shouldLogRpe || shouldPromptUserVars)) {
+      const amrapUi: IProgressUi = {
+        amrapModal: {
+          entryIndex,
+          setIndex,
+          logRpe: shouldLogRpe,
+          userVars: shouldPromptUserVars,
+        },
+      };
+      return { ...progress, ui: { ...progress.ui, ...amrapUi } };
     } else {
-      const isAmrap = entry.sets[setIndex].isAmrap;
-      const shouldLogRpe = (!Reps.isFinishedSet(entry.sets[setIndex]) || isAmrap) && !!entry.sets[setIndex].logRpe;
-      const shouldAskWeight =
-        (!Reps.isFinishedSet(entry.sets[setIndex]) || isAmrap) && !!entry.sets[setIndex].askWeight;
-      const shouldPromptUserVars =
-        hasUserPromptedVars &&
-        ((Progress.hasLastUnfinishedSet(entry) && !Reps.isFinishedSet(entry.sets[setIndex])) ||
-          (isAmrap && Progress.isFinishedSet(entry)));
-
-      if (isAmrap || shouldLogRpe || shouldPromptUserVars || shouldAskWeight) {
-        const amrapUi: IProgressUi = {
-          amrapModal: {
-            entryIndex,
-            setIndex,
-            isAmrap: isAmrap,
-            logRpe: shouldLogRpe,
-            askWeight: shouldAskWeight,
-            userVars: shouldPromptUserVars,
-          },
-        };
-        return {
-          ...progress,
-          ui: {
-            ...progress.ui,
-            ...amrapUi,
-          },
-        };
-      } else {
-        return {
-          ...progress,
-          entries: progress.entries.map((progressEntry, i) => {
-            if (i === entryIndex) {
-              const sets = [...progressEntry.sets];
-              const set = sets[setIndex];
-              if (set.completedReps == null) {
-                sets[setIndex] = {
-                  ...set,
-                  completedReps: set.reps as number,
-                  timestamp: set.timestamp ?? Date.now(),
-                };
-              } else if (set.completedReps > 0) {
-                sets[setIndex] = {
-                  ...set,
-                  completedReps: set.completedReps - 1,
-                  timestamp: set.timestamp ?? Date.now(),
-                };
-              } else {
-                sets[setIndex] = { ...set, completedReps: undefined, timestamp: set.timestamp ?? Date.now() };
-              }
-              return { ...progressEntry, sets: sets };
-            } else {
-              return progressEntry;
-            }
-          }),
-        };
-      }
+      return completeAmrapSet(progress, entryIndex, setIndex);
     }
+  }
+
+  export function getIsRpeEnabled(sets: ISet[]): boolean {
+    return sets.some((set) => set.rpe != null);
+  }
+
+  export function getIsMinRepsEnabled(sets: ISet[]): boolean {
+    return sets.some((set) => set.minReps != null);
   }
 
   export function updateAmrapRepsInExercise(
@@ -931,10 +915,8 @@ export namespace Progress {
     };
   }
 
-  export function editExerciseNotes(dispatch: IDispatch, progressId: number, entryIndex: number, notes: string): void {
-    updateState(dispatch, [
-      lb<IState>().p("progress").pi(progressId).p("entries").i(entryIndex).p("notes").record(notes),
-    ]);
+  export function editExerciseNotes(dispatch: IDispatch, entryIndex: number, notes: string): void {
+    updateProgress(dispatch, [lb<IHistoryRecord>().p("entries").i(entryIndex).p("notes").record(notes)]);
   }
 
   export function showAddExerciseModal(dispatch: IDispatch, progressId: number): void {
@@ -1017,12 +999,13 @@ export namespace Progress {
       for (let i = 0; i < newSetsNum; i++) {
         const progressSet: ISet | undefined = progressEntry.sets[i] as ISet | undefined;
         const programSet = sets[i];
-        if (progressSet?.completedReps != null) {
+        if (!!progressSet?.isCompleted) {
           newSets.push(progressSet);
         } else if (programSet != null) {
           const unit = Equipment.getUnitOrDefaultForExerciseType(settings, programExercise.exerciseType);
-          const originalWeight = Weight.evaluateWeight(programSet.weight, programExercise.exerciseType, settings);
-          const weight = Weight.roundConvertTo(originalWeight, settings, unit, programExercise.exerciseType);
+          const originalWeight = programSet.weight;
+          const evaluatedWeight = Weight.evaluateWeight(programSet.weight, programExercise.exerciseType, settings);
+          const weight = Weight.roundConvertTo(evaluatedWeight, settings, unit, programExercise.exerciseType);
           newSets.push({
             ...progressSet,
             reps: programSet.maxrep,

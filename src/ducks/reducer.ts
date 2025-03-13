@@ -19,6 +19,7 @@ import {
   IHistoryRecord,
   IPercentage,
   IProgramState,
+  ISubscription,
 } from "../types";
 import { IndexedDBUtils } from "../utils/indexeddb";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
@@ -127,7 +128,6 @@ export async function getInitialState(
       notification,
       loading: { items: {} },
       programs: [basicBeginnerProgram],
-      currentHistoryRecord: 0,
       revisions: {},
       screenStack,
       user: undefined,
@@ -186,8 +186,8 @@ export type IDeleteProgress = {
   type: "DeleteProgress";
 };
 
-export type IChangeRepsAction = {
-  type: "ChangeRepsAction";
+export type ICompleteSetAction = {
+  type: "CompleteSetAction";
   entryIndex: number;
   setIndex: number;
   programExercise?: IPlannerProgramExercise;
@@ -283,7 +283,7 @@ export type IUpdateProgressAction = {
 };
 
 export type ICardsAction =
-  | IChangeRepsAction
+  | ICompleteSetAction
   | IChangeWeightAction
   | IChangeAMRAPAction
   | IConfirmWeightAction
@@ -435,14 +435,16 @@ export const reducerWrapper =
     return newState;
   };
 
-export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, ICardsAction> {
+export function buildCardsReducer(
+  settings: ISettings,
+  subscription?: ISubscription
+): Reducer<IHistoryRecord, ICardsAction> {
   return (progress, action): IHistoryRecord => {
     switch (action.type) {
-      case "ChangeRepsAction": {
+      case "CompleteSetAction": {
         const hasUserPromptedVars =
           action.programExercise && ProgramExercise.hasUserPromptedVars(action.programExercise);
-
-        let newProgress = Progress.updateRepsInExercise(
+        let newProgress = Progress.completeSet(
           progress,
           action.entryIndex,
           action.setIndex,
@@ -465,23 +467,30 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
           newProgress = Progress.stopTimer(newProgress);
         }
         newProgress.intervals = History.resumeWorkout(newProgress.intervals, settings.timers.reminder);
+        newProgress = Progress.startTimer(
+          newProgress,
+          new Date().getTime(),
+          action.mode,
+          action.entryIndex,
+          action.setIndex,
+          settings,
+          subscription
+        );
         return newProgress;
       }
       case "ChangeAMRAPAction": {
-        progress = Progress.updateAmrapRepsInExercise(progress, action.amrapValue, action.isAmrap);
+        let newProgress = { ...progress };
         if (action.logRpe) {
-          progress = Progress.updateRpeInExercise(progress, action.rpeValue);
-        }
-        if (action.weightValue) {
-          progress = Progress.updateWeightInExercise(progress, action.weightValue);
+          newProgress = Progress.updateRpeInExercise(newProgress, action.rpeValue);
         }
         const programExerciseId = action.programExercise?.key;
         if (ObjectUtils.keys(action.userVars || {}).length > 0 && programExerciseId != null) {
-          progress = Progress.updateUserPromptedStateVars(progress, programExerciseId, action.userVars || {});
+          newProgress = Progress.updateUserPromptedStateVars(newProgress, programExerciseId, action.userVars || {});
         }
+        newProgress = Progress.completeAmrapSet(newProgress, action.entryIndex, action.setIndex);
         if (action.programExercise) {
-          progress = Progress.runUpdateScript(
-            progress,
+          newProgress = Progress.runUpdateScript(
+            newProgress,
             action.programExercise,
             action.otherStates || {},
             action.entryIndex,
@@ -490,11 +499,11 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
             settings
           );
         }
-        if (Progress.isFullyFinishedSet(progress)) {
-          progress = Progress.stopTimer(progress);
+        if (Progress.isFullyFinishedSet(newProgress)) {
+          newProgress = Progress.stopTimer(newProgress);
         }
-        progress.intervals = History.resumeWorkout(progress.intervals, settings.timers.reminder);
-        return { ...progress, ui: { ...progress.ui, amrapModal: undefined } };
+        newProgress.intervals = History.resumeWorkout(newProgress.intervals, settings.timers.reminder);
+        return { ...newProgress, ui: { ...newProgress.ui, amrapModal: undefined } };
       }
       case "ChangeWeightAction": {
         return Progress.showUpdateWeightModal(progress, action.exercise, action.weight, action.programExercise);
@@ -516,10 +525,10 @@ function pushScreen<T extends IScreen>(
   shouldResetStack?: boolean
 ): IScreenStack {
   if (screenStack.length > 0) {
-    const current = Screen.currentName(screenStack);
-    if (current !== name) {
+    const current = Screen.current(screenStack);
+    if (current.name !== name || !ObjectUtils.isEqual(current.params || {}, params || {})) {
       if (shouldResetStack) {
-        return [{ name } as Extract<IScreen, { name: string }>];
+        return [{ name, ...(params ? { params } : {}) } as Extract<IScreen, { name: string }>];
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return Screen.push(screenStack, name, params as any);
@@ -530,23 +539,37 @@ function pushScreen<T extends IScreen>(
 }
 
 export const reducer: Reducer<IState, IAction> = (state, action): IState => {
-  if (action.type === "ChangeRepsAction") {
-    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
+  if (action.type === "CompleteSetAction") {
+    return Progress.setProgress(
+      state,
+      buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)
+    );
   } else if (action.type === "ChangeAMRAPAction") {
-    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
+    return Progress.setProgress(
+      state,
+      buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)
+    );
   } else if (action.type === "ChangeWeightAction") {
-    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
+    return Progress.setProgress(
+      state,
+      buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)
+    );
   } else if (action.type === "ConfirmWeightAction") {
-    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
+    return Progress.setProgress(
+      state,
+      buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)
+    );
   } else if (action.type === "UpdateProgress") {
-    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
+    return Progress.setProgress(
+      state,
+      buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)
+    );
   } else if (action.type === "StartProgramDayAction") {
     const progress = state.progress[0];
     if (progress != null) {
       return {
         ...state,
-        currentHistoryRecord: progress.id,
-        screenStack: pushScreen(state.screenStack, "progress", undefined, true),
+        screenStack: pushScreen(state.screenStack, "progress", { id: progress.id }, true),
       };
     } else if (state.storage.currentProgramId != null) {
       const program = Program.getProgram(state, action.programId || state.storage.currentProgramId);
@@ -554,8 +577,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         const newProgress = Program.nextHistoryRecord(program, state.storage.settings);
         return {
           ...state,
-          currentHistoryRecord: 0,
-          screenStack: pushScreen(state.screenStack, "progress", undefined, true),
+          screenStack: pushScreen(state.screenStack, "progress", { id: 0 }, true),
           progress: { ...state.progress, 0: newProgress },
         };
       } else {
@@ -568,8 +590,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "EditHistoryRecord") {
     return {
       ...state,
-      currentHistoryRecord: action.historyRecord.id,
-      screenStack: pushScreen(state.screenStack, "progress"),
+      screenStack: pushScreen(state.screenStack, "progress", { id: action.historyRecord.id }),
       progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
     };
   } else if (action.type === "FinishProgramDayAction") {
@@ -610,7 +631,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           },
         },
         screenStack: Progress.isCurrent(progress) ? [{ name: "finishDay" }] : Screen.pull(state.screenStack),
-        currentHistoryRecord: undefined,
         progress: Progress.stop(state.progress, progress.id),
       };
     }
@@ -622,11 +642,10 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const progress = Progress.getProgress(state)!;
     return {
       ...state,
-      currentHistoryRecord: undefined,
       screenStack: pushScreen(state.screenStack, "main", undefined, true),
       progress: Progress.isCurrent(progress)
         ? state.progress
-        : Progress.stop(state.progress, state.currentHistoryRecord!),
+        : Progress.stop(state.progress, Progress.getProgressId(state.screenStack)),
     };
   } else if (action.type === "DeleteProgress") {
     const progress = Progress.getProgress(state);
@@ -637,7 +656,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       }
       return {
         ...state,
-        currentHistoryRecord: undefined,
         screenStack: pushScreen(state.screenStack, "main", undefined, true),
         storage: { ...state.storage, deletedHistory: [...state.storage.deletedHistory, progress.startTime], history },
         progress: Progress.stop(state.progress, progress.id),
@@ -676,8 +694,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           action.mode,
           action.entryIndex,
           action.setIndex,
-          state.storage.subscription,
           state.storage.settings,
+          state.storage.subscription,
           action.timer
         )
       );

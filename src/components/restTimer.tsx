@@ -73,7 +73,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
     const className = isTimeOut ? "bg-redv2-main" : "bg-grayv2-main";
     const totalColor = isTimeOut ? "text-redv2-400" : "text-grayv2-300";
     return isExpanded ? (
-      <div className="fixed z-50 safe-area-inset-bottom " style={{ left: "1rem", right: "1rem", bottom: "5rem" }}>
+      <div className="fixed z-30 safe-area-inset-bottom " style={{ left: "1rem", right: "1rem", bottom: "5rem" }}>
         <div
           className={`flex w-full ${className} text-center rounded-lg shadow-xl text-white`}
           style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%);" }}
@@ -129,7 +129,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
         </div>
       </div>
     ) : (
-      <div className="fixed z-50 safe-area-inset-bottom " style={{ right: "1rem", bottom: "5rem" }}>
+      <div className="fixed z-30 safe-area-inset-bottom " style={{ right: "1rem", bottom: "5rem" }}>
         <button
           data-cy="rest-timer-collapsed"
           onClick={() => setIsExpanded(true)}

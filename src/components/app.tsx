@@ -1,7 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
-import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
 import { ProgramHistoryView } from "./programHistory";
 import { Program } from "../models/program";
@@ -50,6 +49,7 @@ import { ScreenGoogleHealthSettings } from "./screenGoogleHealthSettings";
 import { ScreenUnitSelector } from "./screenUnitSelector";
 import RB from "rollbar";
 import { exceptionIgnores } from "../utils/rollbar";
+import { ScreenWorkout } from "./screenWorkout";
 
 declare let Rollbar: RB;
 
@@ -309,13 +309,13 @@ export function AppView(props: IProps): JSX.Element | null {
       throw new Error("Program is not selected on the 'main' screen");
     }
   } else if (Screen.currentName(state.screenStack) === "progress") {
-    const progress = state.progress[state.currentHistoryRecord!]!;
+    const progress = Progress.getProgress(state)!;
     const program = Progress.isCurrent(progress)
       ? Program.getFullProgram(state, progress.programId) ||
         (currentProgram ? Program.fullProgram(currentProgram, state.storage.settings) : undefined)
       : undefined;
     content = (
-      <ProgramDayView
+      <ScreenWorkout
         navCommon={navCommon}
         helps={state.storage.helps}
         history={state.storage.history}
@@ -526,7 +526,7 @@ export function AppView(props: IProps): JSX.Element | null {
     return null;
   }
 
-  const progress = state.progress[state.currentHistoryRecord!];
+  const progress = Progress.getProgress(state);
   const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
   const screensWithoutTimer: IScreen[] = ["subscription"];
   return (

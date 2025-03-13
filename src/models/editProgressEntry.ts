@@ -3,6 +3,8 @@ import { lb } from "lens-shmens";
 import { IState } from "./state";
 import { ISet, IHistoryRecord, IExerciseType } from "../types";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { ObjectUtils } from "../utils/object";
+import { Reps } from "./set";
 
 export namespace EditProgressEntry {
   export function showEditSetModal(
@@ -11,18 +13,23 @@ export namespace EditProgressEntry {
     entryIndex: number,
     setIndex?: number,
     programExercise?: IPlannerProgramExercise,
-    exerciseType?: IExerciseType
+    exerciseType?: IExerciseType,
+    set?: ISet
   ): void {
     dispatch({
       type: "UpdateProgress",
       lensRecordings: [
-        lb<IHistoryRecord>().pi("ui").p("editSetModal").record({
-          programExerciseId: programExercise?.key,
-          isWarmup,
-          entryIndex,
-          setIndex,
-          exerciseType,
-        }),
+        lb<IHistoryRecord>()
+          .pi("ui")
+          .p("editSetModal")
+          .record({
+            programExerciseId: programExercise?.key,
+            set: set ? ObjectUtils.clone(set) : Reps.newSet(),
+            isWarmup,
+            entryIndex,
+            setIndex,
+            exerciseType,
+          }),
       ],
     });
   }

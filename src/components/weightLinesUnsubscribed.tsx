@@ -1,9 +1,9 @@
 import { h, JSX, Fragment } from "preact";
 import { Weight } from "../models/weight";
-import { IWeight } from "../types";
+import { IPercentage, IWeight } from "../types";
 
 interface IWeightLinesUnsubscribedProps {
-  weights: { rounded: IWeight; original: IWeight }[];
+  weights: { rounded: IWeight; original: IWeight | IPercentage }[];
 }
 
 export function WeightLinesUnsubscribed(props: IWeightLinesUnsubscribedProps): JSX.Element {
