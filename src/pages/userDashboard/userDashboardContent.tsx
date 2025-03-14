@@ -20,7 +20,7 @@ export interface IUserDashboardData {
 
 export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Element {
   const { userDao, events: allEvents } = props;
-  const userId = userDao ? userDao.id : allEvents[0].userId ?? "";
+  const userId = userDao ? userDao.id : (allEvents[0].userId ?? "");
 
   const groupedEvents = CollectionUtils.groupByExpr(allEvents, (event) => DateUtils.formatYYYYMMDD(event.timestamp));
 
@@ -109,6 +109,7 @@ function EventView(props: IEventViewProps): JSX.Element | null {
   if (event.type === "event") {
     return (
       <div>
+        {event.isMobile ? <span className="text-grayv2-main">M </span> : <span className="text-greenv2-main">W </span>}
         <span className="text-grayv2-main">{time}</span>: <span className="">{event.name}</span>
         {event.extra && <span className="ml-2">{JSON.stringify(event.extra)}</span>}
       </div>
@@ -117,6 +118,11 @@ function EventView(props: IEventViewProps): JSX.Element | null {
     return (
       <div>
         <div>
+          {event.isMobile ? (
+            <span className="text-grayv2-main">M </span>
+          ) : (
+            <span className="text-greenv2-main">W </span>
+          )}
           <span className="text-grayv2-main">{time}</span>:{" "}
           {event.rollbar_id && (
             <a
@@ -135,6 +141,7 @@ function EventView(props: IEventViewProps): JSX.Element | null {
   } else if (event.type === "safesnapshot" || event.type === "mergesnapshot") {
     return (
       <div>
+        {event.isMobile ? <span className="text-grayv2-main">M </span> : <span className="text-greenv2-main">W </span>}
         <span className="text-grayv2-main">{time}: </span>
         <span className="">{event.type}: </span>
         <a

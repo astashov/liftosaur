@@ -259,6 +259,9 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
               timestamp,
               storage_id: storageId,
               update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
+              isMobile: Mobile.isMobile(
+                payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""
+              ),
             });
           }
           return response(200, {
@@ -293,6 +296,9 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
               userId: limitedUser.id,
               timestamp,
               storage_id: storageId,
+              isMobile: Mobile.isMobile(
+                payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""
+              ),
               update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
             });
           }
@@ -1491,7 +1497,11 @@ const postEventHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
     return ResponseUtils.json(400, event, { error: "missing user id" });
   }
   const eventDao = new EventDao(di);
-  await eventDao.post({ ...bodyJson, userId });
+  await eventDao.post({
+    ...bodyJson,
+    userId,
+    isMobile: Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""),
+  });
   return ResponseUtils.json(200, event, { data: "ok" });
 };
 
@@ -1786,8 +1796,9 @@ export const statsLambdaHandler = (di: IDI): ((event: {}) => Promise<APIGatewayP
     const activeCount = dayGroup.length;
     const activeRegisteredCount = dayGroup.filter((i) => i.email != null).length;
     const newThisDay = dayGroup.filter((i) => Date.now() - i.firstAction.ts < 1000 * 60 * 60 * 24).length;
-    const newRegisteredThisDay = dayGroup.filter((i) => i.userTs != null && Date.now() - i.userTs < 1000 * 60 * 60 * 24)
-      .length;
+    const newRegisteredThisDay = dayGroup.filter(
+      (i) => i.userTs != null && Date.now() - i.userTs < 1000 * 60 * 60 * 24
+    ).length;
 
     const bucket = `${LftS3Buckets.stats}${Utils.getEnv() === "dev" ? "dev" : ""}`;
     const statsFile = await di.s3.getObject({ bucket, key: "stats.csv" });

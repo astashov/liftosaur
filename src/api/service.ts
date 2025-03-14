@@ -54,6 +54,7 @@ export type IEventPayload =
       userId?: string;
       timestamp: number;
       name: string;
+      isMobile?: boolean;
       extra?: Record<string, string | number>;
     }
   | {
@@ -62,6 +63,7 @@ export type IEventPayload =
       timestamp: number;
       message: string;
       stack: string;
+      isMobile?: boolean;
       rollbar_id: string;
     }
   | {
@@ -69,6 +71,7 @@ export type IEventPayload =
       userId?: string;
       timestamp: number;
       storage_id: string;
+      isMobile?: boolean;
       update: string;
     }
   | {
@@ -76,6 +79,7 @@ export type IEventPayload =
       userId?: string;
       timestamp: number;
       storage_id: string;
+      isMobile?: boolean;
       update: string;
     };
 
