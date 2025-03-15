@@ -80,7 +80,9 @@ export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Ele
           const sortedEvents = CollectionUtils.sortBy(events, "timestamp", true);
           return (
             <div key={date}>
-              <h3 className="mt-4 mb-2 text-lg font-bold leading-none">{date}</h3>
+              <h3 className="sticky top-0 left-0 w-full py-2 mt-4 mb-2 text-lg font-bold leading-none bg-white">
+                {date}
+              </h3>
               <ul>
                 {sortedEvents.map((event) => (
                   <li key={event.timestamp} className="mb-2">
