@@ -68,10 +68,10 @@ export class ProgramToPlanner {
     ) {
       dereuseDecisions.add("sets");
     }
-    if (reuseExercise.progress != null) {
+    if (reuseExercise.progress != null || programExercise.progress?.reuse != null) {
       if (
         programExercise.progress == null ||
-        programExercise.progress.type !== reuseExercise.progress.type ||
+        programExercise.progress.type !== reuseExercise.progress?.type ||
         (programExercise.progress.reuse
           ? programExercise.progress.reuse?.fullName !== reuseExercise.fullName
           : programExercise.progress.script !== reuseExercise.progress.script) ||
@@ -80,12 +80,12 @@ export class ProgramToPlanner {
         dereuseDecisions.add("progress");
       }
     }
-    if (reuseExercise.update != null) {
+    if (reuseExercise.update != null || programExercise.update?.reuse != null) {
       if (
         programExercise.update == null ||
         (programExercise.update.reuse
           ? programExercise.update.reuse?.fullName !== reuseExercise.fullName
-          : programExercise.update.script !== reuseExercise.update.script)
+          : programExercise.update.script !== reuseExercise.update?.script)
       ) {
         dereuseDecisions.add("update");
       }

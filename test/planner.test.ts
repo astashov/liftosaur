@@ -534,6 +534,50 @@ Squat / 1x8 105lb, 1x8 100lb, 1x8 105lb / progress: custom() {~
 `);
   });
 
+  it("keeps reused progress from another exercise with set reuse", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x1 100lb / used: none / progress: custom() {~
+  weights += 5lb
+~}
+Bench Press / used: none / 1x2 100lb
+Chest Fly / ...Bench Press / 120lb / progress: custom(foo: 1) { ...Squat }`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[2]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / used: none / 1x1 / 100lb / progress: custom() {~
+  weights += 5lb
+~}
+Bench Press / used: none / 1x2 / 100lb
+Chest Fly / ...Bench Press / 125lb / progress: custom(foo: 1) { ...Squat }
+
+
+`);
+  });
+
+  it("keeps reused update from another exercise with set reuse", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x1 100lb / used: none / update: custom() {~
+  weights += 5lb
+~}
+Bench Press / used: none / 1x2 100lb
+Chest Fly / ...Bench Press / 120lb / update: custom() { ...Squat }`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[2]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / used: none / 1x1 / 100lb / update: custom() {~
+  weights += 5lb
+~}
+Bench Press / used: none / 1x2 / 100lb
+Chest Fly / ...Bench Press / 120lb / update: custom() { ...Squat }
+
+
+`);
+  });
+
   it("use templates", () => {
     const programText = `# Week 1
 ## Day 1
