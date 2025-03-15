@@ -1,4 +1,5 @@
 import { IEventPayload } from "../../src/api/service";
+import { DateUtils } from "../../src/utils/date";
 import { IStorageUpdate } from "../../src/utils/sync";
 import { Utils } from "../utils";
 import { IDI } from "../utils/di";
@@ -16,9 +17,25 @@ export class EventDao {
   constructor(private readonly di: IDI) {}
 
   public static prepareStorageUpdateForEvent(storageUpdate: IStorageUpdate): string {
-    const preparedStorageUpdate = { ...storageUpdate };
-    delete preparedStorageUpdate.history;
-    delete preparedStorageUpdate.programs;
+    const preparedStorageUpdate: any = { ...storageUpdate };
+    preparedStorageUpdate.history = storageUpdate.history?.map((h) => {
+      return {
+        date: h.date,
+        programName: h.programName,
+        dayName: h.dayName,
+        numEntries: h.entries.length,
+        numSets: h.entries.reduce((acc, e) => acc + e.sets.length, 0),
+        startTime: DateUtils.formatYYYYMMDDHHMM(h.startTime),
+        endTime: h.endTime ? DateUtils.formatYYYYMMDDHHMM(h.endTime) : undefined,
+      };
+    });
+    preparedStorageUpdate.programs = storageUpdate.programs?.map((p) => {
+      return {
+        name: p.name,
+        numWeeks: p.planner?.weeks.length,
+        numDays: p.planner?.weeks.reduce((acc, w) => acc + w.days.length, 0),
+      };
+    });
     return JSON.stringify(preparedStorageUpdate);
   }
 
