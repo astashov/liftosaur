@@ -352,7 +352,13 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             <button
               className="text-xs font-normal text-grayv2-main nm-program-content-change-id"
               style={{ marginTop: "-0.5rem" }}
-              onClick={() => dispatch(lb<IPlannerState>().p("id").record(UidFactory.generateUid(8)))}
+              onClick={() => {
+                const id = UidFactory.generateUid(8);
+                dispatch([
+                  lb<IPlannerState>().p("id").record(id),
+                  lb<IPlannerState>().p("current").p("program").p("id").record(id),
+                ]);
+              }}
             >
               id: {state.id}
             </button>
