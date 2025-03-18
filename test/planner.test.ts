@@ -534,6 +534,20 @@ Squat / 1x8 105lb, 1x8 100lb, 1x8 105lb / progress: custom() {~
 `);
   });
 
+  it("keeps @0 RPE", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x5, 1x5+ @0+ / 100lb`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[2]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x5, 1x5+ @0+ / 100lb
+
+
+`);
+  });
+
   it("keeps reused progress from another exercise with set reuse", () => {
     const programText = `# Week 1
 ## Day 1

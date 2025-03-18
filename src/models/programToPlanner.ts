@@ -619,8 +619,8 @@ export class ProgramToPlanner {
         setStr += weightValue ? ` ${weightValue}${set.askWeight ? "+" : ""}` : "";
       }
       if (globals.rpe == null) {
-        setStr += set.rpe ? ` @${n(Math.max(0, set.rpe))}` : "";
-        setStr += set.rpe && set.logRpe ? "+" : "";
+        setStr += set.rpe != null ? ` @${n(Math.max(0, set.rpe))}` : "";
+        setStr += set.rpe != null && set.logRpe ? "+" : "";
       }
       if (globals.timer == null) {
         setStr += set.timer ? ` ${n(Math.max(0, set.timer))}s` : "";
