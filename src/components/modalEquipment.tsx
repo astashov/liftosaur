@@ -24,13 +24,16 @@ interface IModalEquipmentProps {
 }
 
 export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
-  const currentEquipment = Equipment.getEquipmentIdForExerciseType(props.settings, props.exercise);
+  const availableEquipment = Equipment.getCurrentGym(props.settings).equipment;
+  let currentEquipment = Equipment.getEquipmentIdForExerciseType(props.settings, props.exercise);
+  if (currentEquipment != null && availableEquipment[currentEquipment] == null) {
+    currentEquipment = undefined;
+  }
   const programExerciseIds = CollectionUtils.compact(
     props.entries.filter((e) => Exercise.eq(e.exercise, props.exercise)).map((e) => e.programExerciseId)
   );
 
   const currentGymId = props.settings.currentGymId ?? props.settings.gyms[0].id;
-  const availableEquipment = Equipment.getCurrentGym(props.settings).equipment;
   return (
     <Modal
       isHidden={false}
