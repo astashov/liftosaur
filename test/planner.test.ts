@@ -534,6 +534,38 @@ Squat / 1x8 105lb, 1x8 100lb, 1x8 105lb / progress: custom() {~
 `);
   });
 
+  it("keeps overridden dp progress", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / used: none / 1x1 / 100% 100s / warmup: none
+Bench Press / ...Squat / 3x10 / 30lb / progress: dp(3lb, 8, 12)`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10, 10, 10]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / used: none / 1x1 / 100% 100s / warmup: none
+Bench Press / ...Squat / 3x11 / 30lb / progress: dp(3lb, 8, 12)
+
+
+`);
+  });
+
+  it("keeps overridden update", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / used: none / 1x1 / 100% 100s / warmup: none
+Bench Press / ...Squat / 3x10 / 30lb / update: custom() {~ weights += 5lb ~}`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10, 10, 10]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / used: none / 1x1 / 100% 100s / warmup: none
+Bench Press / ...Squat / 3x10 / 30lb / update: custom() {~ weights += 5lb ~}
+
+
+`);
+  });
+
   it("keeps @0 RPE", () => {
     const programText = `# Week 1
 ## Day 1

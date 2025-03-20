@@ -68,7 +68,7 @@ export class ProgramToPlanner {
     ) {
       dereuseDecisions.add("sets");
     }
-    if (reuseExercise.progress != null || programExercise.progress?.reuse != null) {
+    if (reuseExercise.progress != null || programExercise.progress != null) {
       if (
         programExercise.progress == null ||
         programExercise.progress.type !== reuseExercise.progress?.type ||
@@ -80,7 +80,7 @@ export class ProgramToPlanner {
         dereuseDecisions.add("progress");
       }
     }
-    if (reuseExercise.update != null || programExercise.update?.reuse != null) {
+    if (reuseExercise.update != null || programExercise.update != null) {
       if (
         programExercise.update == null ||
         (programExercise.update.reuse
