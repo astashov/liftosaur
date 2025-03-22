@@ -550,6 +550,20 @@ Bench Press / ...Squat / 3x11 / 30lb / progress: dp(3lb, 8, 12)
 `);
   });
 
+  it("keeps customized warmups", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x4-6 / 80% @8+ 180s / warmup: 2x10 50%, 1x4 70%`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[6, 6, 6]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 3x4-6 / 80% @8+ 180s / warmup: 2x10 50%, 1x4 70%
+
+
+`);
+  });
+
   it("keeps overridden update", () => {
     const programText = `# Week 1
 ## Day 1

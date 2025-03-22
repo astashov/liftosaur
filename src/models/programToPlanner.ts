@@ -569,7 +569,7 @@ export class ProgramToPlanner {
       if (lastKey == null || lastKey !== key) {
         groups.push([set, 0]);
       }
-      groups[groups.length - 1][1] += 1;
+      groups[groups.length - 1][1] += set.numberOfSets;
       lastKey = key;
     }
     return groups;
