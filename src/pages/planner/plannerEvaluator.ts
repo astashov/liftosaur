@@ -435,7 +435,7 @@ export class PlannerEvaluator {
       if (result != null) {
         const { descriptions, exercise: originalExercise } = result;
         exercise.descriptions = {
-          ...ObjectUtils.clone(descriptions),
+          values: [...ObjectUtils.clone(descriptions.values)],
           reuse: { fullName: originalExercise.fullName, exercise: originalExercise },
         };
       }
