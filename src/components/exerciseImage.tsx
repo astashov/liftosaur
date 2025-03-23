@@ -9,6 +9,7 @@ import { Exercise } from "../models/exercise";
 interface IProps {
   exerciseType: IExerciseType;
   size: "large" | "small";
+  suppressCustom?: boolean;
   settings?: ISettings;
   className?: string;
 }
@@ -45,7 +46,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
   const src = ExerciseImageUtils.url(exerciseType, size, props.settings);
   const doesExist =
     ExerciseImageUtils.exists(exerciseType, size) ||
-    ExerciseImageUtils.existsCustom(exerciseType, size, props.settings);
+    (!props.suppressCustom && ExerciseImageUtils.existsCustom(exerciseType, size, props.settings));
 
   if (size === "small") {
     return (

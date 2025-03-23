@@ -177,7 +177,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
           <div className={`mx-4 pb-4 ${i > 0 ? "pt-2 border-t border-grayv2-100" : ""}`}>
             <div className={`flex items-stretch pl-1`} style={{ paddingRight: "1px" }} key={Exercise.toKey(exercise)}>
               <div className="flex items-center w-12 pr-2">
-                <ExerciseImage exerciseType={exercise} size="small" settings={props.settings} />
+                <ExerciseImage suppressCustom={true} exerciseType={exercise} size="small" settings={props.settings} />
               </div>
               <div className={`flex-1 flex flex-col justify-center`}>
                 <div className={`flex gap-2 items-center w-full`}>

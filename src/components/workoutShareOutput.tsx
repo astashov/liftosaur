@@ -62,6 +62,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
                 <ExerciseImage
                   size="small"
                   className="object-contain w-full h-full"
+                  suppressCustom={true}
                   exerciseType={exercise}
                   settings={settings}
                 />
