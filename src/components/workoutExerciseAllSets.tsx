@@ -10,6 +10,7 @@ import { IconPlus2 } from "./icons/iconPlus2";
 import { Tailwind } from "../utils/tailwindConfig";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
+import { Equipment } from "../models/equipment";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -30,6 +31,7 @@ interface IWorkoutExerciseAllSets {
 export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Element {
   const buttonBgColor = WorkoutExerciseUtils.getBgColor100(props.sets);
   const nextSetIndex = [...props.warmupSets, ...props.sets].findIndex((s) => !Reps.isFinishedSet(s));
+  const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
 
   return (
     <div>
@@ -40,7 +42,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             <div className="table-cell pb-1 font-normal text-left border-b border-grayv3-100">Target</div>
             <div className="table-cell pb-1 font-normal text-center border-b border-grayv3-100">Reps</div>
             <div className="table-cell pb-1 border-b border-grayv3-100"></div>
-            <div className="table-cell pb-1 font-normal text-center border-b border-grayv3-100">lb</div>
+            <div className="table-cell pb-1 font-normal text-center border-b border-grayv3-100">{exerciseUnit}</div>
             <div className="table-cell pb-1 pr-4 border-b border-grayv3-100"></div>
           </div>
         </div>

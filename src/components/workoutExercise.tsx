@@ -114,7 +114,11 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
             </div>
             <div className="flex-1 min-w-0 mt-2 ml-auto">
               <div>
-                <button className="text-left nm-workout-exercise-name" data-cy="exercise-name">
+                <button
+                  className="text-left nm-workout-exercise-name"
+                  data-cy="exercise-name"
+                  onClick={() => props.dispatch(Thunk.pushExerciseStatsScreen(props.entry.exercise))}
+                >
                   <span className="pr-1 text-lg font-bold">{Exercise.nameWithEquipment(exercise, props.settings)}</span>{" "}
                   <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
                 </button>

@@ -12,7 +12,7 @@ interface IProps {
 
 export function ScreenUnitSelector(props: IProps): JSX.Element {
   return (
-    <section className="flex flex-col items-center justify-center h-full text-blackv2">
+    <section className="flex flex-col items-center justify-center h-screen text-blackv2">
       <div className="box-content flex items-center max-w-sm px-16 py-8">
         <div className="flex-1 text-center">
           <h1 className="pb-6 text-xl">

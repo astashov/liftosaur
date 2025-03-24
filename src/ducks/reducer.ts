@@ -480,8 +480,14 @@ export function buildCardsReducer(
       }
       case "ChangeAMRAPAction": {
         let newProgress = { ...progress };
+        if (action.amrapValue != null) {
+          newProgress = Progress.updateAmrapRepsInExercise(newProgress, action.amrapValue);
+        }
         if (action.logRpe) {
           newProgress = Progress.updateRpeInExercise(newProgress, action.rpeValue);
+        }
+        if (action.weightValue != null) {
+          newProgress = Progress.updateWeightInExercise(newProgress, action.weightValue);
         }
         const programExerciseId = action.programExercise?.key;
         if (ObjectUtils.keys(action.userVars || {}).length > 0 && programExerciseId != null) {

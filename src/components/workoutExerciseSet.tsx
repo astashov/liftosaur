@@ -42,9 +42,6 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const placeholderReps = `${set.minReps != null ? `${set.minReps}-` : ""}${set.reps != null ? set.reps : ""}${set.reps != null && set.isAmrap ? "+" : ""}`;
   const placeholderWeight = set.weight?.value != null ? `${set.weight.value}${set.askWeight ? "+" : ""}` : undefined;
   const completedRpeValue = set.logRpe && set.completedRpe != null ? set.completedRpe : undefined;
-  const isCompletable =
-    (set.completedReps != null || (set.reps != null && !set.isAmrap)) &&
-    (set.completedWeight != null || (set.weight != null && !set.askWeight));
   const isMobile = Mobile.isMobile(navigator.userAgent);
   const borderClass = ` border-b ${WorkoutExerciseUtils.getBorderColor100([set])} `;
   const hasEdit = props.type === "workout" && props.programExercise != null;
@@ -68,7 +65,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
           onPointerMove={!isMobile ? onPointerMove : undefined}
           onPointerUp={!isMobile ? onPointerUp : undefined}
         >
-          <div className={`${borderClass} table-cell py-1 px-2`}>
+          <div className={`${borderClass} table-cell py-1 px-2 align-middle`}>
             <div
               className={`w-6 h-6 flex items-center justify-center rounded-full${
                 props.isNext ? " bg-purplev3-main text-white font-bold" : ""
@@ -77,7 +74,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
               <div>{props.setIndex + 1}</div>
             </div>
           </div>
-          <div className={`${borderClass} table-cell w-full`}>
+          <div className={`${borderClass} table-cell w-full align-middle`}>
             {props.type === "warmup" ? (
               <span className="text-xs text-grayv3-main">Warmup</span>
             ) : props.isCurrentProgress && props.programExercise == null ? (
@@ -86,7 +83,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
               <WorkoutExerciseSetTarget set={set} />
             )}
           </div>
-          <div className={`${borderClass} table-cell py-2`}>
+          <div className={`${borderClass} table-cell py-2 align-middle`}>
             <div className="flex justify-center text-center">
               <InputNumber2
                 tabIndex={
@@ -96,7 +93,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   1 +
                   (props.type === "warmup" ? 0 : 100)
                 }
-                width={2.5}
+                width={3.5}
                 name="input-set-reps"
                 onBlur={(value) => {
                   updateProgress(props.dispatch, [
@@ -115,8 +112,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
               />
             </div>
           </div>
-          <div className={`${borderClass} table-cell py-2 text-center px-1`}>×</div>
-          <div className={`${borderClass} table-cell py-2`}>
+          <div className={`${borderClass} table-cell py-2 text-center px-1 align-middle`}>×</div>
+          <div className={`${borderClass} table-cell py-2 align-middle`}>
             <div className="flex items-center justify-start text-center">
               <InputWeight2
                 tabIndex={
@@ -166,7 +163,6 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
           <div className={`${borderClass} relative table-cell pr-4 pl-1 text-right align-middle`}>
             <div className="flex items-center justify-end">
               <button
-                disabled={!isCompletable}
                 tabIndex={
                   props.day * 10000 +
                   props.entryIndex * 100 +
@@ -174,7 +170,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   3 +
                   (props.type === "warmup" ? 0 : 100)
                 }
-                className="p-2 nm-workout-exercise-set-complete"
+                className="px-4 py-3 nm-workout-exercise-set-complete"
                 style={{ marginRight: "-0.5rem" }}
                 onClick={() => {
                   props.dispatch({
@@ -188,14 +184,9 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 }}
               >
                 <IconCheckCircle
+                  size={24}
                   isChecked={true}
-                  color={
-                    set.isCompleted
-                      ? Tailwind.colors().purplev3.main
-                      : isCompletable
-                        ? Tailwind.colors().grayv3[400]
-                        : Tailwind.colors().grayv3[100]
-                  }
+                  color={set.isCompleted ? Tailwind.colors().purplev3.main : Tailwind.colors().grayv3[400]}
                 />
               </button>
             </div>

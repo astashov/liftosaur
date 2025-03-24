@@ -298,7 +298,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       >
         <div ref={inputRef}>
           {!value && !isFocused && props.placeholder ? (
-            <span className="text-sm text-grayv3-300">{props.placeholder}</span>
+            <span className="text-sm text-grayv3-300 text-ellipsis whitespace-nowrap">{props.placeholder}</span>
           ) : (
             <span
               className={`text-sm inline-block ${isFocused && !isTyping ? "bg-bluev3-300" : ""}`}

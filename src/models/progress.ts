@@ -741,6 +741,8 @@ export namespace Progress {
     const set = entry.sets[setIndex];
     const shouldLogRpe = !!set.logRpe;
     const shouldPromptUserVars = hasUserPromptedVars && Progress.hasLastUnfinishedSet(entry);
+    const isAmrap = !!set.isAmrap;
+    const shouldAskWeight = !!set.askWeight;
     if (mode === "warmup") {
       return lf(progress)
         .p("entries")
@@ -756,13 +758,15 @@ export namespace Progress {
             isCompleted: !progressSet.isCompleted,
           };
         });
-    } else if (!set.isCompleted && (shouldLogRpe || shouldPromptUserVars)) {
+    } else if (!set.isCompleted && (shouldLogRpe || shouldPromptUserVars || isAmrap || shouldAskWeight)) {
       const amrapUi: IProgressUi = {
         amrapModal: {
           entryIndex,
           setIndex,
           logRpe: shouldLogRpe,
           userVars: shouldPromptUserVars,
+          isAmrap: isAmrap,
+          askWeight: shouldAskWeight,
         },
       };
       return { ...progress, ui: { ...progress.ui, ...amrapUi } };
@@ -779,34 +783,10 @@ export namespace Progress {
     return sets.some((set) => set.minReps != null);
   }
 
-  export function updateAmrapRepsInExercise(
-    progress: IHistoryRecord,
-    value?: number,
-    isAmrap?: boolean
-  ): IHistoryRecord {
+  export function updateAmrapRepsInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
     if (progress.ui?.amrapModal != null) {
       const { entryIndex, setIndex } = progress.ui.amrapModal;
-      return {
-        ...progress,
-        entries: progress.entries.map((progressEntry, i) => {
-          if (i === entryIndex) {
-            const sets = [...progressEntry.sets];
-            const set = sets[setIndex];
-            if (isAmrap) {
-              if (value == null) {
-                sets[setIndex] = { ...set, completedReps: undefined };
-              } else {
-                sets[setIndex] = { ...set, completedReps: value };
-              }
-            } else {
-              sets[setIndex] = { ...set, completedReps: set.reps };
-            }
-            return { ...progressEntry, sets: sets };
-          } else {
-            return progressEntry;
-          }
-        }),
-      };
+      return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedReps").set(value);
     } else {
       return progress;
     }
@@ -815,24 +795,8 @@ export namespace Progress {
   export function updateRpeInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
     if (progress.ui?.amrapModal != null) {
       const { entryIndex, setIndex } = progress.ui.amrapModal;
-      return {
-        ...progress,
-        entries: progress.entries.map((progressEntry, i) => {
-          if (i === entryIndex) {
-            const sets = [...progressEntry.sets];
-            const set = sets[setIndex];
-            if (value == null) {
-              sets[setIndex] = { ...set, completedRpe: undefined };
-            } else if (typeof value === "number") {
-              value = Math.round(Math.min(10, Math.max(0, value)) / 0.5) * 0.5;
-              sets[setIndex] = { ...set, completedRpe: value };
-            }
-            return { ...progressEntry, sets: sets };
-          } else {
-            return progressEntry;
-          }
-        }),
-      };
+      const newValue = value != null ? Math.round(Math.min(10, Math.max(0, value)) / 0.5) * 0.5 : undefined;
+      return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedRpe").set(newValue);
     } else {
       return progress;
     }
@@ -841,21 +805,7 @@ export namespace Progress {
   export function updateWeightInExercise(progress: IHistoryRecord, value?: IWeight): IHistoryRecord {
     if (progress.ui?.amrapModal != null) {
       const { entryIndex, setIndex } = progress.ui.amrapModal;
-      return {
-        ...progress,
-        entries: progress.entries.map((progressEntry, i) => {
-          if (i === entryIndex) {
-            const sets = [...progressEntry.sets];
-            const set = sets[setIndex];
-            if (value != null) {
-              sets[setIndex] = { ...set, weight: value };
-            }
-            return { ...progressEntry, sets: sets };
-          } else {
-            return progressEntry;
-          }
-        }),
-      };
+      return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedWeight").set(value);
     } else {
       return progress;
     }

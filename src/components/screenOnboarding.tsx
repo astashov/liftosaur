@@ -51,7 +51,7 @@ export function ScreenOnboarding(props: IProps): JSX.Element {
   }, []);
 
   return (
-    <section className="flex flex-col h-full text-blackv2">
+    <section className="flex flex-col h-screen text-blackv2">
       <div className="flex-1">
         <div
           ref={screensRef}
