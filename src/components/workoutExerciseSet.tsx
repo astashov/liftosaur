@@ -57,6 +57,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
       {({ onPointerDown, onPointerMove, onPointerUp, style, close }) => (
         <div
           className={`will-change-transform relative table-row ${WorkoutExerciseUtils.getBgColor50([set])}`}
+          data-cy={getDataCy(set)}
           style={style}
           onTouchStart={isMobile ? onPointerDown : undefined}
           onTouchMove={isMobile ? onPointerMove : undefined}
@@ -94,6 +95,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   (props.type === "warmup" ? 0 : 100)
                 }
                 width={3.5}
+                data-cy="reps-value"
                 name="input-set-reps"
                 onBlur={(value) => {
                   updateProgress(props.dispatch, [
@@ -125,6 +127,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 }
                 name="input-set-weight"
                 exerciseType={props.exerciseType}
+                data-cy="weight-value"
                 onBlur={(value) => {
                   if (value == null || value.unit !== "%") {
                     updateProgress(props.dispatch, [
@@ -171,6 +174,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   (props.type === "warmup" ? 0 : 100)
                 }
                 className="px-4 py-3 nm-workout-exercise-set-complete"
+                data-cy="complete-set"
                 style={{ marginRight: "-0.5rem" }}
                 onClick={() => {
                   props.dispatch({
@@ -215,6 +219,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 </button>
               )}
               <button
+                data-cy="delete-edit-exercise"
                 tabIndex={-1}
                 onClick={() => {
                   close();
@@ -312,4 +317,30 @@ function RpeWeightHint(props: IRpeWeightHintProps): JSX.Element {
       <span>{weight.unit}</span>
     </div>
   );
+}
+
+function getDataCy(set: ISet): string {
+  if (set.isAmrap) {
+    if (!set.isCompleted || !set.completedReps) {
+      return "set-amrap-nonstarted";
+    } else if (set.minReps != null && set.completedReps < set.minReps) {
+      return "set-amrap-incompleted";
+    } else if (set.minReps != null && set.completedReps < set.reps) {
+      return "set-amrap-in-range";
+    } else if (set.completedReps < set.reps) {
+      return "set-amrap-incompleted";
+    } else {
+      return "set-amrap-completed";
+    }
+  } else if (set.completedReps == null || !set.isCompleted) {
+    return "set-nonstarted";
+  } else {
+    if (set.completedReps >= set.reps) {
+      return "set-completed";
+    } else if (set.minReps != null && set.completedReps >= set.minReps) {
+      return "set-in-range";
+    } else {
+      return "set-incompleted";
+    }
+  }
 }

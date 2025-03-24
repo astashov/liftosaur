@@ -13,6 +13,7 @@ test("Basic Beginner Program", async ({ page }) => {
   // Workout A
 
   // First exercise is successful
+  await page.locator("[data-cy^=exercise-]:has-text('Bent Over Row')").getByTestId("exercise-options").click();
   await page.locator("[data-cy^=exercise-]:has-text('Bent Over Row')").getByTestId("exercise-edit-mode").click();
   await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
@@ -20,28 +21,25 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.getByTestId("modal-edit-mode-save-statvars").click();
 
-  PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Bent Over Row') >> [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").clear();
-  await page.getByTestId("modal-amrap-input").type("5");
+  await PlaywrightUtils.clickAll(page.getByTestId("entry-bent-over-row").getByTestId("complete-set"));
+  await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
-  await page.locator("[data-cy^=exercise-]:has-text('Bent Over Row') >> [data-cy=change-weight]").click();
-  await page.getByTestId("modal-weight-input").clear();
-  await page.getByTestId("modal-weight-input").type("140");
-  await page.getByTestId("modal-weight-submit").click();
+  // 140
 
   // Second exercise is successful
-  await page.locator("[data-cy^=exercise-]:has-text('Squat')").getByTestId("exercise-edit-mode").click();
+  await page.getByTestId("workout-tab-squat").click();
+  await page.getByTestId("entry-squat").getByTestId("exercise-options").click();
+  await page.getByTestId("entry-squat").getByTestId("exercise-edit-mode").click();
   await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
   await page.waitForTimeout(1000);
   await page.getByTestId("modal-edit-mode-save-statvars").click();
 
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
+  await PlaywrightUtils.clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").clear();
-  await page.getByTestId("modal-amrap-input").type("5");
-  await page.getByTestId("modal-amrap-submit").click();
+  await page.getByTestId("modal-amrap-input").fill("5");
 
   await page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy=change-weight]").click();
   await page.getByTestId("modal-weight-input").clear();

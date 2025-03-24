@@ -348,7 +348,7 @@ export class ProgramToPlanner {
       }
     });
     const newPlanner = PlannerProgram.compact(this.program.planner, result, this.settings, repeatingExercises);
-    console.log(PlannerProgram.generateFullText(newPlanner.weeks));
+    // console.log(PlannerProgram.generateFullText(newPlanner.weeks));
     return newPlanner;
   }
 

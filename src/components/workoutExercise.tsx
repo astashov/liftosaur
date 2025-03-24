@@ -36,6 +36,7 @@ import { ExerciseHistory } from "./exerciseHistory";
 import { ProgressStateChanges } from "./progressStateChanges";
 import { TextareaAutogrow } from "./textareaAutogrow";
 import { Progress } from "../models/progress";
+import { StringUtils } from "../utils/string";
 
 interface IWorkoutExerciseProps {
   day: number;
@@ -99,8 +100,9 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
 
   return (
-    <div>
+    <div data-cy="exercise-progress">
       <section
+        data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}
         className={`py-1 border rounded-xl ${WorkoutExerciseUtils.getBgColor50(
           props.entry.sets
         )} ${WorkoutExerciseUtils.getBorderColor100(props.entry.sets)}`}
@@ -156,6 +158,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
             </div>
             <div className="relative">
               <button
+                data-cy="exercise-options"
                 className="p-2 nm-exercise-options"
                 style={{ marginRight: "-0.75rem" }}
                 onClick={() => setIsKebabMenuOpen(true)}
@@ -165,7 +168,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
               {isKebabMenuOpen && (
                 <DropdownMenu rightOffset="1.5rem" onClose={() => setIsKebabMenuOpen(false)}>
                   <DropdownMenuItem
-                    data-cy="edit-exercise-kebab-add-note"
+                    data-cy="exercise-notes-toggle"
                     isTop={true}
                     onClick={() => {
                       setShowNotes(!showNotes);
@@ -181,7 +184,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
                   </DropdownMenuItem>
                   {programExercise && programExerciseId && (
                     <DropdownMenuItem
-                      data-cy="edit-exercise-kebab-edit-exercise"
+                      data-cy="exercise-edit-mode"
                       onClick={() => {
                         setIsKebabMenuOpen(false);
                         updateProgress(props.dispatch, [
@@ -201,7 +204,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem
-                    data-cy="edit-exercise-kebab-swap-exercise"
+                    data-cy="exercise-swap"
                     onClick={() => {
                       setIsKebabMenuOpen(false);
                       updateProgress(props.dispatch, [

@@ -9,6 +9,7 @@ import { IHistoryEntry, IHistoryRecord, ISettings } from "../types";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
 import { ExerciseImage } from "./exerciseImage";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
+import { StringUtils } from "../utils/string";
 
 interface IWorkoutExerciseThumbnailProps {
   progress: IHistoryRecord;
@@ -33,6 +34,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
     <button
       className={`cursor-pointer border ${borderColor} rounded-lg w-12 h-12 relative box-content`}
       style={{ borderWidth: isCurrent ? "2px" : "1px", padding: isCurrent ? "1px" : "2px", flex: "0 0 auto" }}
+      data-cy={`workout-tab-${StringUtils.dashcase(exercise.name)}`}
       onClick={() => {
         updateProgress(props.dispatch, [lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex)]);
       }}

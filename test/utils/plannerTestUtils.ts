@@ -54,6 +54,8 @@ export class PlannerTestUtils {
         const completedReps = completed.completedReps?.[entryIndex]?.[setIndex];
         if (set != null && completedReps != null) {
           set.completedReps = completedReps;
+          set.completedWeight = set.weight;
+          set.isCompleted = true;
         }
       }
     }
