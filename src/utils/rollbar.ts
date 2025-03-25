@@ -81,6 +81,7 @@ export namespace RollbarUtils {
 
   export function config(payload?: object): RB.Configuration {
     return {
+      enabled: __ENV__ === "production" || __ENV__ === "prod-lambda" || __ENV__ === "android",
       payload: {
         environment: __ENV__,
         client: {
