@@ -84,7 +84,7 @@ export function EditProgramUiDescriptions(props: IEditProgramUiDescriptionsProps
                 CURRENT
               </div>
             )}
-          <Markdown value={description} />
+          <Markdown className="text-sm" value={description} />
         </div>
       </div>
     </div>

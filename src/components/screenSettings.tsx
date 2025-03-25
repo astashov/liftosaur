@@ -372,6 +372,34 @@ export function ScreenSettings(props: IProps): JSX.Element {
             )}
           </>
         )}
+        <MenuItemWrapper name="text-size">
+          <div className="flex items-center py-2">
+            <div className="mr-2">
+              <span className="text-xs">A</span>
+              <span className="text-lg">A</span>
+            </div>
+            <div className="flex flex-1 leading-none">
+              <input
+                type="range"
+                className="w-full"
+                min="12"
+                max="20"
+                step="2"
+                value={props.settings.textSize ?? "16"}
+                onChange={(e) => {
+                  const valueStr = e.currentTarget.value;
+                  const value = valueStr != null ? parseInt(valueStr) : undefined;
+                  if (value != null && !isNaN(value)) {
+                    props.dispatch({
+                      type: "UpdateSettings",
+                      lensRecording: lb<ISettings>().p("textSize").record(value),
+                    });
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </MenuItemWrapper>
 
         <GroupHeader name="Import / Export" topPadding={true} />
         <div className="ls-export-data">

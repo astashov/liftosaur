@@ -39,7 +39,7 @@ export function EditProgramUiProgressReuse(props: IEditProgramUiProgressReusePro
 
   return (
     <div>
-      <span className="mr-2">Reuse progress from:</span>
+      <span className="mr-2 text-sm">Reuse progress from:</span>
       <select
         data-cy="edit-exercise-reuse-progress-select"
         onChange={(event) => {

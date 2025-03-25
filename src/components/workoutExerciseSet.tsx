@@ -246,7 +246,7 @@ function WorkoutExerciseSetTarget(props: { set: ISet }): JSX.Element {
   const set = props.set;
   const isDiffWeight = set.weight && set.originalWeight && !Weight.eq(set.weight, set.originalWeight);
   return (
-    <div className="inline-block align-middle">
+    <div className="inline-block text-sm align-middle">
       {set.label ? <div className="text-xs text-grayv3-main">{set.label}</div> : null}
       <div>
         <span className="font-semibold" style={{ color: "#940" }}>

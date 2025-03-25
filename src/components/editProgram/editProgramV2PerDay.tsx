@@ -28,7 +28,7 @@ export function EditProgramV2PerDay(props: IPlannerContentPerDayProps): JSX.Elem
   return (
     <div>
       {props.ui.subscreen !== "weeks" && (
-        <div className="flex items-center px-4">
+        <div className="flex items-center px-4 text-sm">
           <div>
             <LinkButton
               name="planner-edit-weeks"

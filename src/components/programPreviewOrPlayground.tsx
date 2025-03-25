@@ -63,7 +63,7 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
         )}
       </div>
       {isPlayground && (
-        <div className="py-2 mx-4">
+        <div className="py-2 mx-4 text-sm">
           Playground mode emulates the workout, you can complete sets by tapping on squares below, and see how the
           program logic works. Some programs may do nothing, some may update the weights, some may switch to different
           set schemes. You can adjust your weights and other variables by clicking on the{" "}

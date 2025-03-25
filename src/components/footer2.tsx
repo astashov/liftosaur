@@ -85,7 +85,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               </button>
               <div
                 className={Screen.tab(screen) === "workout" ? "text-purplev2-700" : ""}
-                style={{ fontSize: "10px", paddingTop: "30px" }}
+                style={{ fontSize: "0.625rem", paddingTop: "30px" }}
               >
                 Workout
               </div>
@@ -106,10 +106,10 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                 const color = isActive
                   ? undefined
                   : props.navCommon.userId
-                  ? Tailwind.colors().greenv3[600]
-                  : isUserLoading
-                  ? Tailwind.colors().grayv3.main
-                  : Tailwind.colors().redv3[600];
+                    ? Tailwind.colors().greenv3[600]
+                    : isUserLoading
+                      ? Tailwind.colors().grayv3.main
+                      : Tailwind.colors().redv3[600];
                 return <IconMe isSelected={isActive} color={color} />;
               }}
               text="Me"

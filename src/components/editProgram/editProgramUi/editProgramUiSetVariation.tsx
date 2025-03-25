@@ -256,7 +256,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
       </div>
       {showLabel && (
         <label className="flex items-center">
-          <span className="mr-2">Label:</span>
+          <span className="mr-2 text-sm">Label:</span>
           <input
             className="w-full p-1 text-sm text-center border rounded border-grayv2-200"
             maxLength={8}

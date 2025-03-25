@@ -291,7 +291,7 @@ function ExercisePreview(props: { exerciseKey: string; settings: ISettings }): J
 function StatsPreview(props: { stats: IStatsKey }): JSX.Element {
   return (
     <Fragment>
-      <div className="flex items-center flex-1 py-3 text-left">{Stats.name(props.stats)}</div>
+      <div className="flex items-center flex-1 py-3 text-sm text-left">{Stats.name(props.stats)}</div>
     </Fragment>
   );
 }
@@ -299,7 +299,7 @@ function StatsPreview(props: { stats: IStatsKey }): JSX.Element {
 function MuscleGroupPreview(props: { muscleGroup: string }): JSX.Element {
   return (
     <Fragment>
-      <div className="flex items-center flex-1 py-3 text-left">
+      <div className="flex items-center flex-1 py-3 text-sm text-left">
         {StringUtils.capitalize(props.muscleGroup)} Weekly Volume
       </div>
     </Fragment>

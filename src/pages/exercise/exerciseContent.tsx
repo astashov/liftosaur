@@ -234,113 +234,111 @@ const ExerciseListWrapper = forwardRef(
   }
 );
 
-const ExercisesList = forwardRef(
-  (props: IExercisesListProps, ref: Ref<HTMLDivElement>): JSX.Element => {
-    const { setFilterTypes, filterTypes } = props;
-    const textInput = useRef<HTMLInputElement>(null);
-    const [filter, setFilter] = useState<string>("");
-    const [length, setLength] = useState<number | undefined>(20);
-    const settings = Settings.build();
-    const exercises = Exercise.filterExercisesByNameAndType(
-      settings,
-      filter,
-      filterTypes,
-      props.isSubstitute,
-      props.exercise,
-      length
-    );
-    useEffect(() => {
-      setLength(undefined);
-    }, []);
+const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivElement>): JSX.Element => {
+  const { setFilterTypes, filterTypes } = props;
+  const textInput = useRef<HTMLInputElement>(null);
+  const [filter, setFilter] = useState<string>("");
+  const [length, setLength] = useState<number | undefined>(20);
+  const settings = Settings.build();
+  const exercises = Exercise.filterExercisesByNameAndType(
+    settings,
+    filter,
+    filterTypes,
+    props.isSubstitute,
+    props.exercise,
+    length
+  );
+  useEffect(() => {
+    setLength(undefined);
+  }, []);
 
-    const filterOptions = [
-      ...equipments.map((e) => equipmentName(e)),
-      ...exerciseKinds.map(StringUtils.capitalize),
-      ...screenMuscles.map(StringUtils.capitalize),
-    ];
+  const filterOptions = [
+    ...equipments.map((e) => equipmentName(e)),
+    ...exerciseKinds.map(StringUtils.capitalize),
+    ...screenMuscles.map(StringUtils.capitalize),
+  ];
 
-    const selectedOptions = new Set(
-      filterOptions.filter((ft) => filterTypes.map((t) => t.toLowerCase()).indexOf(ft.toLowerCase()) !== -1)
-    );
+  const selectedOptions = new Set(
+    filterOptions.filter((ft) => filterTypes.map((t) => t.toLowerCase()).indexOf(ft.toLowerCase()) !== -1)
+  );
 
-    return (
-      <div className="h-full pb-8">
-        <form data-cy="exercises-list" onSubmit={(e) => e.preventDefault()}>
-          <input
-            ref={textInput}
-            className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-            type="text"
-            value={filter}
-            placeholder="Filter by name"
-            onInput={() => {
-              setFilter(textInput.current.value.toLowerCase());
-            }}
-          />
-          <Multiselect
-            id="filtertypes"
-            key={Array.from(selectedOptions).join(",")}
-            label=""
-            placeholder="Filter by type"
-            values={filterOptions}
-            initialSelectedValues={selectedOptions}
-            onChange={(ft) => {
-              const newFilterTypes = Array.from(ft);
-              setFilterTypes(newFilterTypes);
-              window.history.pushState(
-                {
-                  exerciseType: props.exercise,
-                  filterTypes: newFilterTypes,
-                },
-                "",
-                buildExerciseUrl(props.exercise, newFilterTypes)
-              );
-            }}
-          />
-        </form>
-
-        {props.isSubstitute && (
-          <div className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
-            <GroupHeader name="Current" />
-            <ExerciseItem
-              showMuscles={props.isSubstitute}
-              settings={settings}
-              exercise={props.exercise}
-              equipment={props.exercise.equipment}
-            />
-          </div>
-        )}
-
-        <div ref={props.insideModal ? undefined : ref} className={`${props.insideModal ? "" : "h-0"} overflow-y-auto`}>
-          {exercises.map((exercise) => {
-            const key = Exercise.toKey(exercise);
-            const currentKey = Exercise.toKey(props.exercise);
-            return (
-              <a
-                href={buildExerciseUrl(exercise, filterTypes)}
-                className={`block px-2 rounded-lg hover:bg-grayv2-100 border ${
-                  key === currentKey ? "bg-orange-100 border-orange-200" : "border-transparent"
-                }`}
-                key={key}
-                onClick={(e) => {
-                  e.preventDefault();
-                  props.onChange(exercise);
-                }}
-              >
-                <ExerciseItem
-                  exercise={exercise}
-                  settings={settings}
-                  showMuscles={props.isSubstitute}
-                  currentExerciseType={props.exercise}
-                  equipment={exercise.equipment}
-                />
-              </a>
+  return (
+    <div className="h-full pb-8">
+      <form data-cy="exercises-list" onSubmit={(e) => e.preventDefault()}>
+        <input
+          ref={textInput}
+          className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          type="text"
+          value={filter}
+          placeholder="Filter by name"
+          onInput={() => {
+            setFilter(textInput.current.value.toLowerCase());
+          }}
+        />
+        <Multiselect
+          id="filtertypes"
+          key={Array.from(selectedOptions).join(",")}
+          label=""
+          placeholder="Filter by type"
+          values={filterOptions}
+          initialSelectedValues={selectedOptions}
+          onChange={(ft) => {
+            const newFilterTypes = Array.from(ft);
+            setFilterTypes(newFilterTypes);
+            window.history.pushState(
+              {
+                exerciseType: props.exercise,
+                filterTypes: newFilterTypes,
+              },
+              "",
+              buildExerciseUrl(props.exercise, newFilterTypes)
             );
-          })}
+          }}
+        />
+      </form>
+
+      {props.isSubstitute && (
+        <div className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
+          <GroupHeader name="Current" />
+          <ExerciseItem
+            showMuscles={props.isSubstitute}
+            settings={settings}
+            exercise={props.exercise}
+            equipment={props.exercise.equipment}
+          />
         </div>
+      )}
+
+      <div ref={props.insideModal ? undefined : ref} className={`${props.insideModal ? "" : "h-0"} overflow-y-auto`}>
+        {exercises.map((exercise) => {
+          const key = Exercise.toKey(exercise);
+          const currentKey = Exercise.toKey(props.exercise);
+          return (
+            <a
+              href={buildExerciseUrl(exercise, filterTypes)}
+              className={`block px-2 rounded-lg hover:bg-grayv2-100 border ${
+                key === currentKey ? "bg-orange-100 border-orange-200" : "border-transparent"
+              }`}
+              key={key}
+              onClick={(e) => {
+                e.preventDefault();
+                props.onChange(exercise);
+              }}
+            >
+              <ExerciseItem
+                exercise={exercise}
+                settings={settings}
+                showMuscles={props.isSubstitute}
+                currentExerciseType={props.exercise}
+                equipment={exercise.equipment}
+              />
+            </a>
+          );
+        })}
       </div>
-    );
-  }
-);
+    </div>
+  );
+});
 
 interface IMuscleGroupItemProps {
   type: string;

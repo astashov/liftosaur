@@ -81,7 +81,7 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
               <h2 class="text-lg font-semibold">
                 {month.toLocaleString("default", { month: "long", year: "numeric" })}
               </h2>
-              <div>
+              <div className="text-sm">
                 <span>
                   {numberOfWorkouts} {StringUtils.pluralize("workout", numberOfWorkouts)}
                 </span>
@@ -115,8 +115,8 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
                           isWorkout
                             ? "text-white bg-redv3-500 cursor-pointer"
                             : date > new Date()
-                            ? "text-grayv3-400"
-                            : "text-blackv2 cursor-pointer "
+                              ? "text-grayv3-400"
+                              : "text-blackv2 cursor-pointer "
                         } ${yyyymmdd === today ? "border border-purplev3-500 font-bold" : ""}`}
                       >
                         {day}

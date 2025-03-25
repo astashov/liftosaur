@@ -78,7 +78,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
               Week Insights
             </span>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto text-sm">
             <LinkButton name="toggle-week-insights" onClick={() => setIsExpanded(!isExpanded)}>
               {isExpanded ? "Show Less" : "Show More"}
             </LinkButton>

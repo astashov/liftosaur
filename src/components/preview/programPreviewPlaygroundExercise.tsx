@@ -123,7 +123,7 @@ function ProgramPreviewHistoryRecordSets(props: IProgramPreviewHistoryRecordSets
       </div>
       {description && (
         <div className="mt-1">
-          <Markdown value={description} />
+          <Markdown className="text-sm" value={description} />
         </div>
       )}
     </div>
@@ -177,7 +177,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
         </div>
         {description && (
           <div className="mx-4 mt-1">
-            <Markdown value={description} />
+            <Markdown className="text-sm" value={description} />
           </div>
         )}
         <section className="mt-1">

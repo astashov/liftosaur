@@ -173,7 +173,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
               children: (
                 <div key={weekIndex}>
                   {!showProgramDescription ? (
-                    <div>
+                    <div className="text-sm">
                       <LinkButton
                         name="planner-add-week-description"
                         onClick={() => {

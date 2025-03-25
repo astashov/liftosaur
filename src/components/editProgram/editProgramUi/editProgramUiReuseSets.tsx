@@ -59,12 +59,12 @@ export function EditProgramUiReuseSets(props: IEditProgramUiReuseSetsProps): JSX
   const isMultipleSetVariations = plannerExercise.setVariations.length > 1;
 
   return (
-    <div>
+    <div className="text-sm">
       {isMultipleSetVariations && (
         <span className="text-xs text-grayv2-main">Cannot reuse sets with set variations enabled</span>
       )}
       <div className={isMultipleSetVariations ? "opacity-50" : ""}>
-        <span className="mr-2">Reuse sets from:</span>
+        <span className="mr-2 text-sm">Reuse sets from:</span>
         <select
           disabled={isMultipleSetVariations}
           data-cy="edit-exercise-reuse-sets-select"

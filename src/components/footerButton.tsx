@@ -21,7 +21,10 @@ export function FooterButton(props: IProps): JSX.Element {
       onClick={props.onClick}
     >
       {props.icon(isActive)}
-      <div style={{ fontSize: "10px" }} className={`pt-1 ${isActive ? "text-purplev2-main" : ""}`}>
+      <div
+        style={{ fontSize: "0.625rem" }}
+        className={`pt-1 whitespace-nowrap text-ellipsis ${isActive ? "text-purplev2-main" : ""}`}
+      >
         {props.text}
       </div>
     </button>

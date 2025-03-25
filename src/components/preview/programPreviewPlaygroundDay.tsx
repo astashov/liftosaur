@@ -62,7 +62,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
       </h3>
       {programDay.description && (
         <div className="mx-4">
-          <Markdown value={programDay.description} />
+          <Markdown className="text-sm" value={programDay.description} />
         </div>
       )}
       <div className="mb-2">

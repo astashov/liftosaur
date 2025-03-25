@@ -280,7 +280,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
       )}
       {showLabel && (
         <label className="flex items-center mb-2">
-          <span className="mr-2">Label:</span>
+          <span className="mr-2 text-sm">Label:</span>
           <input
             data-cy="edit-exercise-label"
             className="w-full p-1 text-sm text-left border rounded border-grayv2-200"
@@ -299,7 +299,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
       )}
       {showRepeat && (
         <label className="flex items-center mb-2">
-          <span className="mr-2">Repeat from week {repeatFrom} to week: </span>
+          <span className="mr-2 text-sm">Repeat from week {repeatFrom} to week: </span>
           <select
             value={repeatTo}
             data-cy="edit-exercise-repeat"
@@ -337,7 +337,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
       )}
       {showOrder && (
         <div className="flex items-center mb-2">
-          <span className="mr-2">Forced order: </span>
+          <span className="mr-2 text-sm">Forced order: </span>
           <NumInput
             name="edit-exercise-order"
             value={plannerExercise.order}

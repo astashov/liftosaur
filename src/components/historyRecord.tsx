@@ -72,7 +72,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
               <div className="text-xs text-grayv2-main">{historyRecord.programName}</div>
             </div>
           </div>
-          {description && <Markdown value={description} />}
+          {description && <Markdown className="text-sm" value={description} />}
           <div className="flex flex-col" data-cy="history-entry">
             {entries.map((entry, i) => {
               const isNext = isCurrent && Progress.isFullyEmptySet(historyRecord);

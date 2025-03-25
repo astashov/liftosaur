@@ -39,7 +39,7 @@ export function EditProgramUiUpdateReuse(props: IEditProgramUiUpdateReuseProps):
 
   return (
     <div>
-      <span className="mr-2">Reuse update from:</span>
+      <span className="mr-2 text-sm">Reuse update from:</span>
       <select
         data-cy="edit-exercise-reuse-update-select"
         onChange={(event) => {

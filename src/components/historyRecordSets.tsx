@@ -118,8 +118,8 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
         ? k === "max1RMSet"
           ? "e1RM"
           : k === "maxWeightSet"
-          ? "Weight"
-          : undefined
+            ? "Weight"
+            : undefined
         : undefined;
     })
   );
@@ -127,22 +127,22 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
   const repsColor = isNext
     ? "text-grayv2-main"
     : set.isCompleted
-    ? "text-greenv2-main"
-    : set.isInRange
-    ? "text-orange-400"
-    : "text-redv2-main";
+      ? "text-greenv2-main"
+      : set.isInRange
+        ? "text-orange-400"
+        : "text-redv2-main";
   const rpeColor = isNext ? "text-grayv2-main" : set.isRpeFailed ? "text-redv2-main" : "text-greenv2-main";
   return (
     <div
-      className="whitespace-nowrap"
+      className="text-sm whitespace-nowrap"
       data-cy={
         isNext
           ? "history-entry-sets-next"
           : set.isCompleted
-          ? "history-entry-sets-completed"
-          : set.isInRange
-          ? "history-entry-sets-in-range"
-          : "history-entry-sets-incompleted"
+            ? "history-entry-sets-completed"
+            : set.isInRange
+              ? "history-entry-sets-in-range"
+              : "history-entry-sets-incompleted"
       }
     >
       {props.showPrDetails && isPr && (

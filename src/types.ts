@@ -1096,6 +1096,7 @@ export const TSettings = t.intersection(
       alwaysOnDisplay: t.boolean,
       vibration: t.boolean,
       startWeekFromMonday: t.boolean,
+      textSize: t.number,
     }),
   ],
   "TSettings"

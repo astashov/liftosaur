@@ -81,6 +81,10 @@ export function AppView(props: IProps): JSX.Element | null {
     SendMessage.toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
   }, [state.storage.settings.alwaysOnDisplay]);
 
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${state.storage.settings.textSize ?? 16}px`;
+  }, [state.storage.settings.textSize]);
+
   useLoopCatcher();
 
   useEffect(() => {

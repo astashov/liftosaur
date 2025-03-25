@@ -83,7 +83,7 @@ export const ProgramShareOutput = forwardRef(
                 <div className="mt-2">
                   <Card>
                     <div className="px-4 pt-1">
-                      <Markdown value={week.description} />
+                      <Markdown className="text-sm" value={week.description} />
                     </div>
                   </Card>
                 </div>
@@ -152,7 +152,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
       </div>
       {day.description && (
         <div className="px-2 py-1 mx-4 my-2 text-xs rounded-md bg-grayv2-50 text-grayv2-main">
-          <Markdown value={day.description} />
+          <Markdown className="text-sm" value={day.description} />
         </div>
       )}
       {exercises.map((plannerProgramExercise, i) => {
@@ -196,7 +196,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
             {descriptions.length > 0 && (
               <div className="px-2 py-1 mt-2 text-xs rounded-md bg-grayv2-50 text-grayv2-main">
                 {descriptions.map((d) => (
-                  <Markdown key={d.value} value={d.value} />
+                  <Markdown className="text-sm" key={d.value} value={d.value} />
                 ))}
               </div>
             )}

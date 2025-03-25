@@ -116,7 +116,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
         </div>
         {error && (
           <div
-            className="absolute left-0 flex justify-center w-full align-middle pointer-events-none"
+            className="absolute left-0 flex justify-center w-full text-sm align-middle pointer-events-none"
             style={{ bottom: "-1rem" }}
           >
             <div
@@ -169,8 +169,8 @@ export function NavbarCenterView(props: INavbarCenterProps): JSX.Element {
   if (props.subtitle != null) {
     return (
       <div className="flex-1" onClick={props.onTitleClick}>
-        <div className="pt-2 text-sm font-semibold">{props.title}</div>
-        <div className="pb-2 text-sm font-semibold text-orangev2">{props.subtitle}</div>
+        <div className="pt-2 text-sm font-semibold whitespace-nowrap">{props.title}</div>
+        <div className="pb-2 text-sm font-semibold text-orangev2 whitespace-nowrap">{props.subtitle}</div>
       </div>
     );
   } else {

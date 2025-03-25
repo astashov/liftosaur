@@ -109,7 +109,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
       >
         <div className="px-4">
           <header className="flex">
-            <div style={{ width: "62px" }}>
+            <div className="w-16">
               <button className="w-full px-2 nm-workout-exercise-image" style={{ marginLeft: "-0.5rem" }}>
                 <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
               </button>
@@ -252,7 +252,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
           </header>
           {description && (
             <div className="mt-1">
-              <Markdown value={description} />
+              <Markdown className="text-sm" value={description} />
             </div>
           )}
           {props.showHelp && hasUnequalWeights && (

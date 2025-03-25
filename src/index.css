@@ -43,7 +43,6 @@ input.no-arrows[type="number"] {
 }
 
 body {
-  font-size: 14px;
   background: white;
   color: #171718;
   height: auto;
@@ -74,7 +73,7 @@ body {
 }
 
 .cm-editor {
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .one-line-text-editor .cm-editor {
@@ -531,11 +530,11 @@ iframe#exercise-youtube-player {
 .planner-editor-view .cm-editor {
   height: auto;
   min-height: 6rem;
-  font-size: 15px;
+  font-size: 1rem;
 }
 
 .planner-editor-view .cm-line {
-  height: 21px;
+  height: 1.35rem;
 }
 
 .planner-stats-tooltip {

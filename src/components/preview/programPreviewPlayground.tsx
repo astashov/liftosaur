@@ -79,7 +79,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
             <div>
               {programWeekDescription && (
                 <div className="mx-4">
-                  <Markdown value={programWeekDescription} />
+                  <Markdown className="text-sm" value={programWeekDescription} />
                 </div>
               )}
               <div className="flex flex-wrap justify-center mt-4" style={{ gap: "1.5rem" }}>
