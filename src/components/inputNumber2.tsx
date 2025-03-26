@@ -411,6 +411,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
         {props.enableCalculator && (
           <div className="py-2">
             <button
+              data-cy="keyboard-rm-calculator"
               className="flex items-center justify-center w-24 px-2 py-1 border rounded keyboard-close border-purplev3-200 bg-purplev3-100"
               onClick={props.onShowCalculator}
             >
@@ -441,6 +442,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
             if (key) {
               return (
                 <button
+                  data-cy={`keyboard-button-${key}`}
                   key={key}
                   className="p-2 text-2xl bg-white active:bg-gray-200 touch-manipulation"
                   onClick={() => props.onInput(key)}
@@ -457,6 +459,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
           <div className="mb-4">
             <button
               className="flex items-center justify-center w-full pt-2 pb-1 border rounded touch-manipulation keyboard-close border-purplev3-200 bg-purplev3-100"
+              data-cy="keyboard-close"
               onClick={props.onBlur}
             >
               <IconKeyboardClose />
@@ -466,6 +469,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
             <div className="flex-1">
               <button
                 className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-e-none border-purplev3-200 bg-purplev3-100"
+                data-cy="keyboard-minus"
                 onClick={props.onMinus}
               >
                 -
@@ -474,6 +478,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
             <div className="flex-1">
               <button
                 className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-s-none border-purplev3-200 bg-purplev3-100"
+                data-cy="keyboard-plus"
                 onClick={props.onPlus}
               >
                 +
@@ -485,6 +490,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
               {props.enableUnits.map((unit) => (
                 <button
                   className={`flex touch-manipulation items-center  aspect-square justify-center flex-1 w-full border rounded ${unit === props.selectedUnit ? "border-purplev3-300 bg-purplev3-200" : "border-purplev3-200 bg-purplev3-100"}`}
+                  data-cy={`keyboard-unit-${unit}`}
                   onClick={() => {
                     if (props.onChangeUnits) {
                       props.onChangeUnits(unit);
@@ -501,6 +507,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
           <div className="mt-4">
             <button
               className="flex items-center justify-center w-full h-10 border rounded touch-manipulation border-purplev3-200 bg-purplev3-100"
+              data-cy={`keyboard-backspace`}
               onClick={() => props.onInput("⌫")}
             >
               <IconBackspace />

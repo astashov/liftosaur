@@ -96,7 +96,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 }
                 width={3.5}
                 data-cy="reps-value"
-                name="input-set-reps"
+                name="set-reps"
                 onBlur={(value) => {
                   updateProgress(props.dispatch, [
                     props.lbSet.recordModify((set) => {
@@ -125,7 +125,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   2 +
                   (props.type === "warmup" ? 0 : 100)
                 }
-                name="input-set-weight"
+                name="set-weight"
                 exerciseType={props.exerciseType}
                 data-cy="weight-value"
                 onBlur={(value) => {

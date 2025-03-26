@@ -27,7 +27,7 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
       </h2>
       <div className="text-sm text-grayv2-700">by {props.program.author}</div>
       {formattedTime && (
-        <div className="flex items-center pb-1">
+        <div className="flex items-center pb-1 text-sm">
           <div className="pr-1">
             <IconWatch />
           </div>
@@ -36,7 +36,10 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
           </div>
         </div>
       )}
-      <div dangerouslySetInnerHTML={{ __html: props.program.description }} className="mt-4 program-description" />
+      <div
+        dangerouslySetInnerHTML={{ __html: props.program.description }}
+        className="mt-4 text-sm program-description"
+      />
       <p className="mt-6 text-center">
         <Button
           name="preview-program"

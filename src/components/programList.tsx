@@ -170,13 +170,13 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
         <div className="flex items-center">
           <h3 className="flex-1 mr-2 text-lg font-bold">{props.program.name}</h3>
           {formattedTime && (
-            <div>
+            <div className="text-sm">
               <IconWatch className="mb-1 align-middle" />
               <span className="pl-1 align-middle">{formattedTime}h</span>
             </div>
           )}
         </div>
-        <div className="py-1 text-grayv2-main">
+        <div className="py-1 text-sm text-grayv2-main">
           <IconDoc width={15} height={20} color="#607284" />{" "}
           <span className="align-middle">
             {evaluatedProgram.weeks.length > 0 &&

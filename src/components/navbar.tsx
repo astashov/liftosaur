@@ -151,13 +151,15 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           shouldShowClose={true}
           isFullWidth
         >
-          {props.helpContent}
-          <div className="w-full h-0 mt-4 mb-2 border-b border-grayv2-200" />
-          <p className="text-sm text-grayv2-main">
-            If you still have questions, or if you encountered a bug, have a feature idea, or just want to share some
-            feedback - don't hesitate to <Link href="mailto:info@liftosaur.com">contact us</Link>! Or join our{" "}
-            <Link href="https://discord.com/invite/AAh3cvdBRs">Discord server</Link> and ask your question there.
-          </p>
+          <div className="text-sm">
+            {props.helpContent}
+            <div className="w-full h-0 mt-4 mb-2 border-b border-grayv2-200" />
+            <p className="text-sm text-grayv2-main">
+              If you still have questions, or if you encountered a bug, have a feature idea, or just want to share some
+              feedback - don't hesitate to <Link href="mailto:info@liftosaur.com">contact us</Link>! Or join our{" "}
+              <Link href="https://discord.com/invite/AAh3cvdBRs">Discord server</Link> and ask your question there.
+            </p>
+          </div>
         </Modal>
       )}
       {showDebug > 4 && <ModalDebug onClose={() => setShowDebug(0)} loading={loading} dispatch={props.dispatch} />}

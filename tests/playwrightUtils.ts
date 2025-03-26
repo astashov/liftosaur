@@ -26,6 +26,18 @@ export class PlaywrightUtils {
     );
   }
 
+  public static async typeKeyboard(page: Page, locator: Locator, text: string): Promise<void> {
+    const chars = text.split("");
+    await locator.click();
+    let currentText = "";
+    for (const char of chars) {
+      await page.getByTestId(`keyboard-button-${char}`).click();
+      currentText += char;
+      await expect(locator).toHaveText(currentText);
+    }
+    await page.getByTestId("keyboard-close").click();
+  }
+
   public static typeCodeMirror(page: Page, dataCy: string, text: string, index?: number): Promise<void> {
     return page.evaluate(
       ([theDataCy, theText, theIndex]) => {
@@ -53,6 +65,13 @@ export class PlaywrightUtils {
     return page.evaluate(() => {
       (window as any).state.storage.subscription.key = "test";
     }, []);
+  }
+
+  public static async forEach(locator: Locator, cb: (el: Locator) => Promise<void>): Promise<void> {
+    const count = (await locator.count()) ?? 0;
+    for (let i = 0; i < count; i++) {
+      await cb(locator.nth(i));
+    }
   }
 
   public static async clickAll(locator: Locator): Promise<void> {
