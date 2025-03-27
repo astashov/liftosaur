@@ -190,7 +190,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 onChange={(exerciseType, shouldClose) => {
                   if (exerciseType != null) {
                     if (progress.ui?.exerciseModal?.entryIndex == null) {
-                      Progress.addExercise(props.dispatch, props.progress.id, exerciseType);
+                      Progress.addExercise(props.dispatch, exerciseType, progress.entries.length);
                     } else {
                       const entryIndex = progress.ui?.exerciseModal?.entryIndex;
                       const program = props.program;

@@ -138,8 +138,8 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
                 const typedValue = Weight.is(previousValue)
                   ? Weight.build(value, previousValue.unit)
                   : Weight.isPct(previousValue)
-                  ? Weight.buildPct(value)
-                  : value;
+                    ? Weight.buildPct(value)
+                    : value;
                 return { ...prev, [key]: typedValue };
               });
             }}
@@ -157,7 +157,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
               onDone();
             }}
           >
-            Clear
+            Cancel
           </Button>
           <Button
             name="modal-amrap-submit"

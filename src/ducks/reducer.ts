@@ -480,6 +480,14 @@ export function buildCardsReducer(
       }
       case "ChangeAMRAPAction": {
         let newProgress = { ...progress };
+        if (
+          action.amrapValue == null &&
+          action.rpeValue == null &&
+          action.weightValue == null &&
+          ObjectUtils.keys(action.userVars || {}).length === 0
+        ) {
+          return { ...newProgress, ui: { ...newProgress.ui, amrapModal: undefined } };
+        }
         if (action.amrapValue != null) {
           newProgress = Progress.updateAmrapRepsInExercise(newProgress, action.amrapValue);
         }

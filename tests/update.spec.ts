@@ -25,29 +25,37 @@ test("updates reps in a workout", async ({ page }) => {
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await page.getByTestId("workout-set").nth(0).getByTestId("set-amrap-nonstarted").click();
+  await page.getByTestId("complete-set").nth(2).click();
   await page.getByTestId("modal-amrap-input").clear();
   await page.getByTestId("modal-amrap-input").type("12");
   await page.getByTestId("modal-amrap-submit").click();
 
-  await expect(page.getByTestId("workout-set").nth(1).getByTestId("reps-value")).toHaveText("6");
-  await expect(page.getByTestId("workout-set").nth(2).getByTestId("reps-value")).toHaveText("6");
-  await expect(page.getByTestId("workout-set").nth(3).getByTestId("reps-value")).toHaveText("6");
+  await expect(page.getByTestId("input-set-reps-field").nth(3)).toHaveText("6");
+  await expect(page.getByTestId("input-set-reps-field").nth(4)).toHaveText("6");
+  await expect(page.getByTestId("input-set-reps-field").nth(5)).toHaveText("6");
 
-  await page.getByTestId("workout-set").nth(1).getByTestId("set-nonstarted").click();
-  await page.getByTestId("workout-set").nth(0).getByTestId("set-amrap-completed").click();
+  await page.getByTestId("complete-set").nth(3).click();
+  await page.getByTestId("complete-set").nth(2).click();
+  await page.getByTestId("complete-set").nth(2).click();
   await page.getByTestId("modal-amrap-input").clear();
   await page.getByTestId("modal-amrap-input").type("8");
   await page.getByTestId("modal-amrap-submit").click();
 
-  await expect(page.getByTestId("workout-set").nth(1).getByTestId("reps-value")).toHaveText("6");
-  await expect(page.getByTestId("workout-set").nth(2).getByTestId("reps-value")).toHaveText("4");
-  await expect(page.getByTestId("workout-set").nth(3).getByTestId("reps-value")).toHaveText("4");
+  await expect(page.getByTestId("input-set-reps-field").nth(3)).toHaveText("6");
+  await expect(page.getByTestId("input-set-reps-field").nth(4)).toHaveText("4");
+  await expect(page.getByTestId("input-set-reps-field").nth(5)).toHaveText("4");
 
-  await page.getByTestId("workout-set").nth(0).getByTestId("set-amrap-completed").click();
+  await page.getByTestId("complete-set").nth(2).click();
+
+  await page.getByTestId("input-set-reps-field").nth(2).click();
+  await page.getByTestId("keyboard-backspace").click();
+  await page.getByTestId("keyboard-close").click();
+
+  await page.getByTestId("complete-set").nth(2).click();
   await page.getByTestId("modal-amrap-clear").click();
-  await expect(page.getByTestId("workout-set").nth(0).getByTestId("reps-value")).toHaveText("6+");
-  await expect(page.getByTestId("workout-set").nth(1).getByTestId("reps-value")).toHaveText("6");
-  await expect(page.getByTestId("workout-set").nth(2).getByTestId("reps-value")).toHaveText("4");
-  await expect(page.getByTestId("workout-set").nth(3).getByTestId("reps-value")).toHaveText("4");
+
+  await expect(page.getByTestId("input-set-reps-field").nth(2)).toHaveText("6+");
+  await expect(page.getByTestId("input-set-reps-field").nth(3)).toHaveText("6");
+  await expect(page.getByTestId("input-set-reps-field").nth(4)).toHaveText("4");
+  await expect(page.getByTestId("input-set-reps-field").nth(5)).toHaveText("4");
 });

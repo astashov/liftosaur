@@ -4,12 +4,15 @@ import { useEffect, useRef, useState } from "preact/hooks";
 interface IProps {
   children: ComponentChildren;
   arrowYOffsetPct?: number;
+  scrollOffset?: number;
 }
 
 export function Scroller(props: IProps): JSX.Element {
   const [atLeft, setAtLeft] = useState<boolean>(true);
   const [atRight, setAtRight] = useState<boolean>(false);
   const tabsRef = useRef<HTMLDivElement>(null);
+
+  const previousOffset = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (!tabsRef.current || tabsRef.current.clientWidth >= tabsRef.current.scrollWidth) {
@@ -23,6 +26,13 @@ export function Scroller(props: IProps): JSX.Element {
       setAtRight(diff < 3);
     }
   }, []);
+
+  useEffect(() => {
+    if (props.scrollOffset !== previousOffset.current) {
+      tabsRef.current?.scrollTo({ left: props.scrollOffset, behavior: "smooth" });
+    }
+    previousOffset.current = props.scrollOffset;
+  }, [props.scrollOffset]);
 
   return (
     <div className="relative flex-1 min-w-0">

@@ -70,6 +70,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
+  await page.getByTestId("exercise-options").click();
   await page.getByTestId("exercise-swap").first().click();
 
   await page.getByTestId("modal-exercise").getByTestId("menu-item-squat-dumbbell").click();
@@ -79,6 +80,7 @@ Bicep Curl / 1x5`
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText("Squat / 3x8");
 
   await page.getByTestId("footer-workout").click();
+  await page.getByTestId("exercise-options").click();
   await page.getByTestId("exercise-swap").first().click();
 
   page.on("dialog", (dialog) => dialog.accept());

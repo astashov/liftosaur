@@ -34,6 +34,7 @@ export default defineConfig({
       name: "Mobile Safari",
       use: {
         ...devices["iPhone 13"],
+        userAgent: `${devices["iPhone 13"].userAgent} Playwright/1.0`,
       },
     },
   ],

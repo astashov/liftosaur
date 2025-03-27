@@ -10,8 +10,10 @@ import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
 import { ExerciseImage } from "./exerciseImage";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { StringUtils } from "../utils/string";
+import { useEffect, useRef } from "preact/hooks";
 
 interface IWorkoutExerciseThumbnailProps {
+  selectedIndex: number;
   progress: IHistoryRecord;
   entry: IHistoryEntry;
   entryIndex: number;
@@ -30,8 +32,17 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
     .map((word) => word[0])
     .slice(0, 4)
     .join("");
+  const ref = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (props.entryIndex === props.selectedIndex && ref.current) {
+      ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [props.selectedIndex]);
+
   return (
     <button
+      ref={ref}
       className={`cursor-pointer border ${borderColor} rounded-lg w-12 h-12 relative box-content`}
       style={{ borderWidth: isCurrent ? "2px" : "1px", padding: isCurrent ? "1px" : "2px", flex: "0 0 auto" }}
       data-cy={`workout-tab-${StringUtils.dashcase(exercise.name)}`}

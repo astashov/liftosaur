@@ -37,6 +37,7 @@ import { ProgressStateChanges } from "./progressStateChanges";
 import { TextareaAutogrow } from "./textareaAutogrow";
 import { Progress } from "../models/progress";
 import { StringUtils } from "../utils/string";
+import { Reps } from "../models/set";
 
 interface IWorkoutExerciseProps {
   day: number;
@@ -98,9 +99,10 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
     return results;
   }, [props.history, exerciseType, props.settings]);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
+  const status = Reps.setsStatus(props.entry.sets);
 
   return (
-    <div data-cy="exercise-progress">
+    <div data-cy={`exercise-progress-${status}`}>
       <section
         data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}
         className={`py-1 border rounded-xl ${WorkoutExerciseUtils.getBgColor50(
@@ -235,6 +237,12 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
                             } else {
                               return entries;
                             }
+                          }),
+                        lb<IHistoryRecord>()
+                          .pi("ui")
+                          .p("currentEntryIndex")
+                          .recordModify((index) => {
+                            return Math.max(0, (index ?? 0) - 1);
                           }),
                       ]);
                     }}

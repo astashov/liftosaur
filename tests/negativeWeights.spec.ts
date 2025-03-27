@@ -29,11 +29,11 @@ Bench Press / 2x3-5 -20lb / progress: lp(30lb)`
 
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await expect(page.getByTestId("set-nonstarted").nth(0).getByTestId("weight-value")).toHaveText("-40");
-  await expect(page.getByTestId("set-nonstarted").nth(1).getByTestId("weight-value")).toHaveText("-40");
+  await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("-40");
+  await expect(page.getByTestId("input-set-weight-field").nth(1)).toHaveText("-40");
 
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Bench Press') >> [data-cy^=set-]"));
+  await PlaywrightUtils.finishExercise(page, "squat", [1, 1]);
+  await PlaywrightUtils.finishExercise(page, "bench-press", [1, 1]);
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();

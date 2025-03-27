@@ -79,9 +79,9 @@ test("enters stats and shows graphs", async ({ page }) => {
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-  await page.locator("[data-cy^=exercise-]:has-text('Bent Over Row') [data-cy^=set-]").nth(0).click();
-  await page.locator("text=Finish the workout").click();
-  await page.locator("text=Continue").click();
+  await page.getByTestId("complete-set").nth(0).click();
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("footer-graphs").click();
   await page.getByTestId("graphs-modify").click();

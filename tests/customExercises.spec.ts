@@ -26,9 +26,9 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await page.getByTestId("set-nonstarted").click({ force: true });
-  await page.locator("text=Finish the workout").click();
-  await page.locator("text=Continue").click();
+  await page.getByTestId("complete-set").click();
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("footer-program").click({ force: true });
   await page.getByTestId("edit-exercise").click();

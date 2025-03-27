@@ -30,22 +30,17 @@ test("Program Preview", async ({ page }) => {
   await page.getByTestId("modal-edit-mode-save-statvars").click();
   await page.getByTestId("menu-item-value-enable-playground").click();
 
-  await PlaywrightUtils.clickAll(
-    page.getByTestId("preview-day-workout-a").getByTestId("bent-over-row").getByTestId("set-nonstarted")
+  await PlaywrightUtils.finishExercise(
+    page,
+    "bent-over-row",
+    [1, 1, { amrap: { reps: 5 } }],
+    page.getByTestId("preview-day-workout-a").first()
   );
-  await page
-    .getByTestId("preview-day-workout-a")
-    .getByTestId("bent-over-row")
-    .getByTestId("set-amrap-nonstarted")
-    .first()
-    .click();
-  await page.getByTestId("modal-amrap-input").and(page.locator(":visible")).clear();
-  await page.getByTestId("modal-amrap-input").and(page.locator(":visible")).type("5");
-  await page.getByTestId("modal-amrap-submit").and(page.locator(":visible")).click();
   await expect(
     page.getByTestId("preview-day-workout-a").getByTestId("bent-over-row").getByTestId("variable-changes-key-weights")
   ).toHaveText("weights: += 2.5lb");
 
+  await page.getByTestId("preview-day-workout-a").getByTestId(`workout-tab-bench-press`).nth(0).click();
   await page
     .getByTestId("preview-day-workout-a")
     .getByTestId("bench-press")
@@ -61,20 +56,22 @@ test("Program Preview", async ({ page }) => {
 
   await page.getByTestId("preview-day-workout-a").first().getByTestId("finish-day-details-playground").click();
 
+  await page.getByTestId("preview-day-workout-a").getByTestId(`workout-tab-bent-over-row`).nth(0).click();
   await expect(
     page
       .getByTestId("preview-day-workout-a")
       .first()
       .getByTestId("bent-over-row")
-      .getByTestId("weight-value")
+      .getByTestId("input-set-weight-field")
       .filter({ hasText: "100" })
   ).toHaveCount(3);
+  await page.getByTestId("preview-day-workout-a").getByTestId(`workout-tab-bench-press`).nth(0).click();
   await expect(
     page
       .getByTestId("preview-day-workout-a")
       .first()
       .getByTestId("bench-press")
-      .getByTestId("weight-value")
+      .getByTestId("input-set-weight-field")
       .filter({ hasText: "50" })
   ).toHaveCount(3);
   await expect(

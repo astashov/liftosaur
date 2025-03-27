@@ -8,7 +8,7 @@ test("rest timer", async ({ page }) => {
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await page.getByTestId("set-nonstarted").first().click();
+  await page.getByTestId("complete-set").first().click();
   await page.getByTestId("rest-timer-collapsed").click();
 
   await page.getByTestId("rest-timer-minus").click();
@@ -25,7 +25,8 @@ test("rest timer", async ({ page }) => {
   await expect(page.getByTestId("rest-timer-collapsed")).toHaveCount(0);
   await expect(page.getByTestId("rest-timer-expanded")).toHaveCount(0);
 
-  await page.getByTestId("set-nonstarted").first().click();
+  await page.getByTestId("complete-set").first().click();
+  await page.getByTestId("complete-set").first().click();
   await expect(page.getByTestId("rest-timer-collapsed")).toHaveCount(0);
   await expect(page.getByTestId("rest-timer-expanded")).toHaveCount(1);
 

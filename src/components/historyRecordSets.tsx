@@ -47,7 +47,7 @@ function setToDisplaySet(set: ISet, isNext: boolean): IDisplaySet {
   return {
     reps: isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set),
     rpe: set.completedRpe?.toString() ?? set.rpe?.toString(),
-    weight: Weight.display(set.weight, false),
+    weight: Weight.display(set.completedWeight ?? set.weight, false),
     unit: set.weight.unit,
     askWeight: set.askWeight,
     isCompleted: Reps.isCompletedSet(set),
@@ -153,11 +153,15 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
       <span className={`px-1 ${isPr ? "bg-yellow-200" : ""}`}>
         {group.length > 1 && (
           <>
-            <span className="font-semibold text-purplev2-main">{group.length}</span>
+            <span className="font-semibold text-purplev2-main" data-cy="history-entry-sets">
+              {group.length}
+            </span>
             <span className="text-grayv2-main"> × </span>
           </>
         )}
-        <span className={`font-semibold ${repsColor}`}>{set.reps}</span>
+        <span className={`font-semibold ${repsColor}`} data-cy="history-entry-reps">
+          {set.reps}
+        </span>
         <span className="text-grayv2-main"> × </span>
         <span data-cy="history-entry-weight">
           <span className="font-semibold">{set.weight}</span>

@@ -289,7 +289,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
                 </section>
               );
             })}
-          <div className="mb-4">
+          <div className="mb-4 text-sm">
             <LinkButton
               name="custom-exercise-create"
               data-cy="custom-exercise-create"
@@ -350,7 +350,7 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
       <div className="w-12 pr-2" style={{ minHeight: "2.5rem" }}>
         <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
       </div>
-      <div className="flex-1 py-2 text-left">
+      <div className="flex-1 py-2 text-sm text-left">
         <div>
           <span className="font-bold">{e.name}</span>,{" "}
           <span className="text-grayv2-main">{equipmentName(exerciseType.equipment)}</span>

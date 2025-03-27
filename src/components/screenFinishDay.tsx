@@ -72,7 +72,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
       navbar={<NavbarView dispatch={props.dispatch} navCommon={props.navCommon} title="Congratulations!" />}
       footer={<></>}
     >
-      <section className="px-4">
+      <section className="px-4 text-sm">
         <section className="px-4 pb-2 text-center">
           <div className="text-sm text-grayv2-main">{record.programName}</div>
           <div className="text-base">{record.dayName}</div>

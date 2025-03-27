@@ -29,7 +29,7 @@ Squat / 1x5 100% / warmup: none / progress: custom() {~
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await page.getByTestId("workout-set").getByTestId("set-nonstarted").click();
+  await page.getByTestId("complete-set").nth(0).click();
   await expect(page.getByTestId("variable-changes-value-1-rm")).toHaveText("135 lb -> 140 lb");
 
   await page.getByTestId("finish-workout").click();
@@ -40,15 +40,13 @@ Squat / 1x5 100% / warmup: none / progress: custom() {~
     page.getByTestId("bottom-sheet").getByTestId("history-entry-exercise").nth(0).getByTestId("history-entry-weight")
   ).toHaveText("140lb");
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-  await page.getByTestId("workout-set").getByTestId("set-nonstarted").click();
+  await page.getByTestId("complete-set").nth(0).click();
   await expect(page.getByTestId("variable-changes-value-1-rm")).toHaveText("140 lb -> 145 lb");
 
-  await page.getByTestId("workout-set").getByTestId("set-completed").click();
-  await page.getByTestId("workout-set").getByTestId("set-incompleted").click();
-  await page.getByTestId("workout-set").getByTestId("set-incompleted").click();
-  await page.getByTestId("workout-set").getByTestId("set-incompleted").click();
-  await page.getByTestId("workout-set").getByTestId("set-incompleted").click();
-  await page.getByTestId("workout-set").getByTestId("set-incompleted").click();
+  await page.getByTestId("complete-set").nth(0).click();
+  await page.getByTestId("input-set-weight-field").nth(0).click();
+  await page.getByTestId("keyboard-backspace").click();
+  await page.getByTestId("keyboard-close").click();
 
   await page.getByTestId("exercise-name").click();
   await expect(page.getByTestId("menu-item-value-1-rep-max")).toHaveValue("140");
@@ -57,8 +55,8 @@ Squat / 1x5 100% / warmup: none / progress: custom() {~
 
   await page.getByTestId("navbar-back").click();
 
-  await expect(page.getByTestId("workout-set").getByTestId("weight-value")).toHaveText("150");
-  await page.getByTestId("workout-set").getByTestId("set-nonstarted").click();
+  await expect(page.getByTestId("input-set-weight-field")).toHaveText("150");
+  await page.getByTestId("complete-set").nth(0).click();
   await expect(page.getByTestId("variable-changes-value-1-rm")).toHaveText("150 lb -> 155 lb");
 
   await page.getByTestId("finish-workout").click();

@@ -88,12 +88,23 @@ export namespace History {
       entries: historyRecord.entries.map((entry) => {
         const programExercise = dayExercises.find((pe) => pe.key === entry.programExerciseId);
         if (Progress.isCurrent(progress)) {
+          entry = {
+            ...entry,
+            updatePrints: undefined,
+            sets: entry.sets.map((set) => {
+              return {
+                ...set,
+                completedReps: set.isCompleted ? set.completedReps : undefined,
+                completedRpe: set.isCompleted ? set.completedRpe : undefined,
+                completedWeight: set.isCompleted ? set.completedWeight : undefined,
+              };
+            }),
+          };
           if (programExercise != null) {
             const state = PlannerProgramExercise.getState(programExercise);
             const useRm1 = ProgramExercise.isUsingVariable(programExercise, "rm1");
             entry = {
               ...entry,
-              updatePrints: undefined,
               state: { ...state },
               vars: useRm1 ? { rm1: Exercise.onerm(programExercise.exerciseType, settings) } : {},
             };

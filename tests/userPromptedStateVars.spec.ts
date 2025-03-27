@@ -33,8 +33,8 @@ Squat / 5x5 65lb / warmup: none / progress: custom(rpe+: 0) {~
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
-
+  await PlaywrightUtils.finishExercise(page, "squat", [1, 1, 1, 1]);
+  await page.getByTestId("complete-set").nth(4).click();
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").clear();
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").type("8");
 
@@ -43,13 +43,8 @@ Squat / 5x5 65lb / warmup: none / progress: custom(rpe+: 0) {~
   await expect(page.getByTestId("variable-changes-value-weights")).toHaveText("-= 5lb");
   await expect(page.getByTestId("state-changes").first()).toContainText("rpe: 0 -> 8");
 
-  await page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]").nth(4).click();
-  await page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]").nth(4).click();
-  await page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]").nth(4).click();
-  await page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]").nth(4).click();
-  await page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]").nth(4).click();
-  await page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]").nth(4).click();
-  await page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]").nth(4).click();
+  await page.getByTestId("complete-set").nth(4).click();
+  await page.getByTestId("complete-set").nth(4).click();
 
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").clear();
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").type("2");
@@ -58,17 +53,16 @@ Squat / 5x5 65lb / warmup: none / progress: custom(rpe+: 0) {~
   await expect(page.getByTestId("variable-changes-value-weights")).toHaveText("+= 5lb");
   await expect(page.getByTestId("state-changes").first()).toContainText("rpe: 0 -> 2");
 
-  await page.getByRole("button", { name: "Finish the workout" }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await expect(
-    page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]").nth(1).getByTestId("weight-value")
-  ).toContainText("70");
+  await expect(page.getByTestId("input-set-weight-field").nth(1)).toContainText("70");
 
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
+  await PlaywrightUtils.finishExercise(page, "squat", [1, 1, 1, 1]);
+  await page.getByTestId("complete-set").nth(4).click();
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").clear();
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").type("5");
   await page.getByTestId("modal-amrap-submit").click();

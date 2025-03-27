@@ -19,17 +19,11 @@ test("Graphs", async ({ page }) => {
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   // Complete workout
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Bent Over Row') [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").fill("5");
-  await page.getByTestId("modal-amrap-submit").click();
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Bench Press') [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").fill("5");
-  await page.getByTestId("modal-amrap-submit").click();
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").fill("5");
-  await page.getByTestId("modal-amrap-submit").click();
-  await page.click("text=Finish the workout");
-  await page.click("text=Continue");
+  await PlaywrightUtils.finishExercise(page, "bent-over-row", [1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils.finishExercise(page, "bench-press", [1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils.finishExercise(page, "squat", [1, 1, { amrap: { reps: 5 } }]);
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("footer-graphs").click();
 

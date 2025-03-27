@@ -873,15 +873,14 @@ export namespace Progress {
     updateState(dispatch, [lb<IState>().p("progress").pi(progressId).pi("ui").p("exerciseModal").record({})]);
   }
 
-  export function addExercise(dispatch: IDispatch, progressId: number, exerciseType: IExerciseType): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("progress")
-        .pi(progressId)
+  export function addExercise(dispatch: IDispatch, exerciseType: IExerciseType, numberOfEntries: number): void {
+    updateProgress(dispatch, [
+      lb<IHistoryRecord>()
         .p("entries")
         .recordModify((entries) => {
           return [...entries, History.createCustomEntry(exerciseType)];
         }),
+      lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(numberOfEntries),
     ]);
   }
 

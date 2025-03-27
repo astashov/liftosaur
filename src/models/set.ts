@@ -69,7 +69,7 @@ export namespace Reps {
   }
 
   export function isCompleted(sets: ISet[]): boolean {
-    return sets.every((set) => Reps.isCompletedSet(set));
+    return sets.length > 0 && sets.every((set) => Reps.isCompletedSet(set));
   }
 
   export function setsStatus(sets: ISet[]): ISetsStatus {
@@ -87,6 +87,7 @@ export namespace Reps {
   export function isCompletedSet(set: ISet): boolean {
     if (set.completedReps != null && set.completedWeight != null) {
       return (
+        !!set.isCompleted &&
         set.completedReps >= set.reps &&
         Weight.gte(set.completedWeight, set.weight) &&
         (set.rpe != null && set.completedRpe != null ? set.completedRpe <= set.rpe : true)
@@ -109,7 +110,7 @@ export namespace Reps {
   }
 
   export function isFinished(sets: ISet[]): boolean {
-    return sets.every((s) => isFinishedSet(s));
+    return sets.length > 0 && sets.every((s) => isFinishedSet(s));
   }
 
   export function isFinishedSet(s: ISet): boolean {

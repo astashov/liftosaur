@@ -1,13 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 import { PlaywrightUtils, startpage } from "./playwrightUtils";
 
-async function finishExercise(page: Page, name: string): Promise<void> {
-  const exerciseSets = page.locator(`[data-cy^=exercise-]:has-text('${name}') [data-cy^=set-]`);
-  PlaywrightUtils.clickAll(exerciseSets);
-  await page.getByTestId("modal-amrap-input").fill("5");
-  await page.getByTestId("modal-amrap-submit").click();
-}
-
 async function switchBackToFirstDay(page: Page): Promise<void> {
   await page.getByTestId("footer-program").click({ force: true });
   await page.getByTestId("menu-item-name-next-day").click({ force: true });
@@ -31,11 +24,11 @@ test("works", async ({ page }) => {
   await expect(page.getByTestId("graph-data")).not.toBeVisible();
 
   await page.getByTestId("navbar-back").click({ force: true });
-  await finishExercise(page, "Bent Over Row");
-  await finishExercise(page, "Bench Press");
-  await finishExercise(page, "Squat");
-  await page.getByRole("button", { name: "Finish the workout" }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
+  await PlaywrightUtils.finishExercise(page, "bent-over-row", [1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils.finishExercise(page, "bench-press", [1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils.finishExercise(page, "squat", [1, 1, { amrap: { reps: 5 } }]);
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
   await switchBackToFirstDay(page);
 
@@ -49,11 +42,11 @@ test("works", async ({ page }) => {
   await expect(page.getByTestId("graph-data")).not.toBeVisible();
 
   await page.getByTestId("navbar-back").click({ force: true });
-  await finishExercise(page, "Bent Over Row");
-  await finishExercise(page, "Bench Press");
-  await finishExercise(page, "Squat");
-  await page.getByRole("button", { name: "Finish the workout" }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
+  await PlaywrightUtils.finishExercise(page, "bent-over-row", [1, 1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils.finishExercise(page, "bench-press", [1, 1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils.finishExercise(page, "squat", [1, 1, 1, { amrap: { reps: 5 } }]);
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
   await switchBackToFirstDay(page);
 

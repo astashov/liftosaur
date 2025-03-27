@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { startpage } from "./playwrightUtils";
+import { PlaywrightUtils, startpage } from "./playwrightUtils";
 
 test("edits sets properly", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
@@ -10,79 +10,125 @@ test("edits sets properly", async ({ page }) => {
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await page.getByTestId("exercise-edit-mode").nth(1).click();
-  await page.getByTestId("modal-edit-mode-this-workout").click();
-  await page.getByTestId("delete-edit-exercise").scrollIntoViewIfNeeded();
-  await page.getByTestId("add-warmup-set").click({ force: true });
-  await page.getByTestId("modal-edit-set-reps-input").fill("10");
-  await page.getByTestId("modal-edit-set-weight-input").fill("100");
-  await page.getByTestId("modal-edit-set-submit").click();
+  await page.getByTestId("workout-tab-bench-press").click();
+  await page.getByTestId("add-warmup-set").click();
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(0), "10");
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(0), "100");
 
-  await page.getByTestId("add-workout-set").click({ force: true });
-  await page.getByTestId("modal-edit-set-reps-input").fill("20");
-  await page.getByTestId("modal-edit-set-weight-input").fill("200");
-  await page.getByTestId("modal-edit-set-submit").click();
+  await page.getByTestId("add-workout-set").click();
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(4), "20");
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(4), "200");
 
-  await page.getByTestId("set-edit-mode-remove").nth(2).click({ force: true });
-  await page.getByTestId("entry-bench-press").scrollIntoViewIfNeeded();
-  await page
-    .locator("[data-cy^=exercise-]:has-text('Bench Press') [data-cy=set-nonstarted]")
-    .nth(1)
-    .click({ force: true });
-  await page.getByTestId("modal-edit-set-reps-input").fill("8");
-  await page.getByTestId("modal-edit-set-weight-input").fill("80");
-  await page.getByTestId("modal-edit-set-submit").click();
+  await PlaywrightUtils.swipeLeft(page, page.getByTestId("workout-set-target").nth(2));
+  await page.getByTestId("delete-set").nth(2).click();
 
-  await page.getByTestId("done-edit-exercise").click();
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(1), "8");
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(1), "80");
 
   // Checking the result
 
-  const setsSelector = "[data-cy^=exercise-]:has-text('Bench Press') [data-cy^=set-]";
-  await expect(page.locator(setsSelector).nth(0).locator("[data-cy=reps-value]")).toHaveText("10");
-  await expect(page.locator(setsSelector).nth(0).locator("[data-cy=weight-value]")).toHaveText("100");
-  await expect(page.locator(setsSelector).nth(0)).toHaveAttribute("data-cy", "set-nonstarted");
+  await expect(page.getByTestId("set-nonstarted")).toHaveCount(2);
+  await expect(page.getByTestId("set-amrap-nonstarted")).toHaveCount(2);
+  await expect(page.getByTestId("input-set-reps-field").nth(0)).toHaveText("10");
+  await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("100");
 
-  await expect(page.locator(setsSelector).nth(1).locator("[data-cy=reps-value]")).toHaveText("8");
-  await expect(page.locator(setsSelector).nth(1).locator("[data-cy=weight-value]")).toHaveText("80");
-  await expect(page.locator(setsSelector).nth(1)).toHaveAttribute("data-cy", "set-nonstarted");
+  await expect(page.getByTestId("input-set-reps-field").nth(1)).toHaveText("8");
+  await expect(page.getByTestId("input-set-weight-field").nth(1)).toHaveText("80");
 
-  await expect(page.locator(setsSelector).nth(2).locator("[data-cy=reps-value]")).toHaveText("5+");
-  await expect(page.locator(setsSelector).nth(2).locator("[data-cy=weight-value]")).toHaveText("45");
-  await expect(page.locator(setsSelector).nth(2)).toHaveAttribute("data-cy", "set-amrap-nonstarted");
+  await expect(page.getByTestId("input-set-reps-field").nth(2)).toHaveText("5+");
+  await expect(page.getByTestId("input-set-weight-field").nth(2)).toHaveText("45");
 
-  await expect(page.locator(setsSelector).nth(3).locator("[data-cy=reps-value]")).toHaveText("20+");
-  await expect(page.locator(setsSelector).nth(3).locator("[data-cy=weight-value]")).toHaveText("200");
-  await expect(page.locator(setsSelector).nth(3)).toHaveAttribute("data-cy", "set-amrap-nonstarted");
+  await expect(page.getByTestId("input-set-reps-field").nth(3)).toHaveText("20");
+  await expect(page.getByTestId("input-set-weight-field").nth(3)).toHaveText("200");
+
+  await page.getByTestId("entry-bench-press").getByTestId("complete-set").nth(0).click();
+  await page.getByTestId("entry-bench-press").getByTestId("complete-set").nth(1).click();
+  await page.getByTestId("entry-bench-press").getByTestId("complete-set").nth(2).click();
+  await page.getByTestId("modal-amrap-input").fill("5");
+  await page.getByTestId("modal-amrap-submit").click();
+  await page.getByTestId("entry-bench-press").getByTestId("complete-set").nth(3).click();
+  await page.getByTestId("modal-amrap-input").fill("15");
+  await page.getByTestId("modal-amrap-submit").click();
 
   // Adding and deleting exercises
-
-  await page.getByTestId("entry-bent-over-row").locator("[data-cy=exercise-edit-mode]").click();
-  await page.getByTestId("modal-edit-mode-this-workout").click();
-  await page.getByTestId("delete-edit-exercise").click();
-  await expect(page.getByTestId("entry-bent-over-row")).not.toBeVisible();
 
   await page.getByTestId("add-exercise-button").click();
   await page.getByTestId("menu-item-arnold-press-kettlebell").click();
 
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await page.getByTestId("add-workout-set").and(page.locator(":visible")).click({ force: true });
-  await page.getByTestId("modal-edit-set-reps-input").fill("8");
-  await page.getByTestId("modal-edit-set-weight-input").fill("250");
-  await page.getByTestId("modal-edit-set-submit").click();
+  await page.getByTestId("add-workout-set").click();
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(0), "8");
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(0), "250");
 
-  const arnoldPressSelector = "[data-cy^=exercise-]:has-text('Arnold Press') [data-cy^=set-]";
-  await expect(page.locator(arnoldPressSelector).nth(0).locator("[data-cy=reps-value]")).toHaveText("8");
-  await expect(page.locator(arnoldPressSelector).nth(0).locator("[data-cy=weight-value]")).toHaveText("250");
-  await expect(page.locator(arnoldPressSelector).nth(0)).toHaveAttribute("data-cy", "set-nonstarted");
+  await page.getByTestId("complete-set").nth(0).click();
 
-  await page.getByTestId("entry-squat").locator("[data-cy=exercise-name]").click();
+  await expect(page.getByTestId("set-completed")).toHaveCount(1);
+  await expect(page.getByTestId("input-set-reps-field").nth(0)).toHaveText("8");
+  await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("250");
+
+  await page.getByTestId("workout-tab-bent-over-row").click();
+  await page.getByTestId("exercise-options").click();
+  await page.getByTestId("edit-exercise-kebab-remove-exercise").click();
+
+  await page.getByTestId("workout-tab-squat").click();
+  await page.getByTestId("exercise-name").click();
   await page.getByTestId("menu-item-value-1-rep-max").fill("200");
   await page.getByTestId("navbar-back").click();
 
-  await expect(page.getByTestId("entry-bent-over-row")).not.toBeVisible();
-  await expect(page.getByTestId("entry-arnold-press")).toBeVisible();
-  await expect(page.locator(arnoldPressSelector).nth(0).locator("[data-cy=reps-value]")).toHaveText("8");
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
-  await page.locator("text=Finish the workout").click();
-  await page.locator("text=Continue").click();
+  await expect(
+    page
+      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-cy=history-entry-reps]")
+      .nth(0)
+  ).toHaveText("8");
+  await expect(
+    page
+      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-cy=history-entry-reps]")
+      .nth(1)
+  ).toHaveText("5");
+  await expect(
+    page
+      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-cy=history-entry-reps]")
+      .nth(2)
+  ).toHaveText("15");
+
+  await expect(
+    page
+      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-cy=history-entry-weight]")
+      .nth(0)
+  ).toHaveText("80lb");
+  await expect(
+    page
+      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-cy=history-entry-weight]")
+      .nth(1)
+  ).toHaveText("45lb");
+  await expect(
+    page
+      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-cy=history-entry-weight]")
+      .nth(2)
+  ).toHaveText("200lb");
+
+  await expect(
+    page.locator("[data-cy=history-entry-exercise]:has-text('Squat, Barbell') >> [data-cy=history-entry-sets]").nth(0)
+  ).toHaveText("3");
+  await expect(
+    page.locator("[data-cy=history-entry-exercise]:has-text('Squat, Barbell') >> [data-cy=history-entry-reps]").nth(0)
+  ).toHaveText("-");
+  await expect(
+    page.locator("[data-cy=history-entry-exercise]:has-text('Squat, Barbell') >> [data-cy=history-entry-weight]").nth(0)
+  ).toHaveText("45lb");
+
+  await expect(
+    page
+      .locator("[data-cy=history-entry-exercise]:has-text('Arnold Press, Kettlebell') >> [data-cy=history-entry-reps]")
+      .nth(0)
+  ).toHaveText("8");
+  await expect(
+    page
+      .locator(
+        "[data-cy=history-entry-exercise]:has-text('Arnold Press, Kettlebell') >> [data-cy=history-entry-weight]"
+      )
+      .nth(0)
+  ).toHaveText("250lb");
 });

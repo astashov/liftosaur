@@ -43,6 +43,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const placeholderWeight = set.weight?.value != null ? `${set.weight.value}${set.askWeight ? "+" : ""}` : undefined;
   const completedRpeValue = set.logRpe && set.completedRpe != null ? set.completedRpe : undefined;
   const isMobile = Mobile.isMobile(navigator.userAgent);
+  const isPlaywright = Mobile.isPlaywright(navigator.userAgent);
+  const shouldUseTouch = isMobile && !isPlaywright;
   const borderClass = ` border-b ${WorkoutExerciseUtils.getBorderColor100([set])} `;
   const hasEdit = props.type === "workout" && props.programExercise != null;
 
@@ -59,12 +61,12 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
           className={`will-change-transform relative table-row ${WorkoutExerciseUtils.getBgColor50([set])}`}
           data-cy={getDataCy(set)}
           style={style}
-          onTouchStart={isMobile ? onPointerDown : undefined}
-          onTouchMove={isMobile ? onPointerMove : undefined}
-          onTouchEnd={isMobile ? onPointerUp : undefined}
-          onPointerDown={!isMobile ? onPointerDown : undefined}
-          onPointerMove={!isMobile ? onPointerMove : undefined}
-          onPointerUp={!isMobile ? onPointerUp : undefined}
+          onTouchStart={shouldUseTouch ? onPointerDown : undefined}
+          onTouchMove={shouldUseTouch ? onPointerMove : undefined}
+          onTouchEnd={shouldUseTouch ? onPointerUp : undefined}
+          onPointerDown={!shouldUseTouch ? onPointerDown : undefined}
+          onPointerMove={!shouldUseTouch ? onPointerMove : undefined}
+          onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
         >
           <div className={`${borderClass} table-cell py-1 px-2 align-middle`}>
             <div
@@ -75,7 +77,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
               <div>{props.setIndex + 1}</div>
             </div>
           </div>
-          <div className={`${borderClass} table-cell w-full align-middle`}>
+          <div data-cy="workout-set-target" className={`${borderClass} table-cell w-full align-middle`}>
             {props.type === "warmup" ? (
               <span className="text-xs text-grayv3-main">Warmup</span>
             ) : props.isCurrentProgress && props.programExercise == null ? (
@@ -159,7 +161,9 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 settings={props.settings}
               />
               {completedRpeValue != null ? (
-                <div className="ml-1 text-xs font-semibold text-greenv3-700">@{n(completedRpeValue)}</div>
+                <div data-cy="rpe-value" className="ml-1 text-xs font-semibold text-greenv3-700">
+                  @{n(completedRpeValue)}
+                </div>
               ) : null}
             </div>
           </div>
@@ -201,6 +205,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
               {hasEdit && (
                 <button
                   tabIndex={-1}
+                  data-cy="edit-set-target"
                   onClick={() => {
                     close();
                     EditProgressEntry.showEditSetModal(
@@ -219,7 +224,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 </button>
               )}
               <button
-                data-cy="delete-edit-exercise"
+                data-cy="delete-set"
                 tabIndex={-1}
                 onClick={() => {
                   close();

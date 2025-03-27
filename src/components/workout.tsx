@@ -166,6 +166,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
         {props.progress.entries.map((entry, entryIndex) => {
           return (
             <WorkoutExerciseThumbnail
+              selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
               key={entryIndex}
               progress={props.progress}
               settings={props.settings}
@@ -178,7 +179,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
         <button
           name="add-exercise-to-workout"
           data-cy="add-exercise-button"
-          className="ml-1 nm-add-exercise-to-workout"
+          className="p-2 nm-add-exercise-to-workout"
           onClick={() => {
             Progress.showAddExerciseModal(props.dispatch, props.progress.id);
           }}

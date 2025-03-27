@@ -14,26 +14,23 @@ test("Empty Workout", async ({ page }) => {
   await page.getByTestId("exercise-filter-by-name").fill("Bench Press");
   await page.getByTestId("menu-item-bench-press-barbell").click();
 
-  await page.getByTestId("add-workout-set").click({ force: true });
-  await page.getByTestId("modal-edit-set-reps-input").fill("7");
-  await page.getByTestId("modal-edit-set-weight-input").fill("100");
-  await page.getByTestId("modal-edit-set-submit").click();
-  await page.getByTestId("set-nonstarted").click();
+  await page.getByTestId("add-workout-set").click();
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(0), "7");
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(0), "100");
 
-  await page.getByTestId("add-workout-set").click({ force: true });
-  await page.getByTestId("modal-edit-set-submit").click();
-  await page.getByTestId("set-nonstarted").click();
+  await page.getByTestId("add-workout-set").click();
+  await page.getByTestId("complete-set").nth(0).click();
+  await page.getByTestId("complete-set").nth(1).click();
 
   await page.getByTestId("add-exercise-button").click();
   await page.getByTestId("exercise-filter-by-name").fill("Squat");
   await page.getByTestId("menu-item-squat-barbell").click();
 
   await page.getByTestId("add-exercise-button").scrollIntoViewIfNeeded();
-  await page.getByTestId("add-workout-set").nth(1).click({ force: true });
-  await page.getByTestId("modal-edit-set-reps-input").fill("5");
-  await page.getByTestId("modal-edit-set-weight-input").fill("150");
-  await page.getByTestId("modal-edit-set-submit").click();
-  await page.getByTestId("set-nonstarted").click();
+  await page.getByTestId("add-workout-set").click();
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(0), "5");
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(0), "150");
+  await page.getByTestId("complete-set").nth(0).click();
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();

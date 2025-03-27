@@ -50,6 +50,7 @@ Triceps Extension / ...Bench Press[1]`
   await page.getByTestId("editor-v2-save-full").click();
 
   await page.getByTestId("program-preview").click();
+  await page.getByTestId("preview-day-day-2").getByTestId("workout-tab-hack-squat").click();
   await expect(
     page.getByTestId("preview-day-day-2").getByTestId("hack-squat").getByTestId("history-entry-sets-next")
   ).toHaveCount(1);
@@ -57,6 +58,7 @@ Triceps Extension / ...Bench Press[1]`
     page.getByTestId("preview-day-day-2").getByTestId("hack-squat").getByTestId("history-entry-sets-next").first()
   ).toHaveText("1 × 115lb");
   await page.getByTestId("tab-week-2").nth(1).click();
+  await page.getByTestId("preview-day-day-2").getByTestId("workout-tab-squat").click();
   await expect(
     page.getByTestId("preview-day-day-2").getByTestId("squat").getByTestId("history-entry-sets-next")
   ).toHaveCount(1);
@@ -69,7 +71,7 @@ Triceps Extension / ...Bench Press[1]`
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await page.getByTestId("workout-set").nth(0).getByTestId("set-nonstarted").click();
+  await page.getByTestId("complete-set").nth(3).click();
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();

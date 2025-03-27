@@ -436,7 +436,7 @@ export class LiftoscriptEvaluator {
       }
     } else {
       for (let i = 0; i < this.bindings[key].length; i += 1) {
-        if (!this.bindings.isCompleted && (setIndex === "*" || setIndex === i + 1)) {
+        if (!this.bindings.isCompleted[i] && (setIndex === "*" || setIndex === i + 1)) {
           const evaluatedValue = this.evaluateToNumber(expression);
           value = MathUtils.applyOp(this.bindings[key][i] ?? 0, evaluatedValue, op);
           if (key === "RPE") {

@@ -26,10 +26,10 @@ Bicep Curl / 1x5 20lb / warmup: none`
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
-  await page.getByTestId("set-nonstarted").click();
+  await PlaywrightUtils.clickAll(page.getByTestId("entry-bicep-curl").getByTestId("complete-set"));
 
-  await page.getByText("Finish the workout").click();
-  await page.getByText("Continue").click();
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("footer-me").click();
   await page.getByTestId("menu-item-available-equipment").click();
@@ -53,6 +53,7 @@ Bicep Curl / 1x5 20lb / warmup: none`
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
 
+  await page.getByTestId("exercise-options").click();
   await page.getByTestId("exercise-edit-mode").click();
   await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
   await page.getByTestId("scroll-barrel-item-boom").scrollIntoViewIfNeeded();
@@ -76,6 +77,7 @@ Bicep Curl / 1x5 20lb / warmup: none`
 
   await page.getByTestId("footer-workout").click();
 
+  await page.getByTestId("exercise-options").click();
   await page.getByTestId("exercise-edit-mode").click();
   await expect(page.getByTestId("menu-item-value-equipment")).toHaveText("");
 });

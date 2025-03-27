@@ -34,6 +34,7 @@ Bicep Curl / 1x8 80lb`
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
+  await page.getByTestId("exercise-options").click();
   await page.getByTestId("exercise-edit-mode").first().click();
 
   await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
@@ -72,12 +73,8 @@ Bicep Curl / 1x8 80lb`
   await expect(page.getByTestId("edit-weight-input").nth(3)).toHaveValue("182");
   await page.getByTestId("modal-edit-mode-save-statvars").click();
   await expect(page.getByTestId("modal-edit-mode")).toBeHidden();
-  await expect(
-    page.getByTestId("entry-squat").getByTestId("workout-set").nth(0).getByTestId("weight-value")
-  ).toHaveText("52.5");
-  await expect(
-    page.getByTestId("entry-squat").getByTestId("workout-set").nth(3).getByTestId("weight-value")
-  ).toHaveText("132.5");
+  await expect(page.getByTestId("entry-squat").getByTestId("input-set-weight-field").nth(1)).toHaveText("52.5");
+  await expect(page.getByTestId("entry-squat").getByTestId("input-set-weight-field").nth(4)).toHaveText("132.5");
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("editor-v2-full-program").click();
