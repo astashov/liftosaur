@@ -34,6 +34,7 @@ import { InternalLink } from "../internalLink";
 import { LinkButton } from "./linkButton";
 import { IconTiktok } from "./icons/iconTiktok";
 import { PersonalRecords } from "./personalRecords";
+import { IconNotebook } from "./icons/iconNotebook";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -46,12 +47,22 @@ interface IProps {
 export function ScreenFinishDay(props: IProps): JSX.Element {
   const record = props.history[0];
 
+  const workoutTime = TimeUtils.formatHHMM(History.workoutTime(record));
+
   const allPrs = History.getPersonalRecords(props.history);
-  const totalWeight = History.totalRecordWeight(record, props.settings.units);
+  const totalWeight = Weight.display(History.totalRecordWeight(record, props.settings.units));
 
   const startedEntries = History.getStartedEntries(record);
   const totalReps = History.totalRecordReps(record);
   const totalSets = History.totalRecordSets(record);
+  // TODO: Go through historyEntry/HistoryRecordSets
+  const exercises = startedEntries
+    .map((entry, i) => {
+      return `
+      ${entry.exercise}: ${entry.sets.length} sets, ${entry.sets.reduce((sum, set) => sum + set.reps, 0)} reps`;
+    })
+    .join("\n");
+
   const [syncToAppleHealth, setSyncToAppleHealth] = useState(!!props.settings.appleHealthSyncWorkout);
   const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncWorkout);
 
@@ -66,6 +77,20 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   }, []);
   muscleGroups.sort((a, b) => b[1] - a[1]);
   const muscleGroupsGrouped = CollectionUtils.splitIntoNGroups(muscleGroups, 2);
+
+  const recordText = `
+# ${record.programName}
+## ${record.dayName}
+
+// Totals:
+// 🕐 Time: ${workoutTime} h
+// 🏋 Volume: ${totalWeight}
+// 💪 Sets: ${totalSets}
+// 🔄 Reps: ${totalReps}
+
+// Exercises:
+${exercises}
+  `.trim();
 
   return (
     <Surface
@@ -83,10 +108,10 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             <ul className="flex-1">
               <li>
                 <span className="mr-1">🕐</span> Time:{" "}
-                <strong>{TimeUtils.formatHHMM(History.workoutTime(record))} h</strong>
+                <strong>{workoutTime} h</strong>
               </li>
               <li>
-                <span className="mr-1">🏋</span> Volume: <strong>{Weight.display(totalWeight)}</strong>
+                <span className="mr-1">🏋</span> Volume: <strong>{totalWeight}</strong>
               </li>
             </ul>
             <ul className="flex-1">
@@ -146,9 +171,10 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
 
         {(SendMessage.isIos() && SendMessage.iosAppVersion() >= 11) ||
         (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 20) ? (
+          // TODO: Add recordText={recordText}
           <MobileShare userId={props.userId} history={props.history} settings={props.settings} />
         ) : (
-          <WebappShare userId={props.userId} history={props.history} settings={props.settings} />
+          <WebappShare userId={props.userId} history={props.history} settings={props.settings} recordText={recordText}/>
         )}
 
         {HealthSync.eligibleForAppleHealth() && (
@@ -304,10 +330,11 @@ interface IWebappShareProps {
   history: IHistoryRecord[];
   userId?: string;
   settings: ISettings;
+  recordText: string;
 }
 
 function WebappShare(props: IWebappShareProps): JSX.Element {
-  const [copiedLink, setCopiedLink] = useState<string | undefined>(undefined);
+  const [copiedData, setCopiedData] = useState<string | undefined>(undefined);
   const userId = props.userId;
 
   return (
@@ -331,7 +358,7 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
                 if (userId) {
                   const link = Share.generateLink(userId, props.history[0].id);
                   ClipboardUtils.copy(link);
-                  setCopiedLink(link);
+                  setCopiedData(link);
                 } else {
                   alert("You should be logged in to copy link to a workout");
                 }
@@ -339,15 +366,34 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
             >
               <IconLink className="inline-block" />
             </button>
-            {copiedLink ? (
+            {copiedData ? (
               <div>
                 <span>Copied: </span>
-                <InternalLink name="shared-workout-link" href={copiedLink} className="font-bold underline text-bluev2">
+                <InternalLink name="shared-workout-link" href={copiedData} className="font-bold underline text-bluev2">
                   Link
                 </InternalLink>
               </div>
             ) : (
               <div>Copy Link</div>
+            )}
+          </div>
+          <div className="text-center">
+            <button
+              className="w-10 h-10 rounded-full bg-grayv2-100"
+              onClick={() => {
+                  ClipboardUtils.copy(props.recordText);
+                  setCopiedData(props.recordText);
+                  alert(`Copied:\n\n${props.recordText}`);
+              }}
+            >
+              <IconNotebook className="inline-block" />
+            </button>
+            {copiedData ? (
+              <div>
+                <span>Copied!</span>
+              </div>
+            ) : (
+              <div>Copy Text</div>
             )}
           </div>
         </div>
