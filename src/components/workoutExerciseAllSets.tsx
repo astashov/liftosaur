@@ -1,6 +1,6 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { ISettings, ISet, IExerciseType, ISubscription, IProgramState, IHistoryRecord } from "../types";
+import { ISettings, ISet, IExerciseType, ISubscription, IProgramState, IHistoryRecord, ITargetType } from "../types";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { updateProgress } from "../models/state";
 import { LensBuilder } from "lens-shmens";
@@ -11,6 +11,7 @@ import { Tailwind } from "../utils/tailwindConfig";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
 import { Equipment } from "../models/equipment";
+import { IconSwap } from "./icons/iconSwap";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -20,6 +21,8 @@ interface IWorkoutExerciseAllSets {
   lbSets: LensBuilder<IHistoryRecord, ISet[], {}>;
   warmupSets: ISet[];
   entryIndex: number;
+  lastSets?: ISet[];
+  onTargetClick?: () => void;
   sets: ISet[];
   subscription?: ISubscription;
   programExercise?: IPlannerProgramExercise;
@@ -28,10 +31,24 @@ interface IWorkoutExerciseAllSets {
   dispatch: IDispatch;
 }
 
+function getTargetColumnLabel(targetType: ITargetType): string {
+  switch (targetType) {
+    case "target":
+      return "Target";
+    case "lasttime":
+      return "Previous Set";
+    case "platescalculator":
+      return "Plates";
+    case "none":
+      return "None";
+  }
+}
+
 export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Element {
   const buttonBgColor = WorkoutExerciseUtils.getBgColor100(props.sets);
   const nextSetIndex = [...props.warmupSets, ...props.sets].findIndex((s) => !Reps.isFinishedSet(s));
   const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
+  const targetLabel = getTargetColumnLabel(props.settings.workoutSettings.targetType);
 
   return (
     <div>
@@ -39,7 +56,12 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
         <div className="table-row-group">
           <div className="table-row text-xs border-b text-grayv2-main border-grayv3-100">
             <div className="table-cell px-2 pb-1 font-normal text-center border-b border-grayv3-100">Set</div>
-            <div className="table-cell pb-1 font-normal text-left border-b border-grayv3-100">Target</div>
+            <div className="table-cell pb-1 font-normal text-left border-b border-grayv3-100">
+              <button onClick={props.onTargetClick} className="inline-block w-full text-left">
+                {targetLabel ? <span className="mr-1">{targetLabel}</span> : <></>}
+                <IconSwap className="inline-block" size={10} color={Tailwind.colors().grayv3.main} />
+              </button>
+            </div>
             <div className="table-cell pb-1 font-normal text-center border-b border-grayv3-100">Reps</div>
             <div className="table-cell pb-1 border-b border-grayv3-100"></div>
             <div className="table-cell pb-1 font-normal text-center border-b border-grayv3-100">{exerciseUnit}</div>
@@ -80,6 +102,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
                 day={props.day}
                 otherStates={props.otherStates}
                 exerciseType={props.exerciseType}
+                lastSet={props.lastSets?.[i]}
                 subscription={props.subscription}
                 lbSets={props.lbSets}
                 lbSet={props.lbSets.i(i)}

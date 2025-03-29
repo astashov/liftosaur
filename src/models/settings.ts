@@ -1,7 +1,8 @@
-import { ISettings, IPlannerSettings, IAllEquipment, IAllCustomExercises } from "../types";
+import { ISettings, IPlannerSettings, IAllEquipment, IAllCustomExercises, ITargetType, targetTypes } from "../types";
 import { Weight } from "./weight";
 import { IExportedProgram } from "./program";
 import { ObjectUtils } from "../utils/object";
+import { hasSubscription } from "../utils/subscriptions";
 
 export namespace Settings {
   export function programContentBuild(): Pick<ISettings, "timers" | "units" | "planner"> {
@@ -306,5 +307,21 @@ export namespace Settings {
 
   export function activeCustomExercises(settings: ISettings): IAllCustomExercises {
     return ObjectUtils.filter(settings.exercises, (k, v) => !v?.isDeleted);
+  }
+
+  export function getNextTargetType(type: ITargetType, skipPlatesCalculator: boolean): ITargetType {
+    const index = targetTypes.indexOf(type);
+    let nextTargetType: ITargetType;
+    if (index === -1) {
+      nextTargetType = targetTypes[0];
+    } else if (index === targetTypes.length - 1) {
+      nextTargetType = targetTypes[0];
+    } else {
+      nextTargetType = targetTypes[index + 1];
+    }
+    if (nextTargetType === "platescalculator" && skipPlatesCalculator) {
+      nextTargetType = getNextTargetType("platescalculator", hasSubscription);
+    }
+    return nextTargetType;
   }
 }

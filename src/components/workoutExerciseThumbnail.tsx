@@ -55,7 +55,10 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
         <ExerciseImage className="h-10" exerciseType={entry.exercise} size="small" settings={props.settings} />
       ) : (
         <div className="absolute inset-0 flex items-center justify-start text-xs text-left bg-white text-grayv3-500">
-          <div className="flex items-center justify-start w-full h-full p-1 fade-mask">
+          <div
+            className="flex items-stretch justify-start w-full h-full p-1 leading-3 fade-mask"
+            style={{ fontSize: "0.7rem" }}
+          >
             {Exercise.nameWithEquipment(exercise, props.settings)}
           </div>
         </div>

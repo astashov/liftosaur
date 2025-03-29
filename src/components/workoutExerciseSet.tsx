@@ -26,6 +26,7 @@ interface IWorkoutExerciseSet {
   lbSet: LensBuilder<IHistoryRecord, ISet, {}>;
   lbSets: LensBuilder<IHistoryRecord, ISet[], {}>;
   isCurrentProgress: boolean;
+  lastSet?: ISet;
   set: ISet;
   isNext?: boolean;
   subscription?: ISubscription;
@@ -78,13 +79,19 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
             </div>
           </div>
           <div data-cy="workout-set-target" className={`${borderClass} table-cell w-full align-middle`}>
-            {props.type === "warmup" ? (
-              <span className="text-xs text-grayv3-main">Warmup</span>
-            ) : props.isCurrentProgress && props.programExercise == null ? (
-              <span className="text-xs text-grayv3-main">Ad-hoc</span>
-            ) : (
-              <WorkoutExerciseSetTarget set={set} />
-            )}
+            <WorkoutExerciseSetTargetField
+              set={set}
+              lastSet={props.lastSet}
+              setType={
+                props.type === "warmup"
+                  ? "warmup"
+                  : props.isCurrentProgress && props.programExercise == null
+                    ? "adhoc"
+                    : "program"
+              }
+              settings={props.settings}
+              exerciseType={props.exerciseType}
+            />
           </div>
           <div className={`${borderClass} table-cell py-2 align-middle`}>
             <div className="flex justify-center text-center">
@@ -247,51 +254,100 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   );
 }
 
-function WorkoutExerciseSetTarget(props: { set: ISet }): JSX.Element {
+interface IWorkoutExerciseSetTargetProps {
+  setType: "program" | "warmup" | "adhoc";
+  set: ISet;
+}
+
+function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.Element {
+  switch (props.setType) {
+    case "warmup":
+      return <span className="text-xs text-grayv3-main">Warmup</span>;
+    case "adhoc":
+      return <span className="text-xs text-grayv3-main">Ad-hoc</span>;
+    case "program": {
+      const set = props.set;
+      const isDiffWeight = set.weight && set.originalWeight && !Weight.eq(set.weight, set.originalWeight);
+      return (
+        <div className="inline-block text-sm align-middle">
+          {set.label ? <div className="text-xs text-grayv3-main">{set.label}</div> : null}
+          <div>
+            <span className="font-semibold" style={{ color: "#940" }}>
+              {set.minReps != null ? `${n(Math.max(0, set.minReps))}-` : null}
+              {n(Math.max(0, set.reps))}
+              {set.isAmrap ? "+" : ""}
+            </span>
+            <span className="text-grayv3-main"> × </span>
+            <span>
+              {set.originalWeight && (
+                <span
+                  className={isDiffWeight ? "line-through text-grayv3-main" : "font-semibold"}
+                  style={{ color: isDiffWeight ? "" : "#164" }}
+                >
+                  <span>{set.originalWeight.value}</span>
+                  <span className="text-xs font-normal">{set.originalWeight.unit}</span>
+                </span>
+              )}
+              {set.originalWeight && isDiffWeight && (
+                <span style={{ color: "#164" }}>
+                  <span> </span>
+                  <span className="font-semibold">{set.weight.value}</span>
+                  <span className="text-xs">{set.weight.unit}</span>
+                </span>
+              )}
+            </span>
+            <span className="font-semibold" style={{ color: "#164" }}>
+              {set.askWeight ? "+" : ""}
+              {set.rpe ? ` @${n(Math.max(0, set.rpe))}` : null}
+              {set.rpe && set.logRpe ? "+" : ""}
+            </span>
+            {set.timer != null ? (
+              <span>
+                <span> </span>
+                <span style={{ color: "#708" }}>
+                  <span className="font-bold">{n(set.timer)}</span>
+                  <span className="text-xs">s</span>
+                </span>
+              </span>
+            ) : null}
+          </div>
+        </div>
+      );
+    }
+  }
+}
+
+interface IWorkoutExerciseLastSetProps {
+  set?: ISet;
+}
+
+function WorkoutExerciseLastSet(props: IWorkoutExerciseLastSetProps): JSX.Element {
   const set = props.set;
-  const isDiffWeight = set.weight && set.originalWeight && !Weight.eq(set.weight, set.originalWeight);
+  if (set == null) {
+    return <span className="text-xs text-grayv3-main">No last set</span>;
+  }
+  const setStatus = Reps.setsStatus([set]);
   return (
     <div className="inline-block text-sm align-middle">
       {set.label ? <div className="text-xs text-grayv3-main">{set.label}</div> : null}
       <div>
-        <span className="font-semibold" style={{ color: "#940" }}>
-          {set.minReps != null ? `${n(Math.max(0, set.minReps))}-` : null}
-          {n(Math.max(0, set.reps))}
-          {set.isAmrap ? "+" : ""}
+        <span className={`font-semibold ${WorkoutExerciseUtils.setsStatusToTextColor(setStatus)}`}>
+          {set.completedReps != null ? n(set.completedReps) : "-"}
         </span>
         <span className="text-grayv3-main"> × </span>
         <span>
-          {set.originalWeight && (
-            <span
-              className={isDiffWeight ? "line-through text-grayv3-main" : "font-semibold"}
-              style={{ color: isDiffWeight ? "" : "#164" }}
-            >
-              <span>{set.originalWeight.value}</span>
-              <span className="text-xs font-normal">{set.originalWeight.unit}</span>
-            </span>
-          )}
-          {set.originalWeight && isDiffWeight && (
-            <span style={{ color: "#164" }}>
-              <span> </span>
-              <span className="font-semibold">{set.weight.value}</span>
-              <span className="text-xs">{set.weight.unit}</span>
-            </span>
-          )}
-        </span>
-        <span className="font-semibold" style={{ color: "#164" }}>
-          {set.askWeight ? "+" : ""}
-          {set.rpe ? ` @${n(Math.max(0, set.rpe))}` : null}
-          {set.rpe && set.logRpe ? "+" : ""}
-        </span>
-        {set.timer != null ? (
-          <span>
-            <span> </span>
-            <span style={{ color: "#708" }}>
-              <span className="font-bold">{n(set.timer)}</span>
-              <span className="text-xs">s</span>
-            </span>
+          <span className={`font-semibold ${WorkoutExerciseUtils.setsStatusToTextColor(setStatus)}`}>
+            {set.completedWeight ? <span>{set.completedWeight.value}</span> : "-"}
+            <span className="text-xs font-normal">{set.completedWeight?.unit}</span>
           </span>
-        ) : null}
+        </span>
+        <span className={`font-semibold ${WorkoutExerciseUtils.setsStatusToTextColor(setStatus)}`}>
+          {set.completedRpe != null
+            ? ` @${n(Math.max(0, set.completedRpe))}+`
+            : set.rpe != null
+              ? ` @${n(Math.max(0, set.rpe))}`
+              : ""}
+        </span>
       </div>
     </div>
   );
@@ -348,4 +404,52 @@ function getDataCy(set: ISet): string {
       return "set-incompleted";
     }
   }
+}
+
+interface IWorkoutExerciseSetTargetFieldProps {
+  setType: "program" | "warmup" | "adhoc";
+  set: ISet;
+  lastSet?: ISet;
+  settings: ISettings;
+  exerciseType: IExerciseType;
+}
+
+function WorkoutExerciseSetTargetField(props: IWorkoutExerciseSetTargetFieldProps): JSX.Element {
+  switch (props.settings.workoutSettings.targetType) {
+    case "target": {
+      return <WorkoutExerciseSetTarget set={props.set} setType={props.setType} />;
+    }
+    case "lasttime": {
+      return <WorkoutExerciseLastSet set={props.lastSet} />;
+    }
+    case "platescalculator": {
+      return (
+        <WorkoutExercisePlatesCalculator set={props.set} settings={props.settings} exerciseType={props.exerciseType} />
+      );
+    }
+  }
+  return <div />;
+}
+
+interface IWorkoutExercisePlatesCalculatorProps {
+  set: ISet;
+  settings: ISettings;
+  exerciseType: IExerciseType;
+}
+
+function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculatorProps): JSX.Element {
+  const { plates, totalWeight: weight } = Weight.calculatePlates(
+    props.set.weight,
+    props.settings,
+    props.set.weight.unit,
+    props.exerciseType
+  );
+  const formattedPlates = plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.exerciseType) : "None";
+  return (
+    <span className="text-sm font-semibold break-all">
+      <span className={Weight.eq(weight, props.set.weight) ? "text-blackv2" : "text-redv2-600"} data-cy="plates-list">
+        {formattedPlates}
+      </span>
+    </span>
+  );
 }

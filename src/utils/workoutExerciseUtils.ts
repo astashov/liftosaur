@@ -123,4 +123,17 @@ export class WorkoutExerciseUtils {
         return "border-grayv3-300";
     }
   }
+
+  public static setsStatusToTextColor(status: ISetsStatus): string {
+    switch (status) {
+      case "success":
+        return "text-greenv3-600";
+      case "in-range":
+        return "text-yellowv3-600";
+      case "failed":
+        return "text-redv3-600";
+      case "not-finished":
+        return "text-grayv3-300";
+    }
+  }
 }

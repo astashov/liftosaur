@@ -310,6 +310,47 @@ export namespace History {
     };
   }
 
+  export function collectLastEntry(
+    startTime: number,
+    exerciseType: IExerciseType
+  ): ICollectorFn<
+    IHistoryRecord,
+    { lastHistoryEntry?: IHistoryEntry; lastHistoryRecord?: IHistoryRecord; timestamp?: number }
+  > {
+    return {
+      fn: (acc, hr) => {
+        const time = hr.endTime ?? hr.startTime;
+        if (time < startTime && (acc.timestamp == null || time > acc.timestamp)) {
+          const entry = hr.entries.find((e) => Exercise.eq(e.exercise, exerciseType));
+          if (entry) {
+            acc = { lastHistoryEntry: entry, lastHistoryRecord: hr, timestamp: time };
+          }
+        }
+        return acc;
+      },
+      initial: {},
+    };
+  }
+
+  export function collectLastNote(
+    startTime: number,
+    exerciseType: IExerciseType
+  ): ICollectorFn<IHistoryRecord, { lastNote?: string; timestamp?: number }> {
+    return {
+      fn: (acc, hr) => {
+        const time = hr.endTime ?? hr.startTime;
+        if (time < startTime && (acc.timestamp == null || time > acc.timestamp)) {
+          const entry = hr.entries.find((e) => Exercise.eq(e.exercise, exerciseType));
+          if (entry && entry.notes) {
+            acc = { lastNote: entry.notes, timestamp: time };
+          }
+        }
+        return acc;
+      },
+      initial: {},
+    };
+  }
+
   export function collectWeightPersonalRecord(
     exerciseType: IExerciseType,
     unit: IUnit

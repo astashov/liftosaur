@@ -1,7 +1,7 @@
 import { h, JSX, RefObject } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IWeight, IProgramState } from "../types";
-import { updateProgress } from "../models/state";
+import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IWeight, IProgramState, targetTypes } from "../types";
+import { updateProgress, updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
 import { ExerciseImage } from "./exerciseImage";
 import { Exercise } from "../models/exercise";
@@ -23,7 +23,6 @@ import { WorkoutExerciseAllSets } from "./workoutExerciseAllSets";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
 import { useMemo, useState } from "preact/hooks";
 import { DropdownMenu, DropdownMenuItem } from "./editProgram/editProgramUi/editProgramUiDropdownMenu";
-import { IconNotebook } from "./icons/iconNotebook";
 import { IconSwap } from "./icons/iconSwap";
 import { IconTrash } from "./icons/iconTrash";
 import { IconEdit2 } from "./icons/iconEdit2";
@@ -38,6 +37,8 @@ import { TextareaAutogrow } from "./textareaAutogrow";
 import { Progress } from "../models/progress";
 import { StringUtils } from "../utils/string";
 import { Reps } from "../models/set";
+import { GroupHeader } from "./groupHeader";
+import { Settings } from "../models/settings";
 
 interface IWorkoutExerciseProps {
   day: number;
@@ -76,30 +77,32 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
   const lbSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("sets");
   const lbWarmupSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("warmupSets");
   const programExerciseId = props.entry.programExerciseId;
-  const [showNotes, setShowNotes] = useState(!!props.entry.notes);
 
   const historyCollector = Collector.build(props.history)
-    .addFn(History.collectMinAndMaxTime())
-    .addFn(History.collectAllUsedExerciseTypes())
     .addFn(History.collectAllHistoryRecordsOfExerciseType(exerciseType))
+    .addFn(History.collectMinAndMaxTime())
+    .addFn(History.collectLastEntry(props.progress.startTime, exerciseType))
+    .addFn(History.collectLastNote(props.progress.startTime, exerciseType))
     .addFn(History.collectWeightPersonalRecord(exerciseType, props.settings.units))
     .addFn(History.collect1RMPersonalRecord(exerciseType, props.settings));
 
   const [
-    { maxTime: maxX, minTime: minX },
-    _exerciseTypes,
     history,
+    { maxTime: maxX, minTime: minX },
+    { lastHistoryEntry },
+    { lastNote },
     { maxWeight, maxWeightHistoryRecord },
     { max1RM, max1RMHistoryRecord, max1RMSet },
   ] = useMemo(() => {
     const results = historyCollector.run();
-    results[2] = CollectionUtils.sort(results[2], (a, b) => {
+    results[0] = CollectionUtils.sort(results[0], (a, b) => {
       return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
     });
     return results;
   }, [props.history, exerciseType, props.settings]);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
   const status = Reps.setsStatus(props.entry.sets);
+  console.log("Last entry", lastHistoryEntry);
 
   return (
     <div data-cy={`exercise-progress-${status}`}>
@@ -169,21 +172,6 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
               </button>
               {isKebabMenuOpen && (
                 <DropdownMenu rightOffset="1.5rem" onClose={() => setIsKebabMenuOpen(false)}>
-                  <DropdownMenuItem
-                    data-cy="exercise-notes-toggle"
-                    isTop={true}
-                    onClick={() => {
-                      setShowNotes(!showNotes);
-                      setIsKebabMenuOpen(false);
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div>
-                        <IconNotebook size={14} />
-                      </div>
-                      <div>Add a Note</div>
-                    </div>
-                  </DropdownMenuItem>
                   {programExercise && programExerciseId && (
                     <DropdownMenuItem
                       data-cy="exercise-edit-mode"
@@ -280,22 +268,28 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
               dispatch={props.dispatch}
             />
           )}
-          {showNotes && (
-            <div className="">
-              <TextareaAutogrow
-                data-cy="exercise-notes-input"
-                id="exercise-notes"
-                maxLength={4095}
-                name="exercise-notes"
-                placeholder="Add exercise notes here..."
-                value={props.entry.notes}
-                onChangeText={(text) => {
-                  Progress.editExerciseNotes(props.dispatch, props.entryIndex, text);
-                }}
-                className="mt-1"
-              />
+          {lastNote && (
+            <div>
+              <GroupHeader name="Previous Note" />
+              <div className="pl-1 mb-1 text-sm border-bluev3-700" style={{ borderWidth: "0 0 0 4px" }}>
+                {lastNote}
+              </div>
             </div>
           )}
+          <div className="">
+            <TextareaAutogrow
+              data-cy="exercise-notes-input"
+              id="exercise-notes"
+              maxLength={4095}
+              name="exercise-notes"
+              placeholder="Add exercise notes here..."
+              value={props.entry.notes}
+              onChangeText={(text) => {
+                Progress.editExerciseNotes(props.dispatch, props.entryIndex, text);
+              }}
+              className="mt-1"
+            />
+          </div>
         </div>
         <div className="mt-1">
           <WorkoutExerciseAllSets
@@ -303,7 +297,22 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
             day={props.day}
             programExercise={programExercise}
             entryIndex={props.entryIndex}
+            onTargetClick={() => {
+              updateSettings(
+                props.dispatch,
+                lb<ISettings>()
+                  .p("workoutSettings")
+                  .p("targetType")
+                  .recordModify((type) => {
+                    return Settings.getNextTargetType(
+                      type,
+                      !Subscriptions.hasSubscription(props.subscription) || !currentEquipmentName
+                    );
+                  })
+              );
+            }}
             otherStates={props.otherStates}
+            lastSets={lastHistoryEntry?.sets}
             lbSets={lbSets}
             lbWarmupSets={lbWarmupSets}
             exerciseType={exerciseType}

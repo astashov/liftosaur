@@ -910,11 +910,18 @@ export const migrations = {
         for (const set of entry.sets) {
           if (set.completedReps != null) {
             set.isCompleted = set.isCompleted ?? true;
-            set.completedWeight = ObjectUtils.clone(set.weight);
+            set.completedWeight = set.completedWeight ?? ObjectUtils.clone(set.weight);
           }
         }
       }
     }
+    return storage;
+  },
+  "20250329092730_add_workout_settings": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.workoutSettings = storage.settings.workoutSettings || {
+      targetType: "target",
+    };
     return storage;
   },
 };

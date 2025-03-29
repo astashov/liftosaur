@@ -1052,6 +1052,28 @@ export const TGym = t.type(
 );
 export type IGym = t.TypeOf<typeof TGym>;
 
+export const targetTypes = ["target", "lasttime", "platescalculator", "none"] as const;
+export const TTargetType = t.keyof(
+  targetTypes.reduce<Record<IArrayElement<typeof targetTypes>, null>>(
+    (memo, exerciseType) => {
+      memo[exerciseType] = null;
+      return memo;
+    },
+    {} as Record<IArrayElement<typeof targetTypes>, null>
+  ),
+  "TTargetType"
+);
+export type ITargetType = t.TypeOf<typeof TTargetType>;
+
+export const TWorkoutSettings = t.type(
+  {
+    targetType: TTargetType,
+  },
+  "TWorkoutSettings"
+);
+
+export type IWorkoutSettings = t.TypeOf<typeof TWorkoutSettings>;
+
 export const TSettings = t.intersection(
   [
     t.interface({
@@ -1081,6 +1103,7 @@ export const TSettings = t.intersection(
       volume: t.number,
       exerciseData: dictionary(t.string, TExerciseDataValue),
       planner: TPlannerSettings,
+      workoutSettings: TWorkoutSettings,
     }),
     t.partial({
       appleHealthSyncWorkout: t.boolean,
