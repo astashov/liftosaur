@@ -208,6 +208,7 @@ function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Elemen
         {props.progress.entries.map((entry, entryIndex) => {
           return (
             <WorkoutExerciseThumbnail
+              selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
               key={entryIndex}
               progress={props.progress}
               settings={props.settings}
