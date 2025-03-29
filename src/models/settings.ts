@@ -2,7 +2,6 @@ import { ISettings, IPlannerSettings, IAllEquipment, IAllCustomExercises, ITarge
 import { Weight } from "./weight";
 import { IExportedProgram } from "./program";
 import { ObjectUtils } from "../utils/object";
-import { hasSubscription } from "../utils/subscriptions";
 
 export namespace Settings {
   export function programContentBuild(): Pick<ISettings, "timers" | "units" | "planner"> {
@@ -246,6 +245,9 @@ export namespace Settings {
       vibration: false,
       startWeekFromMonday: false,
       lengthUnits: "in",
+      workoutSettings: {
+        targetType: "target",
+      },
       statsEnabled: { weight: { weight: true }, length: {}, percentage: {} },
       equipment: defaultEquipment(),
       exercises: {},
@@ -320,7 +322,7 @@ export namespace Settings {
       nextTargetType = targetTypes[index + 1];
     }
     if (nextTargetType === "platescalculator" && skipPlatesCalculator) {
-      nextTargetType = getNextTargetType("platescalculator", hasSubscription);
+      nextTargetType = getNextTargetType("platescalculator", skipPlatesCalculator);
     }
     return nextTargetType;
   }

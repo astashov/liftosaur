@@ -1,6 +1,6 @@
 import { h, JSX, RefObject } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IWeight, IProgramState, targetTypes } from "../types";
+import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IWeight, IProgramState } from "../types";
 import { updateProgress, updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
 import { ExerciseImage } from "./exerciseImage";
@@ -102,7 +102,6 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
   }, [props.history, exerciseType, props.settings]);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
   const status = Reps.setsStatus(props.entry.sets);
-  console.log("Last entry", lastHistoryEntry);
 
   return (
     <div data-cy={`exercise-progress-${status}`}>
@@ -364,15 +363,17 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
           />
         </div>
       )}
-      <div className="mx-4 mt-2">
-        <ExerciseHistory
-          surfaceRef={props.surfaceRef}
-          exerciseType={exerciseType}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          history={history}
-        />
-      </div>
+      {history.length > 0 && (
+        <div className="mx-4 mt-2">
+          <ExerciseHistory
+            surfaceRef={props.surfaceRef}
+            exerciseType={exerciseType}
+            settings={props.settings}
+            dispatch={props.dispatch}
+            history={history}
+          />
+        </div>
+      )}
     </div>
   );
 }

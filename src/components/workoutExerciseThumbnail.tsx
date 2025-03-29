@@ -27,12 +27,9 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
   const isCurrent = (props.progress.ui?.currentEntryIndex ?? 0) === entryIndex;
   const borderColor = isCurrent ? "border-purplev3-main" : WorkoutExerciseUtils.setsStatusToBorderColor(setsStatus);
   const exercise = Exercise.get(entry.exercise, props.settings.exercises);
-  const firstLetters = exercise.name
-    .split(/[_:*\s-]+/)
-    .map((word) => word[0])
-    .slice(0, 4)
-    .join("");
   const ref = useRef<HTMLButtonElement>(null);
+  const totalSetsCount = entry.sets.length;
+  const completedSetsCount = entry.sets.filter((set) => set.isCompleted).length;
 
   useEffect(() => {
     if (props.entryIndex === props.selectedIndex && ref.current) {
@@ -44,7 +41,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
     <button
       ref={ref}
       className={`cursor-pointer border ${borderColor} rounded-lg w-12 h-12 relative box-content overflow-hidden text-ellipsis`}
-      style={{ borderWidth: isCurrent ? "2px" : "1px", padding: isCurrent ? "1px" : "2px", flex: "0 0 auto" }}
+      style={{ borderWidth: isCurrent ? "2px" : "1px", margin: !isCurrent ? "0 1px" : "0", flex: "0 0 auto" }}
       data-cy={`workout-tab-${StringUtils.dashcase(exercise.name)}`}
       onClick={() => {
         updateProgress(props.dispatch, [lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex)]);
@@ -63,7 +60,14 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
           </div>
         </div>
       )}
-      {setsStatus !== "not-finished" && (
+      {setsStatus === "not-finished" ? (
+        <div
+          className="absolute bottom-0 right-0 text-xs rounded-lg shadow"
+          style={{ bottom: "2px", right: "2px", padding: "2px 4px", background: "rgba(255, 255, 255, 0.75)" }}
+        >
+          {completedSetsCount}/{totalSetsCount}
+        </div>
+      ) : (
         <div className="absolute bottom-0 right-0" style={{ bottom: "2px", right: "2px" }}>
           <IconCheckCircle isChecked={true} size={14} color={WorkoutExerciseUtils.setsStatusToColor(setsStatus)} />
         </div>
