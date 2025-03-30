@@ -1,6 +1,7 @@
 import { h, JSX, ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
+import { createPortal } from "preact/compat";
 
 interface IProps {
   isHidden: boolean;
@@ -34,7 +35,7 @@ export function BottomSheet(props: IProps): JSX.Element {
     setBottomShift(props.isHidden ? (bottomSheetRef.current?.clientHeight ?? 0) : 0);
   }, [props.isHidden]);
 
-  return (
+  return createPortal(
     <div className={`fixed inset-0 z-40 pointer-events-none`} data-cy="bottom-sheet-container">
       <div
         data-name="overlay"
@@ -75,6 +76,7 @@ export function BottomSheet(props: IProps): JSX.Element {
           {props.children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById("bottomsheet")!
   );
 }

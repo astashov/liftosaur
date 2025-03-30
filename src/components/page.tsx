@@ -87,6 +87,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
           <script src={`/${js}.js?version=${commitHash}`}></script>
         ))}
         <div id="modal"></div>
+        <div id="bottomsheet"></div>
         <div id="keyboard"></div>
       </body>
     </html>
