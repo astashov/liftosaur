@@ -67,9 +67,9 @@ export function Modal(props: IProps): JSX.Element {
         data-cy={`modal${props.name ? `-${props.name}` : ""}`}
         className={`relative z-20 flex flex-col ${props.noPaddings ? "" : "py-6"} bg-white rounded-lg shadow-lg`}
         style={{
-          maxWidth: props.maxWidth ?? "85%",
+          maxWidth: props.maxWidth ?? "92%",
           maxHeight: "90%",
-          width: props.isFullWidth ? "85%" : "auto",
+          width: props.isFullWidth ? "92%" : "auto",
           ...props.style,
         }}
       >

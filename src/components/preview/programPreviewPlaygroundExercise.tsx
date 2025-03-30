@@ -17,6 +17,7 @@ import { StringUtils } from "../../utils/string";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { WorkoutExerciseAllSets } from "../workoutExerciseAllSets";
+import { WorkoutExerciseUtils } from "../../utils/workoutExerciseUtils";
 
 interface IProps {
   entry: IHistoryEntry;
@@ -152,7 +153,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
 
   return (
     <div
-      className={`pt-2 pb-2 mb-6 rounded-lg ${getBgColor100(props.entry)} relative`}
+      className={`pt-2 pb-2 mb-6 rounded-lg ${WorkoutExerciseUtils.getBgColor50(props.entry.sets)} relative`}
       data-cy={StringUtils.dashcase(exercise.name)}
     >
       <div>

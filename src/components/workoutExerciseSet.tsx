@@ -277,9 +277,9 @@ interface IWorkoutExerciseSetTargetProps {
 function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.Element {
   switch (props.setType) {
     case "warmup":
-      return <span className="text-xs text-grayv3-main">Warmup</span>;
+      return <span className="inline-block text-xs break-all text-grayv3-main">Warmup</span>;
     case "adhoc":
-      return <span className="text-xs text-grayv3-main">Ad-hoc</span>;
+      return <span className="inline-block text-xs break-all text-grayv3-main">Ad-hoc</span>;
     case "program": {
       const set = props.set;
       const isDiffWeight = set.weight && set.originalWeight && !Weight.eq(set.weight, set.originalWeight);

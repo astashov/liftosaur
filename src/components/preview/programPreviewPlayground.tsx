@@ -85,7 +85,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
               <div className="flex flex-wrap justify-center mt-4" style={{ gap: "1.5rem" }}>
                 {week.days.map((d: IProgramPreviewPlaygroundDaySetupWithProgress, i) => {
                   return (
-                    <div style={{ maxWidth: "24rem", minWidth: "14rem" }} className="flex-1">
+                    <div style={{ maxWidth: "24rem", minWidth: "18rem" }} className="flex-1">
                       <ProgramPreviewPlaygroundDay
                         weekName={state.progresses.length > 1 ? week.name : undefined}
                         day={d.day}

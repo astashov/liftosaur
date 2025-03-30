@@ -27,7 +27,7 @@ export class WorkoutExerciseUtils {
     } else if (color === "red") {
       return "bg-redv3-50";
     } else if (color === "yellow") {
-      return "bg-orange-50";
+      return "bg-yellowv3-50";
     } else {
       return "bg-purplev3-50";
     }
@@ -53,7 +53,7 @@ export class WorkoutExerciseUtils {
     } else if (color === "red") {
       return "bg-redv3-200";
     } else if (color === "yellow") {
-      return "bg-orange-200";
+      return "bg-yellowv3-200";
     } else {
       return "bg-purplev3-200";
     }
@@ -79,7 +79,7 @@ export class WorkoutExerciseUtils {
     } else if (color === "red") {
       return "border-redv3-100";
     } else if (color === "yellow") {
-      return "border-orange-100";
+      return "border-yellowv3-100";
     } else {
       return "border-purplev3-100";
     }
@@ -92,7 +92,7 @@ export class WorkoutExerciseUtils {
     } else if (color === "red") {
       return "border-redv3-150";
     } else if (color === "yellow") {
-      return "border-orange-150";
+      return "border-yellowv3-150";
     } else {
       return "border-purplev3-150";
     }
@@ -105,7 +105,7 @@ export class WorkoutExerciseUtils {
     } else if (color === "red") {
       return "border-redv3-200";
     } else if (color === "yellow") {
-      return "border-orange-200";
+      return "border-yellowv3-200";
     } else {
       return "border-purplev3-200";
     }
@@ -118,7 +118,7 @@ export class WorkoutExerciseUtils {
     } else if (color === "red") {
       return "border-redv3-300";
     } else if (color === "yellow") {
-      return "border-orange-300";
+      return "border-yellowv3-300";
     } else {
       return "border-purplev3-300";
     }

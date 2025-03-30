@@ -59,7 +59,9 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             <div className="table-cell pb-1 font-normal text-left border-b border-grayv3-100">
               <button onClick={props.onTargetClick} className="inline-block w-full text-left">
                 {targetLabel ? <span className="mr-1">{targetLabel}</span> : <></>}
-                <IconSwapSmall className="inline-block" size={12} color={Tailwind.colors().grayv3.main} />
+                {props.onTargetClick && (
+                  <IconSwapSmall className="inline-block" size={12} color={Tailwind.colors().grayv3.main} />
+                )}
               </button>
             </div>
             <div className="table-cell pb-1 font-normal text-center border-b border-grayv3-100">Reps</div>
@@ -116,7 +118,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
           })}
         </div>
       </div>
-      <div className="flex gap-4 px-4 my-2">
+      <div className="flex gap-2 px-4 my-2">
         <div className="flex-1">
           <button
             className={`${buttonBgColor} w-full py-2 text-xs font-semibold text-center rounded-md text-bluev3-main`}
