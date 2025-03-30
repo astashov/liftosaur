@@ -62,10 +62,11 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
       )}
       {setsStatus === "not-finished" ? (
         <div
-          className="absolute bottom-0 right-0 text-xs rounded-lg shadow"
-          style={{ bottom: "2px", right: "2px", padding: "2px 4px", background: "rgba(255, 255, 255, 0.75)" }}
+          className="absolute bottom-0 right-0 text-xs"
+          style={{ bottom: "0px", right: "0px", padding: "1px 3px", background: "rgba(255, 255, 255, 0.75)" }}
         >
-          {completedSetsCount}/{totalSetsCount}
+          <strong className="font-semibold">{completedSetsCount}</strong>/
+          <strong className="font-semibold">{totalSetsCount}</strong>
         </div>
       ) : (
         <div className="absolute bottom-0 right-0" style={{ bottom: "2px", right: "2px" }}>

@@ -68,11 +68,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
   const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
   const description = programExercise ? PlannerProgramExercise.currentDescription(programExercise) : undefined;
   const onerm = Exercise.onerm(exercise, props.settings);
-  const workoutWeights = CollectionUtils.compatBy(
-    props.entry.sets.map((s) => ({ original: s.originalWeight, rounded: s.weight })),
-    (w) => w.rounded.value.toString()
-  );
-  const hasUnequalWeights = workoutWeights.some((w) => !Weight.eq(w.original, w.rounded));
+  const hasUnequalWeights = props.entry.sets.some((w) => !Weight.eq(w.originalWeight, w.weight));
   const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0];
   const lbSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("sets");
   const lbWarmupSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("warmupSets");
@@ -250,15 +246,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
               <Markdown className="text-sm" value={description} />
             </div>
           )}
-          {props.showHelp && hasUnequalWeights && (
-            <HelpEquipment
-              helps={props.helps}
-              entry={props.entry}
-              progress={props.progress}
-              dispatch={props.dispatch}
-            />
-          )}
-          {!props.hidePlatesCalculator && nextSet && (
+          {!props.hidePlatesCalculator && nextSet && currentEquipmentName && (
             <WorkoutPlatesCalculator
               entry={props.entry}
               weight={nextSet.completedWeight ?? nextSet.weight}
@@ -289,6 +277,15 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
               className="mt-1"
             />
           </div>
+          {props.showHelp && <HelpTarget helps={props.helps} dispatch={props.dispatch} />}
+          {props.showHelp && hasUnequalWeights && (
+            <HelpEquipment
+              helps={props.helps}
+              entry={props.entry}
+              progress={props.progress}
+              dispatch={props.dispatch}
+            />
+          )}
         </div>
         <div className="mt-1">
           <WorkoutExerciseAllSets
@@ -401,6 +398,15 @@ function HelpEquipment(props: IHelpEquipmentProps): JSX.Element {
         Equipment settings there
       </LinkButton>
       .
+    </Nux>
+  );
+}
+
+function HelpTarget(props: { helps: string[]; dispatch: IDispatch }): JSX.Element {
+  return (
+    <Nux className="mt-2" id="Set Target" helps={props.helps} dispatch={props.dispatch}>
+      <span className="font-semibold">Target</span> column shows the prescribed set from a program. The set will be
+      successful if you complete the target reps and weight.
     </Nux>
   );
 }

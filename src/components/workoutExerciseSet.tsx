@@ -5,7 +5,6 @@ import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { n } from "../utils/math";
 import { InputNumber2 } from "./inputNumber2";
 import { InputWeight2 } from "./inputWeight2";
-import { Tailwind } from "../utils/tailwindConfig";
 import { updateProgress } from "../models/state";
 import { LensBuilder } from "lens-shmens";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
@@ -46,7 +45,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const isMobile = Mobile.isMobile(navigator.userAgent);
   const isPlaywright = Mobile.isPlaywright(navigator.userAgent);
   const shouldUseTouch = isMobile && !isPlaywright;
-  const borderClass = ` border-b ${WorkoutExerciseUtils.getBorderColor100([set])} `;
+  const borderClass = ` border-b border-purplev3-150`;
   const hasEdit = props.type === "workout" && props.programExercise != null;
 
   return (
@@ -69,7 +68,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
           onPointerMove={!shouldUseTouch ? onPointerMove : undefined}
           onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
         >
-          <div className={`${borderClass} table-cell py-1 px-2 align-middle`}>
+          <div className="table-cell px-2 py-1 text-sm align-middle border-b border-purplev3-150">
             <div
               className={`w-6 h-6 flex items-center justify-center rounded-full${
                 props.isNext ? " bg-purplev3-main text-white font-bold" : ""
@@ -198,11 +197,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   });
                 }}
               >
-                <IconCheckCircle
-                  size={24}
-                  isChecked={true}
-                  color={set.isCompleted ? Tailwind.colors().purplev3.main : Tailwind.colors().grayv3[400]}
-                />
+                <IconCheckCircle size={20} isChecked={true} color={WorkoutExerciseUtils.getIconColor([set])} />
               </button>
             </div>
             <div

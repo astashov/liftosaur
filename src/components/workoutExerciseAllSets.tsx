@@ -11,7 +11,7 @@ import { Tailwind } from "../utils/tailwindConfig";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
 import { Equipment } from "../models/equipment";
-import { IconSwap } from "./icons/iconSwap";
+import { IconSwapSmall } from "./icons/iconSwapSmall";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -59,7 +59,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             <div className="table-cell pb-1 font-normal text-left border-b border-grayv3-100">
               <button onClick={props.onTargetClick} className="inline-block w-full text-left">
                 {targetLabel ? <span className="mr-1">{targetLabel}</span> : <></>}
-                <IconSwap className="inline-block" size={10} color={Tailwind.colors().grayv3.main} />
+                <IconSwapSmall className="inline-block" size={12} color={Tailwind.colors().grayv3.main} />
               </button>
             </div>
             <div className="table-cell pb-1 font-normal text-center border-b border-grayv3-100">Reps</div>

@@ -59,6 +59,19 @@ export class WorkoutExerciseUtils {
     }
   }
 
+  public static getIconColor(sets: ISet[]): string {
+    const color = this.getColor(sets);
+    if (color === "green") {
+      return Tailwind.colors().greenv3[600];
+    } else if (color === "red") {
+      return Tailwind.colors().redv3[500];
+    } else if (color === "yellow") {
+      return Tailwind.colors().yellowv3[600];
+    } else {
+      return Tailwind.colors().grayv3[400];
+    }
+  }
+
   public static getBorderColor100(sets: ISet[]): string {
     const color = this.getColor(sets);
     if (color === "green") {
@@ -69,6 +82,19 @@ export class WorkoutExerciseUtils {
       return "border-orange-100";
     } else {
       return "border-purplev3-100";
+    }
+  }
+
+  public static getBorderColor150(sets: ISet[]): string {
+    const color = this.getColor(sets);
+    if (color === "green") {
+      return "border-greenv3-150";
+    } else if (color === "red") {
+      return "border-redv3-150";
+    } else if (color === "yellow") {
+      return "border-orange-150";
+    } else {
+      return "border-purplev3-150";
     }
   }
 
