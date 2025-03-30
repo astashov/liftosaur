@@ -153,7 +153,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
 
   return (
     <div
-      className={`pt-2 pb-2 mb-6 rounded-lg ${WorkoutExerciseUtils.getBgColor50(props.entry.sets)} relative`}
+      className={`pt-2 pb-2 mb-6 rounded-lg ${WorkoutExerciseUtils.getBgColor50(props.entry.sets, false)} relative`}
       data-cy={StringUtils.dashcase(exercise.name)}
     >
       <div>

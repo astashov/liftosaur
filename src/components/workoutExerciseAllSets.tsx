@@ -45,7 +45,7 @@ function getTargetColumnLabel(targetType: ITargetType): string {
 }
 
 export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Element {
-  const buttonBgColor = WorkoutExerciseUtils.getBgColor100(props.sets);
+  const buttonBgColor = WorkoutExerciseUtils.getBgColor100(props.sets, false);
   const nextSetIndex = [...props.warmupSets, ...props.sets].findIndex((s) => !Reps.isFinishedSet(s));
   const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
   const targetLabel = getTargetColumnLabel(props.settings.workoutSettings.targetType);

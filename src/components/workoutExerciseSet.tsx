@@ -58,7 +58,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
     >
       {({ onPointerDown, onPointerMove, onPointerUp, style, close }) => (
         <div
-          className={`will-change-transform relative table-row ${WorkoutExerciseUtils.getBgColor50([set])}`}
+          className={`will-change-transform relative table-row ${WorkoutExerciseUtils.getBgColor50([set], props.type === "warmup")}`}
           data-cy={getDataCy(set)}
           style={style}
           onTouchStart={shouldUseTouch ? onPointerDown : undefined}
@@ -217,7 +217,11 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   });
                 }}
               >
-                <IconCheckCircle size={20} isChecked={true} color={WorkoutExerciseUtils.getIconColor([set])} />
+                <IconCheckCircle
+                  size={20}
+                  isChecked={true}
+                  color={WorkoutExerciseUtils.getIconColor([set], props.type === "warmup")}
+                />
               </button>
             </div>
             <div

@@ -104,8 +104,9 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
       <section
         data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}
         className={`py-1 border rounded-xl ${WorkoutExerciseUtils.getBgColor50(
-          props.entry.sets
-        )} ${WorkoutExerciseUtils.getBorderColor100(props.entry.sets)}`}
+          props.entry.sets,
+          false
+        )} ${WorkoutExerciseUtils.getBorderColor100(props.entry.sets, false)}`}
       >
         <div className="px-4">
           <header className="flex">
@@ -436,7 +437,7 @@ function WorkoutPlatesCalculator(props: IWorkoutPlatesCalculatorProps): JSX.Elem
   return (
     <div className="my-1">
       <div
-        className={`p-1 inline-block ${WorkoutExerciseUtils.getBgColor100(props.entry.sets)} rounded-lg`}
+        className={`p-1 inline-block ${WorkoutExerciseUtils.getBgColor100(props.entry.sets, false)} rounded-lg`}
         style={{
           backgroundImage: "url(/images/icon-barbell.svg)",
           backgroundPosition: "10px center",

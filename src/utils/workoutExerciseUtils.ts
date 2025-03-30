@@ -3,25 +3,29 @@ import { ISet } from "../types";
 import { Tailwind } from "./tailwindConfig";
 
 export class WorkoutExerciseUtils {
-  public static getColor(sets: ISet[]): string {
+  public static getColor(sets: ISet[], isWarmup: boolean): string {
     if (sets.length === 0) {
       return "purple";
     }
     if (Reps.isFinished(sets)) {
-      if (Reps.isCompleted(sets)) {
+      if (isWarmup) {
         return "green";
-      } else if (Reps.isInRangeCompleted(sets)) {
-        return "yellow";
       } else {
-        return "red";
+        if (Reps.isCompleted(sets)) {
+          return "green";
+        } else if (Reps.isInRangeCompleted(sets)) {
+          return "yellow";
+        } else {
+          return "red";
+        }
       }
     } else {
       return "purple";
     }
   }
 
-  public static getBgColor50(sets: ISet[]): string {
-    const color = this.getColor(sets);
+  public static getBgColor50(sets: ISet[], isWarmup: boolean): string {
+    const color = this.getColor(sets, isWarmup);
     if (color === "green") {
       return "bg-greenv3-50";
     } else if (color === "red") {
@@ -33,8 +37,8 @@ export class WorkoutExerciseUtils {
     }
   }
 
-  public static getBgColor100(sets: ISet[]): string {
-    const color = this.getColor(sets);
+  public static getBgColor100(sets: ISet[], isWarmup: boolean): string {
+    const color = this.getColor(sets, isWarmup);
     if (color === "green") {
       return "bg-greenv3-100";
     } else if (color === "red") {
@@ -46,8 +50,8 @@ export class WorkoutExerciseUtils {
     }
   }
 
-  public static getBgColor200(sets: ISet[]): string {
-    const color = this.getColor(sets);
+  public static getBgColor200(sets: ISet[], isWarmup: boolean): string {
+    const color = this.getColor(sets, isWarmup);
     if (color === "green") {
       return "bg-greenv3-200";
     } else if (color === "red") {
@@ -59,8 +63,8 @@ export class WorkoutExerciseUtils {
     }
   }
 
-  public static getIconColor(sets: ISet[]): string {
-    const color = this.getColor(sets);
+  public static getIconColor(sets: ISet[], isWarmup: boolean): string {
+    const color = this.getColor(sets, isWarmup);
     if (color === "green") {
       return Tailwind.colors().greenv3[600];
     } else if (color === "red") {
@@ -72,8 +76,8 @@ export class WorkoutExerciseUtils {
     }
   }
 
-  public static getBorderColor100(sets: ISet[]): string {
-    const color = this.getColor(sets);
+  public static getBorderColor100(sets: ISet[], isWarmup: boolean): string {
+    const color = this.getColor(sets, isWarmup);
     if (color === "green") {
       return "border-greenv3-100";
     } else if (color === "red") {
@@ -85,8 +89,8 @@ export class WorkoutExerciseUtils {
     }
   }
 
-  public static getBorderColor150(sets: ISet[]): string {
-    const color = this.getColor(sets);
+  public static getBorderColor150(sets: ISet[], isWarmup: boolean): string {
+    const color = this.getColor(sets, isWarmup);
     if (color === "green") {
       return "border-greenv3-150";
     } else if (color === "red") {
@@ -98,8 +102,8 @@ export class WorkoutExerciseUtils {
     }
   }
 
-  public static getBorderColor200(sets: ISet[]): string {
-    const color = this.getColor(sets);
+  public static getBorderColor200(sets: ISet[], isWarmup: boolean): string {
+    const color = this.getColor(sets, isWarmup);
     if (color === "green") {
       return "border-greenv3-200";
     } else if (color === "red") {
@@ -111,8 +115,8 @@ export class WorkoutExerciseUtils {
     }
   }
 
-  public static getBorderColor300(sets: ISet[]): string {
-    const color = this.getColor(sets);
+  public static getBorderColor300(sets: ISet[], isWarmup: boolean): string {
+    const color = this.getColor(sets, isWarmup);
     if (color === "green") {
       return "border-greenv3-300";
     } else if (color === "red") {
