@@ -371,6 +371,10 @@ export namespace Progress {
     subscription?: ISubscription,
     timer?: number
   ): IHistoryRecord {
+    const set = progress.entries[entryIndex]?.sets[setIndex];
+    if (!set || !set.isCompleted) {
+      return progress;
+    }
     if (timer == null && Progress.isCurrent(progress) && mode === "workout") {
       timer = progress.entries[entryIndex]?.sets[setIndex]?.timer;
     }

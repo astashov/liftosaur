@@ -35,7 +35,7 @@ interface IWorkoutViewProps {
 export function Workout(props: IWorkoutViewProps): JSX.Element {
   const selectedEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   return (
-    <section>
+    <section className="pb-8">
       <WorkoutHeader
         progress={props.progress}
         dispatch={props.dispatch}
