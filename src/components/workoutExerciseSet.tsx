@@ -105,6 +105,16 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 width={3.5}
                 data-cy="reps-value"
                 name="set-reps"
+                onInput={(value) => {
+                  if (value != null && !isNaN(value) && value >= 0) {
+                    updateProgress(props.dispatch, [
+                      props.lbSet.recordModify((set) => {
+                        const newSet = { ...set, completedReps: Math.round(value) };
+                        return Reps.enforceCompletedSet(newSet);
+                      }),
+                    ]);
+                  }
+                }}
                 onBlur={(value) => {
                   updateProgress(props.dispatch, [
                     props.lbSet.recordModify((set) => {
@@ -115,7 +125,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 }}
                 placeholder={placeholderReps}
                 initialValue={set.reps}
-                value={set.completedReps || undefined}
+                value={set.completedReps != null ? set.completedReps : undefined}
                 min={0}
                 max={9999}
                 step={1}
@@ -138,6 +148,16 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 data-cy="weight-value"
                 onBlur={(value) => {
                   if (value == null || value.unit !== "%") {
+                    updateProgress(props.dispatch, [
+                      props.lbSet.recordModify((set) => {
+                        const newSet = { ...set, completedWeight: value };
+                        return Reps.enforceCompletedSet(newSet);
+                      }),
+                    ]);
+                  }
+                }}
+                onInput={(value) => {
+                  if (value != null && value.unit !== "%") {
                     updateProgress(props.dispatch, [
                       props.lbSet.recordModify((set) => {
                         const newSet = { ...set, completedWeight: value };

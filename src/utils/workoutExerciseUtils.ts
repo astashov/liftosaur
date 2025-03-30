@@ -40,7 +40,7 @@ export class WorkoutExerciseUtils {
     } else if (color === "red") {
       return "bg-redv3-100";
     } else if (color === "yellow") {
-      return "bg-orange-100";
+      return "bg-yellowv3-100";
     } else {
       return "bg-purplev3-100";
     }
@@ -127,13 +127,13 @@ export class WorkoutExerciseUtils {
   public static setsStatusToColor(status: ISetsStatus): string {
     switch (status) {
       case "success":
-        return Tailwind.colors().greenv3[700];
+        return Tailwind.colors().greenv3[600];
       case "in-range":
-        return Tailwind.colors().yellowv3[700];
+        return Tailwind.colors().yellowv3[600];
       case "failed":
-        return Tailwind.colors().redv3[700];
+        return Tailwind.colors().redv3[500];
       case "not-finished":
-        return Tailwind.colors().grayv3[700];
+        return Tailwind.colors().grayv3[400];
     }
   }
 
