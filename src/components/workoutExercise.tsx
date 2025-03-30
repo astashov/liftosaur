@@ -386,19 +386,24 @@ interface IHelpEquipmentProps {
 function HelpEquipment(props: IHelpEquipmentProps): JSX.Element {
   return (
     <Nux className="mt-2" id="Rounded Weights" helps={props.helps} dispatch={props.dispatch}>
-      <span className="line-through">Crossed out</span> weight means it's <strong>rounded</strong> to fit your bar and
-      plates. Adjust your{" "}
-      <LinkButton
-        name="nux-rounding-equipment-settings"
-        onClick={() => {
-          updateProgress(props.dispatch, [
-            lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise }),
-          ]);
-        }}
-      >
-        Equipment settings there
-      </LinkButton>
-      .
+      <div className="pb-2">
+        <span className="line-through">Crossed out</span> weight means it's <strong>rounded</strong> to fit your bar and
+        plates. Adjust your{" "}
+        <LinkButton
+          name="nux-rounding-equipment-settings"
+          onClick={() => {
+            updateProgress(props.dispatch, [
+              lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise }),
+            ]);
+          }}
+        >
+          Equipment settings there
+        </LinkButton>
+        .
+      </div>
+      <div>
+        Percentage weight (like <strong>75%</strong>) means it's 75% of 1 Rep Max (1RM). You can adjust 1RM above.
+      </div>
     </Nux>
   );
 }
