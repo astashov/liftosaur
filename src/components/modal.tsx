@@ -14,6 +14,7 @@ interface IProps {
   shouldShowClose?: boolean;
   overflowHidden?: boolean;
   innerClassName?: string;
+  zIndex?: number;
   maxWidth?: string;
   style?: Record<string, string | undefined>;
   onClose?: () => void;
@@ -56,7 +57,7 @@ export function Modal(props: IProps): JSX.Element {
   }
 
   return createPortal(
-    <section ref={modalRef} className={className} style={{ zIndex: 40 }}>
+    <section ref={modalRef} className={className} style={{ zIndex: props.zIndex ?? 40 }}>
       <div
         data-name="overlay"
         onClick={props.shouldShowClose ? props.onClose : undefined}

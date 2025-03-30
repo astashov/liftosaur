@@ -21,6 +21,7 @@ export function BottomSheetEditProgramV2(props: IProps): JSX.Element {
     <BottomSheet isHidden={props.isHidden} onClose={props.onClose}>
       <div className="p-4">
         <BottomSheetItem
+          isFirst={true}
           name="copy-link"
           className="ls-export-program"
           title="Copy Link to Program"

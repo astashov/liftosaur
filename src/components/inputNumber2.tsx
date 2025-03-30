@@ -352,7 +352,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         />
       )}
       {props.enableCalculator && isCalculatorOpen && props.selectedUnit && props.selectedUnit !== "%" && (
-        <Modal shouldShowClose={true} onClose={() => setIsCalculatorOpen(false)} isFullWidth={true}>
+        <Modal zIndex={60} shouldShowClose={true} onClose={() => setIsCalculatorOpen(false)} isFullWidth={true}>
           <div style={{ minWidth: "80%" }} data-cy="modal-rep-max-calculator" className="modal-rep-max-calculator">
             <RepMaxCalculator
               backLabel="Back"

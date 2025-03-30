@@ -34,8 +34,9 @@ export function BottomSheet(props: IProps): JSX.Element {
   useEffect(() => {
     setBottomShift(props.isHidden ? (bottomSheetRef.current?.clientHeight ?? 0) : 0);
   }, [props.isHidden]);
+  const containerRef = typeof window !== "undefined" ? window.document.getElementById("bottomsheet") : undefined;
 
-  return createPortal(
+  const element = (
     <div className={`fixed inset-0 z-40 pointer-events-none`} data-cy="bottom-sheet-container">
       <div
         data-name="overlay"
@@ -76,7 +77,8 @@ export function BottomSheet(props: IProps): JSX.Element {
           {props.children}
         </div>
       </div>
-    </div>,
-    document.getElementById("bottomsheet")!
+    </div>
   );
+
+  return containerRef ? createPortal(element, containerRef) : element;
 }

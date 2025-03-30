@@ -372,6 +372,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
             )}
           </>
         )}
+        <GroupHeader name="Appearance" topPadding={true} />
         <MenuItemWrapper name="text-size">
           <div className="flex items-center py-2">
             <div className="mr-2">

@@ -28,7 +28,7 @@ export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element
   const programsValues = props.allPrograms.map<[string, string]>((p) => [p.id, p.name]);
   const days = Program.getListOfDays(props.currentProgram);
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose} isFullWidth>
+    <Modal zIndex={60} shouldShowClose={true} onClose={props.onClose} isFullWidth>
       <MenuItemEditable
         type="select"
         name="Program"

@@ -169,6 +169,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
                 <DropdownMenu rightOffset="1.5rem" onClose={() => setIsKebabMenuOpen(false)}>
                   {programExercise && programExerciseId && (
                     <DropdownMenuItem
+                      isTop={true}
                       data-cy="exercise-edit-mode"
                       onClick={() => {
                         setIsKebabMenuOpen(false);
