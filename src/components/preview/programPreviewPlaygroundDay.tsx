@@ -51,7 +51,9 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
   const index = props.progress.ui?.currentEntryIndex ?? 0;
   const entry = props.progress.entries[index];
   const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
-  const programExercise = dayExercises.find((e) => e.key === entry.programExerciseId);
+  const programExercises = props.isPlayground
+    ? dayExercises.filter((e) => e.key === entry.programExerciseId)
+    : dayExercises;
 
   return (
     <div data-cy={`preview-day-${StringUtils.dashcase(programDay.name)}`}>
@@ -64,27 +66,35 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
           <Markdown className="text-sm" value={programDay.description} />
         </div>
       )}
-      <div className="mb-2">
-        <PreviewListOfExercises
-          isPlayground={props.isPlayground}
-          progress={props.progress}
-          settings={props.settings}
-          dispatch={dispatch}
-        />
-      </div>
-      {programExercise && (
-        <ProgramPreviewPlaygroundExercise
-          entry={entry}
-          dayIndex={props.day}
-          progress={props.progress}
-          isPlayground={props.isPlayground}
-          programExercise={programExercise}
-          program={props.program}
-          index={index}
-          settings={props.settings}
-          dispatch={dispatch}
-        />
+      {props.isPlayground && (
+        <div className="mb-2">
+          <PreviewListOfExercises
+            isPlayground={props.isPlayground}
+            progress={props.progress}
+            settings={props.settings}
+            dispatch={dispatch}
+          />
+        </div>
       )}
+      {(programExercises ?? []).map((programExercise, i) => {
+        const anEntry = props.progress.entries.find((e) => e.programExerciseId === programExercise.key);
+        if (!anEntry) {
+          return null;
+        }
+        return (
+          <ProgramPreviewPlaygroundExercise
+            entry={anEntry}
+            dayIndex={props.day}
+            progress={props.progress}
+            isPlayground={props.isPlayground}
+            programExercise={programExercise}
+            program={props.program}
+            index={props.isPlayground ? index : i}
+            settings={props.settings}
+            dispatch={dispatch}
+          />
+        );
+      })}
       {props.isPlayground && (
         <div className="text-center">
           <Button
