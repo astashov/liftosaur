@@ -15,6 +15,8 @@ import { useEffect, useRef } from "preact/hooks";
 interface IWorkoutExerciseThumbnailProps {
   selectedIndex: number;
   progress: IHistoryRecord;
+  shouldShowProgress?: boolean;
+  shouldScrollIntoView?: boolean;
   entry: IHistoryEntry;
   entryIndex: number;
   settings: ISettings;
@@ -32,10 +34,10 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
   const completedSetsCount = entry.sets.filter((set) => set.isCompleted).length;
 
   useEffect(() => {
-    if (props.entryIndex === props.selectedIndex && ref.current) {
+    if (props.shouldScrollIntoView && props.entryIndex === props.selectedIndex && ref.current) {
       ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, [props.selectedIndex]);
+  }, [props.selectedIndex, props.entryIndex, props.shouldScrollIntoView]);
 
   return (
     <button
@@ -61,13 +63,15 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
         </div>
       )}
       {setsStatus === "not-finished" ? (
-        <div
-          className="absolute bottom-0 right-0 text-xs"
-          style={{ bottom: "0px", right: "0px", padding: "1px 3px", background: "rgba(255, 255, 255, 0.75)" }}
-        >
-          <strong className="font-semibold">{completedSetsCount}</strong>/
-          <strong className="font-semibold">{totalSetsCount}</strong>
-        </div>
+        props.shouldShowProgress && (
+          <div
+            className="absolute bottom-0 right-0 text-xs"
+            style={{ bottom: "0px", right: "0px", padding: "1px 3px", background: "rgba(255, 255, 255, 0.75)" }}
+          >
+            <strong className="font-semibold">{completedSetsCount}</strong>/
+            <strong className="font-semibold">{totalSetsCount}</strong>
+          </div>
+        )
       ) : (
         <div className="absolute bottom-0 right-0" style={{ bottom: "2px", right: "2px" }}>
           <IconCheckCircle isChecked={true} size={14} color={WorkoutExerciseUtils.setsStatusToColor(setsStatus)} />

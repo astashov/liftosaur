@@ -615,8 +615,8 @@ function Bubbles(props: IBubblesProps): JSX.Element {
 function MainEditorAndPlayground(): JSX.Element {
   const initialDay: IPlannerProgramDay = {
     name: "What you'll see in the app:",
-    exerciseText: `Squat / 5x5 / progress: lp(5lb)
-Bench Press / 3x8 / progress: dp(5lb, 8, 12)`,
+    exerciseText: `Squat / 5x5 150lb / progress: lp(5lb)
+Bench Press / 3x8 100lb / progress: dp(5lb, 8, 12)`,
   };
 
   const initialWeek: IPlannerProgramWeek = {

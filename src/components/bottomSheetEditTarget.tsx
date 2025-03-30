@@ -5,11 +5,11 @@ import { MenuItemWrapper } from "./menuItem";
 import { InputNumber2 } from "./inputNumber2";
 import { IDispatch } from "../ducks/types";
 import { InputWeight2 } from "./inputWeight2";
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import { MenuItemEditable } from "./menuItemEditable";
 import { IconTrash } from "./icons/iconTrash";
 import { lb } from "lens-shmens";
-import { IState, updateState } from "../models/state";
+import { updateProgress } from "../models/state";
 import { Weight } from "../models/weight";
 import { Button } from "./button";
 
@@ -30,12 +30,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
   const set = props.editSetModal.set;
   const [enableRpe, setEnableRpe] = useState(set.rpe != null);
   const [enableTimer, setEnableTimer] = useState(set.timer != null);
-  const lbSet = lb<IState>().p("progress").pi(props.progress.id).pi("ui").pi("editSetModal").pi("set");
-  console.log(set);
-
-  useEffect(() => {
-    console.log("Remount BottomSheetEditTargetContent");
-  }, []);
+  const lbSet = lb<IHistoryRecord>().pi("ui").pi("editSetModal").pi("set");
 
   return (
     <div className="px-4 pb-4">
@@ -49,7 +44,12 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
               <InputNumber2
                 width={2.5}
                 name="input-set-target-minreps"
-                onBlur={(value) => updateState(props.dispatch, [lbSet.p("minReps").record(value)])}
+                onBlur={(value) => updateProgress(props.dispatch, [lbSet.p("minReps").record(value)])}
+                onInput={(value) => {
+                  if (value != null && !isNaN(value) && value >= 0) {
+                    updateProgress(props.dispatch, [lbSet.p("minReps").record(value)]);
+                  }
+                }}
                 value={set.minReps}
                 min={0}
                 max={9999}
@@ -61,7 +61,12 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
               <InputNumber2
                 width={2.5}
                 name="input-set-target-maxreps"
-                onBlur={(value) => updateState(props.dispatch, [lbSet.p("reps").record(value ?? 1)])}
+                onBlur={(value) => updateProgress(props.dispatch, [lbSet.p("reps").record(value ?? 1)])}
+                onInput={(value) => {
+                  if (value != null && !isNaN(value) && value >= 0) {
+                    updateProgress(props.dispatch, [lbSet.p("reps").record(value)]);
+                  }
+                }}
                 value={set.reps}
                 min={0}
                 max={9999}
@@ -77,7 +82,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   className="block align-middle checkbox text-bluev2"
                   type="checkbox"
                   onChange={(e) => {
-                    updateState(props.dispatch, [lbSet.p("isAmrap").record(!set.isAmrap)]);
+                    updateProgress(props.dispatch, [lbSet.p("isAmrap").record(!set.isAmrap)]);
                   }}
                 />
               </label>
@@ -94,8 +99,12 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 name="edit-exercise-set-weight"
                 exerciseType={props.editSetModal.exerciseType}
                 onBlur={(value) => {
-                  console.log("value", value);
-                  updateState(props.dispatch, [lbSet.p("originalWeight").record(value ?? Weight.build(0, "lb"))]);
+                  updateProgress(props.dispatch, [lbSet.p("originalWeight").record(value ?? Weight.build(0, "lb"))]);
+                }}
+                onInput={(value) => {
+                  if (value != null) {
+                    updateProgress(props.dispatch, [lbSet.p("originalWeight").record(value ?? Weight.build(0, "lb"))]);
+                  }
                 }}
                 units={["lb", "kg", "%"] as const}
                 value={set.originalWeight}
@@ -114,7 +123,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   className="block align-middle checkbox text-bluev2"
                   type="checkbox"
                   onChange={(e) => {
-                    updateState(props.dispatch, [lbSet.p("askWeight").record(!set.askWeight)]);
+                    updateProgress(props.dispatch, [lbSet.p("askWeight").record(!set.askWeight)]);
                   }}
                 />
               </label>
@@ -134,7 +143,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
         />
       </div>
       <div style={{ display: enableRpe ? "block" : "none" }}>
-        <MenuItemWrapper name="edit-set-target-reps">
+        <MenuItemWrapper name="edit-set-target-rpe">
           <div className="flex items-center py-1">
             <div className="mr-auto text-sm font-semibold">RPE</div>
             <div className="flex items-center gap-2">
@@ -142,8 +151,13 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 <InputNumber2
                   allowDot={true}
                   width={2.5}
-                  name="input-set-target-maxreps"
-                  onBlur={(value) => updateState(props.dispatch, [lbSet.p("rpe").record(value)])}
+                  name="input-set-target-rpe"
+                  onBlur={(value) => updateProgress(props.dispatch, [lbSet.p("rpe").record(value)])}
+                  onInput={(value) => {
+                    if (value != null && !isNaN(value) && value >= 0) {
+                      updateProgress(props.dispatch, [lbSet.p("rpe").record(value)]);
+                    }
+                  }}
                   value={set.rpe}
                   min={0}
                   max={10}
@@ -159,7 +173,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                     className="block align-middle checkbox text-bluev2"
                     type="checkbox"
                     onChange={(e) => {
-                      updateState(props.dispatch, [lbSet.p("logRpe").record(!set.logRpe)]);
+                      updateProgress(props.dispatch, [lbSet.p("logRpe").record(!set.logRpe)]);
                     }}
                   />
                 </label>
@@ -193,7 +207,12 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 <InputNumber2
                   width={2.5}
                   name="input-set-target-timer"
-                  onBlur={(value) => updateState(props.dispatch, [lbSet.p("timer").record(value)])}
+                  onBlur={(value) => updateProgress(props.dispatch, [lbSet.p("timer").record(value)])}
+                  onInput={(value) => {
+                    if (value != null && !isNaN(value) && value >= 0) {
+                      updateProgress(props.dispatch, [lbSet.p("timer").record(value)]);
+                    }
+                  }}
                   value={set.timer}
                   min={0}
                   max={600}
@@ -227,17 +246,16 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
               evaluatedWeight.unit,
               props.editSetModal.exerciseType
             );
-            updateState(props.dispatch, [
-              lb<IState>()
-                .p("progress")
-                .pi(props.progress.id)
+            const newSet = { ...set, weight };
+            updateProgress(props.dispatch, [
+              lb<IHistoryRecord>()
                 .p("entries")
                 .i(props.editSetModal.entryIndex)
                 .p("sets")
                 .i(props.editSetModal.setIndex ?? 0)
-                .record({ ...set, weight }),
+                .record(newSet),
+              lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined),
             ]);
-            props.onClose();
           }}
         >
           Save

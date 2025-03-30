@@ -10,7 +10,7 @@ interface IProps {
 }
 
 export function BottomSheet(props: IProps): JSX.Element {
-  const [bottomShift, setBottomShift] = useState(window.innerHeight);
+  const [bottomShift, setBottomShift] = useState(typeof window !== "undefined" ? window.innerHeight : 0);
   const bottomSheetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

@@ -64,9 +64,11 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const isCalculatorOpenRef = useRef(isCalculatorOpen);
   const onBlurRef = useRef<((value: number | undefined) => void) | undefined>(props.onBlur);
+  const onInputRef = useRef<((value: number | undefined) => void) | undefined>(props.onInput);
   useEffect(() => {
     onBlurRef.current = props.onBlur;
-  }, [props.onBlur]);
+    onInputRef.current = props.onInput;
+  }, [props.onBlur, props.onInput]);
 
   const maxLength = (props.max?.toString().length ?? 5) + (props.allowDot ? 3 : 0) + (props.allowNegative ? 1 : 0);
 
@@ -107,9 +109,9 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     }
     setIsTyping(true);
     setValue(newValue);
-    if (props.onInput) {
+    if (onInputRef.current) {
       const newValueNum = clamp(newValue, props.min, props.max);
-      props.onInput(newValueNum);
+      onInputRef.current(newValueNum);
     }
   };
 

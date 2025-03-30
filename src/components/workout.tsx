@@ -166,6 +166,8 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
         {props.progress.entries.map((entry, entryIndex) => {
           return (
             <WorkoutExerciseThumbnail
+              shouldScrollIntoView={true}
+              shouldShowProgress={true}
               selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
               key={entryIndex}
               progress={props.progress}

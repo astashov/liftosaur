@@ -11,8 +11,6 @@ import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlayg
 import { lb } from "lens-shmens";
 import { EditProgramLenses } from "../../models/editProgramLenses";
 import { Button } from "../button";
-import { ModalEditSet } from "../modalEditSet";
-import { EditProgressEntry } from "../../models/editProgressEntry";
 import { IEvaluatedProgram, Program } from "../../models/program";
 import { StringUtils } from "../../utils/string";
 import { Exercise } from "../../models/exercise";
@@ -21,6 +19,7 @@ import { Markdown } from "../markdown";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { Scroller } from "../scroller";
 import { WorkoutExerciseThumbnail } from "../workoutExerciseThumbnail";
+import { BottomSheetEditTarget } from "../bottomSheetEditTarget";
 
 interface IProgramPreviewPlaygroundDayProps {
   program: IEvaluatedProgram;
@@ -66,7 +65,12 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
         </div>
       )}
       <div className="mb-2">
-        <PreviewListOfExercises progress={props.progress} settings={props.settings} dispatch={dispatch} />
+        <PreviewListOfExercises
+          isPlayground={props.isPlayground}
+          progress={props.progress}
+          settings={props.settings}
+          dispatch={dispatch}
+        />
       </div>
       {programExercise && (
         <ProgramPreviewPlaygroundExercise
@@ -119,28 +123,19 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
           weight={props.progress.ui?.weightModal?.weight ?? 0}
         />
       )}
-      {props.progress.ui?.editSetModal && (
-        <ModalEditSet
-          isHidden={props.progress.ui?.editSetModal == null}
-          setsLength={props.progress.entries[props.progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
-          key={props.progress.ui?.editSetModal?.setIndex}
-          subscription={{ google: { fake: null }, apple: {} }}
-          progressId={props.progress.id}
-          dispatch={dispatch}
-          settings={props.settings}
-          exerciseType={props.progress.ui?.editSetModal?.exerciseType}
-          programExercise={Program.getProgramExercise(
-            props.day,
-            props.program,
-            props.progress.ui?.editSetModal?.programExerciseId
-          )}
-          isTimerDisabled={true}
-          set={EditProgressEntry.getEditSetData(props.progress)}
-          isWarmup={props.progress.ui?.editSetModal?.isWarmup || false}
-          entryIndex={props.progress.ui?.editSetModal?.entryIndex || 0}
-          setIndex={props.progress.ui?.editSetModal?.setIndex}
-        />
-      )}
+      <BottomSheetEditTarget
+        settings={props.settings}
+        progress={props.progress}
+        dispatch={dispatch}
+        editSetModal={props.progress.ui?.editSetModal}
+        isHidden={props.progress.ui?.editSetModal == null}
+        onClose={() => {
+          dispatch({
+            type: "UpdateProgress",
+            lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
+          });
+        }}
+      />
       {editModalProgramExercise && (
         <ProgramPreviewPlaygroundExerciseEditModal
           onClose={() =>
@@ -196,6 +191,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
 });
 
 interface IPreviewListOfExercisesProps {
+  isPlayground: boolean;
   progress: IHistoryRecord;
   settings: ISettings;
   dispatch: IDispatch;
@@ -208,6 +204,8 @@ function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Elemen
         {props.progress.entries.map((entry, entryIndex) => {
           return (
             <WorkoutExerciseThumbnail
+              shouldScrollIntoView={false}
+              shouldShowProgress={props.isPlayground}
               selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
               key={entryIndex}
               progress={props.progress}
