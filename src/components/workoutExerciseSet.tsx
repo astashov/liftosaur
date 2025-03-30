@@ -42,8 +42,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const placeholderReps = `${set.minReps != null ? `${set.minReps}-` : ""}${set.reps != null ? set.reps : ""}${set.reps != null && set.isAmrap ? "+" : ""}`;
   const placeholderWeight = set.weight?.value != null ? `${set.weight.value}${set.askWeight ? "+" : ""}` : undefined;
   const completedRpeValue = set.logRpe && set.completedRpe != null ? set.completedRpe : undefined;
-  const isMobile = Mobile.isMobile(navigator.userAgent);
-  const isPlaywright = Mobile.isPlaywright(navigator.userAgent);
+  const isMobile = Mobile.isMobileFromWindow();
+  const isPlaywright = Mobile.isPlaywrightFromWindow();
   const shouldUseTouch = isMobile && !isPlaywright;
   const borderClass = ` border-b border-purplev3-150`;
   const hasEdit = props.type === "workout" && props.programExercise != null;

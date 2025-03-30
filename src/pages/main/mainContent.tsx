@@ -616,7 +616,7 @@ function MainEditorAndPlayground(): JSX.Element {
   const initialDay: IPlannerProgramDay = {
     name: "What you'll see in the app:",
     exerciseText: `Squat / 5x5 / progress: lp(5lb)
-Leg Curl / 3x8 / progress: dp(5lb, 8, 12)`,
+Bench Press / 3x8 / progress: dp(5lb, 8, 12)`,
   };
 
   const initialWeek: IPlannerProgramWeek = {
@@ -645,9 +645,10 @@ Leg Curl / 3x8 / progress: dp(5lb, 8, 12)`,
   const [state, dispatch] = useLensReducer(initialState, {});
   const planner = state.current.program.planner!;
   const lbDay = lb<IPlannerState>().p("current").pi("program").pi("planner").p("weeks").i(0).p("days").i(0);
-  const { evaluatedWeeks, exerciseFullNames } = useMemo(() => PlannerProgram.evaluate(planner, settings), [
-    state.current.program,
-  ]);
+  const { evaluatedWeeks, exerciseFullNames } = useMemo(
+    () => PlannerProgram.evaluate(planner, settings),
+    [state.current.program]
+  );
   const evaluatedDay = evaluatedWeeks[0][0];
   const text = planner.weeks[0].days[0].exerciseText;
 
