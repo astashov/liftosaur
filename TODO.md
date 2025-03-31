@@ -48,3 +48,8 @@ User debug page:
 * warmups
 * templates
 * initial/completed number of sets
+
+
+* GZCLP
+* GZCLP: Blacknoir
+* The Rippler

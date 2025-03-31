@@ -4,7 +4,7 @@ import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
 import { PlannerTestUtils } from "./utils/plannerTestUtils";
 import { IPlannerProgram, IUnit } from "../src/types";
 import { Settings } from "../src/models/settings";
-import { PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
+import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
 import { Weight } from "../src/models/weight";
 
 describe("Planner", () => {
@@ -1221,5 +1221,41 @@ Bench Press / 2x5 / 100lb
 
 
 `);
+  });
+
+  it("migrates weights to completedWeights", () => {
+    const script = `# Week 1
+## Day 1
+/// asdfasd
+// A: Day 1
+// *** Some stuff
+Squat / 2x5 / 100lb / progress: custom() {~
+  if (completedReps >= reps) {
+    weights[1] = (1 + weights[3] + weights)
+  }
+~} / update: custom() {~
+  // Some stuff
+  if (setIndex == 1) {
+    var.a = weights[1] + weights[3]
+    weights = weights[1] * 0.5 + (weights[3] == 30lb ? weights[4] : weights[3])
+  }
+~}`;
+    const newScript = PlannerExerciseEvaluator.changeWeightsToCompletedWeights(script);
+    expect(newScript).to.equal(`# Week 1
+## Day 1
+/// asdfasd
+// A: Day 1
+// *** Some stuff
+Squat / 2x5 / 100lb / progress: custom() {~
+  if (completedReps >= reps) {
+    weights[1] = (1 + completedWeights[3] + completedWeights)
+  }
+~} / update: custom() {~
+  // Some stuff
+  if (setIndex == 1) {
+    var.a = completedWeights[1] + completedWeights[3]
+    weights = completedWeights[1] * 0.5 + (completedWeights[3] == 30lb ? completedWeights[4] : completedWeights[3])
+  }
+~}`);
   });
 });

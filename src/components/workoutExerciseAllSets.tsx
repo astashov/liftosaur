@@ -39,8 +39,6 @@ function getTargetColumnLabel(targetType: ITargetType): string {
       return "Previous Set";
     case "platescalculator":
       return "Plates";
-    case "none":
-      return "None";
   }
 }
 

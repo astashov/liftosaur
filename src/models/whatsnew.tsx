@@ -1693,11 +1693,10 @@ Squat / 5x5 / progress: lp(5lb)`}
           the progress of each exercise there. Under each exercise there's graphs and history for that exercise.
         </li>
         <li>
-          One slight change in the <strong>Liftoscript</strong> is that now there's a new array variable{" "}
-          <strong>completedWeights</strong>. Similarly to <strong>completedReps</strong> and{" "}
-          <strong>completedRPE</strong>, it contains the weights you actually completed. Previously, that was kinda
-          mixed together with the program weight in <strong>weights</strong>
-          variable, but now they're separate. So, you may want to update your scripts if necessary.
+          🚨 <strong>There's a breaking change!!!</strong> 🚨. Completed weights now are contained in the
+          <strong>completedWeights</strong> array var (used to be in <strong>weights</strong>). <strong>weights</strong>
+          now contains the program weights. There's automated migration that should run and theoretically you don't need
+          to do anything, but check your scripts to make sure it looks good.
         </li>
       </ul>
     ),

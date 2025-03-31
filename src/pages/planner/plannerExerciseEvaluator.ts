@@ -2,6 +2,7 @@
 import { SyntaxNode } from "@lezer/common";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { CollectionUtils } from "../../utils/collection";
+import { parser as plannerExerciseParser } from "./plannerExerciseParser";
 import { IEither } from "../../utils/types";
 import {
   IPlannerProgramExercise,
@@ -19,7 +20,7 @@ import * as W from "../../models/weight";
 import { PlannerNodeName } from "./plannerExerciseStyles";
 import { ScriptRunner } from "../../parser";
 import { Progress } from "../../models/progress";
-import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
+import { LiftoscriptSyntaxError, LiftoscriptEvaluator } from "../../liftoscriptEvaluator";
 import { Weight } from "../../models/weight";
 import { MathUtils } from "../../utils/math";
 import { PlannerKey } from "./plannerKey";
@@ -1212,6 +1213,24 @@ if (completedReps >= reps && completedRPE <= RPE) {
           script = script.substring(0, fromNode + shift) + to + script.substring(toNode + shift);
           shift = shift + to.length - name.length;
         }
+      }
+    } while (cursor.next());
+    return script;
+  }
+
+  public static changeWeightsToCompletedWeights(oldScript: string): string {
+    const node = plannerExerciseParser.parse(oldScript);
+    const cursor = node.cursor();
+    let script = oldScript;
+    let shift = 0;
+    do {
+      if (cursor.node.type.name === PlannerNodeName.Liftoscript) {
+        const value = LiftoscriptEvaluator.getValueRaw(oldScript, cursor.node);
+        const from = cursor.node.from;
+        const to = cursor.node.to;
+        const newValue = LiftoscriptEvaluator.changeWeightsToCompleteWeights(value);
+        script = script.substring(0, from + shift) + newValue + script.substring(to + shift);
+        shift = shift + newValue.length - value.length;
       }
     } while (cursor.next());
     return script;

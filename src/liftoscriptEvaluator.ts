@@ -6,6 +6,7 @@ import { IProgramState, IWeight, IUnit, IPercentage } from "./types";
 import { CollectionUtils } from "./utils/collection";
 import { MathUtils } from "./utils/math";
 import { IProgramMode } from "./models/program";
+import { parser as LiftoscriptParser } from "./liftoscript";
 
 // eslint-disable-next-line no-shadow
 export enum NodeName {
@@ -160,8 +161,12 @@ export class LiftoscriptEvaluator {
     this.mode = mode;
   }
 
+  public static getValueRaw(script: string, node: SyntaxNode): string {
+    return script.slice(node.from, node.to);
+  }
+
   public static getValue(script: string, node: SyntaxNode): string {
-    return script.slice(node.from, node.to).replace(/\n/g, "\\n").replace(/\t/g, "\\t");
+    return this.getValueRaw(script, node).replace(/\n/g, "\\n").replace(/\t/g, "\\t");
   }
 
   private getValue(node: SyntaxNode): string {
@@ -350,6 +355,41 @@ export class LiftoscriptEvaluator {
         }
       }
     } while (cursor.next());
+  }
+
+  public static changeWeightsToCompleteWeights(oldScript: string): string {
+    const node = LiftoscriptParser.parse(oldScript);
+    const cursor = node.cursor();
+    let script = oldScript;
+    let shift = 0;
+    do {
+      if (cursor.node.type.name === NodeName.VariableExpression) {
+        const keywordNode = cursor.node.getChild(NodeName.Keyword);
+        if (keywordNode) {
+          const keyword = LiftoscriptEvaluator.getValue(oldScript, keywordNode);
+          if (keyword === "weights") {
+            const parent = cursor.node.parent;
+            if (
+              parent != null &&
+              !(
+                (parent.type.name === NodeName.AssignmentExpression ||
+                  parent.type.name === NodeName.IncAssignmentExpression) &&
+                parent.firstChild?.from === cursor.node.from &&
+                parent.firstChild?.to === cursor.node.to
+              )
+            ) {
+              const from = keywordNode.from;
+              const to = keywordNode.to;
+              const oldWeightStr = keyword;
+              const newWeightStr = "completedWeights";
+              script = script.substring(0, from + shift) + newWeightStr + script.substring(to + shift);
+              shift = shift + newWeightStr.length - oldWeightStr.length;
+            }
+          }
+        }
+      }
+    } while (cursor.next());
+    return script;
   }
 
   private evaluateToNumber(expr: SyntaxNode): number {

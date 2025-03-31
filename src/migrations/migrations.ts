@@ -924,4 +924,21 @@ export const migrations = {
     };
     return storage;
   },
+  "20250331001906_migrate_weights_to_completed_weights": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs) {
+      for (const week of program.planner?.weeks || []) {
+        for (const day of week.days) {
+          const newExerciseStr = PlannerExerciseEvaluator.changeWeightsToCompletedWeights(day.exerciseText);
+          if (newExerciseStr !== day.exerciseText) {
+            day.exerciseText = newExerciseStr;
+          }
+        }
+      }
+    }
+    return storage;
+  },
 };
