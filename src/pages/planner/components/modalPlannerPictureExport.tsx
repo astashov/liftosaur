@@ -205,7 +205,7 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
         }}
       />
       <GroupHeader name="Days to show" topPadding={true} />
-      <div>
+      <div className="text-sm">
         <span className="mr-2">
           <LinkButton name="select-all" onClick={() => setConfig({ ...config, daysToShow: props.initialDaysToShow })}>
             Select All

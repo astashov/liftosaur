@@ -47,5 +47,4 @@ User debug page:
 
 * warmups
 * templates
-* completedWeights/weights
 * initial/completed number of sets

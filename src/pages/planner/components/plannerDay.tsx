@@ -82,7 +82,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
               <GroupHeader name="Day Description (Markdown)" />
             </div>
             <MarkdownEditor
-              value={evaluatedDay.success ? day.description ?? "" : ""}
+              value={evaluatedDay.success ? (day.description ?? "") : ""}
               onChange={(v) => {
                 dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(v));
               }}
@@ -180,7 +180,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
               />
             </div>
           )}
-        <div className="mb-6">
+        <div className="mb-6 text-sm">
           <LinkButton
             name="planner-delete-day"
             onClick={() => {

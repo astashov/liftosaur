@@ -44,7 +44,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
             }}
           />
         </h3>
-        <div className="mt-1 mb-4">
+        <div className="mt-1 mb-4 text-sm">
           {props.program.weeks.length > 1 && (
             <span className="mr-2">
               <LinkButton
@@ -155,7 +155,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
             </div>
           );
         })}
-        <div>
+        <div className="text-sm">
           <LinkButton
             name="planner-add-day"
             onClick={() => {

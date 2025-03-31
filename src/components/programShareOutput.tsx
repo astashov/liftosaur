@@ -225,8 +225,8 @@ function Set(props: ISetProps): JSX.Element {
           <span className="text-xs">×</span>{" "}
         </span>
       )}
-      {repRange.minrep === repRange.maxrep ? (
-        <span className="font-semibold text-black">{repRange.minrep}</span>
+      {repRange.minrep == null ? (
+        <span className="font-semibold text-black">{repRange.maxrep}</span>
       ) : (
         <span>
           <span className="font-semibold text-black">{repRange.minrep}</span>-

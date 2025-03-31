@@ -12,7 +12,7 @@ interface IPlannerBannerProps {
 
 export function PlannerBanner(props: IPlannerBannerProps): JSX.Element {
   return (
-    <div className="flex flex-col items-center px-8 py-4 mb-4 bg-yellow-100 border border-orange-400 rounded-lg sm:mr-64 sm:flex-row">
+    <div className="flex flex-col items-center px-8 py-4 mb-4 text-sm bg-yellow-100 border border-orange-400 rounded-lg  sm:mr-64 sm:flex-row">
       {props.account ? (
         <LoggedInGuideBanner isBannerLoading={props.isBannerLoading} onAddProgram={props.onAddProgram} />
       ) : (
