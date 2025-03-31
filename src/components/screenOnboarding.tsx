@@ -17,7 +17,7 @@ export function ScreenOnboarding(props: IProps): JSX.Element {
       content: "/images/onboarding-1-choose-program.mp4",
     },
     {
-      title: "2. Then, start the workout, and tap on a square each time you finish a set.",
+      title: "2. Start the workout, and complete the sets, following the program.",
       content: "/images/onboarding-2-record-sets.mp4",
     },
     {
