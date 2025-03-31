@@ -742,11 +742,11 @@ export namespace Progress {
     hasUserPromptedVars: boolean
   ): IHistoryRecord {
     const entry = progress.entries[entryIndex];
-    const set = entry.sets[setIndex];
-    const shouldLogRpe = !!set.logRpe;
+    const set = mode === "warmup" ? entry.warmupSets[setIndex] : entry.sets[setIndex];
+    const shouldLogRpe = !!set?.logRpe;
     const shouldPromptUserVars = hasUserPromptedVars && Progress.hasLastUnfinishedSet(entry);
-    const isAmrap = set.completedReps == null && !!set.isAmrap;
-    const shouldAskWeight = set.completedWeight == null && !!set.askWeight;
+    const isAmrap = set?.completedReps == null && !!set?.isAmrap;
+    const shouldAskWeight = set?.completedWeight == null && !!set?.askWeight;
     if (mode === "warmup") {
       return lf(progress)
         .p("entries")
