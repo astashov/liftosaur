@@ -244,8 +244,8 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
             </div>
           </header>
           {description && (
-            <div className="mt-1">
-              <Markdown className="text-sm" value={description} />
+            <div className="mt-1 text-sm">
+              <Markdown value={description} />
             </div>
           )}
           {!props.hidePlatesCalculator && nextSet && currentEquipmentName && (

@@ -62,8 +62,8 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
         {programDay.name}
       </h3>
       {programDay.description && (
-        <div className="mx-4">
-          <Markdown className="text-sm" value={programDay.description} />
+        <div className="mx-4 text-sm">
+          <Markdown value={programDay.description} />
         </div>
       )}
       {props.isPlayground && (

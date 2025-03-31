@@ -73,7 +73,7 @@ export function EditProgramUiDescriptions(props: IEditProgramUiDescriptionsProps
             {">"}
           </button>
         )}
-        <div className="mx-4">
+        <div className="mx-4 text-sm">
           {props.showCurrent &&
             props.plannerExercise.descriptions.values.length > 1 &&
             props.plannerExercise.descriptions.values[descriptionIndex]?.isCurrent && (
@@ -84,7 +84,7 @@ export function EditProgramUiDescriptions(props: IEditProgramUiDescriptionsProps
                 CURRENT
               </div>
             )}
-          <Markdown className="text-sm" value={description} />
+          <Markdown value={description} />
         </div>
       </div>
     </div>
