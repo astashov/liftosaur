@@ -1,4 +1,4 @@
-import { h, JSX, RefObject } from "preact";
+import { h, JSX, RefObject, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IWeight, IProgramState } from "../types";
 import { updateProgress, updateSettings } from "../models/state";
@@ -279,16 +279,11 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
               className="mt-1"
             />
           </div>
-          {props.showHelp && <HelpTarget helps={props.helps} dispatch={props.dispatch} />}
-          {props.showHelp && hasUnequalWeights && (
-            <HelpEquipment
-              helps={props.helps}
-              entry={props.entry}
-              progress={props.progress}
-              dispatch={props.dispatch}
-            />
-          )}
         </div>
+        {props.showHelp && <HelpTarget helps={props.helps} dispatch={props.dispatch} />}
+        {props.showHelp && hasUnequalWeights && (
+          <HelpEquipment helps={props.helps} entry={props.entry} progress={props.progress} dispatch={props.dispatch} />
+        )}
         <div className="mt-1">
           <WorkoutExerciseAllSets
             isCurrentProgress={Progress.isCurrent(props.progress)}
@@ -386,34 +381,36 @@ interface IHelpEquipmentProps {
 
 function HelpEquipment(props: IHelpEquipmentProps): JSX.Element {
   return (
-    <Nux className="mt-2" id="Rounded Weights" helps={props.helps} dispatch={props.dispatch}>
-      <div className="pb-2">
-        <span className="line-through">Crossed out</span> weight means it's <strong>rounded</strong> to fit your bar and
-        plates. Adjust your{" "}
-        <LinkButton
-          name="nux-rounding-equipment-settings"
-          onClick={() => {
-            updateProgress(props.dispatch, [
-              lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise }),
-            ]);
-          }}
-        >
-          Equipment settings there
-        </LinkButton>
-        .
-      </div>
-      <div>
-        Percentage weight (like <strong>75%</strong>) means it's 75% of 1 Rep Max (1RM). You can adjust 1RM above.
-      </div>
+    <Nux className="my-2" id="Rounded Weights" helps={props.helps} dispatch={props.dispatch}>
+      <>
+        <span>
+          <span className="line-through">Crossed out</span> weight means it's <strong>rounded</strong> to fit your bar
+          and plates. Adjust your{" "}
+          <LinkButton
+            name="nux-rounding-equipment-settings"
+            onClick={() => {
+              updateProgress(props.dispatch, [
+                lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise }),
+              ]);
+            }}
+          >
+            Equipment settings there
+          </LinkButton>
+          .
+        </span>
+        <div className="mt-2">
+          Percentage weight (like <strong>75%</strong>) means it's 75% of 1 Rep Max (1RM). You can adjust 1RM above.
+        </div>
+      </>
     </Nux>
   );
 }
 
 function HelpTarget(props: { helps: string[]; dispatch: IDispatch }): JSX.Element {
   return (
-    <Nux className="mt-2" id="Set Target" helps={props.helps} dispatch={props.dispatch}>
-      <span className="font-semibold">Target</span> column shows the prescribed set from a program. The set will be
-      successful if you complete the target reps and weight.
+    <Nux className="my-2" id="Set Target" helps={props.helps} dispatch={props.dispatch}>
+      <span className="font-semibold">Target</span> column shows the prescribed set from a program. The set is
+      considered successful if you complete required reps and weight.
     </Nux>
   );
 }
