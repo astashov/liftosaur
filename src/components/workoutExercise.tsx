@@ -260,7 +260,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
           {lastNote && (
             <div>
               <GroupHeader name="Previous Note" />
-              <div className="pl-1 mb-1 text-sm border-bluev3-700" style={{ borderWidth: "0 0 0 4px" }}>
+              <div className="pl-1 mb-1 text-sm border-purplev3-300" style={{ borderWidth: "0 0 0 4px" }}>
                 {lastNote}
               </div>
             </div>

@@ -20,7 +20,7 @@ export function ModalWhatsnew(props: IModalWhatsnewProps): JSX.Element {
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <h3 className="pb-2 text-xl font-bold text-center">What's new?</h3>
-      <ul>
+      <ul className="text-sm">
         {sortedWhatsnewRecords.map(([dateStr, whatsNewRecord]) => {
           const date = DateUtils.format(DateUtils.fromYYYYMMDD(dateStr, ""), true);
           return (

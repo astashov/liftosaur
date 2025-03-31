@@ -1673,6 +1673,35 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20250330": {
+    title: <span>New Workout Screen!</span>,
+    body: (
+      <ul>
+        <li>Workout screen was completely redesigned.</li>
+        <li>
+          It now looks closer to all the rest of the workout apps, where each row is a set, and reps and weights are
+          input fields. It still will prefill the fields with the values from the program, but you can change them if
+          necessary. You don't need to change the fields though, just tap the checkmark if they already look right.
+        </li>
+        <li>
+          The <strong>Target</strong> column contains the requirements for the set - from the program. We still use the
+          same color coding to distinguish between success sets (green), failed sets (red) and in-range sets (yellow).
+        </li>
+        <li>You can swipe the sets, to edit the target, or delete the set.</li>
+        <li>
+          Instead of one long list with all exercises, now there're tabs for each exercise at the top, and you can see
+          the progress of each exercise there. Under each exercise there's graphs and history for that exercise.
+        </li>
+        <li>
+          One slight change in the <strong>Liftoscript</strong> is that now there's a new array variable{" "}
+          <strong>completedWeights</strong>. Similarly to <strong>completedReps</strong> and{" "}
+          <strong>completedRPE</strong>, it contains the weights you actually completed. Previously, that was kinda
+          mixed together with the program weight in <strong>weights</strong>
+          variable, but now they're separate. So, you may want to update your scripts if necessary.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
