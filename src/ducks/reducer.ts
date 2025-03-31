@@ -517,6 +517,15 @@ export function buildCardsReducer(
           newProgress = Progress.stopTimer(newProgress);
         }
         newProgress.intervals = History.resumeWorkout(newProgress.intervals, settings.timers.reminder);
+        newProgress = Progress.startTimer(
+          newProgress,
+          new Date().getTime(),
+          "workout",
+          action.entryIndex,
+          action.setIndex,
+          settings,
+          subscription
+        );
         return { ...newProgress, ui: { ...newProgress.ui, amrapModal: undefined } };
       }
       case "ChangeWeightAction": {

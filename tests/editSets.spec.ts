@@ -46,6 +46,9 @@ test("edits sets properly", async ({ page }) => {
   await page.getByTestId("entry-bench-press").getByTestId("complete-set").nth(2).click();
   await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
+  await page.getByTestId("input-set-reps-field").nth(3).click();
+  await page.getByTestId("keyboard-backspace").click();
+  await page.getByTestId("keyboard-close").click();
   await page.getByTestId("entry-bench-press").getByTestId("complete-set").nth(3).click();
   await page.getByTestId("modal-amrap-input").fill("15");
   await page.getByTestId("modal-amrap-submit").click();

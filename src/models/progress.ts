@@ -371,7 +371,10 @@ export namespace Progress {
     subscription?: ISubscription,
     timer?: number
   ): IHistoryRecord {
-    const set = progress.entries[entryIndex]?.sets[setIndex];
+    const set =
+      mode === "warmup"
+        ? progress.entries[entryIndex]?.warmupSets[setIndex]
+        : progress.entries[entryIndex]?.sets[setIndex];
     if (!set || !set.isCompleted) {
       return progress;
     }

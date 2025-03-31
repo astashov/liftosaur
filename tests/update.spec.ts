@@ -36,7 +36,12 @@ test("updates reps in a workout", async ({ page }) => {
 
   await page.getByTestId("complete-set").nth(3).click();
   await page.getByTestId("complete-set").nth(2).click();
+  await page.getByTestId("input-set-reps-field").nth(2).click();
+  await page.getByTestId("keyboard-backspace").click();
+  await page.getByTestId("keyboard-close").click();
+
   await page.getByTestId("complete-set").nth(2).click();
+
   await page.getByTestId("modal-amrap-input").clear();
   await page.getByTestId("modal-amrap-input").type("8");
   await page.getByTestId("modal-amrap-submit").click();
