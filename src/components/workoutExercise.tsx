@@ -39,6 +39,7 @@ import { StringUtils } from "../utils/string";
 import { Reps } from "../models/set";
 import { GroupHeader } from "./groupHeader";
 import { Settings } from "../models/settings";
+import { DateUtils } from "../utils/date";
 
 interface IWorkoutExerciseProps {
   day: number;
@@ -86,7 +87,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
     history,
     { maxTime: maxX, minTime: minX },
     { lastHistoryEntry },
-    { lastNote },
+    { lastNote, timestamp },
     { maxWeight, maxWeightHistoryRecord },
     { max1RM, max1RMHistoryRecord, max1RMSet },
   ] = useMemo(() => {
@@ -257,9 +258,9 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
               dispatch={props.dispatch}
             />
           )}
-          {lastNote && (
+          {lastNote && timestamp && (
             <div>
-              <GroupHeader name="Previous Note" />
+              <GroupHeader name={`Previous Note (from ${DateUtils.format(timestamp)})`} />
               <div className="pl-1 mb-1 text-sm border-purplev3-300" style={{ borderWidth: "0 0 0 4px" }}>
                 {lastNote}
               </div>
@@ -329,22 +330,24 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
           </div>
         )}
       </section>
-      <div className="mt-2 text-xs text-center">
-        <LinkButton
-          name="toggle-workout-graphs"
-          onClick={() => {
-            updateSettings(
-              props.dispatch,
-              lb<ISettings>()
-                .p("workoutSettings")
-                .p("shouldHideGraphs")
-                .record(!props.settings.workoutSettings.shouldHideGraphs)
-            );
-          }}
-        >
-          {props.settings.workoutSettings.shouldHideGraphs ? "Show Graphs and PRs" : "Hide Graphs and PRs"}
-        </LinkButton>
-      </div>
+      {(history.length > 1 || showPrs) && (
+        <div className="mt-2 text-xs text-center">
+          <LinkButton
+            name="toggle-workout-graphs"
+            onClick={() => {
+              updateSettings(
+                props.dispatch,
+                lb<ISettings>()
+                  .p("workoutSettings")
+                  .p("shouldHideGraphs")
+                  .record(!props.settings.workoutSettings.shouldHideGraphs)
+              );
+            }}
+          >
+            {props.settings.workoutSettings.shouldHideGraphs ? "Show Graphs and PRs" : "Hide Graphs and PRs"}
+          </LinkButton>
+        </div>
+      )}
       {!props.settings.workoutSettings.shouldHideGraphs && (
         <>
           {history.length > 1 && (

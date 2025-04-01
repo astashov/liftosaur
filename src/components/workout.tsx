@@ -17,6 +17,7 @@ import { WorkoutExercise } from "./workoutExercise";
 import { Scroller } from "./scroller";
 import { WorkoutExerciseThumbnail } from "./workoutExerciseThumbnail";
 import { IconShare } from "./icons/iconShare";
+import { Markdown } from "./markdown";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -34,9 +35,11 @@ interface IWorkoutViewProps {
 
 export function Workout(props: IWorkoutViewProps): JSX.Element {
   const selectedEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
+  const description = props.programDay?.description;
   return (
     <section className="pb-8">
       <WorkoutHeader
+        description={description}
         progress={props.progress}
         dispatch={props.dispatch}
         program={props.program}
@@ -74,6 +77,7 @@ interface IWorkoutHeaderProps {
   progress: IHistoryRecord;
   dispatch: IDispatch;
   setIsShareShown: (value: boolean) => void;
+  description?: string;
   program?: IEvaluatedProgram;
 }
 
@@ -135,6 +139,11 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
           )}
         </div>
       </div>
+      {props.description && (
+        <div className={`mt-1 text-sm ${props.progress.notes ? "border-b border-grayv3-100 mb-1 pb-1" : ""}`}>
+          <Markdown value={props.description} />
+        </div>
+      )}
       <div className="">
         <TextareaAutogrow
           data-cy="workout-notes-input"

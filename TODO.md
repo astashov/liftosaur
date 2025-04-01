@@ -50,3 +50,5 @@ User debug page:
 * initial/completed number of sets
 
 
+* Swipe between exercises tabs
+
