@@ -50,7 +50,9 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
             <div className="text-blackv2">
               <div data-cy="one-rm-value">
                 {Weight.display(max1RM.weight)}
-                {max1RM.set ? ` (${max1RM.set.completedReps} x ${Weight.display(max1RM.set.weight)})` : ""}
+                {max1RM.set
+                  ? ` (${max1RM.set.completedReps} x ${Weight.display(max1RM.set.completedWeight ?? max1RM.set.weight)})`
+                  : ""}
               </div>
               {max1RM.historyRecord && (
                 <div className="text-xs text-grayv2-main">{DateUtils.format(max1RM.historyRecord.startTime)}</div>

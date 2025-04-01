@@ -74,7 +74,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 props.isNext ? " bg-purplev3-main text-white font-bold" : ""
               }`}
             >
-              <div>{props.setIndex + 1}</div>
+              <div>{props.type === "warmup" ? <span className="text-xs">W</span> : props.setIndex + 1}</div>
             </div>
           </div>
           <div data-cy="workout-set-target" className={`${borderClass} table-cell w-full align-middle`}>
@@ -281,7 +281,22 @@ interface IWorkoutExerciseSetTargetProps {
 function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.Element {
   switch (props.setType) {
     case "warmup":
-      return <span className="inline-block text-xs break-all text-grayv3-main">Warmup</span>;
+      const set = props.set;
+      return (
+        <span className="inline-block text-xs break-all text-grayv3-main">
+          <div className="inline-block text-sm align-middle">
+            <div>
+              <span className="font-semibold">{n(Math.max(0, set.reps))}</span>
+              <span className="text-grayv3-main"> × </span>
+              <span>
+                <span> </span>
+                <span className="font-semibold">{set.weight.value}</span>
+                <span className="text-xs">{set.weight.unit}</span>
+              </span>
+            </div>
+          </div>
+        </span>
+      );
     case "adhoc":
       return <span className="inline-block text-xs break-all text-grayv3-main">Ad-hoc</span>;
     case "program": {

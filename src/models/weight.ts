@@ -425,6 +425,21 @@ export namespace Weight {
     return comparison(weight, value, (a, b) => a <= b);
   }
 
+  export function eqNull(
+    weight: IWeight | number | IPercentage | undefined,
+    value: IWeight | number | IPercentage | undefined
+  ): boolean {
+    if (weight == null && value == null) {
+      return true;
+    } else if (weight == null && value != null) {
+      return false;
+    } else if (weight != null && value == null) {
+      return false;
+    } else {
+      return comparison(weight!, value!, (a, b) => a === b);
+    }
+  }
+
   export function eq(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
     return comparison(weight, value, (a, b) => a === b);
   }

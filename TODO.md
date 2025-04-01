@@ -50,6 +50,3 @@ User debug page:
 * initial/completed number of sets
 
 
-* GZCLP
-* GZCLP: Blacknoir
-* The Rippler

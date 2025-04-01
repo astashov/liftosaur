@@ -329,33 +329,53 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
           </div>
         )}
       </section>
-      {history.length > 1 && (
-        <div data-cy="workout-stats-graph" className="relative mt-2">
-          <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
-          <GraphExercise
-            isSameXAxis={false}
-            minX={Math.round(minX / 1000)}
-            maxX={Math.round(maxX / 1000)}
-            isWithOneRm={true}
-            key={Exercise.toKey(exerciseType)}
-            settings={props.settings}
-            isWithProgramLines={true}
-            history={props.history}
-            exercise={exerciseType}
-            initialType={props.settings.graphsSettings.defaultType}
-            dispatch={props.dispatch}
-          />
-        </div>
-      )}
-      {showPrs && (
-        <div className="mx-4 mt-2">
-          <ExerciseAllTimePRs
-            maxWeight={maxWeight ? { weight: maxWeight, historyRecord: maxWeightHistoryRecord } : undefined}
-            max1RM={max1RM ? { weight: max1RM, historyRecord: max1RMHistoryRecord, set: max1RMSet } : undefined}
-            settings={props.settings}
-            dispatch={props.dispatch}
-          />
-        </div>
+      <div className="mt-2 text-xs text-center">
+        <LinkButton
+          name="toggle-workout-graphs"
+          onClick={() => {
+            updateSettings(
+              props.dispatch,
+              lb<ISettings>()
+                .p("workoutSettings")
+                .p("shouldHideGraphs")
+                .record(!props.settings.workoutSettings.shouldHideGraphs)
+            );
+          }}
+        >
+          {props.settings.workoutSettings.shouldHideGraphs ? "Show Graphs and PRs" : "Hide Graphs and PRs"}
+        </LinkButton>
+      </div>
+      {!props.settings.workoutSettings.shouldHideGraphs && (
+        <>
+          {history.length > 1 && (
+            <div data-cy="workout-stats-graph" className="relative mt-2">
+              <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
+              <GraphExercise
+                isSameXAxis={false}
+                minX={Math.round(minX / 1000)}
+                maxX={Math.round(maxX / 1000)}
+                isWithOneRm={true}
+                key={Exercise.toKey(exerciseType)}
+                settings={props.settings}
+                isWithProgramLines={true}
+                history={props.history}
+                exercise={exerciseType}
+                initialType={props.settings.graphsSettings.defaultType}
+                dispatch={props.dispatch}
+              />
+            </div>
+          )}
+          {showPrs && (
+            <div className="mx-4 mt-2">
+              <ExerciseAllTimePRs
+                maxWeight={maxWeight ? { weight: maxWeight, historyRecord: maxWeightHistoryRecord } : undefined}
+                max1RM={max1RM ? { weight: max1RM, historyRecord: max1RMHistoryRecord, set: max1RMSet } : undefined}
+                settings={props.settings}
+                dispatch={props.dispatch}
+              />
+            </div>
+          )}
+        </>
       )}
       {history.length > 0 && (
         <div className="mx-4 mt-2">

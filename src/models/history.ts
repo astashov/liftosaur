@@ -133,7 +133,7 @@ export namespace History {
     return CollectionUtils.sort(
       sets.filter((s) => (s.completedReps || 0) > 0),
       (a, b) => {
-        const weightDiff = Weight.compare(b.weight, a.weight);
+        const weightDiff = Weight.compare(b.completedWeight ?? b.weight, a.completedWeight ?? a.weight);
         if (weightDiff === 0 && a.completedReps && b.completedReps) {
           return b.completedReps - a.completedReps;
         }
@@ -147,8 +147,8 @@ export namespace History {
       sets.filter((s) => (s.completedReps || 0) > 0),
       (a, b) => {
         const weightDiff = Weight.compare(
-          Weight.getOneRepMax(b.weight, b.completedReps || 0),
-          Weight.getOneRepMax(a.weight, a.completedReps || 0)
+          Weight.getOneRepMax(b.completedWeight ?? b.weight, b.completedReps || 0),
+          Weight.getOneRepMax(a.completedWeight ?? a.weight, a.completedReps || 0)
         );
         if (weightDiff === 0 && a.completedReps && b.completedReps) {
           return b.completedReps - a.completedReps;
@@ -359,8 +359,11 @@ export namespace History {
       fn: (acc, hr) => {
         const entries = hr.entries.filter((e) => Exercise.eq(e.exercise, exerciseType));
         const maxSet = getMaxWeightSet(entries.flatMap((e) => e.sets));
-        if (maxSet != null && Weight.gt(maxSet.weight, acc.maxWeight)) {
-          acc = { maxWeight: maxSet.weight, maxWeightHistoryRecord: hr };
+        if (maxSet != null) {
+          const weight = maxSet.completedWeight ?? maxSet.weight;
+          if (Weight.gt(weight, acc.maxWeight)) {
+            acc = { maxWeight: weight, maxWeightHistoryRecord: hr };
+          }
         }
         return acc;
       },
@@ -376,7 +379,10 @@ export namespace History {
       fn: (acc, hr) => {
         const entries = hr.entries.filter((e) => Exercise.eq(e.exercise, exerciseType));
         const allSets = entries.flatMap((e) => e.sets);
-        const all1RMs = allSets.map<[ISet, IWeight]>((s) => [s, Weight.getOneRepMax(s.weight, s.completedReps || 0)]);
+        const all1RMs = allSets.map<[ISet, IWeight]>((s) => [
+          s,
+          Weight.getOneRepMax(s.completedWeight ?? s.weight, s.completedReps || 0),
+        ]);
         const max1RM = CollectionUtils.sort(all1RMs, (a, b) => Weight.compare(b[1], a[1]))[0];
         if (max1RM != null && Weight.gt(max1RM[1], acc.max1RM)) {
           acc = { max1RM: max1RM[1], max1RMHistoryRecord: hr, max1RMSet: max1RM[0] };
@@ -459,8 +465,10 @@ export namespace History {
           const key = Exercise.toKey(entry.exercise);
 
           const thisMaxWeightSet = getMaxWeightSetFromEntry(entry);
-          const thisMaxWeight = thisMaxWeightSet ? thisMaxWeightSet.weight : undefined;
-          const lastMaxWeight = maxWeightSets[key]?.weight;
+          const thisMaxWeight = thisMaxWeightSet
+            ? (thisMaxWeightSet.completedWeight ?? thisMaxWeightSet.weight)
+            : undefined;
+          const lastMaxWeight = maxWeightSets[key]?.completedWeight ?? maxWeightSets[key]?.weight;
           if (thisMaxWeight != null && (lastMaxWeight == null || Weight.gt(thisMaxWeight, lastMaxWeight))) {
             const prevMaxWeightSet = maxWeightSets[key];
             maxWeightSets[key] = thisMaxWeightSet;
@@ -473,7 +481,7 @@ export namespace History {
           const thisMax1RMSet = getMax1RMSetFromEntry(entry);
           const thisMax1RM = thisMax1RMSet
             ? Weight.getOneRepMax(
-                thisMax1RMSet.weight,
+                thisMax1RMSet.completedWeight ?? thisMax1RMSet.weight,
                 thisMax1RMSet.completedReps || 0,
                 thisMax1RMSet.completedRpe ?? thisMax1RMSet.rpe
               )
@@ -481,7 +489,7 @@ export namespace History {
           const lastMax1RMSet = max1RMSets[key];
           const lastMax1RM = lastMax1RMSet
             ? Weight.getOneRepMax(
-                lastMax1RMSet.weight,
+                lastMax1RMSet.completedWeight ?? lastMax1RMSet.weight,
                 lastMax1RMSet?.completedReps || 0,
                 lastMax1RMSet.completedRpe ?? lastMax1RMSet.rpe
               )

@@ -1,8 +1,7 @@
 import { h, JSX, Fragment } from "preact";
-import { ProgramSet } from "../models/programSet";
 import { Reps } from "../models/set";
 import { Weight } from "../models/weight";
-import { IProgramSet, ISet, ISettings } from "../types";
+import { ISet, ISettings } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
 import { IHistoryEntryPersonalRecords } from "../models/history";
@@ -47,7 +46,7 @@ function setToDisplaySet(set: ISet, isNext: boolean): IDisplaySet {
   return {
     reps: isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set),
     rpe: set.completedRpe?.toString() ?? set.rpe?.toString(),
-    weight: Weight.display(set.completedWeight ?? set.weight, false),
+    weight: isNext ? Weight.display(set.weight, false) : Weight.display(set.completedWeight ?? set.weight, false),
     unit: set.weight.unit,
     askWeight: set.askWeight,
     isCompleted: Reps.isCompletedSet(set),
@@ -66,28 +65,6 @@ export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Eleme
     <div className="text-sm text-right">
       {displayGroups.map((g) => (
         <HistoryRecordSet sets={g} prs={props.prs} isNext={props.isNext} showPrDetails={props.showPrDetails} />
-      ))}
-    </div>
-  );
-}
-
-export function HistoryRecordProgramSetsView(props: { sets: IProgramSet[] }): JSX.Element {
-  const { sets } = props;
-  const groups = ProgramSet.group(sets);
-  const displayGroups = groups.map((g) => {
-    return g.map((set) => {
-      const reps = set.minRepsExpr ? `${set.minRepsExpr}-${set.repsExpr}` : `${set.repsExpr}`;
-      return {
-        reps: set.isAmrap ? `${reps}+` : `${reps}`,
-        weight: set.weightExpr,
-        isCompleted: true,
-      };
-    });
-  });
-  return (
-    <div className="text-sm text-right">
-      {displayGroups.map((g) => (
-        <HistoryRecordSet sets={g} isNext={true} />
       ))}
     </div>
   );

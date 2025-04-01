@@ -1065,10 +1065,15 @@ export const TTargetType = t.keyof(
 );
 export type ITargetType = t.TypeOf<typeof TTargetType>;
 
-export const TWorkoutSettings = t.type(
-  {
-    targetType: TTargetType,
-  },
+export const TWorkoutSettings = t.intersection(
+  [
+    t.interface({
+      targetType: TTargetType,
+    }),
+    t.partial({
+      shouldHideGraphs: t.boolean,
+    }),
+  ],
   "TWorkoutSettings"
 );
 
