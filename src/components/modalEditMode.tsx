@@ -175,7 +175,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
   return (
     <section className="px-4 py-2 bg-purple-100 rounded-2xl">
       {ObjectUtils.keys(state).map((stateKey, i) => {
-        const value = props.newState[stateKey] || state[stateKey];
+        const value = props.newState[stateKey] ?? state[stateKey];
         const displayValue = Weight.is(value) || Weight.isPct(value) ? value.value : value;
 
         return (

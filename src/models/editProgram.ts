@@ -8,7 +8,6 @@ import { IProgram, IPlannerProgram, IDayData, IProgramState, ISettings } from ".
 import { updateStateVariable } from "./editProgramLenses";
 import { IPlannerProgramExercise, IPlannerState } from "../pages/planner/models/types";
 import { PP } from "./pp";
-import { Weight } from "./weight";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { ProgramToPlanner } from "./programToPlanner";
 
@@ -19,7 +18,8 @@ export namespace EditProgram {
     values: Partial<IProgramState>
   ): IEvaluatedProgram {
     const state = PlannerProgramExercise.getState(programExercise);
-    if (ObjectUtils.entries(values).some(([key, value]) => value == null || Weight.eq(state[key], value))) {
+    values = ObjectUtils.diff(state, values);
+    if (ObjectUtils.keys(values).length === 0) {
       return program;
     }
     if (!programExercise.progress) {
