@@ -236,6 +236,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     close();
                     EditProgressEntry.showEditSetModal(
                       props.dispatch,
+                      props.settings.units,
                       props.type === "warmup",
                       props.entryIndex,
                       props.setIndex,

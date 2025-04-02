@@ -1,6 +1,6 @@
 import { CollectionUtils } from "../utils/collection";
 import { Weight } from "./weight";
-import { ISet, IHistoryRecord, IHistoryEntry, IWeight } from "../types";
+import { ISet, IHistoryRecord, IHistoryEntry, IWeight, IUnit } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { UidFactory } from "../utils/generator";
 
@@ -19,10 +19,10 @@ export namespace Reps {
     }
   }
 
-  export function addSet(sets: ISet[]): ISet[] {
+  export function addSet(sets: ISet[], unit: IUnit): ISet[] {
     let lastSet: ISet = sets[sets.length - 1];
     if (lastSet == null) {
-      lastSet = newSet();
+      lastSet = newSet(unit);
     }
 
     return [...sets, { ...ObjectUtils.clone(lastSet), id: UidFactory.generateUid(6), isCompleted: false }];
@@ -56,11 +56,11 @@ export namespace Reps {
     return sets.every((s) => !s.isCompleted);
   }
 
-  export function newSet(): ISet {
+  export function newSet(unit: IUnit): ISet {
     return {
       id: UidFactory.generateUid(6),
-      originalWeight: Weight.build(0, "lb"),
-      weight: Weight.build(0, "lb"),
+      originalWeight: Weight.build(0, unit),
+      weight: Weight.build(0, unit),
       reps: 1,
       isAmrap: false,
       askWeight: false,

@@ -1,7 +1,7 @@
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { IState } from "./state";
-import { ISet, IHistoryRecord, IExerciseType } from "../types";
+import { ISet, IHistoryRecord, IExerciseType, IUnit } from "../types";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { ObjectUtils } from "../utils/object";
 import { Reps } from "./set";
@@ -9,6 +9,7 @@ import { Reps } from "./set";
 export namespace EditProgressEntry {
   export function showEditSetModal(
     dispatch: IDispatch,
+    unit: IUnit,
     isWarmup: boolean,
     entryIndex: number,
     setIndex?: number,
@@ -24,7 +25,7 @@ export namespace EditProgressEntry {
           .p("editSetModal")
           .record({
             programExerciseId: programExercise?.key,
-            set: set ? ObjectUtils.clone(set) : Reps.newSet(),
+            set: set ? ObjectUtils.clone(set) : Reps.newSet(unit),
             isWarmup,
             entryIndex,
             setIndex,

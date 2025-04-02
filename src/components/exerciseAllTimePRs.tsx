@@ -29,7 +29,9 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
           }
           value={
             <div className="text-blackv2">
-              <div data-cy="max-weight-value">{Weight.display(maxWeight.weight)}</div>
+              <div data-cy="max-weight-value">
+                {Weight.display(Weight.convertTo(maxWeight.weight, props.settings.units))}
+              </div>
               {maxWeight.historyRecord && (
                 <div className="text-xs text-grayv2-main">{DateUtils.format(maxWeight.historyRecord.startTime)}</div>
               )}
@@ -49,7 +51,7 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
           value={
             <div className="text-blackv2">
               <div data-cy="one-rm-value">
-                {Weight.display(max1RM.weight)}
+                {Weight.display(Weight.convertTo(max1RM.weight, props.settings.units))}
                 {max1RM.set
                   ? ` (${max1RM.set.completedReps} x ${Weight.display(max1RM.set.completedWeight ?? max1RM.set.weight)})`
                   : ""}
@@ -64,5 +66,4 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
       )}
     </section>
   );
-  return <div />;
 }
