@@ -83,6 +83,7 @@ export namespace History {
     const programDay = program ? Program.getProgramDay(program, day) : undefined;
     const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
     const updatedAt = Date.now();
+    const endTime = Progress.isCurrent(progress) ? Date.now() : (progress.endTime ?? Date.now());
     return {
       ...historyRecord,
       entries: historyRecord.entries.map((entry) => {
@@ -112,12 +113,12 @@ export namespace History {
         }
         return entry;
       }),
-      id: Progress.isCurrent(progress) ? progress.startTime : progress.id,
+      id: Progress.isCurrent(progress) ? endTime : progress.id,
       updatedAt: updatedAt,
       timerSince: undefined,
       timerMode: undefined,
       intervals: History.pauseWorkout(progress.intervals),
-      ...(Progress.isCurrent(progress) ? { endTime: Date.now() } : {}),
+      ...(Progress.isCurrent(progress) ? { endTime } : {}),
     };
   }
 

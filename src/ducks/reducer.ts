@@ -680,7 +680,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return {
         ...state,
         screenStack: pushScreen(state.screenStack, "main", undefined, true),
-        storage: { ...state.storage, deletedHistory: [...state.storage.deletedHistory, progress.startTime], history },
+        storage: { ...state.storage, deletedHistory: [...state.storage.deletedHistory, progress.id], history },
         progress: Progress.stop(state.progress, progress.id),
       };
     } else {
