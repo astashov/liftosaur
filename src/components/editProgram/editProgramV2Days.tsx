@@ -211,6 +211,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
                     <div className="flex-1">
                       <DraggableList
                         items={week.days}
+                        mode="vertical"
                         onDragEnd={(startIndex, endIndex) => {
                           applyChangesInEditor(plannerDispatch, () => {
                             plannerDispatch([

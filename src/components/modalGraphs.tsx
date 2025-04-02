@@ -170,6 +170,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
         {graphs.length > 0 && <GroupHeader topPadding={true} name="Selected Graphs" />}
         <DraggableList
           items={graphs}
+          mode="vertical"
           element={(graph, i, handleTouchStart) => {
             return (
               <section

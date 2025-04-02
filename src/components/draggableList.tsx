@@ -2,15 +2,21 @@ import { JSX, h, Fragment } from "preact";
 import { useRef, useState, useEffect } from "preact/hooks";
 
 interface IData {
-  pointY: number;
+  point: number;
   index: number;
 }
+
+type IDraggableMode = "horizontal" | "vertical";
 
 interface IDraggableListProps<T> {
   items: T[];
   hideBorders?: boolean;
+  mode: IDraggableMode;
   isTransparent?: boolean;
   element: (item: T, index: number, handleWrapper: (touchEvent: TouchEvent | MouseEvent) => void) => JSX.Element;
+  onClick?: (index: number) => void;
+  delayMs?: number;
+  onDragStart?: (startIndex: number) => void;
   onDragEnd: (startIndex: number, endIndex: number) => void;
 }
 
@@ -18,60 +24,90 @@ export function DraggableList<T>(props: IDraggableListProps<T>): JSX.Element {
   const [data, setData] = useState<IData | undefined>(undefined);
   const theData = useRef<IData | undefined>(undefined);
   const elWrapper = useRef<HTMLDivElement>();
+  const offsetX = useRef<number | undefined>(undefined);
   const offsetY = useRef<number | undefined>(undefined);
+  const widths = useRef<(number | undefined)[]>([]);
   const heights = useRef<(number | undefined)[]>([]);
 
   useEffect(() => {
+    offsetX.current = elWrapper.current!.offsetLeft;
     offsetY.current = elWrapper.current!.offsetTop;
   }, []);
 
   return (
-    <div className="relative" ref={elWrapper}>
+    <div
+      className={`relative flex items-center ${props.mode === "horizontal" ? "flex-row" : "flex-col"}`}
+      ref={elWrapper}
+    >
       {props.items.map((e, i) => (
         <Fragment>
-          <DropTarget index={i} heights={heights.current} data={theData.current} />
+          <DropTarget
+            mode={props.mode}
+            index={i}
+            widths={widths.current}
+            heights={heights.current}
+            data={theData.current}
+          />
           <DraggableListItem
+            onClick={props.onClick}
+            delayMs={props.delayMs}
             hideBorders={props.hideBorders}
             isTransparent={props.isTransparent}
+            mode={props.mode}
             isDragging={!!theData.current}
             element={props.element}
-            onHeightCalc={(hght) => (heights.current[i] = hght)}
+            onSizeCalc={(wdth, hght) => {
+              widths.current[i] = wdth;
+              heights.current[i] = hght;
+            }}
             item={e}
             index={i}
-            onStart={(pointY) => {
+            onStart={(point) => {
               const newData = {
-                pointY,
+                point,
                 index: i,
               };
               setData(newData);
               theData.current = newData;
+              if (props.onDragStart) {
+                props.onDragStart(i);
+              }
             }}
-            onMove={(pointY) => {
+            onMove={(point) => {
               const newData = {
-                pointY,
+                point,
                 index: i,
               };
               setData(newData);
               theData.current = newData;
             }}
             onEnd={() => {
-              const d = theData.current!;
+              const d = theData.current;
+              if (d == null) {
+                props.onDragEnd(i, i);
+                setData(undefined);
+                theData.current = undefined;
+                return;
+              }
               const startIndex = d.index;
-              const pointY = d.pointY; //  - offsetY.current!;
+              const point = d.point; //  - offsetY.current!;
+              const sizes = props.mode === "horizontal" ? widths : heights;
               let endIndex = 0;
-              let currentHeight = 0;
-              let nextHeight = heights.current[endIndex]!;
-              while (nextHeight > 0 && currentHeight < pointY - nextHeight && nextHeight != null) {
-                currentHeight += nextHeight;
+              let currentSize = 0;
+              let nextSize = sizes.current[endIndex]!;
+              while (nextSize > 0 && currentSize < point - nextSize && nextSize != null) {
+                currentSize += nextSize;
                 endIndex += 1;
-                nextHeight = heights.current[endIndex]!;
+                nextSize = sizes.current[endIndex]!;
               }
               props.onDragEnd(startIndex, endIndex);
               setData(undefined);
               theData.current = undefined;
             }}
           />
-          {props.items.length - 1 === i && <DropTarget heights={heights.current} index={i + 1} data={data} />}
+          {props.items.length - 1 === i && (
+            <DropTarget mode={props.mode} widths={widths.current} heights={heights.current} index={i + 1} data={data} />
+          )}
         </Fragment>
       ))}
     </div>
@@ -80,11 +116,15 @@ export function DraggableList<T>(props: IDraggableListProps<T>): JSX.Element {
 
 function DropTarget({
   data,
+  mode,
   index,
+  widths,
   heights,
 }: {
   data?: IData;
+  mode: IDraggableMode;
   index: number;
+  widths: (number | undefined)[];
   heights: (number | undefined)[];
 }): JSX.Element {
   const el = useRef<HTMLDivElement>();
@@ -106,13 +146,16 @@ function DropTarget({
     prevIsDragging.current = !!data;
   });
 
-  const y = rect.current?.y;
+  const pt = mode === "horizontal" ? rect.current?.x : rect.current?.y;
+  const sizes = mode === "horizontal" ? widths : heights;
   let isVisible;
-  if (y != null && data != null && index !== data.index) {
+  if (pt != null && data != null && index !== data.index) {
     if (index < data.index) {
-      isVisible = data.pointY > y && data.pointY < y + heights[index]!;
+      isVisible = data.point > pt && data.point < pt + sizes[index]!;
     } else {
-      isVisible = data.pointY > y - heights[data.index]! && data.pointY < y - heights[data.index]! + heights[index]!;
+      isVisible =
+        data.point > (index <= 1 ? -9999 : pt - sizes[data.index]!) &&
+        data.point < pt - sizes[data.index]! + (sizes[index]! ?? 9999);
     }
   }
 
@@ -121,7 +164,8 @@ function DropTarget({
       ref={el}
       style={{
         height: isVisible ? `${(data && heights[data?.index]) || 0}px` : 0,
-        transition: data != null ? "height 200ms ease-in-out" : "",
+        width: isVisible ? `${(data && widths[data?.index]) || 0}px` : 0,
+        transition: data != null ? "width 200ms ease-in-out, height 200ms ease-in-out" : "",
       }}
       data-id="drop-target"
     />
@@ -130,12 +174,15 @@ function DropTarget({
 
 interface IDraggableListItemProps<T> {
   hideBorders?: boolean;
+  delayMs?: number;
+  onClick?: (index: number) => void;
   isTransparent?: boolean;
   isDragging: boolean;
-  onStart: (pointY: number) => void;
-  onMove: (pointY: number) => void;
+  mode: IDraggableMode;
+  onStart: (point: number) => void;
+  onMove: (point: number) => void;
   onEnd: () => void;
-  onHeightCalc: (height?: number) => void;
+  onSizeCalc: (width?: number, height?: number) => void;
   currentHeight?: number;
   element: (item: T, index: number, handleWrapper: (touchEvent: TouchEvent | MouseEvent) => void) => JSX.Element;
   item: T;
@@ -150,26 +197,53 @@ function getPointY(event: TouchEvent | MouseEvent): number {
   }
 }
 
+function getPointX(event: TouchEvent | MouseEvent): number {
+  if ("touches" in event) {
+    return event.touches[0].clientX;
+  } else {
+    return event.clientX;
+  }
+}
+
 function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
   function handleTouchStart(es: TouchEvent | MouseEvent): void {
     es.preventDefault();
     heightRef.current = el.current!.clientHeight;
     function handleTouchMove(em: TouchEvent | MouseEvent): void {
       em.preventDefault();
-      const pointY = getPointY(em) + window.pageYOffset - shiftY;
-      setY(pointY);
-      props.onMove(pointY + Math.round(heightRef.current! / 2));
-      if (statusRef.current !== "move") {
-        window.document.addEventListener("touchend", handleTouchEnd);
-        window.document.addEventListener("mouseup", handleTouchEnd);
+
+      if (!statusRef.current && Date.now() - startTime.current! > (props.delayMs ?? 0)) {
+        shiftXRef.current = getPointX(em) + window.pageXOffset - el.current!.offsetLeft;
+        shiftYRef.current = getPointY(em) + window.pageYOffset - el.current!.offsetTop;
+        setIsDragging(true);
+        statusRef.current = "start";
+        const point =
+          props.mode === "horizontal"
+            ? getPointX(em) + window.pageXOffset - shiftXRef.current
+            : getPointY(em) + window.pageYOffset - shiftYRef.current;
+        props.onStart(point + Math.round((props.mode === "horizontal" ? widthRef.current! : heightRef.current!) / 2));
+        setPoint(point);
+      } else if (statusRef.current) {
+        statusRef.current = "move";
+        const p =
+          props.mode === "horizontal"
+            ? getPointX(em) + window.pageXOffset - (shiftXRef.current ?? 0)
+            : getPointY(em) + window.pageYOffset - (shiftYRef.current ?? 0);
+        setPoint(p);
+        props.onMove(p + Math.round((props.mode === "horizontal" ? widthRef.current! : heightRef.current!) / 2));
       }
-      statusRef.current = "move";
     }
     function handleTouchEnd(): void {
-      setY(undefined);
-      props.onEnd();
+      setPoint(undefined);
       setIsDragging(false);
       statusRef.current = undefined;
+      if (Date.now() - startTime.current! < (props.delayMs ?? 0)) {
+        if (props.onClick) {
+          props.onClick(props.index);
+        }
+      } else {
+        props.onEnd();
+      }
       window.document.removeEventListener("touchmove", handleTouchMove);
       window.document.removeEventListener("mousemove", handleTouchMove);
       window.document.removeEventListener("touchend", handleTouchEnd);
@@ -180,38 +254,43 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
     window.document.removeEventListener("mousemove", handleTouchMove);
     window.document.removeEventListener("touchend", handleTouchEnd);
     window.document.removeEventListener("mouseup", handleTouchEnd);
-    const elOffset = el.current!.offsetTop;
-    const shiftY = getPointY(es) + window.pageYOffset - elOffset;
-    setIsDragging(true);
-    statusRef.current = "start";
+    startTime.current = Date.now();
 
     setTimeout(() => {
-      const pointY = getPointY(es) + window.pageYOffset - shiftY;
-      props.onStart(pointY + Math.round(heightRef.current! / 2));
-      setY(pointY);
       window.document.addEventListener("touchmove", handleTouchMove);
       window.document.addEventListener("mousemove", handleTouchMove);
+      window.document.addEventListener("touchend", handleTouchEnd);
+      window.document.addEventListener("mouseup", handleTouchEnd);
     }, 0);
   }
 
   const el = useRef<HTMLDivElement>();
-  const [y, setY] = useState<number | undefined>(undefined);
+  const [point, setPoint] = useState<number | undefined>(undefined);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [, setWidth] = useState<number | undefined>(undefined);
   const [, setHeight] = useState<number | undefined>(undefined);
+  const widthRef = useRef<number | undefined>(undefined);
   const heightRef = useRef<number | undefined>(undefined);
   const statusRef = useRef<"start" | "move" | undefined>(undefined);
+  const startTime = useRef<number | undefined>(undefined);
+  const shiftXRef = useRef<number | undefined>(undefined);
+  const shiftYRef = useRef<number | undefined>(undefined);
 
   const prevIsDragging = useRef<boolean>(false);
 
   useEffect(() => {
     if (!prevIsDragging.current && props.isDragging) {
+      setWidth(el.current!.clientWidth);
       setHeight(el.current!.clientHeight);
+      widthRef.current = el.current!.clientWidth;
       heightRef.current = el.current!.clientHeight;
-      props.onHeightCalc(el.current!.clientHeight);
+      props.onSizeCalc(el.current!.clientWidth, el.current!.clientHeight);
     } else if (prevIsDragging.current && !props.isDragging) {
+      setWidth(undefined);
       setHeight(undefined);
+      widthRef.current = undefined;
       heightRef.current = undefined;
-      props.onHeightCalc(undefined);
+      props.onSizeCalc(undefined, undefined);
       setIsDragging(false);
     }
     prevIsDragging.current = props.isDragging;
@@ -219,17 +298,17 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
 
   let className = "";
   let style = {};
-  if (y != null) {
+  if (point != null) {
     className = `${className} absolute w-full ${props.isTransparent ? "" : "bg-white"}}`;
     style = {
       top: 0,
-      transform: `translateY(${y}px)`,
+      transform: props.mode === "horizontal" ? `translateX(${point}px)` : `translateY(${point}px)`,
       zIndex: 100,
       left: 0,
       borderWidth: props.hideBorders ? "0" : "1px 0",
       touchAction: "none",
       position: "absolute",
-      width: "100%",
+      ...(props.mode === "horizontal" ? { height: "100%" } : { width: "100%" }),
       background: !props.isTransparent ? "white" : undefined,
     };
   }
@@ -239,12 +318,17 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
       data-id="draggable-list-item"
       ref={el}
       style={{
-        height: statusRef.current === "move" ? 0 : heightRef.current ?? "auto",
-        transition: isDragging ? "height 200ms ease-in-out" : "",
+        ...(props.mode === "vertical"
+          ? { height: statusRef.current === "move" ? 0 : (heightRef.current ?? "auto"), width: "100%" }
+          : {}),
+        ...(props.mode === "horizontal"
+          ? { width: statusRef.current === "move" ? 0 : (widthRef.current ?? "auto"), height: "100%" }
+          : {}),
+        transition: isDragging ? "width 200ms ease-in-out, height 200ms ease-in-out" : "",
       }}
     >
-      <div style={{ opacity: y != null ? 0 : 1 }}>{props.element(props.item, props.index, handleTouchStart)}</div>
-      {y != null && <div style={style}>{props.element(props.item, props.index, handleTouchStart)}</div>}
+      <div style={{ opacity: point != null ? 0 : 1 }}>{props.element(props.item, props.index, handleTouchStart)}</div>
+      {point != null && <div style={style}>{props.element(props.item, props.index, handleTouchStart)}</div>}
     </div>
   );
 }

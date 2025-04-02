@@ -1,7 +1,7 @@
 import { h, JSX, RefObject } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
-import { IState, updateState } from "../models/state";
+import { IState, updateProgress, updateState } from "../models/state";
 import { Thunk } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import { IEvaluatedProgram, IEvaluatedProgramDay, Program } from "../models/program";
@@ -18,6 +18,7 @@ import { Scroller } from "./scroller";
 import { WorkoutExerciseThumbnail } from "./workoutExerciseThumbnail";
 import { IconShare } from "./icons/iconShare";
 import { Markdown } from "./markdown";
+import { DraggableList } from "./draggableList";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -172,21 +173,44 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
   return (
     <Scroller>
       <div className="flex items-center gap-1 px-4">
-        {props.progress.entries.map((entry, entryIndex) => {
-          return (
-            <WorkoutExerciseThumbnail
-              shouldScrollIntoView={true}
-              shouldShowProgress={true}
-              selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
-              key={entryIndex}
-              progress={props.progress}
-              settings={props.settings}
-              dispatch={props.dispatch}
-              entry={entry}
-              entryIndex={entryIndex}
-            />
-          );
-        })}
+        <DraggableList
+          hideBorders={true}
+          mode="horizontal"
+          delayMs={200}
+          onClick={(entryIndex) => {
+            updateProgress(props.dispatch, [lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex)]);
+          }}
+          items={props.progress.entries}
+          element={(entry, entryIndex, handleTouchStart) => {
+            return (
+              <WorkoutExerciseThumbnail
+                handleTouchStart={handleTouchStart}
+                shouldScrollIntoView={true}
+                shouldShowProgress={true}
+                selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
+                key={entryIndex}
+                progress={props.progress}
+                settings={props.settings}
+                dispatch={props.dispatch}
+                entry={entry}
+                entryIndex={entryIndex}
+              />
+            );
+          }}
+          onDragEnd={(startIndex, endIndex) => {
+            updateProgress(props.dispatch, [
+              lb<IHistoryRecord>()
+                .p("entries")
+                .recordModify((entries) => {
+                  const newEntries = [...entries];
+                  const [entriesToMove] = newEntries.splice(startIndex, 1);
+                  newEntries.splice(endIndex, 0, entriesToMove);
+                  return newEntries;
+                }),
+              lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(endIndex),
+            ]);
+          }}
+        />
         <button
           name="add-exercise-to-workout"
           data-cy="add-exercise-button"

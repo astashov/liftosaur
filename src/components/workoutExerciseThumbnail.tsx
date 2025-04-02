@@ -1,10 +1,8 @@
-import { lb } from "lens-shmens";
 import { JSX, h } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Exercise } from "../models/exercise";
 import { ExerciseImageUtils } from "../models/exerciseImage";
 import { Reps } from "../models/set";
-import { updateProgress } from "../models/state";
 import { IHistoryEntry, IHistoryRecord, ISettings } from "../types";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
 import { ExerciseImage } from "./exerciseImage";
@@ -13,6 +11,8 @@ import { StringUtils } from "../utils/string";
 import { useEffect, useRef } from "preact/hooks";
 
 interface IWorkoutExerciseThumbnailProps {
+  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
+  onClick?: () => void;
   selectedIndex: number;
   progress: IHistoryRecord;
   shouldShowProgress?: boolean;
@@ -42,41 +42,50 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
   return (
     <button
       ref={ref}
-      className={`cursor-pointer border ${borderColor} rounded-lg w-12 h-12 relative box-content overflow-hidden text-ellipsis`}
-      style={{ borderWidth: isCurrent ? "2px" : "1px", margin: !isCurrent ? "0 1px" : "0", flex: "0 0 auto" }}
-      data-cy={`workout-tab-${StringUtils.dashcase(exercise.name)}`}
-      onClick={() => {
-        updateProgress(props.dispatch, [lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex)]);
-      }}
+      onTouchStart={props.handleTouchStart}
+      onMouseDown={props.handleTouchStart}
+      onClick={props.onClick}
+      className="bg-white"
+      style={{ padding: "0 0.125rem" }}
     >
-      {ExerciseImageUtils.exists(entry.exercise, "small") ||
-      ExerciseImageUtils.existsCustom(entry.exercise, "small", props.settings) ? (
-        <ExerciseImage className="h-10" exerciseType={entry.exercise} size="small" settings={props.settings} />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-start text-xs text-left bg-white text-grayv3-500">
-          <div
-            className="flex items-stretch justify-start w-full h-full p-1 leading-3 fade-mask"
-            style={{ fontSize: "0.7rem" }}
-          >
-            {Exercise.nameWithEquipment(exercise, props.settings)}
+      <div
+        className={`cursor-pointer border ${borderColor} rounded-lg w-12 h-12 relative box-content overflow-hidden text-ellipsis`}
+        style={{
+          borderWidth: isCurrent ? "2px" : "1px",
+          margin: !isCurrent ? "0 1px" : "0",
+          flex: "0 0 auto",
+        }}
+        data-cy={`workout-tab-${StringUtils.dashcase(exercise.name)}`}
+      >
+        {ExerciseImageUtils.exists(entry.exercise, "small") ||
+        ExerciseImageUtils.existsCustom(entry.exercise, "small", props.settings) ? (
+          <ExerciseImage className="h-10" exerciseType={entry.exercise} size="small" settings={props.settings} />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-start text-xs text-left bg-white text-grayv3-500">
+            <div
+              className="flex items-stretch justify-start w-full h-full p-1 leading-3 fade-mask"
+              style={{ fontSize: "0.7rem" }}
+            >
+              {Exercise.nameWithEquipment(exercise, props.settings)}
+            </div>
           </div>
-        </div>
-      )}
-      {setsStatus === "not-finished" ? (
-        props.shouldShowProgress && (
-          <div
-            className="absolute bottom-0 right-0 text-xs"
-            style={{ bottom: "0px", right: "0px", padding: "1px 3px", background: "rgba(255, 255, 255, 0.75)" }}
-          >
-            <strong className="font-semibold">{completedSetsCount}</strong>/
-            <strong className="font-semibold">{totalSetsCount}</strong>
+        )}
+        {setsStatus === "not-finished" ? (
+          props.shouldShowProgress && (
+            <div
+              className="absolute bottom-0 right-0 text-xs"
+              style={{ bottom: "0px", right: "0px", padding: "1px 3px", background: "rgba(255, 255, 255, 0.75)" }}
+            >
+              <strong className="font-semibold">{completedSetsCount}</strong>/
+              <strong className="font-semibold">{totalSetsCount}</strong>
+            </div>
+          )
+        ) : (
+          <div className="absolute bottom-0 right-0" style={{ bottom: "2px", right: "2px" }}>
+            <IconCheckCircle isChecked={true} size={14} color={WorkoutExerciseUtils.setsStatusToColor(setsStatus)} />
           </div>
-        )
-      ) : (
-        <div className="absolute bottom-0 right-0" style={{ bottom: "2px", right: "2px" }}>
-          <IconCheckCircle isChecked={true} size={14} color={WorkoutExerciseUtils.setsStatusToColor(setsStatus)} />
-        </div>
-      )}
+        )}
+      </div>
     </button>
   );
 }

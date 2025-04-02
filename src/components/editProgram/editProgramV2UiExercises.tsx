@@ -30,6 +30,7 @@ export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps):
     <div className="w-full">
       <DraggableList
         hideBorders={true}
+        mode="vertical"
         items={evaluatedDay.data}
         element={(plannerExercise, index, handleTouchStart) => {
           const focusedKey = focusedToStr({

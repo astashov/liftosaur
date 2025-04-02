@@ -48,6 +48,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
       <div className="px-4">
         <DraggableList
           items={props.plannerProgram.weeks}
+          mode="vertical"
           onDragEnd={(startIndex, endIndex) => {
             props.plannerDispatch([
               props.lbProgram.p("weeks").recordModify((weeks) => {
@@ -136,6 +137,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                   {!collapsedWeeks[weekIndex] && (
                     <DraggableList
                       items={week.days}
+                      mode="vertical"
                       onDragEnd={(startIndex, endIndex) => {
                         props.plannerDispatch([
                           props.lbProgram

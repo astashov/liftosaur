@@ -20,6 +20,7 @@ import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgra
 import { Scroller } from "../scroller";
 import { WorkoutExerciseThumbnail } from "../workoutExerciseThumbnail";
 import { BottomSheetEditTarget } from "../bottomSheetEditTarget";
+import { updateProgress } from "../../models/state";
 
 interface IProgramPreviewPlaygroundDayProps {
   program: IEvaluatedProgram;
@@ -214,6 +215,11 @@ function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Elemen
         {props.progress.entries.map((entry, entryIndex) => {
           return (
             <WorkoutExerciseThumbnail
+              onClick={() => {
+                updateProgress(props.dispatch, [
+                  lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex),
+                ]);
+              }}
               shouldScrollIntoView={false}
               shouldShowProgress={props.isPlayground}
               selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}

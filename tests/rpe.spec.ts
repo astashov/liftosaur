@@ -66,11 +66,11 @@ Squat / 1x5 135lb @8+, 1x5 135lb @8, 1x5 135lb, 1x5 135lb @7+ / progress: custom
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 
-  await expect(page.getByTestId("history-entry-sets-completed")).toHaveCount(3);
+  await expect(page.getByTestId("history-entry-sets-completed")).toHaveCount(4);
   await expect(page.getByTestId("history-entry-sets-completed").nth(0)).toHaveText("5 × 135lb @7.5");
   await expect(page.getByTestId("history-entry-sets-completed").nth(1)).toHaveText("5 × 135lb @8");
   await expect(page.getByTestId("history-entry-sets-completed").nth(2)).toHaveText("5 × 135lb");
-  await expect(page.getByTestId("history-entry-sets-incompleted").nth(0)).toHaveText("5 × 135lb @10");
+  await expect(page.getByTestId("history-entry-sets-completed").nth(3)).toHaveText("5 × 135lb @10");
 
   await page.getByTestId("footer-workout").click();
   await expect(page.getByTestId("bottom-sheet").getByTestId("history-entry-rpe").nth(0)).toHaveText("@8");

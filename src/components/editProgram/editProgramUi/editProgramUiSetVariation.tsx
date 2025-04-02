@@ -78,6 +78,7 @@ export function EditProgramUiSetVariation(props: IEditProgramUiSetVariationProps
       )}
       <DraggableList
         hideBorders={true}
+        mode="vertical"
         items={sets}
         element={(set, setIndex, handleTouchStart) => {
           return (
