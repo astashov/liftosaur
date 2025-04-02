@@ -274,22 +274,46 @@ export class PlannerEvaluator {
     }
   }
 
+  private static getDayIndexFromWeekAndDayInWeekIndex(
+    evaluatedWeeks: IPlannerEvalResult[][],
+    weekIndex: number,
+    dayInWeekIndex: number
+  ): number | undefined {
+    let dayIndex = 0;
+    for (let i = 0; i < evaluatedWeeks.length; i += 1) {
+      const week = evaluatedWeeks[i];
+      for (let j = 0; j < week.length; j += 1) {
+        if (i === weekIndex && j === dayInWeekIndex) {
+          return dayIndex;
+        }
+        dayIndex += 1;
+      }
+    }
+    return undefined;
+  }
+
   private static fillRepeats(
     exercise: IPlannerProgramExercise,
     evaluatedWeeks: IPlannerEvalResult[][],
-    dayIndex: number,
+    dayInWeekIndex: number,
     byExerciseWeekDay: IByExerciseWeekDay<IPlannerProgramExercise>
   ): void {
     for (const repeatWeek of exercise.repeat ?? []) {
       const repeatWeekIndex = repeatWeek - 1;
-      if (byExerciseWeekDay[exercise.key]?.[repeatWeekIndex]?.[dayIndex] == null) {
+      if (byExerciseWeekDay[exercise.key]?.[repeatWeekIndex]?.[dayInWeekIndex] == null) {
+        const dayData = {
+          week: repeatWeek,
+          dayInWeek: dayInWeekIndex + 1,
+          day: (this.getDayIndexFromWeekAndDayInWeekIndex(evaluatedWeeks, repeatWeekIndex, dayInWeekIndex) ?? 0) + 1,
+        };
         const repeatedExercise: IPlannerProgramExercise = {
           ...ObjectUtils.clone(exercise),
           repeat: [],
+          dayData,
           isRepeat: true,
         };
-        this.setByExerciseWeekDay(byExerciseWeekDay, exercise.key, repeatWeekIndex, dayIndex, repeatedExercise);
-        const day = evaluatedWeeks[repeatWeekIndex]?.[dayIndex];
+        this.setByExerciseWeekDay(byExerciseWeekDay, exercise.key, repeatWeekIndex, dayInWeekIndex, repeatedExercise);
+        const day = evaluatedWeeks[repeatWeekIndex]?.[dayInWeekIndex];
         if (day?.success) {
           day.data.push(repeatedExercise);
         }

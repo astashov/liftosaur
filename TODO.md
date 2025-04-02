@@ -51,4 +51,5 @@ User debug page:
 
 
 * Swipe between exercises tabs
+* Fix 0kg on the finish screen
 

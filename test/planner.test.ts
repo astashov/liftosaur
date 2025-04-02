@@ -1175,6 +1175,56 @@ Bench Press / 2x5 / 100lb
 `);
   });
 
+  it("properly sets up day data on repeated exercises", () => {
+    const programText = `# Week 1
+## Day 1
+## Day 2
+Squat[1-3] / 1x5 / 200lb / warmup: none / progress: custom(week: 1, dayInWeek: 1, day: 1) {~
+  state.day = day
+  state.dayInWeek = dayInWeek
+  state.week = week
+~}
+# Week 2
+## Day 1
+## Day 2
+# Week 3
+## Day 1
+## Day 2
+
+`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] }, Settings.build(), 4);
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+
+
+## Day 2
+Squat[1-3] / 1x5 / 200lb / warmup: none / progress: custom(week: 2, dayInWeek: 2, day: 4) {~
+  state.day = day
+  state.dayInWeek = dayInWeek
+  state.week = week
+~}
+
+
+# Week 2
+## Day 1
+
+
+## Day 2
+
+
+
+# Week 3
+## Day 1
+
+
+## Day 2
+
+
+
+`);
+  });
+
   it("preserves end of exercise properly", () => {
     const programText = `/// Some stuff
 
