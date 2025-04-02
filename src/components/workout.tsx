@@ -46,7 +46,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         program={props.program}
         setIsShareShown={props.setIsShareShown}
       />
-      <div className="sticky left-0 z-30 py-2 bg-white border-b border-grayv3-100" style={{ top: "56px" }}>
+      <div className="sticky left-0 z-30 py-1 bg-white border-b border-grayv3-100" style={{ top: "56px" }}>
         <WorkoutListOfExercises progress={props.progress} dispatch={props.dispatch} settings={props.settings} />
       </div>
       {selectedEntry != null && (

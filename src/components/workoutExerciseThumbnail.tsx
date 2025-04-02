@@ -45,7 +45,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
       onTouchStart={props.handleTouchStart}
       onMouseDown={props.handleTouchStart}
       onClick={props.onClick}
-      className="bg-white"
+      className="align-middle bg-white"
       style={{ padding: "0 0.125rem" }}
     >
       <div
