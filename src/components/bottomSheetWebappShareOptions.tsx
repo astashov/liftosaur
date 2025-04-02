@@ -6,6 +6,8 @@ import { WorkoutShareBottomSheetItem } from "./workoutShareBottomSheetItem";
 import { IconLink } from "./icons/iconLink";
 import { ClipboardUtils } from "../utils/clipboard";
 import { Share } from "../models/share";
+import { IconNotebook } from "./icons/iconNotebook";
+import { History } from "../models/history";
 
 interface IProps {
   record: IHistoryRecord;
@@ -35,6 +37,19 @@ export function BottomSheetWebappShareOptions(props: IProps): JSX.Element {
               } else {
                 alert("You should be logged in to copy link to a workout");
               }
+            }}
+          />
+          {/* TODO: Finish this to share from day */}
+          <BottomSheetItem
+            name="share-to-text"
+            title="Copy workout as Liftoscript (text)"
+            isFirst={true}
+            description={""}
+            icon={<IconNotebook />}
+            onClick={() => {
+              const recordText = History.getRecordText(props.history[0], props.settings);
+              ClipboardUtils.copy(recordText);
+              alert(`Copied:\n\n${recordText}`);
             }}
           />
           <WorkoutShareBottomSheetItem history={props.history} record={props.record} settings={props.settings} />

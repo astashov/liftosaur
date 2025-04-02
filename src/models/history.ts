@@ -28,6 +28,7 @@ import memoize from "micro-memoize";
 import { DateUtils } from "../utils/date";
 import { IEvaluatedProgram, Program } from "./program";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { TimeUtils } from "../utils/time";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -583,6 +584,33 @@ export namespace History {
 
   export function totalEntrySets(entry: IHistoryEntry): number {
     return getFinishedSets(entry).length;
+  }
+
+  export function getRecordText(record: IHistoryRecord, settings: ISettings): string {
+    // TODO: This isn't actually filtering to the completed sets
+    const entries = record.entries.filter((e) => e.sets.filter((s) => (s.completedReps ?? 0) > 0).length > 0);
+    const exercises = entries.map((entry) => {
+      const exercise = Exercise.get(entry.exercise, settings.exercises);
+      const name = Exercise.nameWithEquipment(exercise, settings);
+      const sets = entry.sets.map((set) => {
+        return `${set.reps} x ${set.weight.value} ${set.weight.unit}`;
+      });
+      return `${name} / ${sets.join(", ")}`;
+      // TODO: Add notes
+    });
+    return `
+# ${record.programName}
+## ${record.dayName}
+
+// Totals:
+// 🕐 Time: ${TimeUtils.formatHHMM(workoutTime(record))} h
+// 🏋 Volume: ${Weight.display(totalRecordWeight(record, settings.units))}
+// 💪 Sets: ${totalRecordSets(record)}
+// 🔄 Reps: ${totalRecordReps(record)}
+
+// Exercises:
+${exercises.join("\n")}
+  `.trim();
   }
 
   export function getStartedEntries(record: IHistoryRecord): IHistoryEntry[] {
