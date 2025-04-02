@@ -86,12 +86,7 @@ export namespace Reps {
 
   export function isCompletedSet(set: ISet): boolean {
     if (set.completedReps != null && set.completedWeight != null) {
-      return (
-        !!set.isCompleted &&
-        set.completedReps >= set.reps &&
-        Weight.gte(set.completedWeight, set.weight) &&
-        (set.rpe != null && set.completedRpe != null ? set.completedRpe <= set.rpe : true)
-      );
+      return !!set.isCompleted && set.completedReps >= set.reps && Weight.gte(set.completedWeight, set.weight);
     } else {
       return false;
     }
@@ -101,7 +96,6 @@ export namespace Reps {
     if (set.completedReps != null && set.completedWeight != null) {
       return (
         Weight.gte(set.completedWeight, set.weight) &&
-        (set.rpe != null && set.completedRpe != null ? set.completedRpe <= set.rpe : true) &&
         (set.minReps != null ? set.completedReps >= set.minReps : set.completedReps >= set.reps)
       );
     } else {
