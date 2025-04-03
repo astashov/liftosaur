@@ -52,6 +52,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const dateModal = progress.ui?.dateModal;
   const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, progress.day) : undefined;
   const surfaceRef = useRef<HTMLElement>(null);
+  const [forceCurrentEntryIndex, setForceCurrentEntryIndex] = useState(props.progress.ui?.currentEntryIndex ?? 0);
 
   if (progress != null) {
     return (
@@ -191,6 +192,15 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   if (exerciseType != null) {
                     if (progress.ui?.exerciseModal?.entryIndex == null) {
                       Progress.addExercise(props.dispatch, exerciseType, progress.entries.length);
+                      setTimeout(() => {
+                        setForceCurrentEntryIndex(progress.entries.length);
+                        document
+                          .querySelector(`[data-name=workout-exercise-tab-${progress.entries.length}]`)
+                          ?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                          });
+                      }, 0);
                     } else {
                       const entryIndex = progress.ui?.exerciseModal?.entryIndex;
                       const program = props.program;
@@ -292,6 +302,8 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
         <Workout
           setIsShareShown={setIsShareShown}
           surfaceRef={surfaceRef}
+          forceCurrentEntryIndex={forceCurrentEntryIndex}
+          setForceCurrentEntryIndex={setForceCurrentEntryIndex}
           subscription={props.subscription}
           history={props.history}
           helps={props.helps}

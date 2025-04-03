@@ -220,13 +220,11 @@ function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Elemen
                   lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex),
                 ]);
               }}
-              shouldScrollIntoView={false}
               shouldShowProgress={props.isPlayground}
               selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
               key={entryIndex}
               progress={props.progress}
               settings={props.settings}
-              dispatch={props.dispatch}
               entry={entry}
               entryIndex={entryIndex}
             />

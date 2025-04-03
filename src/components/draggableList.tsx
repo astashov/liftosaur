@@ -1,5 +1,6 @@
 import { JSX, h, Fragment } from "preact";
 import { useRef, useState, useEffect } from "preact/hooks";
+import { HtmlUtils } from "../utils/html";
 
 interface IData {
   point: number;
@@ -189,22 +190,6 @@ interface IDraggableListItemProps<T> {
   index: number;
 }
 
-function getPointY(event: TouchEvent | MouseEvent): number {
-  if ("touches" in event) {
-    return event.touches[0].clientY;
-  } else {
-    return event.clientY;
-  }
-}
-
-function getPointX(event: TouchEvent | MouseEvent): number {
-  if ("touches" in event) {
-    return event.touches[0].clientX;
-  } else {
-    return event.clientX;
-  }
-}
-
 function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
   function handleTouchStart(es: TouchEvent | MouseEvent): void {
     es.preventDefault();
@@ -213,22 +198,22 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
       em.preventDefault();
 
       if (!statusRef.current && Date.now() - startTime.current! > (props.delayMs ?? 0)) {
-        shiftXRef.current = getPointX(em) + window.pageXOffset - el.current!.offsetLeft;
-        shiftYRef.current = getPointY(em) + window.pageYOffset - el.current!.offsetTop;
+        shiftXRef.current = HtmlUtils.getPointX(em) + window.pageXOffset - el.current!.offsetLeft;
+        shiftYRef.current = HtmlUtils.getPointY(em) + window.pageYOffset - el.current!.offsetTop;
         setIsDragging(true);
         statusRef.current = "start";
         const point =
           props.mode === "horizontal"
-            ? getPointX(em) + window.pageXOffset - shiftXRef.current
-            : getPointY(em) + window.pageYOffset - shiftYRef.current;
+            ? HtmlUtils.getPointX(em) + window.pageXOffset - shiftXRef.current
+            : HtmlUtils.getPointY(em) + window.pageYOffset - shiftYRef.current;
         props.onStart(point + Math.round((props.mode === "horizontal" ? widthRef.current! : heightRef.current!) / 2));
         setPoint(point);
       } else if (statusRef.current) {
         statusRef.current = "move";
         const p =
           props.mode === "horizontal"
-            ? getPointX(em) + window.pageXOffset - (shiftXRef.current ?? 0)
-            : getPointY(em) + window.pageYOffset - (shiftYRef.current ?? 0);
+            ? HtmlUtils.getPointX(em) + window.pageXOffset - (shiftXRef.current ?? 0)
+            : HtmlUtils.getPointY(em) + window.pageYOffset - (shiftYRef.current ?? 0);
         setPoint(p);
         props.onMove(p + Math.round((props.mode === "horizontal" ? widthRef.current! : heightRef.current!) / 2));
       }

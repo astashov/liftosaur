@@ -52,4 +52,8 @@ User debug page:
 
 * Swipe between exercises tabs
 * Fix 0kg on the finish screen
+* Previous sets ignore empty exercises
+* Save warmup tweaks
+* Hide warmups when completed
+* Toggle between lb/kg by tapping on header
 

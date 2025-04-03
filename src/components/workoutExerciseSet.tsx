@@ -8,7 +8,7 @@ import { InputWeight2 } from "./inputWeight2";
 import { updateProgress } from "../models/state";
 import { LensBuilder } from "lens-shmens";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
-import { Swipeable } from "./swipeable";
+import { SwipeableRow } from "./swipeableRow";
 import { CollectionUtils } from "../utils/collection";
 import { Mobile } from "../../lambda/utils/mobile";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
@@ -49,7 +49,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const hasEdit = props.type === "workout" && props.programExercise != null;
 
   return (
-    <Swipeable
+    <SwipeableRow
       width={hasEdit ? 128 : 64}
       openThreshold={hasEdit ? 30 : 15}
       closeThreshold={hasEdit ? 110 : 55}
@@ -270,7 +270,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
           </div>
         </div>
       )}
-    </Swipeable>
+    </SwipeableRow>
   );
 }
 

@@ -19,6 +19,7 @@ import { WorkoutExerciseThumbnail } from "./workoutExerciseThumbnail";
 import { IconShare } from "./icons/iconShare";
 import { Markdown } from "./markdown";
 import { DraggableList } from "./draggableList";
+import { useEffect, useRef } from "preact/hooks";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -31,12 +32,23 @@ interface IWorkoutViewProps {
   isTimerShown: boolean;
   subscription: ISubscription;
   settings: ISettings;
+  forceCurrentEntryIndex: number;
+  setForceCurrentEntryIndex: (index: number) => void;
   dispatch: IDispatch;
 }
 
 export function Workout(props: IWorkoutViewProps): JSX.Element {
   const selectedEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const description = props.programDay?.description;
+  const screensRef = useRef<HTMLDivElement>();
+
+  useEffect(() => {
+    screensRef.current?.scrollTo({
+      left: props.forceCurrentEntryIndex * window.innerWidth,
+      behavior: "instant",
+    });
+  }, [props.forceCurrentEntryIndex]);
+
   return (
     <section className="pb-8">
       <WorkoutHeader
@@ -47,27 +59,62 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         setIsShareShown={props.setIsShareShown}
       />
       <div className="sticky left-0 z-30 py-1 bg-white border-b border-grayv3-100" style={{ top: "56px" }}>
-        <WorkoutListOfExercises progress={props.progress} dispatch={props.dispatch} settings={props.settings} />
+        <WorkoutListOfExercises
+          progress={props.progress}
+          dispatch={props.dispatch}
+          settings={props.settings}
+          onClick={(entryIndex) => {
+            props.setForceCurrentEntryIndex(entryIndex);
+          }}
+        />
       </div>
       {selectedEntry != null && (
         <div className="mt-2">
-          <WorkoutExercise
-            day={props.progress.day}
-            key={selectedEntry.id}
-            surfaceRef={props.surfaceRef}
-            history={props.history}
-            otherStates={props.program?.states}
-            entryIndex={props.progress.ui?.currentEntryIndex ?? 0}
-            program={props.program}
-            programDay={props.programDay}
-            progress={props.progress}
-            showHelp={true}
-            helps={props.helps}
-            entry={selectedEntry}
-            subscription={props.subscription}
-            settings={props.settings}
-            dispatch={props.dispatch}
-          />
+          <div
+            className="flex overflow-x-scroll overflow-y-hidden"
+            id="workout-exercise-scroller"
+            ref={screensRef}
+            onScroll={() => {
+              const scrollLeft = screensRef.current?.scrollLeft ?? 0;
+              const windowWidth = window.innerWidth;
+              const selectedIndex = Math.floor((scrollLeft + windowWidth / 2) / windowWidth);
+              if (selectedIndex !== (props.progress.ui?.currentEntryIndex ?? 0)) {
+                updateProgress(
+                  props.dispatch,
+                  lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(selectedIndex)
+                );
+              }
+            }}
+            style={{
+              WebkitOverflowScrolling: "touch",
+              scrollSnapType: "x mandatory",
+            }}
+          >
+            {props.progress.entries.map((entry, entryIndex) => {
+              return (
+                <div style={{ minWidth: "100vw", scrollSnapAlign: "center", scrollSnapStop: "always" }}>
+                  <WorkoutExercise
+                    day={props.progress.day}
+                    key={entry.id}
+                    surfaceRef={props.surfaceRef}
+                    history={props.history}
+                    otherStates={props.program?.states}
+                    isSelected={entryIndex === (props.progress.ui?.currentEntryIndex ?? 0)}
+                    entryIndex={entryIndex}
+                    program={props.program}
+                    programDay={props.programDay}
+                    progress={props.progress}
+                    showHelp={true}
+                    helps={props.helps}
+                    entry={entry}
+                    subscription={props.subscription}
+                    settings={props.settings}
+                    dispatch={props.dispatch}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </section>
@@ -165,6 +212,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
 
 interface IWorkoutListOfExercisesProps {
   progress: IHistoryRecord;
+  onClick: (index: number) => void;
   dispatch: IDispatch;
   settings: ISettings;
 }
@@ -177,21 +225,17 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
           hideBorders={true}
           mode="horizontal"
           delayMs={200}
-          onClick={(entryIndex) => {
-            updateProgress(props.dispatch, [lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex)]);
-          }}
+          onClick={props.onClick}
           items={props.progress.entries}
           element={(entry, entryIndex, handleTouchStart) => {
             return (
               <WorkoutExerciseThumbnail
                 handleTouchStart={handleTouchStart}
-                shouldScrollIntoView={true}
                 shouldShowProgress={true}
                 selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
                 key={entryIndex}
                 progress={props.progress}
                 settings={props.settings}
-                dispatch={props.dispatch}
                 entry={entry}
                 entryIndex={entryIndex}
               />
@@ -207,8 +251,10 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
                   newEntries.splice(endIndex, 0, entriesToMove);
                   return newEntries;
                 }),
-              lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(endIndex),
             ]);
+            setTimeout(() => {
+              props.onClick(endIndex);
+            }, 0);
           }}
         />
         <button

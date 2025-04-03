@@ -2,7 +2,7 @@ import { JSX } from "preact";
 import { useState, useRef } from "preact/hooks";
 import { MathUtils } from "../utils/math";
 
-interface ISwipeableProps {
+interface ISwipeableRowProps {
   children: (props: {
     onPointerDown: (event: TouchEvent | PointerEvent) => void;
     onPointerMove: (event: TouchEvent | PointerEvent) => void;
@@ -17,25 +17,34 @@ interface ISwipeableProps {
   scrollThreshold: number;
 }
 
-export function Swipeable(props: ISwipeableProps) {
+export function SwipeableRow(props: ISwipeableRowProps) {
   const { children, width, openThreshold, closeThreshold } = props;
   const [translateX, setTranslateX] = useState(0);
   const startX = useRef(0);
   const startY = useRef(0);
+  const startScrollTop = useRef(0);
   const isDragging = useRef(false);
   const isScrolling = useRef(false);
   const isSwiping = useRef(false);
   const isOpen = useRef(false);
 
   const handlePointerDown = (event: TouchEvent | PointerEvent) => {
+    const workoutExerciseScroller = document.querySelector("#workout-exercise-scroller") as HTMLElement | null;
+    if (workoutExerciseScroller) {
+      workoutExerciseScroller.style.overflowX = "hidden";
+    }
     startX.current = "touches" in event ? event.touches[0].clientX : event.clientX;
     startY.current = "touches" in event ? event.touches[0].clientY : event.clientY;
+    startScrollTop.current = document.documentElement.scrollTop;
     isDragging.current = true;
     isScrolling.current = false;
     isSwiping.current = false;
   };
 
   const handlePointerMove = (event: TouchEvent | PointerEvent) => {
+    if (isSwiping.current) {
+      event.preventDefault();
+    }
     if (!isDragging.current) {
       return;
     }
@@ -51,11 +60,16 @@ export function Swipeable(props: ISwipeableProps) {
     if (deltaX < -props.initiateTreshold && !isScrolling.current) {
       isSwiping.current = true;
       setTranslateX(MathUtils.clamp(deltaX, -width, 0));
+      return;
     }
   };
 
   const handlePointerUp = () => {
     isDragging.current = false;
+    const workoutExerciseScroller = document.querySelector("#workout-exercise-scroller") as HTMLElement | null;
+    if (workoutExerciseScroller) {
+      workoutExerciseScroller.style.overflowX = "scroll";
+    }
 
     if (!isOpen.current && translateX < -openThreshold) {
       // If swiped far enough left, keep it open
