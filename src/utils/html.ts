@@ -80,4 +80,20 @@ export namespace HtmlUtils {
 
     return lastIndex !== index ? html + str.substring(lastIndex, index) : html;
   }
+
+  export function getPointY(event: TouchEvent | MouseEvent): number {
+    if ("touches" in event) {
+      return event.touches[0].clientY;
+    } else {
+      return event.clientY;
+    }
+  }
+
+  export function getPointX(event: TouchEvent | MouseEvent): number {
+    if ("touches" in event) {
+      return event.touches[0].clientX;
+    } else {
+      return event.clientX;
+    }
+  }
 }

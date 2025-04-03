@@ -887,7 +887,6 @@ export namespace Progress {
         .recordModify((entries) => {
           return [...entries, History.createCustomEntry(exerciseType)];
         }),
-      lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(numberOfEntries),
     ]);
   }
 

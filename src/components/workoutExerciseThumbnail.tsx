@@ -1,5 +1,4 @@
 import { JSX, h } from "preact";
-import { IDispatch } from "../ducks/types";
 import { Exercise } from "../models/exercise";
 import { ExerciseImageUtils } from "../models/exerciseImage";
 import { Reps } from "../models/set";
@@ -8,7 +7,7 @@ import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
 import { ExerciseImage } from "./exerciseImage";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { StringUtils } from "../utils/string";
-import { useEffect, useRef } from "preact/hooks";
+import { useRef } from "preact/hooks";
 
 interface IWorkoutExerciseThumbnailProps {
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
@@ -16,11 +15,9 @@ interface IWorkoutExerciseThumbnailProps {
   selectedIndex: number;
   progress: IHistoryRecord;
   shouldShowProgress?: boolean;
-  shouldScrollIntoView?: boolean;
   entry: IHistoryEntry;
   entryIndex: number;
   settings: ISettings;
-  dispatch: IDispatch;
 }
 
 export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps): JSX.Element {
@@ -33,18 +30,13 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
   const totalSetsCount = entry.sets.length;
   const completedSetsCount = entry.sets.filter((set) => set.isCompleted).length;
 
-  useEffect(() => {
-    if (props.shouldScrollIntoView && props.entryIndex === props.selectedIndex && ref.current) {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [props.selectedIndex, props.entryIndex, props.shouldScrollIntoView]);
-
   return (
     <button
       ref={ref}
       onTouchStart={props.handleTouchStart}
       onMouseDown={props.handleTouchStart}
       onClick={props.onClick}
+      data-name={`workout-exercise-tab-${entryIndex}`}
       className="align-middle bg-white"
       style={{ padding: "0 0.125rem" }}
     >
