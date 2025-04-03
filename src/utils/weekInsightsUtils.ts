@@ -48,7 +48,10 @@ export class WeekInsightsUtils {
         for (const set of entry.sets) {
           const completedReps = set.completedReps || 0;
           if (completedReps > 0) {
-            results.volume = Weight.add(results.volume, Weight.multiply(set.weight, set.completedReps || 0));
+            results.volume = Weight.add(
+              results.volume,
+              Weight.multiply(set.completedWeight ?? set.weight, set.completedReps || 0)
+            );
             results.total += 1;
             if (completedReps < 8) {
               results.strength += 1;

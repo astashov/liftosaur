@@ -572,7 +572,7 @@ export namespace History {
     return entry.sets
       .filter((s) => (s.completedReps || 0) > 0)
       .reduce(
-        (memo, set) => Weight.add(memo, Weight.multiply(set.weight, set.completedReps || 0)),
+        (memo, set) => Weight.add(memo, Weight.multiply(set.completedWeight ?? set.weight, set.completedReps || 0)),
         Weight.build(0, unit)
       );
   }
