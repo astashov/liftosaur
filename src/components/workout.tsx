@@ -1,4 +1,4 @@
-import { h, JSX, RefObject } from "preact";
+import { h, JSX, RefObject, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
@@ -19,7 +19,8 @@ import { WorkoutExerciseThumbnail } from "./workoutExerciseThumbnail";
 import { IconShare } from "./icons/iconShare";
 import { Markdown } from "./markdown";
 import { DraggableList } from "./draggableList";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { LinkButton } from "./linkButton";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -58,16 +59,14 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         program={props.program}
         setIsShareShown={props.setIsShareShown}
       />
-      <div className="sticky left-0 z-30 py-1 bg-white border-b border-grayv3-100" style={{ top: "56px" }}>
-        <WorkoutListOfExercises
-          progress={props.progress}
-          dispatch={props.dispatch}
-          settings={props.settings}
-          onClick={(entryIndex) => {
-            props.setForceCurrentEntryIndex(entryIndex);
-          }}
-        />
-      </div>
+      <WorkoutListOfExercises
+        progress={props.progress}
+        dispatch={props.dispatch}
+        settings={props.settings}
+        onClick={(entryIndex) => {
+          props.setForceCurrentEntryIndex(entryIndex);
+        }}
+      />
       {selectedEntry != null && (
         <div className="mt-2">
           <div
@@ -218,56 +217,71 @@ interface IWorkoutListOfExercisesProps {
 }
 
 function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Element {
+  const [enableReorder, setEnableReorder] = useState(false);
   return (
-    <Scroller>
-      <div className="flex items-center gap-1 px-4">
-        <DraggableList
-          hideBorders={true}
-          mode="horizontal"
-          delayMs={200}
-          onClick={props.onClick}
-          items={props.progress.entries}
-          element={(entry, entryIndex, handleTouchStart) => {
-            return (
-              <WorkoutExerciseThumbnail
-                handleTouchStart={handleTouchStart}
-                shouldShowProgress={true}
-                selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
-                key={entryIndex}
-                progress={props.progress}
-                settings={props.settings}
-                entry={entry}
-                entryIndex={entryIndex}
-              />
-            );
-          }}
-          onDragEnd={(startIndex, endIndex) => {
-            updateProgress(props.dispatch, [
-              lb<IHistoryRecord>()
-                .p("entries")
-                .recordModify((entries) => {
-                  const newEntries = [...entries];
-                  const [entriesToMove] = newEntries.splice(startIndex, 1);
-                  newEntries.splice(endIndex, 0, entriesToMove);
-                  return newEntries;
-                }),
-            ]);
-            setTimeout(() => {
-              props.onClick(endIndex);
-            }, 0);
-          }}
-        />
-        <button
-          name="add-exercise-to-workout"
-          data-cy="add-exercise-button"
-          className="p-2 nm-add-exercise-to-workout"
-          onClick={() => {
-            Progress.showAddExerciseModal(props.dispatch, props.progress.id);
-          }}
+    <>
+      <div className="mr-2 leading-none text-right">
+        <LinkButton
+          className="px-2 py-1 text-xs"
+          name="reorder-workout-exercises"
+          onClick={() => setEnableReorder(!enableReorder)}
         >
-          <IconPlus2 size={15} color={Tailwind.colors().grayv3.main} />
-        </button>
+          {enableReorder ? "Finish Reordering" : "Reorder Exercises"}
+        </LinkButton>
       </div>
-    </Scroller>
+      <div className="sticky left-0 z-30 py-1 bg-white border-b border-grayv3-100" style={{ top: "56px" }}>
+        <Scroller>
+          <div className="flex items-center gap-1 px-4">
+            <DraggableList
+              isDisabled={!enableReorder}
+              hideBorders={true}
+              mode="horizontal"
+              delayMs={200}
+              onClick={props.onClick}
+              items={props.progress.entries}
+              element={(entry, entryIndex, handleTouchStart) => {
+                return (
+                  <WorkoutExerciseThumbnail
+                    handleTouchStart={handleTouchStart}
+                    shouldShowProgress={true}
+                    selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
+                    key={entryIndex}
+                    progress={props.progress}
+                    settings={props.settings}
+                    entry={entry}
+                    entryIndex={entryIndex}
+                  />
+                );
+              }}
+              onDragEnd={(startIndex, endIndex) => {
+                updateProgress(props.dispatch, [
+                  lb<IHistoryRecord>()
+                    .p("entries")
+                    .recordModify((entries) => {
+                      const newEntries = [...entries];
+                      const [entriesToMove] = newEntries.splice(startIndex, 1);
+                      newEntries.splice(endIndex, 0, entriesToMove);
+                      return newEntries;
+                    }),
+                ]);
+                setTimeout(() => {
+                  props.onClick(endIndex);
+                }, 0);
+              }}
+            />
+            <button
+              name="add-exercise-to-workout"
+              data-cy="add-exercise-button"
+              className="p-2 nm-add-exercise-to-workout"
+              onClick={() => {
+                Progress.showAddExerciseModal(props.dispatch, props.progress.id);
+              }}
+            >
+              <IconPlus2 size={15} color={Tailwind.colors().grayv3.main} />
+            </button>
+          </div>
+        </Scroller>
+      </div>
+    </>
   );
 }

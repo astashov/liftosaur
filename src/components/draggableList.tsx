@@ -13,6 +13,7 @@ interface IDraggableListProps<T> {
   items: T[];
   hideBorders?: boolean;
   mode: IDraggableMode;
+  isDisabled?: boolean;
   isTransparent?: boolean;
   element: (item: T, index: number, handleWrapper: (touchEvent: TouchEvent | MouseEvent) => void) => JSX.Element;
   onClick?: (index: number) => void;
@@ -52,6 +53,7 @@ export function DraggableList<T>(props: IDraggableListProps<T>): JSX.Element {
           <DraggableListItem
             onClick={props.onClick}
             delayMs={props.delayMs}
+            isDisabled={props.isDisabled}
             hideBorders={props.hideBorders}
             isTransparent={props.isTransparent}
             mode={props.mode}
@@ -177,6 +179,7 @@ interface IDraggableListItemProps<T> {
   hideBorders?: boolean;
   delayMs?: number;
   onClick?: (index: number) => void;
+  isDisabled?: boolean;
   isTransparent?: boolean;
   isDragging: boolean;
   mode: IDraggableMode;
@@ -192,6 +195,9 @@ interface IDraggableListItemProps<T> {
 
 function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
   function handleTouchStart(es: TouchEvent | MouseEvent): void {
+    if (props.isDisabled) {
+      return;
+    }
     es.preventDefault();
     heightRef.current = el.current!.clientHeight;
     function handleTouchMove(em: TouchEvent | MouseEvent): void {
