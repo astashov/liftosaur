@@ -227,15 +227,6 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
             <Markdown value={description} />
           </div>
         )}
-        {!props.hidePlatesCalculator && nextSet && currentEquipmentName && (
-          <WorkoutPlatesCalculator
-            entry={props.entry}
-            weight={nextSet.completedWeight ?? nextSet.weight}
-            subscription={props.subscription}
-            settings={props.settings}
-            dispatch={props.dispatch}
-          />
-        )}
         {lastNote && timestamp && (
           <div>
             <GroupHeader name={`Previous Note (from ${DateUtils.format(timestamp)})`} />
@@ -259,6 +250,17 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
           />
         </div>
       </div>
+      {!props.hidePlatesCalculator && nextSet && currentEquipmentName && (
+        <div className="mx-4">
+          <WorkoutPlatesCalculator
+            entry={props.entry}
+            weight={nextSet.completedWeight ?? nextSet.weight}
+            subscription={props.subscription}
+            settings={props.settings}
+            dispatch={props.dispatch}
+          />
+        </div>
+      )}
       {props.showHelp && <HelpTarget helps={props.helps} dispatch={props.dispatch} />}
       {props.showHelp && hasUnequalWeights && (
         <HelpEquipment helps={props.helps} entry={props.entry} progress={props.progress} dispatch={props.dispatch} />
@@ -386,7 +388,7 @@ function WorkoutPlatesCalculator(props: IWorkoutPlatesCalculatorProps): JSX.Elem
               <span>Plates: </span>
               <span className="font-semibold break-all">
                 <span
-                  className={Weight.eq(weight, props.weight) ? "text-grayv2-600" : "text-redv2-600"}
+                  className={Weight.eq(weight, props.weight) ? "text-blackv2" : "text-redv2-600"}
                   data-cy="plates-list"
                 >
                   {plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.entry.exercise) : "None"}

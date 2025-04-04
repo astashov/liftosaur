@@ -63,7 +63,7 @@ export namespace Weight {
     if (typeof weight === "number") {
       return `${n(weight)}`;
     } else {
-      return `${weight.value}${weight.unit}`;
+      return `${n(weight.value)}${weight.unit}`;
     }
   }
 

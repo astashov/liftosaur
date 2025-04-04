@@ -50,8 +50,6 @@ User debug page:
 * initial/completed number of sets
 
 
-* Swipe between exercises tabs
-* Fix 0kg on the finish screen
 * Previous sets ignore empty exercises
 * Save warmup tweaks
 * Hide warmups when completed
