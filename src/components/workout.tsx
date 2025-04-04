@@ -239,9 +239,14 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
               delayMs={200}
               onClick={props.onClick}
               items={props.progress.entries}
-              element={(entry, entryIndex, handleTouchStart) => {
+              element={(entry, entryIndex, handleTouchStart, onClick) => {
                 return (
                   <WorkoutExerciseThumbnail
+                    onClick={() => {
+                      if (!enableReorder) {
+                        props.onClick(entryIndex);
+                      }
+                    }}
                     handleTouchStart={handleTouchStart}
                     shouldShowProgress={true}
                     selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}

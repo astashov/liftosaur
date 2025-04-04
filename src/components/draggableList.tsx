@@ -15,7 +15,12 @@ interface IDraggableListProps<T> {
   mode: IDraggableMode;
   isDisabled?: boolean;
   isTransparent?: boolean;
-  element: (item: T, index: number, handleWrapper: (touchEvent: TouchEvent | MouseEvent) => void) => JSX.Element;
+  element: (
+    item: T,
+    index: number,
+    handleWrapper?: (touchEvent: TouchEvent | MouseEvent) => void,
+    onClick?: (index: number) => void
+  ) => JSX.Element;
   onClick?: (index: number) => void;
   delayMs?: number;
   onDragStart?: (startIndex: number) => void;
@@ -188,16 +193,18 @@ interface IDraggableListItemProps<T> {
   onEnd: () => void;
   onSizeCalc: (width?: number, height?: number) => void;
   currentHeight?: number;
-  element: (item: T, index: number, handleWrapper: (touchEvent: TouchEvent | MouseEvent) => void) => JSX.Element;
+  element: (
+    item: T,
+    index: number,
+    handleWrapper?: (touchEvent: TouchEvent | MouseEvent) => void,
+    onClick?: (index: number) => void
+  ) => JSX.Element;
   item: T;
   index: number;
 }
 
 function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
   function handleTouchStart(es: TouchEvent | MouseEvent): void {
-    if (props.isDisabled) {
-      return;
-    }
     es.preventDefault();
     heightRef.current = el.current!.clientHeight;
     function handleTouchMove(em: TouchEvent | MouseEvent): void {
@@ -318,8 +325,24 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
         transition: isDragging ? "width 200ms ease-in-out, height 200ms ease-in-out" : "",
       }}
     >
-      <div style={{ opacity: point != null ? 0 : 1 }}>{props.element(props.item, props.index, handleTouchStart)}</div>
-      {point != null && <div style={style}>{props.element(props.item, props.index, handleTouchStart)}</div>}
+      <div style={{ opacity: point != null ? 0 : 1 }}>
+        {props.element(
+          props.item,
+          props.index,
+          !props.isDisabled ? handleTouchStart : undefined,
+          props.isDisabled ? props.onClick : undefined
+        )}
+      </div>
+      {point != null && (
+        <div style={style}>
+          {props.element(
+            props.item,
+            props.index,
+            !props.isDisabled ? handleTouchStart : undefined,
+            props.isDisabled ? props.onClick : undefined
+          )}
+        </div>
+      )}
     </div>
   );
 }
