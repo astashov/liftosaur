@@ -190,7 +190,7 @@ export namespace Reps {
   export function volume(sets: ISet[]): IWeight {
     const unit = sets[0]?.weight?.unit || "lb";
     return sets.reduce(
-      (memo, set) => Weight.add(memo, Weight.multiply(set.weight, set.completedReps ?? 0)),
+      (memo, set) => Weight.add(memo, Weight.multiply(set.completedWeight ?? set.weight, set.completedReps ?? 0)),
       Weight.build(0, unit)
     );
   }

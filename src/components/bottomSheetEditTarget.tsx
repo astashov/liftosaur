@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { BottomSheet } from "./bottomSheet";
-import { IHistoryRecord, IProgressUi, ISettings } from "../types";
+import { IHistoryRecord, IProgressUi, ISettings, ISubscription } from "../types";
 import { MenuItemWrapper } from "./menuItem";
 import { InputNumber2 } from "./inputNumber2";
 import { IDispatch } from "../ducks/types";
@@ -18,6 +18,7 @@ interface IBottomSheetEditTargetProps {
   progress: IHistoryRecord;
   settings: ISettings;
   editSetModal: IProgressUi["editSetModal"];
+  subscription?: ISubscription;
   dispatch: IDispatch;
   onClose: () => void;
 }
@@ -97,6 +98,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
             <div className="flex items-center mr-3">
               <InputWeight2
                 name="edit-exercise-set-weight"
+                subscription={props.subscription}
                 exerciseType={props.editSetModal.exerciseType}
                 onBlur={(value) => {
                   updateProgress(props.dispatch, [lbSet.p("originalWeight").record(value ?? Weight.build(0, "lb"))]);
@@ -272,6 +274,7 @@ export const BottomSheetEditTarget = (props: IBottomSheetEditTargetProps): JSX.E
       {editSetModal && (
         <BottomSheetEditTargetContent
           editSetModal={editSetModal}
+          subscription={props.subscription}
           settings={props.settings}
           progress={props.progress}
           dispatch={props.dispatch}

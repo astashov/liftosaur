@@ -247,6 +247,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
             )}
             <BottomSheetEditTarget
               settings={props.settings}
+              subscription={props.subscription}
               progress={progress}
               dispatch={dispatch}
               editSetModal={progress.ui?.editSetModal}

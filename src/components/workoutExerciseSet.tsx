@@ -474,7 +474,7 @@ interface IWorkoutExercisePlatesCalculatorProps {
 
 function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculatorProps): JSX.Element {
   const { plates, totalWeight: weight } = Weight.calculatePlates(
-    props.set.weight,
+    props.set.completedWeight ?? props.set.weight,
     props.settings,
     props.set.weight.unit,
     props.exerciseType
@@ -482,7 +482,10 @@ function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculator
   const formattedPlates = plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.exerciseType) : "None";
   return (
     <span className="text-sm font-semibold break-all">
-      <span className={Weight.eq(weight, props.set.weight) ? "text-blackv2" : "text-redv2-600"} data-cy="plates-list">
+      <span
+        className={Weight.eq(weight, props.set.completedWeight ?? props.set.weight) ? "text-blackv2" : "text-redv2-600"}
+        data-cy="plates-list"
+      >
         {formattedPlates}
       </span>
     </span>
