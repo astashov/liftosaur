@@ -291,7 +291,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
               <span className="text-grayv3-main"> × </span>
               <span>
                 <span> </span>
-                <span className="font-semibold">{set.weight.value}</span>
+                <span className="font-semibold">{n(set.weight.value)}</span>
                 <span className="text-xs">{set.weight.unit}</span>
               </span>
             </div>
@@ -319,14 +319,14 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
                   className={isDiffWeight ? "line-through text-grayv3-main" : "font-semibold"}
                   style={{ color: isDiffWeight ? "" : "#164" }}
                 >
-                  <span>{set.originalWeight.value}</span>
+                  <span>{n(set.originalWeight.value)}</span>
                   <span className="text-xs font-normal">{set.originalWeight.unit}</span>
                 </span>
               )}
               {set.originalWeight && isDiffWeight && (
                 <span style={{ color: "#164" }}>
                   <span> </span>
-                  <span className="font-semibold">{set.weight.value}</span>
+                  <span className="font-semibold">{n(set.weight.value)}</span>
                   <span className="text-xs">{set.weight.unit}</span>
                 </span>
               )}
