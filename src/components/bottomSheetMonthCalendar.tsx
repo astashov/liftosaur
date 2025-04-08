@@ -8,13 +8,14 @@ import { IHistoryRecord } from "../types";
 import { IPersonalRecords } from "../models/history";
 
 interface IProps {
-  weeks: Date[];
+  firstDayOfWeeks: number[];
   history: IHistoryRecord[];
   startWeekFromMonday?: boolean;
-  selectedWeek: number;
+  selectedFirstDayOfWeek: number;
   prs: IPersonalRecords;
   isHidden: boolean;
-  onClick: (day: Date) => void;
+  visibleRecords: number;
+  onClick: (historyRecord: IHistoryRecord) => void;
   onClose: () => void;
 }
 
@@ -22,11 +23,20 @@ export const BottomSheetMonthCalendar = memo((props: IProps): JSX.Element => {
   const monthNames = props.startWeekFromMonday
     ? ["M", "T", "W", "T", "F", "S", "S"]
     : ["S", "M", "T", "W", "T", "F", "S"];
+  const selectedIndex = props.firstDayOfWeeks.findIndex((date) => date === props.selectedFirstDayOfWeek);
   return (
     <>
       <BottomSheet shouldShowClose={true} onClose={props.onClose} isHidden={props.isHidden}>
         <div className="px-3">
-          <LinkButton name="this-week" onClick={() => props.onClick(new Date())}>
+          <LinkButton
+            name="this-week"
+            onClick={() => {
+              const element = document.querySelector(`[data-first-day-of-week='${props.selectedFirstDayOfWeek}']`);
+              if (element) {
+                element.scrollIntoView({ block: "center", behavior: "smooth" });
+              }
+            }}
+          >
             This week
           </LinkButton>
         </div>
@@ -39,10 +49,11 @@ export const BottomSheetMonthCalendar = memo((props: IProps): JSX.Element => {
         </div>
         <div className="relative flex flex-col flex-1 min-h-0">
           <MonthCalendar
-            selectedWeek={props.selectedWeek}
+            visibleRecords={props.visibleRecords}
+            selectedFirstDayOfWeekIndex={selectedIndex}
             startWeekFromMonday={props.startWeekFromMonday}
             prs={props.prs}
-            weeks={props.weeks}
+            firstDayOfWeeks={props.firstDayOfWeeks}
             history={props.history}
             onClick={props.onClick}
           />

@@ -301,6 +301,7 @@ export function AppView(props: IProps): JSX.Element | null {
     if (currentProgram != null) {
       content = (
         <ProgramHistoryView
+          progress={state.progress[0]}
           navCommon={navCommon}
           program={currentProgram}
           settings={state.storage.settings}

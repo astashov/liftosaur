@@ -1,5 +1,5 @@
 import { IThunk, IDispatch } from "./types";
-import { IScreen, IScreenParams, IScreenStack } from "../models/screen";
+import { IScreen, IScreenParams } from "../models/screen";
 import RB from "rollbar";
 import { IGetStorageResponse, IPostSyncResponse, Service } from "../api/service";
 import { lb } from "lens-shmens";
@@ -408,9 +408,7 @@ export namespace Thunk {
         lb<IState>()
           .p("screenStack")
           .recordModify((stack) => {
-            const topStack = stack[stack.length - 1];
-            const newTopStack = { ...topStack, params };
-            return [...stack.slice(0, stack.length - 1), newTopStack] as IScreenStack;
+            return Screen.updateParams(stack, params);
           }),
       ]);
     };

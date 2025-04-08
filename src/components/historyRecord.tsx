@@ -4,7 +4,7 @@ import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
 import { Progress } from "../models/progress";
 import { ComparerUtils } from "../utils/comparer";
-import { memo } from "preact/compat";
+import { memo, useRef } from "preact/compat";
 import { IHistoryRecord, ISettings } from "../types";
 import { HtmlUtils } from "../utils/html";
 import { History, IPersonalRecords } from "../models/history";
@@ -30,15 +30,20 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
   const { historyRecord, dispatch } = props;
   const isCurrent = Progress.isCurrent(historyRecord);
   const description = isCurrent ? props.programDay?.description : undefined;
+  const ref = useRef<HTMLDivElement>(null);
 
   const entries = historyRecord.entries;
   return (
-    <div data-cy="history-record" className="mx-4 mb-6 history-record">
-      {!isCurrent ? (
-        <div data-cy="history-record-date" className="mx-1 mb-1 font-semibold">
-          {DateUtils.format(historyRecord.date)}
-        </div>
-      ) : null}
+    <div
+      data-cy="history-record"
+      data-id={props.historyRecord.id}
+      id={`history-record-${props.historyRecord.id}`}
+      className="mx-4 mb-6 history-record"
+      ref={ref}
+    >
+      <div data-cy="history-record-date" className="mx-1 mb-1 font-semibold">
+        {!isCurrent ? DateUtils.format(historyRecord.date) : "Ongoing workout"}
+      </div>
       <div
         className={`rounded-2xl px-4 text-sm ${
           isCurrent

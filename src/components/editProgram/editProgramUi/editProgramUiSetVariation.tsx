@@ -138,7 +138,7 @@ interface ISetRowProps {
   exerciseType?: IExerciseType;
   index: number;
   isOnlySet: boolean;
-  handleTouchStart: (e: TouchEvent | MouseEvent) => void;
+  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
   onUpdate: (newSet: IPlannerProgramExerciseSet | undefined) => void;
   settings: ISettings;
 }

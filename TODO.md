@@ -54,4 +54,3 @@ User debug page:
 * Save warmup tweaks
 * Hide warmups when completed
 * Toggle between lb/kg by tapping on header
-

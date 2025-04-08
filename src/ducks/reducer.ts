@@ -611,9 +611,13 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return state;
     }
   } else if (action.type === "EditHistoryRecord") {
+    let newScreenStack = state.screenStack;
+    if (Screen.currentName(state.screenStack) === "main") {
+      newScreenStack = Screen.updateParams<"main">(state.screenStack, { historyRecordId: action.historyRecord.id });
+    }
     return {
       ...state,
-      screenStack: pushScreen(state.screenStack, "progress", { id: action.historyRecord.id }),
+      screenStack: pushScreen(newScreenStack, "progress", { id: action.historyRecord.id }),
       progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
     };
   } else if (action.type === "FinishProgramDayAction") {

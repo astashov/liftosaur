@@ -1,13 +1,14 @@
 import { RefObject } from "preact";
-import { useRef, useState, useEffect } from "preact/hooks";
+import { useRef, useState, useEffect, useCallback } from "preact/hooks";
 
 export function useGradualList<T>(
   collection: T[],
+  initialShift: number,
   pageLength: number,
   containerRef: RefObject<HTMLElement>,
   callback: (visibleRecords: number, nextVisibleRecords: number) => void
-): number {
-  const [visibleRecords, setVisibleRecords] = useState<number>(pageLength);
+): { visibleRecords: number; loadMoreVisibleRecords: (cnt: number) => void } {
+  const [visibleRecords, setVisibleRecords] = useState<number>(initialShift + pageLength);
   const visibleRecordsRef = useRef<number>(visibleRecords);
 
   useEffect(() => {
@@ -25,5 +26,10 @@ export function useGradualList<T>(
     return () => window.removeEventListener("scroll", scrollHandler);
   }, [collection.length]);
 
-  return visibleRecordsRef.current;
+  const loadMoreVisibleRecords = useCallback((cnt: number) => {
+    setVisibleRecords(visibleRecordsRef.current + cnt);
+    visibleRecordsRef.current = visibleRecordsRef.current + cnt;
+  }, []);
+
+  return { visibleRecords: visibleRecordsRef.current, loadMoreVisibleRecords };
 }

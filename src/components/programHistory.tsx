@@ -5,21 +5,24 @@ import { INavCommon, IState, updateState } from "../models/state";
 import { Surface } from "./surface";
 import { Footer2View } from "./footer2";
 import { DateUtils } from "../utils/date";
-import { useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { HistoryRecordsList } from "./historyRecordsList";
 import { History } from "../models/history";
 import { Screen } from "../models/screen";
-import { StringUtils } from "../utils/string";
 import { WeekInsights } from "./weekInsights";
 import { ModalPlannerSettings } from "../pages/planner/components/modalPlannerSettings";
 import { lb } from "lens-shmens";
 import { WeekCalendar } from "./weekCalendar";
 import { BottomSheetMonthCalendar } from "./bottomSheetMonthCalendar";
-import { Thunk } from "../ducks/thunks";
 import { HistoryRecordsNullState } from "./historyRecordsNullState";
+import { CollectionUtils } from "../utils/collection";
+import { ObjectUtils } from "../utils/object";
+import { Progress } from "../models/progress";
+import { useGradualList } from "../utils/useGradualList";
 
 interface IProps {
   program: IProgram;
+  progress?: IHistoryRecord;
   history: IHistoryRecord[];
   settings: ISettings;
   subscription: ISubscription;
@@ -27,87 +30,171 @@ interface IProps {
   dispatch: IDispatch;
 }
 
-function getWeeks(history: IHistoryRecord[], startWeekFromMonday?: boolean): Date[] {
-  const lastWorkout = history[history.length - 1];
-  const firstWeek = new Date(
-    DateUtils.firstDayOfWeekTimestamp(
-      lastWorkout ? new Date(Math.max(Date.parse(lastWorkout.date), new Date(2015, 1, 1).getTime())) : new Date(),
-      startWeekFromMonday
-    )
-  );
-  const firstWorkout = history[0];
-  let lastWeek = new Date(
-    DateUtils.firstDayOfWeekTimestamp(
-      firstWorkout
-        ? new Date(Math.min(Date.parse(firstWorkout.date), new Date().getTime() + 1000 * 60 * 60 * 24 * 365))
-        : new Date(),
-      startWeekFromMonday
-    )
-  );
-  const currentWeek = DateUtils.firstDayOfWeekTimestamp(new Date(), startWeekFromMonday);
-  lastWeek = lastWeek.getTime() < currentWeek ? new Date(currentWeek) : lastWeek;
-  const weeks: Date[] = [];
-  while (firstWeek <= lastWeek) {
-    weeks.push(new Date(firstWeek));
-    firstWeek.setDate(firstWeek.getDate() + 7);
+interface IWeekData {
+  firstDayOfWeeks: number[];
+  firstDayOfWeekToHistoryRecord: Partial<Record<number, IHistoryRecord>>;
+  historyRecordDateToFirstDayOfWeek: Partial<Record<number, number>>;
+}
+
+function getWeeksData(history: IHistoryRecord[], startWeekFromMonday?: boolean): IWeekData {
+  const firstDayOfWeeksSet: Set<number> = new Set();
+  const historyRecordDateToFirstDayOfWeek: Partial<Record<number, number>> = {};
+  const firstDayOfWeekToHistoryRecord: Partial<Record<number, IHistoryRecord>> = {};
+  for (const record of history) {
+    if (!Progress.isCurrent(record)) {
+      const firstDayOfWeek = DateUtils.firstDayOfWeekTimestamp(record.id, startWeekFromMonday);
+      if (firstDayOfWeekToHistoryRecord[firstDayOfWeek] == null) {
+        firstDayOfWeekToHistoryRecord[firstDayOfWeek] = record;
+      }
+      firstDayOfWeeksSet.add(firstDayOfWeek);
+      historyRecordDateToFirstDayOfWeek[record.id] = firstDayOfWeek;
+    }
   }
-  return weeks;
+  if (firstDayOfWeeksSet.size === 0) {
+    const today = new Date();
+    const firstDayOfWeek = DateUtils.firstDayOfWeekTimestamp(today.getTime(), startWeekFromMonday);
+    firstDayOfWeeksSet.add(firstDayOfWeek);
+  }
+  const firstDayOfWeeks = CollectionUtils.sort(Array.from(firstDayOfWeeksSet));
+  return {
+    firstDayOfWeeks,
+    historyRecordDateToFirstDayOfWeek,
+    firstDayOfWeekToHistoryRecord,
+  };
 }
 
 export function getWeekHistory(
   history: IHistoryRecord[],
-  weeks: Date[],
-  weekIndex: number,
+  firstDayOfWeek: number,
   startWeekFromMonday?: boolean
 ): IHistoryRecord[] {
-  const week = weeks[weekIndex];
-  if (week == null) {
-    return [];
-  }
-  return History.getHistoryRecordsForTimerange(history, week, "week", startWeekFromMonday);
+  return History.getHistoryRecordsForTimerange(history, firstDayOfWeek, "week", startWeekFromMonday);
 }
 
 export function ProgramHistoryView(props: IProps): JSX.Element {
   const dispatch = props.dispatch;
-  const sortedHistory = props.history.sort((a, b) => {
-    return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
-  });
-  const weeks = getWeeks(sortedHistory, props.settings.startWeekFromMonday);
+  const sortedHistory = useMemo(() => {
+    const history = CollectionUtils.sort(props.history, (a, b) => {
+      return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
+    });
+    if (props.progress) {
+      history.unshift(props.progress);
+    }
+    return history;
+  }, [props.history, props.progress]);
+  const surfaceRef = useRef<HTMLElement>(null);
   const screenData = Screen.current(props.navCommon.screenStack);
-  const initialWeek = screenData.name === "main" ? screenData.params?.week : undefined;
-  const currentWeek = weeks.findIndex((week) => week.getTime() === DateUtils.firstDayOfWeekTimestamp(new Date()));
-  const selectedWeek = initialWeek ?? (currentWeek !== -1 ? currentWeek : weeks.length - 1);
-  const [forceToggle, setForceToggle] = useState(false);
+  const initialHistoryRecordId = screenData.name === "main" ? screenData.params?.historyRecordId : undefined;
+  let initialShift =
+    initialHistoryRecordId != null ? sortedHistory.findIndex((record) => record.id === initialHistoryRecordId) : -1;
+  initialShift = Math.max(0, initialShift);
+  const { visibleRecords, loadMoreVisibleRecords } = useGradualList(
+    sortedHistory,
+    initialShift,
+    20,
+    surfaceRef,
+    () => {}
+  );
+  const visibleHistory = useMemo(() => {
+    return sortedHistory.slice(0, visibleRecords);
+  }, [sortedHistory, visibleRecords]);
+  const { firstDayOfWeeks, historyRecordDateToFirstDayOfWeek, firstDayOfWeekToHistoryRecord } = getWeeksData(
+    sortedHistory,
+    props.settings.startWeekFromMonday
+  );
+  const [selectedFirstDayOfWeek, setSelectedWeekFirstDay] = useState(firstDayOfWeeks[firstDayOfWeeks.length - 1]);
+  const selectedFirstDayOfWeekRef = useRef(selectedFirstDayOfWeek);
+  const previousWeekFirstDayDate = new Date(selectedFirstDayOfWeek);
+  previousWeekFirstDayDate.setDate(previousWeekFirstDayDate.getDate() - 7);
+  const previousWeekFirstDay = previousWeekFirstDayDate.getTime();
   const [showMonthCalendar, setShowMonthCalendar] = useState(false);
   const [showPlannerSettings, setShowPlannerSettings] = useState(false);
+  const historyRecordsListRef = useRef<HTMLDivElement>(null);
+  const [selectedWeekCalendarFirstDayOfWeek, setSelectedWeekCalendarFirstDayOfWeek] = useState(selectedFirstDayOfWeek);
 
   const prs = History.getPersonalRecords(props.history);
-  const thisWeekHistory = getWeekHistory(sortedHistory, weeks, selectedWeek, props.settings.startWeekFromMonday);
-  const lastWeekHistory = getWeekHistory(sortedHistory, weeks, selectedWeek - 1, props.settings.startWeekFromMonday);
-  const startTs = weeks[selectedWeek].getTime();
-  const endRange = new Date(startTs);
-  endRange.setDate(endRange.getDate() + 6);
-  const formattedRange = DateUtils.formatRange(startTs, endRange);
+  const thisWeekHistory = getWeekHistory(sortedHistory, selectedFirstDayOfWeek, props.settings.startWeekFromMonday);
+  const lastWeekHistory = getWeekHistory(sortedHistory, previousWeekFirstDay, props.settings.startWeekFromMonday);
   const loadingItems = props.navCommon.loading.items;
   const loadingKeys = Object.keys(loadingItems).filter((k) => loadingItems[k]?.endTime == null);
   const isLoading = Object.keys(loadingKeys).length > 0;
 
+  useEffect(() => {
+    selectedFirstDayOfWeekRef.current = selectedFirstDayOfWeek;
+  }, [selectedFirstDayOfWeek]);
+
+  useEffect(() => {
+    let initialOffset: number | undefined;
+    const scrollPosToFirstDayOfWeek = Array.from(historyRecordsListRef.current.childNodes).reduce<
+      Partial<Record<number, number>>
+    >((memo, node) => {
+      const element = node as HTMLElement;
+      const recordId = Number(element.id.replace("history-record-", ""));
+      const firstDayOfWeek = historyRecordDateToFirstDayOfWeek[recordId];
+      if (initialOffset == null) {
+        initialOffset = element.offsetTop;
+      }
+      memo[element.offsetTop - initialOffset] = firstDayOfWeek;
+      return memo;
+    }, {});
+    function scrollHandler(e: Event) {
+      for (const scrollPos of ObjectUtils.keys(scrollPosToFirstDayOfWeek)) {
+        if (scrollPos >= window.scrollY) {
+          const firstDayOfWeek = scrollPosToFirstDayOfWeek[scrollPos];
+          if (firstDayOfWeek != null && firstDayOfWeek !== selectedFirstDayOfWeekRef.current) {
+            const weekElement = document.querySelector(`#week-calendar-${firstDayOfWeek}`);
+            if (weekElement) {
+              weekElement.scrollIntoView({
+                behavior: "instant",
+                block: "nearest",
+                inline: "center",
+              });
+            }
+            setSelectedWeekFirstDay(firstDayOfWeek);
+          }
+          break;
+        }
+      }
+    }
+    window.addEventListener("scroll", scrollHandler);
+    return () => {
+      window.removeEventListener("scroll", scrollHandler);
+    };
+  }, [visibleRecords]);
+
+  const scrollToElement = useCallback((id: number) => {
+    const element = document.getElementById(`history-record-${id}`);
+    if (element != null) {
+      element.scrollIntoView({
+        behavior: "instant",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (initialHistoryRecordId != null) {
+      scrollToElement(initialHistoryRecordId);
+    }
+  }, [initialHistoryRecordId]);
+
   return (
     <Surface
+      ref={surfaceRef}
       navbar={
-        <div className="fixed top-0 left-0 z-30 w-full border-b border-grayv3-300">
+        <div className="fixed top-0 left-0 z-30 w-full border-b border-grayv3-100">
           <WeekCalendar
             startWeekFromMonday={props.settings.startWeekFromMonday}
+            selectedWeekCalendarFirstDayOfWeek={selectedWeekCalendarFirstDayOfWeek}
             history={sortedHistory}
-            weeks={weeks}
+            firstDayOfWeekToHistoryRecord={firstDayOfWeekToHistoryRecord}
+            firstDayOfWeeks={firstDayOfWeeks}
             isLoading={isLoading}
-            forceToggle={forceToggle}
-            selectedWeek={selectedWeek}
+            selectedFirstDayOfWeek={selectedFirstDayOfWeek}
             onClick={() => setShowMonthCalendar(true)}
-            onSelectWeek={(week) => {
-              props.dispatch(
-                Thunk.updateScreenParams<"main">({ week })
-              );
+            onSelectFirstDayOfWeek={(firstDayOfWeek) => {
+              setSelectedWeekCalendarFirstDayOfWeek(firstDayOfWeek);
             }}
           />
         </div>
@@ -117,21 +204,24 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         <>
           <BottomSheetMonthCalendar
             prs={prs}
-            weeks={weeks}
+            firstDayOfWeeks={firstDayOfWeeks}
             history={sortedHistory}
             startWeekFromMonday={props.settings.startWeekFromMonday}
-            selectedWeek={selectedWeek}
+            selectedFirstDayOfWeek={selectedWeekCalendarFirstDayOfWeek}
+            visibleRecords={visibleRecords}
             isHidden={!showMonthCalendar}
             onClose={() => setShowMonthCalendar(false)}
-            onClick={(day) => {
-              const beginningOfWeek = DateUtils.firstDayOfWeekTimestamp(day, props.settings.startWeekFromMonday);
-              const newWeek = weeks.findIndex((week) => week.getTime() === beginningOfWeek);
-              if (newWeek !== -1) {
-                props.dispatch(
-                  Thunk.updateScreenParams<"main">({ week: newWeek })
-                );
+            onClick={(historyRecord) => {
+              const index = sortedHistory.findIndex((record) => record.id === historyRecord.id);
+              const scrollToElementCal = () => {
+                scrollToElement(historyRecord.id);
                 setShowMonthCalendar(false);
-                setForceToggle(!forceToggle);
+              };
+              if (visibleHistory.length < index) {
+                loadMoreVisibleRecords(index - visibleHistory.length + 20);
+                setTimeout(scrollToElementCal, 100);
+              } else {
+                scrollToElementCal();
               }
             }}
           />
@@ -148,27 +238,22 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         </>
       }
     >
+      <WeekInsights
+        dispatch={props.dispatch}
+        prs={prs}
+        selectedFirstDayOfWeek={selectedFirstDayOfWeek}
+        thisWeekHistory={thisWeekHistory}
+        lastWeekHistory={lastWeekHistory}
+        settings={props.settings}
+        onOpenPlannerSettings={() => setShowPlannerSettings(true)}
+        subscription={props.subscription}
+      />
       <div className="flex flex-col h-full">
-        <div className="flex-1 min-h-0 pt-4 overflow-y-auto">
-          <div className="px-4">
-            <span className="text-lg font-semibold">{formattedRange}</span>
-            <span> · </span>
-            <span className="text-sm">
-              {thisWeekHistory.length} {StringUtils.pluralize("workout", thisWeekHistory.length)}
-            </span>
-          </div>
-          <WeekInsights
-            dispatch={props.dispatch}
-            prs={prs}
-            thisWeekHistory={thisWeekHistory}
-            lastWeekHistory={lastWeekHistory}
-            settings={props.settings}
-            onOpenPlannerSettings={() => setShowPlannerSettings(true)}
-            subscription={props.subscription}
-          />
-          {sortedHistory.length > 0 ? (
+        <div className="flex-1 min-h-0 pt-20 overflow-y-auto" ref={historyRecordsListRef}>
+          {visibleHistory.length > 0 ? (
             <HistoryRecordsList
-              history={thisWeekHistory}
+              history={visibleHistory}
+              firstDayOfWeeks={firstDayOfWeeks}
               prs={prs}
               program={props.program}
               subscription={props.subscription}

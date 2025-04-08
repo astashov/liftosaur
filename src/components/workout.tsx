@@ -33,8 +33,8 @@ interface IWorkoutViewProps {
   isTimerShown: boolean;
   subscription: ISubscription;
   settings: ISettings;
-  forceCurrentEntryIndex: number;
-  setForceCurrentEntryIndex: (index: number) => void;
+  forceUpdateEntryIndex: boolean;
+  setForceUpdateEntryIndex: () => void;
   dispatch: IDispatch;
 }
 
@@ -45,10 +45,10 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
 
   useEffect(() => {
     screensRef.current?.scrollTo({
-      left: props.forceCurrentEntryIndex * window.innerWidth,
+      left: (props.progress.ui?.currentEntryIndex ?? 0) * window.innerWidth,
       behavior: "instant",
     });
-  }, [props.forceCurrentEntryIndex]);
+  }, [props.forceUpdateEntryIndex]);
 
   return (
     <section className="pb-8">
@@ -64,7 +64,8 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         dispatch={props.dispatch}
         settings={props.settings}
         onClick={(entryIndex) => {
-          props.setForceCurrentEntryIndex(entryIndex);
+          updateProgress(props.dispatch, lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex));
+          props.setForceUpdateEntryIndex();
         }}
       />
       {selectedEntry != null && (
@@ -236,7 +237,6 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
               isDisabled={!enableReorder}
               hideBorders={true}
               mode="horizontal"
-              delayMs={200}
               onClick={props.onClick}
               items={props.progress.entries}
               element={(entry, entryIndex, handleTouchStart, onClick) => {
