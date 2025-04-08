@@ -1701,6 +1701,29 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20250409": {
+    title: <span>📅 Tweaked the Calendar (Home screen)</span>,
+    body: (
+      <ul>
+        <li>Bringing back the infinite scroll to the Home screen!</li>
+        <li>
+          A few months ago I added calendar to the Home screen, and removed the infinite scroll, showing only the
+          currently selected week workouts instead.
+        </li>
+        <li>
+          The downside of that was that now the scrolling happens in 2 directions - horizontally (switching weeks) and
+          vertically (scrolling the workouts) - not as convenient. Also, it used to be nice to see the currently ongoing
+          workout on the top of the screen - that was removed with per-week workouts.
+        </li>
+        <li>
+          So, now the infinite scroll is back, and it will show the currently ongoing workout (if any) at the top of
+          home screen. While you're scrolling the list, it will update the week insights and week calendar on top. And
+          if you open the month calendar (by tapping on the week calendar) and then tap on the workout there - it will
+          scroll to that workout.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

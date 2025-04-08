@@ -29,7 +29,7 @@ interface IExerciseHistoryProps {
 }
 
 export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element => {
-  const visibleRecords = useGradualList(props.history, 20, props.surfaceRef, () => {});
+  const { visibleRecords } = useGradualList(props.history, 0, 20, props.surfaceRef, () => {});
   const fullExercise = Exercise.get(props.exerciseType, props.settings.exercises);
   const allPrs = History.getPersonalRecords(props.history);
   const [showFilters, setShowFilters] = useState(false);

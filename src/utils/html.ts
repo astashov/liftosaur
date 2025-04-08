@@ -96,4 +96,31 @@ export namespace HtmlUtils {
       return event.clientX;
     }
   }
+
+  export function onScrollEnd(callback: () => void, element?: HTMLElement): () => void {
+    let lastScrollY = element ? element.scrollTop : window.scrollY;
+    let frame: number;
+
+    const checkScroll = () => {
+      const currentScrollY = element ? element.scrollTop : window.scrollY;
+      if (currentScrollY !== lastScrollY) {
+        lastScrollY = currentScrollY;
+        frame = requestAnimationFrame(checkScroll);
+      } else {
+        // Wait a little more in case it's just a pause
+        setTimeout(() => {
+          if ((element ? element.scrollTop : window.scrollY) === lastScrollY) {
+            callback();
+          } else {
+            lastScrollY = element ? element.scrollTop : window.scrollY;
+            frame = requestAnimationFrame(checkScroll);
+          }
+        }, 100);
+      }
+    };
+
+    frame = requestAnimationFrame(checkScroll);
+
+    return () => cancelAnimationFrame(frame); // optional cancel function
+  }
 }
