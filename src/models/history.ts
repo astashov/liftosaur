@@ -148,8 +148,8 @@ export namespace History {
       sets.filter((s) => (s.completedReps || 0) > 0),
       (a, b) => {
         const weightDiff = Weight.compare(
-          Weight.getOneRepMax(b.completedWeight ?? b.weight, b.completedReps || 0),
-          Weight.getOneRepMax(a.completedWeight ?? a.weight, a.completedReps || 0)
+          Weight.getOneRepMax(b.completedWeight ?? b.weight, b.completedReps || 0, b.completedRpe ?? b.rpe ?? 10),
+          Weight.getOneRepMax(a.completedWeight ?? a.weight, a.completedReps || 0, a.completedRpe ?? a.rpe ?? 10)
         );
         if (weightDiff === 0 && a.completedReps && b.completedReps) {
           return b.completedReps - a.completedReps;
@@ -424,7 +424,7 @@ export namespace History {
 
   export function getHistoryRecordsForTimerange(
     history: IHistoryRecord[],
-    date: Date,
+    date: number,
     type: "month" | "week" | "day",
     startWeekFromMonday?: boolean
   ): IHistoryRecord[] {
@@ -443,6 +443,9 @@ export namespace History {
     }
     end.setHours(23, 59, 59, 999);
     return history.filter((hr) => {
+      if (Progress.isCurrent(hr)) {
+        return false;
+      }
       const recordDate = Date.parse(hr.date);
       const startTime = new Date(recordDate);
       return startTime >= start && startTime < end;

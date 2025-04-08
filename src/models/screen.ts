@@ -11,7 +11,7 @@ export type ITab = "home" | "program" | "workout" | "graphs" | "me";
 export type IScreenData =
   | { name: "first"; params?: Record<string, never> }
   | { name: "onboarding"; params?: Record<string, never> }
-  | { name: "main"; params?: { week?: number } }
+  | { name: "main"; params?: { historyRecordId?: number } }
   | { name: "settings"; params?: Record<string, never> }
   | { name: "account"; params?: Record<string, never> }
   | { name: "timers"; params?: Record<string, never> }
@@ -65,6 +65,12 @@ export namespace Screen {
   ): IScreenStack {
     const newEntry: IScreenData = { name, ...(params ? { params } : {}) } as Extract<IScreenData, { name: T }>;
     return [...stack, newEntry];
+  }
+
+  export function updateParams<T extends IScreen>(stack: IScreenStack, params?: IScreenParams<T>): IScreenStack {
+    const topStack = stack[stack.length - 1];
+    const newTopStack = { ...topStack, params };
+    return [...stack.slice(0, stack.length - 1), newTopStack] as IScreenStack;
   }
 
   export function pull(stack: IScreenStack): IScreenStack {

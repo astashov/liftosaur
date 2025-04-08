@@ -1,5 +1,5 @@
 import { JSX, h } from "preact";
-import { useRef, useCallback, useLayoutEffect } from "preact/hooks";
+import { useRef, useLayoutEffect, useCallback } from "preact/hooks";
 import { IHistoryRecord } from "../types";
 import { DateUtils } from "../utils/date";
 import { History } from "../models/history";
@@ -7,12 +7,12 @@ import { IconArrowRight } from "./icons/iconArrowRight";
 import { IconSpinner } from "./icons/iconSpinner";
 
 interface IWeekCalendarProps {
-  weeks: Date[];
-  selectedWeek: number;
-  forceToggle: boolean;
+  firstDayOfWeeks: number[];
+  firstDayOfWeekToHistoryRecord: Partial<Record<number, IHistoryRecord>>;
+  selectedFirstDayOfWeek: number;
   isLoading: boolean;
   startWeekFromMonday?: boolean;
-  onSelectWeek: (week: number) => void;
+  onSelectFirstDayOfWeek: (week: number) => void;
   onClick: () => void;
   history: IHistoryRecord[];
 }
@@ -20,22 +20,24 @@ interface IWeekCalendarProps {
 export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
   const scrollRef = useRef<HTMLDivElement>(null);
   const dateToHistory = History.getDateToHistory(props.history);
-
-  const handleScroll = useCallback(() => {
-    const scrollLeft = scrollRef.current?.scrollLeft ?? 0;
-    const width = scrollRef.current?.clientWidth;
-    const selectedWeek = Math.floor((scrollLeft + width / 2) / width);
-    props.onSelectWeek(selectedWeek);
-  }, []);
+  const selectedIndex = props.firstDayOfWeeks.findIndex((date) => date === props.selectedFirstDayOfWeek);
 
   useLayoutEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
-        left: props.selectedWeek * scrollRef.current?.clientWidth || 0,
+        left: selectedIndex * scrollRef.current?.clientWidth || 0,
         behavior: "instant",
       });
     }
-  }, [props.forceToggle]);
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    const scrollLeft = scrollRef.current?.scrollLeft ?? 0;
+    const width = scrollRef.current?.clientWidth;
+    const selectedWeekIndex = Math.floor((scrollLeft + width / 2) / width);
+    const selectedFirstDayOfWeek = props.firstDayOfWeeks[selectedWeekIndex];
+    props.onSelectFirstDayOfWeek(selectedFirstDayOfWeek);
+  }, []);
 
   return (
     <div className="relative flex items-center justify-center w-full bg-white">
@@ -44,14 +46,14 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
           <IconSpinner width={12} height={12} />
         </div>
       ) : null}
-      {props.selectedWeek > 0 && (
+      {selectedIndex > 0 && (
         <div className="absolute top-0 left-0">
           <button
             className="p-3"
             onClick={() => {
               if (scrollRef.current) {
                 scrollRef.current.scrollTo({
-                  left: (props.selectedWeek - 1) * (scrollRef.current?.clientWidth || 0),
+                  left: (selectedIndex - 1) * (scrollRef.current?.clientWidth || 0),
                   behavior: "smooth",
                 });
               }
@@ -61,14 +63,14 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
           </button>
         </div>
       )}
-      {props.selectedWeek < props.weeks.length - 1 && (
+      {selectedIndex < props.firstDayOfWeeks.length - 1 && (
         <div className="absolute top-0 right-0">
           <button
             className="p-2"
             onClick={() => {
               if (scrollRef.current) {
                 scrollRef.current.scrollTo({
-                  left: (props.selectedWeek + 1) * (scrollRef.current?.clientWidth || 0),
+                  left: (selectedIndex + 1) * (scrollRef.current?.clientWidth || 0),
                   behavior: "smooth",
                 });
               }
@@ -89,14 +91,16 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
         onScroll={handleScroll}
         onClick={props.onClick}
       >
-        {props.weeks.map((weekStart, index) => (
+        {props.firstDayOfWeeks.map((firstDayOfWeek, index) => (
           <div
+            id={`week-calendar-${firstDayOfWeek}`}
+            data-id={firstDayOfWeek}
             key={index}
             className="flex-none w-full gap-3"
             style={{ scrollSnapAlign: "center", scrollSnapStop: "always" }}
           >
             <div className="flex flex-row justify-around w-full">
-              {getWeekDays(weekStart, dateToHistory, props.startWeekFromMonday).map((day, idx) => {
+              {getWeekDays(firstDayOfWeek, dateToHistory, props.startWeekFromMonday).map((day, idx) => {
                 return (
                   <div key={day.dayName} className="flex flex-col items-center justify-center rounded-full">
                     <div className="text-xs text-gray-500">{day.dayName}</div>
@@ -127,7 +131,7 @@ interface IWeekDay {
 }
 
 const getWeekDays = (
-  startDate: Date,
+  startDate: number,
   dateToHistory: Partial<Record<string, IHistoryRecord>>,
   startWeekFromMonday?: boolean
 ): IWeekDay[] => {
@@ -135,7 +139,7 @@ const getWeekDays = (
   const dayNames = startWeekFromMonday ? ["M", "T", "W", "T", "F", "S", "S"] : ["S", "M", "T", "W", "T", "F", "S"];
   for (let i = 0; i < 7; i++) {
     const date = new Date(startDate);
-    date.setDate(startDate.getDate() + i);
+    date.setDate(date.getDate() + i);
     const formatted = DateUtils.formatYYYYMMDD(date);
     days.push({
       record: dateToHistory[formatted],

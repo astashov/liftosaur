@@ -6,32 +6,37 @@ import { IPersonalRecords, History } from "../models/history";
 import { CollectionUtils } from "../utils/collection";
 import { memo, useLayoutEffect, useRef } from "preact/compat";
 import { ComparerUtils } from "../utils/comparer";
+import { Tailwind } from "../utils/tailwindConfig";
 
 interface IMonthCalendarProps {
-  weeks: Date[];
-  selectedWeek: number;
+  firstDayOfWeeks: number[];
+  selectedFirstDayOfWeekIndex: number;
   startWeekFromMonday?: boolean;
+  visibleRecords: number;
   prs: IPersonalRecords;
   history: IHistoryRecord[];
-  onClick: (day: Date) => void;
+  onClick: (historyRecord: IHistoryRecord) => void;
 }
 
 export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
   useLayoutEffect(() => {
-    const selectedWeek = props.weeks[props.selectedWeek];
-    if (selectedWeek) {
-      const date = new Date(selectedWeek.getFullYear(), selectedWeek.getMonth(), 1);
+    const selectedFirstDayOfWeekTs = props.firstDayOfWeeks[props.selectedFirstDayOfWeekIndex];
+    if (selectedFirstDayOfWeekTs != null) {
+      const selectedFirstDayOfWeek = new Date(selectedFirstDayOfWeekTs);
+      const date = new Date(selectedFirstDayOfWeek.getFullYear(), selectedFirstDayOfWeek.getMonth(), 1);
       const yyyymmdd = DateUtils.formatYYYYMMDD(date);
       const element = document.getElementById(`month-calendar-${yyyymmdd}`);
       if (element) {
         element.scrollIntoView({ block: "center" });
       }
     }
-  }, [props.weeks, props.selectedWeek]);
+  }, [props.firstDayOfWeeks, props.selectedFirstDayOfWeekIndex]);
 
-  const start = new Date(props.weeks[0]);
+  const start = new Date(Math.max(props.firstDayOfWeeks[0], new Date(2015, 1, 1).getTime()));
   start.setDate(1);
-  const end = new Date(props.weeks[props.weeks.length - 1]);
+  const end = new Date(
+    DateUtils.lastDayOfWeekTimestamp(props.firstDayOfWeeks[props.firstDayOfWeeks.length - 1], props.startWeekFromMonday)
+  );
   end.setDate(1);
   const months: Date[] = [];
   const current = new Date(start);
@@ -90,7 +95,7 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
                   🏆 {numberOfPersonalRecords} {StringUtils.pluralize("PR", numberOfPersonalRecords)}
                 </span>
               </div>
-              <div class="grid grid-cols-7 gap-2 mt-2 text-center">
+              <div class="grid grid-cols-7 mt-2 text-center">
                 {Array(firstDayOfWeek)
                   .fill(null)
                   .map((_, i) => (
@@ -101,13 +106,22 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
                 {days.map((day) => {
                   const date = new Date(year, monthIndex, day);
                   const yyyymmdd = DateUtils.formatYYYYMMDD(date);
-                  const isWorkout = (dayToHistoryRecords[day]?.length || 0) > 0;
+                  const historyRecord = dayToHistoryRecords[day]?.[0];
+                  const isWorkout = !!historyRecord;
+                  const selectedFirstDayOfWeek = props.firstDayOfWeeks[props.selectedFirstDayOfWeekIndex];
+                  const thisFirstDayOfWeek = DateUtils.firstDayOfWeekTimestamp(date, props.startWeekFromMonday);
+                  const isSelectedWeek = selectedFirstDayOfWeek === thisFirstDayOfWeek;
+
                   return (
                     <div
                       key={yyyymmdd}
-                      class="flex items-center justify-center text-gray-800"
+                      data-first-day-of-week={thisFirstDayOfWeek}
+                      class="flex items-center justify-center text-gray-800 p-2"
+                      style={{ background: isSelectedWeek ? Tailwind.colors().grayv3[100] : "transparent" }}
                       onClick={() => {
-                        props.onClick(new Date(year, monthIndex, day));
+                        if (historyRecord != null) {
+                          props.onClick(historyRecord);
+                        }
                       }}
                     >
                       <div

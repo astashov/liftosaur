@@ -32,7 +32,7 @@ interface IEditProgramV2DayProps {
   evaluatedWeeks: IPlannerEvalResult[][];
   settings: ISettings;
   onEditDayName: () => void;
-  handleTouchStart: (e: TouchEvent | MouseEvent) => void;
+  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 

@@ -16,11 +16,14 @@ import { Subscriptions } from "../utils/subscriptions";
 import { IconCrown } from "./icons/iconCrown";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
+import { DateUtils } from "../utils/date";
+import { Modal } from "./modal";
 
 interface IWeekInsightsProps {
   prs: IPersonalRecords;
   thisWeekHistory: IHistoryRecord[];
   lastWeekHistory: IHistoryRecord[];
+  selectedFirstDayOfWeek: number;
   settings: ISettings;
   subscription: ISubscription;
   dispatch: IDispatch;
@@ -51,7 +54,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
   if (!Subscriptions.hasSubscription(props.subscription)) {
     return (
       <section
-        className="px-3 py-2 m-4 border border-yellowv3-300 bg-yellowv3-50 rounded-xl"
+        className="fixed left-0 w-full px-3 py-2 border top-16 border-yellowv3-300 bg-yellowv3-50 rounded-b-xl"
         onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}
       >
         <div className="flex items-center h-8 gap-1" style={{ marginBottom: "3px" }}>
@@ -66,16 +69,21 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
     );
   }
 
+  const startTs = props.selectedFirstDayOfWeek;
+  const endRange = new Date(startTs);
+  endRange.setDate(endRange.getDate() + 6);
+  const formattedRange = DateUtils.formatRange(startTs, endRange);
+
   return (
-    <section className="py-2 m-4 border border-yellowv3-300 bg-yellowv3-50 rounded-xl">
+    <section className="fixed left-0 w-full py-2 border top-16 border-yellowv3-300 bg-yellowv3-50 rounded-b-xl">
       <div className="px-3">
         <div className="flex gap-4">
           <div className="flex items-center gap-1">
             <span>
               <IconFire className="inline-block" size={16} color={Tailwind.colors().yellowv3[600]} />
             </span>
-            <span className="text-sm font-semibold text-yellowv3-600" style={{ marginTop: "3px" }}>
-              Week Insights
+            <span className="text-sm font-semibold" style={{ marginTop: "3px" }}>
+              {formattedRange}
             </span>
           </div>
           <div className="ml-auto text-sm">
@@ -84,7 +92,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
             </LinkButton>
           </div>
         </div>
-        <div className="flex justify-between mt-2" style={{ marginLeft: "2px" }}>
+        <div className="flex justify-between mt-1" style={{ marginLeft: "2px" }}>
           <WeekInsightsProperty
             value={Math.round(setResults.volume.value)}
             unit={setResults.volume.unit}
@@ -105,13 +113,15 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
         </div>
       </div>
       {isExpanded && (
-        <WeekInsightsDetails
-          thisWeekHistory={props.thisWeekHistory}
-          prs={props.prs}
-          setResults={setResults}
-          settings={props.settings}
-          onOpenPlannerSettings={props.onOpenPlannerSettings}
-        />
+        <Modal shouldShowClose={true} isFullWidth={true} isHidden={!isExpanded} onClose={() => setIsExpanded(false)}>
+          <WeekInsightsDetails
+            thisWeekHistory={props.thisWeekHistory}
+            prs={props.prs}
+            setResults={setResults}
+            settings={props.settings}
+            onOpenPlannerSettings={props.onOpenPlannerSettings}
+          />
+        </Modal>
       )}
     </section>
   );
@@ -154,7 +164,7 @@ function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Element {
   const hasPersonalRecords = History.getNumberOfPersonalRecords(props.thisWeekHistory, props.prs) > 0;
 
   return (
-    <div className="px-3 pt-2 mt-2 text-sm border-t border-yellowv3-300">
+    <div className="pt-2 text-sm">
       {hasPersonalRecords && (
         <div className="mb-4">
           <PersonalRecords historyRecords={props.thisWeekHistory} prs={props.prs} settings={props.settings} />
