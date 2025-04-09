@@ -27,10 +27,18 @@ test("Empty Workout", async ({ page }) => {
   await page.getByTestId("menu-item-squat-barbell").click();
 
   await page.getByTestId("add-exercise-button").scrollIntoViewIfNeeded();
-  await page.getByTestId("add-workout-set").click();
-  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(0), "5");
-  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(0), "150");
-  await page.getByTestId("complete-set").nth(0).click();
+  await page.getByTestId("entry-squat").getByTestId("add-workout-set").click();
+  await PlaywrightUtils.typeKeyboard(
+    page,
+    page.getByTestId("entry-squat").getByTestId("input-set-reps-field").nth(0),
+    "5"
+  );
+  await PlaywrightUtils.typeKeyboard(
+    page,
+    page.getByTestId("entry-squat").getByTestId("input-set-weight-field").nth(0),
+    "150"
+  );
+  await page.getByTestId("entry-squat").getByTestId("complete-set").nth(0).click();
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();

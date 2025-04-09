@@ -34,7 +34,7 @@ export class PlaywrightUtils {
     for (let i = 0; i < sets.length; i++) {
       const set = sets[i];
       if (set !== 0) {
-        await locator.getByTestId("complete-set").nth(i).click();
+        await locator.getByTestId(`entry-${name}`).getByTestId("complete-set").nth(i).click();
         if (typeof set !== "number") {
           if (set.amrap) {
             if (set.amrap.reps != null) {

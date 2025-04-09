@@ -74,9 +74,12 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
-  await PlaywrightUtils.forEach(page.getByTestId("input-set-weight-field"), async (item) => {
-    await PlaywrightUtils.typeKeyboard(page, item, "250");
-  });
+  await PlaywrightUtils.forEach(
+    page.getByTestId("entry-deadift").getByTestId("input-set-weight-field"),
+    async (item) => {
+      await PlaywrightUtils.typeKeyboard(page, item, "250");
+    }
+  );
 
   // Third exercise is unsuccessful
   await page.getByTestId("workout-tab-overhead-press").click();
@@ -91,11 +94,18 @@ test("Basic Beginner Program", async ({ page }) => {
   await PlaywrightUtils.clickAll(page.getByTestId("entry-overhead-press").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
-  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(0), "3");
+  await PlaywrightUtils.typeKeyboard(
+    page,
+    page.getByTestId("entry-overhead-press").getByTestId("input-set-reps-field").nth(0),
+    "3"
+  );
 
-  await PlaywrightUtils.forEach(page.getByTestId("input-set-weight-field"), async (item) => {
-    await PlaywrightUtils.typeKeyboard(page, item, "100");
-  });
+  await PlaywrightUtils.forEach(
+    page.getByTestId("entry-overhead-press").getByTestId("input-set-weight-field"),
+    async (item) => {
+      await PlaywrightUtils.typeKeyboard(page, item, "100");
+    }
+  );
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();

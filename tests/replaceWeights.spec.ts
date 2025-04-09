@@ -34,7 +34,7 @@ Bicep Curl / 1x8 80lb`
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await page.getByTestId("exercise-options").click();
+  await page.getByTestId("entry-squat").getByTestId("exercise-options").click();
   await page.getByTestId("exercise-edit-mode").first().click();
 
   await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();

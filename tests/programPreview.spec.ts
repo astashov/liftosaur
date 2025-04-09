@@ -37,21 +37,24 @@ test("Program Preview", async ({ page }) => {
     page.getByTestId("preview-day-workout-a").first()
   );
   await expect(
-    page.getByTestId("preview-day-workout-a").getByTestId("bent-over-row").getByTestId("variable-changes-key-weights")
+    page
+      .getByTestId("preview-day-workout-a")
+      .getByTestId("entry-bent-over-row")
+      .getByTestId("variable-changes-key-weights")
   ).toHaveText("weights: += 2.5lb");
 
   await page.getByTestId("preview-day-workout-a").getByTestId(`workout-tab-bench-press`).nth(0).click();
   await page
     .getByTestId("preview-day-workout-a")
-    .getByTestId("bench-press")
+    .getByTestId("entry-bench-press")
     .getByTestId("program-preview-complete-exercise")
     .first()
     .click();
   await expect(
-    page.getByTestId("preview-day-workout-a").getByTestId("bench-press").getByTestId("set-completed")
+    page.getByTestId("preview-day-workout-a").getByTestId("entry-bench-press").getByTestId("set-completed")
   ).toHaveCount(2);
   await expect(
-    page.getByTestId("preview-day-workout-a").getByTestId("bench-press").getByTestId("set-amrap-completed")
+    page.getByTestId("preview-day-workout-a").getByTestId("entry-bench-press").getByTestId("set-amrap-completed")
   ).toHaveCount(1);
 
   await page.getByTestId("preview-day-workout-a").first().getByTestId("finish-day-details-playground").click();
@@ -61,7 +64,7 @@ test("Program Preview", async ({ page }) => {
     page
       .getByTestId("preview-day-workout-a")
       .first()
-      .getByTestId("bent-over-row")
+      .getByTestId("entry-bent-over-row")
       .getByTestId("input-set-weight-field")
       .filter({ hasText: "100" })
   ).toHaveCount(3);
@@ -70,14 +73,18 @@ test("Program Preview", async ({ page }) => {
     page
       .getByTestId("preview-day-workout-a")
       .first()
-      .getByTestId("bench-press")
+      .getByTestId("entry-bench-press")
       .getByTestId("input-set-weight-field")
       .filter({ hasText: "50" })
   ).toHaveCount(3);
   await expect(
-    page.getByTestId("preview-day-workout-a").first().getByTestId("bench-press").getByTestId("set-nonstarted")
+    page.getByTestId("preview-day-workout-a").first().getByTestId("entry-bench-press").getByTestId("set-nonstarted")
   ).toHaveCount(3);
   await expect(
-    page.getByTestId("preview-day-workout-a").first().getByTestId("bench-press").getByTestId("set-amrap-nonstarted")
+    page
+      .getByTestId("preview-day-workout-a")
+      .first()
+      .getByTestId("entry-bench-press")
+      .getByTestId("set-amrap-nonstarted")
   ).toHaveCount(1);
 });
