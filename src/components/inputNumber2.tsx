@@ -73,17 +73,17 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const maxLength = (props.max?.toString().length ?? 5) + (props.allowDot ? 3 : 0) + (props.allowNegative ? 1 : 0);
 
   useEffect(() => {
+    valueRef.current = props.value?.toString() ?? "";
     setValue(props.value?.toString() ?? "");
   }, [props.value]);
 
   useEffect(() => {
-    valueRef.current = value;
     isFocusedRef.current = isFocused;
     isTypingRef.current = isTyping;
     allowDotRef.current = !!props.allowDot;
     allowNegativeRef.current = !!props.allowNegative;
     isCalculatorOpenRef.current = !!isCalculatorOpen;
-  }, [value, isFocused, isTyping, props.allowDot, props.allowNegative, isCalculatorOpen]);
+  }, [isFocused, isTyping, props.allowDot, props.allowNegative, isCalculatorOpen]);
 
   const handleInput = (key: string) => {
     let newValue = valueRef.current;
@@ -108,6 +108,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       newValue += key;
     }
     setIsTyping(true);
+    valueRef.current = newValue;
     setValue(newValue);
     if (onInputRef.current) {
       const newValueNum = clamp(newValue, props.min, props.max);
@@ -119,6 +120,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     setIsFocused(false);
     setIsTyping(false);
     let newValueNum = clamp(valueRef.current, props.min, props.max);
+    valueRef.current = newValueNum != null ? newValueNum.toString() : "";
     setValue(newValueNum != null ? newValueNum.toString() : "");
     if (onBlurRef.current) {
       onBlurRef.current(newValueNum);
@@ -129,6 +131,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   useEffect(() => {
     if (isFocused) {
       if (props.value == null && props.initialValue != null) {
+        valueRef.current = props.initialValue?.toString() ?? "";
         setValue(props.initialValue?.toString() ?? "");
       }
       if (!isMobile) {
@@ -324,6 +327,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
           onPlus={() => {
             const nextValue = props.onNext ? props.onNext(Number(value)) : Number(value) + (props.step ?? 1);
             const newValue = clamp(nextValue, props.min, props.max);
+            valueRef.current = newValue != null ? newValue.toString() : "";
             setValue(newValue != null ? newValue.toString() : "");
             if (props.onInput) {
               props.onInput(newValue);
@@ -332,6 +336,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
           onMinus={() => {
             const prevValue = props.onPrev ? props.onPrev(Number(value)) : Number(value) - (props.step ?? 1);
             const newValue = clamp(prevValue, props.min, props.max);
+            valueRef.current = newValue != null ? newValue.toString() : "";
             setValue(newValue != null ? newValue.toString() : "");
             if (props.onInput) {
               props.onInput(newValue);
@@ -359,12 +364,14 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
               unit={props.selectedUnit}
               onSelect={(weightValue) => {
                 if (weightValue == null) {
+                  valueRef.current = "";
                   setValue("");
                   if (props.onInput) {
                     props.onInput(undefined);
                   }
                 } else {
                   const newValue = clamp(weightValue, props.min, props.max);
+                  valueRef.current = newValue?.toString() ?? "";
                   setValue(newValue?.toString() ?? "");
                   if (props.onInput) {
                     props.onInput(newValue);
