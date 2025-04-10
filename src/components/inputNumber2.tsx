@@ -79,11 +79,10 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
 
   useEffect(() => {
     isFocusedRef.current = isFocused;
-    isTypingRef.current = isTyping;
     allowDotRef.current = !!props.allowDot;
     allowNegativeRef.current = !!props.allowNegative;
     isCalculatorOpenRef.current = !!isCalculatorOpen;
-  }, [isFocused, isTyping, props.allowDot, props.allowNegative, isCalculatorOpen]);
+  }, [isFocused, props.allowDot, props.allowNegative, isCalculatorOpen]);
 
   const handleInput = (key: string) => {
     let newValue = valueRef.current;
@@ -108,6 +107,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       newValue += key;
     }
     setIsTyping(true);
+    isTypingRef.current = true;
     valueRef.current = newValue;
     setValue(newValue);
     if (onInputRef.current) {
@@ -119,6 +119,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const blur = useCallback(() => {
     setIsFocused(false);
     setIsTyping(false);
+    isTypingRef.current = false;
     let newValueNum = clamp(valueRef.current, props.min, props.max);
     valueRef.current = newValueNum != null ? newValueNum.toString() : "";
     setValue(newValueNum != null ? newValueNum.toString() : "");
@@ -306,7 +307,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
             <span className="text-sm text-grayv3-300 text-ellipsis whitespace-nowrap">{props.placeholder}</span>
           ) : (
             <span
-              className={`text-sm inline-block ${isFocused && !isTyping ? "bg-bluev3-300" : ""}`}
+              className={`text-sm inline-block ${isFocused && !isTypingRef.current ? "bg-bluev3-300" : ""}`}
               style={{ padding: value ? "1px" : "0" }}
             >
               {value}
