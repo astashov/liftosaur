@@ -3524,7 +3524,7 @@ function warmup(
 ): (weight: IWeight, settings: ISettings, exerciseType?: IExerciseType) => ISet[] {
   return (weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): ISet[] => {
     return programExerciseWarmupSets.reduce<ISet[]>((memo, programExerciseWarmupSet) => {
-      if (Weight.gt(weight, programExerciseWarmupSet.threshold)) {
+      if (Weight.gte(weight, programExerciseWarmupSet.threshold)) {
         const value = programExerciseWarmupSet.value;
         const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
         const warmupWeight = typeof value === "number" ? Weight.multiply(weight, value) : value;
