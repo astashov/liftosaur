@@ -3520,11 +3520,12 @@ function warmup10(weight: IWeight, settings: ISettings, exerciseType?: IExercise
 }
 
 function warmup(
-  programExerciseWarmupSets: IProgramExerciseWarmupSet[]
+  programExerciseWarmupSets: IProgramExerciseWarmupSet[],
+  shouldSkipThreshold: boolean = false
 ): (weight: IWeight, settings: ISettings, exerciseType?: IExerciseType) => ISet[] {
   return (weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): ISet[] => {
     return programExerciseWarmupSets.reduce<ISet[]>((memo, programExerciseWarmupSet) => {
-      if (Weight.gte(weight, programExerciseWarmupSet.threshold)) {
+      if (shouldSkipThreshold || Weight.gt(weight, programExerciseWarmupSet.threshold)) {
         const value = programExerciseWarmupSet.value;
         const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
         const warmupWeight = typeof value === "number" ? Weight.multiply(weight, value) : value;
@@ -3858,7 +3859,7 @@ export namespace Exercise {
   ): ISet[] {
     const ex = get(exercise, settings.exercises);
     if (programExerciseWarmupSets != null) {
-      return warmup(programExerciseWarmupSets)(weight, settings, exercise);
+      return warmup(programExerciseWarmupSets, true)(weight, settings, exercise);
     } else {
       let warmupSets = warmupEmpty(weight);
       if (ex.defaultWarmup === 10) {

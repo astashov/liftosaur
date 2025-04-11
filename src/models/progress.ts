@@ -1029,6 +1029,7 @@ export namespace Progress {
       return progress;
     }
     const dayExercises = Program.getProgramDayExercises(programDay);
+    const wasResorted = !!progress.changes?.includes("order");
     const newEntries = progress.entries
       .filter(
         (e) =>
@@ -1051,11 +1052,13 @@ export namespace Progress {
         return applyProgramExercise(progressEntry, programExercise, settings, false);
       });
 
-    const sortedNewEntries = CollectionUtils.sortInOrder(
-      newEntries,
-      "programExerciseId",
-      dayExercises.map((e) => e.key)
-    );
+    const sortedNewEntries = wasResorted
+      ? newEntries
+      : CollectionUtils.sortInOrder(
+          newEntries,
+          "programExerciseId",
+          dayExercises.map((e) => e.key)
+        );
 
     const newProgramExercises = dayExercises.filter(
       (e) => !progress.entries.some((ent) => ent.programExerciseId === e.key)

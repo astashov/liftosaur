@@ -661,6 +661,19 @@ export type IProgressMode = t.TypeOf<typeof TProgressMode>;
 export const TIntervals = t.array(t.tuple([t.number, t.union([t.number, t.undefined, t.null])]), "TIntervals");
 export type IIntervals = t.TypeOf<typeof TIntervals>;
 
+export const historyRecordChange = ["order"] as const;
+export const THistoryRecordChange = t.keyof(
+  historyRecordChange.reduce<Record<IArrayElement<typeof historyRecordChange>, null>>(
+    (memo, muscle) => {
+      memo[muscle] = null;
+      return memo;
+    },
+    {} as Record<IArrayElement<typeof historyRecordChange>, null>
+  ),
+  "THistoryRecordChange"
+);
+export type tHistoryRecordChange = t.TypeOf<typeof THistoryRecordChange>;
+
 export const THistoryRecord = t.intersection(
   [
     t.interface({
@@ -682,6 +695,7 @@ export const THistoryRecord = t.intersection(
       intervals: TIntervals,
       deletedProgramExercises: dictionary(t.string, t.boolean),
       userPromptedStateVars: dictionary(t.string, TProgramState),
+      changes: t.array(THistoryRecordChange),
       timerSince: t.number,
       timerMode: TProgressMode,
       timer: t.number,

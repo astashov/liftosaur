@@ -101,10 +101,10 @@ export namespace CollectionUtils {
   export function groupByKey<
     T,
     K extends keyof T,
-    U extends T[K] extends string ? string : T[K] extends number ? number : never
+    U extends T[K] extends string ? string : T[K] extends number ? number : never,
   >(arr: T[], key: K): Partial<Record<U, T[]>> {
     return arr.reduce<Partial<Record<U, T[]>>>((memo, item) => {
-      const value = (item[key] as unknown) as U;
+      const value = item[key] as unknown as U;
       memo[value] = memo[value] || [];
       memo[value]!.push(item);
       return memo;
@@ -123,10 +123,10 @@ export namespace CollectionUtils {
   export function groupByKeyUniq<
     T,
     K extends keyof T,
-    U extends T[K] extends string ? string : T[K] extends number ? number : never
+    U extends T[K] extends string ? string : T[K] extends number ? number : never,
   >(arr: T[], key: K): Partial<Record<U, T>> {
     return arr.reduce<Partial<Record<U, T>>>((memo, item) => {
-      const value = (item[key] as unknown) as U;
+      const value = item[key] as unknown as U;
       memo[value] = item;
       return memo;
     }, {});
@@ -376,5 +376,17 @@ export namespace CollectionUtils {
     }
 
     return result;
+  }
+
+  export function areSortedInSameOrder<T, U>(coll1: T[], coll2: U[], areEqual: (a: T, b: U) => boolean): boolean {
+    if (coll1.length !== coll2.length) {
+      return false;
+    }
+    for (let i = 0; i < coll1.length; i += 1) {
+      if (!areEqual(coll1[i], coll2[i])) {
+        return false;
+      }
+    }
+    return true;
   }
 }

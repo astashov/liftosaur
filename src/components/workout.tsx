@@ -261,6 +261,11 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
               onDragEnd={(startIndex, endIndex) => {
                 updateProgress(props.dispatch, [
                   lb<IHistoryRecord>()
+                    .p("changes")
+                    .recordModify((changes) => {
+                      return Array.from(new Set([...(changes || []), "order"]));
+                    }),
+                  lb<IHistoryRecord>()
                     .p("entries")
                     .recordModify((entries) => {
                       const newEntries = [...entries];
