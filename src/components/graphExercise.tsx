@@ -63,7 +63,8 @@ function getData(
           const set = maxe1RMSet || maxSet;
           onerm = Weight.getOneRepMax(
             Weight.convertTo(set.completedWeight ?? set.weight, settings.units),
-            set.completedReps || 0
+            set.completedReps || 0,
+            set.completedRpe ?? set.rpe ?? 10
           ).value;
         }
         const timestamp = new Date(Date.parse(i.date)).getTime() / 1000;
