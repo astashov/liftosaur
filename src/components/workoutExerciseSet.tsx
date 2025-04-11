@@ -218,7 +218,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 }}
               >
                 <IconCheckCircle
-                  size={20}
+                  size={24}
                   isChecked={true}
                   color={WorkoutExerciseUtils.getIconColor([set], props.type === "warmup")}
                 />

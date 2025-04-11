@@ -19,7 +19,6 @@ import { DropdownMenu, DropdownMenuItem } from "./editProgram/editProgramUi/edit
 import { IconSwap } from "./icons/iconSwap";
 import { IconTrash } from "./icons/iconTrash";
 import { IconEdit2 } from "./icons/iconEdit2";
-import { ProgressStateChanges } from "./progressStateChanges";
 import { TextareaAutogrow } from "./textareaAutogrow";
 import { Progress } from "../models/progress";
 import { StringUtils } from "../utils/string";
@@ -105,7 +104,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
               </button>
             </div>
-            <div data-cy="exercise-equipment" className="text-xs text-grayv2-600">
+            <div data-cy="exercise-equipment" className="text-sm text-grayv2-600">
               Equipment:{" "}
               <LinkButton
                 name="exercise-equipment-picker"
@@ -120,7 +119,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
               </LinkButton>
             </div>
             {programExercise && ProgramExercise.doesUse1RM(programExercise) && (
-              <div data-cy="exercise-rm1" className="text-xs text-grayv2-600">
+              <div data-cy="exercise-rm1" className="text-sm text-grayv2-600">
                 1RM:{" "}
                 <LinkButton
                   name="exercise-rm1-picker"
@@ -139,14 +138,14 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
           <div className="relative">
             <button
               data-cy="exercise-options"
-              className="p-2 nm-exercise-options"
+              className="px-4 py-2 nm-exercise-options"
               style={{ marginRight: "-0.75rem" }}
               onClick={() => setIsKebabMenuOpen(true)}
             >
               <IconKebab />
             </button>
             {isKebabMenuOpen && (
-              <DropdownMenu rightOffset="1.5rem" onClose={() => setIsKebabMenuOpen(false)}>
+              <DropdownMenu rightOffset="2rem" onClose={() => setIsKebabMenuOpen(false)}>
                 {programExercise && programExerciseId && (
                   <DropdownMenuItem
                     isTop={true}
@@ -163,7 +162,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   >
                     <div className="flex items-center gap-2">
                       <div>
-                        <IconEdit2 size={18} />
+                        <IconEdit2 size={22} />
                       </div>
                       <div>Edit Exercise</div>
                     </div>
@@ -183,7 +182,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 >
                   <div className="flex items-center gap-2">
                     <div>
-                      <IconSwap size={14} />
+                      <IconSwap size={18} />
                     </div>
                     <div>Swap Exercise</div>
                   </div>
@@ -213,7 +212,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 >
                   <div className="flex items-center gap-2">
                     <div>
-                      <IconTrash width={12} height={16} />
+                      <IconTrash width={15} height={18} />
                     </div>
                     <div>Remove Exercise</div>
                   </div>
@@ -269,6 +268,10 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
         <WorkoutExerciseAllSets
           isCurrentProgress={Progress.isCurrent(props.progress)}
           day={props.day}
+          program={props.program}
+          userPromptedStateVars={
+            programExercise ? props.progress.userPromptedStateVars?.[programExercise.key] : undefined
+          }
           programExercise={programExercise}
           entryIndex={props.entryIndex}
           onTargetClick={() => {
@@ -290,25 +293,12 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
           lbSets={lbSets}
           lbWarmupSets={lbWarmupSets}
           exerciseType={exerciseType}
-          warmupSets={props.entry.warmupSets}
-          sets={props.entry.sets}
+          entry={props.entry}
           settings={props.settings}
           dispatch={props.dispatch}
           subscription={props.subscription}
         />
       </div>
-      {programExercise && props.program && (
-        <div className="mx-4 mb-1">
-          <ProgressStateChanges
-            entry={props.entry}
-            settings={props.settings}
-            dayData={programExercise.dayData}
-            programExercise={programExercise}
-            program={props.program}
-            userPromptedStateVars={props.progress.userPromptedStateVars?.[programExercise.key]}
-          />
-        </div>
-      )}
     </section>
   );
 }

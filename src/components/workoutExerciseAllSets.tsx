@@ -1,6 +1,15 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { ISettings, ISet, IExerciseType, ISubscription, IProgramState, IHistoryRecord, ITargetType } from "../types";
+import {
+  ISettings,
+  ISet,
+  IExerciseType,
+  ISubscription,
+  IProgramState,
+  IHistoryRecord,
+  ITargetType,
+  IHistoryEntry,
+} from "../types";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { updateProgress } from "../models/state";
 import { LensBuilder } from "lens-shmens";
@@ -12,6 +21,8 @@ import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
 import { Equipment } from "../models/equipment";
 import { IconSwapSmall } from "./icons/iconSwapSmall";
+import { ProgressStateChanges } from "./progressStateChanges";
+import { IEvaluatedProgram } from "../models/program";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -19,12 +30,13 @@ interface IWorkoutExerciseAllSets {
   exerciseType: IExerciseType;
   lbWarmupSets: LensBuilder<IHistoryRecord, ISet[], {}>;
   lbSets: LensBuilder<IHistoryRecord, ISet[], {}>;
-  warmupSets: ISet[];
+  entry: IHistoryEntry;
   entryIndex: number;
   lastSets?: ISet[];
   onTargetClick?: () => void;
-  sets: ISet[];
   subscription?: ISubscription;
+  userPromptedStateVars?: IProgramState;
+  program?: IEvaluatedProgram;
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;
   settings: ISettings;
@@ -43,8 +55,10 @@ function getTargetColumnLabel(targetType: ITargetType): string {
 }
 
 export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Element {
-  const buttonBgColor = WorkoutExerciseUtils.getBgColor100(props.sets, false);
-  const nextSetIndex = [...props.warmupSets, ...props.sets].findIndex((s) => !Reps.isFinishedSet(s));
+  const warmupSets = props.entry.warmupSets;
+  const sets = props.entry.sets;
+  const buttonBgColor = WorkoutExerciseUtils.getBgColor100(sets, false);
+  const nextSetIndex = [...warmupSets, ...sets].findIndex((s) => !Reps.isFinishedSet(s));
   const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
   const targetLabel = getTargetColumnLabel(props.settings.workoutSettings.targetType);
 
@@ -69,7 +83,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
           </div>
         </div>
         <div className="table-row-group">
-          {props.warmupSets.map((set, i) => {
+          {warmupSets.map((set, i) => {
             return (
               <WorkoutExerciseSet
                 isCurrentProgress={props.isCurrentProgress}
@@ -91,13 +105,13 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
               />
             );
           })}
-          {props.sets.map((set, i) => {
+          {sets.map((set, i) => {
             return (
               <WorkoutExerciseSet
                 isCurrentProgress={props.isCurrentProgress}
                 type="workout"
                 key={`workout-${set.id}-${i}`}
-                isNext={nextSetIndex - props.warmupSets.length === i}
+                isNext={nextSetIndex - warmupSets.length === i}
                 programExercise={props.programExercise}
                 day={props.day}
                 otherStates={props.otherStates}
@@ -116,6 +130,18 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
           })}
         </div>
       </div>
+      {props.programExercise && props.program && (
+        <div className="mx-4 mt-2 mb-1">
+          <ProgressStateChanges
+            entry={props.entry}
+            settings={props.settings}
+            dayData={props.programExercise.dayData}
+            programExercise={props.programExercise}
+            program={props.program}
+            userPromptedStateVars={props.userPromptedStateVars}
+          />
+        </div>
+      )}
       <div className="flex gap-2 px-4 my-2">
         <div className="flex-1">
           <button

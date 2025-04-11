@@ -7,7 +7,6 @@ import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings } from "../../t
 import { ComparerUtils } from "../../utils/comparer";
 import { IDispatch } from "../../ducks/types";
 import { Reps } from "../../models/set";
-import { ProgressStateChanges } from "../progressStateChanges";
 import { IconCheckCircle } from "../icons/iconCheckCircle";
 import { IconEditSquare } from "../icons/iconEditSquare";
 import { lb } from "lens-shmens";
@@ -145,7 +144,6 @@ interface IProgramPreviewPlaygroundProps {
 
 function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.Element {
   const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
-  const warmupSets = props.entry.warmupSets;
   const equipment = exercise.equipment;
   const programExercise = props.programExercise;
   const dayData = Program.getDayData(props.program, props.dayIndex);
@@ -185,12 +183,13 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
           <WorkoutExerciseAllSets
             day={dayData.day}
             isCurrentProgress={true}
+            program={props.program}
             programExercise={props.programExercise}
+            entry={props.entry}
             entryIndex={props.index}
             otherStates={props.program.states}
-            warmupSets={warmupSets}
+            userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.key]}
             exerciseType={props.entry.exercise}
-            sets={props.entry.sets}
             lbSets={lb<IHistoryRecord>().p("entries").i(props.index).p("sets")}
             lbWarmupSets={lb<IHistoryRecord>().p("entries").i(props.index).p("warmupSets")}
             settings={props.settings}
@@ -199,19 +198,6 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
           />
         </section>
       </div>
-      {props.programExercise && (
-        <div className="mx-4">
-          <ProgressStateChanges
-            entry={props.entry}
-            forceShow={false}
-            settings={props.settings}
-            dayData={dayData}
-            userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.key]}
-            programExercise={props.programExercise}
-            program={props.program}
-          />
-        </div>
-      )}
     </div>
   );
 }
