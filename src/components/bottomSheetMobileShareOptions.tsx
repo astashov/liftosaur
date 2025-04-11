@@ -62,6 +62,7 @@ export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
               props.onClose();
             }}
           />
+          {/* TODO: Add copy workout as text */}
           <BottomSheetItem
             name="share-to-link"
             title="Copy link to workout"
