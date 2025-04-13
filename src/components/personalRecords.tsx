@@ -69,13 +69,16 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                     <div>
                       <strong>{exercise.name}</strong>:{" "}
                       <span className="whitespace-nowrap">
-                        <strong className="text-greenv2-main">{Weight.display(item.set.weight)}</strong>,{" "}
-                        {item.set.completedReps || 0} {StringUtils.pluralize("rep", item.set.completedReps || 0)}
+                        <strong className="text-greenv2-main">
+                          {Weight.display(item.set.completedWeight ?? item.set.weight)}
+                        </strong>
+                        , {item.set.completedReps || 0} {StringUtils.pluralize("rep", item.set.completedReps || 0)}
                       </span>
                     </div>
                     {item.prev != null && (
                       <div className="text-xs italic text-gray-700">
-                        (was {item.prev.completedReps || 0} × {Weight.display(item.prev.weight)})
+                        (was {item.prev.completedReps || 0} ×{" "}
+                        {Weight.display(item.prev.completedWeight ?? item.prev.weight)})
                       </div>
                     )}
                   </li>
@@ -94,13 +97,13 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
               const exercise = Exercise.get(exerciseType, props.settings.exercises);
               return (items.max1RM[exerciseKey] || []).map((item, i) => {
                 const estimated1RM = Weight.getOneRepMax(
-                  item.set.weight,
+                  item.set.completedWeight ?? item.set.weight,
                   item.set.completedReps || 0,
                   item.set.completedRpe ?? item.set.rpe
                 );
                 const previous1RM = item.prev
                   ? Weight.getOneRepMax(
-                      item.prev.weight || 0,
+                      item.prev.completedWeight ?? item.prev.weight,
                       item.prev.completedReps || 0,
                       item.prev.completedRpe ?? item.prev.rpe
                     )
@@ -113,14 +116,14 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                       <strong>{exercise.name}</strong>:{" "}
                       <span className="whitespace-nowrap">
                         <strong className="text-greenv2-main">{Weight.display(estimated1RM)}</strong> (
-                        {item.set.completedReps || 0} × {Weight.display(item.set.weight)}
+                        {item.set.completedReps || 0} × {Weight.display(item.set.completedWeight ?? item.set.weight)}
                         {setRpe ? ` @${setRpe}` : ""})
                       </span>
                     </div>
                     {item.prev != null && previous1RM && (
                       <div className="text-xs italic text-gray-700">
                         (was <strong>{Weight.display(previous1RM)}</strong>, {item.prev.completedReps || 0} ×{" "}
-                        {Weight.display(item.prev.weight)}
+                        {Weight.display(item.prev.completedWeight ?? item.prev.weight)}
                         {prevRpe ? ` @${prevRpe}` : ""})
                       </div>
                     )}
