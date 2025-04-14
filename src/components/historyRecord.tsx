@@ -19,6 +19,7 @@ import { IEvaluatedProgramDay } from "../models/program";
 
 interface IProps {
   historyRecord: IHistoryRecord;
+  showTitle?: boolean;
   programDay?: IEvaluatedProgramDay;
   isOngoing: boolean;
   prs?: IPersonalRecords;
@@ -41,15 +42,17 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
       className="mx-4 mb-6 history-record"
       ref={ref}
     >
-      <div data-cy="history-record-date" className="mx-1 mb-1 font-semibold">
-        {!isCurrent ? DateUtils.format(historyRecord.date) : "Ongoing workout"}
-      </div>
+      {props.showTitle && (
+        <div data-cy="history-record-date" className="mx-1 mb-1 font-semibold">
+          {!isCurrent ? DateUtils.format(historyRecord.date) : props.isOngoing ? "Ongoing workout" : "Next workout"}
+        </div>
+      )}
       <div
         className={`rounded-2xl px-4 text-sm ${
           isCurrent
             ? props.isOngoing
               ? "bg-yellowv3-50 border border-yellowv3-300 nm-continue-workout"
-              : "bg-purplev3-50 border border-purplev3-200 nm-start-workout"
+              : "bg-purplev3-100 border border-purplev3-300 nm-start-workout"
             : "bg-purplev3-50 border border-purplev3-200 nm-edit-workout"
         }`}
         style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
@@ -71,7 +74,6 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
           <div className="pb-2">
             <div className="text-sm" data-cy="history-record-program">
               <div className="font-semibold">
-                <span>{Progress.isCurrent(historyRecord) ? "Next: " : ""}</span>
                 <span>{historyRecord.dayName}</span>
               </div>
               <div className="text-xs text-grayv2-main">{historyRecord.programName}</div>

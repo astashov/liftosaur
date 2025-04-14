@@ -44,7 +44,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("editor-save-v2-top").click();
   await page.getByTestId("footer-home").click();
 
-  await expect(page.getByTestId("history-entry-exercise-name").nth(0)).toHaveText("My Exercise 2 🏆");
+  await expect(page.getByTestId("history-entry-exercise-name").nth(1)).toHaveText("My Exercise 2 🏆");
   await page.getByTestId("footer-workout").click();
   await expect(page.getByTestId("bottom-sheet").getByTestId("history-entry-exercise-name").nth(0)).toHaveText(
     "Blah One"
@@ -74,7 +74,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("editor-save-v2-top").click();
   await page.getByTestId("footer-home").click();
 
-  await expect(page.getByTestId("history-entry-exercise-name").nth(0)).toHaveText("My Exercise 3 🏆");
+  await expect(page.getByTestId("history-entry-exercise-name").nth(1)).toHaveText("My Exercise 3 🏆");
 
   await page.getByTestId("footer-workout").click();
   await expect(page.getByTestId("bottom-sheet").getByTestId("history-entry-exercise-name").nth(0)).toHaveText(

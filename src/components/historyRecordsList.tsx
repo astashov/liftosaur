@@ -4,11 +4,11 @@ import { IPersonalRecords } from "../models/history";
 import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { HistoryRecordView } from "./historyRecord";
 import { Program } from "../models/program";
-import { Progress } from "../models/progress";
 
 interface IHistoryRecordsListProps {
   history: IHistoryRecord[];
   program: IProgram;
+  isOngoing: boolean;
   prs: IPersonalRecords;
   settings: ISettings;
   firstDayOfWeeks: number[];
@@ -25,7 +25,8 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
       {history.map((record) => {
         return (
           <HistoryRecordView
-            isOngoing={Progress.isCurrent(record)}
+            isOngoing={props.isOngoing}
+            showTitle={true}
             programDay={programDay}
             prs={props.prs}
             settings={settings}

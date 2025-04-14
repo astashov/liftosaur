@@ -19,6 +19,7 @@ import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
 import { Progress } from "../models/progress";
 import { useGradualList } from "../utils/useGradualList";
+import { Program } from "../models/program";
 
 interface IProps {
   program: IProgram;
@@ -79,6 +80,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     });
     if (props.progress) {
       history.unshift(props.progress);
+    } else if (props.program && history.length > 0) {
+      const nextHistoryRecord = Program.nextHistoryRecord(props.program, props.settings);
+      history.unshift(nextHistoryRecord);
     }
     return history;
   }, [props.history, props.progress]);
@@ -255,6 +259,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
               history={visibleHistory}
               firstDayOfWeeks={firstDayOfWeeks}
               prs={prs}
+              isOngoing={!!(props.progress && Progress.isCurrent(props.progress))}
               program={props.program}
               subscription={props.subscription}
               settings={props.settings}

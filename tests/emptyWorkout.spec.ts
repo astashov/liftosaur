@@ -43,32 +43,32 @@ test("Empty Workout", async ({ page }) => {
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 
-  await expect(page.getByTestId("history-record-program").nth(0)).toHaveText("Ad-Hoc Workout");
+  await expect(page.getByTestId("history-record-program").nth(1)).toHaveText("Ad-Hoc Workout");
   await expect(
     page
       .getByTestId("history-record")
-      .nth(0)
+      .nth(1)
       .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-weight]")
       .first()
   ).toHaveText("100lb");
   await expect(
     page
       .getByTestId("history-record")
-      .nth(0)
+      .nth(1)
       .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-sets-completed]")
       .first()
   ).toHaveText("2 × 7 × 100lb");
   await expect(
     page
       .getByTestId("history-record")
-      .nth(0)
+      .nth(1)
       .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-weight]")
       .first()
   ).toHaveText("150lb");
   await expect(
     page
       .getByTestId("history-record")
-      .nth(0)
+      .nth(1)
       .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-sets-completed]")
       .first()
   ).toHaveText("5 × 150lb");
