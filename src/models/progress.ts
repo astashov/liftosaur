@@ -37,6 +37,7 @@ import { IByTag } from "../pages/planner/plannerEvaluator";
 import { IPlannerProgramExercise, IPlannerProgramExerciseUsed } from "../pages/planner/models/types";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { IScreenStack, Screen } from "./screen";
+import { UidFactory } from "../utils/generator";
 
 export interface IScriptBindings {
   day: number;
@@ -690,11 +691,18 @@ export namespace Progress {
     const keys = ["RPE", "minReps", "reps", "weights", "amraps", "logrpes", "timers", "originalWeights"] as const;
     const entry = ObjectUtils.clone(oldEntry);
     const lastCompletedIndex = CollectionUtils.findIndexReverse(bindings.completedReps, (r) => r != null) + 1;
-    entry.sets = entry.sets.slice(0, Math.max(lastCompletedIndex, bindings.numberOfSets, 1));
+    entry.sets = entry.sets.slice(0, Math.max(lastCompletedIndex, bindings.numberOfSets, 0));
     for (const key of keys) {
       for (let i = 0; i < bindings[key].length; i += 1) {
         if (entry.sets[i] == null) {
-          entry.sets[i] = { reps: 0, weight: Weight.build(0, "lb"), originalWeight: Weight.build(0, "lb") };
+          entry.sets[i] = {
+            id: UidFactory.generateUid(6),
+            reps: 0,
+            weight: Weight.build(0, "lb"),
+            originalWeight: Weight.build(0, "lb"),
+            askWeight: false,
+            isCompleted: false,
+          };
         }
         if (!entry.sets[i].isCompleted) {
           if (key === "RPE") {

@@ -421,6 +421,12 @@ export class LiftoscriptEvaluator {
     this.bindings.timers = this.bindings.timers.slice(0, evaluatedValue);
     this.bindings.amraps = this.bindings.amraps.slice(0, evaluatedValue);
     this.bindings.logrpes = this.bindings.logrpes.slice(0, evaluatedValue);
+    this.bindings.completedReps = this.bindings.completedReps.slice(0, evaluatedValue);
+    this.bindings.cr = this.bindings.cr.slice(0, evaluatedValue);
+    this.bindings.cw = this.bindings.cw.slice(0, evaluatedValue);
+    this.bindings.completedWeights = this.bindings.completedWeights.slice(0, evaluatedValue);
+    this.bindings.completedRPE = this.bindings.completedRPE.slice(0, evaluatedValue);
+    this.bindings.isCompleted = this.bindings.isCompleted.slice(0, evaluatedValue);
 
     const ns = oldNumberOfSets - 1;
     for (let i = 0; i < evaluatedValue; i += 1) {
@@ -442,6 +448,12 @@ export class LiftoscriptEvaluator {
         this.bindings.w[i] = this.bindings.weights[i];
         this.bindings.r[i] = this.bindings.reps[i];
         this.bindings.mr[i] = this.bindings.minReps[i];
+        this.bindings.completedReps[i] = undefined;
+        this.bindings.completedWeights[i] = undefined;
+        this.bindings.completedRPE[i] = undefined;
+        this.bindings.cr[i] = undefined;
+        this.bindings.cw[i] = undefined;
+        this.bindings.isCompleted[i] = 0;
       }
     }
 
