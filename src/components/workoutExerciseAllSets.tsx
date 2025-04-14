@@ -148,9 +148,11 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             className={`${buttonBgColor} w-full py-2 text-xs font-semibold text-center rounded-md text-bluev3-main`}
             data-cy="add-warmup-set"
             onClick={() => {
-              updateProgress(props.dispatch, [
-                props.lbWarmupSets.recordModify((sets) => Reps.addSet(sets, props.settings.units)),
-              ]);
+              updateProgress(
+                props.dispatch,
+                [props.lbWarmupSets.recordModify((sets) => Reps.addSet(sets, props.settings.units))],
+                "add-warmupset"
+              );
             }}
           >
             <span>
@@ -164,9 +166,11 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             className={`${buttonBgColor} w-full py-2 text-xs font-semibold text-center rounded-md text-bluev3-main`}
             data-cy="add-workout-set"
             onClick={() => {
-              updateProgress(props.dispatch, [
-                props.lbSets.recordModify((sets) => Reps.addSet(sets, props.settings.units)),
-              ]);
+              updateProgress(
+                props.dispatch,
+                [props.lbSets.recordModify((sets) => Reps.addSet(sets, props.settings.units))],
+                "add-set"
+              );
             }}
           >
             <span>

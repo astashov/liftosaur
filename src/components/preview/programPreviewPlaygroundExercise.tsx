@@ -229,6 +229,7 @@ function PlaygroundExerciseTopBar(props: IPlaygroundExerciseTopBarProps): JSX.El
                 .p("editModal")
                 .record({ programExerciseId: props.programExercise.key, entryIndex: props.index }),
             ],
+            desc: "open-edit-exercise-modal",
           });
         }}
       >
@@ -267,6 +268,7 @@ function PlaygroundExerciseTopBar(props: IPlaygroundExerciseTopBarProps): JSX.El
                     })
                   ),
               ],
+              desc: "complete-all-sets",
             });
           }}
         >

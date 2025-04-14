@@ -72,7 +72,7 @@ export class WorkoutExerciseUtils {
     } else if (color === "yellow") {
       return Tailwind.colors().yellowv3[600];
     } else {
-      return Tailwind.colors().grayv3[400];
+      return Tailwind.colors().grayv3[200];
     }
   }
 

@@ -64,7 +64,11 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         dispatch={props.dispatch}
         settings={props.settings}
         onClick={(entryIndex) => {
-          updateProgress(props.dispatch, lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex));
+          updateProgress(
+            props.dispatch,
+            lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex),
+            "click-exercise-tab"
+          );
           props.setForceUpdateEntryIndex();
         }}
       />
@@ -81,7 +85,8 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
               if (selectedIndex !== (props.progress.ui?.currentEntryIndex ?? 0)) {
                 updateProgress(
                   props.dispatch,
-                  lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(selectedIndex)
+                  lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(selectedIndex),
+                  "scroll-exercise-tab"
                 );
               }
             }}
@@ -259,21 +264,25 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
                 );
               }}
               onDragEnd={(startIndex, endIndex) => {
-                updateProgress(props.dispatch, [
-                  lb<IHistoryRecord>()
-                    .p("changes")
-                    .recordModify((changes) => {
-                      return Array.from(new Set([...(changes || []), "order"]));
-                    }),
-                  lb<IHistoryRecord>()
-                    .p("entries")
-                    .recordModify((entries) => {
-                      const newEntries = [...entries];
-                      const [entriesToMove] = newEntries.splice(startIndex, 1);
-                      newEntries.splice(endIndex, 0, entriesToMove);
-                      return newEntries;
-                    }),
-                ]);
+                updateProgress(
+                  props.dispatch,
+                  [
+                    lb<IHistoryRecord>()
+                      .p("changes")
+                      .recordModify((changes) => {
+                        return Array.from(new Set([...(changes || []), "order"]));
+                      }),
+                    lb<IHistoryRecord>()
+                      .p("entries")
+                      .recordModify((entries) => {
+                        const newEntries = [...entries];
+                        const [entriesToMove] = newEntries.splice(startIndex, 1);
+                        newEntries.splice(endIndex, 0, entriesToMove);
+                        return newEntries;
+                      }),
+                  ],
+                  "drag-exercise-tab"
+                );
                 setTimeout(() => {
                   props.onClick(endIndex);
                 }, 0);

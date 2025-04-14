@@ -889,7 +889,7 @@ export namespace Progress {
   }
 
   export function editExerciseNotes(dispatch: IDispatch, entryIndex: number, notes: string): void {
-    updateProgress(dispatch, [lb<IHistoryRecord>().p("entries").i(entryIndex).p("notes").record(notes)]);
+    updateProgress(dispatch, [lb<IHistoryRecord>().p("entries").i(entryIndex).p("notes").record(notes)], "edit-notes");
   }
 
   export function showAddExerciseModal(dispatch: IDispatch, progressId: number): void {
@@ -897,13 +897,17 @@ export namespace Progress {
   }
 
   export function addExercise(dispatch: IDispatch, exerciseType: IExerciseType, numberOfEntries: number): void {
-    updateProgress(dispatch, [
-      lb<IHistoryRecord>()
-        .p("entries")
-        .recordModify((entries) => {
-          return [...entries, History.createCustomEntry(exerciseType)];
-        }),
-    ]);
+    updateProgress(
+      dispatch,
+      [
+        lb<IHistoryRecord>()
+          .p("entries")
+          .recordModify((entries) => {
+            return [...entries, History.createCustomEntry(exerciseType)];
+          }),
+      ],
+      "add-exercise"
+    );
   }
 
   export function changeExercise(

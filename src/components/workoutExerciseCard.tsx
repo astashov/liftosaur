@@ -110,9 +110,11 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 name="exercise-equipment-picker"
                 data-cy="exercise-equipment-picker"
                 onClick={() => {
-                  updateProgress(props.dispatch, [
-                    lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise }),
-                  ]);
+                  updateProgress(
+                    props.dispatch,
+                    [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise })],
+                    "change-equipment"
+                  );
                 }}
               >
                 {currentEquipmentName || "None"}
@@ -125,9 +127,11 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   name="exercise-rm1-picker"
                   data-cy="exercise-rm1-picker"
                   onClick={() => {
-                    updateProgress(props.dispatch, [
-                      lb<IHistoryRecord>().pi("ui").p("rm1Modal").record({ exerciseType: props.entry.exercise }),
-                    ]);
+                    updateProgress(
+                      props.dispatch,
+                      [lb<IHistoryRecord>().pi("ui").p("rm1Modal").record({ exerciseType: props.entry.exercise })],
+                      "change-rm1"
+                    );
                   }}
                 >
                   {Weight.print(onerm)}
@@ -152,12 +156,16 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     data-cy="exercise-edit-mode"
                     onClick={() => {
                       setIsKebabMenuOpen(false);
-                      updateProgress(props.dispatch, [
-                        lb<IHistoryRecord>()
-                          .pi("ui")
-                          .p("editModal")
-                          .record({ programExerciseId, entryIndex: props.entryIndex }),
-                      ]);
+                      updateProgress(
+                        props.dispatch,
+                        [
+                          lb<IHistoryRecord>()
+                            .pi("ui")
+                            .p("editModal")
+                            .record({ programExerciseId, entryIndex: props.entryIndex }),
+                        ],
+                        "kebab-edit-exercise"
+                      );
                     }}
                   >
                     <div className="flex items-center gap-2">
@@ -172,12 +180,16 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   data-cy="exercise-swap"
                   onClick={() => {
                     setIsKebabMenuOpen(false);
-                    updateProgress(props.dispatch, [
-                      lb<IHistoryRecord>()
-                        .pi("ui")
-                        .p("exerciseModal")
-                        .record({ exerciseType: props.entry.exercise, entryIndex: props.entryIndex }),
-                    ]);
+                    updateProgress(
+                      props.dispatch,
+                      [
+                        lb<IHistoryRecord>()
+                          .pi("ui")
+                          .p("exerciseModal")
+                          .record({ exerciseType: props.entry.exercise, entryIndex: props.entryIndex }),
+                      ],
+                      "kebab-swap-exercise"
+                    );
                   }}
                 >
                   <div className="flex items-center gap-2">
@@ -190,24 +202,28 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 <DropdownMenuItem
                   data-cy="edit-exercise-kebab-remove-exercise"
                   onClick={() => {
-                    updateProgress(props.dispatch, [
-                      lb<IHistoryRecord>()
-                        .p("entries")
-                        .recordModify((entries) => {
-                          setIsKebabMenuOpen(false);
-                          if (confirm("Do you want to remove this exercise in this workout only?")) {
-                            return CollectionUtils.removeAt(entries, props.entryIndex);
-                          } else {
-                            return entries;
-                          }
-                        }),
-                      lb<IHistoryRecord>()
-                        .pi("ui")
-                        .p("currentEntryIndex")
-                        .recordModify((index) => {
-                          return Math.max(0, (index ?? 0) - 1);
-                        }),
-                    ]);
+                    updateProgress(
+                      props.dispatch,
+                      [
+                        lb<IHistoryRecord>()
+                          .p("entries")
+                          .recordModify((entries) => {
+                            setIsKebabMenuOpen(false);
+                            if (confirm("Do you want to remove this exercise in this workout only?")) {
+                              return CollectionUtils.removeAt(entries, props.entryIndex);
+                            } else {
+                              return entries;
+                            }
+                          }),
+                        lb<IHistoryRecord>()
+                          .pi("ui")
+                          .p("currentEntryIndex")
+                          .recordModify((index) => {
+                            return Math.max(0, (index ?? 0) - 1);
+                          }),
+                      ],
+                      "kebab-delete-exercise"
+                    );
                   }}
                 >
                   <div className="flex items-center gap-2">
@@ -320,9 +336,11 @@ function HelpEquipment(props: IHelpEquipmentProps): JSX.Element {
           <LinkButton
             name="nux-rounding-equipment-settings"
             onClick={() => {
-              updateProgress(props.dispatch, [
-                lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise }),
-              ]);
+              updateProgress(
+                props.dispatch,
+                [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise })],
+                "nux-rounding-equipment-settings"
+              );
             }}
           >
             Equipment settings there

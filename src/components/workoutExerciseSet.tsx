@@ -107,21 +107,29 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 name="set-reps"
                 onInput={(value) => {
                   if (value != null && !isNaN(value) && value >= 0) {
-                    updateProgress(props.dispatch, [
-                      props.lbSet.recordModify((set) => {
-                        const newSet = { ...set, completedReps: Math.round(value) };
-                        return Reps.enforceCompletedSet(newSet);
-                      }),
-                    ]);
+                    updateProgress(
+                      props.dispatch,
+                      [
+                        props.lbSet.recordModify((set) => {
+                          const newSet = { ...set, completedReps: Math.round(value) };
+                          return Reps.enforceCompletedSet(newSet);
+                        }),
+                      ],
+                      "input-reps"
+                    );
                   }
                 }}
                 onBlur={(value) => {
-                  updateProgress(props.dispatch, [
-                    props.lbSet.recordModify((set) => {
-                      const newSet = { ...set, completedReps: value };
-                      return Reps.enforceCompletedSet(newSet);
-                    }),
-                  ]);
+                  updateProgress(
+                    props.dispatch,
+                    [
+                      props.lbSet.recordModify((set) => {
+                        const newSet = { ...set, completedReps: value };
+                        return Reps.enforceCompletedSet(newSet);
+                      }),
+                    ],
+                    "blur-reps"
+                  );
                 }}
                 placeholder={placeholderReps}
                 initialValue={set.reps}
@@ -148,22 +156,30 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 data-cy="weight-value"
                 onBlur={(value) => {
                   if (value == null || value.unit !== "%") {
-                    updateProgress(props.dispatch, [
-                      props.lbSet.recordModify((set) => {
-                        const newSet = { ...set, completedWeight: value };
-                        return Reps.enforceCompletedSet(newSet);
-                      }),
-                    ]);
+                    updateProgress(
+                      props.dispatch,
+                      [
+                        props.lbSet.recordModify((set) => {
+                          const newSet = { ...set, completedWeight: value };
+                          return Reps.enforceCompletedSet(newSet);
+                        }),
+                      ],
+                      "blur-weight"
+                    );
                   }
                 }}
                 onInput={(value) => {
                   if (value != null && value.unit !== "%") {
-                    updateProgress(props.dispatch, [
-                      props.lbSet.recordModify((set) => {
-                        const newSet = { ...set, completedWeight: value };
-                        return Reps.enforceCompletedSet(newSet);
-                      }),
-                    ]);
+                    updateProgress(
+                      props.dispatch,
+                      [
+                        props.lbSet.recordModify((set) => {
+                          const newSet = { ...set, completedWeight: value };
+                          return Reps.enforceCompletedSet(newSet);
+                        }),
+                      ],
+                      "input-weight"
+                    );
                   }
                 }}
                 addOn={
@@ -255,12 +271,16 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 tabIndex={-1}
                 onClick={() => {
                   close();
-                  updateProgress(props.dispatch, [
-                    props.lbSets.recordModify((s) => {
-                      const newSets = CollectionUtils.removeAt(s, props.setIndex);
-                      return newSets;
-                    }),
-                  ]);
+                  updateProgress(
+                    props.dispatch,
+                    [
+                      props.lbSets.recordModify((s) => {
+                        const newSets = CollectionUtils.removeAt(s, props.setIndex);
+                        return newSets;
+                      }),
+                    ],
+                    "delete-set"
+                  );
                 }}
                 className="flex-1 h-full text-white bg-redv3-600 nm-workout-exercise-set-delete"
               >

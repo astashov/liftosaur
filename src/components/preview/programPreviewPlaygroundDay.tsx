@@ -144,6 +144,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
           dispatch({
             type: "UpdateProgress",
             lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
+            desc: "close-bottomsheet-target",
           });
         }}
       />
@@ -153,6 +154,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
             dispatch({
               type: "UpdateProgress",
               lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editModal").record(undefined)],
+              desc: "close-playground-exercise-edit-modal",
             })
           }
           onEditStateVariable={(stateKey, newValue) => {
@@ -216,9 +218,11 @@ function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Elemen
           return (
             <WorkoutExerciseThumbnail
               onClick={() => {
-                updateProgress(props.dispatch, [
-                  lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex),
-                ]);
+                updateProgress(
+                  props.dispatch,
+                  [lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex)],
+                  "click-exercise-tab"
+                );
               }}
               shouldShowProgress={props.isPlayground}
               selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}

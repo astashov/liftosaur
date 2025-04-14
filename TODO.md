@@ -47,7 +47,6 @@ User debug page:
 
 * warmups
 * templates
-* initial/completed number of sets
 
 
 * Previous sets ignore empty exercises

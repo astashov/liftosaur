@@ -280,6 +280,7 @@ export type IApplyProgramChangesToProgress = {
 export type IUpdateProgressAction = {
   type: "UpdateProgress";
   lensRecordings: ILensRecordingPayload<IHistoryRecord>[];
+  desc?: string;
 };
 
 export type ICardsAction =
