@@ -678,7 +678,9 @@ This is the list of available variables you can get values from in your `progres
 - `day` - current day number, starting from 1.
 - `week` - for multi-week programs - current week number, starting from 1.
 - `dayInWeek` - current index of day in week, starting from 1.
-- `numberOfSets` or `ns` - how many sets were in the exercise.
+- `programNumberOfSets` - how many sets was prescribed by a program.
+- `numberOfSets` or `ns` - how many sets were in the exercise (could be changed by adding/removing sets during workout).
+- `completedNumberOfSets` - how many sets are completed (by a checkmark).
 - `setVariationIndex` - current set variation index (see below about set variations)
 - `descriptionIndex` - current description index
 
@@ -881,7 +883,9 @@ So, the list of variables you can get values from is pretty much the same:
 - `day`
 - `week`
 - `dayInWeek`
+- `programNumberOfSets`
 - `numberOfSets`
+- `completedNumberOfSets`
 - `setVariationIndex`
 - `descriptionIndex`
 - `setIndex` - index of a set that was tapped (it's 0 for the initial run - before completing any sets)
@@ -942,7 +946,7 @@ You can specify both `update: custom()` and any `progress: ` within the same exe
 
 ### Number of sets
 
-To do do number-of-sets-based progressions, you can use `numberOfSets` variable in your `progress` scripts, similar to how you could do it in the `update` scripts. E.g. this is how you could setup a set-based double progression (which would increase sets from 3 to 5, and then would increase weight and reset sets back to 3):
+To do number-of-sets-based progressions, you can use `numberOfSets` variable in your `progress` scripts, similar to how you could do it in the `update` scripts. E.g. this is how you could setup a set-based double progression (which would increase sets from 3 to 5, and then would increase weight and reset sets back to 3):
 
 {% plannercode %}
 Squat / 3x8 / progress: custom() {~
@@ -1154,7 +1158,9 @@ You cannot assign values to them, but you can use their values. They are:
 - `day` - current day number, starting from 1.
 - `week` - for multi-week programs - current week number, starting from 1.
 - `dayInWeek` - current index of day in week, starting from 1.
+- `programNumberOfSets` - how many sets was prescribed by a program.
 - `numberOfSets` or `ns` - how many sets were in the exercise.
+- `completedNumberOfSets` - how many sets are completed (by a checkmark).
 - `setVariationIndex` - current set variation index (see below about set variations)
 - `descriptionIndex` - current description index
 

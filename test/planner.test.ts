@@ -126,6 +126,36 @@ Squat / 0x5 / 100lb / progress: custom() {~
 `);
   });
 
+  it("properly fills program, completed and current number of sets", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x8 / progress: custom(pns: 0, ns: 0, cns: 0) {~
+  state.pns = programNumberOfSets
+  state.ns = numberOfSets
+  state.cns = completedNumberOfSets
+~} / update: custom() {~
+  if (setIndex == 0) {
+    numberOfSets = 5
+  }
+~}`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[8, 8]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 3x8 / 78.6% / update: custom() {~
+  if (setIndex == 0) {
+    numberOfSets = 5
+  }
+~} / progress: custom(pns: 3, ns: 5, cns: 2) {~
+  state.pns = programNumberOfSets
+  state.ns = numberOfSets
+  state.cns = completedNumberOfSets
+~}
+
+
+`);
+  });
+
   it("configures all the new sets", () => {
     const programText = `# Week 1
 ## Day 1

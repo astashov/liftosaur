@@ -346,6 +346,8 @@ export class LiftoscriptEvaluator {
             "setVariationIndex",
             "descriptionIndex",
             "numberOfSets",
+            "programNumberOfSets",
+            "completedNumberOfSets",
           ];
           if (validNames.indexOf(name as keyof IScriptBindings) === -1) {
             this.error(`${name} is not an array variable`, nameNode);

@@ -1724,6 +1724,20 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20250413": {
+    title: <span>Add "programNumberOfSets" and "completedNumberOfSets" read-only variables</span>,
+    body: (
+      <ul>
+        <li>Those could be useful for number of sets-based progressions.</li>
+        <li>
+          Currently, there is <strong>numberOfSets</strong> variable, but it only shows how many sets currently in the
+          workout total. There's currently no way to read how many sets are in the program for that week/day, or how
+          many sets is currently completed.
+        </li>
+        <li>Those 2 new variables return that. You can use them both in the progress and update scripts.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

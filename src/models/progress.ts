@@ -61,7 +61,9 @@ export interface IScriptBindings {
   cr: (number | undefined)[];
   cw: (IWeight | undefined)[];
   ns: number;
+  programNumberOfSets: number;
   numberOfSets: number;
+  completedNumberOfSets: number;
   setVariationIndex: number;
   descriptionIndex: number;
   setIndex: number;
@@ -233,7 +235,9 @@ export namespace Progress {
       cr: [],
       cw: [],
       mr: [],
+      programNumberOfSets: 0,
       numberOfSets: 0,
+      completedNumberOfSets: 0,
       ns: 0,
       setVariationIndex: 1,
       descriptionIndex: 1,
@@ -246,6 +250,7 @@ export namespace Progress {
     dayData: IDayData,
     entry: IHistoryEntry,
     settings: ISettings,
+    programNumberOfSets: number,
     setIndex?: number,
     setVariationIndex?: number,
     descriptionIndex?: number
@@ -271,7 +276,9 @@ export namespace Progress {
     bindings.cw = bindings.completedWeights;
     bindings.mr = bindings.minReps;
     bindings.ns = entry.sets.length;
+    bindings.programNumberOfSets = programNumberOfSets;
     bindings.numberOfSets = entry.sets.length;
+    bindings.completedNumberOfSets = entry.sets.filter((s) => s.isCompleted).length;
     bindings.setIndex = setIndex ?? 1;
     bindings.setVariationIndex = setVariationIndex ?? 1;
     bindings.descriptionIndex = descriptionIndex ?? 1;
@@ -586,6 +593,7 @@ export namespace Progress {
       dayData,
       entry,
       settings,
+      programExercise.evaluatedSetVariations[setVariationIndex]?.sets.length ?? 0,
       setIndex + 1,
       setVariationIndex,
       descriptionIndex

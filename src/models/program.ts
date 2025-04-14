@@ -327,6 +327,7 @@ export namespace Program {
       dayData,
       entry,
       settings,
+      programExercise.evaluatedSetVariations[setVariationIndex]?.sets.length ?? 0,
       undefined,
       setVariationIndex + 1,
       descriptionIndex + 1
@@ -384,6 +385,7 @@ export namespace Program {
       dayData,
       entry,
       settings,
+      programExercise.evaluatedSetVariations[setVariationIndex]?.sets.length ?? 0,
       undefined,
       setVariationIndex + 1,
       descriptionIndex + 1
