@@ -68,7 +68,10 @@ export namespace EditProgram {
   }
 
   export function setName(dispatch: IDispatch, program: IProgram, name: string): void {
-    updateState(dispatch, [lb<IState>().p("storage").p("programs").findBy("id", program.id).p("name").record(name)]);
+    updateState(dispatch, [
+      lb<IState>().p("storage").p("programs").findBy("id", program.id).p("name").record(name),
+      lb<IState>().p("storage").p("programs").findBy("id", program.id).pi("planner").p("name").record(name),
+    ]);
   }
 
   export function setNextDay(dispatch: IDispatch, programId: string, nextDay: number): void {

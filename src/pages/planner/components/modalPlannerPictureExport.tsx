@@ -1,11 +1,11 @@
 import { h, JSX } from "preact";
 import { GroupHeader } from "../../../components/groupHeader";
 import { Modal } from "../../../components/modal";
-import { IPlannerProgram, ISettings } from "../../../types";
+import { IPlannerProgram, IProgram, ISettings } from "../../../types";
 import { IProgramShareOutputOptions, ProgramShareOutput } from "../../../components/programShareOutput";
 import { Button } from "../../../components/button";
 import * as htmlToImage from "html-to-image";
-import { Ref, useRef, useState } from "preact/hooks";
+import { Ref, useEffect, useRef, useState } from "preact/hooks";
 import { IconSpinner } from "../../../components/icons/iconSpinner";
 import { MenuItemEditable } from "../../../components/menuItemEditable";
 import { CollectionUtils } from "../../../utils/collection";
@@ -13,10 +13,14 @@ import { LinkButton } from "../../../components/linkButton";
 import { StringUtils } from "../../../utils/string";
 import { ImageShareUtils } from "../../../utils/imageshare";
 import { ScrollableTabs } from "../../../components/scrollableTabs";
+import { Program } from "../../../models/program";
 
 interface IModalPlannerPictureExportProps {
   settings: ISettings;
-  program: IPlannerProgram;
+  client: Window["fetch"];
+  program: IProgram;
+  isChanged: boolean;
+  url?: string;
   onClose: () => void;
 }
 
@@ -34,21 +38,34 @@ function getInitialDaysToShow(program: IPlannerProgram): number[] {
 
 export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps): JSX.Element {
   const sourceRef = useRef<HTMLDivElement>(null);
+  const planner = props.program.planner!;
+  const [url, setUrl] = useState(!props.isChanged && props.url ? props.url : undefined);
 
-  const initialDaysToShow = getInitialDaysToShow(props.program);
+  const initialDaysToShow = getInitialDaysToShow(planner);
   const [config, setConfig] = useState<IProgramShareOutputOptions>({
     showInfo: true,
     showDayDescription: true,
     showWeekDescription: true,
+    showQRCode: true,
     columns: 1,
     daysToShow: initialDaysToShow,
   });
+
+  useEffect(() => {
+    new Promise(async (resolve) => {
+      if (url == null) {
+        const url = await Program.toUrl(props.program, props.settings, props.client);
+        setUrl(url);
+        resolve(void 0);
+      }
+    });
+  }, []);
 
   return (
     <Modal shouldShowClose={true} onClose={props.onClose} noPaddings={true}>
       <div className="relative w-full h-px overflow-hidden">
         <div className="absolute" style={{ top: "9999px", left: "9999px" }}>
-          <ProgramShareOutput ref={sourceRef} settings={props.settings} program={props.program} options={config} />
+          <ProgramShareOutput ref={sourceRef} settings={props.settings} program={planner} options={config} url={url} />
         </div>
       </div>
       <div className="relative z-0 block px-4 pt-2 sm:hidden" style={{ minWidth: "20rem" }}>
@@ -60,7 +77,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
               children: (
                 <div>
                   <SettingsTab
-                    program={props.program}
+                    program={planner}
                     initialDaysToShow={initialDaysToShow}
                     sourceRef={sourceRef}
                     config={config}
@@ -73,7 +90,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
               label: "Preview",
               children: (
                 <div className="overflow-x-auto" style={{ marginLeft: "-1rem", marginRight: "-1rem" }}>
-                  <ProgramShareOutput settings={props.settings} program={props.program} options={config} />
+                  <ProgramShareOutput settings={props.settings} program={planner} options={config} url={url} />
                 </div>
               ),
             },
@@ -86,7 +103,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
           style={{ borderRadius: "0.5rem 0 0 0.5rem", minWidth: "16rem" }}
         >
           <SettingsTab
-            program={props.program}
+            program={planner}
             initialDaysToShow={initialDaysToShow}
             sourceRef={sourceRef}
             config={config}
@@ -98,7 +115,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
             <div className="px-4 py-2">
               <GroupHeader size="large" name="Preview" />
             </div>
-            <ProgramShareOutput settings={props.settings} program={props.program} options={config} />
+            <ProgramShareOutput settings={props.settings} program={planner} options={config} url={url} />
           </div>
         </div>
       </div>
@@ -181,6 +198,12 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
         type="boolean"
         value={config.showInfo ? "true" : "false"}
         onChange={(v) => setConfig({ ...config, showInfo: v === "true" })}
+      />
+      <MenuItemEditable
+        name="Include QR Code"
+        type="boolean"
+        value={config.showQRCode ? "true" : "false"}
+        onChange={(v) => setConfig({ ...config, showQRCode: v === "true" })}
       />
       <MenuItemEditable
         name="Include week descriptions"

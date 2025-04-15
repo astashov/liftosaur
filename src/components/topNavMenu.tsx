@@ -87,7 +87,7 @@ export function TopNavMenu(props: {
             </a>
           </div>
           <div className="flex flex-wrap items-center flex-1">
-            <ul className="flex-1 ml-2 font-bold whitespace-nowrap align-middle list-none">
+            <ul className="flex-1 ml-2 font-bold align-middle list-none whitespace-nowrap">
               {getMenuItemsList(!!props.account).map(([text, link]) => {
                 return (
                   <li className="inline-block mx-4 align-middle list-none">

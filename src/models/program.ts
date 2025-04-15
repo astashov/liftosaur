@@ -52,8 +52,12 @@ import { PP } from "./pp";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { CollectionUtils } from "../utils/collection";
 import { PlannerSyntaxError } from "../pages/planner/plannerExerciseEvaluator";
+import { UrlUtils } from "../utils/url";
+import { Service } from "../api/service";
 
 declare let __HOST__: string;
+
+const encodedProgramHashToShortUrl: Partial<Record<string, string>> = {};
 
 export interface IExportedProgram {
   program: IProgram;
@@ -1067,5 +1071,25 @@ export namespace Program {
       clonedAt: newProgram.clonedAt || oldProgram.clonedAt,
       planner: newProgram.planner,
     };
+  }
+
+  export async function toUrl(program: IProgram, settings: ISettings, client: Window["fetch"]): Promise<string> {
+    const exportProgram = Program.exportProgram(program, settings);
+    const baseUrl = UrlUtils.build(
+      "/planner",
+      typeof window !== "undefined" ? window.location.href : "https://www.liftosaur.com"
+    );
+    const json = JSON.stringify(exportProgram);
+    const hash = StringUtils.hashString(json);
+    const encodedUrl = await Encoder.encodeIntoUrl(json, baseUrl.toString());
+    const encodedProgramUrl = encodedUrl.toString();
+    if (encodedProgramHashToShortUrl[hash]) {
+      return encodedProgramHashToShortUrl[hash];
+    } else {
+      const service = new Service(client);
+      const shortUrl = await service.postShortUrl(encodedProgramUrl, "p");
+      encodedProgramHashToShortUrl[hash] = shortUrl;
+      return shortUrl;
+    }
   }
 }

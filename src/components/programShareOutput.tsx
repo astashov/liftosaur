@@ -10,12 +10,14 @@ import { IPlannerProgramExercise, IPlannerProgramExerciseSet } from "../pages/pl
 import { Markdown } from "./markdown";
 import { Weight } from "../models/weight";
 import { CollectionUtils } from "../utils/collection";
-import { forwardRef } from "preact/compat";
+import { forwardRef, useEffect, useRef } from "preact/compat";
+import { ProgramQrCode } from "./programQrCode";
 
 export interface IProgramShareOutputOptions {
   showInfo: boolean;
   showWeekDescription: boolean;
   showDayDescription: boolean;
+  showQRCode: boolean;
   columns: number;
   daysToShow: number[];
 }
@@ -24,6 +26,7 @@ interface IProgramShareOutputProps {
   settings: ISettings;
   program: IPlannerProgram;
   options: IProgramShareOutputOptions;
+  url?: string;
 }
 
 function Card(props: { children: ComponentChildren }): JSX.Element {
@@ -45,79 +48,115 @@ export const ProgramShareOutput = forwardRef(
     const { evaluatedWeeks } = PlannerProgram.evaluate(props.program, props.settings);
     const minDays = Math.min(...evaluatedWeeks.map((week) => week.length));
     const maxDays = Math.max(...evaluatedWeeks.map((week) => week.length));
+    const contentRef = useRef<HTMLDivElement>();
+    const titleRef = useRef<HTMLDivElement>();
     let dayIndex = 0;
 
+    useEffect(() => {
+      if (contentRef.current && titleRef.current) {
+        titleRef.current.style.width = `${contentRef.current.clientWidth}px`;
+      }
+    });
+
+    useEffect(() => {
+      const handleResize = () => {
+        if (contentRef.current && titleRef.current) {
+          titleRef.current.style.width = `${contentRef.current.clientWidth}px`;
+        }
+      };
+      window.addEventListener("resize", handleResize);
+      return () => {
+        window.removeEventListener("resize", handleResize);
+      };
+    }, []);
+
     return (
-      <div className="p-2 bg-grayv2-50" style={{ width: "max-content" }} ref={ref}>
-        {options.showInfo && (
-          <div className="flex items-center gap-2 px-1 py-2">
-            <div className="text-5xl">🏋️</div>
-            <div className="flex-1">
-              <div className="mb-1 text-xl font-bold">{props.program.name}</div>
-              <div className="text-base text-grayv2-main">
-                {props.program.weeks.length > 1 && <span>{props.program.weeks.length} weeks, </span>}
-                {minDays === maxDays ? (
-                  <span>
-                    {minDays} {StringUtils.pluralize("day", minDays)}
-                  </span>
-                ) : (
-                  <span>
-                    {minDays}-{maxDays} days
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-        {props.program.weeks.map((week, weekIndex) => {
-          let dayInWeekIndex = 0;
-          const visibleDays = week.days.filter((day) => {
-            const result = options.daysToShow.includes(dayIndex);
-            dayIndex += 1;
-            return result;
-          });
-          const groupedDays = CollectionUtils.inGroupsOf(options.columns, visibleDays);
-          return (
-            <div style={{ width: "max-content" }}>
-              {options.showWeekDescription && week.description && visibleDays.length > 0 && (
-                <div className="mt-2">
-                  <Card>
-                    <div className="px-4 pt-1 text-sm">
-                      <Markdown value={week.description} />
-                    </div>
-                  </Card>
-                </div>
-              )}
-              {groupedDays.map((days) => {
-                return (
-                  <div className="flex gap-2">
-                    {days.map((day) => {
-                      const evaluatedDay = evaluatedWeeks[weekIndex][dayInWeekIndex];
-                      if (!evaluatedDay.success) {
-                        return <div />;
-                      }
-                      const data = evaluatedDay.data;
-                      const item = (
-                        <div className="mt-2" style={{ width: "24rem" }}>
-                          <Workout
-                            isMultiweek={props.program.weeks.length > 1}
-                            week={week}
-                            day={day}
-                            exercises={data.filter((e) => !e.notused)}
-                            settings={props.settings}
-                            options={props.options}
-                          />
-                        </div>
-                      );
-                      dayInWeekIndex += 1;
-                      return item;
-                    })}
+      <div ref={ref}>
+        <div className="flex gap-2 px-2 pt-2 bg-grayv2-50" ref={titleRef}>
+          <div className="flex-1">
+            {options.showInfo && (
+              <div className="flex items-center gap-2 px-1 pt-2">
+                <div className="text-5xl">🏋️</div>
+                <div className="flex-1">
+                  <div className="mb-1 text-xl font-bold">{props.program.name}</div>
+                  <div className="text-base text-grayv2-main">
+                    {props.program.weeks.length > 1 && <span>{props.program.weeks.length} weeks, </span>}
+                    {minDays === maxDays ? (
+                      <span>
+                        {minDays} {StringUtils.pluralize("day", minDays)}
+                      </span>
+                    ) : (
+                      <span>
+                        {minDays}-{maxDays} days
+                      </span>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          );
-        })}
+                </div>
+              </div>
+            )}
+          </div>
+          {props.url && options.showQRCode && <ProgramQrCode url={props.url} size="5rem" />}
+        </div>
+        <div className="p-2 bg-grayv2-50" ref={contentRef} style={{ width: "max-content" }}>
+          {props.program.weeks.map((week, weekIndex) => {
+            let dayInWeekIndex = 0;
+            const visibleDays = week.days.filter((day) => {
+              const result = options.daysToShow.includes(dayIndex);
+              dayIndex += 1;
+              return result;
+            });
+            const groupedDays = CollectionUtils.inGroupsOf(options.columns, visibleDays);
+            return (
+              <div style={{ width: "max-content" }}>
+                {options.showWeekDescription && week.description && visibleDays.length > 0 && (
+                  <div className="mt-2">
+                    <Card>
+                      <div className="px-4 pt-1 text-sm">
+                        <Markdown value={week.description} />
+                      </div>
+                    </Card>
+                  </div>
+                )}
+                {groupedDays.map((days) => {
+                  return (
+                    <div className="flex gap-2">
+                      {days.map((day) => {
+                        const evaluatedDay = evaluatedWeeks[weekIndex][dayInWeekIndex];
+                        if (!evaluatedDay.success) {
+                          return <div />;
+                        }
+                        const data = evaluatedDay.data;
+                        const item = (
+                          <div className="mt-2" style={{ width: "24rem" }}>
+                            <Workout
+                              isMultiweek={props.program.weeks.length > 1}
+                              week={week}
+                              day={day}
+                              exercises={data.filter((e) => !e.notused)}
+                              settings={props.settings}
+                              options={props.options}
+                            />
+                          </div>
+                        );
+                        dayInWeekIndex += 1;
+                        return item;
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+          <div className="mt-1 text-sm text-right">
+            <img
+              className="inline mr-1 align-middle"
+              style={{ width: "2em", height: "2em" }}
+              src="/images/logo.svg"
+              alt="Liftosaur Logo"
+            />
+            <span className="font-bold align-middle">Liftosaur</span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -286,12 +325,12 @@ function Progression(props: IProgressionProps): JSX.Element | null {
               after <span className="font-bold text-greenv2-main">{type.successesRequired}</span> successes
             </span>
           )}
-          {type.decrease != null && (
+          {type.decrease != null && type.decrease.value > 0 && (
             <span>
               , <span className="font-bold text-redv2-main">{Weight.print(type.decrease)}</span>
             </span>
           )}
-          {(type.failuresRequired || 0 > 1) && (
+          {type.decrease != null && type.decrease.value > 0 && (type.failuresRequired || 0) > 1 && (
             <span>
               {" "}
               after <span className="font-bold text-redv2-main">{type.failuresRequired}</span> failures
@@ -303,9 +342,8 @@ function Progression(props: IProgressionProps): JSX.Element | null {
     case "double":
       return (
         <div>
-          Double Progression: <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span>
-          within <span className="font-bold">{type.minReps}</span>-<span className="font-bold">{type.maxReps}</span> rep
-          range.
+          Double Progression: <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span> within{" "}
+          <span className="font-bold">{type.minReps}</span>-<span className="font-bold">{type.maxReps}</span> rep range.
         </div>
       );
     case "sumreps":

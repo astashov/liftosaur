@@ -81,6 +81,18 @@ function isChanged(state: IPlannerState): boolean {
   );
 }
 
+function getCurrentUrl(): string | undefined {
+  if (typeof window !== "undefined") {
+    const url = UrlUtils.build(window.location.href);
+    if (/p\/[a-z0-9]+/.test(url.pathname)) {
+      url.search = "";
+      url.hash = "";
+      return url.toString();
+    }
+  }
+  return undefined;
+}
+
 export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const service = new Service(props.client);
   const initialDay: IPlannerProgramDay = {
@@ -469,7 +481,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             </a>
           </div>
           <div className="text-right">
-            <ProgramQrCode url={showClipboardInfo} />
+            <ProgramQrCode url={showClipboardInfo} title="Scan this QR to open that link:" />
           </div>
         </>
       )}
@@ -664,8 +676,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       )}
       {state.ui.showPictureExport && (
         <ModalPlannerPictureExport
+          isChanged={isChanged(state)}
+          client={props.client}
+          url={showClipboardInfo ?? getCurrentUrl()}
           settings={settings}
-          program={planner}
+          program={program}
           onClose={() => dispatch(lb<IPlannerState>().p("ui").p("showPictureExport").record(false))}
         />
       )}

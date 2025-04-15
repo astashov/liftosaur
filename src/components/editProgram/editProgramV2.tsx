@@ -154,7 +154,9 @@ export function EditProgramV2(props: IProps): JSX.Element {
           {shouldShowGenerateImageModal && (
             <ModalPlannerPictureExport
               settings={props.settings}
-              program={planner}
+              client={props.client}
+              isChanged={false}
+              program={plannerState.current.program}
               onClose={() => {
                 setShouldShowGenerateImageModal(false);
               }}
@@ -470,7 +472,10 @@ export function EditProgramV2(props: IProps): JSX.Element {
             onChange={(newValue) => {
               if (newValue) {
                 EditProgram.setName(props.dispatch, props.editProgram, newValue);
-                plannerDispatch(lb<IPlannerState>().p("current").p("program").p("name").record(newValue));
+                plannerDispatch([
+                  lb<IPlannerState>().p("current").p("program").p("name").record(newValue),
+                  lb<IPlannerState>().p("current").p("program").pi("planner").p("name").record(newValue),
+                ]);
               }
             }}
           />
