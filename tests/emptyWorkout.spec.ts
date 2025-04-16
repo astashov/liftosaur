@@ -15,6 +15,15 @@ test("Empty Workout", async ({ page }) => {
   await page.getByTestId("menu-item-bench-press-barbell").click();
 
   await page.getByTestId("add-workout-set").click();
+
+  await PlaywrightUtils.swipeLeft(page, page.getByTestId("entry-bench-press").getByTestId("workout-set-target"));
+  await page.getByTestId("entry-bench-press").getByTestId("edit-set-target").click();
+
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-target-maxreps-field"), "5");
+  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-target-weight-field"), "80");
+
+  await page.getByTestId("edit-set-target-save").click();
+
   await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(0), "7");
   await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(0), "100");
 
@@ -57,7 +66,14 @@ test("Empty Workout", async ({ page }) => {
       .nth(1)
       .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-sets-completed]")
       .first()
-  ).toHaveText("2 × 7 × 100lb");
+  ).toHaveText("7 × 100lb");
+  await expect(
+    page
+      .getByTestId("history-record")
+      .nth(1)
+      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-sets-completed]")
+      .nth(1)
+  ).toHaveText("5 × 80lb");
   await expect(
     page
       .getByTestId("history-record")

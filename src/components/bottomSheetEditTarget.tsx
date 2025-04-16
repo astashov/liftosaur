@@ -44,7 +44,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
             <div className="mr-2">
               <InputNumber2
                 width={2.5}
-                name="target-input-set-target-minreps"
+                name="target-minreps"
                 onBlur={(value) =>
                   updateProgress(props.dispatch, [lbSet.p("minReps").record(value)], "target-blur-minreps")
                 }
@@ -63,7 +63,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
             <div className="mr-3">
               <InputNumber2
                 width={2.5}
-                name="target-input-set-target-maxreps"
+                name="target-maxreps"
                 onBlur={(value) =>
                   updateProgress(props.dispatch, [lbSet.p("reps").record(value ?? 1)], "target-blur-maxreps")
                 }
@@ -83,7 +83,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 <span className="text-xs">AMRAP? </span>
                 <input
                   checked={set.isAmrap}
-                  data-cy="edit-exercise-set-group-amrap"
+                  data-cy="edit-target-amrap"
                   className="block align-middle checkbox text-bluev2"
                   type="checkbox"
                   onChange={(e) => {
@@ -101,7 +101,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
           <div className="flex items-center gap-2">
             <div className="flex items-center mr-3">
               <InputWeight2
-                name="edit-exercise-set-weight"
+                name="target-weight"
                 subscription={props.subscription}
                 exerciseType={props.editSetModal.exerciseType}
                 onBlur={(value) => {
@@ -133,7 +133,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 <span className="text-xs">Ask? </span>
                 <input
                   checked={set.askWeight}
-                  data-cy="edit-exercise-set-group-amrap"
+                  data-cy="edit-target-ask-weight"
                   className="block align-middle checkbox text-bluev2"
                   type="checkbox"
                   onChange={(e) => {
@@ -169,7 +169,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 <InputNumber2
                   allowDot={true}
                   width={2.5}
-                  name="target-input-set-target-rpe"
+                  name="target-rpe"
                   onBlur={(value) => updateProgress(props.dispatch, [lbSet.p("rpe").record(value)], "target-blur-rpe")}
                   onInput={(value) => {
                     if (value != null && !isNaN(value) && value >= 0) {
@@ -187,7 +187,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   <span className="text-xs">Log? </span>
                   <input
                     checked={set.logRpe}
-                    data-cy="edit-exercise-set-group-amrap"
+                    data-cy="edit-target-log-rpe"
                     className="block align-middle checkbox text-bluev2"
                     type="checkbox"
                     onChange={(e) => {
@@ -224,7 +224,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
               <div className="flex items-center mr-3">
                 <InputNumber2
                   width={2.5}
-                  name="target-input-set-target-timer"
+                  name="target-timer"
                   onBlur={(value) =>
                     updateProgress(props.dispatch, [lbSet.p("timer").record(value)], "target-blur-timer")
                   }
@@ -253,6 +253,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
         <Button
           kind="purple"
           name="edit-set-target-save"
+          data-cy="edit-set-target-save"
           className="w-full"
           onClick={() => {
             const evaluatedWeight = Weight.evaluateWeight(

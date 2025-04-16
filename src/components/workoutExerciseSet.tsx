@@ -48,7 +48,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const isPlaywright = Mobile.isPlaywrightFromWindow();
   const shouldUseTouch = isMobile && !isPlaywright;
   const borderClass = ` border-b border-purplev3-150`;
-  const hasEdit = props.type === "workout" && props.programExercise != null;
+  const hasEdit = props.type === "workout";
 
   return (
     <SwipeableRow
@@ -323,13 +323,13 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
         </span>
       );
     case "adhoc":
-      return <span className="inline-block text-xs break-all text-grayv3-main">Ad-hoc</span>;
     case "program": {
       const set = props.set;
       const isDiffWeight = set.weight && set.originalWeight && !Weight.eq(set.weight, set.originalWeight);
       return (
         <div className="inline-block text-sm align-middle">
           {set.label ? <div className="text-xs text-grayv3-main">{set.label}</div> : null}
+          {props.setType === "adhoc" && <div className="text-xs text-grayv3-main">Ad-hoc</div>}
           <div>
             <span className="font-semibold" style={{ color: "#940" }}>
               {set.minReps != null ? `${n(Math.max(0, set.minReps))}-` : null}
@@ -364,7 +364,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
               <span>
                 <span> </span>
                 <span style={{ color: "#708" }}>
-                  <span className="font-bold">{n(set.timer)}</span>
+                  <span>{n(set.timer)}</span>
                   <span className="text-xs">s</span>
                 </span>
               </span>
