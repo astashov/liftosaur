@@ -322,7 +322,7 @@ export namespace History {
       fn: (acc, hr) => {
         const time = hr.endTime ?? hr.startTime;
         if (time < startTime && (acc.timestamp == null || time > acc.timestamp)) {
-          const entry = hr.entries.find((e) => Exercise.eq(e.exercise, exerciseType));
+          const entry = hr.entries.find((e) => Exercise.eq(e.exercise, exerciseType) && Reps.isStarted(e.sets));
           if (entry) {
             acc = { lastHistoryEntry: entry, lastHistoryRecord: hr, timestamp: time };
           }

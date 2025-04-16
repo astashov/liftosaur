@@ -33,6 +33,8 @@ interface IWorkoutExerciseAllSets {
   entry: IHistoryEntry;
   entryIndex: number;
   lastSets?: ISet[];
+  helps?: string[];
+  onStopShowingHint?: () => void;
   onTargetClick?: () => void;
   subscription?: ISubscription;
   userPromptedStateVars?: IProgramState;
@@ -111,6 +113,8 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
                 isCurrentProgress={props.isCurrentProgress}
                 type="workout"
                 key={`workout-${set.id}-${i}`}
+                onStopShowingHint={props.onStopShowingHint}
+                helps={props.helps}
                 isNext={nextSetIndex - warmupSets.length === i}
                 programExercise={props.programExercise}
                 day={props.day}
@@ -168,7 +172,15 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             onClick={() => {
               updateProgress(
                 props.dispatch,
-                [props.lbSets.recordModify((sets) => Reps.addSet(sets, props.settings.units))],
+                [
+                  props.lbSets.recordModify((sets) =>
+                    Reps.addSet(
+                      sets,
+                      props.settings.units,
+                      props.lastSets ? props.lastSets[props.lastSets.length - 1] : undefined
+                    )
+                  ),
+                ],
                 "add-set"
               );
             }}

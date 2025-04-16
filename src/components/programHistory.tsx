@@ -85,7 +85,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       history.unshift(nextHistoryRecord);
     }
     return history;
-  }, [props.history, props.progress]);
+  }, [props.history, props.progress, props.program, props.settings]);
   const surfaceRef = useRef<HTMLElement>(null);
   const screenData = Screen.current(props.navCommon.screenStack);
   const initialHistoryRecordId = screenData.name === "main" ? screenData.params?.historyRecordId : undefined;

@@ -19,10 +19,17 @@ export namespace Reps {
     }
   }
 
-  export function addSet(sets: ISet[], unit: IUnit): ISet[] {
-    let lastSet: ISet = sets[sets.length - 1];
+  export function addSet(sets: ISet[], unit: IUnit, lastSet?: ISet): ISet[] {
+    lastSet = lastSet || sets[sets.length - 1];
     if (lastSet == null) {
       lastSet = newSet(unit);
+    } else {
+      lastSet = {
+        ...ObjectUtils.clone(lastSet),
+        completedReps: undefined,
+        completedWeight: undefined,
+        completedRpe: undefined,
+      };
     }
 
     return [...sets, { ...ObjectUtils.clone(lastSet), id: UidFactory.generateUid(6), isCompleted: false }];
@@ -101,6 +108,10 @@ export namespace Reps {
     } else {
       return false;
     }
+  }
+
+  export function isStarted(sets: ISet[]): boolean {
+    return sets.length > 0 && sets.some((s) => isFinishedSet(s));
   }
 
   export function isFinished(sets: ISet[]): boolean {

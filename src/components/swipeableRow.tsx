@@ -7,14 +7,16 @@ interface ISwipeableRowProps {
     onPointerDown: (event: TouchEvent | PointerEvent) => void;
     onPointerMove: (event: TouchEvent | PointerEvent) => void;
     onPointerUp: () => void;
-    style: { transform: string; transition: string };
+    style: JSX.CSSProperties;
     close: () => void;
   }) => JSX.Element;
   width: number;
+  onPointerDown?: () => void;
   openThreshold: number;
   closeThreshold: number;
   initiateTreshold: number;
   scrollThreshold: number;
+  showHint?: boolean;
 }
 
 export function SwipeableRow(props: ISwipeableRowProps) {
@@ -29,6 +31,9 @@ export function SwipeableRow(props: ISwipeableRowProps) {
   const isOpen = useRef(false);
 
   const handlePointerDown = (event: TouchEvent | PointerEvent) => {
+    if (props.onPointerDown) {
+      props.onPointerDown();
+    }
     const workoutExerciseScroller = document.querySelector("#workout-exercise-scroller") as HTMLElement | null;
     if (workoutExerciseScroller) {
       workoutExerciseScroller.style.overflowX = "hidden";
@@ -95,7 +100,8 @@ export function SwipeableRow(props: ISwipeableRowProps) {
     onPointerMove: handlePointerMove,
     onPointerUp: handlePointerUp,
     style: {
-      transform: `translateX(${translateX}px)`,
+      animation: props.showHint ? "swipeable-row-hint 3s ease-in-out infinite" : undefined,
+      transform: !props.showHint ? `translateX(${translateX}px)` : undefined,
       transition: isDragging.current ? "none" : "transform 0.3s ease-in-out",
     },
     close,

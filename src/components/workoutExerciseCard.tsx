@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, ISubscription, IWeight } from "../types";
-import { updateProgress, updateSettings } from "../models/state";
+import { IState, updateProgress, updateSettings, updateState } from "../models/state";
 import { lb } from "lens-shmens";
 import { ExerciseImage } from "./exerciseImage";
 import { Exercise } from "../models/exercise";
@@ -282,6 +282,17 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
       )}
       <div className="mt-1">
         <WorkoutExerciseAllSets
+          helps={props.helps}
+          onStopShowingHint={() => {
+            if (!props.helps.includes("swipeable-set")) {
+              updateState(props.dispatch, [
+                lb<IState>()
+                  .p("storage")
+                  .p("helps")
+                  .recordModify((helps) => Array.from(new Set([...helps, "swipeable-set"]))),
+              ]);
+            }
+          }}
           isCurrentProgress={Progress.isCurrent(props.progress)}
           day={props.day}
           program={props.program}

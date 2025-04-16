@@ -27,6 +27,8 @@ interface IWorkoutExerciseSet {
   isCurrentProgress: boolean;
   lastSet?: ISet;
   set: ISet;
+  helps?: string[];
+  onStopShowingHint?: () => void;
   isNext?: boolean;
   subscription?: ISubscription;
   entryIndex: number;
@@ -50,11 +52,13 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
 
   return (
     <SwipeableRow
+      showHint={props.setIndex === 0 && props.helps && !props.helps.includes("swipeable-set")}
       width={hasEdit ? 128 : 64}
       openThreshold={hasEdit ? 30 : 15}
       closeThreshold={hasEdit ? 110 : 55}
       scrollThreshold={7}
       initiateTreshold={15}
+      onPointerDown={props.onStopShowingHint}
     >
       {({ onPointerDown, onPointerMove, onPointerUp, style, close }) => (
         <div

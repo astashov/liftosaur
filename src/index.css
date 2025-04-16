@@ -455,6 +455,33 @@ iframe#exercise-youtube-player {
   text-align: left;
 }
 
+@keyframes swipeable-row-hint {
+  0% {
+    transform: translateX(0px);
+  }
+  5% {
+    transform: translateX(-80px);
+  }
+  10% {
+    transform: translateX(0px);
+  }
+  15% {
+    transform: translateX(-30px);
+  }
+  20% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  30% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(0px);
+  }
+}
+
 @keyframes shiny-border {
   0%,
   100% {
