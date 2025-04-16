@@ -13,10 +13,20 @@ import { BottomSheetNextWorkout } from "./bottomSheetNextWorkout";
 import { INavCommon } from "../models/state";
 import { IconBarbell2 } from "./icons/iconBarbell2";
 import { ObjectUtils } from "../utils/object";
+import { Program } from "../models/program";
 
 interface IFooterProps {
   dispatch: IDispatch;
   navCommon: INavCommon;
+}
+
+function getHasErrorsInProgram(navCommon: INavCommon): boolean {
+  const program = navCommon.currentProgram;
+  if (!program) {
+    return false;
+  }
+  const evaluatedProgram = Program.evaluate(program, navCommon.settings);
+  return evaluatedProgram.errors.length > 0;
 }
 
 export function Footer2View(props: IFooterProps): JSX.Element {
@@ -28,6 +38,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
   const isUserLoading = ObjectUtils.values(props.navCommon.loading.items).some(
     (i) => i?.type === "fetchStorage" && !i.endTime
   );
+  const hasErrorsInProgram = getHasErrorsInProgram(props.navCommon);
   return (
     <>
       <div
@@ -61,6 +72,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               name="program"
               screen={screen}
               icon={(isActive) => <IconDoc2 className="inline-block" isSelected={isActive} />}
+              hasDot={hasErrorsInProgram}
               text="Program"
               onClick={() => {
                 props.dispatch(Thunk.pushToEditProgram());

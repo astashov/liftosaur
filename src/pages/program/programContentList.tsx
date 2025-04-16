@@ -200,23 +200,19 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
           isHidden={!showCreateProgramModal}
           isLoading={isCreating}
           onClose={() => setShowCreateProgramModal(false)}
-          onSelect={async (name, isV2) => {
-            if (isV2) {
-              const newProgram = {
-                ...Program.create(name),
-                planner: {
-                  name,
-                  weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
-                },
-              };
-              setIsCreating(true);
-              try {
-                await saveProgram(newProgram, props.service);
-              } finally {
-                setIsCreating(false);
-              }
-            } else {
-              dispatch({ type: "CreateProgramAction", name });
+          onSelect={async (name) => {
+            const newProgram = {
+              ...Program.create(name),
+              planner: {
+                name,
+                weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
+              },
+            };
+            setIsCreating(true);
+            try {
+              await saveProgram(newProgram, props.service);
+            } finally {
+              setIsCreating(false);
             }
             setShowCreateProgramModal(false);
           }}

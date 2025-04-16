@@ -10,6 +10,7 @@ interface IProps {
   preautofocus?: [RefObject<HTMLElement>, (el: HTMLElement) => void][];
   isHidden?: boolean;
   isFullWidth?: boolean;
+  isFullHeight?: boolean;
   noPaddings?: boolean;
   shouldShowClose?: boolean;
   overflowHidden?: boolean;
@@ -71,6 +72,7 @@ export function Modal(props: IProps): JSX.Element {
           maxWidth: props.maxWidth ?? "92%",
           maxHeight: "90%",
           width: props.isFullWidth ? "92%" : "auto",
+          height: props.isFullHeight ? "90%" : "auto",
           ...props.style,
         }}
       >

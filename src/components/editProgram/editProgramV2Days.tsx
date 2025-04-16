@@ -255,6 +255,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
                       <div className="pb-8">
                         <LinkButton
                           name="planner-add-day"
+                          className="text-sm"
                           data-cy="planner-add-day"
                           onClick={() => {
                             plannerDispatch(

@@ -87,6 +87,7 @@ export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps):
         <LinkButton
           name="add-exercise"
           data-cy="add-exercise"
+          className="text-sm"
           onClick={() => {
             props.plannerDispatch(
               lb<IPlannerState>()

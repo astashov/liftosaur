@@ -19,17 +19,25 @@ export namespace Reps {
     }
   }
 
-  export function addSet(sets: ISet[], unit: IUnit, lastSet?: ISet): ISet[] {
+  export function addSet(sets: ISet[], unit: IUnit, lastSet?: ISet, isWarmup?: boolean): ISet[] {
     lastSet = lastSet || sets[sets.length - 1];
     if (lastSet == null) {
       lastSet = newSet(unit);
     } else {
-      lastSet = {
-        ...ObjectUtils.clone(lastSet),
-        completedReps: undefined,
-        completedWeight: undefined,
-        completedRpe: undefined,
-      };
+      if (isWarmup) {
+        lastSet = {
+          ...ObjectUtils.clone(lastSet),
+          reps: lastSet.completedReps ?? lastSet.reps,
+          weight: lastSet.completedWeight ?? lastSet.weight,
+        };
+      } else {
+        lastSet = {
+          ...ObjectUtils.clone(lastSet),
+          completedReps: undefined,
+          completedWeight: undefined,
+          completedRpe: undefined,
+        };
+      }
     }
 
     return [...sets, { ...ObjectUtils.clone(lastSet), id: UidFactory.generateUid(6), isCompleted: false }];

@@ -35,6 +35,7 @@ interface IScreenWorkoutProps {
   progress: IHistoryRecord;
   history: IHistoryRecord[];
   program?: IProgram;
+  allPrograms: IProgram[];
   settings: ISettings;
   userId?: string;
   helps: string[];
@@ -303,6 +304,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
         <Workout
           setIsShareShown={setIsShareShown}
           surfaceRef={surfaceRef}
+          allPrograms={props.allPrograms}
           forceUpdateEntryIndex={forceUpdateEntryIndex}
           setForceUpdateEntryIndex={() => setForceUpdateEntryIndex(!forceUpdateEntryIndex)}
           subscription={props.subscription}

@@ -1,6 +1,6 @@
 // import util from "util";
 import { SyntaxNode } from "@lezer/common";
-import { Exercise, equipmentName } from "../../models/exercise";
+import { Exercise } from "../../models/exercise";
 import { CollectionUtils } from "../../utils/collection";
 import { parser as plannerExerciseParser } from "./plannerExerciseParser";
 import { IEither } from "../../utils/types";
@@ -26,6 +26,7 @@ import { MathUtils } from "../../utils/math";
 import { PlannerKey } from "./plannerKey";
 import { UidFactory } from "../../utils/generator";
 import { ObjectUtils } from "../../utils/object";
+import { PlannerProgramExercise } from "./models/plannerProgramExercise";
 
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
@@ -971,7 +972,7 @@ if (completedReps >= reps && completedRPE <= RPE) {
       // eslint-disable-next-line prefer-const
       let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings);
       const key = PlannerKey.fromFullName(fullName, this.settings);
-      const shortName = `${name}${equipment ? `, ${equipmentName(equipment)}` : ""}`;
+      const shortName = PlannerProgramExercise.shortNameFromFullName(fullName, this.settings);
       const exercise = Exercise.findByNameAndEquipment(shortName, this.settings.exercises);
       let notused = this.getIsNotUsed(expr);
       const sectionNodes = expr.getChildren(PlannerNodeName.ExerciseSection);

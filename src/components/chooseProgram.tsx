@@ -63,12 +63,8 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           <ModalCreateProgram
             isHidden={!shouldCreateProgram}
             onClose={() => setShouldCreateProgram(false)}
-            onSelect={(name, isV2) => {
-              if (isV2) {
-                EditProgram.createExperimental(props.dispatch, name);
-              } else {
-                props.dispatch({ type: "CreateProgramAction", name });
-              }
+            onSelect={(name) => {
+              EditProgram.createExperimental(props.dispatch, name);
             }}
           />
           <ModalImportFromLink

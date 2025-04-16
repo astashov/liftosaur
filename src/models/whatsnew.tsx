@@ -1738,6 +1738,26 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20250417": {
+    title: <span>Add a way to create program days from Ad-hoc workouts</span>,
+    body: (
+      <ul>
+        <li>
+          If you did an ad-hoc workout, you may want to create a program day from it (either in a new or existing
+          program) - so you could do it again, or incorporate it into your programs.
+        </li>
+        <li>
+          It also lowers the barrier for creating programs - you don't have to create programs upfront, you can build
+          them over time iteratively. You do ad-hoc workouts, then create program days from it, slap some progression
+          logic on top of it, and you're good to go.
+        </li>
+        <li>
+          You can do that either after finishing the workout - from the congratulations screen, or if you tap on the
+          past workout on Home screen.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

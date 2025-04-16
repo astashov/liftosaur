@@ -1,10 +1,10 @@
 import { h, JSX, RefObject, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IHistoryRecord, ISettings, ISubscription } from "../types";
+import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
 import { Thunk } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
-import { IEvaluatedProgram, IEvaluatedProgramDay, Program } from "../models/program";
+import { emptyProgramId, IEvaluatedProgram, IEvaluatedProgramDay, Program } from "../models/program";
 import { lb } from "lens-shmens";
 import { EditProgram } from "../models/editProgram";
 import { ButtonIcon } from "./buttonIcon";
@@ -21,12 +21,15 @@ import { Markdown } from "./markdown";
 import { DraggableList } from "./draggableList";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "./linkButton";
+import { Button } from "./button";
+import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
   surfaceRef: RefObject<HTMLElement>;
   setIsShareShown: (value: boolean) => void;
   progress: IHistoryRecord;
+  allPrograms: IProgram[];
   program?: IEvaluatedProgram;
   programDay?: IEvaluatedProgramDay;
   helps: string[];
@@ -42,6 +45,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
   const selectedEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const description = props.programDay?.description;
   const screensRef = useRef<HTMLDivElement>();
+  const [isConvertToProgramShown, setIsConvertToProgramShown] = useState(false);
 
   useEffect(() => {
     screensRef.current?.scrollTo({
@@ -57,6 +61,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         progress={props.progress}
         dispatch={props.dispatch}
         program={props.program}
+        setIsConvertToProgramShown={setIsConvertToProgramShown}
         setIsShareShown={props.setIsShareShown}
       />
       <WorkoutListOfExercises
@@ -122,6 +127,16 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
           </div>
         </div>
       )}
+      {isConvertToProgramShown && (
+        <ModalDayFromAdhoc
+          onClose={() => setIsConvertToProgramShown(false)}
+          initialCurrentProgramId={props.progress.programId}
+          record={props.progress}
+          dispatch={props.dispatch}
+          allPrograms={props.allPrograms}
+          settings={props.settings}
+        />
+      )}
     </section>
   );
 }
@@ -130,6 +145,7 @@ interface IWorkoutHeaderProps {
   progress: IHistoryRecord;
   dispatch: IDispatch;
   setIsShareShown: (value: boolean) => void;
+  setIsConvertToProgramShown?: (value: boolean) => void;
   description?: string;
   program?: IEvaluatedProgram;
 }
@@ -146,6 +162,23 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
           </div>
         </div>
         <div className="flex gap-2 align-middle">
+          {!Progress.isCurrent(props.progress) && props.progress.programId == emptyProgramId && (
+            <div>
+              <Button
+                kind="orange"
+                buttonSize="md"
+                data-cy="save-to-program"
+                name="save-to-program"
+                onClick={() => {
+                  if (props.setIsConvertToProgramShown != null) {
+                    props.setIsConvertToProgramShown(true);
+                  }
+                }}
+              >
+                Create Program Day
+              </Button>
+            </div>
+          )}
           {!Progress.isCurrent(props.progress) && (
             <div>
               <ButtonIcon

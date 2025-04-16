@@ -327,6 +327,7 @@ export function AppView(props: IProps): JSX.Element | null {
         subscription={state.storage.subscription}
         userId={state.user?.id}
         progress={progress}
+        allPrograms={state.storage.programs}
         program={program}
         dispatch={dispatch}
         settings={state.storage.settings}

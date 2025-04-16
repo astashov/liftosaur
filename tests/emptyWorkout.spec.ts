@@ -88,4 +88,56 @@ test("Empty Workout", async ({ page }) => {
       .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-sets-completed]")
       .first()
   ).toHaveText("5 × 150lb");
+
+  await page.getByTestId("history-record").nth(1).click();
+  await page.getByTestId("save-to-program").click();
+  await page.getByTestId("menu-item-next-day-picker-3").click();
+
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("change-next-day").click();
+
+  await expect(page.getByTestId("menu-item-next-day-picker-4")).toContainText("Week 1 - Day 4");
+  await page.getByTestId("menu-item-next-day-picker-4").click();
+
+  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-record-program")).toContainText(
+    "Week 1 - Day 4"
+  );
+  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-record-program")).toContainText(
+    "Basic Beginner Routine"
+  );
+
+  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-entry-exercise-name").nth(0)).toHaveText(
+    "Bench Press, Barbell"
+  );
+  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-entry-exercise-name").nth(1)).toHaveText(
+    "Squat, Barbell"
+  );
+
+  await page.getByTestId("history-record").nth(1).click();
+  await page.getByTestId("save-to-program").click();
+  await page.getByTestId("create-program-from-adhoc").click();
+
+  await page.getByTestId("modal-create-program-input").fill("Adhoccy");
+  await page.getByTestId("modal-create-experimental-program-submit").click();
+
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("change-next-day").click();
+
+  await page.getByTestId("menu-item-value-program").click();
+  await page.getByTestId("scroll-barrel-item-adhoccy").scrollIntoViewIfNeeded();
+  await page.getByTestId("scroll-barrel-item-adhoccy").click();
+  await page.waitForTimeout(1000);
+  await page.getByTestId("menu-item-next-day-picker-1").click();
+
+  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-record-program")).toContainText("Day 1");
+  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-record-program")).toContainText(
+    "Adhoccy"
+  );
+
+  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-entry-exercise-name").nth(0)).toHaveText(
+    "Bench Press, Barbell"
+  );
+  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-entry-exercise-name").nth(1)).toHaveText(
+    "Squat, Barbell"
+  );
 });

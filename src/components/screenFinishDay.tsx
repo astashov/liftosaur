@@ -34,6 +34,8 @@ import { InternalLink } from "../internalLink";
 import { LinkButton } from "./linkButton";
 import { IconTiktok } from "./icons/iconTiktok";
 import { PersonalRecords } from "./personalRecords";
+import { emptyProgramId } from "../models/program";
+import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -66,10 +68,25 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   }, []);
   muscleGroups.sort((a, b) => b[1] - a[1]);
   const muscleGroupsGrouped = CollectionUtils.splitIntoNGroups(muscleGroups, 2);
+  const [showCreateProgramDay, setShowCreateProgramDay] = useState(false);
 
   return (
     <Surface
       navbar={<NavbarView dispatch={props.dispatch} navCommon={props.navCommon} title="Congratulations!" />}
+      addons={
+        <Fragment>
+          {showCreateProgramDay && (
+            <ModalDayFromAdhoc
+              initialCurrentProgramId={props.navCommon.currentProgram?.id}
+              allPrograms={props.navCommon.allPrograms}
+              settings={props.settings}
+              dispatch={props.dispatch}
+              record={record}
+              onClose={() => setShowCreateProgramDay(false)}
+            />
+          )}
+        </Fragment>
+      }
       footer={<></>}
     >
       <section className="px-4 text-sm">
@@ -176,12 +193,34 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           </div>
         )}
 
-        <div className="flex w-full gap-8 px-4 pt-4">
+        {record.programId === emptyProgramId && (
+          <div className="mx-2 my-1 text-xs text-grayv3-main">
+            You can create a program day from this ad-hoc workout
+          </div>
+        )}
+
+        <div className="flex w-full gap-4 pt-4">
+          {record.programId === emptyProgramId && (
+            <div className="flex-1 text-center">
+              <Button
+                name="create-program-day"
+                kind="purple"
+                buttonSize="lg2"
+                className="w-36"
+                data-cy="create-program-day"
+                onClick={() => {
+                  setShowCreateProgramDay(true);
+                }}
+              >
+                Create Program Day
+              </Button>
+            </div>
+          )}
           <div className="flex-1 text-center">
             <Button
               name="finish-day-continue"
               kind="orange"
-              className="w-32"
+              className="w-36"
               data-cy="finish-day-continue"
               onClick={() => {
                 SendMessage.toIosAndAndroid({
