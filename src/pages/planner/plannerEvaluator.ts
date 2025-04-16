@@ -10,8 +10,6 @@ import {
 import {
   IPlannerProgramExercise,
   IPlannerProgramExerciseWarmupSet,
-  IPlannerProgramExerciseEvaluatedSetVariation,
-  IPlannerProgramExerciseEvaluatedSet,
   IProgramExerciseProgress,
   IProgramExerciseUpdate,
   IProgramExerciseDescriptions,
@@ -27,7 +25,6 @@ import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
 import { IPlannerEvaluatedProgramToTextOpts, PlannerEvaluatedProgramToText } from "./plannerEvaluatedProgramToText";
 import { IEither } from "../../utils/types";
 import { PlannerProgramExercise } from "./models/plannerProgramExercise";
-import { MathUtils } from "../../utils/math";
 
 export type IByTag<T> = Record<number, T>;
 export type IByExercise<T> = Record<string, T>;
@@ -388,38 +385,8 @@ export class PlannerEvaluator {
   }
 
   private static fillEvaluatedSetVariations(exercise: IPlannerProgramExercise): void {
-    const evaluatedSetVariations: IPlannerProgramExerciseEvaluatedSetVariation[] = [];
     const setVariations = PlannerProgramExercise.setVariations(exercise);
-    for (let i = 0; i < setVariations.length; i++) {
-      const sets = PlannerProgramExercise.sets(exercise, i);
-      const evaluatedSets: IPlannerProgramExerciseEvaluatedSet[] = [];
-      for (const aSet of sets) {
-        if (aSet.repRange == null) {
-          continue;
-        }
-        for (let j = 0; j < aSet.repRange.numberOfSets; j++) {
-          evaluatedSets.push({
-            maxrep: aSet.repRange.maxrep,
-            minrep: aSet.repRange.minrep,
-            weight: aSet.weight
-              ? aSet.weight
-              : aSet.percentage
-                ? Weight.buildPct(aSet.percentage)
-                : Weight.buildPct(
-                    MathUtils.roundFloat(100 * Weight.rpeMultiplier(aSet.repRange.maxrep, aSet.rpe || 10), 2)
-                  ),
-            timer: aSet.timer,
-            rpe: aSet.rpe,
-            logRpe: !!aSet.logRpe,
-            label: aSet.label,
-            isAmrap: !!aSet.repRange.isAmrap,
-            isQuickAddSet: !!aSet.repRange.isQuickAddSet,
-            askWeight: !!aSet.askWeight,
-          });
-        }
-      }
-      evaluatedSetVariations.push({ sets: evaluatedSets, isCurrent: setVariations[i].isCurrent });
-    }
+    const evaluatedSetVariations = PlannerProgramExercise.evaluateSetVariations(exercise, setVariations);
     exercise.evaluatedSetVariations = evaluatedSetVariations;
   }
 

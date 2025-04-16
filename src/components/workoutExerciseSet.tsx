@@ -310,6 +310,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
       return (
         <span className="inline-block text-xs break-all text-grayv3-main">
           <div className="inline-block text-sm align-middle">
+            <div className="text-xs text-grayv3-main">Warmup</div>
             <div>
               <span className="font-semibold">{n(Math.max(0, set.reps))}</span>
               <span className="text-grayv3-main"> × </span>

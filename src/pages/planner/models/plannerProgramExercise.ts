@@ -8,11 +8,13 @@ import {
   IPlannerProgramExerciseUsed,
   IPlannerProgramExerciseWarmupSet,
 } from "./types";
-import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
+import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../plannerExerciseEvaluator";
 import { ObjectUtils } from "../../../utils/object";
 import { IDisplaySet, groupDisplaySets } from "../../../components/historyRecordSets";
 import { Weight } from "../../../models/weight";
 import {
+  IDayData,
+  IHistoryEntry,
   IPercentage,
   IProgramExerciseWarmupSet,
   IProgramState,
@@ -20,9 +22,12 @@ import {
   ISettings,
   IWeight,
 } from "../../../types";
-import { Exercise, IExercise, warmupValues } from "../../../models/exercise";
+import { equipmentName, Exercise, IExercise, warmupValues } from "../../../models/exercise";
 import { ProgramExercise } from "../../../models/programExercise";
 import { MathUtils, n } from "../../../utils/math";
+import { UidFactory } from "../../../utils/generator";
+import { PlannerKey } from "../plannerKey";
+import { CollectionUtils } from "../../../utils/collection";
 
 export type ILinearProgressionType = {
   type: "linear";
@@ -112,6 +117,44 @@ export class PlannerProgramExercise {
     } else {
       return undefined;
     }
+  }
+
+  public static evaluateSetVariations(
+    exercise: IPlannerProgramExercise,
+    setVariations: IPlannerProgramExerciseSetVariation[]
+  ): IPlannerProgramExerciseEvaluatedSetVariation[] {
+    const evaluatedSetVariations: IPlannerProgramExerciseEvaluatedSetVariation[] = [];
+    for (let i = 0; i < setVariations.length; i++) {
+      const sets = PlannerProgramExercise.sets(exercise, i);
+      const evaluatedSets: IPlannerProgramExerciseEvaluatedSet[] = [];
+      for (const aSet of sets) {
+        if (aSet.repRange == null) {
+          continue;
+        }
+        for (let j = 0; j < aSet.repRange.numberOfSets; j++) {
+          evaluatedSets.push({
+            maxrep: aSet.repRange.maxrep,
+            minrep: aSet.repRange.minrep,
+            weight: aSet.weight
+              ? aSet.weight
+              : aSet.percentage
+                ? Weight.buildPct(aSet.percentage)
+                : Weight.buildPct(
+                    MathUtils.roundFloat(100 * Weight.rpeMultiplier(aSet.repRange.maxrep, aSet.rpe || 10), 2)
+                  ),
+            timer: aSet.timer,
+            rpe: aSet.rpe,
+            logRpe: !!aSet.logRpe,
+            label: aSet.label,
+            isAmrap: !!aSet.repRange.isAmrap,
+            isQuickAddSet: !!aSet.repRange.isQuickAddSet,
+            askWeight: !!aSet.askWeight,
+          });
+        }
+      }
+      evaluatedSetVariations.push({ sets: evaluatedSets, isCurrent: setVariations[i].isCurrent });
+    }
+    return evaluatedSetVariations;
   }
 
   public static sets(exercise: IPlannerProgramExercise, variationIndex?: number): IPlannerProgramExerciseSet[] {
@@ -398,5 +441,82 @@ export class PlannerProgramExercise {
       return { type: "custom" };
     }
     return undefined;
+  }
+
+  public static shortNameFromFullName(fullName: string, settings: ISettings): string {
+    let { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings);
+    const shortName = `${name}${equipment ? `, ${equipmentName(equipment)}` : ""}`;
+    return shortName;
+  }
+
+  public static createExerciseFromEntry(
+    entry: IHistoryEntry,
+    dayData: Required<IDayData>,
+    settings: ISettings
+  ): IPlannerProgramExercise {
+    const exerciseType = entry.exercise;
+    const exercise = Exercise.get(exerciseType, settings.exercises);
+    const fullName = Exercise.fullName(exercise, settings);
+    const shortName = this.shortNameFromFullName(fullName, settings);
+    let { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings);
+    const setVariations: IPlannerProgramExerciseSetVariation[] = [
+      {
+        isCurrent: false,
+        sets: entry.sets.map((set) => ({
+          repRange: {
+            numberOfSets: 1,
+            maxrep: set.completedReps ?? set.reps,
+            minrep: set.minReps,
+            isAmrap: !!set.isAmrap,
+            isQuickAddSet: false,
+          },
+          timer: set.timer,
+          rpe: set.rpe,
+          logRpe: set.logRpe,
+          percentage: Weight.isPct(set.originalWeight) ? set.originalWeight.value : undefined,
+          weight: !Weight.isPct(set.originalWeight) ? (set.completedWeight ?? set.weight) : undefined,
+          askWeight: set.askWeight,
+        })),
+      },
+    ];
+    const groupedWarmupSets = CollectionUtils.compact(
+      ObjectUtils.values(
+        CollectionUtils.groupByExpr(entry.warmupSets, (set) => {
+          return `${set.completedReps ?? set.reps}-${(set.completedWeight ?? set.weight).value}`;
+        })
+      )
+    );
+    const plannerExercise: IPlannerProgramExercise = {
+      id: UidFactory.generateUid(8),
+      key: PlannerKey.fromExerciseType(exercise, settings),
+      fullName,
+      shortName,
+      dayData,
+      exerciseType,
+      repeat: [],
+      repeating: [],
+      order: 0,
+      text: "",
+      tags: [],
+      equipment,
+      name,
+      line: 1,
+      evaluatedSetVariations: [],
+      setVariations: setVariations,
+      warmupSets: groupedWarmupSets.map((group) => ({
+        type: "warmup",
+        numberOfSets: group.length,
+        reps: group[0]?.completedReps ?? group[0]?.reps ?? 1,
+        weight: group[0]?.completedWeight ?? group[0]?.weight,
+      })),
+      descriptions: { values: [] },
+      globals: {},
+      points: {
+        fullName: { line: 1, offset: 0, from: 0, to: 0 },
+      },
+    };
+    const evaluatedSetVariations = this.evaluateSetVariations(plannerExercise, setVariations);
+    plannerExercise.evaluatedSetVariations = evaluatedSetVariations;
+    return plannerExercise;
   }
 }

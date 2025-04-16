@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 
 interface IProps extends JSX.HTMLAttributes<HTMLButtonElement> {
-  buttonSize?: "xs" | "sm" | "md" | "lg";
+  buttonSize?: "xs" | "sm" | "md" | "lg" | "lg2";
   kind: "orange" | "purple" | "grayv2" | "red";
   name: string;
 }
@@ -26,6 +26,8 @@ export function Button(props: IProps): JSX.Element {
     className += " px-1 py-0 font-normal";
   } else if (props.buttonSize === "md") {
     className += " px-4 py-2 font-semibold";
+  } else if (props.buttonSize === "lg2") {
+    className += " px-2 py-3 font-semibold";
   } else {
     className += " px-8 py-3 font-semibold";
   }

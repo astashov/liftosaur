@@ -10,7 +10,6 @@ import { UidFactory } from "../utils/generator";
 import { IState, updateState } from "./state";
 import {
   IProgram,
-  IProgramDay,
   IStorage,
   IProgramExercise,
   ISettings,
@@ -23,7 +22,6 @@ import {
   IWeight,
   IProgramExerciseVariation,
   IUnit,
-  IProgramWeek,
   IDayData,
   IExerciseData,
 } from "../types";
@@ -186,22 +184,6 @@ export namespace Program {
       customExercises: settings.exercises,
       version: storage.version,
       settings: settings,
-    };
-  }
-
-  export function createDay(name: string): IProgramDay {
-    return {
-      id: UidFactory.generateUid(8),
-      name,
-      exercises: [],
-    };
-  }
-
-  export function createWeek(name: string): IProgramWeek {
-    return {
-      id: UidFactory.generateUid(8),
-      name,
-      days: [],
     };
   }
 
@@ -631,79 +613,84 @@ export namespace Program {
     return used as IPlannerProgramExerciseUsed[];
   }
 
-  export function evaluate(program: IProgram, settings: ISettings): IEvaluatedProgram {
-    const planner = program.planner;
-    if (!planner) {
-      return {
+  export const evaluate = memoize(
+    (program: IProgram, settings: ISettings): IEvaluatedProgram => {
+      const planner = program.planner;
+      if (!planner) {
+        return {
+          type: "evaluatedProgram",
+          id: program.id,
+          planner: {
+            name: program.name,
+            weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
+          },
+          name: program.name,
+          errors: [],
+          nextDay: program.nextDay,
+          weeks: [
+            {
+              name: "Week 1",
+              days: [
+                {
+                  name: "Day 1",
+                  dayData: { day: 1, week: 1, dayInWeek: 1 },
+                  exercises: [],
+                },
+              ],
+            },
+          ],
+          states: {},
+        };
+      }
+      const { evaluatedWeeks } = PlannerEvaluator.evaluate(program.planner!, settings);
+      let dayNum = 0;
+      const errors: IEvaluatedProgramError[] = [];
+      const weeks = planner.weeks.map((week, weekIndex) => {
+        const evaluatedWeek = evaluatedWeeks[weekIndex];
+        const days = week.days.map((day, dayInWeekIndex) => {
+          dayNum += 1;
+          const evaluatedDay = evaluatedWeek[dayInWeekIndex];
+          const dayData = {
+            day: dayNum,
+            week: weekIndex + 1,
+            dayInWeek: dayInWeekIndex + 1,
+          };
+          const evaluatedExercises = CollectionUtils.sortBy(evaluatedDay.success ? evaluatedDay.data : [], "order");
+          if (!evaluatedDay.success) {
+            errors.push({ error: evaluatedDay.error, dayData });
+          }
+          return {
+            name: day.name,
+            description: day.description,
+            dayData,
+            exercises: evaluatedExercises,
+          };
+        });
+        return { name: week.name, description: week.description, days };
+      });
+      const states: IByTag<IProgramState> = {};
+      PP.iterate(evaluatedWeeks, (exercise) => {
+        for (const tag of exercise.tags) {
+          states[tag] = { ...states[tag], ...PlannerProgramExercise.getState(exercise) };
+        }
+      });
+      const result: IEvaluatedProgram = {
         type: "evaluatedProgram",
         id: program.id,
-        planner: {
-          name: program.name,
-          weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
-        },
+        errors,
+        planner,
         name: program.name,
-        errors: [],
         nextDay: program.nextDay,
-        weeks: [
-          {
-            name: "Week 1",
-            days: [
-              {
-                name: "Day 1",
-                dayData: { day: 1, week: 1, dayInWeek: 1 },
-                exercises: [],
-              },
-            ],
-          },
-        ],
-        states: {},
+        weeks: weeks,
+        states,
       };
+      // console.log("Program text", PlannerProgram.generateFullText(program.planner?.weeks || []));
+      return result;
+    },
+    {
+      maxSize: 10,
     }
-    const { evaluatedWeeks } = PlannerEvaluator.evaluate(program.planner!, settings);
-    let dayNum = 0;
-    const errors: IEvaluatedProgramError[] = [];
-    const weeks = planner.weeks.map((week, weekIndex) => {
-      const evaluatedWeek = evaluatedWeeks[weekIndex];
-      const days = week.days.map((day, dayInWeekIndex) => {
-        dayNum += 1;
-        const evaluatedDay = evaluatedWeek[dayInWeekIndex];
-        const dayData = {
-          day: dayNum,
-          week: weekIndex + 1,
-          dayInWeek: dayInWeekIndex + 1,
-        };
-        const evaluatedExercises = CollectionUtils.sortBy(evaluatedDay.success ? evaluatedDay.data : [], "order");
-        if (!evaluatedDay.success) {
-          errors.push({ error: evaluatedDay.error, dayData });
-        }
-        return {
-          name: day.name,
-          description: day.description,
-          dayData,
-          exercises: evaluatedExercises,
-        };
-      });
-      return { name: week.name, description: week.description, days };
-    });
-    const states: IByTag<IProgramState> = {};
-    PP.iterate(evaluatedWeeks, (exercise) => {
-      for (const tag of exercise.tags) {
-        states[tag] = { ...states[tag], ...PlannerProgramExercise.getState(exercise) };
-      }
-    });
-    const result: IEvaluatedProgram = {
-      type: "evaluatedProgram",
-      id: program.id,
-      errors,
-      planner,
-      name: program.name,
-      nextDay: program.nextDay,
-      weeks: weeks,
-      states,
-    };
-    // console.log("Program text", PlannerProgram.generateFullText(program.planner?.weeks || []));
-    return result;
-  }
+  );
 
   export function changeExerciseName(from: string, to: string, program: IProgram, settings: ISettings): IProgram {
     const planner = program.planner;
@@ -1091,5 +1078,67 @@ export namespace Program {
       encodedProgramHashToShortUrl[hash] = shortUrl;
       return shortUrl;
     }
+  }
+
+  export function createFromHistoryRecord(programName: string, record: IHistoryRecord, settings: ISettings): IProgram {
+    const dayData = { week: 1, day: 1, dayInWeek: 1 };
+    const program: IProgram = {
+      ...Program.create(programName),
+      planner: {
+        name: programName,
+        weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
+      },
+    };
+    const evaluatedProgram = Program.evaluate(program, settings);
+    const planner = program.planner!;
+    planner.weeks[0].days[0].exerciseText = record.entries
+      .map((entry) => {
+        const exercise = Exercise.get(entry.exercise, settings.exercises);
+        return Exercise.fullName(exercise, settings);
+      })
+      .join("\n");
+    const newDay: IEvaluatedProgramDay = {
+      dayData: dayData,
+      name: "Day 1",
+      exercises: record.entries.map((e) => {
+        return PlannerProgramExercise.createExerciseFromEntry(e, dayData, settings);
+      }),
+    };
+    evaluatedProgram.weeks[0].days[0] = newDay;
+    const newPlanner = new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
+    const newProgram = {
+      ...ObjectUtils.clone(program),
+      planner: newPlanner,
+    };
+    return newProgram;
+  }
+
+  export function addDayFromHistoryRecord(
+    program: IProgram,
+    afterDay: number,
+    record: IHistoryRecord,
+    settings: ISettings
+  ): { program: IProgram; dayData: Required<IDayData> } {
+    const evaluatedProgram = Program.evaluate(program, settings);
+    const dayData = Program.getDayData(evaluatedProgram, afterDay);
+    const newDayData = { week: dayData.week, day: dayData.day + 1, dayInWeek: dayData.dayInWeek + 1 };
+    const newDay: IEvaluatedProgramDay = {
+      dayData: newDayData,
+      name: `Day ${dayData.day + 1}`,
+      exercises: record.entries.map((e) => {
+        return PlannerProgramExercise.createExerciseFromEntry(e, newDayData, settings);
+      }),
+    };
+    evaluatedProgram.weeks[dayData.week - 1].days.splice(dayData.dayInWeek, 0, newDay);
+    evaluatedProgram.planner.weeks[dayData.week - 1].days.splice(dayData.dayInWeek, 0, {
+      name: newDay.name,
+      exerciseText: newDay.exercises.map((e) => e.fullName).join("\n"),
+    });
+    const newPlanner = new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
+    const newProgram = {
+      ...ObjectUtils.clone(program),
+      planner: newPlanner,
+    };
+    return { program: newProgram, dayData: newDayData };
   }
 }

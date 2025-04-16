@@ -6,12 +6,13 @@ import { HistoryRecordView } from "./historyRecord";
 import { IDispatch } from "../ducks/types";
 import { LinkButton } from "./linkButton";
 import { useState } from "preact/hooks";
-import { ModalChangeNextDay } from "./modalChangeNextDay";
 import { IconSwap } from "./icons/iconSwap";
 import { Tailwind } from "../utils/tailwindConfig";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { memo } from "preact/compat";
 import { ComparerUtils } from "../utils/comparer";
+import { EditProgram } from "../models/editProgram";
+import { ModalChangeNextDay } from "./modalChangeNextDay";
 
 interface IProps {
   isHidden: boolean;
@@ -85,8 +86,11 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
       {showChangeWorkout && evaluatedProgram && (
         <ModalChangeNextDay
           onClose={() => setShowChangeWorkout(false)}
-          dispatch={props.dispatch}
-          currentProgram={evaluatedProgram}
+          initialCurrentProgramId={evaluatedProgram.id}
+          onSelect={(programId, day) => {
+            Program.selectProgram(props.dispatch, programId);
+            EditProgram.setNextDay(props.dispatch, programId, day);
+          }}
           allPrograms={props.allPrograms}
           settings={props.settings}
         />
