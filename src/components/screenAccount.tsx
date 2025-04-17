@@ -211,6 +211,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
             }
             addons={
               <div className="text-xs text-grayv2-main">
+                {account.name ? <div style={{ marginTop: "-0.25rem" }}>{`id: ${account.id}`}</div> : <></>}
                 {account.email && account.email !== "noemail@example.com" && (
                   <>
                     Was logged in as <span className="font-bold">{account.email}</span>

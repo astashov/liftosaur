@@ -403,9 +403,9 @@ export class UserDao {
     });
   }
 
-  public async transfer(fromEmail: string, toEmail: string): Promise<void> {
-    const fromUser = await this.getByEmail(fromEmail);
-    const toUser = await this.getByEmail(toEmail);
+  public async transfer(fromId: string, toId: string): Promise<void> {
+    const fromUser = await this.getLimitedById(fromId);
+    const toUser = await this.getLimitedById(toId);
 
     if (fromUser && toUser) {
       const toIsApple = toUser.appleId != null;
@@ -418,7 +418,8 @@ export class UserDao {
         fromUser.googleId = token;
         delete fromUser.appleId;
       }
-      fromUser.email = toEmail;
+      fromUser.email = toUser.email;
+      fromUser.storage.email = toUser.email;
       await this.store(fromUser);
     } else {
       throw new Error("Missing users");
