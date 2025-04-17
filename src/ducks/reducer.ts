@@ -418,7 +418,7 @@ export const reducerWrapper =
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const newState2: IState = (window as any).state;
           timerId = undefined;
-          const userId = newState2.user?.id || newState.storage.tempUserId;
+          const userId = newState2.user?.id || newState2.storage.tempUserId;
           const localStorage: ILocalStorage = {
             storage: newState2.storage,
             lastSyncedStorage: newState2.lastSyncedStorage,
