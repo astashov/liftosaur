@@ -4,7 +4,7 @@ import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
 import { Thunk } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
-import { emptyProgramId, IEvaluatedProgram, IEvaluatedProgramDay, Program } from "../models/program";
+import { IEvaluatedProgram, IEvaluatedProgramDay, Program } from "../models/program";
 import { lb } from "lens-shmens";
 import { EditProgram } from "../models/editProgram";
 import { ButtonIcon } from "./buttonIcon";
@@ -59,6 +59,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
       <WorkoutHeader
         description={description}
         progress={props.progress}
+        allPrograms={props.allPrograms}
         dispatch={props.dispatch}
         program={props.program}
         setIsConvertToProgramShown={setIsConvertToProgramShown}
@@ -147,11 +148,14 @@ interface IWorkoutHeaderProps {
   setIsShareShown: (value: boolean) => void;
   setIsConvertToProgramShown?: (value: boolean) => void;
   description?: string;
+  allPrograms: IProgram[];
   program?: IEvaluatedProgram;
 }
 
 function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
   const { program } = props;
+  const isEligibleForProgramDay =
+    !Progress.isCurrent(props.progress) && props.allPrograms.every((p) => p.id !== props.progress.programId);
   return (
     <div className="px-4">
       <div className="flex gap-4">
@@ -162,7 +166,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
           </div>
         </div>
         <div className="flex gap-2 align-middle">
-          {!Progress.isCurrent(props.progress) && props.progress.programId == emptyProgramId && (
+          {isEligibleForProgramDay && (
             <div>
               <Button
                 kind="orange"

@@ -34,7 +34,6 @@ import { InternalLink } from "../internalLink";
 import { LinkButton } from "./linkButton";
 import { IconTiktok } from "./icons/iconTiktok";
 import { PersonalRecords } from "./personalRecords";
-import { emptyProgramId } from "../models/program";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 
 interface IProps {
@@ -69,6 +68,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   muscleGroups.sort((a, b) => b[1] - a[1]);
   const muscleGroupsGrouped = CollectionUtils.splitIntoNGroups(muscleGroups, 2);
   const [showCreateProgramDay, setShowCreateProgramDay] = useState(false);
+  const eligibleForCreateProgramDay = props.navCommon.allPrograms.every((p) => p.id !== record.programId);
 
   return (
     <Surface
@@ -193,14 +193,12 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           </div>
         )}
 
-        {record.programId === emptyProgramId && (
-          <div className="mx-2 my-1 text-xs text-grayv3-main">
-            You can create a program day from this ad-hoc workout
-          </div>
+        {eligibleForCreateProgramDay && (
+          <div className="mx-2 my-1 text-xs text-grayv3-main">You can create a program day from this workout</div>
         )}
 
         <div className="flex w-full gap-4 pt-4">
-          {record.programId === emptyProgramId && (
+          {eligibleForCreateProgramDay && (
             <div className="flex-1 text-center">
               <Button
                 name="create-program-day"
