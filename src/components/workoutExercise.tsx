@@ -1,4 +1,4 @@
-import { h, JSX, RefObject, Fragment } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IProgramState } from "../types";
 import { updateSettings } from "../models/state";
@@ -8,7 +8,7 @@ import { History } from "../models/history";
 import { LinkButton } from "./linkButton";
 import { CollectionUtils } from "../utils/collection";
 import { IEvaluatedProgram, IEvaluatedProgramDay } from "../models/program";
-import { useMemo } from "preact/hooks";
+import { useMemo, useRef } from "preact/hooks";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { Collector } from "../utils/collector";
 import { Locker } from "./locker";
@@ -24,7 +24,6 @@ interface IWorkoutExerciseProps {
   program?: IEvaluatedProgram;
   programDay?: IEvaluatedProgramDay;
   history: IHistoryRecord[];
-  surfaceRef: RefObject<HTMLElement>;
   progress: IHistoryRecord;
   showHelp?: boolean;
   isSelected: boolean;
@@ -60,9 +59,10 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
   }, [props.history, exerciseType, props.settings]);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
   const status = Reps.setsStatus(props.entry.sets);
+  const surfaceRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div data-cy={`exercise-progress-${status}`}>
+    <div data-cy={`exercise-progress-${status}`} ref={surfaceRef}>
       <WorkoutExerciseCard
         day={props.day}
         entry={props.entry}
@@ -132,7 +132,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
       {history.length > 0 && (
         <div className="mx-4 mt-2">
           <ExerciseHistory
-            surfaceRef={props.surfaceRef}
+            surfaceRef={surfaceRef}
             exerciseType={exerciseType}
             settings={props.settings}
             dispatch={props.dispatch}

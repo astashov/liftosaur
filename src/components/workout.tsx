@@ -1,4 +1,4 @@
-import { h, JSX, RefObject, Fragment } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
@@ -26,7 +26,6 @@ import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
-  surfaceRef: RefObject<HTMLElement>;
   setIsShareShown: (value: boolean) => void;
   progress: IHistoryRecord;
   allPrograms: IProgram[];
@@ -107,7 +106,6 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
                   <WorkoutExercise
                     day={props.progress.day}
                     key={entry.id}
-                    surfaceRef={props.surfaceRef}
                     history={props.history}
                     otherStates={props.program?.states}
                     isSelected={entryIndex === (props.progress.ui?.currentEntryIndex ?? 0)}

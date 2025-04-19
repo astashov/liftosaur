@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
-import { useRef, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import { IDispatch } from "../ducks/types";
 import { Program } from "../models/program";
 import { History } from "../models/history";
@@ -52,13 +52,11 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const editModalProgramExerciseId = progress.ui?.editModal?.programExerciseId;
   const dateModal = progress.ui?.dateModal;
   const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, progress.day) : undefined;
-  const surfaceRef = useRef<HTMLElement>(null);
   const [forceUpdateEntryIndex, setForceUpdateEntryIndex] = useState(false);
 
   if (progress != null) {
     return (
       <Surface
-        ref={surfaceRef}
         navbar={
           <NavbarView
             navCommon={props.navCommon}
@@ -303,7 +301,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
       >
         <Workout
           setIsShareShown={setIsShareShown}
-          surfaceRef={surfaceRef}
           allPrograms={props.allPrograms}
           forceUpdateEntryIndex={forceUpdateEntryIndex}
           setForceUpdateEntryIndex={() => setForceUpdateEntryIndex(!forceUpdateEntryIndex)}
