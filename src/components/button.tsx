@@ -2,23 +2,25 @@ import { h, JSX } from "preact";
 
 interface IProps extends JSX.HTMLAttributes<HTMLButtonElement> {
   buttonSize?: "xs" | "sm" | "md" | "lg" | "lg2";
-  kind: "orange" | "purple" | "grayv2" | "red";
+  kind: "orange" | "purple" | "grayv2" | "red" | "transparent-purple";
   name: string;
 }
 
 export function Button(props: IProps): JSX.Element {
   const { children, buttonSize, kind, ...otherProps } = props;
-  let className = "text-xs text-white rounded-lg";
+  let className = "text-xs rounded-lg";
   if (props.disabled) {
-    className += " bg-grayv2-main opacity-50";
+    className += " bg-grayv2-main opacity-50 text-white ";
   } else if (kind === "purple") {
-    className += " bg-purplev3-500";
+    className += " bg-purplev3-500 text-white ";
   } else if (kind === "grayv2") {
-    className += " bg-grayv2-main";
+    className += " bg-grayv2-main text-white ";
   } else if (kind === "red") {
-    className += " bg-redv2-main";
+    className += " bg-redv2-main text-white ";
+  } else if (kind === "transparent-purple") {
+    className += " bg-transparent text-purplev3-600 ";
   } else {
-    className += " bg-orangev2";
+    className += " bg-orangev2 text-white";
   }
   if (props.buttonSize === "sm") {
     className += " px-2 py-1 font-semibold";

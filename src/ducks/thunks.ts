@@ -44,7 +44,7 @@ export class NoRetryError extends Error {
 }
 
 export namespace Thunk {
-  export function googleSignIn(): IThunk {
+  export function googleSignIn(cb?: () => void): IThunk {
     return async (dispatch, getState, env) => {
       const url = UrlUtils.build(window.location.href);
       const forcedUserEmail = url.searchParams.get("forceuseremail");
@@ -57,6 +57,9 @@ export namespace Thunk {
             env.service.googleSignIn(accessToken, userId, {})
           );
           await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+          if (cb) {
+            cb();
+          }
           dispatch(sync2());
         }
       } else {
@@ -64,6 +67,9 @@ export namespace Thunk {
         const userId = state.user?.id || state.storage.tempUserId;
         const result = await env.service.googleSignIn(forcedUserEmail, userId, { forcedUserEmail });
         await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+        if (cb) {
+          cb();
+        }
         dispatch(sync2());
       }
     };
@@ -75,7 +81,7 @@ export namespace Thunk {
     };
   }
 
-  export function appleSignIn(): IThunk {
+  export function appleSignIn(cb?: () => void): IThunk {
     return async (dispatch, getState, env) => {
       dispatch(postevent("apple-sign-in"));
       let id_token: string;
@@ -102,7 +108,14 @@ export namespace Thunk {
         const userId = state.user?.id || state.storage.tempUserId;
         const result = await load(dispatch, "Logging in", async () => env.service.appleSignIn(code, id_token, userId));
         await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+        if (cb) {
+          cb();
+        }
         dispatch(sync2());
+      } else {
+        if (cb) {
+          cb();
+        }
       }
     };
   }

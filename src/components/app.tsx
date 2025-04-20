@@ -24,7 +24,6 @@ import { ScreenStats } from "./screenStats";
 import { Notification } from "./notification";
 import { WhatsNew } from "../models/whatsnew";
 import { ModalWhatsnew } from "./modalWhatsnew";
-import { ScreenOnboarding } from "./screenOnboarding";
 import { ScreenMeasurements } from "./screenMeasurements";
 import { ScreenSubscription } from "./screenSubscription";
 import { Subscriptions } from "../utils/subscriptions";
@@ -50,6 +49,7 @@ import { ScreenUnitSelector } from "./screenUnitSelector";
 import RB from "rollbar";
 import { exceptionIgnores } from "../utils/rollbar";
 import { ScreenWorkout } from "./screenWorkout";
+import { Account } from "../models/account";
 
 declare let Rollbar: RB;
 
@@ -268,11 +268,12 @@ export function AppView(props: IProps): JSX.Element | null {
 
   let content: JSX.Element;
   if (Screen.currentName(state.screenStack) === "first") {
-    content = <ScreenFirst dispatch={dispatch} />;
-  } else if (Screen.currentName(state.screenStack) === "onboarding") {
-    content = <ScreenOnboarding dispatch={dispatch} />;
+    const userId = state.user?.id;
+    const userEmail = state.user?.email;
+    const account = userId && userEmail ? Account.getFromStorage(userId, userEmail, state.storage) : undefined;
+    content = <ScreenFirst account={account} client={client} dispatch={dispatch} />;
   } else if (Screen.currentName(state.screenStack) === "units") {
-    content = <ScreenUnitSelector dispatch={dispatch} />;
+    content = <ScreenUnitSelector settings={state.storage.settings} dispatch={dispatch} />;
   } else if (Screen.currentName(state.screenStack) === "subscription") {
     content = (
       <ScreenSubscription

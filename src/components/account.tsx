@@ -10,10 +10,13 @@ import { IconDoc } from "./icons/iconDoc";
 import { IconDumbbell } from "./icons/iconDumbbell";
 import { IconGoogle } from "./icons/iconGoogle";
 import { IconSpinner } from "./icons/iconSpinner";
+import { IDispatch } from "../ducks/types";
+import { Thunk } from "../ducks/thunks";
 
 interface IAccountProps {
   account?: IAccount;
   redirectUrl?: string;
+  dispatch?: IDispatch;
   client: Window["fetch"];
 }
 
@@ -22,11 +25,11 @@ declare let __HOST__: string;
 export function Account(props: IAccountProps): JSX.Element {
   const service = new Service(props.client);
   return (
-    <div style={{ minWidth: "20rem" }}>
+    <div style={{ minWidth: "16rem", maxWidth: "26rem" }}>
       {props.account ? (
         <AccountLoggedInView service={service} account={props.account} />
       ) : (
-        <AccountLoggedOutView service={service} redirectUrl={props.redirectUrl} />
+        <AccountLoggedOutView service={service} redirectUrl={props.redirectUrl} dispatch={props.dispatch} />
       )}
     </div>
   );
@@ -104,6 +107,7 @@ function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
 interface IAccountLoggedOutViewProps {
   service: Service;
   redirectUrl?: string;
+  dispatch?: IDispatch;
 }
 
 function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
@@ -134,6 +138,10 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
               data-cy="menu-item-login"
               onClick={async () => {
                 setIsLoading(true);
+                if (props.dispatch) {
+                  props.dispatch(Thunk.googleSignIn(() => setIsLoading(false)));
+                  return;
+                }
                 const accessToken = await getGoogleAccessToken();
                 if (accessToken != null) {
                   const userId = UidFactory.generateUid(8);
@@ -162,6 +170,10 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
               className="flex items-center w-full px-4 py-3 mt-2 text-white rounded-lg bg-blackv2 nm-sign-in-with-apple"
               onClick={async () => {
                 setIsLoading(true);
+                if (props.dispatch) {
+                  props.dispatch(Thunk.appleSignIn(() => setIsLoading(false)));
+                  return;
+                }
                 const response = await window.AppleID.auth.signIn();
                 const { id_token, code } = response.authorization;
                 if (id_token != null && code != null) {

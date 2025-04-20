@@ -10,7 +10,6 @@ export type ITab = "home" | "program" | "workout" | "graphs" | "me";
 
 export type IScreenData =
   | { name: "first"; params?: Record<string, never> }
-  | { name: "onboarding"; params?: Record<string, never> }
   | { name: "main"; params?: { historyRecordId?: number } }
   | { name: "settings"; params?: Record<string, never> }
   | { name: "account"; params?: Record<string, never> }
@@ -83,7 +82,7 @@ export namespace Screen {
 
   export function enablePtr(stack: IScreenStack): boolean {
     const curr = Screen.currentName(stack);
-    return ["first", "onboarding", "finishDay", "subscription", "programs", "measurements"].indexOf(curr) === -1;
+    return ["first", "finishDay", "subscription", "programs", "measurements"].indexOf(curr) === -1;
   }
 
   export function shouldConfirmNavigation(state: IState): string | undefined {
@@ -113,9 +112,6 @@ export namespace Screen {
 
   export function tab(screen: IScreen): ITab {
     switch (screen) {
-      case "onboarding": {
-        return "program";
-      }
       case "main": {
         return "home";
       }

@@ -8,45 +8,52 @@ import { lb } from "lens-shmens";
 
 interface IProps {
   dispatch: IDispatch;
+  settings: ISettings;
 }
 
 export function ScreenUnitSelector(props: IProps): JSX.Element {
+  const selectedButtonCls = "text-white bg-purplev3-main border-purplev3-main";
+  const unselectedButtonCls = "text-purplev3-main bg-white border-grayv3-200";
   return (
-    <section className="flex flex-col items-center justify-center h-screen text-blackv2">
-      <div className="box-content flex items-center max-w-sm px-16 py-8">
-        <div className="flex-1 text-center">
-          <h1 className="pb-6 text-xl">
-            Pick your <strong>default</strong> units
-          </h1>
-          <div className="flex gap-8 pb-6">
-            <div className="flex-1">
-              <Button
-                name="unit-lb"
-                kind="purple"
-                onClick={() => {
-                  updateSettings(props.dispatch, lb<ISettings>().p("units").record("lb"));
-                  props.dispatch(Thunk.pushScreen("programs"));
-                }}
-              >
-                Pounds (lb)
-              </Button>
-            </div>
-            <div className="flex-1">
-              <Button
-                name="unit-kg"
-                kind="purple"
-                onClick={() => {
-                  updateSettings(props.dispatch, lb<ISettings>().p("units").record("kg"));
-                  props.dispatch(Thunk.pushScreen("programs"));
-                }}
-              >
-                Kilograms (kg)
-              </Button>
-            </div>
+    <section className="flex flex-col h-screen text-blackv2">
+      <div className="flex-1 px-4 pt-16 pb-4">
+        <div className="w-full h-full border border-grayv3-200 rounded-2xl bg-grayv3-50">
+          <div className="px-6 pt-16 text-2xl font-semibold text-center">Pick your units</div>
+          <div className="px-6 py-4 text-base text-center">
+            Your chosen units will be the default, but you can override them or change them in Settings or per equipment
+            anytime.
           </div>
-          <div className="text-base text-grayv2-main">
-            The units you select would be used <strong>by default</strong>, but you'll be able to override for specific{" "}
-            <strong>equipment</strong>. You can also change it any time in <strong>Settings</strong>.
+          <div className="flex px-6">
+            <button
+              className={`flex-1 px-2 py-3 font-semibold text-center border rounded-tl-lg rounded-bl-lg text-sm ${props.settings.units === "lb" ? selectedButtonCls : unselectedButtonCls}`}
+              onClick={() => {
+                updateSettings(props.dispatch, lb<ISettings>().p("units").record("lb"));
+              }}
+            >
+              Pounds (lb)
+            </button>
+            <button
+              className={`flex-1 px-2 py-3 font-semibold text-center border rounded-tr-lg rounded-br-lg text-sm ${props.settings.units === "kg" ? selectedButtonCls : unselectedButtonCls}`}
+              onClick={() => {
+                updateSettings(props.dispatch, lb<ISettings>().p("units").record("kg"));
+              }}
+            >
+              Kilograms (kg)
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="safe-area-inset-bottom">
+        <div className="pb-16 mx-4 mb-2 text-center">
+          <div>
+            <Button
+              className="w-full"
+              name="see-how-it-works"
+              kind="purple"
+              onClick={() => props.dispatch(Thunk.pushScreen("programs"))}
+            >
+              Continue
+            </Button>
           </div>
         </div>
       </div>
