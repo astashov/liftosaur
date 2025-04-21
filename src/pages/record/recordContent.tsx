@@ -128,9 +128,9 @@ function Entry(props: IEntryProps): JSX.Element {
               .map((group) => {
                 let line: string;
                 if (group.length > 1) {
-                  line = `${group.length} x ${group[0].completedReps} x ${Weight.display(group[0].weight)}`;
+                  line = `${group.length} x ${group[0].completedReps ?? 0} x ${Weight.display(group[0].completedWeight ?? Weight.build(0, units))}`;
                 } else {
-                  line = `${group[0].completedReps} x ${Weight.display(group[0].weight)}`;
+                  line = `${group[0].completedReps} x ${Weight.display(group[0].completedWeight ?? Weight.build(0, units))}`;
                 }
                 return <li>{line}</li>;
               })}
@@ -170,7 +170,7 @@ function SetView({ set, units }: ISetProps): JSX.Element {
   return (
     <span className="whitespace-nowrap">
       {set.completedReps || 0} {StringUtils.pluralize("rep", set.completedReps || 0)} x{" "}
-      {Weight.display(Weight.convertTo(set.weight, units))}
+      {Weight.display(Weight.convertTo(set.completedWeight ?? Weight.build(0, units), units))}
     </span>
   );
 }

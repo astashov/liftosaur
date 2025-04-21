@@ -12,7 +12,7 @@ export interface IDisplaySet {
   dimWeight?: boolean;
   dimTimer?: boolean;
   reps: string;
-  weight: string;
+  weight?: string;
   rpe?: string;
   askWeight?: boolean;
   unit?: string;
@@ -42,12 +42,16 @@ interface IHistoryRecordSetsProps {
   prs?: IHistoryEntryPersonalRecords;
 }
 
-function setToDisplaySet(set: ISet, isNext: boolean): IDisplaySet {
+function setToDisplaySet(set: ISet, isNext: boolean, settings: ISettings): IDisplaySet {
   return {
     reps: isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set),
     rpe: set.completedRpe?.toString() ?? set.rpe?.toString(),
-    weight: isNext ? Weight.display(set.weight, false) : Weight.display(set.completedWeight ?? set.weight, false),
-    unit: set.weight.unit,
+    weight: set.weight
+      ? isNext
+        ? Weight.display(set.weight, false)
+        : Weight.display(set.completedWeight ?? set.weight, false)
+      : undefined,
+    unit: set.weight?.unit ?? settings.units,
     askWeight: set.askWeight,
     isCompleted: Reps.isCompletedSet(set),
     isRpeFailed: set.completedRpe != null && set.completedRpe > (set.rpe ?? 0),
@@ -59,12 +63,18 @@ export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Eleme
   const { sets, isNext } = props;
   const groups = Reps.group(sets, isNext);
   const displayGroups = groups.map((g) => {
-    return g.map((set) => setToDisplaySet(set, isNext));
+    return g.map((set) => setToDisplaySet(set, isNext, props.settings));
   });
   return (
     <div className="text-sm text-right">
       {displayGroups.map((g) => (
-        <HistoryRecordSet sets={g} prs={props.prs} isNext={props.isNext} showPrDetails={props.showPrDetails} />
+        <HistoryRecordSet
+          sets={g}
+          prs={props.prs}
+          isNext={props.isNext}
+          showPrDetails={props.showPrDetails}
+          settings={props.settings}
+        />
       ))}
     </div>
   );
@@ -72,6 +82,7 @@ export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Eleme
 
 interface IHistoryRecordSet2Props {
   prs?: IHistoryEntryPersonalRecords;
+  settings: ISettings;
   showPrDetails?: boolean;
   sets: IDisplaySet[];
   isNext: boolean;
@@ -90,7 +101,7 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
       if (!prset) {
         return undefined;
       }
-      const displayPrSet = setToDisplaySet(prset, isNext);
+      const displayPrSet = setToDisplaySet(prset, isNext, props.settings);
       return isSameDisplaySet(set, displayPrSet)
         ? k === "max1RMSet"
           ? "e1RM"
@@ -139,12 +150,16 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
         <span className={`font-semibold ${repsColor}`} data-cy="history-entry-reps">
           {set.reps}
         </span>
-        <span className="text-grayv2-main"> × </span>
-        <span data-cy="history-entry-weight">
-          <span className="font-semibold">{set.weight}</span>
-          <span className="text-xs">{set.askWeight ? "+" : ""}</span>
-          <span className="text-xs text-grayv2-main">{set.unit}</span>
-        </span>
+        {set.weight && (
+          <>
+            <span className="text-grayv2-main"> × </span>
+            <span data-cy="history-entry-weight">
+              <span className="font-semibold">{set.weight}</span>
+              <span className="text-xs">{set.askWeight ? "+" : ""}</span>
+              <span className="text-xs text-grayv2-main">{set.unit}</span>
+            </span>
+          </>
+        )}
         {set.rpe != null && (
           <span className={rpeColor} data-cy="history-entry-rpe">
             <span className="text-xs"> @</span>

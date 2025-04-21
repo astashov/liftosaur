@@ -57,12 +57,15 @@ function getData(
       const maxe1RMSet = History.getMax1RMSetFromEntry(entry);
       const volume = Reps.volume(entry.sets);
       if (maxSet != null) {
-        const convertedWeight = Weight.convertTo(maxSet.completedWeight ?? maxSet.weight, settings.units);
+        const convertedWeight = Weight.convertTo(
+          maxSet.completedWeight ?? maxSet.weight ?? Weight.build(0, settings.units),
+          settings.units
+        );
         let onerm = null;
         if (isWithOneRm) {
           const set = maxe1RMSet || maxSet;
           onerm = Weight.getOneRepMax(
-            Weight.convertTo(set.completedWeight ?? set.weight, settings.units),
+            Weight.convertTo(set.completedWeight ?? set.weight ?? Weight.build(0, settings.units), settings.units),
             set.completedReps || 0,
             set.completedRpe ?? set.rpe ?? 10
           ).value;

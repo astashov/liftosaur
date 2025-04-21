@@ -815,7 +815,7 @@ export const migrations = {
     for (const historyRecord of storage.history) {
       for (const entry of historyRecord.entries) {
         for (const set of entry.sets) {
-          if (set.weight.value == null) {
+          if (set.weight?.value == null) {
             set.weight = Weight.build(0, storage.settings.units || "lb");
           }
         }

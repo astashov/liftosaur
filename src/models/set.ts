@@ -33,6 +33,9 @@ export namespace Reps {
       } else {
         lastSet = {
           ...ObjectUtils.clone(lastSet),
+          reps: lastSet.reps ?? lastSet.completedReps,
+          weight: lastSet.weight ?? lastSet.completedWeight,
+          originalWeight: lastSet.originalWeight ?? lastSet.weight ?? lastSet.completedWeight,
           completedReps: undefined,
           completedWeight: undefined,
           completedRpe: undefined,
@@ -44,7 +47,9 @@ export namespace Reps {
   }
 
   export function isSameSet(set1: ISet, set2: ISet): boolean {
-    return Weight.eq(set1.weight, set2.weight) && set1.completedReps === set2.completedReps && set1.rpe === set2.rpe;
+    return (
+      Weight.eqNull(set1.weight, set2.weight) && set1.completedReps === set2.completedReps && set1.rpe === set2.rpe
+    );
   }
 
   export function displayReps(set: ISet): string {
@@ -74,9 +79,9 @@ export namespace Reps {
   export function newSet(unit: IUnit): ISet {
     return {
       id: UidFactory.generateUid(6),
-      originalWeight: Weight.build(0, unit),
-      weight: Weight.build(0, unit),
-      reps: 1,
+      originalWeight: undefined,
+      weight: undefined,
+      reps: undefined,
       isAmrap: false,
       askWeight: false,
       isCompleted: false,
@@ -101,7 +106,11 @@ export namespace Reps {
 
   export function isCompletedSet(set: ISet): boolean {
     if (set.completedReps != null && set.completedWeight != null) {
-      return !!set.isCompleted && set.completedReps >= set.reps && Weight.gte(set.completedWeight, set.weight);
+      return (
+        !!set.isCompleted &&
+        (set.reps == null || set.completedReps >= set.reps) &&
+        (set.weight == null || Weight.gte(set.completedWeight, set.weight))
+      );
     } else {
       return false;
     }
@@ -110,8 +119,8 @@ export namespace Reps {
   export function isInRangeCompletedSet(set: ISet): boolean {
     if (set.completedReps != null && set.completedWeight != null) {
       return (
-        Weight.gte(set.completedWeight, set.weight) &&
-        (set.minReps != null ? set.completedReps >= set.minReps : set.completedReps >= set.reps)
+        (set.weight == null || Weight.gte(set.completedWeight, set.weight)) &&
+        (set.minReps != null ? set.completedReps >= set.minReps : set.reps == null || set.completedReps >= set.reps)
       );
     } else {
       return false;
@@ -131,7 +140,7 @@ export namespace Reps {
   }
 
   export function toKey(set: ISet): string {
-    return `${Weight.print(set.weight)}-${set.completedWeight ? Weight.print(set.completedWeight) : ""}-${set.reps}-${set.minReps}-${set.isAmrap}-${set.rpe}-${set.askWeight}-${set.completedReps}-${set.completedRpe}-${set.isCompleted}`;
+    return `${Weight.printNull(set.weight)}-${Weight.printNull(set.completedWeight)}-${set.reps}-${set.minReps}-${set.isAmrap}-${set.rpe}-${set.askWeight}-${set.completedReps}-${set.completedRpe}-${set.isCompleted}`;
   }
 
   export function isInRangeCompleted(sets: ISet[]): boolean {
@@ -152,7 +161,7 @@ export namespace Reps {
         const last = lastGroup[lastGroup.length - 1];
         if (
           last != null &&
-          (!Weight.eq(last.weight, set.weight) ||
+          (!Weight.eqNull(last.weight, set.weight) ||
             last.reps !== set.reps ||
             last.minReps !== set.minReps ||
             last.completedReps !== set.completedReps ||
@@ -209,7 +218,11 @@ export namespace Reps {
   export function volume(sets: ISet[]): IWeight {
     const unit = sets[0]?.weight?.unit || "lb";
     return sets.reduce(
-      (memo, set) => Weight.add(memo, Weight.multiply(set.completedWeight ?? set.weight, set.completedReps ?? 0)),
+      (memo, set) =>
+        Weight.add(
+          memo,
+          Weight.multiply(set.completedWeight ?? set.weight ?? Weight.build(0, "lb"), set.completedReps ?? 0)
+        ),
       Weight.build(0, unit)
     );
   }

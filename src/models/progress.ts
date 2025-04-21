@@ -44,10 +44,10 @@ export interface IScriptBindings {
   week: number;
   dayInWeek: number;
   originalWeights: (IWeight | IPercentage)[];
-  weights: IWeight[];
+  weights: (IWeight | undefined)[];
   completedWeights: (IWeight | undefined)[];
   rm1: IWeight;
-  reps: number[];
+  reps: (number | undefined)[];
   minReps: (number | undefined)[];
   amraps: (number | undefined)[];
   logrpes: (number | undefined)[];
@@ -56,8 +56,8 @@ export interface IScriptBindings {
   completedRPE: (number | undefined)[];
   completedReps: (number | undefined)[];
   isCompleted: (0 | 1)[];
-  w: IWeight[];
-  r: number[];
+  w: (IWeight | undefined)[];
+  r: (number | undefined)[];
   mr: (number | undefined)[];
   cr: (number | undefined)[];
   cw: (IWeight | undefined)[];
@@ -414,12 +414,18 @@ export namespace Progress {
         const { entry, set } = nextEntryAndSet;
         const exercise = Exercise.get(entry.exercise, settings.exercises);
         if (exercise) {
-          const { plates } = Weight.calculatePlates(set.weight, settings, set.weight.unit, entry.exercise);
           subtitleHeader = "Next Set";
-          subtitle = `${exercise.name}, ${set.reps}${set.isAmrap ? "+" : ""} reps, ${Weight.display(set.weight)}`;
-          const formattedPlates = plates.length > 0 ? Weight.formatOneSide(settings, plates, exercise) : "None";
-          bodyHeader = "Plates per side";
-          body = formattedPlates;
+          subtitle = CollectionUtils.compact([
+            exercise.name,
+            set.reps != null ? `${set.reps}${set.isAmrap ? "+" : ""} reps` : undefined,
+            set.weight != null ? Weight.display(set.weight) : undefined,
+          ]).join(", ");
+          if (set.weight != null) {
+            const { plates } = Weight.calculatePlates(set.weight, settings, set.weight.unit, entry.exercise);
+            const formattedPlates = plates.length > 0 ? Weight.formatOneSide(settings, plates, exercise) : "None";
+            bodyHeader = "Plates per side";
+            body = formattedPlates;
+          }
         }
       }
       const ignoreDoNotDisturb = settings.ignoreDoNotDisturb ? "true" : "false";
@@ -497,25 +503,6 @@ export namespace Progress {
 
   export function hasLastUnfinishedSet(entry: IHistoryEntry): boolean {
     return entry.sets.filter((s) => !s.isCompleted).length === 1;
-  }
-
-  export function showUpdateWeightModal(
-    progress: IHistoryRecord,
-    exercise: IExerciseType,
-    weight: IWeight,
-    programExercise?: IPlannerProgramExercise
-  ): IHistoryRecord {
-    return {
-      ...progress,
-      ui: {
-        ...progress.ui,
-        weightModal: {
-          exercise,
-          weight: weight,
-          programExerciseId: programExercise?.key,
-        },
-      },
-    };
   }
 
   export function showUpdateDate(progress: IHistoryRecord, date: string, time: number): IHistoryRecord {
@@ -764,8 +751,8 @@ export namespace Progress {
     const set = mode === "warmup" ? entry.warmupSets[setIndex] : entry.sets[setIndex];
     const shouldLogRpe = !!set?.logRpe;
     const shouldPromptUserVars = hasUserPromptedVars && Progress.hasLastUnfinishedSet(entry);
-    const isAmrap = set?.completedReps == null && !!set?.isAmrap;
-    const shouldAskWeight = set?.completedWeight == null && !!set?.askWeight;
+    const isAmrap = set?.completedReps == null && (!!set?.isAmrap || set.reps == null);
+    const shouldAskWeight = set?.completedWeight == null && (!!set?.askWeight || set.weight == null);
     if (mode === "warmup") {
       return lf(progress)
         .p("entries")
@@ -831,46 +818,6 @@ export namespace Progress {
       return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedWeight").set(value);
     } else {
       return progress;
-    }
-  }
-
-  export function updateWeight(
-    progress: IHistoryRecord,
-    settings: ISettings,
-    weight?: IWeight,
-    programExercise?: IPlannerProgramExercise
-  ): IHistoryRecord {
-    const warmupSets = programExercise ? PlannerProgramExercise.programWarmups(programExercise, settings) : undefined;
-    if (weight != null && progress.ui?.weightModal != null) {
-      const { exercise, weight: previousWeight } = progress.ui.weightModal;
-
-      return {
-        ...progress,
-        ui: { ...progress.ui, weightModal: undefined },
-        entries: progress.entries.map((progressEntry) => {
-          if (Exercise.eq(progressEntry.exercise, exercise)) {
-            const firstWeight = progressEntry.sets[0]?.weight;
-            return {
-              ...progressEntry,
-              sets: progressEntry.sets.map((set) => {
-                if (Weight.eq(set.weight, previousWeight) && weight != null) {
-                  return { ...set, weight };
-                } else {
-                  return set;
-                }
-              }),
-              warmupSets:
-                Weight.eq(firstWeight, previousWeight) && weight != null
-                  ? Exercise.getWarmupSets(exercise, weight, settings, warmupSets)
-                  : progressEntry.warmupSets,
-            };
-          } else {
-            return progressEntry;
-          }
-        }),
-      };
-    } else {
-      return { ...progress, ui: { ...progress.ui, weightModal: undefined } };
     }
   }
 
@@ -979,8 +926,12 @@ export namespace Progress {
         } else if (programSet != null) {
           const unit = Equipment.getUnitOrDefaultForExerciseType(settings, programExercise.exerciseType);
           const originalWeight = programSet.weight;
-          const evaluatedWeight = Weight.evaluateWeight(programSet.weight, programExercise.exerciseType, settings);
-          const weight = Weight.roundConvertTo(evaluatedWeight, settings, unit, programExercise.exerciseType);
+          const evaluatedWeight = originalWeight
+            ? Weight.evaluateWeight(originalWeight, programExercise.exerciseType, settings)
+            : undefined;
+          const weight = evaluatedWeight
+            ? Weight.roundConvertTo(evaluatedWeight, settings, unit, programExercise.exerciseType)
+            : undefined;
           newSets.push({
             ...progressSet,
             reps: programSet.maxrep,
@@ -1010,8 +961,12 @@ export namespace Progress {
     } else {
       const newSets = sets.map((set) => {
         const unit = Equipment.getUnitOrDefaultForExerciseType(settings, programExercise.exerciseType);
-        const originalWeight = Weight.evaluateWeight(set.weight, programExercise.exerciseType, settings);
-        const weight = Weight.roundConvertTo(originalWeight, settings, unit, programExercise.exerciseType);
+        const originalWeight = set.weight
+          ? Weight.evaluateWeight(set.weight, programExercise.exerciseType, settings)
+          : undefined;
+        const weight = originalWeight
+          ? Weight.roundConvertTo(originalWeight, settings, unit, programExercise.exerciseType)
+          : undefined;
         return {
           reps: set.maxrep,
           minReps: set.minrep,

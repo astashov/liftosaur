@@ -221,7 +221,7 @@ export class PlannerEvaluatedProgramToText {
       }
       setStr += `${repRange.numberOfSets}${addQuickAddSet ? "+" : ""}x`;
       setStr += repRange.minrep != null ? `${Math.max(0, repRange.minrep)}-` : "";
-      setStr += `${Math.max(0, repRange.maxrep)}`;
+      setStr += `${Math.max(0, repRange.maxrep ?? 0)}`;
       setStr += repRange.isAmrap ? "+" : "";
       const weightValue =
         set.weight != null ? Weight.print(set.weight) : set.percentage != null ? `${set.percentage}%` : undefined;

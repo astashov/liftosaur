@@ -12,7 +12,6 @@ import { UidFactory } from "../utils/generator";
 import {
   THistoryRecord,
   IStorage,
-  IExerciseType,
   IWeight,
   IProgressMode,
   ISettings,
@@ -219,19 +218,6 @@ export type IChangeAMRAPAction = {
   userVars?: Record<string, number | IWeight | IPercentage>;
 };
 
-export type IChangeWeightAction = {
-  type: "ChangeWeightAction";
-  weight: IWeight;
-  exercise: IExerciseType;
-  programExercise?: IPlannerProgramExercise;
-};
-
-export type IConfirmWeightAction = {
-  type: "ConfirmWeightAction";
-  weight?: IWeight;
-  programExercise?: IPlannerProgramExercise;
-};
-
 export type IUpdateSettingsAction = {
   type: "UpdateSettings";
   lensRecording: ILensRecordingPayload<ISettings>;
@@ -283,12 +269,7 @@ export type IUpdateProgressAction = {
   desc?: string;
 };
 
-export type ICardsAction =
-  | ICompleteSetAction
-  | IChangeWeightAction
-  | IChangeAMRAPAction
-  | IConfirmWeightAction
-  | IUpdateProgressAction;
+export type ICardsAction = ICompleteSetAction | IChangeAMRAPAction | IUpdateProgressAction;
 
 export type IAction =
   | ICardsAction
@@ -529,12 +510,6 @@ export function buildCardsReducer(
         );
         return { ...newProgress, ui: { ...newProgress.ui, amrapModal: undefined } };
       }
-      case "ChangeWeightAction": {
-        return Progress.showUpdateWeightModal(progress, action.exercise, action.weight, action.programExercise);
-      }
-      case "ConfirmWeightAction": {
-        return Progress.updateWeight(progress, settings, action.weight, action.programExercise);
-      }
       case "UpdateProgress": {
         return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);
       }
@@ -569,16 +544,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)
     );
   } else if (action.type === "ChangeAMRAPAction") {
-    return Progress.setProgress(
-      state,
-      buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)
-    );
-  } else if (action.type === "ChangeWeightAction") {
-    return Progress.setProgress(
-      state,
-      buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)
-    );
-  } else if (action.type === "ConfirmWeightAction") {
     return Progress.setProgress(
       state,
       buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)

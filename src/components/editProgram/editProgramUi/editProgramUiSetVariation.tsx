@@ -153,7 +153,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
   if (!repRange) {
     return null;
   }
-  weight = weight ?? Weight.buildPct(Math.round(Weight.rpeMultiplier(repRange.maxrep, set.rpe ?? 10) * 100));
+  weight = weight ?? Weight.buildPct(Math.round(Weight.rpeMultiplier(repRange.maxrep ?? 0, set.rpe ?? 10) * 100));
   const [showMinReps, setShowMinReps] = useState(repRange.minrep != null);
   const [showRpe, setShowRpe] = useState(set.rpe != null);
   const [showTimer, setShowTimer] = useState(set.timer != null);

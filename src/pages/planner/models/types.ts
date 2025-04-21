@@ -76,8 +76,8 @@ export interface IPlannerProgramExerciseEvaluatedSetVariation {
 }
 
 export interface IPlannerProgramExerciseEvaluatedSet {
-  maxrep: number;
-  weight: IWeight | IPercentage;
+  maxrep?: number;
+  weight?: IWeight | IPercentage;
   minrep?: number;
   timer?: number;
   rpe?: number;
@@ -160,7 +160,7 @@ export interface IPlannerProgramProperty {
 
 export interface IPlannerProgramExerciseRepRange {
   numberOfSets: number;
-  maxrep: number;
+  maxrep?: number;
   minrep?: number;
   isAmrap: boolean;
   isQuickAddSet: boolean;

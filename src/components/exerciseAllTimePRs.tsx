@@ -53,7 +53,7 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
               <div data-cy="one-rm-value">
                 {Weight.display(Weight.convertTo(max1RM.weight, props.settings.units))}
                 {max1RM.set
-                  ? ` (${max1RM.set.completedReps} x ${Weight.display(max1RM.set.completedWeight ?? max1RM.set.weight)})`
+                  ? ` (${max1RM.set.completedReps} x ${Weight.display(max1RM.set.completedWeight ?? max1RM.set.weight ?? Weight.build(0, props.settings.units))})`
                   : ""}
               </div>
               {max1RM.historyRecord && (

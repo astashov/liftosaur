@@ -220,7 +220,7 @@ function getVolumePerWeeks(
           if (!s.repRange) {
             return acc;
           }
-          const reps = s.repRange.maxrep;
+          const reps = s.repRange.maxrep ?? 0;
           const weight = s.percentage ? s.percentage * 100 : Weight.rpeMultiplier(reps, s.rpe ?? 10) * 100;
           return acc + s.repRange.numberOfSets * weight * reps;
         }, 0)

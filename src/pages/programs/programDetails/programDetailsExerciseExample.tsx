@@ -123,7 +123,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
             title="Weight week over week"
             yAxisLabel="Weight"
             color="red"
-            getValue={(entry) => entry.sets[0].weight.value}
+            getValue={(entry) => entry.sets[0].weight?.value ?? 0}
           />
         </div>
         <div>
@@ -133,7 +133,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
             title="Volume (reps * weight) week over week"
             yAxisLabel="Volume"
             color="orange"
-            getValue={(entry) => entry.sets.reduce((acc, s) => acc + s.reps * s.weight.value, 0)}
+            getValue={(entry) => entry.sets.reduce((acc, s) => acc + (s.reps ?? 0) * (s.weight?.value ?? 0), 0)}
           />
         </div>
       </div>

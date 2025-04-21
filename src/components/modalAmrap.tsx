@@ -167,9 +167,11 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
             className="ls-modal-set-amrap"
             onClick={(e) => {
               e.preventDefault();
-              const amrapValue = isAmrap ? repsInputValue : undefined;
+              const amrapValue = isAmrap ? (repsInputValue ?? 0) : undefined;
               const rpeValue = logRpe ? rpeInputValue : undefined;
-              const weightOrPctValue = askWeight ? weightInputValue : undefined;
+              const weightOrPctValue = askWeight
+                ? (weightInputValue ?? Weight.build(0, props.settings.units))
+                : undefined;
               const weightValue =
                 weightOrPctValue != null && Weight.isPct(weightOrPctValue)
                   ? Weight.build(weightOrPctValue.value, props.settings.units)

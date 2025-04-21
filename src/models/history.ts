@@ -134,7 +134,10 @@ export namespace History {
     return CollectionUtils.sort(
       sets.filter((s) => (s.completedReps || 0) > 0),
       (a, b) => {
-        const weightDiff = Weight.compare(b.completedWeight ?? b.weight, a.completedWeight ?? a.weight);
+        const weightDiff = Weight.compare(
+          b.completedWeight ?? b.weight ?? Weight.build(0, "lb"),
+          a.completedWeight ?? a.weight ?? Weight.build(0, "lb")
+        );
         if (weightDiff === 0 && a.completedReps && b.completedReps) {
           return b.completedReps - a.completedReps;
         }
@@ -148,8 +151,16 @@ export namespace History {
       sets.filter((s) => (s.completedReps || 0) > 0),
       (a, b) => {
         const weightDiff = Weight.compare(
-          Weight.getOneRepMax(b.completedWeight ?? b.weight, b.completedReps || 0, b.completedRpe ?? b.rpe ?? 10),
-          Weight.getOneRepMax(a.completedWeight ?? a.weight, a.completedReps || 0, a.completedRpe ?? a.rpe ?? 10)
+          Weight.getOneRepMax(
+            b.completedWeight ?? b.weight ?? Weight.build(0, "lb"),
+            b.completedReps || 0,
+            b.completedRpe ?? b.rpe ?? 10
+          ),
+          Weight.getOneRepMax(
+            a.completedWeight ?? a.weight ?? Weight.build(0, "lb"),
+            a.completedReps || 0,
+            a.completedRpe ?? a.rpe ?? 10
+          )
         );
         if (weightDiff === 0 && a.completedReps && b.completedReps) {
           return b.completedReps - a.completedReps;
@@ -361,7 +372,7 @@ export namespace History {
         const entries = hr.entries.filter((e) => Exercise.eq(e.exercise, exerciseType));
         const maxSet = getMaxWeightSet(entries.flatMap((e) => e.sets));
         if (maxSet != null) {
-          const weight = maxSet.completedWeight ?? maxSet.weight;
+          const weight = maxSet.completedWeight ?? maxSet.weight ?? Weight.build(0, unit);
           if (Weight.gt(weight, acc.maxWeight)) {
             acc = { maxWeight: weight, maxWeightHistoryRecord: hr };
           }
@@ -382,7 +393,7 @@ export namespace History {
         const allSets = entries.flatMap((e) => e.sets);
         const all1RMs = allSets.map<[ISet, IWeight]>((s) => [
           s,
-          Weight.getOneRepMax(s.completedWeight ?? s.weight, s.completedReps || 0),
+          Weight.getOneRepMax(s.completedWeight ?? s.weight ?? Weight.build(0, settings.units), s.completedReps || 0),
         ]);
         const max1RM = CollectionUtils.sort(all1RMs, (a, b) => Weight.compare(b[1], a[1]))[0];
         if (max1RM != null && Weight.gt(max1RM[1], acc.max1RM)) {
@@ -403,7 +414,7 @@ export namespace History {
         if (
           entryMaxSet != null &&
           (entryMaxSet.completedReps || 0) > 0 &&
-          Weight.lt(maxSets[key]?.weight || 0, entryMaxSet.weight)
+          Weight.lt(maxSets[key]?.weight || 0, entryMaxSet.weight ?? Weight.build(0, "lb"))
         ) {
           maxSets[key] = entryMaxSet;
         }
@@ -485,7 +496,7 @@ export namespace History {
           const thisMax1RMSet = getMax1RMSetFromEntry(entry);
           const thisMax1RM = thisMax1RMSet
             ? Weight.getOneRepMax(
-                thisMax1RMSet.completedWeight ?? thisMax1RMSet.weight,
+                thisMax1RMSet.completedWeight ?? thisMax1RMSet.weight ?? Weight.build(0, "lb"),
                 thisMax1RMSet.completedReps || 0,
                 thisMax1RMSet.completedRpe ?? thisMax1RMSet.rpe
               )
@@ -493,7 +504,7 @@ export namespace History {
           const lastMax1RMSet = max1RMSets[key];
           const lastMax1RM = lastMax1RMSet
             ? Weight.getOneRepMax(
-                lastMax1RMSet.completedWeight ?? lastMax1RMSet.weight,
+                lastMax1RMSet.completedWeight ?? lastMax1RMSet.weight ?? Weight.build(0, "lb"),
                 lastMax1RMSet?.completedReps || 0,
                 lastMax1RMSet.completedRpe ?? lastMax1RMSet.rpe
               )
@@ -520,7 +531,10 @@ export namespace History {
         if (Exercise.eq(e.exercise, exerciseType)) {
           const entryMaxSet = getMaxWeightSetFromEntry(e);
           if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
-            if (maxSet == null || Weight.gt(entryMaxSet.weight, maxSet.weight)) {
+            if (
+              maxSet == null ||
+              Weight.gt(entryMaxSet.weight ?? Weight.build(0, "lb"), maxSet.weight ?? Weight.build(0, "lb"))
+            ) {
               maxSet = entryMaxSet;
             }
           }
@@ -542,7 +556,10 @@ export namespace History {
                 isMax = true;
               }
               const maxSet = getMaxWeightSetFromEntry(e);
-              if (maxSet != null && Weight.gte(maxSet.weight, entryMaxSet.weight)) {
+              if (
+                maxSet != null &&
+                Weight.gte(maxSet.weight ?? Weight.build(0, "lb"), entryMaxSet.weight ?? Weight.build(0, "lb"))
+              ) {
                 isMax = false;
               }
             }
@@ -575,7 +592,11 @@ export namespace History {
     return entry.sets
       .filter((s) => (s.completedReps || 0) > 0)
       .reduce(
-        (memo, set) => Weight.add(memo, Weight.multiply(set.completedWeight ?? set.weight, set.completedReps || 0)),
+        (memo, set) =>
+          Weight.add(
+            memo,
+            Weight.multiply(set.completedWeight ?? set.weight ?? Weight.build(0, unit), set.completedReps || 0)
+          ),
         Weight.build(0, unit)
       );
   }
@@ -655,7 +676,11 @@ export namespace History {
       for (const entry of record.entries) {
         if (Exercise.eq(currentEntry.exercise, entry.exercise)) {
           for (const set of entry.sets) {
-            if (set.isAmrap && set.reps === nextSet.reps && Weight.eq(set.weight, nextSet.weight)) {
+            if (
+              set.isAmrap &&
+              set.reps === nextSet.reps &&
+              Weight.eq(set.weight ?? Weight.build(0, "lb"), nextSet.weight ?? Weight.build(0, "lb"))
+            ) {
               if (last == null) {
                 last = [set, record.startTime];
               }
@@ -701,12 +726,12 @@ export namespace History {
             historyRecord.dayName,
             Exercise.fullName(exercise, settings),
             1,
-            warmupSet.reps,
+            warmupSet.reps ?? 0,
             warmupSet.completedReps || null,
             warmupSet.completedRpe || null,
             0,
-            warmupSet.weight.value,
-            warmupSet.weight.unit,
+            warmupSet.weight?.value ?? 0,
+            warmupSet.weight?.unit ?? settings.units,
             warmupSet.timestamp != null ? new Date(warmupSet.timestamp || 0).toISOString() : null,
             Exercise.targetMuscles(exercise, settings.exercises).join(","),
             Exercise.synergistMuscles(exercise, settings.exercises).join(","),
@@ -720,12 +745,12 @@ export namespace History {
             historyRecord.dayName,
             Exercise.fullName(exercise, settings),
             0,
-            set.reps,
+            set.reps ?? 0,
             set.completedReps || null,
             set.completedRpe || null,
             set.isAmrap ? 1 : 0,
-            set.weight.value,
-            set.weight.unit,
+            set.weight?.value ?? 0,
+            set.weight?.unit ?? settings.units,
             set.timestamp != null ? new Date(set.timestamp || 0).toISOString() : null,
             Exercise.targetMuscles(exercise, settings.exercises).join(","),
             Exercise.synergistMuscles(exercise, settings.exercises).join(","),

@@ -61,7 +61,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
   const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
   const description = programExercise ? PlannerProgramExercise.currentDescription(programExercise) : undefined;
   const onerm = Exercise.onerm(exercise, props.settings);
-  const hasUnequalWeights = props.entry.sets.some((w) => !Weight.eq(w.originalWeight, w.weight));
+  const hasUnequalWeights = props.entry.sets.some((w) => !Weight.eqNull(w.originalWeight, w.weight));
   const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0];
   const lbSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("sets");
   const lbWarmupSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("warmupSets");
@@ -265,17 +265,20 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
           />
         </div>
       </div>
-      {!props.hidePlatesCalculator && nextSet && currentEquipmentName && (
-        <div className="mx-4">
-          <WorkoutPlatesCalculator
-            entry={props.entry}
-            weight={nextSet.completedWeight ?? nextSet.weight}
-            subscription={props.subscription}
-            settings={props.settings}
-            dispatch={props.dispatch}
-          />
-        </div>
-      )}
+      {!props.hidePlatesCalculator &&
+        nextSet &&
+        currentEquipmentName &&
+        (nextSet.completedWeight || nextSet.weight) && (
+          <div className="mx-4">
+            <WorkoutPlatesCalculator
+              entry={props.entry}
+              weight={nextSet.completedWeight ?? nextSet.weight ?? Weight.build(0, props.settings.units)}
+              subscription={props.subscription}
+              settings={props.settings}
+              dispatch={props.dispatch}
+            />
+          </div>
+        )}
       {props.showHelp && <HelpTarget helps={props.helps} dispatch={props.dispatch} />}
       {props.showHelp && hasUnequalWeights && (
         <HelpEquipment helps={props.helps} entry={props.entry} progress={props.progress} dispatch={props.dispatch} />

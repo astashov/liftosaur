@@ -1010,10 +1010,6 @@ if (completedReps >= reps && completedRPE <= RPE) {
           throw new Error(`Unexpected section type`);
         }
       }
-      const hasRepRanges = allSets.filter((s) => s.repRange != null).length > 0;
-      if (!hasRepRanges && !reuse) {
-        this.error("Exercise must have sets x reps specified in one of sections", nameNode);
-      }
       const rpe = allSets.find((set) => set.repRange == null && set.rpe != null)?.rpe;
       const timer = allSets.find((set) => set.repRange == null && set.timer != null)?.timer;
       const percentage = allSets.find((set) => set.repRange == null && set.percentage != null)?.percentage;

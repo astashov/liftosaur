@@ -19,7 +19,7 @@ export class PlannerStatsUtils {
             if (!repRange) {
               return acc2;
             }
-            const reps = repRange.maxrep;
+            const reps = repRange.maxrep ?? 0;
             const secondsPerRep = 7;
             const prepareTime = 20;
             const timeToRep = (prepareTime + reps * secondsPerRep) * 1000;
@@ -80,7 +80,7 @@ export class PlannerStatsUtils {
           const repRange = set.repRange;
           if (repRange != null) {
             results.total += repRange.numberOfSets;
-            if (repRange.maxrep < 8) {
+            if (repRange.maxrep ?? 0 < 8) {
               results.strength += repRange.numberOfSets;
             } else {
               results.hypertrophy += repRange.numberOfSets;
@@ -128,7 +128,7 @@ function add(
   exercise: IExercise
 ): void {
   let isStrength = false;
-  if (repRange.maxrep < 8) {
+  if (repRange.maxrep ?? 0 < 8) {
     isStrength = true;
     results[key].strength += repRange.numberOfSets;
   } else {
@@ -165,7 +165,7 @@ function addMuscleGroup(
 ): void {
   synergistMultiplier = synergistMultiplier ?? 0.5;
   let isStrength = false;
-  if (repRange.maxrep < 8) {
+  if (repRange.maxrep ?? 0 < 8) {
     isStrength = true;
     results[key].strength += isTarget ? repRange.numberOfSets : repRange.numberOfSets * synergistMultiplier;
   } else {

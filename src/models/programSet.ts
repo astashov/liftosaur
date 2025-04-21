@@ -29,7 +29,7 @@ export namespace ProgramSet {
     const reps = set.maxrep;
     const secondsPerRep = 7;
     const prepareTime = 20;
-    const timeToRep = (prepareTime + reps * secondsPerRep) * 1000;
+    const timeToRep = (prepareTime + (reps ?? 0) * secondsPerRep) * 1000;
     const timeToRest = (settings.timers.workout || 0) * 1000;
     const totalTime = timeToRep + timeToRest;
     return totalTime;

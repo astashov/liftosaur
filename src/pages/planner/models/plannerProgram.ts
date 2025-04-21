@@ -36,7 +36,10 @@ export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty 
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
 
 export class PlannerDayDataError extends Error {
-  constructor(message: string, public readonly dayData: Required<IDayData>) {
+  constructor(
+    message: string,
+    public readonly dayData: Required<IDayData>
+  ) {
     super(message);
   }
 }
@@ -62,7 +65,7 @@ export class PlannerProgram {
       if (ex.key === programExerciseId) {
         for (const setVariation of ex.evaluatedSetVariations) {
           for (const set of setVariation.sets) {
-            const weightChange = weightChanges.find((wc) => Weight.eq(wc.originalWeight, set.weight));
+            const weightChange = weightChanges.find((wc) => Weight.eqNull(wc.originalWeight, set.weight));
             if (weightChange != null) {
               set.weight = weightChange.weight;
             }
