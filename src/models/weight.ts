@@ -67,6 +67,16 @@ export namespace Weight {
     }
   }
 
+  export function printNull(weight: IWeight | IPercentage | number | undefined): string {
+    if (weight == null) {
+      return "";
+    } else if (typeof weight === "number") {
+      return `${n(weight)}`;
+    } else {
+      return `${n(weight.value)}${weight.unit}`;
+    }
+  }
+
   export function parsePct(str?: string): IPercentage | IWeight | undefined {
     if (str == null) {
       return undefined;

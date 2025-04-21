@@ -129,7 +129,11 @@ function getIntensityPerWeeks(
     }
     const setVariation = PlannerProgramExercise.currentEvaluatedSetVariation(exercise);
     const weights = setVariation.sets.map((s) => {
-      const weight = Weight.evaluateWeight(s.weight, exercise.exerciseType, settings);
+      const weight = Weight.evaluateWeight(
+        s.weight ?? Weight.build(0, settings.units),
+        exercise.exerciseType,
+        settings
+      );
       return Number(weight.value.toFixed(2));
     });
     data[0].push(weekIndex + 1);
@@ -161,8 +165,12 @@ function getVolumePerWeeks(
     const volume = Number(
       setVariation.sets
         .reduce((acc, s) => {
-          const reps = s.maxrep;
-          const weight = Weight.evaluateWeight(s.weight, exercise.exerciseType, settings);
+          const reps = s.maxrep ?? 0;
+          const weight = Weight.evaluateWeight(
+            s.weight ?? Weight.build(0, settings.units),
+            exercise.exerciseType,
+            settings
+          );
           return acc + Weight.multiply(weight, reps).value;
         }, 0)
         .toFixed(2)

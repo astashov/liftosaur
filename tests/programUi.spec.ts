@@ -24,7 +24,7 @@ test("Warmups", async ({ page }) => {
 
   await page.getByTestId("editor-v2-full-program").click();
   await expect(page.getByTestId("planner-editor")).toContainText(
-    "Bench Press / 1x1 / warmup: 2x5 30%, 1x4 52%, 1x5 90lb"
+    "Bench Press / 1x1 100lb / warmup: 2x5 30%, 1x4 52%, 1x5 90lb"
   );
 });
 
@@ -46,7 +46,7 @@ test("Sets", async ({ page }) => {
   await page.getByTestId("num-input-edit-exercise-minreps-plus").click();
   await page.getByTestId("num-input-edit-exercise-minreps-plus").click();
   await page.getByText("AMRAP?").click();
-  await expect(page.getByTestId("num-input-edit-exercise-set-weight-weight-value")).toHaveValue("87");
+  await expect(page.getByTestId("num-input-edit-exercise-set-weight-weight-value")).toHaveValue("100");
 
   await page.getByTestId("edit-exercise-set-weight-weight-unit").selectOption("lb");
   await page.getByTestId("num-input-edit-exercise-set-weight-weight-plus").click();
@@ -56,7 +56,7 @@ test("Sets", async ({ page }) => {
   await page.getByTestId("num-input-edit-exercise-minreps-plus").nth(1).click();
   await page.getByText("Ask Weight?").first().click();
   await page.getByTestId("editor-v2-full-program").click();
-  await expect(page.getByTestId("planner-editor")).toContainText("Bench Press / 2x5+ 95lb+, 2x2");
+  await expect(page.getByTestId("planner-editor")).toContainText("Bench Press / 2x5+ 110lb+, 2x2 100lb");
 });
 
 test("Change exercise", async ({ page }) => {

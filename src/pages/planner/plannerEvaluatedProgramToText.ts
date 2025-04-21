@@ -145,13 +145,12 @@ export class PlannerEvaluatedProgramToText {
                   plannerExercise += ` / ...${reusedKey}`;
                 }
                 if (evalExercise.setVariations.length > 0) {
-                  plannerExercise +=
-                    ` / ` +
-                    evalExercise.setVariations
-                      .map((v, i) =>
-                        this.setsToString(PlannerProgramExercise.sets(evalExercise, i), v.isCurrent && i !== 0)
-                      )
-                      .join(" / ");
+                  const setVarsStr = evalExercise.setVariations
+                    .map((v, i) =>
+                      this.setsToString(PlannerProgramExercise.sets(evalExercise, i), v.isCurrent && i !== 0)
+                    )
+                    .join(" / ");
+                  plannerExercise += setVarsStr ? ` / ${setVarsStr}` : "";
                 }
 
                 if (reuse && evalExercise.setVariations.length === 0) {
@@ -221,7 +220,7 @@ export class PlannerEvaluatedProgramToText {
       }
       setStr += `${repRange.numberOfSets}${addQuickAddSet ? "+" : ""}x`;
       setStr += repRange.minrep != null ? `${Math.max(0, repRange.minrep)}-` : "";
-      setStr += `${Math.max(0, repRange.maxrep)}`;
+      setStr += `${Math.max(0, repRange.maxrep ?? 0)}`;
       setStr += repRange.isAmrap ? "+" : "";
       const weightValue =
         set.weight != null ? Weight.print(set.weight) : set.percentage != null ? `${set.percentage}%` : undefined;

@@ -21,6 +21,13 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("custom-exercise-create").click({ force: true });
 
   await page.getByTestId("menu-item-my-exercise-2").click({ force: true });
+
+  await page.getByTestId("edit-exercise").click();
+  await page.getByTestId("edit-exercise-warmups-customize").click();
+  await page.getByTestId("edit-exercise-warmupset-delete").first().click();
+  await page.getByTestId("edit-exercise-warmupset-delete").first().click();
+  await page.getByTestId("edit-exercise-warmupset-delete").first().click();
+
   await page.getByTestId("editor-save-v2-top").click();
 
   await page.getByTestId("footer-workout").click();

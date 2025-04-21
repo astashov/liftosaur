@@ -120,6 +120,7 @@ export function EditProgramUiSetVariation(props: IEditProgramUiSetVariationProps
               modify((ex) => {
                 ex.setVariations[props.index].sets.push({
                   repRange: { isAmrap: false, isQuickAddSet: false, maxrep: 1, numberOfSets: 1 },
+                  weight: Weight.build(100, props.settings.units),
                 });
               });
             }}
@@ -153,7 +154,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
   if (!repRange) {
     return null;
   }
-  weight = weight ?? Weight.buildPct(Math.round(Weight.rpeMultiplier(repRange.maxrep, set.rpe ?? 10) * 100));
+  weight = weight ?? Weight.buildPct(Math.round(Weight.rpeMultiplier(repRange.maxrep ?? 0, set.rpe ?? 10) * 100));
   const [showMinReps, setShowMinReps] = useState(repRange.minrep != null);
   const [showRpe, setShowRpe] = useState(set.rpe != null);
   const [showTimer, setShowTimer] = useState(set.timer != null);
@@ -240,19 +241,17 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
               </DropdownMenu>
             )}
           </div>
-          {!props.isOnlySet && (
-            <div className="ml-2">
-              <button
-                data-cy="edit-exercise-set-delete"
-                className={`px-1 py-2 ${props.disabled ? "opacity-50 cursor-not-allowed nm-set-variation-delete" : ""}`}
-                onClick={() => {
-                  props.onUpdate(undefined);
-                }}
-              >
-                <IconTrash />
-              </button>
-            </div>
-          )}
+          <div className="ml-2">
+            <button
+              data-cy="edit-exercise-set-delete"
+              className={`px-1 py-2 ${props.disabled ? "opacity-50 cursor-not-allowed nm-set-variation-delete" : ""}`}
+              onClick={() => {
+                props.onUpdate(undefined);
+              }}
+            >
+              <IconTrash />
+            </button>
+          </div>
         </div>
       </div>
       {showLabel && (

@@ -105,7 +105,7 @@ export class ProgramToPlanner {
           }
           if (
             reuseSet
-              ? !Weight.eq(programSet.weight, reuseSet.weight) || programSet.askWeight !== reuseSet.askWeight
+              ? !Weight.eqNull(programSet.weight, reuseSet.weight) || programSet.askWeight !== reuseSet.askWeight
               : !Weight.eq(globals.weight || Weight.zero, reusedGlobals.weight || Weight.zero) ||
                 globals.askWeight !== reusedGlobals.askWeight
           ) {
@@ -505,11 +505,11 @@ export class ProgramToPlanner {
       weight:
         firstWeight != null &&
         variations.every((v) =>
-          v.sets.every((s) => Weight.eq(s.weight, firstWeight) && !!s.askWeight === firstAskWeight)
+          v.sets.every((s) => Weight.eqNull(s.weight, firstWeight) && !!s.askWeight === firstAskWeight)
         )
           ? firstWeight
           : undefined,
-      askWeight: variations.every((v) => v.sets.every((s) => Weight.eq(s.weight, firstWeight) && !!s.askWeight)),
+      askWeight: variations.every((v) => v.sets.every((s) => Weight.eqNull(s.weight, firstWeight) && !!s.askWeight)),
       rpe:
         firstRpe != null &&
         variations.every((v) => v.sets.every((s) => s.rpe === firstRpe && !!s.logRpe === firstLogRpe))
@@ -612,7 +612,7 @@ export class ProgramToPlanner {
       let setStr = "";
       setStr += `${group[1]}${set.isQuickAddSet ? "+" : ""}x`;
       setStr += set.minrep != null ? `${n(Math.max(0, set.minrep))}-` : "";
-      setStr += `${n(Math.max(0, set.maxrep))}`;
+      setStr += `${n(Math.max(0, set.maxrep ?? 0))}`;
       setStr += set.isAmrap ? "+" : "";
       if (globals.weight == null) {
         const weightValue = this.weightExprToStr(set.weight);
@@ -642,7 +642,7 @@ export class ProgramToPlanner {
   }
 
   private setToKey(set: IPlannerProgramExerciseEvaluatedSet): string {
-    return `${set.maxrep}-${set.minrep}-${Weight.print(set.weight)}-${set.isAmrap}-${set.rpe}-${set.logRpe}-${
+    return `${set.maxrep}-${set.minrep}-${Weight.printNull(set.weight)}-${set.isAmrap}-${set.rpe}-${set.logRpe}-${
       set.timer
     }-${set.label}-${set.askWeight}`;
   }

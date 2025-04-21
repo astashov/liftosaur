@@ -203,8 +203,12 @@ export namespace Program {
         programSet.minrep != null && programSet.minrep !== programSet.maxrep ? programSet.minrep : undefined;
       const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exercise);
       const originalWeight = programSet.weight;
-      const evaluatedWeight = Weight.evaluateWeight(programSet.weight, programExercise.exerciseType, settings);
-      const weight = Weight.roundConvertTo(evaluatedWeight, settings, unit, programExercise.exerciseType);
+      const evaluatedWeight = originalWeight
+        ? Weight.evaluateWeight(originalWeight, programExercise.exerciseType, settings)
+        : undefined;
+      const weight = evaluatedWeight
+        ? Weight.roundConvertTo(evaluatedWeight, settings, unit, programExercise.exerciseType)
+        : undefined;
       sets.push({
         id: UidFactory.generateUid(6),
         reps: programSet.maxrep,

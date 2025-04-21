@@ -6,7 +6,6 @@ import { IHistoryRecord, ISettings } from "../../types";
 import { IDispatch } from "../../ducks/types";
 import { ProgramPreviewPlaygroundExercise } from "./programPreviewPlaygroundExercise";
 import { ModalAmrap } from "../modalAmrap";
-import { ModalWeight } from "../modalWeight";
 import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlaygroundExerciseEditModal";
 import { lb } from "lens-shmens";
 import { EditProgramLenses } from "../../models/editProgramLenses";
@@ -119,19 +118,6 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
             props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
           )}
           otherStates={props.program.states}
-        />
-      )}
-      {props.progress.ui?.weightModal && (
-        <ModalWeight
-          isHidden={props.progress.ui?.weightModal == null}
-          programExercise={Program.getProgramExercise(
-            props.day,
-            props.program,
-            props.progress.ui?.weightModal?.programExerciseId
-          )}
-          settings={props.settings}
-          dispatch={dispatch}
-          weight={props.progress.ui?.weightModal?.weight ?? 0}
         />
       )}
       <BottomSheetEditTarget

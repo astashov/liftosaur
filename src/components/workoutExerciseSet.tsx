@@ -17,6 +17,7 @@ import { EditProgressEntry } from "../models/editProgressEntry";
 import { Reps } from "../models/set";
 import { Weight } from "../models/weight";
 import { Exercise } from "../models/exercise";
+import { set } from "fp-ts";
 
 interface IWorkoutExerciseSet {
   exerciseType: IExerciseType;
@@ -190,7 +191,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   set.rpe != null && set.reps != null
                     ? () => (
                         <RpeWeightHint
-                          reps={set.completedReps ?? set.reps}
+                          reps={set.completedReps ?? set.reps ?? 0}
                           rpe={set.completedRpe ?? set.rpe!}
                           settings={props.settings}
                           exerciseType={props.exerciseType}
@@ -312,13 +313,15 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
           <div className="inline-block text-sm align-middle">
             <div className="text-xs text-grayv3-main">Warmup</div>
             <div>
-              <span className="font-semibold">{n(Math.max(0, set.reps))}</span>
-              <span className="text-grayv3-main"> × </span>
-              <span>
-                <span> </span>
-                <span className="font-semibold">{n(set.weight.value)}</span>
-                <span className="text-xs">{set.weight.unit}</span>
-              </span>
+              {set.reps != null && <span className="font-semibold">{n(Math.max(0, set.reps))}</span>}
+              {set.reps != null && set.weight != null && <span className="text-grayv3-main"> × </span>}
+              {set.weight != null && (
+                <span>
+                  <span> </span>
+                  <span className="font-semibold">{n(set.weight.value)}</span>
+                  <span className="text-xs">{set.weight.unit}</span>
+                </span>
+              )}
             </div>
           </div>
         </span>
@@ -327,50 +330,57 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
     case "program": {
       const set = props.set;
       const isDiffWeight = set.weight && set.originalWeight && !Weight.eq(set.weight, set.originalWeight);
+      const hasTarget = set.reps != null || set.weight != null;
       return (
         <div className="inline-block text-sm align-middle">
           {set.label ? <div className="text-xs text-grayv3-main">{set.label}</div> : null}
           {props.setType === "adhoc" && <div className="text-xs text-grayv3-main">Ad-hoc</div>}
-          <div>
-            <span className="font-semibold" style={{ color: "#940" }}>
-              {set.minReps != null ? `${n(Math.max(0, set.minReps))}-` : null}
-              {n(Math.max(0, set.reps))}
-              {set.isAmrap ? "+" : ""}
-            </span>
-            <span className="text-grayv3-main"> × </span>
-            <span>
-              {set.originalWeight && (
-                <span
-                  className={isDiffWeight ? "line-through text-grayv3-main" : "font-semibold"}
-                  style={{ color: isDiffWeight ? "" : "#164" }}
-                >
-                  <span>{n(set.originalWeight.value)}</span>
-                  <span className="text-xs font-normal">{set.originalWeight.unit}</span>
+          {hasTarget ? (
+            <div>
+              {set.reps != null && (
+                <span className="font-semibold" style={{ color: "#940" }}>
+                  {set.minReps != null ? `${n(Math.max(0, set.minReps))}-` : null}
+                  {n(Math.max(0, set.reps))}
+                  {set.isAmrap ? "+" : ""}
                 </span>
               )}
-              {set.originalWeight && isDiffWeight && (
-                <span style={{ color: "#164" }}>
-                  <span> </span>
-                  <span className="font-semibold">{n(set.weight.value)}</span>
-                  <span className="text-xs">{set.weight.unit}</span>
-                </span>
-              )}
-            </span>
-            <span className="font-semibold" style={{ color: "#164" }}>
-              {set.askWeight ? "+" : ""}
-              {set.rpe ? ` @${n(Math.max(0, set.rpe))}` : null}
-              {set.rpe && set.logRpe ? "+" : ""}
-            </span>
-            {set.timer != null ? (
+              {set.reps != null && set.weight != null && <span className="text-grayv3-main"> × </span>}
               <span>
-                <span> </span>
-                <span style={{ color: "#708" }}>
-                  <span>{n(set.timer)}</span>
-                  <span className="text-xs">s</span>
-                </span>
+                {set.originalWeight && (
+                  <span
+                    className={isDiffWeight ? "line-through text-grayv3-main" : "font-semibold"}
+                    style={{ color: isDiffWeight ? "" : "#164" }}
+                  >
+                    <span>{n(set.originalWeight.value)}</span>
+                    <span className="text-xs font-normal">{set.originalWeight.unit}</span>
+                  </span>
+                )}
+                {set.weight && isDiffWeight && (
+                  <span style={{ color: "#164" }}>
+                    <span> </span>
+                    <span className="font-semibold">{n(set.weight.value)}</span>
+                    <span className="text-xs">{set.weight.unit}</span>
+                  </span>
+                )}
               </span>
-            ) : null}
-          </div>
+              <span className="font-semibold" style={{ color: "#164" }}>
+                {set.askWeight ? "+" : ""}
+                {set.rpe ? ` @${n(Math.max(0, set.rpe))}` : null}
+                {set.rpe && set.logRpe ? "+" : ""}
+              </span>
+              {set.timer != null ? (
+                <span>
+                  <span> </span>
+                  <span style={{ color: "#708" }}>
+                    <span>{n(set.timer)}</span>
+                    <span className="text-xs">s</span>
+                  </span>
+                </span>
+              ) : null}
+            </div>
+          ) : (
+            <div>None</div>
+          )}
         </div>
       );
     }
@@ -446,9 +456,9 @@ function getDataCy(set: ISet): string {
       return "set-amrap-nonstarted";
     } else if (set.minReps != null && set.completedReps < set.minReps) {
       return "set-amrap-incompleted";
-    } else if (set.minReps != null && set.completedReps < set.reps) {
+    } else if (set.minReps != null && set.reps != null && set.completedReps < set.reps) {
       return "set-amrap-in-range";
-    } else if (set.completedReps < set.reps) {
+    } else if (set.reps != null && set.completedReps < set.reps) {
       return "set-amrap-incompleted";
     } else {
       return "set-amrap-completed";
@@ -456,7 +466,7 @@ function getDataCy(set: ISet): string {
   } else if (set.completedReps == null || !set.isCompleted) {
     return "set-nonstarted";
   } else {
-    if (set.completedReps >= set.reps) {
+    if (set.reps == null || set.completedReps >= set.reps) {
       return "set-completed";
     } else if (set.minReps != null && set.completedReps >= set.minReps) {
       return "set-in-range";
@@ -498,17 +508,26 @@ interface IWorkoutExercisePlatesCalculatorProps {
 }
 
 function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculatorProps): JSX.Element {
+  const setWeight = props.set.weight;
+  if (setWeight == null) {
+    return (
+      <span className="text-sm font-semibold break-all">
+        <span data-cy="plates-list">None</span>
+      </span>
+    );
+  }
+
   const { plates, totalWeight: weight } = Weight.calculatePlates(
-    props.set.completedWeight ?? props.set.weight,
+    props.set.completedWeight ?? setWeight,
     props.settings,
-    props.set.weight.unit,
+    setWeight.unit,
     props.exerciseType
   );
   const formattedPlates = plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.exerciseType) : "None";
   return (
     <span className="text-sm font-semibold break-all">
       <span
-        className={Weight.eq(weight, props.set.completedWeight ?? props.set.weight) ? "text-blackv2" : "text-redv2-600"}
+        className={Weight.eq(weight, props.set.completedWeight ?? setWeight) ? "text-blackv2" : "text-redv2-600"}
         data-cy="plates-list"
       >
         {formattedPlates}

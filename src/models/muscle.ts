@@ -273,7 +273,7 @@ export namespace Muscle {
       new Set(synergistMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || []))
     );
     for (const set of historyEntry.sets) {
-      if (set.reps >= 8) {
+      if ((set.reps ?? 0) >= 8) {
         for (const muscle of screenTargetMuscles) {
           screenMusclePoints.hypertrophy[muscle] = screenMusclePoints.hypertrophy[muscle] || 0;
           screenMusclePoints.hypertrophy[muscle]! += 100;

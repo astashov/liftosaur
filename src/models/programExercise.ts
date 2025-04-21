@@ -252,16 +252,14 @@ export namespace ProgramExercise {
     } else {
       const onerm = Exercise.onerm(programExercise.exerciseType, settings);
       const oldValue = set[key];
-      if (oldValue != null) {
-        const newValue = Weight.applyOp(onerm, oldValue, value, op);
-        if (key === "weight" && (Weight.is(newValue) || Weight.isPct(newValue))) {
-          set[key] = newValue;
-        } else if (
-          typeof newValue === "number" &&
-          (key === "maxrep" || key === "minrep" || key === "timer" || key === "rpe")
-        ) {
-          set[key] = newValue;
-        }
+      const newValue = Weight.applyOp(onerm, oldValue ?? 0, value, op);
+      if (key === "weight" && (Weight.is(newValue) || Weight.isPct(newValue))) {
+        set[key] = newValue;
+      } else if (
+        typeof newValue === "number" &&
+        (key === "maxrep" || key === "minrep" || key === "timer" || key === "rpe")
+      ) {
+        set[key] = newValue;
       }
     }
   }

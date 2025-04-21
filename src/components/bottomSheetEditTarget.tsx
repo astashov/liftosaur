@@ -65,10 +65,10 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 width={2.5}
                 name="target-maxreps"
                 onBlur={(value) =>
-                  updateProgress(props.dispatch, [lbSet.p("reps").record(value ?? 1)], "target-blur-maxreps")
+                  updateProgress(props.dispatch, [lbSet.p("reps").record(value)], "target-blur-maxreps")
                 }
                 onInput={(value) => {
-                  if (value != null && !isNaN(value) && value >= 0) {
+                  if (value == null || (!isNaN(value) && value >= 0)) {
                     updateProgress(props.dispatch, [lbSet.p("reps").record(value)], "target-input-maxreps");
                   }
                 }}
@@ -126,7 +126,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 min={-9999}
                 settings={props.settings}
               />
-              <span className="ml-1 text-xs text-grayv3-main">{set.originalWeight.unit}</span>
+              <span className="ml-1 text-xs text-grayv3-main">{set.originalWeight?.unit ?? props.settings.units}</span>
             </div>
             <div>
               <label className="leading-none">
@@ -256,18 +256,24 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
           data-cy="edit-set-target-save"
           className="w-full"
           onClick={() => {
-            const evaluatedWeight = Weight.evaluateWeight(
-              set.originalWeight,
-              props.editSetModal.exerciseType ?? { id: "squat" },
-              props.settings
-            );
-            const weight = Weight.roundConvertTo(
-              evaluatedWeight,
-              props.settings,
-              evaluatedWeight.unit,
-              props.editSetModal.exerciseType
-            );
-            const newSet = { ...set, weight };
+            const evaluatedWeight = set.originalWeight
+              ? Weight.evaluateWeight(
+                  set.originalWeight,
+                  props.editSetModal.exerciseType ?? { id: "squat" },
+                  props.settings
+                )
+              : undefined;
+            const weight = evaluatedWeight
+              ? Weight.roundConvertTo(
+                  evaluatedWeight,
+                  props.settings,
+                  evaluatedWeight.unit,
+                  props.editSetModal.exerciseType
+                )
+              : undefined;
+            const reps = set.minReps != null && set.reps == null ? set.minReps : set.reps;
+            const minReps = set.minReps != null && set.reps == null ? undefined : set.minReps;
+            const newSet = { ...set, weight, reps, minReps };
             updateProgress(
               props.dispatch,
               [

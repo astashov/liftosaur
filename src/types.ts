@@ -444,30 +444,26 @@ export type IPercentageUnit = t.TypeOf<typeof TPercentageUnit>;
 export const TPercentage = t.type({ value: t.number, unit: TPercentageUnit }, "TPercentage");
 export type IPercentage = t.TypeOf<typeof TPercentage>;
 
-export const TSet = t.intersection(
-  [
-    t.interface({
-      reps: t.number,
-      originalWeight: t.union([TWeight, TPercentage]),
-      weight: TWeight,
-    }),
-    t.partial({
-      id: t.string,
-      minReps: t.number,
-      rpe: t.number,
-      logRpe: t.boolean,
-      timestamp: t.number,
-      isAmrap: t.boolean,
-      label: t.string,
-      timer: t.number,
-      askWeight: t.boolean,
-      isCompleted: t.boolean,
-      completedReps: t.number,
-      completedWeight: TWeight,
-      completedRpe: t.number,
-      programSetIndex: t.number,
-    }),
-  ],
+export const TSet = t.partial(
+  {
+    reps: t.number,
+    originalWeight: t.union([TWeight, TPercentage]),
+    weight: TWeight,
+    id: t.string,
+    minReps: t.number,
+    rpe: t.number,
+    logRpe: t.boolean,
+    timestamp: t.number,
+    isAmrap: t.boolean,
+    label: t.string,
+    timer: t.number,
+    askWeight: t.boolean,
+    isCompleted: t.boolean,
+    completedReps: t.number,
+    completedWeight: TWeight,
+    completedRpe: t.number,
+    programSetIndex: t.number,
+  },
   "TSet"
 );
 export type ISet = t.TypeOf<typeof TSet>;
@@ -606,11 +602,6 @@ export const TProgressUi = t.partial(
         userVars: t.boolean,
       }),
     ]),
-    weightModal: t.type({
-      exercise: TExerciseType,
-      weight: TWeight,
-      programExerciseId: t.union([t.string, t.undefined]),
-    }),
     editModal: t.type({
       programExerciseId: t.string,
       entryIndex: t.number,

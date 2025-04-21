@@ -24,7 +24,7 @@ import {
 } from "../../../types";
 import { equipmentName, Exercise, IExercise, warmupValues } from "../../../models/exercise";
 import { ProgramExercise } from "../../../models/programExercise";
-import { MathUtils, n } from "../../../utils/math";
+import { MathUtils } from "../../../utils/math";
 import { UidFactory } from "../../../utils/generator";
 import { PlannerKey } from "../plannerKey";
 import { CollectionUtils } from "../../../utils/collection";
@@ -135,13 +135,7 @@ export class PlannerProgramExercise {
           evaluatedSets.push({
             maxrep: aSet.repRange.maxrep,
             minrep: aSet.repRange.minrep,
-            weight: aSet.weight
-              ? aSet.weight
-              : aSet.percentage
-                ? Weight.buildPct(aSet.percentage)
-                : Weight.buildPct(
-                    MathUtils.roundFloat(100 * Weight.rpeMultiplier(aSet.repRange.maxrep, aSet.rpe || 10), 2)
-                  ),
+            weight: aSet.weight ? aSet.weight : aSet.percentage ? Weight.buildPct(aSet.percentage) : undefined,
             timer: aSet.timer,
             rpe: aSet.rpe,
             logRpe: !!aSet.logRpe,
@@ -268,7 +262,7 @@ export class PlannerProgramExercise {
             ? `${set.percentage}%`
             : set.weight?.value != null
               ? set.weight.value.toString()
-              : `${Math.round(Weight.rpeMultiplier(maxReps, set.rpe || 10) * 100)}%`;
+              : undefined;
         const unit = set.percentage == null ? set.weight?.unit || settings.units : undefined;
         displaySets.push({
           dimReps: !hasCurrentSets,
@@ -326,19 +320,6 @@ export class PlannerProgramExercise {
         return acc;
       }
     }, 0);
-  }
-
-  public static evaluatedSetToString(set: IPlannerProgramExerciseEvaluatedSet): string {
-    let setStr = "";
-    setStr += set.minrep != null ? `${n(Math.max(0, set.minrep))}-` : "";
-    setStr += `${n(Math.max(0, set.maxrep))}`;
-    setStr += " × ";
-    setStr += set.isAmrap ? "+" : "";
-    const weightValue = set.weight ? Weight.print(set.weight) : undefined;
-    setStr += weightValue ? ` ${weightValue}${set.askWeight ? "+" : ""}` : "";
-    setStr += set.rpe ? ` @${n(Math.max(0, set.rpe))}` : "";
-    setStr += set.rpe && set.logRpe ? "+" : "";
-    return setStr;
   }
 
   public static getProgressScript(exercise: IPlannerProgramExercise): string | undefined {
@@ -482,7 +463,7 @@ export class PlannerProgramExercise {
     const groupedWarmupSets = CollectionUtils.compact(
       ObjectUtils.values(
         CollectionUtils.groupByExpr(entry.warmupSets, (set) => {
-          return `${set.completedReps ?? set.reps}-${(set.completedWeight ?? set.weight).value}`;
+          return `${set.completedReps ?? set.reps}-${(set.completedWeight ?? set.weight ?? { value: "" }).value}`;
         })
       )
     );

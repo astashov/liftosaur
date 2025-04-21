@@ -223,7 +223,7 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
                           <div>
                             <div>
                               {displayWarmupSets.map((g) => (
-                                <HistoryRecordSet sets={g} isNext={true} />
+                                <HistoryRecordSet sets={g} isNext={true} settings={props.settings} />
                               ))}
                             </div>
                           </div>
@@ -238,7 +238,7 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
                         <div className="flex">
                           <div>
                             {displayGroups.map((g) => (
-                              <HistoryRecordSet sets={g} isNext={true} />
+                              <HistoryRecordSet sets={g} isNext={true} settings={props.settings} />
                             ))}
                           </div>
                         </div>

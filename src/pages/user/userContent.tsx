@@ -81,7 +81,7 @@ function Entry(props: IEntryProps): JSX.Element {
         <p>
           <span dangerouslySetInnerHTML={{ __html: "&#x1F3CB Max lifted reps x weight: " }} />
           <strong>
-            {maxSet.completedReps} x {Weight.display(maxSet.weight)}
+            {maxSet.completedReps ?? 0} x {Weight.display(maxSet.completedWeight ?? Weight.build(0, settings.units))}
           </strong>
         </p>
       </div>

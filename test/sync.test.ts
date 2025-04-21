@@ -265,7 +265,7 @@ function completeRepsActions(program: IProgram, progress: IHistoryRecord, reps: 
           programExercise: programExercise,
         });
       } else {
-        for (let i = set.reps; i >= r; i -= 1) {
+        for (let i = set.reps ?? 0; i >= r; i -= 1) {
           setActions.push({
             type: "CompleteSetAction",
             entryIndex,

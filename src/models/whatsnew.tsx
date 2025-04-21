@@ -1758,6 +1758,39 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20250421": {
+    title: <span>Sets are now optional in the program</span>,
+    body: (
+      <ul>
+        <li>
+          If you don't specify any sets for an exercise - it won't be an error anymore. So, a program like this is a
+          valid program now:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`Squat
+Bench Press
+Bicep Curl`}
+            />
+          </div>
+        </li>
+        <li>
+          It could be also useful for "templates", where you could define a template without sets, but e.g. with
+          progress and warmups:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`main / used: none / warmup: 1x5 45lb, 1x5 135lb / progress: lp(5lb)
+Squat / 3x8 100lb / ...main`}
+            />
+          </div>
+        </li>
+        <li>
+          One <strong>BREAKING CHANGE</strong> is that if you don't specify the weight - it won't add 1RM percentage
+          anymore based on reps/RPE. It'd be just empty weight field now, and will ask you about the weight on
+          completion.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

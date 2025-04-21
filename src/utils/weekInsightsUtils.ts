@@ -50,7 +50,7 @@ export class WeekInsightsUtils {
           if (completedReps > 0) {
             results.volume = Weight.add(
               results.volume,
-              Weight.multiply(set.completedWeight ?? set.weight, set.completedReps || 0)
+              Weight.multiply(set.completedWeight ?? set.weight ?? Weight.build(0, unit), set.completedReps || 0)
             );
             results.total += 1;
             if (completedReps < 8) {
