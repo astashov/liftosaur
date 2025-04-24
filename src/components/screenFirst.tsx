@@ -171,7 +171,7 @@ function RestSlide(props: IRestSlideProps): JSX.Element {
         }}
       ></div>
       <div className="px-8 font-semibold text-center">{props.header}</div>
-      <div className="px-8 py-6 text-2xl font-semibold text-center">{props.bodyText}</div>
+      <div className="px-8 py-6 text-xl font-semibold text-center">{props.bodyText}</div>
       <div
         className="flex items-center justify-center flex-1 w-full bg-no-repeat bg-contain"
         style={{ backgroundImage: `url(/images/${props.image}.png)`, backgroundPosition: "center center" }}

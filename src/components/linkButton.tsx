@@ -8,7 +8,7 @@ export function LinkButton(props: IProps): JSX.Element {
     <button
       className={`text-bluev2 border-none ${
         !className || className.indexOf("font-normal") === -1 ? "font-bold" : ""
-      } underline ${className} nm-${props.name}`}
+      } ${!className || className.indexOf("no-underline") === -1 ? "underline" : ""} ${className} nm-${props.name}`}
       {...otherProps}
     >
       {children}

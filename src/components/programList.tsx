@@ -14,12 +14,14 @@ import { IconEditSquare } from "./icons/iconEditSquare";
 import { Exercise, IExercise } from "../models/exercise";
 import { ObjectUtils } from "../utils/object";
 import { ExerciseImage } from "./exerciseImage";
-import { TimeUtils } from "../utils/time";
 import { IconWatch } from "./icons/iconWatch";
 import { ExerciseImageUtils } from "../models/exerciseImage";
 import { EditProgram } from "../models/editProgram";
-import { IconDoc } from "./icons/iconDoc";
 import { StringUtils } from "../utils/string";
+import { builtinProgramProperties } from "../models/builtinPrograms";
+import { IconCalendarSmall } from "./icons/iconCalendarSmall";
+import { Tailwind } from "../utils/tailwindConfig";
+import { IconKettlebellSmall } from "./icons/iconKettlebellSmall";
 
 interface IProps {
   onSelectProgram: (id: string) => void;
@@ -132,78 +134,5 @@ export function ProgramListView(props: IProps): JSX.Element {
         </Fragment>
       )}
     </div>
-  );
-}
-
-interface IBuiltInProgramProps {
-  program: IProgram;
-  settings: ISettings;
-  onClick: () => void;
-}
-
-function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
-  const exerciseObj: Partial<Record<string, IExercise>> = {};
-  const equipmentSet: Set<IEquipment | undefined> = new Set();
-  const evaluatedProgram = Program.evaluate(props.program, props.settings);
-  const allExercises = Program.getAllUsedProgramExercises(evaluatedProgram);
-  for (const ex of allExercises) {
-    const exercise = Exercise.find(ex.exerciseType, props.settings.exercises);
-    if (exercise) {
-      exerciseObj[Exercise.toKey(ex.exerciseType)] = exercise;
-      if (exercise.equipment !== "bodyweight") {
-        equipmentSet.add(exercise.equipment);
-      }
-    }
-  }
-  const exercises = CollectionUtils.nonnull(ObjectUtils.values(exerciseObj));
-  const equipment = CollectionUtils.nonnull(Array.from(equipmentSet));
-  const time = Program.dayAverageTimeMs(evaluatedProgram, props.settings);
-  const formattedTime = time > 0 ? TimeUtils.formatHHMM(time) : undefined;
-
-  return (
-    <button
-      className="relative flex items-center w-full p-3 mb-4 text-left bg-orange-100 rounded-lg nm-program-list-choose-program"
-      style={{ boxShadow: "0 0 8px 0 rgb(142 140 0 / 25%)" }}
-      onClick={props.onClick}
-    >
-      <div className="flex-1">
-        <div className="flex items-center">
-          <h3 className="flex-1 mr-2 text-lg font-bold">{props.program.name}</h3>
-          {formattedTime && (
-            <div className="text-sm">
-              <IconWatch className="mb-1 align-middle" />
-              <span className="pl-1 align-middle">{formattedTime}h</span>
-            </div>
-          )}
-        </div>
-        <div className="py-1 text-sm text-grayv2-main">
-          <IconDoc width={15} height={20} color="#607284" />{" "}
-          <span className="align-middle">
-            {evaluatedProgram.weeks.length > 0 &&
-              `${evaluatedProgram.weeks.length} ${StringUtils.pluralize("week", evaluatedProgram.weeks.length)}, `}
-            {Program.daysRange(evaluatedProgram)}, {Program.exerciseRange(evaluatedProgram)}
-          </span>
-        </div>
-        <h4 className="text-sm text-grayv2-main">{props.program.shortDescription}</h4>
-        <div className="py-3">
-          {exercises
-            .filter((e) => ExerciseImageUtils.exists(e, "small"))
-            .map((e) => (
-              <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
-            ))}
-        </div>
-        <div className="text-xs">
-          <span>Equipment: </span>
-          {equipment.map((e, i) => {
-            return (
-              <>
-                {i !== 0 && <>, </>}
-                <span className="font-bold">{e}</span>
-              </>
-            );
-          })}
-        </div>
-      </div>
-    </button>
   );
 }
