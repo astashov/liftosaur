@@ -136,20 +136,22 @@ function Footer(props: IFooterProps): JSX.Element {
           boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)",
         }}
       />
-      <div className="box-content relative z-10 flex px-2 py-4 pointer-events-auto safe-area-inset-bottom">
-        <div className="flex items-stretch justify-around flex-1">
-          <button
-            data-cy="create-program"
-            className="flex items-center justify-center flex-1 text-sm font-semibold nm-create-program text-bluev3-main"
-            onClick={props.onCreate}
-          >
-            <div>Create New Program</div>
-          </button>
-          <div style={{ width: "1px" }} className="h-full bg-grayv3-100" />
-          <button className="flex-1 text-sm nm-empty-program" data-cy="empty-program" onClick={props.onEmpty}>
-            <div className="font-semibold text-bluev3-main">Go Without Program</div>
-            <div className="text-xs text-gray-500">and build your program along the way</div>
-          </button>
+      <div className="safe-area-inset-bottom">
+        <div className="box-content relative z-10 flex px-2 py-4 pointer-events-auto">
+          <div className="flex items-stretch justify-around flex-1 gap-2">
+            <button
+              data-cy="create-program"
+              className="flex items-center justify-center flex-1 text-sm font-semibold nm-create-program text-bluev3-main"
+              onClick={props.onCreate}
+            >
+              <div>Create New Program</div>
+            </button>
+            <div style={{ width: "1px" }} className="h-full bg-grayv3-100" />
+            <button className="flex-1 text-sm nm-empty-program" data-cy="empty-program" onClick={props.onEmpty}>
+              <div className="font-semibold text-bluev3-main">Go Without Program</div>
+              <div className="text-xs text-gray-500">and build your program along the way</div>
+            </button>
+          </div>
         </div>
       </div>
     </div>
