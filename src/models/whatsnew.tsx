@@ -1791,6 +1791,24 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250424": {
+    title: <span>Redesigned "Choose Program" screen</span>,
+    body: (
+      <ul>
+        <li>
+          It now has filters (by frequency, duration of a workout, experience, etc) to help you find a suitable program.
+        </li>
+        <li>
+          Builtin and your programs are now separated into separate tabs, and the cards for your programs look similar
+          to built-in programs.
+        </li>
+        <li>
+          Also, you can skip selecting a program now, and go without a program. Could be useful if you want to build a
+          program iteratively over time from ad-hoc workouts.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

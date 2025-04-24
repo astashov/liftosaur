@@ -416,112 +416,114 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
       class="fixed z-50 bottom-0 left-0 w-full"
       style={{ boxShadow: "0 4px 30px 0 rgba(0, 0, 0, 0.25)" }}
     >
-      <div className="flex items-center w-full gap-2 px-4 bg-purplev3-50">
-        <div className="flex-1">{props.keyboardAddon}</div>
-        {props.enableCalculator && (
-          <div className="py-2">
-            <button
-              data-cy="keyboard-rm-calculator"
-              className="flex items-center justify-center w-24 px-2 py-1 border rounded keyboard-close border-purplev3-200 bg-purplev3-100"
-              onClick={props.onShowCalculator}
-            >
-              <span className="mr-2">RM</span>
-              <span>
-                <IconCalculator size={14} />
-              </span>
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="flex w-full gap-4 p-4 bg-white">
-        <div className="grid flex-1 grid-cols-3 gap-2">
-          {[
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            props.allowNegative ? "-" : "",
-            "0",
-            props.allowDot ? "." : "",
-          ].map((key) => {
-            if (key) {
-              return (
-                <button
-                  data-cy={`keyboard-button-${key}`}
-                  key={key}
-                  className="p-2 text-2xl bg-white active:bg-gray-200 touch-manipulation"
-                  onClick={() => props.onInput(key)}
-                >
-                  {key}
-                </button>
-              );
-            } else {
-              return <div key={key} />;
-            }
-          })}
-        </div>
-        <div className="w-24 mt-2">
-          <div className="mb-4">
-            <button
-              className="flex items-center justify-center w-full pt-2 pb-1 border rounded touch-manipulation keyboard-close border-purplev3-200 bg-purplev3-100"
-              data-cy="keyboard-close"
-              onClick={props.onBlur}
-            >
-              <IconKeyboardClose />
-            </button>
-          </div>
-          <div className="flex gap-1">
-            <div className="flex-1">
+      <div className="safe-area-inset-bottom">
+        <div className="flex items-center w-full gap-2 px-4 bg-purplev3-50">
+          <div className="flex-1">{props.keyboardAddon}</div>
+          {props.enableCalculator && (
+            <div className="py-2">
               <button
-                className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-e-none border-purplev3-200 bg-purplev3-100"
-                data-cy="keyboard-minus"
-                onClick={props.onMinus}
+                data-cy="keyboard-rm-calculator"
+                className="flex items-center justify-center w-24 px-2 py-1 border rounded keyboard-close border-purplev3-200 bg-purplev3-100"
+                onClick={props.onShowCalculator}
               >
-                -
+                <span className="mr-2">RM</span>
+                <span>
+                  <IconCalculator size={14} />
+                </span>
               </button>
             </div>
-            <div className="flex-1">
-              <button
-                className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-s-none border-purplev3-200 bg-purplev3-100"
-                data-cy="keyboard-plus"
-                onClick={props.onPlus}
-              >
-                +
-              </button>
-            </div>
-          </div>
-          {props.enableUnits && props.selectedUnit ? (
-            <div className="flex items-center h-10 gap-2 mt-4">
-              {props.enableUnits.map((unit) => (
-                <button
-                  className={`flex touch-manipulation items-center  aspect-square justify-center flex-1 w-full border rounded ${unit === props.selectedUnit ? "border-purplev3-300 bg-purplev3-200" : "border-purplev3-200 bg-purplev3-100"}`}
-                  data-cy={`keyboard-unit-${unit}`}
-                  onClick={() => {
-                    if (props.onChangeUnits) {
-                      props.onChangeUnits(unit);
-                    }
-                  }}
-                >
-                  {unit}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="h-10 mt-4"></div>
           )}
-          <div className="mt-4">
-            <button
-              className="flex items-center justify-center w-full h-10 border rounded touch-manipulation border-purplev3-200 bg-purplev3-100"
-              data-cy={`keyboard-backspace`}
-              onClick={() => props.onInput("⌫")}
-            >
-              <IconBackspace />
-            </button>
+        </div>
+        <div className="flex w-full gap-4 p-4 bg-white">
+          <div className="grid flex-1 grid-cols-3 gap-2">
+            {[
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              props.allowNegative ? "-" : "",
+              "0",
+              props.allowDot ? "." : "",
+            ].map((key) => {
+              if (key) {
+                return (
+                  <button
+                    data-cy={`keyboard-button-${key}`}
+                    key={key}
+                    className="p-2 text-2xl bg-white active:bg-gray-200 touch-manipulation"
+                    onClick={() => props.onInput(key)}
+                  >
+                    {key}
+                  </button>
+                );
+              } else {
+                return <div key={key} />;
+              }
+            })}
+          </div>
+          <div className="w-24 mt-2">
+            <div className="mb-4">
+              <button
+                className="flex items-center justify-center w-full pt-2 pb-1 border rounded touch-manipulation keyboard-close border-purplev3-200 bg-purplev3-100"
+                data-cy="keyboard-close"
+                onClick={props.onBlur}
+              >
+                <IconKeyboardClose />
+              </button>
+            </div>
+            <div className="flex gap-1">
+              <div className="flex-1">
+                <button
+                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-e-none border-purplev3-200 bg-purplev3-100"
+                  data-cy="keyboard-minus"
+                  onClick={props.onMinus}
+                >
+                  -
+                </button>
+              </div>
+              <div className="flex-1">
+                <button
+                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-s-none border-purplev3-200 bg-purplev3-100"
+                  data-cy="keyboard-plus"
+                  onClick={props.onPlus}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            {props.enableUnits && props.selectedUnit ? (
+              <div className="flex items-center h-10 gap-2 mt-4">
+                {props.enableUnits.map((unit) => (
+                  <button
+                    className={`flex touch-manipulation items-center  aspect-square justify-center flex-1 w-full border rounded ${unit === props.selectedUnit ? "border-purplev3-300 bg-purplev3-200" : "border-purplev3-200 bg-purplev3-100"}`}
+                    data-cy={`keyboard-unit-${unit}`}
+                    onClick={() => {
+                      if (props.onChangeUnits) {
+                        props.onChangeUnits(unit);
+                      }
+                    }}
+                  >
+                    {unit}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="h-10 mt-4"></div>
+            )}
+            <div className="mt-4">
+              <button
+                className="flex items-center justify-center w-full h-10 border rounded touch-manipulation border-purplev3-200 bg-purplev3-100"
+                data-cy={`keyboard-backspace`}
+                onClick={() => props.onInput("⌫")}
+              >
+                <IconBackspace />
+              </button>
+            </div>
           </div>
         </div>
       </div>

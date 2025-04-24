@@ -293,6 +293,7 @@ export function AppView(props: IProps): JSX.Element | null {
         navCommon={navCommon}
         settings={state.storage.settings}
         dispatch={dispatch}
+        progress={state.progress[0]}
         programs={state.programs || []}
         customPrograms={state.storage.programs || []}
         editProgramId={state.progress[0]?.programId}

@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { IEvaluatedProgram, Program } from "./program";
+import { emptyProgramId, IEvaluatedProgram, Program } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { ObjectUtils } from "../utils/object";
@@ -54,12 +54,10 @@ export namespace EditProgram {
         .recordModify((pgms) => pgms.filter((p) => p.id !== program.id)),
       lb<IState>()
         .p("storage")
-        .p("deletedPrograms")
-        .recordModify((pgms) => (program.clonedAt ? [...pgms, program.clonedAt] : pgms)),
-      lb<IState>()
-        .p("storage")
         .p("currentProgramId")
-        .recordModify((id) => (id === program.id ? customPrograms.filter((p) => p.id !== program.id)[0].id : id)),
+        .recordModify((id) =>
+          id === program.id ? (customPrograms.filter((p) => p.id !== program.id)[0]?.id ?? emptyProgramId) : id
+        ),
       lb<IState>()
         .p("storage")
         .p("deletedPrograms")

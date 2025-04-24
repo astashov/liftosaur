@@ -194,7 +194,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
               </ButtonIcon>
             </div>
           )}
-          {program && (
+          {program && !Program.isEmpty(program) && (
             <div>
               <ButtonIcon
                 onClick={() => {
@@ -211,7 +211,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
               </ButtonIcon>
             </div>
           )}
-          {program && (
+          {program && !Program.isEmpty(program) && (
             <div>
               <ButtonIcon
                 name="workout-edit-day"

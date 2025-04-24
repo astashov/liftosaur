@@ -46,6 +46,9 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
             You currently have ongoing workout. Finish it first to see newly chosen program or a different day.
           </div>
         )}
+        {Program.isEmpty(props.currentProgram) && (
+          <div className="mx-4 mb-1 text-xs text-center text-grayv2-main">No program currently selected.</div>
+        )}
         <div className="relative flex flex-col flex-1 min-h-0">
           <div className="flex-1 min-h-0 pb-10 overflow-y-auto">
             {programDay && nextHistoryRecord && (

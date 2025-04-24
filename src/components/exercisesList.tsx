@@ -140,7 +140,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           onChange={(ft) => setFilterTypes(Array.from(ft))}
         />
       </form>
-      <div className="text-right">
+      <div className="text-sm text-right">
         <LinkButton name="create-custom-exercise" onClick={() => setShowCustomExerciseModal(true)}>
           Create custom exercise
         </LinkButton>

@@ -154,6 +154,10 @@ export namespace Program {
     return state.storage.programs.find((p) => p.id === state.editProgram?.id);
   }
 
+  export function isEmpty(program?: IProgram | IEvaluatedProgram): boolean {
+    return program?.id === emptyProgramId;
+  }
+
   export function getProgramExercisesFromExerciseType(
     program: IEvaluatedProgram,
     exerciseType: IExerciseType
@@ -744,6 +748,10 @@ export namespace Program {
     const days = program.weeks.flatMap((w) => w.days);
     const minExs = Math.min(...days.map((d) => Program.getProgramDayExercises(d).length));
     const maxExs = Math.max(...days.map((d) => Program.getProgramDayExercises(d).length));
+    return exerciseRangeFormat(minExs, maxExs);
+  }
+
+  export function exerciseRangeFormat(minExs: number, maxExs: number): string {
     if (minExs === maxExs) {
       return `${minExs} ${StringUtils.pluralize("exercise", minExs)} per day`;
     } else {

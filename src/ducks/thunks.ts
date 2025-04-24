@@ -377,7 +377,9 @@ export namespace Thunk {
       const state = getState();
       const currentProgram =
         state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
-      if (currentProgram) {
+      if (Program.isEmpty(currentProgram)) {
+        dispatch(Thunk.pushScreen("programs"));
+      } else if (currentProgram) {
         Program.editAction(dispatch, currentProgram.id, undefined, true);
       }
     };
