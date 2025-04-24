@@ -12,6 +12,8 @@ interface IProps {
   defaultIndex?: number;
   shouldNotExpand?: boolean;
   offsetY?: string;
+  topPadding?: string;
+  nonSticky?: boolean;
   onChange?: (index: number) => void;
 }
 
@@ -23,7 +25,7 @@ export function ScrollableTabs(props: IProps): JSX.Element {
     <div className="relative">
       {tabs.length > 1 && (
         <div
-          className="sticky left-0 z-10 bg-white"
+          className={`${props.nonSticky ? "" : "sticky"} left-0 z-10 bg-white`}
           style={{
             top: props.offsetY || "0",
             marginLeft: props.shouldNotExpand ? undefined : "-1rem",
@@ -31,7 +33,10 @@ export function ScrollableTabs(props: IProps): JSX.Element {
           }}
         >
           <Scroller arrowYOffsetPct={0}>
-            <div className="flex w-full pt-6 pb-2">
+            <div
+              className={`flex w-full ${props.topPadding == null ? "pt-6" : ""} pb-2`}
+              style={{ paddingTop: props.topPadding }}
+            >
               {tabs.map(({ label, isInvalid }, index) => {
                 const nameClass = `tab-${StringUtils.dashcase(label.toLowerCase())}`;
 

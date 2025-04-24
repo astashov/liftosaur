@@ -11,6 +11,8 @@ import { useState } from "preact/hooks";
 import { Thunk } from "../ducks/thunks";
 import { ModalCreateProgram } from "./modalCreateProgram";
 import { EditProgram } from "../models/editProgram";
+import { CustomProgramsList } from "./customProgramsList";
+import { ScrollableTabs } from "./scrollableTabs";
 
 interface IProps {
   dispatch: IDispatch;
@@ -24,6 +26,18 @@ interface IProps {
 export function ChooseProgramView(props: IProps): JSX.Element {
   const [shouldCreateProgram, setShouldCreateProgram] = useState<boolean>(false);
   const [showImportFromLink, setShowImportFromLink] = useState<boolean>(false);
+
+  const builtinPrograms = () => (
+    <BuiltinProgramsList
+      hasCustomPrograms={props.customPrograms.length > 0}
+      programs={props.programs}
+      settings={props.settings}
+      dispatch={props.dispatch}
+    />
+  );
+  const customPrograms = () => (
+    <CustomProgramsList programs={props.customPrograms} settings={props.settings} dispatch={props.dispatch} />
+  );
 
   return (
     <Surface
@@ -65,12 +79,24 @@ export function ChooseProgramView(props: IProps): JSX.Element {
         </>
       }
     >
-      <BuiltinProgramsList
-        hasCustomPrograms={props.customPrograms.length > 0}
-        programs={props.programs}
-        settings={props.settings}
-        dispatch={props.dispatch}
-      />
+      {props.customPrograms.length > 0 ? (
+        <ScrollableTabs
+          offsetY="3.5rem"
+          nonSticky={true}
+          topPadding="0"
+          defaultIndex={0}
+          onChange={(index) => undefined}
+          tabs={[
+            {
+              label: "Built-in",
+              children: builtinPrograms(),
+            },
+            { label: "Custom", children: customPrograms() },
+          ]}
+        />
+      ) : (
+        builtinPrograms()
+      )}
     </Surface>
   );
 }
