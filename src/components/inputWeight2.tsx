@@ -49,18 +49,19 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
         min={props.min}
         max={props.max}
         keyboardAddon={
-          evaluatedWeight &&
-          Weight.is(evaluatedWeight) &&
           ((props.subscription && Subscriptions.hasSubscription(props.subscription)) || props.addOn) &&
           props.exerciseType ? (
             <div className="py-2">
-              {props.subscription && Subscriptions.hasSubscription(props.subscription) && (
-                <PlatesCalculator
-                  weight={evaluatedWeight}
-                  settings={props.settings}
-                  exerciseType={props.exerciseType}
-                />
-              )}
+              {props.subscription &&
+                Subscriptions.hasSubscription(props.subscription) &&
+                evaluatedWeight &&
+                Weight.is(evaluatedWeight) && (
+                  <PlatesCalculator
+                    weight={evaluatedWeight}
+                    settings={props.settings}
+                    exerciseType={props.exerciseType}
+                  />
+                )}
               {props.addOn ? <div>{props.addOn()}</div> : undefined}
             </div>
           ) : undefined
