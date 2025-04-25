@@ -154,7 +154,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
           size="sm"
           type="boolean"
           name="Enable RPE?"
-          value={set.rpe ? "true" : "false"}
+          value={set.rpe != null ? "true" : "false"}
           onChange={(value) => {
             setEnableRpe(true);
           }}
@@ -197,7 +197,18 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 </label>
               </div>
               <div>
-                <button className="p-2" onClick={() => setEnableRpe(false)} style={{ marginRight: "-0.5rem" }}>
+                <button
+                  className="p-2"
+                  onClick={() => {
+                    setEnableRpe(false);
+                    updateProgress(
+                      props.dispatch,
+                      [lbSet.p("logRpe").record(false), lbSet.p("rpe").record(undefined)],
+                      "clear-rpe"
+                    );
+                  }}
+                  style={{ marginRight: "-0.5rem" }}
+                >
                   <IconTrash width={15} height={20} />
                 </button>
               </div>
@@ -241,7 +252,14 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 <span className="ml-1 text-xs text-grayv3-main">s</span>
               </div>
               <div>
-                <button className="p-2" onClick={() => setEnableTimer(false)} style={{ marginRight: "-0.5rem" }}>
+                <button
+                  className="p-2"
+                  onClick={() => {
+                    setEnableTimer(false);
+                    updateProgress(props.dispatch, [lbSet.p("timer").record(undefined)], "target-clear-timer");
+                  }}
+                  style={{ marginRight: "-0.5rem" }}
+                >
                   <IconTrash width={15} height={20} />
                 </button>
               </div>
