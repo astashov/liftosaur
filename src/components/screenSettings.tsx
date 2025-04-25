@@ -8,7 +8,7 @@ import { InternalLink } from "../internalLink";
 import { IUser } from "../models/user";
 import { ClipboardUtils } from "../utils/clipboard";
 import { Share } from "../models/share";
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { ILengthUnit, ISettings, IStats, ISubscription, IUnit } from "../types";
 import { WhatsNew } from "../models/whatsnew";
 import { ImporterStorage } from "./importerStorage";
@@ -29,6 +29,7 @@ import { HealthSync } from "../lib/healthSync";
 import { INavCommon } from "../models/state";
 import { Stats } from "../models/stats";
 import { Weight } from "../models/weight";
+import { ImagePreloader } from "../utils/imagePreloader";
 
 interface IProps {
   dispatch: IDispatch;
@@ -45,6 +46,12 @@ export function ScreenSettings(props: IProps): JSX.Element {
   const [showImportFromOtherAppsModal, setShowImportFromOtherAppsModal] = useState(false);
   const currentBodyweight = Stats.getCurrentBodyweight(props.stats);
   const currentBodyfat = Stats.getCurrentBodyfat(props.stats);
+
+  useEffect(() => {
+    if (Stats.isEmpty(props.stats)) {
+      ImagePreloader.preload(ImagePreloader.dynoflex);
+    }
+  }, []);
 
   return (
     <Surface

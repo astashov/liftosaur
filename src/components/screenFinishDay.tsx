@@ -35,6 +35,7 @@ import { LinkButton } from "./linkButton";
 import { IconTiktok } from "./icons/iconTiktok";
 import { PersonalRecords } from "./personalRecords";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
+import { ImagePreloader } from "../utils/imagePreloader";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -90,6 +91,11 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
       footer={<></>}
     >
       <section className="px-4 text-sm">
+        <div className="flex items-center justify-center pb-2">
+          <div>
+            <img src={ImagePreloader.dynohappy} className="block" style={{ width: 170, height: 150 }} />
+          </div>
+        </div>
         <section className="px-4 pb-2 text-center">
           <div className="text-sm text-grayv2-main">{record.programName}</div>
           <div className="text-base">{record.dayName}</div>

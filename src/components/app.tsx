@@ -50,6 +50,7 @@ import RB from "rollbar";
 import { exceptionIgnores } from "../utils/rollbar";
 import { ScreenWorkout } from "./screenWorkout";
 import { Account } from "../models/account";
+import { ImagePreloader } from "../utils/imagePreloader";
 
 declare let Rollbar: RB;
 
@@ -241,6 +242,10 @@ export function AppView(props: IProps): JSX.Element | null {
       alert(
         "You're using OLD STYLE programs, which won't be supported, and WILL STOP WORKING starting from Feb 3, 2025! Please go to Program screen, and migrate the program to the new style"
       );
+    }
+
+    if (state.storage.history.length === 0) {
+      ImagePreloader.preload(ImagePreloader.dynocoach);
     }
 
     return () => {

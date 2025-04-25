@@ -19,6 +19,7 @@ import { Thunk } from "../ducks/thunks";
 import { updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
 import { Subscriptions } from "../utils/subscriptions";
+import { ImagePreloader } from "../utils/imagePreloader";
 
 interface IProps {
   stats: IStats;
@@ -69,7 +70,12 @@ export function StatsList(props: IProps): JSX.Element {
   if (statsKeys.length === 0) {
     return (
       <div>
-        <div className="py-12 text-xl text-center text-grayv2-main">No measurements added yet</div>
+        <div className="flex items-center justify-center pt-16">
+          <div>
+            <img src={ImagePreloader.dynoflex} className="block" style={{ width: 180, height: 232 }} />
+          </div>
+        </div>
+        <div className="pt-4 pb-6 text-sm text-center text-grayv2-main">No measurements added yet</div>
         <div className="text-center">
           <Button
             name="add-measurements"
@@ -89,8 +95,8 @@ export function StatsList(props: IProps): JSX.Element {
     selectedKey === "weight"
       ? getWeightDataForGraph(props.stats.weight[selectedKey] || [], props.settings)
       : selectedKey === "bodyfat"
-      ? getPercentageDataForGraph(props.stats.percentage[selectedKey] || [], props.settings)
-      : getLengthDataForGraph(props.stats.length[selectedKey] || [], props.settings);
+        ? getPercentageDataForGraph(props.stats.percentage[selectedKey] || [], props.settings)
+        : getLengthDataForGraph(props.stats.length[selectedKey] || [], props.settings);
 
   const graphUnit =
     selectedKey === "weight" ? props.settings.units : selectedKey === "bodyfat" ? "%" : props.settings.lengthUnits;
@@ -175,8 +181,8 @@ export function StatsList(props: IProps): JSX.Element {
             const convertedValue = Weight.is(value.value)
               ? Weight.convertTo(value.value, props.settings.units)
               : Length.is(value.value)
-              ? Length.convertTo(value.value, props.settings.lengthUnits)
-              : value.value;
+                ? Length.convertTo(value.value, props.settings.lengthUnits)
+                : value.value;
             return (
               <MenuItemWrapper key={`${selectedKey}-${value.timestamp}`} name={`${selectedKey}-${value.timestamp}`}>
                 <div className="flex items-center">

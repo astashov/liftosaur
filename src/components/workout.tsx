@@ -23,6 +23,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "./linkButton";
 import { Button } from "./button";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
+import { ImagePreloader } from "../utils/imagePreloader";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -45,6 +46,10 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
   const description = props.programDay?.description;
   const screensRef = useRef<HTMLDivElement>();
   const [isConvertToProgramShown, setIsConvertToProgramShown] = useState(false);
+
+  useEffect(() => {
+    ImagePreloader.preload(ImagePreloader.dynohappy);
+  }, []);
 
   useEffect(() => {
     screensRef.current?.scrollTo({
