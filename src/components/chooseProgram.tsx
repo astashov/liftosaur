@@ -100,11 +100,11 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           topPadding="0"
           defaultIndex={0}
           tabs={[
+            { label: "Yours", children: customPrograms() },
             {
               label: "Built-in",
               children: builtinPrograms(),
             },
-            { label: "Yours", children: customPrograms() },
           ]}
         />
       ) : (
