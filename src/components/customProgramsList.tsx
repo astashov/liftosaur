@@ -83,7 +83,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
           data-cy="custom-program-edit"
           onClick={() => {
             if (props.editProgramId == null || props.editProgramId !== props.program.id) {
-              Program.editAction(props.dispatch, props.program.id, undefined);
+              Program.editAction(props.dispatch, props.program);
             } else {
               alert("You cannot edit the program while that program's workout is in progress");
             }

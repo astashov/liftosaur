@@ -5,16 +5,7 @@ import { IDispatch } from "../ducks/types";
 import { Storage } from "../models/storage";
 import { ILensRecordingPayload } from "lens-shmens";
 import { IUser } from "./user";
-import {
-  IStorage,
-  IProgram,
-  IHistoryRecord,
-  IProgramExercise,
-  IProgramDay,
-  ISettings,
-  IExerciseType,
-  IEquipment,
-} from "../types";
+import { IStorage, IProgram, IHistoryRecord, IProgramDay, ISettings, IExerciseType, IEquipment } from "../types";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { IPlannerState } from "../pages/planner/models/types";
@@ -84,11 +75,6 @@ export interface IState {
     id: string;
     showCustomPrograms?: boolean;
   };
-  editProgram?: {
-    id: string;
-    dayIndex?: number;
-    weekIndex?: number;
-  };
   editProgramV2?: IPlannerState;
   muscleView?: {
     type: "program" | "day";
@@ -96,7 +82,6 @@ export interface IState {
     day?: number;
   };
   viewExerciseType?: IExerciseType;
-  editExercise?: IProgramExercise;
   adminKey?: string;
   showWhatsNew?: boolean;
   showSignupRequest?: boolean;

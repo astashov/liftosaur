@@ -37,7 +37,6 @@ import { StringUtils } from "../utils/string";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { ProgramToPlanner } from "./programToPlanner";
 import {
-  IPlannerState,
   IExportedPlannerProgram,
   IPlannerProgramExercise,
   IPlannerProgramExerciseUsed,
@@ -52,6 +51,7 @@ import { CollectionUtils } from "../utils/collection";
 import { PlannerSyntaxError } from "../pages/planner/plannerExerciseEvaluator";
 import { UrlUtils } from "../utils/url";
 import { Service } from "../api/service";
+import { EditProgram } from "./editProgram";
 
 declare let __HOST__: string;
 
@@ -151,7 +151,7 @@ export namespace Program {
   }
 
   export function getEditingProgram(state: IState): IProgram | undefined {
-    return state.storage.programs.find((p) => p.id === state.editProgram?.id);
+    return state.storage.programs.find((p) => p.id === state.editProgramV2?.id);
   }
 
   export function isEmpty(program?: IProgram | IEvaluatedProgram): boolean {
@@ -163,10 +163,6 @@ export namespace Program {
     exerciseType: IExerciseType
   ): IPlannerProgramExercise[] {
     return Program.getAllUsedProgramExercises(program).filter((p) => Exercise.eq(p.exerciseType, exerciseType));
-  }
-
-  export function getEditingProgramIndex(state: IState): number {
-    return state.storage.programs.findIndex((p) => p.id === state.editProgram?.id);
   }
 
   export function getProgramIndex(state: IState, id: string): number {
@@ -890,16 +886,9 @@ export namespace Program {
     return isNaN(nd) ? 1 : nd;
   }
 
-  export function editAction(
-    dispatch: IDispatch,
-    id: string,
-    plannerState?: IPlannerState,
-    resetStack?: boolean
-  ): void {
-    updateState(dispatch, [
-      lb<IState>().p("editProgram").record({ id }),
-      lb<IState>().p("editProgramV2").record(plannerState),
-    ]);
+  export function editAction(dispatch: IDispatch, program: IProgram, dayData?: IDayData, resetStack?: boolean): void {
+    const plannerState = EditProgram.initPlannerState(program.id, program, dayData);
+    updateState(dispatch, [lb<IState>().p("editProgramV2").record(plannerState)]);
     dispatch(Thunk.pushScreen("editProgram", undefined, resetStack));
   }
 

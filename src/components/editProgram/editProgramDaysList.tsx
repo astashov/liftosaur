@@ -12,9 +12,7 @@ import { MenuItem } from "../menuItem";
 
 interface IProps {
   editProgram: IProgram;
-  programIndex: number;
   dispatch: IDispatch;
-  adminKey?: string;
   settings: ISettings;
   navCommon: INavCommon;
 }

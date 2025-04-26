@@ -380,7 +380,7 @@ export namespace Thunk {
       if (Program.isEmpty(currentProgram)) {
         dispatch(Thunk.pushScreen("programs"));
       } else if (currentProgram) {
-        Program.editAction(dispatch, currentProgram.id, undefined, true);
+        Program.editAction(dispatch, currentProgram, undefined, true);
       }
     };
   }
@@ -485,16 +485,6 @@ export namespace Thunk {
           .p("progress")
           .recordModify((progresses) => Progress.stop(progresses, progress.id)),
       ]);
-    }
-
-    const editExercise = state.editExercise;
-    if (editExercise) {
-      updateState(dispatch, [lb<IState>().p("editExercise").record(undefined)]);
-    }
-
-    const editProgram = state.editProgram;
-    if (editProgram) {
-      updateState(dispatch, [lb<IState>().p("editProgram").record(undefined)]);
     }
 
     const editProgramV2 = state.editProgramV2;

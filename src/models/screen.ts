@@ -26,10 +26,6 @@ export type IScreenData =
   | { name: "appleHealth"; params?: Record<string, never> }
   | { name: "googleHealth"; params?: Record<string, never> }
   | { name: "editProgram"; params?: Record<string, never> }
-  | { name: "editProgramExercise"; params?: Record<string, never> }
-  | { name: "editProgramDay"; params?: Record<string, never> }
-  | { name: "editProgramDayScript"; params?: Record<string, never> }
-  | { name: "editProgramWeek"; params?: Record<string, never> }
   | { name: "measurements"; params?: { key: IStatsKey } }
   | { name: "subscription"; params?: Record<string, never> }
   | { name: "exerciseStats"; params?: Record<string, never> }
@@ -41,13 +37,7 @@ export type IScreenStack = IScreenData[];
 export type IScreenParams<T extends IScreen> = Extract<IScreenData, { name: T }>["params"];
 
 export namespace Screen {
-  export const editProgramScreens: IScreen[] = [
-    "editProgram",
-    "editProgramDay",
-    "editProgramWeek",
-    "editProgramExercise",
-    "editProgramDayScript",
-  ];
+  export const editProgramScreens: IScreen[] = ["editProgram"];
 
   export function currentName(stack: IScreenStack): IScreen {
     return stack[stack.length - 1].name;
@@ -158,18 +148,6 @@ export namespace Screen {
         return "me";
       }
       case "editProgram": {
-        return "program";
-      }
-      case "editProgramWeek": {
-        return "program";
-      }
-      case "editProgramExercise": {
-        return "program";
-      }
-      case "editProgramDay": {
-        return "program";
-      }
-      case "editProgramDayScript": {
         return "program";
       }
       case "measurements": {

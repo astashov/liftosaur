@@ -6,7 +6,6 @@ import { Thunk } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import { IEvaluatedProgram, IEvaluatedProgramDay, Program } from "../models/program";
 import { lb } from "lens-shmens";
-import { EditProgram } from "../models/editProgram";
 import { ButtonIcon } from "./buttonIcon";
 import { IconEdit2 } from "./icons/iconEdit2";
 import { Tailwind } from "../utils/tailwindConfig";
@@ -157,6 +156,7 @@ interface IWorkoutHeaderProps {
 
 function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
   const { program } = props;
+  const currentProgram = props.allPrograms.find((p) => p.id === props.program?.id);
   const isEligibleForProgramDay =
     !Progress.isCurrent(props.progress) && props.allPrograms.every((p) => p.id !== props.progress.programId);
   return (
@@ -216,14 +216,13 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
               </ButtonIcon>
             </div>
           )}
-          {program && !Program.isEmpty(program) && (
+          {program && currentProgram && !Program.isEmpty(currentProgram) && (
             <div>
               <ButtonIcon
                 name="workout-edit-day"
                 onClick={() => {
                   const dayData = Program.getDayData(program, props.progress.day);
-                  const plannerState = EditProgram.initPlannerState(program.id, program.planner, dayData);
-                  Program.editAction(props.dispatch, program.id, plannerState);
+                  Program.editAction(props.dispatch, currentProgram, dayData);
                 }}
               >
                 <IconEdit2 />

@@ -1,15 +1,15 @@
 import { lb } from "lens-shmens";
 import { emptyProgramId, IEvaluatedProgram, Program } from "./program";
-import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
-import { IProgram, IPlannerProgram, IDayData, IProgramState, ISettings } from "../types";
+import { IProgram, IDayData, IProgramState, ISettings } from "../types";
 import { updateStateVariable } from "./editProgramLenses";
 import { IPlannerProgramExercise, IPlannerState } from "../pages/planner/models/types";
 import { PP } from "./pp";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { ProgramToPlanner } from "./programToPlanner";
+import { Thunk } from "../ducks/thunks";
 
 export namespace EditProgram {
   export function properlyUpdateStateVariableInPlace(
@@ -78,26 +78,16 @@ export namespace EditProgram {
     ]);
   }
 
-  export function initPlannerState(id: string, plannerProgram: IPlannerProgram, focusedDay?: IDayData): IPlannerState {
+  export function initPlannerState(id: string, program: IProgram, focusedDay?: IDayData): IPlannerState {
     return {
       id,
-      current: { program: { ...Program.create(plannerProgram.name, id), planner: plannerProgram } },
+      current: { program: { ...program } },
       ui: { weekIndex: 0, focusedDay, isUiMode: true, exerciseUi: { edit: new Set(), collapsed: new Set() } },
       history: { past: [], future: [] },
     };
   }
 
-  export function initializePlanner(
-    dispatch: IDispatch,
-    id: string,
-    plannerProgram: IPlannerProgram,
-    focusedDay?: IDayData
-  ): void {
-    const initialState = initPlannerState(id, plannerProgram, focusedDay);
-    updateState(dispatch, [lb<IState>().p("editProgramV2").record(initialState)]);
-  }
-
-  export function createExperimental(dispatch: IDispatch, name: string): void {
+  export function create(dispatch: IDispatch, name: string): void {
     const newProgram = {
       ...Program.create(name),
       planner: {
@@ -106,18 +96,14 @@ export namespace EditProgram {
       },
     };
 
-    initializePlanner(dispatch, newProgram.id, newProgram.planner!);
     updateState(dispatch, [
       lb<IState>()
         .p("storage")
         .p("programs")
         .recordModify((pgms) => [...pgms, newProgram]),
       lb<IState>().p("storage").p("currentProgramId").record(newProgram.id),
-      lb<IState>()
-        .p("screenStack")
-        .recordModify((stack) => Screen.push(stack, "editProgram")),
-      lb<IState>().p("editProgram").record({ id: newProgram.id }),
     ]);
+    dispatch(Thunk.pushToEditProgram());
   }
 
   export function updateProgram(dispatch: IDispatch, program: IProgram): void {

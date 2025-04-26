@@ -42,9 +42,8 @@ import { ModalPlannerPictureExport } from "../../pages/planner/components/modalP
 import { ModalPlannerProgramRevisions } from "../../pages/planner/modalPlannerProgramRevisions";
 
 interface IProps {
-  editProgram: IProgram;
+  originalProgram: IProgram;
   plannerState: IPlannerState;
-  programIndex: number;
   helps: string[];
   client: Window["fetch"];
   dispatch: IDispatch;
@@ -121,7 +120,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
             onExportProgramToLink={() => {
               setShouldShowBottomSheet(false);
               props.dispatch(
-                Thunk.generateAndCopyLink(props.editProgram, props.settings, (url) => {
+                Thunk.generateAndCopyLink(props.originalProgram, props.settings, (url) => {
                   alert(`Copied link to the clipboard: ${url}`);
                 })
               );
@@ -133,7 +132,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
             onLoadRevisions={() => {
               setIsLoadingRevisions(true);
               props.dispatch(
-                Thunk.fetchRevisions(props.editProgram.id, () => {
+                Thunk.fetchRevisions(props.originalProgram.id, () => {
                   setIsLoadingRevisions(false);
                   setShowRevisions(true);
                   setShouldShowBottomSheet(false);
@@ -145,7 +144,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
           />
           <ModalPublishProgram
             isHidden={!shouldShowPublishModal}
-            program={props.editProgram}
+            program={props.originalProgram}
             dispatch={props.dispatch}
             onClose={() => {
               setShouldShowPublishModal(false);
@@ -407,7 +406,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
           )}
           {showRevisions && props.revisions.length > 0 && (
             <ModalPlannerProgramRevisions
-              programId={props.editProgram.id}
+              programId={props.originalProgram.id}
               client={props.client}
               revisions={props.revisions}
               onClose={() => setShowRevisions(false)}
@@ -437,11 +436,11 @@ export function EditProgramV2(props: IProps): JSX.Element {
                     }, 3000);
                   };
                   if (props.isLoggedIn) {
-                    const url = UrlUtils.build(`/user/p/${props.editProgram.id}`, __HOST__);
+                    const url = UrlUtils.build(`/user/p/${props.originalProgram.id}`, __HOST__);
                     ClipboardUtils.copy(url.toString());
                     cb();
                   } else {
-                    props.dispatch(Thunk.generateAndCopyLink(props.editProgram, props.settings, cb));
+                    props.dispatch(Thunk.generateAndCopyLink(props.originalProgram, props.settings, cb));
                   }
                 }}
               >
@@ -454,7 +453,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
           <GroupHeader name="Current Program" />
           <MenuItem
             name="Program"
-            value={props.editProgram.name}
+            value={props.originalProgram.name}
             expandValue={true}
             shouldShowRightArrow={true}
             onClick={() => props.dispatch(Thunk.pushScreen("programs"))}
@@ -468,10 +467,10 @@ export function EditProgramV2(props: IProps): JSX.Element {
           <MenuItemEditable
             type="text"
             name="Name:"
-            value={props.editProgram.name}
+            value={props.originalProgram.name}
             onChange={(newValue) => {
               if (newValue) {
-                EditProgram.setName(props.dispatch, props.editProgram, newValue);
+                EditProgram.setName(props.dispatch, props.originalProgram, newValue);
                 plannerDispatch([
                   lb<IPlannerState>().p("current").p("program").p("name").record(newValue),
                   lb<IPlannerState>().p("current").p("program").pi("planner").p("name").record(newValue),
@@ -483,12 +482,12 @@ export function EditProgramV2(props: IProps): JSX.Element {
             type="select"
             name="Next Day:"
             values={Program.getListOfDays(evaluatedProgram)}
-            value={props.editProgram.nextDay.toString()}
+            value={props.originalProgram.nextDay.toString()}
             onChange={(newValueStr) => {
               const newValue = newValueStr != null ? parseInt(newValueStr, 10) : undefined;
               if (newValue != null && !isNaN(newValue)) {
                 const newDay = Math.max(1, Math.min(newValue, Program.numberOfDays(evaluatedProgram)));
-                EditProgram.setNextDay(props.dispatch, props.editProgram.id, newDay);
+                EditProgram.setNextDay(props.dispatch, props.originalProgram.id, newDay);
               }
             }}
           />
@@ -522,7 +521,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
               plannerDispatch={plannerDispatch}
               onSave={() => {
                 const newProgram: IProgram = {
-                  ...Program.cleanPlannerProgram(props.editProgram),
+                  ...Program.cleanPlannerProgram(props.originalProgram),
                   planner: planner,
                 };
                 updateState(props.dispatch, [
@@ -530,7 +529,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
                     .p("storage")
                     .p("programs")
                     .recordModify((programs) => {
-                      return CollectionUtils.setBy(programs, "id", props.editProgram.id, newProgram);
+                      return CollectionUtils.setBy(programs, "id", props.originalProgram.id, newProgram);
                     }),
                   lb<IState>().p("editProgramV2").record(undefined),
                 ]);

@@ -87,7 +87,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             isHidden={!shouldCreateProgram}
             onClose={() => setShouldCreateProgram(false)}
             onSelect={(name) => {
-              EditProgram.createExperimental(props.dispatch, name);
+              EditProgram.create(props.dispatch, name);
             }}
           />
         </>

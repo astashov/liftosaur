@@ -252,11 +252,6 @@ export type IStopTimer = {
   type: "StopTimer";
 };
 
-export type ICreateProgramAction = {
-  type: "CreateProgramAction";
-  name: string;
-};
-
 export type IApplyProgramChangesToProgress = {
   type: "ApplyProgramChangesToProgress";
   programExerciseIds?: string[];
@@ -289,7 +284,6 @@ export type IAction =
   | IUpdateStateAction
   | IReplaceStateAction
   | IUpdateSettingsAction
-  | ICreateProgramAction
   | IApplyProgramChangesToProgress;
 
 let timerId: number | undefined = undefined;
@@ -719,17 +713,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       }
       return newState;
     }, state);
-  } else if (action.type === "CreateProgramAction") {
-    const newProgram = Program.create(action.name);
-    let newState = lf(state)
-      .p("storage")
-      .p("programs")
-      .modify((programs) => [...programs, newProgram]);
-    newState = lf(newState).p("editProgram").set({ id: newProgram.id });
-    newState = lf(newState).p("storage").p("currentProgramId").set(newProgram.id);
-    return lf(newState)
-      .p("screenStack")
-      .set(pushScreen(state.screenStack, "editProgram", undefined, true));
   } else if (action.type === "ApplyProgramChangesToProgress") {
     const progress = state.progress[0];
     if (progress != null) {
