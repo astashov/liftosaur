@@ -68,7 +68,6 @@ export class PlannerEvaluatedProgramToText {
       const week = this.plannerProgram.weeks[weekIndex];
       const plannerWeek: IPlannerProgramWeek = { name: week.name, days: [], description: week.description };
       for (let dayInWeekIndex = 0; dayInWeekIndex < week.days.length; dayInWeekIndex += 1) {
-        const groupedTopLines = groupedTopLineMap[weekIndex][dayInWeekIndex];
         const weekDay = week.days[dayInWeekIndex];
         const plannerDay: IPlannerProgramDay = {
           name: weekDay.name,
@@ -76,6 +75,7 @@ export class PlannerEvaluatedProgramToText {
           description: weekDay.description,
         };
         const exerciseTextArr: string[] = [];
+        const groupedTopLines = groupedTopLineMap[weekIndex][dayInWeekIndex];
         for (let groupIndex = 0; groupIndex < groupedTopLines.length; groupIndex += 1) {
           const group = groupedTopLines[groupIndex];
           let descriptionIndex = -1;

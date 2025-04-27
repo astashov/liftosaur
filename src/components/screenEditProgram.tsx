@@ -4,7 +4,7 @@ import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
 import { Screen } from "../models/screen";
 import { IProgram, ISettings, ISubscription } from "../types";
 import { INavCommon } from "../models/state";
-import { EditProgramV2 } from "./editProgram/editProgramV2";
+import { ScreenProgram } from "./editProgram/screenProgram";
 import { useEffect } from "preact/hooks";
 import { IPlannerState } from "../pages/planner/models/types";
 import { Thunk } from "../ducks/thunks";
@@ -40,7 +40,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
   if (screen === "editProgram") {
     if (plannerState.current.program.planner != null) {
       return (
-        <EditProgramV2
+        <ScreenProgram
           client={props.client}
           revisions={props.revisions}
           helps={props.helps}

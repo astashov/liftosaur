@@ -82,7 +82,14 @@ export namespace EditProgram {
     return {
       id,
       current: { program: { ...program } },
-      ui: { weekIndex: 0, focusedDay, isUiMode: true, exerciseUi: { edit: new Set(), collapsed: new Set() } },
+      ui: {
+        weekIndex: 0,
+        focusedDay,
+        mode: "ui",
+        exerciseUi: { edit: new Set(), collapsed: new Set() },
+        dayUi: { collapsed: new Set() },
+        weekUi: { collapsed: new Set() },
+      },
       history: { past: [], future: [] },
     };
   }
