@@ -637,7 +637,12 @@ export const migrations = {
                 });
                 const newExerciseType = { id: custom.exercise.id };
                 for (const key of keys) {
-                  const programResult = PlannerProgram.replaceExercise(program, key, newExerciseType, storage.settings);
+                  const programResult = PlannerProgram.replaceAndValidateExercise(
+                    program,
+                    key,
+                    newExerciseType,
+                    storage.settings
+                  );
                   if (programResult.success) {
                     program = programResult.data;
                   }
@@ -936,6 +941,21 @@ export const migrations = {
           if (newExerciseStr !== day.exerciseText) {
             day.exerciseText = newExerciseStr;
           }
+        }
+      }
+    }
+    return storage;
+  },
+  "20250429083937_add_ids_to_planner_weeks_and_days": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs) {
+      for (const week of program.planner?.weeks || []) {
+        week.id = week.id || UidFactory.generateUid(8);
+        for (const day of week.days) {
+          day.id = day.id || UidFactory.generateUid(8);
         }
       }
     }

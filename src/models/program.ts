@@ -257,13 +257,7 @@ export namespace Program {
     const dayData = getDayData(program, day);
     const { week, dayInWeek } = dayData;
 
-    const dayName = program.weeks[week - 1]?.days[dayInWeek - 1]?.name;
-    const dayNameParts: string[] = [];
-    if (program.weeks.length > 1) {
-      dayNameParts.push(program.weeks[week - 1]?.name ?? "");
-    }
-    dayNameParts.push(dayName);
-    const fullDayName = dayNameParts.join(" - ");
+    const fullDayName = getDayName(program, day);
     const now = Date.now();
     const programDay = Program.getProgramDay(program, day);
     const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
@@ -760,6 +754,19 @@ export namespace Program {
     return 1;
   }
 
+  export function getDayNumber(program: IPlannerProgram | IEvaluatedProgram, week: number, dayInWeek: number): number {
+    let dayIndex = 1;
+    for (let w = 0; w < program.weeks.length; w += 1) {
+      for (let d = 0; d < program.weeks[w].days.length; d += 1) {
+        if (w === week - 1 && d === dayInWeek - 1) {
+          return dayIndex;
+        }
+        dayIndex += 1;
+      }
+    }
+    return -1;
+  }
+
   export function getDayData(program: IEvaluatedProgram, day: number): Required<IDayData> {
     return {
       day,
@@ -783,7 +790,7 @@ export namespace Program {
     const dayData = getDayData(program, day);
     const programDay = getProgramDay(program, day);
     const week = program.weeks[(dayData.week || 1) - 1];
-    const isMultiweek = program.weeks.length > 1 && program.weeks.length > 1 && week != null;
+    const isMultiweek = program.weeks.length > 1 && week != null;
     return `${isMultiweek ? `${week.name} - ` : ""}${programDay?.name}`;
   }
 

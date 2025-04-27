@@ -18,11 +18,12 @@ interface IPlannerWeekStatsProps {
   frequency: boolean;
   settings: ISettings;
   dispatch: ILensDispatch<IPlannerState>;
+  onEditSettings?: () => void;
   focusedExercise?: IPlannerUiFocusedExercise;
 }
 
 export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
-  const { setResults, settings, frequency, dispatch, focusedExercise } = props;
+  const { setResults, settings, frequency, dispatch, focusedExercise, onEditSettings } = props;
   const showLink = !frequency;
   return (
     <div className="mb-2 text-sm">
@@ -81,6 +82,14 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
       <div className="w-32 mb-2">
         <PlannerWeekMuscles settings={props.settings} data={setResults.muscleGroup} />
       </div>
+
+      {onEditSettings && (
+        <div className="py-2 text-xs">
+          <LinkButton name="planner-stats-edit-settings" onClick={() => onEditSettings()}>
+            Edit Weekly Muscle Range Settings
+          </LinkButton>
+        </div>
+      )}
 
       {ObjectUtils.keys(setResults.muscleGroup).map((muscleGroup) => {
         return (

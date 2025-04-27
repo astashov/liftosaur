@@ -32,7 +32,7 @@ export class PlannerTestUtils {
     const { program } = PlannerTestUtils.get(programText);
     const settings = Settings.build();
     const key = PlannerKey.fromFullName(oldExercise, settings);
-    const result = PlannerProgram.replaceExercise(program, key, newExercise, settings);
+    const result = PlannerProgram.replaceAndValidateExercise(program, key, newExercise, settings);
     if (result.success) {
       return PlannerProgram.generateFullText(result.data.planner?.weeks || []);
     } else {
