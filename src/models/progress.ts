@@ -377,13 +377,14 @@ export namespace Progress {
     setIndex: number,
     settings: ISettings,
     subscription?: ISubscription,
-    timer?: number
+    timer?: number,
+    isAdjusting?: boolean
   ): IHistoryRecord {
     const set =
       mode === "warmup"
         ? progress.entries[entryIndex]?.warmupSets[setIndex]
         : progress.entries[entryIndex]?.sets[setIndex];
-    if (!set || !set.isCompleted) {
+    if (!isAdjusting && (!set || !set.isCompleted)) {
       return progress;
     }
     if (timer == null && Progress.isCurrent(progress) && mode === "workout") {

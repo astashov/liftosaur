@@ -683,7 +683,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           action.setIndex,
           state.storage.settings,
           state.storage.subscription,
-          action.timer
+          action.timer,
+          true
         )
       );
     } else {
