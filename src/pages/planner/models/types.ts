@@ -166,6 +166,11 @@ export interface IPlannerProgramExerciseRepRange {
   isQuickAddSet: boolean;
 }
 
+export interface IPlannerUiFocusedDay {
+  weekIndex: number;
+  dayInWeekIndex: number;
+}
+
 export interface IPlannerUiFocusedExercise {
   weekIndex: number;
   dayIndex: number;
@@ -190,17 +195,27 @@ export interface IPlannerUi {
     edit: Set<string>;
     collapsed: Set<string>;
   };
-  editWeekDayModal?: { weekIndex: number; dayIndex?: number };
+  dayUi: {
+    collapsed: Set<string>;
+  };
+  weekUi: {
+    collapsed: Set<string>;
+  };
+  editExerciseModal?: {
+    focusedExercise: IPlannerUiFocusedExercise;
+    exerciseType?: IExerciseType;
+    exerciseKey?: string;
+    fullName?: string;
+  };
   weekIndex: number;
-  subscreen?: "weeks" | "full";
   showPictureExport?: boolean;
-  showWeekStats?: boolean;
-  showDayStats?: boolean;
+  showWeekStats?: number;
+  showDayStats?: number;
   showExerciseStats?: boolean;
   showPreview?: boolean;
   focusedDay?: IDayData;
   showSettingsModal?: boolean;
-  isUiMode?: boolean;
+  mode?: "reorder" | "ui" | "perday" | "full";
 }
 
 export interface IPlannerFullText {
@@ -260,6 +275,10 @@ export interface ISetSplit {
 }
 
 export function focusedToStr(focused: IPlannerUiFocusedExercise): string {
+  return JSON.stringify(focused);
+}
+
+export function focusedDayToStr(focused: IPlannerUiFocusedDay): string {
   return JSON.stringify(focused);
 }
 

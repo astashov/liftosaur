@@ -71,7 +71,7 @@ export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps):
                   exerciseType: exercise,
                   exerciseKey,
                 }),
-              lb<IPlannerState>().pi("ui").p("showExerciseStats").record(false),
+              lb<IPlannerState>().pi("ui").p("showExerciseStats").record(undefined),
             ]);
           }}
         >

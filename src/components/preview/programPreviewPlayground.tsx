@@ -6,7 +6,7 @@ import { ProgramPreviewPlaygroundDay } from "./programPreviewPlaygroundDay";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { Progress } from "../../models/progress";
-import { ScrollableTabs } from "../scrollableTabs";
+import { IScrollableTabsProps, ScrollableTabs } from "../scrollableTabs";
 import { IProgramPreviewPlaygroundDaySetup, IProgramPreviewPlaygroundWeekSetup } from "./programPreviewPlaygroundSetup";
 import deepmerge from "deepmerge";
 import { Markdown } from "../markdown";
@@ -25,6 +25,7 @@ interface IProgramPreviewPlaygroundProps {
   program: IProgram;
   settings: ISettings;
   isPlayground: boolean;
+  scrollableTabsProps?: Partial<IScrollableTabsProps>;
   hasNavbar?: boolean;
 }
 
@@ -69,13 +70,17 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
 
   return (
     <ScrollableTabs
-      offsetY={props.hasNavbar ? "3rem" : undefined}
+      offsetY={props.scrollableTabsProps?.offsetY ?? (props.hasNavbar ? "3rem" : undefined)}
       shouldNotExpand={true}
+      type={props.scrollableTabsProps?.type}
+      topPadding={props.scrollableTabsProps?.topPadding}
+      className={props.scrollableTabsProps?.className}
+      nonSticky={props.scrollableTabsProps?.nonSticky}
       tabs={state.progresses.map((week, weekIndex) => {
         const programWeekDescription = evaluatedProgram.weeks[weekIndex]?.description;
         return {
           label: week.name,
-          children: (
+          children: () => (
             <div>
               {programWeekDescription && (
                 <div className="mx-4 text-sm">

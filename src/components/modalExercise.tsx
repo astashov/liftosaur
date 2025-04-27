@@ -145,12 +145,12 @@ const ExercisePickerContainer = forwardRef((props: IExercisePickerContainerProps
         if (name === "Pick") {
           return {
             label: name,
-            children: <ExercisesList isSubstitute={false} {...props} />,
+            children: () => <ExercisesList isSubstitute={false} {...props} />,
           };
         } else {
           return {
             label: name,
-            children: <ExercisesList isSubstitute={true} {...props} />,
+            children: () => <ExercisesList isSubstitute={true} {...props} />,
           };
         }
       })}

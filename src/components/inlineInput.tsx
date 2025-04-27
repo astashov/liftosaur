@@ -2,7 +2,7 @@
 import { h, JSX } from "preact";
 import { useRef } from "preact/hooks";
 
-export interface IBuilderInlineInputProps extends JSX.HTMLAttributes<HTMLInputElement> {
+export interface IInlineInputProps extends JSX.HTMLAttributes<HTMLInputElement> {
   style?: JSX.CSSProperties;
   minWidth?: number;
   onInputInt?: (value: number) => void;
@@ -10,11 +10,11 @@ export interface IBuilderInlineInputProps extends JSX.HTMLAttributes<HTMLInputEl
   onInputString?: (value: string) => void;
 }
 
-export function BuilderLinkInlineInput(props: IBuilderInlineInputProps): JSX.Element {
-  return <BuilderInlineInput className="underline" {...props} />;
+export function LinkInlineInput(props: IInlineInputProps): JSX.Element {
+  return <InlineInput className="underline" {...props} />;
 }
 
-export function BuilderInlineInput(props: IBuilderInlineInputProps): JSX.Element {
+export function InlineInput(props: IInlineInputProps): JSX.Element {
   const { className, minWidth, style, onInput, ...otherProps } = props;
   const elRef = useRef<HTMLInputElement>(null);
   const length = Math.max(minWidth == null ? 0 : minWidth, `${props.value}`.length + 1);

@@ -35,17 +35,19 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
   return (
     <div>
       <div className="mx-4">
-        <MenuItemEditable
-          type="select"
-          name="Program"
-          value={evaluatedProgram.id}
-          values={programsValues}
-          onChange={(value) => {
-            if (value) {
-              setCurrentProgramId(value);
-            }
-          }}
-        />
+        {props.allPrograms.length > 1 && (
+          <MenuItemEditable
+            type="select"
+            name="Program"
+            value={evaluatedProgram.id}
+            values={programsValues}
+            onChange={(value) => {
+              if (value) {
+                setCurrentProgramId(value);
+              }
+            }}
+          />
+        )}
         {days.map(([dayId, dayName], dayIndex) => {
           const day = Program.getProgramDay(evaluatedProgram, dayIndex + 1);
           if (!day) {

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 import { h, JSX } from "preact";
-import { BuilderLinkInlineInput } from "../../builder/components/builderInlineInput";
+import { LinkInlineInput } from "../../../components/inlineInput";
 import { LinkButton } from "../../../components/linkButton";
 import { CollectionUtils } from "../../../utils/collection";
 import { ObjectUtils } from "../../../utils/object";
@@ -37,7 +37,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
     <div key={props.weekIndex} className="flex flex-col md:flex-row">
       <div className="flex-1">
         <h3 className="mr-2 text-xl font-bold">
-          <BuilderLinkInlineInput
+          <LinkInlineInput
             value={props.week.name}
             onInputString={(v) => {
               props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("name").record(v));

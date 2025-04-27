@@ -77,12 +77,13 @@ export class PlannerProgram {
   }
 
   public static replaceExercise(
-    program: IProgram,
+    planner: IPlannerProgram,
     key: string,
     toExerciseType: IExerciseType,
-    settings: ISettings
-  ): IEither<IProgram, string> {
-    const evaluatedProgram = Program.evaluate(program, settings);
+    settings: ISettings,
+    dayData?: Required<IDayData>
+  ): IPlannerProgram {
+    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
     const allExercises = Program.getAllProgramExercises(evaluatedProgram);
     let labelSuffix: string | undefined = undefined;
     let noConflicts = false;
@@ -94,7 +95,10 @@ export class PlannerProgram {
     while (!noConflicts) {
       const conflictingExercises = allExercises.filter((e) => {
         const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, getLabel(e.label));
-        return e.key === newKey;
+        return (
+          e.key === newKey &&
+          (!dayData || (dayData.week !== e.dayData.week && dayData.dayInWeek !== e.dayData.dayInWeek))
+        );
       });
       if (conflictingExercises.length > 0) {
         noConflicts = false;
@@ -104,19 +108,30 @@ export class PlannerProgram {
       }
     }
 
-    const renameMapping: Record<string, string> = {};
-    PP.iterate2(evaluatedProgram.weeks, (exercise) => {
+    const renameMapping: Record<string, { to: string; dayData?: Required<IDayData> }> = {};
+    PP.iterate2(evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex) => {
       if (exercise.key === key) {
-        exercise.exerciseType = toExerciseType;
-        const newLabel = getLabel(exercise.label);
-        exercise.label = newLabel;
-        const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
-        renameMapping[exercise.key] = newKey;
-        exercise.key = newKey;
+        if (!dayData || (dayData.week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1)) {
+          exercise.exerciseType = toExerciseType;
+          const newLabel = getLabel(exercise.label);
+          exercise.label = newLabel;
+          const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
+          renameMapping[exercise.key] = { to: newKey, dayData };
+          exercise.key = newKey;
+        }
       }
     });
-    const newPlanner = new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(renameMapping);
-    const newProgram = { ...program, planner: newPlanner };
+    return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ renameMapping });
+  }
+
+  public static replaceAndValidateExercise(
+    program: IProgram,
+    key: string,
+    toExerciseType: IExerciseType,
+    settings: ISettings,
+    dayData?: Required<IDayData>
+  ): IEither<IProgram, string> {
+    const newPlanner = PlannerProgram.replaceExercise(program.planner!, key, toExerciseType, settings, dayData);
     const { evaluatedWeeks } = PlannerEvaluator.evaluate(newPlanner, settings);
     let error: PlannerSyntaxError | undefined;
     for (const week of evaluatedWeeks) {
@@ -130,7 +145,7 @@ export class PlannerProgram {
     if (error) {
       return { success: false, error: error.message };
     } else {
-      return { success: true, data: newProgram };
+      return { success: true, data: { ...program, planner: newPlanner } };
     }
   }
 
