@@ -30,6 +30,8 @@ import { Muscle } from "../models/muscle";
 import { CollectionUtils } from "../utils/collection";
 import { ScrollableTabs } from "./scrollableTabs";
 import { IconExternalLink } from "./icons/iconExternalLink";
+import { Input, IValidationError } from "./input";
+import { IEither } from "../utils/types";
 
 interface IModalExerciseProps {
   isHidden: boolean;
@@ -38,7 +40,11 @@ interface IModalExerciseProps {
   initialFilter?: string;
   initialFilterTypes?: string[];
   shouldAddExternalLinks?: boolean;
-  onChange: (value: IExerciseType | undefined, shouldClose: boolean) => void;
+  onSaveAsTemplate?: (name: string | undefined, label: string | undefined) => void;
+  templateName?: string;
+  label?: string;
+  onLabelChange?: (label: string) => void;
+  onChange: (value: IExerciseType | undefined, label: string | undefined, shouldClose: boolean) => void;
   onCreateOrUpdate: (
     shouldClose: boolean,
     name: string,
@@ -64,7 +70,7 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
       isHidden={props.isHidden}
       autofocusInputRef={textInput}
       shouldShowClose={true}
-      onClose={() => props.onChange(undefined, true)}
+      onClose={() => props.onChange(undefined, undefined, true)}
     >
       <div style={{ maxWidth: "600px", minWidth: "260px" }}>
         {isCustomExerciseDisplayed ? (
@@ -81,6 +87,10 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
             filter={filter}
             initialFilterTypes={props.initialFilterTypes}
             shouldAddExternalLinks={props.shouldAddExternalLinks}
+            label={props.label}
+            onLabelChange={props.onLabelChange}
+            onSaveAsTemplate={props.onSaveAsTemplate}
+            templateName={props.templateName}
             setFilter={setFilter}
             setIsCustomExerciseDisplayed={setIsCustomExerciseDisplayed}
             setEditingExercise={setEditingExercise}
@@ -131,30 +141,62 @@ export function ModalCustomExercise(props: IModalCustomExerciseProps): JSX.Eleme
 type IExercisePickerContainerProps = Omit<IExercisesListProps, "isSubstitute">;
 
 const ExercisePickerContainer = forwardRef((props: IExercisePickerContainerProps) => {
-  const tabs = ["Pick", "Substitute"];
-
   const exerciseType = props.exerciseType;
-  if (exerciseType == null) {
-    return <ExercisesList isSubstitute={false} {...props} />;
-  }
+  const onSaveAsTemplate = props.onSaveAsTemplate;
+  const labelRef = useRef<HTMLInputElement>(null);
 
   return (
-    <ScrollableTabs
-      defaultIndex={0}
-      tabs={tabs.map((name) => {
-        if (name === "Pick") {
-          return {
-            label: name,
-            children: <ExercisesList isSubstitute={false} {...props} />,
-          };
-        } else {
-          return {
-            label: name,
-            children: <ExercisesList isSubstitute={true} {...props} />,
-          };
-        }
-      })}
-    />
+    <div>
+      {props.onLabelChange && (
+        <Input
+          label="Label"
+          ref={labelRef}
+          defaultValue={props.label}
+          changeType={"oninput"}
+          inputSize="sm"
+          pattern="^[^\/\{\}\(\)\t\n\r#\[\]]+$"
+          patternMessage="Label cannot contain special characters: '/{}()#[]'"
+          labelSize="xs"
+          changeHandler={(e: IEither<string, Set<IValidationError>>) => {
+            if (e.success && props.onLabelChange) {
+              props.onLabelChange(e.data);
+            }
+          }}
+        />
+      )}
+      {exerciseType === null ? (
+        <ExercisesList isSubstitute={false} {...props} />
+      ) : (
+        <ScrollableTabs
+          topPadding={props.onLabelChange ? "0.5rem" : "1.5rem"}
+          defaultIndex={0}
+          tabs={[
+            {
+              label: "Pick",
+              children: () => <ExercisesList isSubstitute={false} labelRef={labelRef} {...props} />,
+            },
+            {
+              label: "Substitute",
+              children: () => <ExercisesList isSubstitute={true} labelRef={labelRef} {...props} />,
+            },
+            ...(onSaveAsTemplate
+              ? [
+                  {
+                    label: "Template",
+                    children: () => (
+                      <ExerciseTemplate
+                        templateName={props.templateName}
+                        onSaveAsTemplate={onSaveAsTemplate}
+                        labelRef={labelRef}
+                      />
+                    ),
+                  },
+                ]
+              : []),
+          ]}
+        />
+      )}
+    </div>
   );
 });
 
@@ -162,13 +204,18 @@ interface IExercisesListProps {
   settings: ISettings;
   filter: string;
   shouldAddExternalLinks?: boolean;
+  templateName?: string;
+  label?: string;
+  labelRef?: Ref<HTMLInputElement>;
+  onSaveAsTemplate?: (name: string | undefined, label: string | undefined) => void;
+  onLabelChange?: (label: string) => void;
   isSubstitute: boolean;
   initialFilterTypes?: string[];
   setFilter: (newFilter: string) => void;
   setEditingExercise: (exercise?: ICustomExercise) => void;
   setIsCustomExerciseDisplayed: (value: boolean) => void;
   exerciseType?: IExerciseType;
-  onChange: (value: IExerciseType | undefined, shouldClose: boolean) => void;
+  onChange: (value: IExerciseType | undefined, label: string | undefined, shouldClose: boolean) => void;
   onDelete: (id: string) => void;
   textInput: Ref<HTMLInputElement>;
 }
@@ -248,7 +295,10 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
                   className="w-full px-2 py-1 text-left border-b border-gray-200"
                   onClick={(event) => {
                     if (!HtmlUtils.classInParents(event.target as Element, "button")) {
-                      props.onChange({ id: e.id }, true);
+                      let labelValue = props.labelRef?.current?.validationMessage
+                        ? undefined
+                        : props.labelRef?.current?.value;
+                      props.onChange({ id: e.id }, labelValue, true);
                     }
                   }}
                 >
@@ -314,7 +364,8 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
             }`}
             className="w-full px-2 py-1 text-left border-b border-gray-200"
             onClick={() => {
-              props.onChange(e, true);
+              let labelValue = props.labelRef?.current?.validationMessage ? undefined : props.labelRef?.current?.value;
+              props.onChange(e, labelValue, true);
             }}
           >
             <ExerciseItem
@@ -646,5 +697,80 @@ export function CustomMuscleGroupsView(props: { exercise: ICustomExercise }): JS
         </div>
       )}
     </div>
+  );
+}
+
+interface IExerciseTemplateProps {
+  templateName?: string;
+  labelRef?: Ref<HTMLInputElement>;
+  onSaveAsTemplate: (name: string | undefined, label: string | undefined) => void;
+}
+
+function ExerciseTemplate(props: IExerciseTemplateProps): JSX.Element {
+  const [name, setName] = useState<string>(props.templateName ?? "");
+  const [nameError, setNameError] = useState<string | undefined>(undefined);
+
+  return (
+    <form onSubmit={(e) => e.preventDefault()} className="mt-4">
+      <LabelAndInput
+        star={true}
+        identifier="exercise-template-name"
+        label="Template Name"
+        errorMessage={nameError}
+        value={name}
+        placeholder="My Awesome Template"
+        onInput={(e) => {
+          const value = e.currentTarget.value?.trim() || "";
+          setName(value);
+          if (!value) {
+            setNameError("Name cannot be empty");
+          } else if (/[/{}()\t\n\r#\[\]]+/.test(value)) {
+            setNameError("Name cannot contain special characters: '/{}()#[]'");
+          } else {
+            setNameError(undefined);
+          }
+        }}
+      />
+      <div className="my-2 text-sm">
+        You can choose any name for the template, and it will be saved as <strong>"non-used"</strong> (i.e. as a
+        template). You can reuse <strong>sets</strong>, <strong>warmup</strong>, <strong>update</strong> or{" "}
+        <strong>progress</strong> from this template in your real exercises.
+      </div>
+      <div className="flex py-4">
+        <div className="flex-1">
+          <Button
+            name="exercise-template-cancel"
+            kind="grayv2"
+            data-cy="exercise-template-cancel"
+            onClick={() => props.onSaveAsTemplate && props.onSaveAsTemplate(undefined, undefined)}
+          >
+            Cancel
+          </Button>
+        </div>
+        <div className="flex-1 text-right">
+          <Button
+            name="exercise-template-create"
+            kind="orange"
+            disabled={!!nameError}
+            data-cy="exercise-template-create"
+            onClick={() => {
+              if (!name) {
+                setNameError("Name cannot be empty");
+              } else {
+                setNameError(undefined);
+                if (props.onSaveAsTemplate) {
+                  const labelValue = props.labelRef?.current?.validationMessage
+                    ? undefined
+                    : props.labelRef?.current?.value;
+                  props.onSaveAsTemplate(name, labelValue);
+                }
+              }
+            }}
+          >
+            Save
+          </Button>
+        </div>
+      </div>
+    </form>
   );
 }

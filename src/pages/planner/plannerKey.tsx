@@ -20,6 +20,15 @@ export class PlannerKey {
 
   public static fromFullName(fullName: string, settings: ISettings): string {
     const { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings);
+    return this.fromLabelNameAndEquipment(label, name, equipment, settings);
+  }
+
+  public static fromLabelNameAndEquipment(
+    label: string | undefined,
+    name: string,
+    equipment: string | undefined,
+    settings: ISettings
+  ): string {
     const exercise = Exercise.findByNameEquipment(settings.exercises, name, equipment);
     const key = exercise ? Exercise.toKey(exercise) : name;
     const plannerKey = `${label ? `${label}-` : ""}${key}`.toLowerCase();

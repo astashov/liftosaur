@@ -6,7 +6,7 @@ import { lb } from "lens-shmens";
 import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IEnv, IState, updateState } from "../models/state";
-import { IProgram, IStorage, IExerciseType, ISettings } from "../types";
+import { IProgram, IStorage, IExerciseType, ISettings, IDayData } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ImportExporter } from "../lib/importexporter";
 import { Storage } from "../models/storage";
@@ -36,6 +36,7 @@ import { EditStats } from "../models/editStats";
 import { HealthSync } from "../lib/healthSync";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { Weight } from "../models/weight";
+import { EditProgram } from "../models/editProgram";
 
 declare let Rollbar: RB;
 
@@ -347,7 +348,7 @@ export namespace Thunk {
         if (clonedProgram) {
           updateState(dispatch, [lb<IState>().p("screenStack").record([])]);
           Program.selectProgram(dispatch, clonedProgram.id);
-          dispatch({ type: "StartProgramDayAction" });
+          dispatch(Thunk.startProgramDay());
         }
       }
     };
@@ -376,7 +377,7 @@ export namespace Thunk {
     };
   }
 
-  export function pushToEditProgram(): IThunk {
+  export function pushToEditProgram(dayData?: Required<IDayData>, key?: string): IThunk {
     return async (dispatch, getState) => {
       const state = getState();
       const currentProgram =
@@ -384,7 +385,56 @@ export namespace Thunk {
       if (Program.isEmpty(currentProgram)) {
         dispatch(Thunk.pushScreen("programs"));
       } else if (currentProgram) {
-        Program.editAction(dispatch, currentProgram, undefined, true);
+        Program.editAction(dispatch, currentProgram, dayData, key, true);
+      }
+    };
+  }
+
+  export function startProgramDay(programId?: string): IThunk {
+    return async (dispatch, getState) => {
+      const state = getState();
+      const progress = state.progress[0];
+      if (progress != null) {
+        dispatch(Thunk.pushScreen("progress", { id: progress.id }, true));
+      } else if (state.storage.currentProgramId != null) {
+        const program = Program.getProgram(state, programId ?? state.storage.currentProgramId);
+        if (program != null) {
+          const newProgress = Program.nextHistoryRecord(program, state.storage.settings);
+          updateState(dispatch, [
+            lb<IState>()
+              .p("progress")
+              .recordModify((progresses) => {
+                return { ...progresses, [newProgress.id]: newProgress };
+              }),
+          ]);
+          dispatch(Thunk.pushScreen("progress", { id: newProgress.id }, true));
+        } else {
+          alert("No currently selected program");
+        }
+      }
+    };
+  }
+
+  export function pushToEditProgramExercise(key: string, dayData: Required<IDayData>): IThunk {
+    return async (dispatch, getState) => {
+      const state = getState();
+      const programScreen = state.screenStack.find((s) => s.name === "editProgram");
+      const data = programScreen?.name === "editProgram" ? programScreen.params?.plannerState : undefined;
+      const currentProgram =
+        data?.current.program ||
+        (state.storage.currentProgramId != null
+          ? Program.getProgram(state, state.storage.currentProgramId)
+          : undefined);
+      if (currentProgram && !Program.isEmpty(currentProgram)) {
+        const plannerState = EditProgram.initPlannerProgramExerciseState(
+          currentProgram,
+          state.storage.settings,
+          key,
+          dayData
+        );
+        dispatch(Thunk.pushScreen("editProgramExercise", { key, dayData, plannerState }));
+      } else {
+        dispatch(Thunk.pushScreen("main"));
       }
     };
   }
@@ -396,13 +446,15 @@ export namespace Thunk {
   ): IThunk {
     return async (dispatch, getState) => {
       dispatch(postevent("navigate-to-" + screen));
-      const confirmation = Screen.shouldConfirmNavigation(getState());
-      if (confirmation) {
-        if (confirm(confirmation)) {
-          cleanup(dispatch, getState());
-          dispatch({ type: "PullScreen" });
-        } else {
-          return;
+      if (shouldResetStack) {
+        const confirmation = Screen.shouldConfirmNavigation(getState(), true);
+        if (confirmation) {
+          if (confirm(confirmation)) {
+            cleanup(dispatch, getState());
+            dispatch({ type: "PullScreen" });
+          } else {
+            return;
+          }
         }
       }
       if (
@@ -490,16 +542,11 @@ export namespace Thunk {
           .recordModify((progresses) => Progress.stop(progresses, progress.id)),
       ]);
     }
-
-    const editProgramV2 = state.editProgramV2;
-    if (editProgramV2) {
-      updateState(dispatch, [lb<IState>().p("editProgramV2").record(undefined)]);
-    }
   }
 
   export function pullScreen(): IThunk {
     return async (dispatch, getState) => {
-      const confirmation = Screen.shouldConfirmNavigation(getState());
+      const confirmation = Screen.shouldConfirmNavigation(getState(), false);
       if (confirmation) {
         if (confirm(confirmation)) {
           cleanup(dispatch, getState());
@@ -513,13 +560,14 @@ export namespace Thunk {
   }
 
   export function publishProgram(
+    program: IProgram,
     args: Pick<IProgram, "id" | "author" | "name" | "shortDescription" | "description" | "url">
   ): IThunk {
     const { id, author, name, description, shortDescription, url } = args;
     return async (dispatch, getState, env) => {
       const state = getState();
-      const program = {
-        ...Program.getEditingProgram(state)!,
+      const newProgram = {
+        ...program,
         id,
         author,
         name,
@@ -528,7 +576,7 @@ export namespace Thunk {
         url,
       };
       if (state.adminKey) {
-        await env.service.publishProgram(program, state.adminKey);
+        await env.service.publishProgram(newProgram, state.adminKey);
         alert("Published");
       }
     };

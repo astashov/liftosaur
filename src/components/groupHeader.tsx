@@ -10,6 +10,7 @@ interface IProps {
   help?: JSX.Element;
   size?: "small" | "large";
   children?: ComponentChildren;
+  nameAddOn?: JSX.Element;
   rightAddOn?: JSX.Element;
   leftExpandIcon?: boolean;
   isExpanded?: boolean;
@@ -38,14 +39,15 @@ export function GroupHeader(props: IProps): JSX.Element {
             {isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}
           </div>
         )}
-        <div className="flex-1">
-          <span
+        <div className="flex items-center flex-1">
+          <div
             className={`${size === "small" ? "text-xs" : "text-base font-bold"} ${
               props.highlighted ? "text-purplev2-main" : "text-grayv2-700"
             } align-middle`}
           >
             {name}
-          </span>
+          </div>
+          {props.nameAddOn}
         </div>
         <div className="flex items-center justify-center text-right">
           {props.rightAddOn}

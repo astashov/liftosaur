@@ -27,7 +27,7 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
     (currentProgramId ? CollectionUtils.findBy(props.allPrograms, "id", currentProgramId) : undefined) ??
     props.allPrograms[0];
   if (!currentProgram) {
-    return <div>No Programs</div>;
+    return <div className="mx-4">No Programs</div>;
   }
   const evaluatedProgram = Program.evaluate(currentProgram, props.settings);
   const days = Program.getListOfDays(evaluatedProgram);
@@ -35,17 +35,19 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
   return (
     <div>
       <div className="mx-4">
-        <MenuItemEditable
-          type="select"
-          name="Program"
-          value={evaluatedProgram.id}
-          values={programsValues}
-          onChange={(value) => {
-            if (value) {
-              setCurrentProgramId(value);
-            }
-          }}
-        />
+        {props.allPrograms.length > 1 && (
+          <MenuItemEditable
+            type="select"
+            name="Program"
+            value={evaluatedProgram.id}
+            values={programsValues}
+            onChange={(value) => {
+              if (value) {
+                setCurrentProgramId(value);
+              }
+            }}
+          />
+        )}
         {days.map(([dayId, dayName], dayIndex) => {
           const day = Program.getProgramDay(evaluatedProgram, dayIndex + 1);
           if (!day) {

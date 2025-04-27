@@ -74,7 +74,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
           tabs={[
             {
               label: "Settings",
-              children: (
+              children: () => (
                 <div>
                   <SettingsTab
                     program={planner}
@@ -88,7 +88,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
             },
             {
               label: "Preview",
-              children: (
+              children: () => (
                 <div className="overflow-x-auto" style={{ marginLeft: "-1rem", marginRight: "-1rem" }}>
                   <ProgramShareOutput settings={props.settings} program={planner} options={config} url={url} />
                 </div>

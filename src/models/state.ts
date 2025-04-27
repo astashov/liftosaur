@@ -8,7 +8,6 @@ import { IUser } from "./user";
 import { IStorage, IProgram, IHistoryRecord, IProgramDay, ISettings, IExerciseType, IEquipment } from "../types";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
-import { IPlannerState } from "../pages/planner/models/types";
 
 export type IEnv = {
   service: Service;
@@ -75,7 +74,6 @@ export interface IState {
     id: string;
     showCustomPrograms?: boolean;
   };
-  editProgramV2?: IPlannerState;
   muscleView?: {
     type: "program" | "day";
     programId?: string;

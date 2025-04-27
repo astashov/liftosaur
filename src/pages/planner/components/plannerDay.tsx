@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 import { h, JSX, Fragment } from "preact";
-import { BuilderLinkInlineInput } from "../../builder/components/builderInlineInput";
+import { LinkInlineInput } from "../../../components/inlineInput";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
@@ -62,7 +62,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
       <div className="flex-1">
         <div className="flex items-center pb-4">
           <h3 className="mr-2 text-xl font-bold">
-            <BuilderLinkInlineInput
+            <LinkInlineInput
               value={day.name}
               onInputString={(v) => {
                 dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("name").record(v));

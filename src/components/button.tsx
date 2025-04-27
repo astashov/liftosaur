@@ -2,13 +2,19 @@ import { h, JSX } from "preact";
 
 interface IProps extends JSX.HTMLAttributes<HTMLButtonElement> {
   buttonSize?: "xs" | "sm" | "md" | "lg" | "lg2";
-  kind: "orange" | "purple" | "grayv2" | "red" | "transparent-purple";
+  kind: "orange" | "purple" | "grayv2" | "red" | "transparent-purple" | "lightpurple" | "lightgrayv3";
   name: string;
 }
 
 export function Button(props: IProps): JSX.Element {
   const { children, buttonSize, kind, ...otherProps } = props;
-  let className = "text-xs rounded-lg";
+  const hasTextSize =
+    props.className &&
+    (props.className.includes("text-xs") ||
+      props.className.includes("text-sm") ||
+      props.className.includes("text-lg") ||
+      props.className.includes("text-base"));
+  let className = `${!hasTextSize ? "text-xs " : ""}rounded-lg`;
   if (props.disabled) {
     className += " bg-grayv2-main opacity-50 text-white ";
   } else if (kind === "purple") {
@@ -19,6 +25,10 @@ export function Button(props: IProps): JSX.Element {
     className += " bg-redv2-main text-white ";
   } else if (kind === "transparent-purple") {
     className += " bg-transparent text-purplev3-600 ";
+  } else if (kind === "lightpurple") {
+    className += " bg-purplev3-100 text-bluev3-main ";
+  } else if (kind === "lightgrayv3") {
+    className += " bg-grayv3-50 text-bluev3-main border border-grayv3-100 ";
   } else {
     className += " bg-orangev2 text-white";
   }

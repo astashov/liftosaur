@@ -69,7 +69,11 @@ export namespace Equipment {
       return undefined;
     }
     const currentGym = getCurrentGym(settings);
-    const name = currentGym.equipment[equipment]?.name;
+    const gymEquipment = currentGym.equipment[equipment];
+    if (gymEquipment == null || gymEquipment.isDeleted) {
+      return undefined;
+    }
+    const name = gymEquipment.name;
     return name || equipmentName(equipment);
   }
 

@@ -51,6 +51,8 @@ import { exceptionIgnores } from "../utils/rollbar";
 import { ScreenWorkout } from "./screenWorkout";
 import { Account } from "../models/account";
 import { ImagePreloader } from "../utils/imagePreloader";
+import { ScreenEditProgramExercise } from "./editProgramExercise/screenEditProgramExercise";
+import { FallbackScreen } from "./fallbackScreen";
 
 declare let Rollbar: RB;
 
@@ -466,23 +468,47 @@ export function AppView(props: IProps): JSX.Element | null {
         stats={state.storage.stats}
       />
     );
-  } else if (Screen.editProgramScreens.indexOf(Screen.currentName(state.screenStack)) !== -1) {
-    let editProgram = Program.getEditingProgram(state);
-    editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
+  } else if (Screen.currentName(state.screenStack) === "editProgramExercise") {
+    const screenData = Screen.current(navCommon.screenStack);
+    const exerciseKey = screenData.name === "editProgramExercise" ? screenData.params?.key : undefined;
+    const dayData = screenData.name === "editProgramExercise" ? screenData.params?.dayData : undefined;
+    const plannerState = screenData.name === "editProgramExercise" ? screenData.params?.plannerState : undefined;
     content = (
-      <ScreenEditProgram
-        client={client}
-        helps={state.storage.helps}
-        navCommon={navCommon}
-        adminKey={state.adminKey}
-        subscription={state.storage.subscription}
-        settings={state.storage.settings}
-        dispatch={dispatch}
-        originalProgram={editProgram}
-        plannerState={state.editProgramV2}
-        revisions={editProgram ? (state.revisions || {})[editProgram.id] || [] : []}
-        isLoggedIn={state.user != null}
-      />
+      <FallbackScreen state={{ plannerState, exerciseKey, dayData }} dispatch={dispatch}>
+        {({ plannerState, exerciseKey, dayData }) => (
+          <ScreenEditProgramExercise
+            plannerState={plannerState}
+            exerciseKey={exerciseKey}
+            dayData={dayData}
+            dispatch={dispatch}
+            settings={state.storage.settings}
+            navCommon={navCommon}
+          />
+        )}
+      </FallbackScreen>
+    );
+  } else if (Screen.currentName(state.screenStack) === "editProgram") {
+    const editProgram = Program.getProgram(state, state.storage.currentProgramId ?? state.progress[0]?.programId);
+    const screenData = Screen.current(navCommon.screenStack);
+    const plannerState = screenData.name === "editProgram" ? screenData.params?.plannerState : undefined;
+    content = (
+      <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>
+        {({ plannerState, editProgram }) => (
+          <ScreenEditProgram
+            client={client}
+            helps={state.storage.helps}
+            navCommon={navCommon}
+            adminKey={state.adminKey}
+            subscription={state.storage.subscription}
+            settings={state.storage.settings}
+            dispatch={dispatch}
+            originalProgram={editProgram}
+            plannerState={plannerState}
+            revisions={(state.revisions || {})[editProgram.id] || []}
+            isLoggedIn={state.user != null}
+          />
+        )}
+      </FallbackScreen>
     );
   } else if (Screen.currentName(state.screenStack) === "finishDay") {
     content = (

@@ -220,12 +220,12 @@ const ExerciseListWrapper = forwardRef(
           if (name === "Select") {
             return {
               label: name,
-              children: <ExercisesList ref={ref} isSubstitute={false} {...props} />,
+              children: () => <ExercisesList ref={ref} isSubstitute={false} {...props} />,
             };
           } else {
             return {
               label: name,
-              children: <ExercisesList ref={ref} isSubstitute={true} {...props} />,
+              children: () => <ExercisesList ref={ref} isSubstitute={true} {...props} />,
             };
           }
         })}

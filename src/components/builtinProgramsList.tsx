@@ -163,7 +163,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
           onPreview={() => Program.previewProgram(props.dispatch, selectedProgram.id, false)}
           onSelect={() => {
             Program.cloneProgram(props.dispatch, selectedProgram, props.settings);
-            props.dispatch(Thunk.pushScreen("main"));
+            props.dispatch(Thunk.pushScreen("main", undefined, true));
           }}
         />
       )}

@@ -1,7 +1,6 @@
 import { Exercise, exercises, warmupValues } from "./exercise";
 import { ScriptRunner } from "../parser";
 import { IScriptBindings, Progress } from "./progress";
-import { Screen } from "./screen";
 import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
 import { IEither } from "../utils/types";
@@ -15,7 +14,6 @@ import {
   ISettings,
   IHistoryEntry,
   IExerciseType,
-  IProgramSet,
   IProgramState,
   ISet,
   IHistoryRecord,
@@ -135,9 +133,20 @@ export namespace Program {
   );
 
   export function cleanPlannerProgram(program: IProgram): IProgram {
-    if (program.planner != null) {
+    const planner = program.planner;
+    if (planner != null) {
+      const newPlanner = {
+        ...planner,
+        weeks: planner.weeks.map((w) => ({
+          ...ObjectUtils.omit(w, ["id"]),
+          days: w.days.map((d) => ({
+            ...ObjectUtils.omit(d, ["id"]),
+          })),
+        })),
+      };
       return {
         ...program,
+        planner: newPlanner,
         exercises: [],
         days: [],
         weeks: [],
@@ -148,10 +157,6 @@ export namespace Program {
     } else {
       return program;
     }
-  }
-
-  export function getEditingProgram(state: IState): IProgram | undefined {
-    return state.storage.programs.find((p) => p.id === state.editProgramV2?.id);
   }
 
   export function isEmpty(program?: IProgram | IEvaluatedProgram): boolean {
@@ -257,13 +262,7 @@ export namespace Program {
     const dayData = getDayData(program, day);
     const { week, dayInWeek } = dayData;
 
-    const dayName = program.weeks[week - 1]?.days[dayInWeek - 1]?.name;
-    const dayNameParts: string[] = [];
-    if (program.weeks.length > 1) {
-      dayNameParts.push(program.weeks[week - 1]?.name ?? "");
-    }
-    dayNameParts.push(dayName);
-    const fullDayName = dayNameParts.join(" - ");
+    const fullDayName = getDayName(program, day);
     const now = Date.now();
     const programDay = Program.getProgramDay(program, day);
     const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
@@ -593,12 +592,8 @@ export namespace Program {
   }
 
   export function selectProgram(dispatch: IDispatch, programId: string): void {
-    updateState(dispatch, [
-      lb<IState>().p("storage").p("currentProgramId").record(programId),
-      lb<IState>()
-        .p("screenStack")
-        .recordModify((s) => Screen.push(s, "main")),
-    ]);
+    updateState(dispatch, [lb<IState>().p("storage").p("currentProgramId").record(programId)]);
+    dispatch(Thunk.pushScreen("main", undefined, true));
   }
 
   export function getAllProgramExercises(evaluatedProgram: IEvaluatedProgram): IPlannerProgramExercise[] {
@@ -689,6 +684,16 @@ export namespace Program {
     }
   );
 
+  export function getNumberOfExerciseInstances(program: IEvaluatedProgram, exerciseKey: string): number {
+    let count = 0;
+    PP.iterate2(program.weeks, (exercise) => {
+      if (exercise.key === exerciseKey) {
+        count += 1;
+      }
+    });
+    return count;
+  }
+
   export function changeExerciseName(from: string, to: string, program: IProgram, settings: ISettings): IProgram {
     const planner = program.planner;
     if (!planner) {
@@ -760,6 +765,19 @@ export namespace Program {
     return 1;
   }
 
+  export function getDayNumber(program: IPlannerProgram | IEvaluatedProgram, week: number, dayInWeek: number): number {
+    let dayIndex = 1;
+    for (let w = 0; w < program.weeks.length; w += 1) {
+      for (let d = 0; d < program.weeks[w].days.length; d += 1) {
+        if (w === week - 1 && d === dayInWeek - 1) {
+          return dayIndex;
+        }
+        dayIndex += 1;
+      }
+    }
+    return -1;
+  }
+
   export function getDayData(program: IEvaluatedProgram, day: number): Required<IDayData> {
     return {
       day,
@@ -783,7 +801,7 @@ export namespace Program {
     const dayData = getDayData(program, day);
     const programDay = getProgramDay(program, day);
     const week = program.weeks[(dayData.week || 1) - 1];
-    const isMultiweek = program.weeks.length > 1 && program.weeks.length > 1 && week != null;
+    const isMultiweek = program.weeks.length > 1 && week != null;
     return `${isMultiweek ? `${week.name} - ` : ""}${programDay?.name}`;
   }
 
@@ -845,6 +863,13 @@ export namespace Program {
     return programDay?.exercises.find((e) => e.key === key);
   }
 
+  export function getFirstProgramExercise(
+    program: IEvaluatedProgram,
+    key: string
+  ): IPlannerProgramExercise | undefined {
+    return Program.getAllProgramExercises(program).find((e) => e.key === key || e.fullName === key);
+  }
+
   export function getProgramExerciseFromDay(
     programDay?: IEvaluatedProgramDay,
     key?: string
@@ -879,58 +904,15 @@ export namespace Program {
     return isNaN(nd) ? 1 : nd;
   }
 
-  export function editAction(dispatch: IDispatch, program: IProgram, dayData?: IDayData, resetStack?: boolean): void {
-    const plannerState = EditProgram.initPlannerState(program.id, program, dayData);
-    updateState(dispatch, [lb<IState>().p("editProgramV2").record(plannerState)]);
-    dispatch(Thunk.pushScreen("editProgram", undefined, resetStack));
-  }
-
-  export function isEligibleForSimpleExercise(programExercise: IProgramExercise): IEither<true, string[]> {
-    const errors = [];
-    if (programExercise.quickAddSets) {
-      errors.push("Must not have Quick Add Sets enabled");
-    }
-    if (programExercise.enableRepRanges) {
-      errors.push("Must not have Rep Ranges enabled");
-    }
-    if (programExercise.enableRpe) {
-      errors.push("Must not have RPE enabled");
-    }
-    if (programExercise.reuseLogic?.selected != null) {
-      errors.push("Must not reuse another experiment logic");
-    }
-    if (programExercise.descriptions.length > 1) {
-      errors.push("Must not use multiple descriptions");
-    }
-    if (programExercise.state.weight == null) {
-      const keys = Object.keys(programExercise.state)
-        .map((k) => `<strong>${k}</strong>`)
-        .join(", ");
-      errors.push(`Must have 'weight' state variable. But has - ${keys}`);
-    }
-    if (programExercise.variations.length !== 1) {
-      errors.push("Should only have one variation");
-    }
-    const variation = programExercise.variations[0];
-    const sets = variation.sets;
-    const firstSet: IProgramSet | undefined = sets[0];
-    if (!firstSet) {
-      errors.push("Should have at least one set");
-    }
-    if (!/^\d*$/.test((firstSet?.repsExpr || "").trim())) {
-      errors.push("The reps can't be a Liftoscript expression");
-    }
-    if (sets.some((s) => firstSet?.repsExpr !== s.repsExpr)) {
-      errors.push("All sets should have the same reps");
-    }
-    if (sets.some((s) => s.weightExpr !== "state.weight")) {
-      errors.push("All sets should have the weight = <strong>state.weight</strong>");
-    }
-    if (errors.length > 0) {
-      return { success: false, error: errors };
-    } else {
-      return { success: true, data: true };
-    }
+  export function editAction(
+    dispatch: IDispatch,
+    program: IProgram,
+    dayData?: IDayData,
+    key?: string,
+    resetStack?: boolean
+  ): void {
+    const plannerState = EditProgram.initPlannerState(program.id, program, dayData, key);
+    dispatch(Thunk.pushScreen("editProgram", { plannerState }, resetStack));
   }
 
   export function exportProgramToFile(program: IProgram, settings: ISettings, version: string): void {
@@ -1134,5 +1116,91 @@ export namespace Program {
       planner: newPlanner,
     };
     return { program: newProgram, dayData: newDayData };
+  }
+
+  export function getReusingSetsExercises(
+    evaluatedProgram: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise[] {
+    const exercises: IPlannerProgramExercise[] = [];
+    PP.iterate2(evaluatedProgram.weeks, (e) => {
+      if (
+        e.reuse?.exercise?.key === programExercise.key &&
+        e.reuse?.exercise.dayData.week === programExercise.dayData.week &&
+        e.reuse?.exercise.dayData.dayInWeek === programExercise.dayData.dayInWeek
+      ) {
+        exercises.push(e);
+      }
+    });
+    return exercises;
+  }
+
+  export function getReusingDescriptionsExercises(
+    evaluatedProgram: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise[] {
+    const exercises: IPlannerProgramExercise[] = [];
+    PP.iterate2(evaluatedProgram.weeks, (e) => {
+      if (
+        e.descriptions.reuse?.exercise?.key === programExercise.key &&
+        e.descriptions.reuse?.exercise.dayData.week === programExercise.dayData.week &&
+        e.descriptions.reuse?.exercise.dayData.dayInWeek === programExercise.dayData.dayInWeek
+      ) {
+        exercises.push(e);
+      }
+    });
+    return exercises;
+  }
+
+  export function getReusingCustomProgressExercises(
+    evaluatedProgram: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise[] {
+    const exercises: IPlannerProgramExercise[] = [];
+    PP.iterate2(evaluatedProgram.weeks, (e) => {
+      if (e.progress?.reuse?.fullName === programExercise.fullName) {
+        exercises.push(e);
+      }
+    });
+    return exercises;
+  }
+
+  export function getReusingSetProgressExercises(
+    evaluatedProgram: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise[] {
+    const exercises: IPlannerProgramExercise[] = [];
+    PP.iterate2(evaluatedProgram.weeks, (e) => {
+      if (e.reuse?.fullName === programExercise.fullName && e.progress) {
+        exercises.push(e);
+      }
+    });
+    return exercises;
+  }
+
+  export function getReusingProgressExercises(
+    evaluatedProgram: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise[] {
+    const reusingCustomProgressExercises = getReusingCustomProgressExercises(evaluatedProgram, programExercise);
+    const reusingSetProgressExercises = getReusingSetProgressExercises(evaluatedProgram, programExercise);
+    const exercises = CollectionUtils.uniqBy(
+      [...reusingCustomProgressExercises, ...reusingSetProgressExercises],
+      "fullName"
+    );
+    return exercises;
+  }
+
+  export function getReusingUpdateExercises(
+    evaluatedProgram: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise[] {
+    const exercises: IPlannerProgramExercise[] = [];
+    PP.iterate2(evaluatedProgram.weeks, (e) => {
+      if (e.reuse?.fullName === programExercise.fullName) {
+        exercises.push(e);
+      }
+    });
+    return exercises;
   }
 }

@@ -13,12 +13,16 @@ interface IInputWeight2Props {
   name: string;
   max?: number;
   min?: number;
+  autowidth?: boolean;
+  width?: number;
+  showUnitInside?: boolean;
   placeholder?: string;
   exerciseType?: IExerciseType;
   units?: (IUnit | IPercentageUnit)[];
   initialValue?: IWeight | IPercentage;
   addOn?: () => JSX.Element;
   settings: ISettings;
+  after?: () => JSX.Element | undefined;
   onBlur?: (value: IWeight | IPercentage | undefined) => void;
   onInput?: (value: IWeight | IPercentage | undefined) => void;
   subscription?: ISubscription;
@@ -45,17 +49,20 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
   return (
     <div>
       <InputNumber2
+        width={props.width}
         tabIndex={props.tabIndex}
         placeholder={props.placeholder}
+        after={props.after}
+        autowidth={props.autowidth}
         allowDot={true}
         allowNegative={true}
         min={props.min}
         max={props.max}
         keyboardAddon={
-          ((props.subscription && Subscriptions.hasSubscription(props.subscription)) || props.addOn) &&
-          props.exerciseType ? (
+          (props.subscription && Subscriptions.hasSubscription(props.subscription)) || props.addOn ? (
             <div className="py-2">
               {props.subscription &&
+                props.exerciseType &&
                 Subscriptions.hasSubscription(props.subscription) &&
                 evaluatedWeight &&
                 Weight.is(evaluatedWeight) && (
@@ -92,6 +99,7 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
         name={props.name}
         enableUnits={props.units}
         selectedUnit={unit}
+        showUnitInside={props.showUnitInside}
         onChangeUnits={(newUnit) => {
           setUnit(newUnit);
           const weight = props.value != null ? Weight.buildAny(props.value.value, newUnit) : undefined;

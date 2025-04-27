@@ -49,7 +49,13 @@ User debug page:
 * templates
 
 
-* Previous sets ignore empty exercises
 * Save warmup tweaks
 * Hide warmups when completed
 * Toggle between lb/kg by tapping on header
+
+- Add help NUXes for playground, etc
+
+- Borders on the edit exercise screen
+- Pop out the buttons on the choose program screen more
+- Pop out the NUXes more
+- Progress looks weird if tried to pick reuse set that reuses something else

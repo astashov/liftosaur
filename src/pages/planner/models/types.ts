@@ -1,7 +1,7 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
 import { IExerciseType, IPercentage, IProgram, IProgramState, IProgramStateMetadata } from "../../../types";
-import { IPlannerSyntaxPointer } from "../plannerExerciseEvaluator";
+import { IPlannerSyntaxPointer, PlannerSyntaxError } from "../plannerExerciseEvaluator";
 import { SyntaxNode } from "@lezer/common";
 import {
   IDayData,
@@ -107,14 +107,17 @@ export interface IPlannerProgramExerciseWarmupSet {
   weight?: IWeight;
 }
 
+export type IPlannerProgramReuseSource = "specific" | "overall";
+
 export interface IPlannerProgramReuse {
   fullName: string;
+  source: IPlannerProgramReuseSource;
   week?: number;
   day?: number;
   exercise?: IPlannerProgramExercise;
 }
 
-type IProgramExerciseProgressType = "custom" | "lp" | "dp" | "sum" | "none";
+export type IProgramExerciseProgressType = "custom" | "lp" | "dp" | "sum" | "none";
 type IProgramExerciseUpdateType = "custom" | "lp" | "dp" | "sum";
 
 export interface IProgramExerciseDescriptions {
@@ -166,6 +169,11 @@ export interface IPlannerProgramExerciseRepRange {
   isQuickAddSet: boolean;
 }
 
+export interface IPlannerUiFocusedDay {
+  weekIndex: number;
+  dayInWeekIndex: number;
+}
+
 export interface IPlannerUiFocusedExercise {
   weekIndex: number;
   dayIndex: number;
@@ -174,33 +182,64 @@ export interface IPlannerUiFocusedExercise {
 
 export type IPlannerUiMode = "full" | "perday";
 
+export interface IModalExerciseUi {
+  focusedExercise: IPlannerUiFocusedExercise;
+  types: IExerciseKind[];
+  muscleGroups: IScreenMuscle[];
+  exerciseType?: IExerciseType;
+  exerciseKey?: string;
+  fullName?: string;
+  customExerciseName?: string;
+  change?: "all" | "one" | "duplicate";
+}
+
 export interface IPlannerUi {
   focusedExercise?: IPlannerUiFocusedExercise;
-  modalExercise?: {
-    focusedExercise: IPlannerUiFocusedExercise;
-    types: IExerciseKind[];
-    muscleGroups: IScreenMuscle[];
-    exerciseType?: IExerciseType;
-    exerciseKey?: string;
-    fullName?: string;
-    customExerciseName?: string;
-    change?: "all" | "one" | "duplicate";
-  };
+  modalExercise?: IModalExerciseUi;
   exerciseUi: {
     edit: Set<string>;
     collapsed: Set<string>;
   };
-  editWeekDayModal?: { weekIndex: number; dayIndex?: number };
+  dayUi: {
+    collapsed: Set<string>;
+  };
+  weekUi: {
+    collapsed: Set<string>;
+  };
+  editExerciseModal?: {
+    focusedExercise: IPlannerUiFocusedExercise;
+    exerciseType?: IExerciseType;
+    exerciseKey?: string;
+    fullName?: string;
+  };
   weekIndex: number;
-  subscreen?: "weeks" | "full";
   showPictureExport?: boolean;
-  showWeekStats?: boolean;
-  showDayStats?: boolean;
+  showWeekStats?: number;
+  showDayStats?: number;
   showExerciseStats?: boolean;
   showPreview?: boolean;
-  focusedDay?: IDayData;
+  fullTextError?: PlannerSyntaxError;
+  focusedDay?: IDayData & { key?: string };
   showSettingsModal?: boolean;
-  isUiMode?: boolean;
+  mode?: "reorder" | "ui" | "perday" | "full";
+}
+
+export interface IPlannerExerciseUiEditSetBottomSheet {
+  exerciseKey: string;
+  dayInWeekIndex: number;
+  setVariationIndex: number;
+  setIndex: number;
+}
+
+export interface IPlannerExerciseUi {
+  modalExercise?: IModalExerciseUi;
+  isProgressEnabled?: boolean;
+  isUpdateEnabled?: boolean;
+  showAddStateVariableModal?: boolean;
+  showEditProgressScriptModal?: boolean;
+  showEditUpdateScriptModal?: boolean;
+  weekIndex: number;
+  editSetBottomSheet?: IPlannerExerciseUiEditSetBottomSheet;
 }
 
 export interface IPlannerFullText {
@@ -214,6 +253,15 @@ export interface IPlannerState extends IUndoRedoState<{ program: IProgram }> {
   fulltext?: IPlannerFullText;
   initialEncodedProgram?: string;
   encodedProgram?: string;
+}
+
+export interface IPlannerExerciseState extends IUndoRedoState<{ program: IProgram }> {
+  ui: IPlannerExerciseUi;
+}
+
+export interface IReuseCandidate {
+  exercise: IPlannerProgramExercise;
+  weekAndDays: Record<number, Set<number>>;
 }
 
 export interface IExportedPlannerProgram {
@@ -260,6 +308,10 @@ export interface ISetSplit {
 }
 
 export function focusedToStr(focused: IPlannerUiFocusedExercise): string {
+  return JSON.stringify(focused);
+}
+
+export function focusedDayToStr(focused: IPlannerUiFocusedDay): string {
   return JSON.stringify(focused);
 }
 

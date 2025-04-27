@@ -775,6 +775,7 @@ export const TPlannerProgramDay = t.intersection(
       exerciseText: t.string,
     }),
     t.partial({
+      id: t.string,
       description: t.string,
     }),
   ],
@@ -789,6 +790,7 @@ export const TPlannerProgramWeek = t.intersection(
       days: t.array(TPlannerProgramDay),
     }),
     t.partial({
+      id: t.string,
       description: t.string,
     }),
   ],
@@ -1200,4 +1202,11 @@ export type IDayData = {
   week?: number;
   day: number;
   dayInWeek?: number;
+};
+
+export type IDaySetData = {
+  week: number;
+  dayInWeek: number;
+  setVariation: number;
+  set: number;
 };

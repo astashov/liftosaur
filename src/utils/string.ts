@@ -64,6 +64,14 @@ export namespace StringUtils {
     }
   }
 
+  export function indent(string: string, spaces: number): string {
+    const indent = new Array(spaces + 1).join(" ");
+    return string
+      .split("\n")
+      .map((s) => (s.trim() !== "" ? `${indent}${s}` : s))
+      .join("\n");
+  }
+
   export function fuzzySearch(needle: string, haystack: string): boolean {
     if (needle.length > haystack.length) {
       return false;

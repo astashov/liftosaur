@@ -1,63 +1,123 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { lb, LensBuilder } from "lens-shmens";
+import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
-import { useState } from "preact/hooks";
 import { Exercise } from "../../models/exercise";
-import { IPlannerState } from "../../pages/planner/models/types";
-import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
-import { IPlannerProgram, ISettings } from "../../types";
+import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
+import { IPlannerProgramWeek, ISettings } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
 import { ObjectUtils } from "../../utils/object";
 import { StringUtils } from "../../utils/string";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { Button } from "../button";
 import { DraggableList } from "../draggableList";
 import { ExerciseImage } from "../exerciseImage";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
-import { IconEditSquare } from "../icons/iconEditSquare";
 import { IconHandle } from "../icons/iconHandle";
 import { IconTrash } from "../icons/iconTrash";
+import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
+import { Button } from "../button";
+import { IconPlus2 } from "../icons/iconPlus2";
 import { LinkButton } from "../linkButton";
+import { ContentGrowingTextarea } from "../contentGrowingTextarea";
+import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 
 export interface IPlannerContentWeeksProps {
-  plannerProgram: IPlannerProgram;
-  evaluatedWeeks: IPlannerEvalResult[][];
-  lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
-  settings: ISettings;
+  state: IPlannerState;
   plannerDispatch: ILensDispatch<IPlannerState>;
-  onEditWeekDayName: (data: { weekIndex: number; dayIndex?: number }) => void;
+  settings: ISettings;
+}
+
+function onWeeksChange(
+  plannerDispatch: ILensDispatch<IPlannerState>,
+  ui: IPlannerUi,
+  weeks: IPlannerProgramWeek[],
+  cb: (order: boolean[]) => void
+): void {
+  const lbUi = lb<IPlannerState>().p("ui");
+  const collapsedOrder = weeks.map((d, i) => {
+    return ui.weekUi.collapsed.has(`${i}`);
+  });
+  cb(collapsedOrder);
+  plannerDispatch([
+    lbUi.p("dayUi").p("collapsed").record(new Set()),
+    lbUi
+      .p("weekUi")
+      .p("collapsed")
+      .recordModify((collapsed) => {
+        const newCollapsed = new Set<string>(collapsed);
+        for (let i = 0; i < collapsedOrder.length; i++) {
+          if (collapsedOrder[i]) {
+            newCollapsed.add(`${i}`);
+          } else {
+            newCollapsed.delete(`${i}`);
+          }
+        }
+        return newCollapsed;
+      }),
+  ]);
 }
 
 export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Element {
-  const [collapsedWeeks, setCollapsedWeeks] = useState<boolean[]>([]);
+  const collapsedWeeks = props.state.ui.weekUi.collapsed;
+
+  const program = props.state.current.program;
+  const plannerProgram = program.planner!;
+  const ui = props.state.ui;
+
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
+  const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, props.settings);
 
   return (
     <div>
-      <div className="sticky z-10 w-full px-4 py-4 bg-white border-b border-grayv2-100" style={{ top: "3.7rem" }}>
-        <Button
-          name="back-to-editor"
-          kind="purple"
-          buttonSize="sm"
-          onClick={() => props.plannerDispatch(lb<IPlannerState>().pi("ui").p("subscreen").record(undefined))}
-        >
-          Back to editor
-        </Button>
-      </div>
       <div className="px-4">
+        <div>
+          <LinkButton
+            name="collapse-all-weeks"
+            className="text-xs font-normal"
+            onClick={() => {
+              props.plannerDispatch(
+                lb<IPlannerState>()
+                  .p("ui")
+                  .p("weekUi")
+                  .p("collapsed")
+                  .recordModify((collapsed) => {
+                    if (collapsed.size > 0) {
+                      return new Set<string>();
+                    } else {
+                      const newCollapsed = new Set<string>();
+                      for (
+                        let weekIndex = 0;
+                        weekIndex < props.state.current.program.planner!.weeks.length;
+                        weekIndex++
+                      ) {
+                        newCollapsed.add(`${weekIndex}`);
+                      }
+                      return newCollapsed;
+                    }
+                  })
+              );
+            }}
+          >
+            {props.state.ui.weekUi.collapsed.size > 0 ? "Expand" : "Collapse"} all weeks
+          </LinkButton>
+        </div>
         <DraggableList
-          items={props.plannerProgram.weeks}
+          items={plannerProgram.weeks}
           mode="vertical"
           onDragEnd={(startIndex, endIndex) => {
-            props.plannerDispatch([
-              props.lbProgram.p("weeks").recordModify((weeks) => {
-                const newWeeks = [...weeks];
-                const [weekToMove] = newWeeks.splice(startIndex, 1);
-                newWeeks.splice(endIndex, 0, weekToMove);
-                return newWeeks;
-              }),
-            ]);
+            onWeeksChange(props.plannerDispatch, ui, props.state.current.program.planner!.weeks, (order) => {
+              props.plannerDispatch([
+                lbProgram.p("weeks").recordModify((weeks) => {
+                  const newWeeks = [...weeks];
+                  const [weekToMove] = newWeeks.splice(startIndex, 1);
+                  newWeeks.splice(endIndex, 0, weekToMove);
+                  return newWeeks;
+                }),
+              ]);
+              const [weekToMove] = order.splice(startIndex, 1);
+              order.splice(endIndex, 0, weekToMove);
+            });
           }}
           element={(week, weekIndex, handleTouchStart) => {
             return (
@@ -76,57 +136,86 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                   <div className="flex">
                     <div>
                       <button
-                        title={collapsedWeeks[weekIndex] ? "Expand day" : "Collapse day"}
+                        title={collapsedWeeks.has(`${weekIndex}`) ? "Expand week" : "Collapse week"}
                         onClick={() => {
-                          const newCollapsedWeeks = [...collapsedWeeks];
-                          newCollapsedWeeks[weekIndex] = !newCollapsedWeeks[weekIndex];
-                          setCollapsedWeeks(newCollapsedWeeks);
+                          props.plannerDispatch(
+                            lb<IPlannerState>()
+                              .p("ui")
+                              .p("weekUi")
+                              .p("collapsed")
+                              .recordModify((collapsed) => {
+                                const newCollapsed = new Set(Array.from(collapsed));
+                                const exKey = `${weekIndex}`;
+                                if (newCollapsed.has(exKey)) {
+                                  newCollapsed.delete(exKey);
+                                } else {
+                                  newCollapsed.add(exKey);
+                                }
+                                return newCollapsed;
+                              })
+                          );
                         }}
                         className="w-8 p-2 mr-1 text-center nm-web-editor-expand-collapse-day"
                       >
-                        {collapsedWeeks[weekIndex] ? (
+                        {collapsedWeeks.has(`${weekIndex}`) ? (
                           <IconArrowRight className="inline-block" />
                         ) : (
                           <IconArrowDown2 className="inline-block" />
                         )}
                       </button>
                     </div>
-                    <div className="flex items-center flex-1 mr-2 text-lg">{week.name}</div>
+                    <div className="flex items-center flex-1 mr-2 text-base">
+                      <ContentGrowingTextarea
+                        value={week.name}
+                        onInput={(weekName) => {
+                          if (weekName) {
+                            props.plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("name").record(weekName));
+                          }
+                        }}
+                      />
+                    </div>
                     <div className="flex items-center pr-4">
-                      <button
-                        data-cy="edit-day-v2"
-                        className="p-2 align-middle ls-edit-day-v2 button nm-edit-day-v2"
-                        onClick={() => props.onEditWeekDayName({ weekIndex })}
-                      >
-                        <IconEditSquare />
-                      </button>
                       <button
                         data-cy="clone-day"
                         className="p-2 align-middle ls-clone-day-v2 button nm-clone-day-v2"
                         onClick={() => {
                           const newName = StringUtils.nextName(week.name);
                           const newWeek = { ...ObjectUtils.clone(week), name: newName };
-                          props.plannerDispatch(
-                            props.lbProgram.p("weeks").recordModify((weeks) => {
-                              return [...weeks.slice(0, weekIndex + 1), newWeek, ...weeks.slice(weekIndex + 1)];
-                            })
+                          onWeeksChange(
+                            props.plannerDispatch,
+                            ui,
+                            props.state.current.program.planner!.weeks,
+                            (order) => {
+                              props.plannerDispatch(
+                                lbProgram.p("weeks").recordModify((weeks) => {
+                                  return [...weeks.slice(0, weekIndex + 1), newWeek, ...weeks.slice(weekIndex + 1)];
+                                })
+                              );
+                              order.splice(weekIndex + 1, 0, order[weekIndex]);
+                            }
                           );
                         }}
                       >
                         <IconDuplicate2 />
                       </button>
-                      {props.plannerProgram.weeks.length > 0 && (
+                      {plannerProgram.weeks.length > 0 && (
                         <button
                           data-cy={`delete-week-v2`}
                           className="p-2 align-middle ls-delete-week-v2 button nm-delete-week-v2"
                           onClick={() => {
-                            if (confirm("Are you sure?")) {
-                              props.plannerDispatch(
-                                props.lbProgram.p("weeks").recordModify((weeks) => {
-                                  return CollectionUtils.removeAt(weeks, weekIndex);
-                                })
-                              );
-                            }
+                            onWeeksChange(
+                              props.plannerDispatch,
+                              ui,
+                              props.state.current.program.planner!.weeks,
+                              (order) => {
+                                props.plannerDispatch(
+                                  lbProgram.p("weeks").recordModify((weeks) => {
+                                    return CollectionUtils.removeAt(weeks, weekIndex);
+                                  })
+                                );
+                                order.splice(weekIndex, 1);
+                              }
+                            );
                           }}
                         >
                           <IconTrash />
@@ -134,99 +223,119 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                       )}
                     </div>
                   </div>
-                  {!collapsedWeeks[weekIndex] && (
-                    <DraggableList
-                      items={week.days}
-                      mode="vertical"
-                      onDragEnd={(startIndex, endIndex) => {
-                        props.plannerDispatch([
-                          props.lbProgram
-                            .p("weeks")
-                            .i(weekIndex)
-                            .p("days")
-                            .recordModify((days) => {
-                              const newDays = [...days];
-                              const [daysToMove] = newDays.splice(startIndex, 1);
-                              newDays.splice(endIndex, 0, daysToMove);
-                              return newDays;
-                            }),
-                        ]);
-                      }}
-                      element={(day, dayIndex, handleTouchStart2) => {
-                        const evalResult = props.evaluatedWeeks[weekIndex][dayIndex];
-                        return (
-                          <div
-                            className="flex items-center px-4 py-1 my-1 border border-white rounded-lg bg-purplev2-100"
-                            style={{ boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.25)" }}
-                          >
-                            <div className="flex items-center">
-                              <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-                                <span onMouseDown={handleTouchStart2} onTouchStart={handleTouchStart2}>
-                                  <IconHandle />
-                                </span>
+                  {!collapsedWeeks.has(`${weekIndex}`) && (
+                    <div>
+                      <DraggableList
+                        items={week.days}
+                        mode="vertical"
+                        onDragEnd={(startIndex, endIndex) => {
+                          EditProgramUiHelpers.onDaysChange(
+                            props.plannerDispatch,
+                            props.state.ui,
+                            weekIndex,
+                            week.days,
+                            (order) => {
+                              props.plannerDispatch([
+                                lbProgram
+                                  .p("weeks")
+                                  .i(weekIndex)
+                                  .p("days")
+                                  .recordModify((days) => {
+                                    const newDays = [...days];
+                                    const [daysToMove] = newDays.splice(startIndex, 1);
+                                    newDays.splice(endIndex, 0, daysToMove);
+                                    return newDays;
+                                  }),
+                              ]);
+                              const [daysToMove] = order.splice(startIndex, 1);
+                              order.splice(endIndex, 0, daysToMove);
+                            }
+                          );
+                        }}
+                        element={(day, dayIndex, handleTouchStart2) => {
+                          const evalResult = evaluatedWeeks[weekIndex][dayIndex];
+                          return (
+                            <div
+                              className="flex items-center px-4 py-1 my-1 border border-white rounded-lg bg-purplev2-100"
+                              style={{ boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.25)" }}
+                            >
+                              <div className="flex items-center">
+                                <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
+                                  <span onMouseDown={handleTouchStart2} onTouchStart={handleTouchStart2}>
+                                    <IconHandle />
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                            <div className="flex-1">
-                              <div>{day.name}</div>
-                              <div>
-                                {evalResult.success
-                                  ? CollectionUtils.compact(
-                                      evalResult.data.map((e) => {
-                                        const exercise = Exercise.findByName(e.name, props.settings.exercises);
-                                        const exerciseType =
-                                          exercise != null ? { id: exercise.id, equipment: e.equipment } : undefined;
-                                        if (exerciseType) {
-                                          return (
-                                            <ExerciseImage
-                                              settings={props.settings}
-                                              exerciseType={exerciseType}
-                                              size="small"
-                                              className="w-6 mr-1"
-                                            />
-                                          );
-                                        } else {
-                                          return undefined;
-                                        }
-                                      })
-                                    )
-                                  : []}
+                              <div className="flex-1">
+                                <div className="text-base">
+                                  <ContentGrowingTextarea
+                                    value={day.name}
+                                    onInput={(dayName) => {
+                                      if (dayName) {
+                                        props.plannerDispatch(
+                                          lbProgram
+                                            .p("weeks")
+                                            .i(weekIndex)
+                                            .p("days")
+                                            .i(dayIndex)
+                                            .p("name")
+                                            .record(dayName)
+                                        );
+                                      }
+                                    }}
+                                  />
+                                </div>
+                                <div>
+                                  {evalResult.success
+                                    ? CollectionUtils.compact(
+                                        evalResult.data.map((e) => {
+                                          const exercise = Exercise.findByName(e.name, props.settings.exercises);
+                                          const exerciseType =
+                                            exercise != null ? { id: exercise.id, equipment: e.equipment } : undefined;
+                                          if (exerciseType) {
+                                            return (
+                                              <ExerciseImage
+                                                settings={props.settings}
+                                                exerciseType={exerciseType}
+                                                size="small"
+                                                className="w-6 mr-1"
+                                              />
+                                            );
+                                          } else {
+                                            return undefined;
+                                          }
+                                        })
+                                      )
+                                    : []}
+                                </div>
                               </div>
-                            </div>
-                            <div className="flex items-center">
-                              <button
-                                data-cy="edit-day-v2"
-                                className="p-2 align-middle ls-edit-day-v2 button nm-edit-day-v2"
-                                onClick={() => props.onEditWeekDayName({ weekIndex, dayIndex })}
-                              >
-                                <IconEditSquare />
-                              </button>
-                              <button
-                                data-cy="clone-day"
-                                className="p-2 align-middle ls-clone-day-v2 button nm-clone-day-v2"
-                                onClick={() => {
-                                  const newName = StringUtils.nextName(day.name);
-                                  const newDay = { ...ObjectUtils.clone(day), name: newName };
-                                  props.plannerDispatch(
-                                    props.lbProgram
-                                      .p("weeks")
-                                      .i(weekIndex)
-                                      .p("days")
-                                      .recordModify((days) => {
-                                        return [...days.slice(0, dayIndex + 1), newDay, ...days.slice(dayIndex + 1)];
-                                      })
-                                  );
-                                }}
-                              >
-                                <IconDuplicate2 />
-                              </button>
-                              {props.plannerProgram.weeks.length > 0 && (
+                              <div className="flex items-center">
                                 <button
-                                  data-cy={`delete-week-v2`}
-                                  className="p-2 align-middle ls-delete-week-v2 button nm-delete-week-v2"
+                                  data-cy="clone-day"
+                                  className="p-2 align-middle ls-clone-day-v2 button nm-clone-day-v2"
                                   onClick={() => {
-                                    if (confirm("Are you sure?")) {
+                                    const newName = StringUtils.nextName(day.name);
+                                    const newDay = { ...ObjectUtils.clone(day), name: newName };
+                                    props.plannerDispatch(
+                                      lbProgram
+                                        .p("weeks")
+                                        .i(weekIndex)
+                                        .p("days")
+                                        .recordModify((days) => {
+                                          return [...days.slice(0, dayIndex + 1), newDay, ...days.slice(dayIndex + 1)];
+                                        })
+                                    );
+                                  }}
+                                >
+                                  <IconDuplicate2 />
+                                </button>
+                                {plannerProgram.weeks.length > 0 && (
+                                  <button
+                                    data-cy={`delete-week-v2`}
+                                    className="p-2 align-middle ls-delete-week-v2 button nm-delete-week-v2"
+                                    onClick={() => {
                                       props.plannerDispatch(
-                                        props.lbProgram
+                                        lbProgram
                                           .p("weeks")
                                           .i(weekIndex)
                                           .p("days")
@@ -234,40 +343,70 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                             return CollectionUtils.removeAt(days, dayIndex);
                                           })
                                       );
-                                    }
-                                  }}
-                                >
-                                  <IconTrash />
-                                </button>
-                              )}
+                                    }}
+                                  >
+                                    <IconTrash />
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      }}
-                    />
+                          );
+                        }}
+                      />
+                      <div className="py-1">
+                        <Button
+                          kind="lightgrayv3"
+                          name="planner-weeks-add-day"
+                          buttonSize="md"
+                          className="flex items-center justify-center w-full text-sm text-center"
+                          onClick={() => {
+                            props.plannerDispatch(
+                              lbProgram
+                                .p("weeks")
+                                .i(weekIndex)
+                                .p("days")
+                                .recordModify((days) => [
+                                  ...days,
+                                  {
+                                    name: `Day ${days.length + 1}`,
+                                    exerciseText: "",
+                                  },
+                                ])
+                            );
+                          }}
+                        >
+                          <IconPlus2 size={12} />
+                          <span className="ml-2">Add Day</span>
+                        </Button>
+                      </div>
+                    </div>
                   )}
                 </div>
               </section>
             );
           }}
         />
-        <div>
-          <LinkButton
+        <div className="pt-1 pb-6 mx-2">
+          <Button
+            kind="lightgrayv3"
             name="planner-add-week"
+            buttonSize="md"
+            className="flex items-center justify-center w-full text-sm text-center"
             onClick={() => {
               props.plannerDispatch(
-                props.lbProgram.p("weeks").recordModify((days) => [
-                  ...days,
+                lbProgram.p("weeks").recordModify((weeks) => [
+                  ...weeks,
                   {
-                    name: `Week ${days.length + 1}`,
-                    days: [{ name: "Day 1", exerciseText: "" }],
+                    name: `Week ${weeks.length + 1}`,
+                    days: [],
                   },
                 ])
               );
             }}
           >
-            Add Week
-          </LinkButton>
+            <IconPlus2 size={12} />
+            <span className="ml-2">Add Week</span>
+          </Button>
         </div>
       </div>
     </div>

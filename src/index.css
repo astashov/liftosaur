@@ -72,7 +72,7 @@ body {
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
 }
 
-.cm-editor {
+.planner-editor-view .cm-editor {
   font-size: 1rem;
 }
 
@@ -136,7 +136,7 @@ body {
 }
 
 .code.block,
-.cm-editor .cm-content {
+.planner-editor-view .cm-editor .cm-content {
   font-family: "Iosevka Web" !important;
 }
 
@@ -340,6 +340,10 @@ input[type="checkbox"].checkbox:disabled {
 
 .markdown p {
   margin-bottom: 0.25rem;
+}
+
+.markdown p:last-child {
+  margin-bottom: 0;
 }
 
 .markdown a {

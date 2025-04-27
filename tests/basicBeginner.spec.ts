@@ -13,13 +13,12 @@ test("Basic Beginner Program", async ({ page }) => {
   // Workout A
 
   // First exercise is successful
-  await page.locator("[data-cy^=exercise-]:has-text('Bent Over Row')").getByTestId("exercise-options").click();
-  await page.locator("[data-cy^=exercise-]:has-text('Bent Over Row')").getByTestId("exercise-edit-mode").click();
-  await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
+  await page.locator("[data-cy^=exercise-]:has-text('Bent Over Row')").getByTestId("exercise-equipment-picker").click();
+  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
   await page.waitForTimeout(1000);
-  await page.getByTestId("modal-edit-mode-save-statvars").click();
+  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
 
   await PlaywrightUtils.clickAll(page.getByTestId("entry-bent-over-row").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
@@ -31,13 +30,12 @@ test("Basic Beginner Program", async ({ page }) => {
 
   // Second exercise is successful
   await page.getByTestId("workout-tab-squat").click();
-  await page.getByTestId("entry-squat").getByTestId("exercise-options").click();
-  await page.getByTestId("entry-squat").getByTestId("exercise-edit-mode").click();
-  await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("entry-squat").getByTestId("exercise-equipment-picker").click();
+  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
   await page.waitForTimeout(1000);
-  await page.getByTestId("modal-edit-mode-save-statvars").click();
+  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
 
   await PlaywrightUtils.clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
@@ -62,13 +60,12 @@ test("Basic Beginner Program", async ({ page }) => {
 
   // Second exercise is successful
   await page.getByTestId("workout-tab-deadlift").click();
-  await page.locator("[data-cy^=exercise-]:has-text('Deadlift')").getByTestId("exercise-options").click();
-  await page.locator("[data-cy^=exercise-]:has-text('Deadlift')").getByTestId("exercise-edit-mode").click();
-  await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
+  await page.locator("[data-cy^=exercise-]:has-text('Deadlift')").getByTestId("exercise-equipment-picker").click();
+  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
   await page.waitForTimeout(1000);
-  await page.getByTestId("modal-edit-mode-save-statvars").click();
+  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
 
   await PlaywrightUtils.clickAll(page.getByTestId("entry-deadlift").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
@@ -83,13 +80,15 @@ test("Basic Beginner Program", async ({ page }) => {
 
   // Third exercise is unsuccessful
   await page.getByTestId("workout-tab-overhead-press").click();
-  await page.locator("[data-cy^=exercise-]:has-text('Overhead Press')").getByTestId("exercise-options").click();
-  await page.locator("[data-cy^=exercise-]:has-text('Overhead Press')").getByTestId("exercise-edit-mode").click();
-  await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
+  await page
+    .locator("[data-cy^=exercise-]:has-text('Overhead Press')")
+    .getByTestId("exercise-equipment-picker")
+    .click();
+  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
   await page.waitForTimeout(1000);
-  await page.getByTestId("modal-edit-mode-save-statvars").click();
+  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
 
   await PlaywrightUtils.clickAll(page.getByTestId("entry-overhead-press").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");

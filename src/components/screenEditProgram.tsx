@@ -4,10 +4,8 @@ import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
 import { Screen } from "../models/screen";
 import { IProgram, ISettings, ISubscription } from "../types";
 import { INavCommon } from "../models/state";
-import { EditProgramV2 } from "./editProgram/editProgramV2";
-import { useEffect } from "preact/hooks";
+import { ScreenProgram } from "./editProgram/screenProgram";
 import { IPlannerState } from "../pages/planner/models/types";
-import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   helps: string[];
@@ -15,8 +13,8 @@ interface IProps {
   subscription: ISubscription;
   settings: ISettings;
   adminKey?: string;
-  originalProgram?: IProgram;
-  plannerState?: IPlannerState;
+  originalProgram: IProgram;
+  plannerState: IPlannerState;
   client: Window["fetch"];
   revisions: string[];
   isLoggedIn: boolean;
@@ -27,20 +25,11 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
   const screen = Screen.currentName(props.navCommon.screenStack);
   const originalProgram = props.originalProgram;
   const plannerState = props.plannerState;
-  useEffect(() => {
-    if (plannerState == null || originalProgram == null) {
-      props.dispatch(Thunk.pushScreen("main", undefined, true));
-    }
-  }, [plannerState, originalProgram]);
-
-  if (originalProgram == null || plannerState == null) {
-    return <div />;
-  }
 
   if (screen === "editProgram") {
     if (plannerState.current.program.planner != null) {
       return (
-        <EditProgramV2
+        <ScreenProgram
           client={props.client}
           revisions={props.revisions}
           helps={props.helps}

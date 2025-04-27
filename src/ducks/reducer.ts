@@ -6,8 +6,8 @@ import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Storage } from "../models/storage";
 import { Screen, IScreen, IScreenStack, IScreenParams } from "../models/screen";
-import { ILensRecordingPayload, lf } from "lens-shmens";
-import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors } from "../models/state";
+import { ILensRecordingPayload, lb, LensBuilder, lf } from "lens-shmens";
+import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors, updateState } from "../models/state";
 import { UidFactory } from "../utils/generator";
 import {
   THistoryRecord,
@@ -38,6 +38,7 @@ import { Exercise } from "../models/exercise";
 import { SendMessage } from "../utils/sendMessage";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
+import { EditProgramUiHelpers } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
@@ -306,6 +307,39 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
+      if ("type" in action && action.type === "UpdateState" && (action.desc === "undo" || action.desc === "redo")) {
+        const oldScreenData = Screen.current(oldState.screenStack);
+        const newScreenData = Screen.current(newState.screenStack);
+        const oldExerciseKey = oldScreenData.name === "editProgramExercise" ? oldScreenData.params?.key : undefined;
+        const oldPlannerState =
+          oldScreenData.name === "editProgramExercise" ? oldScreenData.params?.plannerState : undefined;
+        const newExerciseKey = newScreenData.name === "editProgramExercise" ? newScreenData.params?.key : undefined;
+        const newPlannerState =
+          newScreenData.name === "editProgramExercise" ? newScreenData.params?.plannerState : undefined;
+        if (oldPlannerState != null && newPlannerState != null && oldExerciseKey != null && newExerciseKey != null) {
+          const changedKeys = EditProgramUiHelpers.getChangedKeys(
+            oldPlannerState.current.program.planner!,
+            newPlannerState.current.program.planner!,
+            newState.storage.settings
+          );
+          const newKey = changedKeys[oldExerciseKey];
+          if (newKey) {
+            updateState(dispatch, [
+              (
+                lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
+                  IState,
+                  { key: string },
+                  {}
+                >
+              )
+                .pi("key")
+                .record(newKey),
+            ]);
+          }
+        }
+      }
+    },
+    (dispatch, action, oldState, newState) => {
       const progress = newState.progress[0];
       if (progress != null) {
         const oldExerciseData = oldState.storage.settings.exerciseData;
@@ -334,7 +368,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      if (oldState.screenStack !== newState.screenStack) {
+      if (Screen.currentName(oldState.screenStack) !== Screen.currentName(newState.screenStack)) {
         setTimeout(() => {
           window.scroll(0, 0);
         }, 0);

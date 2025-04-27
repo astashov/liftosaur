@@ -21,8 +21,7 @@ Squat / 1x5 135lb @8+, 1x5 135lb @8, 1x5 135lb, 1x5 135lb @7+ / progress: custom
 ~}`
   );
 
-  await page.getByTestId("editor-v2-save-full").click();
-  await page.getByTestId("editor-save-v2-top").click();
+  await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
 

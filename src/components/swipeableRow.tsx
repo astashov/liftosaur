@@ -34,9 +34,9 @@ export function SwipeableRow(props: ISwipeableRowProps) {
     if (props.onPointerDown) {
       props.onPointerDown();
     }
-    const workoutExerciseScroller = document.querySelector("#workout-exercise-scroller") as HTMLElement | null;
-    if (workoutExerciseScroller) {
-      workoutExerciseScroller.style.overflowX = "hidden";
+    const parentScroller = document.querySelectorAll(".parent-scroller");
+    for (const scroller of Array.from(parentScroller)) {
+      (scroller as HTMLElement).style.overflowX = "hidden";
     }
     startX.current = "touches" in event ? event.touches[0].clientX : event.clientX;
     startY.current = "touches" in event ? event.touches[0].clientY : event.clientY;
@@ -57,6 +57,7 @@ export function SwipeableRow(props: ISwipeableRowProps) {
     const clientY = "touches" in event ? event.touches[0].clientY : event.clientY;
     const deltaX = clientX - startX.current - (isOpen.current ? width : 0);
     const deltaY = Math.abs(clientY - startY.current);
+    console.log("Move event", clientX, clientY, deltaX, deltaY);
 
     if (deltaY > props.scrollThreshold && !isSwiping.current) {
       isScrolling.current = true;
@@ -71,9 +72,9 @@ export function SwipeableRow(props: ISwipeableRowProps) {
 
   const handlePointerUp = () => {
     isDragging.current = false;
-    const workoutExerciseScroller = document.querySelector("#workout-exercise-scroller") as HTMLElement | null;
-    if (workoutExerciseScroller) {
-      workoutExerciseScroller.style.overflowX = "scroll";
+    const parentScroller = document.querySelectorAll(".parent-scroller");
+    for (const scroller of Array.from(parentScroller)) {
+      (scroller as HTMLElement).style.overflowX = "scroll";
     }
 
     if (!isOpen.current && translateX < -openThreshold) {

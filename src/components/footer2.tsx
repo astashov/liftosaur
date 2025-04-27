@@ -87,7 +87,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                 style={{ top: "-27px", left: "50%", marginLeft: "-27px" }}
                 onClick={() => {
                   if (!!props.navCommon.progress) {
-                    props.dispatch({ type: "StartProgramDayAction" });
+                    props.dispatch(Thunk.startProgramDay());
                   } else {
                     setShowNextWorkoutSheet(true);
                   }

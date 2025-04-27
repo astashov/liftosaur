@@ -20,8 +20,7 @@ Squat / 2x5 / -40lb / progress: lp(-5lb)
 Bench Press / 2x3-5 -20lb / progress: lp(30lb)`
   );
 
-  await page.getByTestId("editor-v2-save-full").click();
-  await page.getByTestId("editor-save-v2-top").click();
+  await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await expect(page.getByTestId("history-entry-sets-next").nth(0)).toHaveText("2 × 5 × -40lb");

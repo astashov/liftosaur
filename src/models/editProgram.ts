@@ -5,7 +5,7 @@ import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
 import { IProgram, IDayData, IProgramState, ISettings } from "../types";
 import { updateStateVariable } from "./editProgramLenses";
-import { IPlannerProgramExercise, IPlannerState } from "../pages/planner/models/types";
+import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerState } from "../pages/planner/models/types";
 import { PP } from "./pp";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { ProgramToPlanner } from "./programToPlanner";
@@ -78,12 +78,38 @@ export namespace EditProgram {
     ]);
   }
 
-  export function initPlannerState(id: string, program: IProgram, focusedDay?: IDayData): IPlannerState {
+  export function initPlannerState(id: string, program: IProgram, focusedDay?: IDayData, key?: string): IPlannerState {
     return {
       id,
       current: { program: { ...program } },
-      ui: { weekIndex: 0, focusedDay, isUiMode: true, exerciseUi: { edit: new Set(), collapsed: new Set() } },
+      ui: {
+        weekIndex: focusedDay?.week != null ? focusedDay.week - 1 : 0,
+        focusedDay: focusedDay ? { ...focusedDay, key } : undefined,
+        mode: "ui",
+        exerciseUi: { edit: new Set(), collapsed: new Set() },
+        dayUi: { collapsed: new Set() },
+        weekUi: { collapsed: new Set() },
+      },
       history: { past: [], future: [] },
+    };
+  }
+
+  export function initPlannerProgramExerciseState(
+    program: IProgram,
+    settings: ISettings,
+    key: string,
+    dayData: Required<IDayData>
+  ): IPlannerExerciseState {
+    const evaluatedProgram = Program.evaluate(program, settings);
+    const programExercise = Program.getFirstProgramExercise(evaluatedProgram, key);
+    return {
+      current: { program: ObjectUtils.clone(program) },
+      history: { past: [], future: [] },
+      ui: {
+        weekIndex: dayData.week - 1,
+        isProgressEnabled: !!programExercise?.progress,
+        isUpdateEnabled: !!programExercise?.update,
+      },
     };
   }
 

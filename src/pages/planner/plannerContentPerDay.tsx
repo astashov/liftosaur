@@ -30,7 +30,7 @@ export function PlannerContentPerDay(props: IPlannerContentPerDayProps): JSX.Ele
         return {
           label: week.name,
           isInvalid: evaluatedWeeks[weekIndex].some((day) => !day.success),
-          children: (
+          children: () => (
             <PlannerWeek
               key={weekIndex}
               initialWeek={initialWeek}

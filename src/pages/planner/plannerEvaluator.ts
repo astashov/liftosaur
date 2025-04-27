@@ -22,8 +22,6 @@ import { PP } from "../../models/pp";
 import { ScriptRunner } from "../../parser";
 import { Progress } from "../../models/progress";
 import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
-import { IPlannerEvaluatedProgramToTextOpts, PlannerEvaluatedProgramToText } from "./plannerEvaluatedProgramToText";
-import { IEither } from "../../utils/types";
 import { PlannerProgramExercise } from "./models/plannerProgramExercise";
 
 export type IByTag<T> = Record<number, T>;
@@ -45,6 +43,18 @@ interface IPlannerEvalMetadata {
 }
 
 export class PlannerEvaluator {
+  public static getFirstError(evaluatedWeeks: IPlannerEvalResult[][]): PlannerSyntaxError | undefined {
+    let error: PlannerSyntaxError | undefined;
+    for (const week of evaluatedWeeks) {
+      for (const day of week) {
+        if (!day.success) {
+          error = day.error;
+        }
+      }
+    }
+    return error;
+  }
+
   private static fillInMetadata(
     exercise: IPlannerProgramExercise,
     metadata: IPlannerEvalMetadata,
@@ -376,7 +386,13 @@ export class PlannerEvaluator {
           type: originalExercise.exercise.progress.type,
           state: ObjectUtils.clone(originalExercise.exercise.progress.state),
           stateMetadata: ObjectUtils.clone(originalExercise.exercise.progress.stateMetadata),
-          reuse: { fullName: originalExercise.exercise.fullName },
+          reuse: { fullName: originalExercise.exercise.fullName, source: "overall" },
+        };
+      }
+      if (originalExercise.exercise.update != null && exercise.update == null) {
+        exercise.update = {
+          type: originalExercise.exercise.update.type,
+          reuse: { fullName: originalExercise.exercise.fullName, source: "overall" },
         };
       }
 
@@ -427,7 +443,7 @@ export class PlannerEvaluator {
         const { descriptions, exercise: originalExercise } = result;
         exercise.descriptions = {
           values: [...ObjectUtils.clone(descriptions.values)],
-          reuse: { fullName: originalExercise.fullName, exercise: originalExercise },
+          reuse: { fullName: originalExercise.fullName, exercise: originalExercise, source: "specific" },
         };
       }
     }
@@ -630,36 +646,6 @@ export class PlannerEvaluator {
         }
         update.reuse.exercise = originalExercise;
       }
-    }
-  }
-
-  private static getFirstErrorFromEvaluatedWeeks(
-    evaluatedWeeks: IPlannerEvalResult[][]
-  ): PlannerSyntaxError | undefined {
-    for (const week of evaluatedWeeks) {
-      for (const day of week) {
-        if (!day.success) {
-          return day.error;
-        }
-      }
-    }
-    return undefined;
-  }
-
-  public static evaluatedProgramToText(
-    oldPlannerProgram: IPlannerProgram,
-    evaluatedWeeks: IPlannerEvalResult[][],
-    settings: ISettings,
-    opts: IPlannerEvaluatedProgramToTextOpts = {}
-  ): IEither<IPlannerProgram, PlannerSyntaxError> {
-    const result = new PlannerEvaluatedProgramToText(oldPlannerProgram, evaluatedWeeks, settings).run(opts);
-    console.log(PlannerProgram.generateFullText(result.weeks));
-    const { evaluatedWeeks: newEvaluatedWeeks } = this.evaluate(result, settings);
-    const error = this.getFirstErrorFromEvaluatedWeeks(newEvaluatedWeeks);
-    if (error) {
-      return { success: false, error: error };
-    } else {
-      return { success: true, data: result };
     }
   }
 

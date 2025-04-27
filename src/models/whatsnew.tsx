@@ -1809,6 +1809,35 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250607": {
+    title: <span>Redesigned the "Program" screen</span>,
+    body: (
+      <ul>
+        <li>
+          Made the structure more logical - now there're very prominent tabs for Editing and for Playground, and also 4
+          icons/tabs to switch between sorting, UI mode, per day code mode and full code mode.
+        </li>
+        <li>
+          Also, when you edit a program exercise - it navigates to a separate "Edit Program Exercise" screen. On that
+          screen you can edit everything related to the exercise - sets, warmups, descriptions, as well as progress and
+          update logic.
+        </li>
+        <li>
+          So from now on, everything you could do in the full text mode is pretty much possible to do via UI, including
+          custom progressions and updates.
+        </li>
+        <li>
+          Also, you can go straight to that "Edit Program Exercise" screen from the workout screen - so if you need to
+          quickly tweak warmups or e.g. adjust weight for the program exercise during workout - it's now easier to do
+          so.
+        </li>
+        <li>
+          It's a <strong>VERY large and complex change</strong>, so if you notice any issues / bugs / etc - don't
+          hesitate to email me at <strong>info@liftosaur.com</strong>, or contact me via Discord/Reddit.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

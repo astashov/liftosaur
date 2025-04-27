@@ -7,6 +7,8 @@ import {
   IPlannerProgramExerciseSetVariation,
   IPlannerProgramExerciseUsed,
   IPlannerProgramExerciseWarmupSet,
+  IProgramExerciseProgress,
+  IProgramExerciseProgressType,
 } from "./types";
 import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../plannerExerciseEvaluator";
 import { ObjectUtils } from "../../../utils/object";
@@ -28,13 +30,16 @@ import { MathUtils } from "../../../utils/math";
 import { UidFactory } from "../../../utils/generator";
 import { PlannerKey } from "../plannerKey";
 import { CollectionUtils } from "../../../utils/collection";
+import { IEither } from "../../../utils/types";
 
 export type ILinearProgressionType = {
   type: "linear";
   increase: IWeight | IPercentage;
   successesRequired?: number;
+  successesCounter?: number;
   decrease?: IWeight | IPercentage;
   failuresRequired?: number;
+  failuresCounter?: number;
 };
 export type IDoubleProgressionType = {
   type: "double";
@@ -246,6 +251,14 @@ export class PlannerProgramExercise {
     return groupDisplaySets(displaySets);
   }
 
+  public static uniqueKey(exercise: IPlannerProgramExercise): string {
+    return `${exercise.key}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`;
+  }
+
+  public static uniqueSetKey(set: IPlannerProgramExerciseEvaluatedSet): string {
+    return `${set.minrep}-${set.maxrep}-${set.isAmrap}-${set.weight?.value}${set.weight?.unit}${set.askWeight}-${set.rpe}${set.logRpe}-${set.timer}`;
+  }
+
   public static setsToDisplaySets(
     sets: IPlannerProgramExerciseSet[],
     hasCurrentSets: boolean,
@@ -282,6 +295,15 @@ export class PlannerProgramExercise {
     return groupDisplaySets(displaySets);
   }
 
+  public static degroupWarmupSets(warmupSets: IPlannerProgramExerciseWarmupSet[]): IPlannerProgramExerciseWarmupSet[] {
+    return warmupSets.reduce<IPlannerProgramExerciseWarmupSet[]>((acc, set) => {
+      for (let i = 0; i < set.numberOfSets; i++) {
+        acc.push({ ...set, numberOfSets: 1 });
+      }
+      return acc;
+    }, []);
+  }
+
   public static currentSetVariationIndex(exercise: IPlannerProgramExercise): number {
     const index = exercise.setVariations.findIndex((sv) => sv.isCurrent);
     return index === -1 ? 0 : index;
@@ -302,6 +324,49 @@ export class PlannerProgramExercise {
   public static currentDescription(exercise: IPlannerProgramExercise): string | undefined {
     const index = this.currentDescriptionIndex(exercise);
     return exercise.descriptions.values[index]?.value;
+  }
+
+  public static addSet(
+    ex: IPlannerProgramExercise,
+    setVariationIndex: number,
+    settings: ISettings
+  ): IPlannerProgramExercise {
+    const evaluatedSetVariation = ex.evaluatedSetVariations[setVariationIndex];
+    let lastEvaluatedSet = evaluatedSetVariation.sets[evaluatedSetVariation.sets.length - 1];
+    if (lastEvaluatedSet) {
+      evaluatedSetVariation.sets = [...evaluatedSetVariation.sets, ObjectUtils.clone(lastEvaluatedSet)];
+    } else {
+      const originalSets = PlannerProgramExercise.sets(ex, setVariationIndex);
+      const lastSet = originalSets[originalSets.length - 1];
+      if (lastSet) {
+        lastEvaluatedSet = {
+          maxrep: lastSet.repRange?.maxrep || 1,
+          minrep: lastSet.repRange?.minrep,
+          weight: lastSet.weight || Weight.zero,
+          logRpe: lastSet.logRpe || false,
+          isAmrap: lastSet.repRange?.isAmrap || false,
+          isQuickAddSet: lastSet.repRange?.isQuickAddSet || false,
+          askWeight: lastSet.askWeight || false,
+          rpe: lastSet.rpe,
+          timer: lastSet.timer,
+          label: lastSet.label,
+        };
+        evaluatedSetVariation.sets = [...evaluatedSetVariation.sets, ObjectUtils.clone(lastEvaluatedSet)];
+      } else {
+        evaluatedSetVariation.sets = [
+          ...evaluatedSetVariation.sets,
+          {
+            maxrep: 5,
+            weight: Weight.build(100, settings.units),
+            isAmrap: false,
+            logRpe: false,
+            askWeight: false,
+            isQuickAddSet: false,
+          },
+        ];
+      }
+    }
+    return ex;
   }
 
   public static currentDescriptionIndex(exercise: IPlannerProgramExercise): number {
@@ -327,6 +392,18 @@ export class PlannerProgramExercise {
       exercise.progress?.script ??
       exercise.progress?.reuse?.exercise?.progress?.script ??
       exercise.reuse?.exercise?.progress?.script
+    );
+  }
+
+  public static isReusingSetsProgress(exercise: IPlannerProgramExercise): boolean {
+    const reuseExercise = exercise.reuse?.exercise;
+    return (
+      reuseExercise?.progress != null &&
+      exercise.progress != null &&
+      exercise.progress.type === reuseExercise.progress?.type &&
+      (exercise.progress.reuse?.fullName === reuseExercise.fullName ||
+        exercise.progress.script === reuseExercise.progress.script) &&
+      Object.keys(PlannerProgramExercise.getOnlyChangedState(exercise)).length === 0
     );
   }
 
@@ -398,6 +475,150 @@ export class PlannerProgramExercise {
     );
   }
 
+  public static getProgressDefaultArgs(type: IProgramExerciseProgressType): string[] {
+    switch (type) {
+      case "none":
+        return [];
+      case "lp":
+        return ["5lb"];
+      case "dp":
+        return ["5lb", "8", "12"];
+      case "sum":
+        return ["30", "5lb"];
+      case "custom":
+        return [];
+    }
+  }
+
+  public static buildProgress(
+    type: IProgramExerciseProgressType,
+    args: string[],
+    opts: {
+      reuseFullname?: string;
+      script?: string;
+    } = {}
+  ): IEither<IProgramExerciseProgress, string> {
+    switch (type) {
+      case "none": {
+        return {
+          success: true,
+          data: {
+            type: "none",
+            state: {},
+            stateMetadata: {},
+          },
+        };
+      }
+      case "lp": {
+        const increment = args[0] ? Weight.parsePct(args[0]) : Weight.build(0, "lb");
+        const decrement = args[3] ? Weight.parsePct(args[3]) : Weight.build(0, "lb");
+        const state: IProgramState = {
+          increment: increment ?? Weight.build(0, "lb"),
+          successes: args[1] ? parseInt(args[1], 10) : 1,
+          successCounter: args[2] ? parseInt(args[2], 10) : 0,
+          decrement: decrement ?? Weight.build(0, "lb"),
+          failures: args[4] ? parseInt(args[4], 10) : (decrement?.value ?? 0) > 0 ? 1 : 0,
+          failureCounter: args[5] ? parseInt(args[5], 10) : 0,
+        };
+        const script = `if (completedReps >= reps && completedRPE <= RPE) {
+    state.successCounter += 1;
+    if (state.successCounter >= state.successes) {
+      weights += state.increment
+      state.successCounter = 0
+      state.failureCounter = 0
+    }
+  }
+  if (state.decrement > 0 && state.failures > 0) {
+    if (!(completedReps >= minReps && completedRPE <= RPE)) {
+      state.failureCounter += 1;
+      if (state.failureCounter >= state.failures) {
+        weights -= state.decrement
+        state.failureCounter = 0
+        state.successCounter = 0
+      }
+    }
+  }`;
+        return {
+          success: true,
+          data: {
+            type: "lp",
+            state,
+            stateMetadata: {},
+            script,
+          },
+        };
+      }
+      case "dp": {
+        const increment = args[0] ? Weight.parsePct(args[0]) : Weight.build(0, "lb");
+        const state: IProgramState = {
+          increment: increment ?? Weight.build(0, "lb"),
+          minReps: args[1] ? parseInt(args[1], 10) : 0,
+          maxReps: args[2] ? parseInt(args[2], 10) : 0,
+        };
+        const script = `
+if (completedReps >= reps && completedRPE <= RPE) {
+  if (reps[ns] < state.maxReps) {
+    reps += 1
+  } else {
+    reps = state.minReps
+    weights += state.increment
+  }
+}`;
+        return {
+          success: true,
+          data: {
+            type: "dp",
+            state,
+            stateMetadata: {},
+            script,
+          },
+        };
+      }
+      case "sum": {
+        const increment = args[1] ? Weight.parsePct(args[1]) : Weight.build(0, "lb");
+        const state: IProgramState = {
+          reps: args[0] ? parseInt(args[0], 10) : 0,
+          increment: increment ?? Weight.build(0, "lb"),
+        };
+        const script = `if (sum(completedReps) >= state.reps) {
+        weights += state.increment
+      }`;
+        return {
+          success: true,
+          data: {
+            type: "sum",
+            state,
+            stateMetadata: {},
+            script,
+          },
+        };
+      }
+      case "custom": {
+        const script = opts.script;
+        let errorMessage: string | undefined;
+        const { state, stateMetadata } = PlannerExerciseEvaluator.fnArgsToStateVars(args, (message) => {
+          errorMessage = message;
+        });
+        if (errorMessage) {
+          return {
+            success: false,
+            error: errorMessage,
+          };
+        }
+        return {
+          success: true,
+          data: {
+            type: "custom",
+            state,
+            stateMetadata,
+            script,
+            reuse: opts.reuseFullname ? { fullName: opts.reuseFullname, source: "specific" } : undefined,
+          },
+        };
+      }
+    }
+  }
+
   public static progressionType(exercise: IPlannerProgramExercise): IProgressionType | undefined {
     const progress = exercise.progress;
     if (!progress) {
@@ -410,8 +631,10 @@ export class PlannerProgramExercise {
         type: "linear",
         increase: state.increment as IWeight,
         successesRequired: state.successes as number,
+        successesCounter: state.successCounter as number,
         decrease: state.decrement as IWeight,
         failuresRequired: state.failures as number,
+        failuresCounter: state.failureCounter as number,
       };
     } else if (name === "dp") {
       return {

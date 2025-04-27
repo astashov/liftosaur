@@ -123,6 +123,7 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
         ? "text-orange-400"
         : "text-redv2-main";
   const rpeColor = isNext ? "text-grayv2-main" : set.isRpeFailed ? "text-redv2-main" : "text-greenv2-main";
+  const timerColor = isNext ? "text-grayv2-main" : "text-purplev3-main";
   return (
     <div
       className="text-sm whitespace-nowrap"
@@ -167,6 +168,12 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
           <span className={rpeColor} data-cy="history-entry-rpe">
             <span className="text-xs"> @</span>
             <span>{set.rpe}</span>
+          </span>
+        )}
+        {set.timer != null && (
+          <span className={timerColor} data-cy="history-entry-timer">
+            <span> {set.timer}</span>
+            <span className="text-xs">s</span>
           </span>
         )}
       </span>

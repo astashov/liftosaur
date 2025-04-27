@@ -16,7 +16,6 @@ import { Timer } from "./timer";
 import { Button } from "./button";
 import { Workout } from "./workout";
 import { ModalAmrap } from "./modalAmrap";
-import { ModalEditMode } from "./modalEditMode";
 import { ModalDate } from "./modalDate";
 import { ModalExercise } from "./modalExercise";
 import { Exercise } from "../models/exercise";
@@ -49,7 +48,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const evaluatedProgram = props.program ? Program.evaluate(props.program, props.settings) : undefined;
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
-  const editModalProgramExerciseId = progress.ui?.editModal?.programExerciseId;
   const dateModal = progress.ui?.dateModal;
   const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, progress.day) : undefined;
   const [forceUpdateEntryIndex, setForceUpdateEntryIndex] = useState(false);
@@ -133,17 +131,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 progress={progress}
               />
             )}
-            {editModalProgramExerciseId && evaluatedProgram && (
-              <ModalEditMode
-                program={evaluatedProgram}
-                programExerciseId={editModalProgramExerciseId}
-                entryIndex={progress.ui?.editModal?.entryIndex || 0}
-                progressId={props.progress.id}
-                day={props.progress.day}
-                settings={props.settings}
-                dispatch={props.dispatch}
-              />
-            )}
             {dateModal != null && (
               <ModalDate
                 isHidden={false}
@@ -187,7 +174,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   }
                 }}
                 onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
-                onChange={(exerciseType, shouldClose) => {
+                onChange={(exerciseType, label, shouldClose) => {
                   if (exerciseType != null) {
                     if (progress.ui?.exerciseModal?.entryIndex == null) {
                       Progress.addExercise(props.dispatch, exerciseType, progress.entries.length);
@@ -213,7 +200,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                           progress.entries[entryIndex]?.programExerciseId
                         );
                         if (program && programExercise) {
-                          const newEvaluatedProgram = PlannerProgram.replaceExercise(
+                          const newEvaluatedProgram = PlannerProgram.replaceAndValidateExercise(
                             program,
                             programExercise.key,
                             exerciseType,

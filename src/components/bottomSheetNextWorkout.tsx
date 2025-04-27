@@ -13,6 +13,7 @@ import { memo } from "preact/compat";
 import { ComparerUtils } from "../utils/comparer";
 import { EditProgram } from "../models/editProgram";
 import { ModalChangeNextDay } from "./modalChangeNextDay";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   isHidden: boolean;
@@ -76,7 +77,7 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
                 name="start-empty-workout"
                 data-cy="start-empty-workout"
                 onClick={() => {
-                  props.dispatch({ type: "StartProgramDayAction", programId: emptyProgramId });
+                  props.dispatch(Thunk.startProgramDay(emptyProgramId));
                 }}
               >
                 <IconPlus2 color={Tailwind.colors().bluev2} className="inline-block pr-1" />

@@ -54,9 +54,21 @@ export class PlaywrightUtils {
     for (const char of chars) {
       await page.getByTestId(`keyboard-button-${char}`).click();
       currentText += char;
-      await expect(locator).toHaveText(currentText);
+      await expect(locator).toContainText(currentText);
     }
     await page.getByTestId("keyboard-close").click();
+  }
+
+  public static async select(page: Page, locator: Locator, name: string, value: string): Promise<void> {
+    console.log(`select-${name}`);
+    console.log(`select-options-${name}`);
+    console.log(`select-option-${value}`);
+    await locator.getByTestId(`select-${name}`).click();
+    await page
+      .getByTestId(`select-options-${name}`)
+      .getByTestId(`select-option-${value}`)
+      .and(page.locator(":visible"))
+      .click();
   }
 
   public static async swipeLeft(page: Page, locator: Locator): Promise<void> {

@@ -16,6 +16,7 @@ import { Markdown } from "./markdown";
 import { StringUtils } from "../utils/string";
 import { n } from "../utils/math";
 import { IEvaluatedProgramDay } from "../models/program";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -59,7 +60,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
         onClick={(event) => {
           if (!HtmlUtils.classInParents(event.target as Element, "button")) {
             if (Progress.isCurrent(historyRecord)) {
-              dispatch({ type: "StartProgramDayAction" });
+              dispatch(Thunk.startProgramDay());
             } else {
               editHistoryRecord(
                 historyRecord,

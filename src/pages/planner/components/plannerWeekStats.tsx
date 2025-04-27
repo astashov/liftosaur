@@ -9,6 +9,7 @@ import { ISettings } from "../../../types";
 interface IPlannerWeekStatsProps {
   evaluatedDays: IPlannerEvalResult[];
   settings: ISettings;
+  onEditSettings?: () => void;
   dispatch: ILensDispatch<IPlannerState>;
 }
 
@@ -28,6 +29,7 @@ export function PlannerWeekStats(props: IPlannerWeekStatsProps): JSX.Element {
       <h3 className="mb-2 text-xl font-bold">Week Stats</h3>
       <PlannerStats
         dispatch={props.dispatch}
+        onEditSettings={props.onEditSettings}
         setResults={setResults}
         settings={settings}
         colorize={true}
