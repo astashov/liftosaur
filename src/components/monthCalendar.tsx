@@ -74,7 +74,9 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
 
           const days: number[] = Array.from({ length: daysInMonth }, (_, i) => i + 1);
           const dayToHistoryRecords = monthToHistoryRecords[DateUtils.formatYYYYMMDD(month)] || {};
-          const historyRecords = CollectionUtils.compact(Object.values(dayToHistoryRecords).flat());
+          const historyRecords = CollectionUtils.compact(Object.values(dayToHistoryRecords).flat()).filter(
+            (hr) => !Progress.isCurrent(hr)
+          );
           const numberOfWorkouts = historyRecords.length;
           const numberOfPersonalRecords = History.getNumberOfPersonalRecords(historyRecords, props.prs);
 
