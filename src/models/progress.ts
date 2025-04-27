@@ -529,12 +529,26 @@ export namespace Progress {
     }, {});
   }
 
-  export function changeDate(progress: IHistoryRecord, date?: string, time?: number): IHistoryRecord {
-    const endTime = time != null ? progress.startTime + time : progress.startTime + History.workoutTime(progress);
+  export function changeDate(progress: IHistoryRecord, dateStr?: string, time?: number): IHistoryRecord {
+    let startTime = progress.startTime;
+    const startTimeDate = new Date(startTime);
+    const date = dateStr != null ? DateUtils.fromYYYYMMDD(dateStr) : undefined;
+    if (date != null) {
+      startTime = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        startTimeDate.getHours(),
+        startTimeDate.getMinutes(),
+        startTimeDate.getSeconds()
+      ).getTime();
+    }
+    const endTime = time != null ? startTime + time : startTime + History.workoutTime(progress);
     return {
       ...progress,
-      ...(date != null ? { date: DateUtils.fromYYYYMMDD(date) } : {}),
-      intervals: [[progress.startTime, endTime]],
+      ...(dateStr != null ? { date: DateUtils.fromYYYYMMDDStr(dateStr) } : {}),
+      startTime,
+      intervals: [[startTime, endTime]],
       endTime,
       ui: {
         ...progress.ui,

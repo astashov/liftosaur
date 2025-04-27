@@ -247,7 +247,7 @@ export namespace History {
               continue;
             }
             const muscleGroupAcc = acc[muscleGroup];
-            const date = new Date(hr.startTime);
+            const date = new Date(hr.id);
             const lastTs = muscleGroupAcc[0][muscleGroupAcc[0]?.length - 1];
             const finishedSets = entry.sets.filter((s) => (s.completedReps || 0) > 0);
             if (lastTs == null) {
@@ -256,23 +256,19 @@ export namespace History {
               muscleGroupAcc[2].push(0);
             } else {
               const lastDate = new Date(lastTs * 1000);
-              const beginningOfWeekForDate = new Date(
-                date.getFullYear(),
-                date.getMonth(),
-                date.getDate() - date.getDay()
+              const beginningOfWeekForDate = DateUtils.firstDayOfWeekTimestamp(date, settings.startWeekFromMonday);
+              const beginningOfWeekForLastDate = DateUtils.firstDayOfWeekTimestamp(
+                lastDate,
+                settings.startWeekFromMonday
               );
-              const beginningOfWeekForLastDate = new Date(
-                lastDate.getFullYear(),
-                lastDate.getMonth(),
-                lastDate.getDate() - lastDate.getDay()
-              );
-              if (beginningOfWeekForDate.getTime() !== beginningOfWeekForLastDate.getTime()) {
+              if (beginningOfWeekForDate !== beginningOfWeekForLastDate) {
                 muscleGroupAcc[0].push(Math.round(date.getTime() / 1000));
                 muscleGroupAcc[1].push(0);
                 muscleGroupAcc[2].push(0);
               }
             }
-            muscleGroupAcc[1][muscleGroupAcc[1].length - 1] += Reps.volume(finishedSets).value * multiplier;
+            muscleGroupAcc[1][muscleGroupAcc[1].length - 1] +=
+              Reps.volume(finishedSets, settings.units).value * multiplier;
             muscleGroupAcc[2][muscleGroupAcc[2].length - 1] += finishedSets.length * multiplier;
           }
         }

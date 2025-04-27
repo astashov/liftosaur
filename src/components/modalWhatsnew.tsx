@@ -22,7 +22,7 @@ export function ModalWhatsnew(props: IModalWhatsnewProps): JSX.Element {
       <h3 className="pb-2 text-xl font-bold text-center">What's new?</h3>
       <ul className="text-sm">
         {sortedWhatsnewRecords.map(([dateStr, whatsNewRecord]) => {
-          const date = DateUtils.format(DateUtils.fromYYYYMMDD(dateStr, ""), true);
+          const date = DateUtils.format(DateUtils.fromYYYYMMDDStr(dateStr, ""), true);
           return (
             <li className="pb-6">
               <div className="text-xs font-bold text-gray-500">{date}</div>

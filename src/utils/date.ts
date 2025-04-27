@@ -159,16 +159,20 @@ export namespace DateUtils {
     return result;
   }
 
-  export function fromYYYYMMDD(dateStr: string, separator: string = "-"): string {
+  export function fromYYYYMMDD(dateStr: string, separator: string = "-"): Date {
     const regexp = new RegExp(`^(\\d{4})${separator}(\\d{2})${separator}(\\d{2})$`);
     const regexpMatchArray = dateStr.match(regexp);
     if (regexpMatchArray) {
       const [, year, month, day] = regexpMatchArray;
       const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
-      return date.toISOString();
+      return date;
     } else {
-      return new Date(Date.UTC(1970, 1, 1)).toISOString();
+      return new Date(Date.UTC(1970, 1, 1));
     }
+  }
+
+  export function fromYYYYMMDDStr(dateStr: string, separator: string = "-"): string {
+    return DateUtils.fromYYYYMMDD(dateStr, separator).toISOString();
   }
 
   export function yearAndMonth(date: Date | string | number): [number, number] {

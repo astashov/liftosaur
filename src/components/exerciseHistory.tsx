@@ -140,7 +140,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                         const name = { rm1: "1 Rep Max" }[key] || key;
                         state[name] = vars[key];
                       }
-                      const volume = Reps.volume(entry.sets);
+                      const volume = Reps.volume(entry.sets, props.settings.units);
                       return (
                         <div className="pt-1">
                           <div className="text-right">

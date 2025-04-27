@@ -55,7 +55,7 @@ function getData(
     if (entry != null) {
       const maxSet = History.getMaxWeightSetFromEntry(entry);
       const maxe1RMSet = History.getMax1RMSetFromEntry(entry);
-      const volume = Reps.volume(entry.sets);
+      const volume = Reps.volume(entry.sets, settings.units);
       if (maxSet != null) {
         const convertedWeight = Weight.convertTo(
           maxSet.completedWeight ?? maxSet.weight ?? Weight.build(0, settings.units),

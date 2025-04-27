@@ -215,15 +215,17 @@ export namespace Reps {
     return undefined;
   }
 
-  export function volume(sets: ISet[]): IWeight {
-    const unit = sets[0]?.weight?.unit || "lb";
-    return sets.reduce(
-      (memo, set) =>
-        Weight.add(
-          memo,
-          Weight.multiply(set.completedWeight ?? set.weight ?? Weight.build(0, "lb"), set.completedReps ?? 0)
-        ),
-      Weight.build(0, unit)
+  export function volume(sets: ISet[], unit: IUnit): IWeight {
+    return Weight.convertTo(
+      sets.reduce(
+        (memo, set) =>
+          Weight.add(
+            memo,
+            Weight.multiply(set.completedWeight ?? set.weight ?? Weight.build(0, unit), set.completedReps ?? 0)
+          ),
+        Weight.build(0, unit)
+      ),
+      unit
     );
   }
 }

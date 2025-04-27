@@ -7,6 +7,7 @@ import { CollectionUtils } from "../utils/collection";
 import { memo, useLayoutEffect, useRef } from "preact/compat";
 import { ComparerUtils } from "../utils/comparer";
 import { Tailwind } from "../utils/tailwindConfig";
+import { Progress } from "../models/progress";
 
 interface IMonthCalendarProps {
   firstDayOfWeeks: number[];
@@ -107,7 +108,7 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
                   const date = new Date(year, monthIndex, day);
                   const yyyymmdd = DateUtils.formatYYYYMMDD(date);
                   const historyRecord = dayToHistoryRecords[day]?.[0];
-                  const isWorkout = !!historyRecord;
+                  const isWorkout = !!historyRecord && !Progress.isCurrent(historyRecord);
                   const selectedFirstDayOfWeek = props.firstDayOfWeeks[props.selectedFirstDayOfWeekIndex];
                   const thisFirstDayOfWeek = DateUtils.firstDayOfWeekTimestamp(date, props.startWeekFromMonday);
                   const isSelectedWeek = selectedFirstDayOfWeek === thisFirstDayOfWeek;

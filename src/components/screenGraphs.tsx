@@ -35,7 +35,11 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   const hasBodyweight = props.settings.graphs.some((g) => g.id === "weight");
   let bodyweightData: [number, number][] = [];
 
-  const historyCollector = Collector.build(CollectionUtils.sortBy(props.history, "id"))
+  const sortedHistory = CollectionUtils.sort(props.history, (a, b) => {
+    return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
+  });
+
+  const historyCollector = Collector.build(sortedHistory)
     .addFn(History.collectMuscleGroups(props.settings))
     .addFn(History.collectProgramChangeTimes());
   const [muscleGroupsData, programChangeTimes] = historyCollector.run();
