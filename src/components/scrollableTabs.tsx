@@ -9,6 +9,7 @@ interface IProps {
     children: ComponentChildren;
     isInvalid?: boolean;
   }[];
+  color?: "orange" | "purple";
   defaultIndex?: number;
   shouldNotExpand?: boolean;
   offsetY?: string;
@@ -20,6 +21,7 @@ interface IProps {
 export function ScrollableTabs(props: IProps): JSX.Element {
   const { tabs } = props;
   const [selectedIndex, setSelectedIndex] = useState<number>(props.defaultIndex || 0);
+  const color = props.color || "orange";
 
   return (
     <div className="relative">
@@ -44,7 +46,11 @@ export function ScrollableTabs(props: IProps): JSX.Element {
                   <div className="flex-1 text-center border-b whitespace-nowrap border-grayv2-50">
                     <button
                       className={`ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
-                        selectedIndex === index ? "text-orangev2 border-b border-orangev2" : ""
+                        selectedIndex === index
+                          ? color === "orange"
+                            ? "text-orangev2 border-b border-orangev2"
+                            : "text-purplev3-main border-b border-purplev3-main"
+                          : ""
                       } ${isInvalid ? " text-redv2-main" : ""} nm-tab-${nameClass}`}
                       style={selectedIndex === index ? { borderBottomWidth: "2px" } : {}}
                       data-cy={nameClass}
