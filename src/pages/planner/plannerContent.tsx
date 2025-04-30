@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { IPlannerState } from "./models/types";
-import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput";
+import { LinkInlineInput } from "../../components/inlineInput";
 import { lb, lf } from "lens-shmens";
 import { HtmlUtils } from "../../utils/html";
 import { Encoder } from "../../utils/encoder";
@@ -139,7 +139,12 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     },
     initialEncodedProgram: undefined,
     encodedProgram: undefined,
-    ui: { weekIndex: 0, exerciseUi: { edit: new Set(), collapsed: new Set() } },
+    ui: {
+      weekIndex: 0,
+      exerciseUi: { edit: new Set(), collapsed: new Set() },
+      dayUi: { collapsed: new Set() },
+      weekUi: { collapsed: new Set() },
+    },
     history: {
       past: [],
       future: [],
@@ -344,7 +349,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       <div className="flex flex-col mb-2 sm:flex-row">
         <div className="flex-1 py-2 ">
           <h2 className="mr-2 text-2xl font-bold">
-            <BuilderLinkInlineInput
+            <LinkInlineInput
               value={state.current.program.name}
               onInputString={(v) => {
                 dispatch(lbProgram.p("name").record(v));

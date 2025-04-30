@@ -309,7 +309,7 @@ interface IProgressionProps {
   exercise: IPlannerProgramExercise;
 }
 
-function Progression(props: IProgressionProps): JSX.Element | null {
+export function Progression(props: IProgressionProps): JSX.Element | null {
   const type = PlannerProgramExercise.progressionType(props.exercise);
   if (type == null) {
     return null;
@@ -318,7 +318,8 @@ function Progression(props: IProgressionProps): JSX.Element | null {
     case "linear":
       return (
         <div>
-          Linear Progression: <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span>
+          <strong>Linear Progression:</strong>{" "}
+          <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span>
           {(type.successesRequired || 0 > 1) && (
             <span>
               {" "}
@@ -330,7 +331,7 @@ function Progression(props: IProgressionProps): JSX.Element | null {
               , <span className="font-bold text-redv2-main">{Weight.print(type.decrease)}</span>
             </span>
           )}
-          {type.decrease != null && type.decrease.value > 0 && (type.failuresRequired || 0) > 1 && (
+          {type.decrease != null && type.decrease.value > 0 && (
             <span>
               {" "}
               after <span className="font-bold text-redv2-main">{type.failuresRequired}</span> failures
@@ -342,18 +343,24 @@ function Progression(props: IProgressionProps): JSX.Element | null {
     case "double":
       return (
         <div>
-          Double Progression: <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span> within{" "}
+          <strong>Double Progression</strong>:{" "}
+          <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span> within{" "}
           <span className="font-bold">{type.minReps}</span>-<span className="font-bold">{type.maxReps}</span> rep range.
         </div>
       );
     case "sumreps":
       return (
         <div>
-          Sum Reps Progression: <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span> if
-          sum of all reps is at least <span className="font-bold">{type.reps}</span>.
+          <strong>Sum Reps Progression</strong>:{" "}
+          <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span> if sum of all reps is at
+          least <span className="font-bold">{type.reps}</span>.
         </div>
       );
     case "custom":
-      return <div>Custom Progression</div>;
+      return (
+        <div>
+          <strong>Custom Progression</strong>
+        </div>
+      );
   }
 }

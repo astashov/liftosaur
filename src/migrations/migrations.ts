@@ -941,4 +941,19 @@ export const migrations = {
     }
     return storage;
   },
+  "20250429083937_add_ids_to_planner_weeks_and_days": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs) {
+      for (const week of program.planner?.weeks || []) {
+        week.id = week.id || UidFactory.generateUid(8);
+        for (const day of week.days) {
+          day.id = day.id || UidFactory.generateUid(8);
+        }
+      }
+    }
+    return storage;
+  },
 };

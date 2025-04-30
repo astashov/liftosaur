@@ -17,7 +17,7 @@ import { IconHandle } from "../icons/iconHandle";
 import { IconTrash } from "../icons/iconTrash";
 import { EditProgramV2TextExercises } from "./editProgramV2TextExercises";
 import { EditProgramV2UiExercises } from "./editProgramV2UiExercises";
-import { applyChangesInEditor } from "./editProgramV2Utils";
+import { applyChangesInEditor } from "./editProgramUtils";
 import { GroupHeader } from "../groupHeader";
 import { LinkButton } from "../linkButton";
 import { MarkdownEditor } from "../markdownEditor";

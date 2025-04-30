@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../../ducks/types";
 import { INavCommon, IState, updateState } from "../../models/state";
-import { useCallback, useRef, useState } from "preact/hooks";
+import { useCallback, useLayoutEffect, useMemo, useState } from "preact/hooks";
 import { IProgram, ISettings } from "../../types";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
@@ -17,14 +17,29 @@ import { Tailwind } from "../../utils/tailwindConfig";
 import { IconCalendarSmall } from "../icons/iconCalendarSmall";
 import { TimeUtils } from "../../utils/time";
 import { IconTimerSmall } from "../icons/iconTimerSmall";
-import { IconEdit2 } from "../icons/iconEdit2";
-import { Modal } from "../modal";
-import { Input } from "../input";
-import { Button } from "../button";
 import { EditProgram } from "../../models/editProgram";
 import { ScrollableTabs } from "../scrollableTabs";
 import { EditProgramView } from "./editProgram";
-import { ProgramPreviewOrPlayground } from "../programPreviewOrPlayground";
+import { ProgramPreviewPlayground } from "../preview/programPreviewPlayground";
+import { Thunk } from "../../ducks/thunks";
+import { IconSwap } from "../icons/iconSwap";
+import { ContentGrowingTextarea } from "../contentGrowingTextarea";
+import { LinkButton } from "../linkButton";
+import { ModalProgramNextDay } from "../modalProgramNextDay";
+import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
+import { Button } from "../button";
+import { ModalPublishProgram } from "../modalPublishProgram";
+import { BottomSheetEditProgramV2 } from "../bottomSheetEditProgramV2";
+import { IconKebab } from "../icons/iconKebab";
+import { ModalPlannerPictureExport } from "../../pages/planner/components/modalPlannerPictureExport";
+import { EditProgramModalExercise } from "./editProgramModalExercise";
+import { ModalPlannerProgramRevisions } from "../../pages/planner/modalPlannerProgramRevisions";
+import { PlannerWeekStats } from "../../pages/planner/components/plannerWeekStats";
+import { Modal } from "../modal";
+import { ModalPlannerSettings } from "../../pages/planner/components/modalPlannerSettings";
+import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats";
+import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
+import { UidFactory } from "../../utils/generator";
 
 interface IProps {
   originalProgram: IProgram;
@@ -41,6 +56,7 @@ interface IProps {
 
 export function ScreenProgram(props: IProps): JSX.Element {
   const plannerState = props.plannerState;
+  const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
 
   const plannerDispatch: ILensDispatch<IPlannerState> = useCallback(
     (lensRecording: ILensRecordingPayload<IPlannerState> | ILensRecordingPayload<IPlannerState>[], desc?: string) => {
@@ -58,12 +74,42 @@ export function ScreenProgram(props: IProps): JSX.Element {
     [plannerState]
   );
   useUndoRedo(plannerState, plannerDispatch);
+  const [showChangeNextDay, setShowChangeNextDay] = useState(false);
+  const [shouldShowBottomSheet, setShouldShowBottomSheet] = useState<boolean>(false);
+  const [shouldShowGenerateImageModal, setShouldShowGenerateImageModal] = useState<boolean>(false);
+  const [isLoadingRevisions, setIsLoadingRevisions] = useState<boolean>(false);
+  const [showRevisions, setShowRevisions] = useState<boolean>(false);
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
+  const lbUi = lb<IPlannerState>().p("ui");
 
-  const [showProgramNameModal, setShowProgramNameModal] = useState(false);
+  useLayoutEffect(() => {
+    if (props.plannerState) {
+      for (const week of planner.weeks) {
+        week.id = week.id ?? UidFactory.generateUid(8);
+        for (const day of week.days) {
+          day.id = day.id ?? UidFactory.generateUid(8);
+        }
+      }
+    }
+  });
 
-  const program = plannerState.current.program;
+  const program: IProgram = plannerState.current.program;
   const planner = program.planner!;
   const evaluatedProgram = Program.evaluate(program, props.settings);
+  const { evaluatedWeeks, exerciseFullNames } = PlannerProgram.evaluate(planner, props.settings);
+  const ui = plannerState.ui;
+
+  const fulltext = props.plannerState.fulltext;
+  const fullEvaluatedWeeks = fulltext
+    ? useMemo(() => {
+        return PlannerProgram.evaluateFull(fulltext.text, props.settings);
+      }, [fulltext.text, props.settings.exercises]).evaluatedWeeks
+    : undefined;
+  const programForPlayground: IProgram =
+    fulltext && fullEvaluatedWeeks && fullEvaluatedWeeks.success
+      ? { ...program, planner: { ...program.planner!, weeks: PlannerProgram.evaluateText(fulltext.text) } }
+      : program;
+  console.log("sds", ui.showDayStats);
 
   return (
     <Surface
@@ -72,25 +118,162 @@ export function ScreenProgram(props: IProps): JSX.Element {
           navCommon={props.navCommon}
           dispatch={props.dispatch}
           helpContent={<HelpEditProgramV2 />}
+          rightButtons={[
+            <button
+              data-cy="navbar-3-dot"
+              className="p-2 nm-edit-program-v2-navbar-kebab"
+              onClick={() => setShouldShowBottomSheet(true)}
+            >
+              <IconKebab />
+            </button>,
+          ]}
           title="Program"
         />
       }
       footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
       addons={
         <>
-          {showProgramNameModal && (
-            <ModalChangeProgramName
-              onClose={() => setShowProgramNameModal(false)}
-              name={evaluatedProgram.name}
-              onSelect={(newValue) => {
-                EditProgram.setName(props.dispatch, props.originalProgram, newValue);
-                plannerDispatch([
-                  lb<IPlannerState>().p("current").p("program").p("name").record(newValue),
-                  lb<IPlannerState>().p("current").p("program").pi("planner").p("name").record(newValue),
+          <BottomSheetEditProgramV2
+            isLoadingRevisions={isLoadingRevisions}
+            isLoggedIn={props.isLoggedIn}
+            onExportProgramToLink={() => {
+              setShouldShowBottomSheet(false);
+              props.dispatch(
+                Thunk.generateAndCopyLink(props.originalProgram, props.settings, (url) => {
+                  alert(`Copied link to the clipboard: ${url}`);
+                })
+              );
+            }}
+            onGenerateProgramImage={() => {
+              setShouldShowBottomSheet(false);
+              setShouldShowGenerateImageModal(true);
+            }}
+            onLoadRevisions={() => {
+              setIsLoadingRevisions(true);
+              props.dispatch(
+                Thunk.fetchRevisions(props.originalProgram.id, () => {
+                  setIsLoadingRevisions(false);
+                  setShowRevisions(true);
+                  setShouldShowBottomSheet(false);
+                })
+              );
+            }}
+            isHidden={!shouldShowBottomSheet}
+            onClose={() => setShouldShowBottomSheet(false)}
+          />
+          {showChangeNextDay && (
+            <ModalProgramNextDay
+              onClose={() => setShowChangeNextDay(false)}
+              initialCurrentProgramId={program.id}
+              onSelect={(_, day) => {
+                updateState(props.dispatch, [
+                  lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(day),
                 ]);
-                setShowProgramNameModal(false);
+                plannerDispatch([lb<IPlannerState>().p("current").p("program").p("nextDay").record(day)]);
+              }}
+              allPrograms={[program]}
+              settings={props.settings}
+            />
+          )}
+          {shouldShowPublishModal && (
+            <ModalPublishProgram
+              isHidden={!shouldShowPublishModal}
+              program={props.originalProgram}
+              dispatch={props.dispatch}
+              onClose={() => {
+                setShouldShowPublishModal(false);
               }}
             />
+          )}
+          {shouldShowGenerateImageModal && (
+            <ModalPlannerPictureExport
+              settings={props.settings}
+              client={props.client}
+              isChanged={false}
+              program={plannerState.current.program}
+              onClose={() => {
+                setShouldShowGenerateImageModal(false);
+              }}
+            />
+          )}
+          {props.plannerState.ui.modalExercise && (
+            <EditProgramModalExercise
+              settings={props.settings}
+              plannerState={plannerState}
+              plannerDispatch={plannerDispatch}
+              dispatch={props.dispatch}
+            />
+          )}
+          {showRevisions && props.revisions.length > 0 && (
+            <ModalPlannerProgramRevisions
+              programId={props.originalProgram.id}
+              client={props.client}
+              revisions={props.revisions}
+              onClose={() => setShowRevisions(false)}
+              onRestore={(text) => {
+                window.isUndoing = true;
+                const weeks = PlannerProgram.evaluateText(text);
+                plannerDispatch(lbProgram.p("weeks").record(weeks), "stop-is-undoing");
+                setShowRevisions(false);
+              }}
+            />
+          )}
+          {ui.showWeekStats != null && (
+            <Modal
+              shouldShowClose={true}
+              isFullWidth={true}
+              onClose={() => {
+                plannerDispatch(lbUi.p("showWeekStats").record(undefined));
+              }}
+            >
+              <PlannerWeekStats
+                dispatch={plannerDispatch}
+                onEditSettings={() => {
+                  plannerDispatch(lbUi.p("showSettingsModal").record(true));
+                }}
+                evaluatedDays={evaluatedWeeks[ui.showWeekStats]}
+                settings={props.settings}
+              />
+            </Modal>
+          )}
+          {ui.showDayStats != null && (
+            <Modal
+              shouldShowClose={true}
+              isFullWidth={true}
+              onClose={() => plannerDispatch(lbUi.p("showDayStats").record(undefined))}
+            >
+              <PlannerDayStats
+                dispatch={plannerDispatch}
+                settings={props.settings}
+                evaluatedDay={evaluatedWeeks[ui.weekIndex][ui.showDayStats]}
+              />
+            </Modal>
+          )}
+          {plannerState.ui.showSettingsModal && (
+            <ModalPlannerSettings
+              inApp={true}
+              onNewSettings={(newSettings) =>
+                updateState(props.dispatch, [lb<IState>().p("storage").p("settings").record(newSettings)])
+              }
+              settings={props.settings}
+              onClose={() => plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false))}
+            />
+          )}
+          {ui.showExerciseStats && ui.focusedExercise && (
+            <Modal
+              shouldShowClose={true}
+              isFullWidth={true}
+              onClose={() => plannerDispatch(lbUi.p("showExerciseStats").record(undefined))}
+            >
+              <PlannerExerciseStats
+                dispatch={plannerDispatch}
+                settings={props.settings}
+                evaluatedWeeks={evaluatedWeeks}
+                weekIndex={ui.focusedExercise.weekIndex}
+                dayIndex={ui.focusedExercise.dayIndex}
+                exerciseLine={ui.focusedExercise.exerciseLine}
+              />
+            </Modal>
           )}
         </>
       }
@@ -99,33 +282,73 @@ export function ScreenProgram(props: IProps): JSX.Element {
         <EditProgramHeader
           evaluatedProgram={evaluatedProgram}
           settings={props.settings}
-          onClickChangeName={() => {
-            setShowProgramNameModal(true);
+          onChangeProgram={() => {
+            props.dispatch(Thunk.pushScreen("programs"));
+          }}
+          onChangeDay={() => {
+            setShowChangeNextDay(true);
+          }}
+          onChangeName={(newValue) => {
+            EditProgram.setName(props.dispatch, props.originalProgram, newValue);
+            plannerDispatch([
+              lb<IPlannerState>().p("current").p("program").p("name").record(newValue),
+              lb<IPlannerState>().p("current").p("program").pi("planner").p("name").record(newValue),
+            ]);
           }}
         />
         <ScrollableTabs
           topPadding="1rem"
+          shouldNotExpand={true}
           nonSticky={true}
           defaultIndex={0}
           color="purple"
           tabs={[
             {
               label: "Edit Program",
-              children: <EditProgramView plannerDispatch={plannerDispatch} state={plannerState} />,
+              children: () => (
+                <EditProgramView
+                  evaluatedWeeks={evaluatedWeeks}
+                  exerciseFullNames={exerciseFullNames}
+                  fullEvaluatedWeeks={fullEvaluatedWeeks}
+                  dispatch={props.dispatch}
+                  originalProgram={props.originalProgram}
+                  settings={props.settings}
+                  plannerDispatch={plannerDispatch}
+                  state={plannerState}
+                />
+              ),
             },
             {
               label: "Playground",
-              children: (
-                <ProgramPreviewOrPlayground
-                  program={program}
-                  isMobile={true}
-                  hasNavbar={false}
+              children: () => (
+                <ProgramPreviewPlayground
+                  scrollableTabsProps={{
+                    topPadding: "0.25rem",
+                    offsetY: "3.75rem",
+                    className: "gap-2 px-4",
+                    type: "squares",
+                  }}
+                  isPlayground={true}
+                  program={programForPlayground}
                   settings={props.settings}
                 />
               ),
             },
           ]}
         />
+        {props.adminKey && (
+          <div className="py-3 text-center">
+            <Button
+              name="publish-program"
+              kind="orange"
+              onClick={() => {
+                setShouldShowPublishModal(true);
+              }}
+            >
+              Publish
+            </Button>
+          </div>
+        )}
       </div>
     </Surface>
   );
@@ -133,7 +356,9 @@ export function ScreenProgram(props: IProps): JSX.Element {
 
 interface IEditProgramHeaderProps {
   evaluatedProgram: IEvaluatedProgram;
-  onClickChangeName: () => void;
+  onChangeProgram: () => void;
+  onChangeDay: () => void;
+  onChangeName: (newValue: string) => void;
   settings: ISettings;
 }
 
@@ -144,10 +369,24 @@ function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
   return (
     <div className="px-4">
       <div className="flex items-center text-base font-bold">
-        <div>{evaluatedProgram.name}</div>
-        <div className="leading-none">
-          <button className="px-2 py-1 nm-edit-program-name" onClick={props.onClickChangeName}>
-            <IconEdit2 size={18} />
+        <div>
+          <ContentGrowingTextarea
+            value={evaluatedProgram.name}
+            onInput={(newValue) => {
+              if (newValue) {
+                props.onChangeName(newValue);
+              }
+            }}
+          />
+        </div>
+        <div className="flex items-center ml-2">
+          <button
+            className="px-2"
+            onClick={() => {
+              props.onChangeProgram();
+            }}
+          >
+            <IconSwap size={16} />
           </button>
         </div>
       </div>
@@ -169,57 +408,12 @@ function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
           </div>
         </div>
       </div>
+      <div className="mt-1 text-xs text-grayv2-main">
+        <strong>Next Day: </strong>
+        <LinkButton name="change-program-day" onClick={() => props.onChangeDay()}>
+          {Program.getDayName(evaluatedProgram, evaluatedProgram.nextDay)}
+        </LinkButton>
+      </div>
     </div>
-  );
-}
-
-interface IModalChangeProgramNameProps {
-  onClose: () => void;
-  name: string;
-  onSelect: (name: string) => void;
-}
-
-function ModalChangeProgramName(props: IModalChangeProgramNameProps): JSX.Element {
-  const textInput = useRef<HTMLInputElement>(null);
-  return (
-    <Modal onClose={props.onClose} shouldShowClose={true}>
-      <h3 className="pb-2 text-xl font-bold text-center">Change Program Name</h3>
-      <Input
-        label="Program Name"
-        data-cy="modal-program-name-input"
-        ref={textInput}
-        defaultValue={props.name}
-        type="text"
-        placeholder="My Awesome Routine"
-        required={true}
-        requiredMessage="Please enter a name for your program"
-      />
-      <p className="mt-4 text-center">
-        <Button
-          name="modal-program-name-cancel"
-          data-cy="modal-program-name-cancel"
-          type="button"
-          kind="grayv2"
-          className="mr-3"
-          onClick={props.onClose}
-        >
-          Cancel
-        </Button>
-        <Button
-          data-cy="modal-program-name-submit"
-          name="modal-program-name-submit"
-          type="button"
-          kind="orange"
-          className="ls-modal-program-name"
-          onClick={() => {
-            if (textInput.current.value) {
-              props.onSelect(textInput.current.value);
-            }
-          }}
-        >
-          Change
-        </Button>
-      </p>
-    </Modal>
   );
 }

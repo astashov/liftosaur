@@ -8,7 +8,7 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { EditProgramV2Day } from "./editProgramV2Day";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { DraggableList } from "../draggableList";
-import { applyChangesInEditor } from "./editProgramV2Utils";
+import { applyChangesInEditor } from "./editProgramUtils";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { Button } from "../button";
 import { IconMusclesD } from "../icons/iconMusclesD";
@@ -170,7 +170,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             return {
               label: week.name,
               isInvalid: evaluatedWeeks[weekIndex].some((day) => !day.success),
-              children: (
+              children: () => (
                 <div key={weekIndex}>
                   {!showProgramDescription ? (
                     <div className="text-sm">
