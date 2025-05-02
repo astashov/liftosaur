@@ -637,7 +637,12 @@ export const migrations = {
                 });
                 const newExerciseType = { id: custom.exercise.id };
                 for (const key of keys) {
-                  const programResult = PlannerProgram.replaceExercise(program, key, newExerciseType, storage.settings);
+                  const programResult = PlannerProgram.replaceAndValidateExercise(
+                    program,
+                    key,
+                    newExerciseType,
+                    storage.settings
+                  );
                   if (programResult.success) {
                     program = programResult.data;
                   }

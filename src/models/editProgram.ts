@@ -85,7 +85,7 @@ export namespace EditProgram {
       ui: {
         weekIndex: 0,
         focusedDay,
-        isUiMode: true,
+        mode: "ui",
         exerciseUi: { edit: new Set(), collapsed: new Set() },
         dayUi: { collapsed: new Set() },
         weekUi: { collapsed: new Set() },

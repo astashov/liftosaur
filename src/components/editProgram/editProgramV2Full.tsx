@@ -2,7 +2,7 @@
 import { JSX, h } from "preact";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IPlannerFullText, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
+import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { lb, LensBuilder } from "lens-shmens";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { useMemo } from "preact/hooks";
@@ -12,16 +12,17 @@ import { PlannerEditorCustomCta } from "../../pages/planner/components/plannerEd
 export interface IEditProgramV2FullProps {
   plannerProgram: IPlannerProgram;
   settings: ISettings;
-  fulltext: IPlannerFullText;
   ui: IPlannerUi;
   lbUi: LensBuilder<IPlannerState, IPlannerUi, {}>;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
 export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
+  const fulltext = PlannerProgram.generateFullText(props.plannerProgram.weeks);
   const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
-    return PlannerProgram.evaluateFull(props.fulltext.text, props.settings);
-  }, [props.fulltext.text, props.settings.exercises]);
+    return PlannerProgram.evaluateFull(fulltext, props.settings);
+  }, [fulltext, props.settings.exercises]);
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
 
   return (
     <div className="relative">
@@ -32,16 +33,17 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
             customExercises={props.settings.exercises}
             exerciseFullNames={exerciseFullNames}
             error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
-            value={props.fulltext.text}
+            value={fulltext}
             onCustomErrorCta={(err) => (
               <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.plannerDispatch} err={err} />
             )}
-            onChange={(e) => props.plannerDispatch(lb<IPlannerState>().pi("fulltext").p("text").record(e))}
+            onChange={(text) => {
+              const weeks = PlannerProgram.evaluateText(text);
+              props.plannerDispatch(lbProgram.p("weeks").record(weeks));
+            }}
             lineNumbers={true}
             onBlur={(e, text) => {}}
-            onLineChange={(line) => {
-              props.plannerDispatch(lb<IPlannerState>().pi("fulltext").p("currentLine").record(line));
-            }}
+            onLineChange={(line) => {}}
           />
         </div>
       </div>

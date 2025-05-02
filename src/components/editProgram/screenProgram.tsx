@@ -99,17 +99,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const { evaluatedWeeks, exerciseFullNames } = PlannerProgram.evaluate(planner, props.settings);
   const ui = plannerState.ui;
 
-  const fulltext = props.plannerState.fulltext;
-  const fullEvaluatedWeeks = fulltext
-    ? useMemo(() => {
-        return PlannerProgram.evaluateFull(fulltext.text, props.settings);
-      }, [fulltext.text, props.settings.exercises]).evaluatedWeeks
-    : undefined;
-  const programForPlayground: IProgram =
-    fulltext && fullEvaluatedWeeks && fullEvaluatedWeeks.success
-      ? { ...program, planner: { ...program.planner!, weeks: PlannerProgram.evaluateText(fulltext.text) } }
-      : program;
-  console.log("sds", ui.showDayStats);
+  const editExerciseModal = ui.editExerciseModal;
 
   return (
     <Surface
@@ -275,6 +265,60 @@ export function ScreenProgram(props: IProps): JSX.Element {
               />
             </Modal>
           )}
+          {editExerciseModal && (
+            <Modal
+              shouldShowClose={true}
+              onClose={() => plannerDispatch(lbUi.p("editExerciseModal").record(undefined))}
+            >
+              <h3 className="mb-2 text-lg font-semibold text-center">Change Exercise</h3>
+              <div className="flex gap-4">
+                <div>
+                  <Button
+                    name="edit-exercise-change-one"
+                    kind="orange"
+                    onClick={() => {
+                      plannerDispatch([
+                        lbUi.p("editExerciseModal").record(undefined),
+                        lbUi.p("modalExercise").record({
+                          focusedExercise: editExerciseModal.focusedExercise,
+                          types: [],
+                          muscleGroups: [],
+                          exerciseKey: editExerciseModal.exerciseKey,
+                          fullName: editExerciseModal.fullName,
+                          exerciseType: editExerciseModal.exerciseType,
+                          change: "one",
+                        }),
+                      ]);
+                    }}
+                  >
+                    Change only for this week/day
+                  </Button>
+                </div>
+                <div>
+                  <Button
+                    name="edit-exercise-change-all"
+                    kind="purple"
+                    onClick={() => {
+                      plannerDispatch([
+                        lbUi.p("editExerciseModal").record(undefined),
+                        lbUi.p("modalExercise").record({
+                          focusedExercise: editExerciseModal.focusedExercise,
+                          types: [],
+                          muscleGroups: [],
+                          exerciseKey: editExerciseModal.exerciseKey,
+                          fullName: editExerciseModal.fullName,
+                          exerciseType: editExerciseModal.exerciseType,
+                          change: "all",
+                        }),
+                      ]);
+                    }}
+                  >
+                    Change across whole program
+                  </Button>
+                </div>
+              </div>
+            </Modal>
+          )}
         </>
       }
     >
@@ -309,7 +353,6 @@ export function ScreenProgram(props: IProps): JSX.Element {
                 <EditProgramView
                   evaluatedWeeks={evaluatedWeeks}
                   exerciseFullNames={exerciseFullNames}
-                  fullEvaluatedWeeks={fullEvaluatedWeeks}
                   dispatch={props.dispatch}
                   originalProgram={props.originalProgram}
                   settings={props.settings}
@@ -329,7 +372,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
                     type: "squares",
                   }}
                   isPlayground={true}
-                  program={programForPlayground}
+                  program={program}
                   settings={props.settings}
                 />
               ),

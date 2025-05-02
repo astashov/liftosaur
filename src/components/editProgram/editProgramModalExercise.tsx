@@ -2,7 +2,7 @@ import { h, JSX, Fragment } from "preact";
 import { ICustomExercise, IExerciseKind, IMuscle, ISettings } from "../../types";
 import { lb } from "lens-shmens";
 import { EditProgram } from "../../models/editProgram";
-import { Exercise, equipmentName } from "../../models/exercise";
+import { Exercise } from "../../models/exercise";
 import { Program } from "../../models/program";
 import { updateSettings } from "../../models/state";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
@@ -46,107 +46,53 @@ export function EditProgramModalExercise(props: IEditProgramModalExerciseProps):
           if (!exerciseType) {
             return;
           }
-          if (plannerState.fulltext) {
-            const newProgram = {
-              ...plannerState.current.program,
-              planner: {
-                name: plannerState.current.program.name,
-                weeks: PlannerProgram.evaluateText(plannerState.fulltext.text),
-              },
-            };
-
-            const newPlannerProgramResult = PlannerProgram.replaceExercise(
-              newProgram,
+          if (modalExerciseUi.change === "one") {
+            const focusedExercise = modalExerciseUi.focusedExercise;
+            const newPlanner = PlannerProgram.replaceExercise(
+              planner,
+              modalExerciseUi.exerciseKey,
+              exerciseType,
+              props.settings,
+              { week: focusedExercise.weekIndex + 1, dayInWeek: focusedExercise.dayIndex + 1, day: 1 }
+            );
+            plannerDispatch([lbProgram.record(newPlanner)]);
+          } else if (modalExerciseUi.change === "duplicate") {
+            const focusedExercise = modalExerciseUi.focusedExercise;
+            const exercise = Exercise.find(exerciseType, props.settings.exercises);
+            if (exercise && modalExerciseUi.fullName) {
+              const newPlannerProgram = EditProgramUiHelpers.duplicateCurrentInstance(
+                planner,
+                { week: focusedExercise.weekIndex + 1, dayInWeek: focusedExercise.dayIndex + 1, day: 1 },
+                modalExerciseUi.fullName,
+                exerciseType,
+                props.settings
+              );
+              plannerDispatch([lbProgram.record(newPlannerProgram)]);
+            }
+          } else {
+            const newPlanner = PlannerProgram.replaceExercise(
+              planner,
               modalExerciseUi.exerciseKey,
               exerciseType,
               props.settings
             );
-            if (newPlannerProgramResult.success) {
-              const newText = PlannerProgram.generateFullText(newPlannerProgramResult.data.planner!.weeks);
-              plannerDispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)]);
-            } else {
-              alert(newPlannerProgramResult.error);
-            }
-          } else {
-            if (modalExerciseUi.change === "one") {
-              const focusedExercise = modalExerciseUi.focusedExercise;
-              const exercise = Exercise.find(exerciseType, props.settings.exercises);
-              if (exercise && modalExerciseUi.fullName) {
-                const newShortName = `${exercise.name}${
-                  exerciseType.equipment != null && exerciseType.equipment !== exercise?.defaultEquipment
-                    ? `, ${equipmentName(exerciseType.equipment)}`
-                    : ""
-                }`;
-                const newPlannerProgram = EditProgramUiHelpers.changeCurrentInstance(
-                  planner,
-                  { week: focusedExercise.weekIndex + 1, dayInWeek: focusedExercise.dayIndex + 1, day: 1 },
-                  modalExerciseUi.fullName,
-                  props.settings,
-                  (e) => {
-                    e.fullName = `${e.label ? `${e.label}: ` : ""}${newShortName}`;
-                  }
-                );
-                plannerDispatch([lbProgram.record(newPlannerProgram)]);
-              }
-            } else if (modalExerciseUi.change === "duplicate") {
-              const focusedExercise = modalExerciseUi.focusedExercise;
-              const exercise = Exercise.find(exerciseType, props.settings.exercises);
-              if (exercise && modalExerciseUi.fullName) {
-                const newPlannerProgram = EditProgramUiHelpers.duplicateCurrentInstance(
-                  planner,
-                  { week: focusedExercise.weekIndex + 1, dayInWeek: focusedExercise.dayIndex + 1, day: 1 },
-                  modalExerciseUi.fullName,
-                  exerciseType,
-                  props.settings
-                );
-                plannerDispatch([lbProgram.record(newPlannerProgram)]);
-              }
-            } else {
-              const newPlannerProgramResult = PlannerProgram.replaceExercise(
-                plannerState.current.program,
-                modalExerciseUi.exerciseKey,
-                exerciseType,
-                props.settings
-              );
-              if (newPlannerProgramResult.success) {
-                plannerDispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgramResult.data)]);
-              } else {
-                alert(newPlannerProgramResult.error);
-              }
-            }
+            plannerDispatch([lbProgram.record(newPlanner)]);
           }
         } else {
           plannerDispatch([
-            props.plannerState.fulltext
-              ? lb<IPlannerState>()
-                  .pi("fulltext")
-                  .p("text")
-                  .recordModify((text) => {
-                    if (!exerciseType) {
-                      return text;
-                    }
-                    const line = props.plannerState.fulltext?.currentLine;
-                    if (line == null) {
-                      return text;
-                    }
-                    const exercise = Exercise.getById(exerciseType.id, props.settings.exercises);
-                    const lines = text.split("\n");
-                    lines.splice(line, 0, exercise.name);
-                    return lines.join("\n");
-                  })
-              : lbProgram
-                  .p("weeks")
-                  .i(modalExerciseUi.focusedExercise.weekIndex)
-                  .p("days")
-                  .i(modalExerciseUi.focusedExercise.dayIndex)
-                  .p("exerciseText")
-                  .recordModify((exerciseText) => {
-                    if (!exerciseType) {
-                      return exerciseText;
-                    }
-                    const exercise = Exercise.getById(exerciseType.id, props.settings.exercises);
-                    return exerciseText + `\n${exercise.name} / 1x1 100${props.settings.units}`;
-                  }),
+            lbProgram
+              .p("weeks")
+              .i(modalExerciseUi.focusedExercise.weekIndex)
+              .p("days")
+              .i(modalExerciseUi.focusedExercise.dayIndex)
+              .p("exerciseText")
+              .recordModify((exerciseText) => {
+                if (!exerciseType) {
+                  return exerciseText;
+                }
+                const exercise = Exercise.getById(exerciseType.id, props.settings.exercises);
+                return exerciseText + `\n${exercise.name} / 1x1 100${props.settings.units}`;
+              }),
           ]);
         }
         plannerDispatch(

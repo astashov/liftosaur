@@ -35,6 +35,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
 
   const currentWeek = planner.weeks[currentWeekIndex];
   const lbPlanner = lb<IPlannerState>().p("current").p("program").pi("planner");
+  const lbUi = lb<IPlannerState>().p("ui");
   const lbPlannerWeek = lbPlanner.p("weeks").i(currentWeekIndex);
 
   const isValidProgram = props.evaluatedWeeks.every((week) => week.every((day) => day.success));
@@ -65,22 +66,25 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
               <IconMusclesW size={20} />
             </button>
           </div>
-          <div>
-            <button
-              className="px-2"
-              onClick={() => {
-                if (confirm("Are you sure you want to delete this week?")) {
-                  props.plannerDispatch(
+          {props.evaluatedWeeks.length > 1 && (
+            <div>
+              <button
+                className="px-2"
+                onClick={() => {
+                  props.plannerDispatch([
                     lbPlanner.p("weeks").recordModify((weeks) => {
                       return CollectionUtils.removeAt(weeks, currentWeekIndex);
-                    })
-                  );
-                }
-              }}
-            >
-              <IconTrash />
-            </button>
-          </div>
+                    }),
+                    lbUi.p("weekIndex").recordModify((wi) => {
+                      return wi > 0 ? wi - 1 : 0;
+                    }),
+                  ]);
+                }}
+              >
+                <IconTrash />
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className="px-3 py-1">
@@ -152,7 +156,6 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
             dayInWeek: dayInWeekIndex + 1,
             day: dayInWeekIndex + dayIndexOffset,
           };
-          console.log("dayData", dayData);
           return (
             <EditProgramUiDayView
               key={plannerDay.id}

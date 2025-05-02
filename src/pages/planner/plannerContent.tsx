@@ -562,7 +562,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   weeks: PlannerProgram.evaluateText(state.fulltext.text),
                 };
                 const newProgram = { ...program, planner: newPlanner };
-                const newProgramResult = PlannerProgram.replaceExercise(
+                const newProgramResult = PlannerProgram.replaceAndValidateExercise(
                   newProgram,
                   modalExerciseUi.exerciseKey,
                   exerciseType,
@@ -575,7 +575,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   alert(newProgramResult.error);
                 }
               } else {
-                const newProgramResult = PlannerProgram.replaceExercise(
+                const newProgramResult = PlannerProgram.replaceAndValidateExercise(
                   program,
                   modalExerciseUi.exerciseKey,
                   exerciseType,

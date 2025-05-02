@@ -201,9 +201,13 @@ export interface IPlannerUi {
   weekUi: {
     collapsed: Set<string>;
   };
-  editWeekDayModal?: { weekIndex: number; dayIndex?: number };
+  editExerciseModal?: {
+    focusedExercise: IPlannerUiFocusedExercise;
+    exerciseType?: IExerciseType;
+    exerciseKey?: string;
+    fullName?: string;
+  };
   weekIndex: number;
-  subscreen?: "weeks" | "full";
   showPictureExport?: boolean;
   showWeekStats?: number;
   showDayStats?: number;
@@ -211,7 +215,7 @@ export interface IPlannerUi {
   showPreview?: boolean;
   focusedDay?: IDayData;
   showSettingsModal?: boolean;
-  isUiMode?: boolean;
+  mode?: "reorder" | "ui" | "perday" | "full";
 }
 
 export interface IPlannerFullText {

@@ -20,6 +20,7 @@ import { IconArrowDown3 } from "../icons/iconArrowDown3";
 import { PlannerKey } from "../../pages/planner/plannerKey";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { IconGraphsE } from "../icons/iconGraphsE";
+import { IconSwap } from "../icons/iconSwap";
 
 interface IEditProgramUiExerciseViewProps {
   plannerExercise: IPlannerProgramExercise;
@@ -36,6 +37,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
   const { weekIndex, dayIndex, exerciseIndex } = props;
   const isCollapsed = props.ui.exerciseUi.collapsed.has(props.plannerExercise.id);
   const exercise = Exercise.findByName(props.plannerExercise.name, props.settings.exercises);
+  const exerciseType = exercise != null ? { id: exercise.id, equipment: exercise.equipment } : undefined;
   if (exercise == null) {
     return <div />;
   }
@@ -55,17 +57,39 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
         <div className="mr-2">
           <SetNumber size="sm" setIndex={props.exerciseIndex} />
         </div>
-        <div className="flex-1 text-base font-bold" data-cy="planner-ui-exercise-name">
+        <div className="flex items-center flex-1 text-base font-bold" data-cy="planner-ui-exercise-name">
           {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
           {props.plannerExercise.name}
           {props.plannerExercise.equipment != null &&
             props.plannerExercise.equipment !== exercise?.defaultEquipment && (
-              <div className="text-xs text-grayv2-main">{equipmentName(props.plannerExercise.equipment)}</div>
+              <div className="">, {equipmentName(props.plannerExercise.equipment)}</div>
             )}
           {orderAndRepeat ? <span className="text-sm font-normal text-blackv2"> [{orderAndRepeat}]</span> : ""}
           {props.plannerExercise.notused && (
             <div className="px-1 ml-3 text-xs font-bold text-white rounded bg-grayv2-main">UNUSED</div>
           )}
+          <button
+            className="p-2"
+            onClick={() => {
+              props.plannerDispatch(
+                lb<IPlannerState>()
+                  .p("ui")
+                  .p("editExerciseModal")
+                  .record({
+                    focusedExercise: {
+                      weekIndex,
+                      dayIndex,
+                      exerciseLine: props.plannerExercise.line,
+                    },
+                    exerciseKey: PlannerKey.fromPlannerExercise(props.plannerExercise, props.settings),
+                    fullName: props.plannerExercise.fullName,
+                    exerciseType,
+                  })
+              );
+            }}
+          >
+            <IconSwap size={12} />
+          </button>
         </div>
         <div>
           <button

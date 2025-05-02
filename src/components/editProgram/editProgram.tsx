@@ -25,7 +25,6 @@ import { IPlannerEvalFullResult, IPlannerEvalResult } from "../../pages/planner/
 import { ObjectUtils } from "../../utils/object";
 
 interface IEditProgramViewProps {
-  fullEvaluatedWeeks?: IPlannerEvalFullResult;
   evaluatedWeeks: IPlannerEvalResult[][];
   exerciseFullNames: string[];
   state: IPlannerState;
@@ -33,24 +32,6 @@ interface IEditProgramViewProps {
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
   settings: ISettings;
-}
-
-function saveFullText(plannerDispatch: ILensDispatch<IPlannerState>): void {
-  const lensGetters = { fulltext: lb<IPlannerState>().p("fulltext").get() };
-  plannerDispatch([
-    lbu<IPlannerState, typeof lensGetters>(lensGetters)
-      .p("current")
-      .p("program")
-      .pi("planner")
-      .p("weeks")
-      .recordModify((oldWeeks, getters) => {
-        const text = getters.fulltext?.text;
-        if (text == null) {
-          return oldWeeks;
-        }
-        return PlannerProgram.evaluateText(text);
-      }),
-  ]);
 }
 
 export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
@@ -68,14 +49,13 @@ export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
         state={props.state}
         plannerDispatch={props.plannerDispatch}
       />
-      {ui.subscreen === "weeks" ? (
+      {ui.mode === "reorder" ? (
         <EditProgramV2Weeks state={props.state} settings={props.settings} plannerDispatch={props.plannerDispatch} />
-      ) : props.state.fulltext != null ? (
+      ) : ui.mode === "full" ? (
         <EditProgramV2Full
           plannerProgram={planner}
           ui={ui}
           lbUi={lb<IPlannerState>().pi("ui")}
-          fulltext={props.state.fulltext}
           settings={props.settings}
           plannerDispatch={props.plannerDispatch}
         />
@@ -160,68 +140,39 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
       </div>
       <div className="flex items-center">
         <EditProgramModeSwitchButton
-          isSelected={props.state.ui.subscreen === "weeks"}
+          isSelected={props.state.ui.mode === "reorder"}
           disabled={!isValid}
           name="program-mode-reorder"
           onClick={() => {
-            if (props.state.fulltext) {
-              saveFullText(props.plannerDispatch);
-            }
-            props.plannerDispatch([
-              lb<IPlannerState>().p("ui").p("subscreen").record("weeks"),
-              lb<IPlannerState>().p("ui").p("isUiMode").record(false),
-              lb<IPlannerState>().p("fulltext").record(undefined),
-            ]);
+            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("reorder")]);
           }}
         >
           {(color) => <IconReorder color={color} />}
         </EditProgramModeSwitchButton>
         <EditProgramModeSwitchButton
-          isSelected={props.state.ui.isUiMode === true && !props.state.fulltext && !props.state.ui.subscreen}
+          isSelected={props.state.ui.mode === "ui"}
           name="program-mode-ui"
           disabled={!isValid}
           onClick={() => {
-            if (props.state.fulltext) {
-              saveFullText(props.plannerDispatch);
-            }
-            props.plannerDispatch([
-              lb<IPlannerState>().p("ui").p("subscreen").record(undefined),
-              lb<IPlannerState>().p("ui").p("isUiMode").record(true),
-              lb<IPlannerState>().p("fulltext").record(undefined),
-            ]);
+            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("ui")]);
           }}
         >
           {(color) => <IconUiMode color={color} />}
         </EditProgramModeSwitchButton>
         <EditProgramModeSwitchButton
-          isSelected={!props.state.ui.isUiMode && !props.state.fulltext && !props.state.ui.subscreen}
+          isSelected={props.state.ui.mode === "perday"}
           name="program-mode-day-text"
-          disabled={!isValid}
           onClick={() => {
-            if (props.state.fulltext) {
-              saveFullText(props.plannerDispatch);
-            }
-            props.plannerDispatch([
-              lb<IPlannerState>().p("ui").p("subscreen").record(undefined),
-              lb<IPlannerState>().p("ui").p("isUiMode").record(false),
-              lb<IPlannerState>().p("fulltext").record(undefined),
-            ]);
+            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("perday")]);
           }}
         >
           {(color) => <IconDayTextMode color={color} />}
         </EditProgramModeSwitchButton>
         <EditProgramModeSwitchButton
-          isSelected={!!props.state.fulltext && !props.state.ui.subscreen}
+          isSelected={props.state.ui.mode === "full"}
           name="program-mode-full-text"
-          disabled={!isValid}
           onClick={() => {
-            props.plannerDispatch([
-              lb<IPlannerState>().p("ui").p("subscreen").record(undefined),
-              lb<IPlannerState>().p("ui").p("isUiMode").record(false),
-              lb<IPlannerState>()
-                .p("fulltext")
-                .record({ text: PlannerProgram.generateFullText(planner.weeks) }),
-            ]);
+            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("full")]);
           }}
         >
           {(color) => <IconFullTextMode color={color} />}
@@ -244,13 +195,6 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
                 })),
               })),
             };
-            if (props.state.fulltext) {
-              saveFullText(props.plannerDispatch);
-              newPlanner = {
-                ...newPlanner,
-                weeks: PlannerProgram.evaluateText(props.state.fulltext.text),
-              };
-            }
             const newProgram: IProgram = {
               ...Program.cleanPlannerProgram(props.originalProgram),
               planner: newPlanner,

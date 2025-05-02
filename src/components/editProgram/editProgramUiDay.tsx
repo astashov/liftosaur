@@ -224,7 +224,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
             {duration.value} {duration.unit}
           </div>
         </div>
-        {!props.ui.isUiMode && props.ui.focusedExercise && evaluatedDay.success && (
+        {props.ui.mode !== "ui" && props.ui.focusedExercise && evaluatedDay.success && (
           <div className="ml-auto">
             <button
               className="px-2"
@@ -236,7 +236,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
             </button>
           </div>
         )}
-        {props.ui.isUiMode && evaluatedDay.success && (
+        {props.ui.mode === "ui" && evaluatedDay.success && (
           <div className="ml-auto mr-2">
             <LinkButton
               name="collapse-all-exercises"
@@ -267,7 +267,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
         )}
       </div>
       <div className="pt-2">
-        {props.ui.isUiMode && props.isValidProgram && evaluatedDay.success ? (
+        {props.ui.mode === "ui" && props.isValidProgram && evaluatedDay.success ? (
           <div>
             <DraggableList
               items={evaluatedDay.data}

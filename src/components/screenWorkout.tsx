@@ -213,7 +213,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                           progress.entries[entryIndex]?.programExerciseId
                         );
                         if (program && programExercise) {
-                          const newEvaluatedProgram = PlannerProgram.replaceExercise(
+                          const newEvaluatedProgram = PlannerProgram.replaceAndValidateExercise(
                             program,
                             programExercise.key,
                             exerciseType,
