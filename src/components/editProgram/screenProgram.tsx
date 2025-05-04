@@ -7,10 +7,10 @@ import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { Footer2View } from "../footer2";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { ILensRecordingPayload, lb } from "lens-shmens";
+import { lb } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { HelpEditProgramV2 } from "../help/helpEditProgramV2";
-import { undoRedoMiddleware, useUndoRedo } from "../../pages/builder/utils/undoredo";
+import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { IEvaluatedProgram, Program } from "../../models/program";
 import { StringUtils } from "../../utils/string";
 import { Tailwind } from "../../utils/tailwindConfig";
@@ -40,6 +40,7 @@ import { ModalPlannerSettings } from "../../pages/planner/components/modalPlanne
 import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats";
 import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
 import { UidFactory } from "../../utils/generator";
+import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 
 interface IProps {
   originalProgram: IProgram;
@@ -59,18 +60,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
 
   const plannerDispatch: ILensDispatch<IPlannerState> = useCallback(
-    (lensRecording: ILensRecordingPayload<IPlannerState> | ILensRecordingPayload<IPlannerState>[], desc?: string) => {
-      const lensRecordings = Array.isArray(lensRecording) ? lensRecording : [lensRecording];
-      updateState(
-        props.dispatch,
-        lensRecordings.map((recording) => recording.prepend(lb<IState>().pi("editProgramV2"))),
-        desc
-      );
-      const changesCurrent = lensRecordings.some((recording) => recording.lens.from.some((f) => f === "current"));
-      if (!(desc === "undo") && changesCurrent) {
-        undoRedoMiddleware(plannerDispatch, plannerState);
-      }
-    },
+    buildPlannerDispatch(props.dispatch, lb<IState>().pi("editProgramV2"), plannerState),
     [plannerState]
   );
   useUndoRedo(plannerState, plannerDispatch);

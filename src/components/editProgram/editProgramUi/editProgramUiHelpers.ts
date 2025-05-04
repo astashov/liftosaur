@@ -166,6 +166,21 @@ export class EditProgramUiHelpers {
     return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ reorder });
   }
 
+  public static changeAllInstances(
+    planner: IPlannerProgram,
+    fullName: string,
+    settings: ISettings,
+    cb: (exercise: IPlannerProgramExercise) => void
+  ): IPlannerProgram {
+    const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
+    PP.iterate2(evaluatedProgram.weeks, (e) => {
+      if (e.fullName === fullName) {
+        cb(e);
+      }
+    });
+    return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
+  }
+
   public static changeCurrentInstance(
     program: IPlannerProgram,
     dayData: Required<IDayData>,
