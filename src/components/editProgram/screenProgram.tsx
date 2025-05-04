@@ -7,7 +7,7 @@ import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { Footer2View } from "../footer2";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { lb } from "lens-shmens";
+import { lb, LensBuilder } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { HelpEditProgramV2 } from "../help/helpEditProgramV2";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
@@ -60,7 +60,17 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
 
   const plannerDispatch: ILensDispatch<IPlannerState> = useCallback(
-    buildPlannerDispatch(props.dispatch, lb<IState>().pi("editProgramV2"), plannerState),
+    buildPlannerDispatch(
+      props.dispatch,
+      (
+        lb<IState>().p("screenStack").findBy("name", "editProgram").p("params") as LensBuilder<
+          IState,
+          { plannerState: IPlannerState },
+          {}
+        >
+      ).pi("plannerState"),
+      plannerState
+    ),
     [plannerState]
   );
   useUndoRedo(plannerState, plannerDispatch);

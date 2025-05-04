@@ -207,7 +207,6 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
                 .recordModify((programs) => {
                   return CollectionUtils.setBy(programs, "id", props.originalProgram.id, newProgram);
                 }),
-              lb<IState>().p("editProgramV2").record(undefined),
             ]);
             props.dispatch(Thunk.pushScreen("main", undefined, true));
           }}

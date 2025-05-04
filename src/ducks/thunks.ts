@@ -389,15 +389,16 @@ export namespace Thunk {
   export function pushToEditProgramExercise(exerciseType: IExerciseType, dayData: Required<IDayData>): IThunk {
     return async (dispatch, getState) => {
       const state = getState();
+      const programScreen = state.screenStack.find((s) => s.name === "editProgram");
+      const data = programScreen?.name === "editProgram" ? programScreen.params?.plannerState : undefined;
       const currentProgram =
-        state.editProgramV2?.current?.program ??
+        data?.current.program ||
         (state.storage.currentProgramId != null
           ? Program.getProgram(state, state.storage.currentProgramId)
           : undefined);
       if (currentProgram && !Program.isEmpty(currentProgram)) {
         const plannerState = EditProgram.initPlannerProgramExerciseState(currentProgram);
-        updateState(dispatch, [lb<IState>().p("editProgramExercise").record(plannerState)]);
-        dispatch(Thunk.pushScreen("editProgramExercise", { exerciseType, dayData }));
+        dispatch(Thunk.pushScreen("editProgramExercise", { exerciseType, dayData, plannerState }));
       } else {
         dispatch(Thunk.pushScreen("main"));
       }
@@ -411,13 +412,15 @@ export namespace Thunk {
   ): IThunk {
     return async (dispatch, getState) => {
       dispatch(postevent("navigate-to-" + screen));
-      const confirmation = Screen.shouldConfirmNavigation(getState(), "push");
-      if (confirmation) {
-        if (confirm(confirmation)) {
-          cleanup(dispatch, getState());
-          dispatch({ type: "PullScreen" });
-        } else {
-          return;
+      if (shouldResetStack) {
+        const confirmation = Screen.shouldConfirmNavigation(getState());
+        if (confirmation) {
+          if (confirm(confirmation)) {
+            cleanup(dispatch, getState());
+            dispatch({ type: "PullScreen" });
+          } else {
+            return;
+          }
         }
       }
       if (
@@ -505,22 +508,11 @@ export namespace Thunk {
           .recordModify((progresses) => Progress.stop(progresses, progress.id)),
       ]);
     }
-
-    const currentScreen = Screen.currentName(state.screenStack);
-    const editProgramV2 = state.editProgramV2;
-    if (editProgramV2 && currentScreen !== "editProgramExercise") {
-      updateState(dispatch, [lb<IState>().p("editProgramV2").record(undefined)]);
-    }
-
-    const editProgramExercise = state.editProgramExercise;
-    if (editProgramExercise) {
-      updateState(dispatch, [lb<IState>().p("editProgramExercise").record(undefined)]);
-    }
   }
 
   export function pullScreen(): IThunk {
     return async (dispatch, getState) => {
-      const confirmation = Screen.shouldConfirmNavigation(getState(), "pull");
+      const confirmation = Screen.shouldConfirmNavigation(getState());
       if (confirmation) {
         if (confirm(confirmation)) {
           cleanup(dispatch, getState());
@@ -534,13 +526,14 @@ export namespace Thunk {
   }
 
   export function publishProgram(
+    program: IProgram,
     args: Pick<IProgram, "id" | "author" | "name" | "shortDescription" | "description" | "url">
   ): IThunk {
     const { id, author, name, description, shortDescription, url } = args;
     return async (dispatch, getState, env) => {
       const state = getState();
-      const program = {
-        ...Program.getEditingProgram(state)!,
+      const newProgram = {
+        ...program,
         id,
         author,
         name,
@@ -549,7 +542,7 @@ export namespace Thunk {
         url,
       };
       if (state.adminKey) {
-        await env.service.publishProgram(program, state.adminKey);
+        await env.service.publishProgram(newProgram, state.adminKey);
         alert("Published");
       }
     };

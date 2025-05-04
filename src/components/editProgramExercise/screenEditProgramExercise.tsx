@@ -3,7 +3,7 @@ import { IPlannerExerciseState, IPlannerState } from "../../pages/planner/models
 import { IDispatch } from "../../ducks/types";
 import { IDayData, IExerciseType, ISettings } from "../../types";
 import { INavCommon, IState, updateState } from "../../models/state";
-import { lb } from "lens-shmens";
+import { lb, LensBuilder } from "lens-shmens";
 import { useCallback } from "preact/hooks";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -24,7 +24,6 @@ interface IProps {
   plannerState: IPlannerExerciseState;
   exerciseType: IExerciseType;
   dayData: Required<IDayData>;
-  editProgramState?: IPlannerState;
   dispatch: IDispatch;
   settings: ISettings;
   navCommon: INavCommon;
@@ -34,7 +33,17 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const { plannerState, exerciseType } = props;
 
   const plannerDispatch: ILensDispatch<IPlannerExerciseState> = useCallback(
-    buildPlannerDispatch(props.dispatch, lb<IState>().pi("editProgramExercise"), plannerState),
+    buildPlannerDispatch(
+      props.dispatch,
+      (
+        lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
+          IState,
+          { plannerState: IPlannerExerciseState },
+          {}
+        >
+      ).pi("plannerState"),
+      plannerState
+    ),
     [plannerState]
   );
   useUndoRedo(plannerState, plannerDispatch);
@@ -48,6 +57,8 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const repeatStr = PlannerProgramExercise.repeatToRangeStr(plannerExercise);
   const order = plannerExercise.order !== 0 ? plannerExercise.order : undefined;
   const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
+  const editProgramScreen = props.navCommon.screenStack.find((s) => s.name === "editProgram");
+  const editProgramState = editProgramScreen?.params?.plannerState;
 
   return (
     <Surface
@@ -64,11 +75,17 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
               data-cy="save-program-exercise"
               onClick={() => {
                 if (confirm("Are you sure?")) {
-                  if (props.editProgramState) {
+                  if (editProgramState) {
                     const plannerDispatch = buildPlannerDispatch(
                       props.dispatch,
-                      lb<IState>().pi("editProgramV2"),
-                      props.editProgramState
+                      (
+                        lb<IState>().p("screenStack").findBy("name", "editProgram").p("params") as LensBuilder<
+                          IState,
+                          { plannerState: IPlannerState },
+                          {}
+                        >
+                      ).pi("plannerState"),
+                      editProgramState
                     );
                     plannerDispatch(lb<IPlannerState>().p("current").p("program").record(plannerState.current.program));
                   } else {
@@ -84,11 +101,9 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                             plannerState.current.program
                           );
                         }),
-                      lb<IState>().p("editProgramV2").record(undefined),
                     ]);
                   }
                   props.dispatch(Thunk.pullScreen());
-                  updateState(props.dispatch, [lb<IState>().p("editProgramExercise").record(undefined)]);
                 }
               }}
             >

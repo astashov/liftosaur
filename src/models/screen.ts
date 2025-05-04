@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { IState } from "./state";
 import { dequal } from "dequal";
-import { Program } from "./program";
 import { Progress } from "./progress";
-import { ObjectUtils } from "../utils/object";
 import { IDayData, IExerciseType, IStatsKey } from "../types";
+import { IPlannerExerciseState, IPlannerState } from "../pages/planner/models/types";
+import { Program } from "./program";
+import { ObjectUtils } from "../utils/object";
+import { CollectionUtils } from "../utils/collection";
 
 export type ITab = "home" | "program" | "workout" | "graphs" | "me";
 
@@ -25,10 +27,10 @@ export type IScreenData =
   | { name: "units"; params?: Record<string, never> }
   | { name: "appleHealth"; params?: Record<string, never> }
   | { name: "googleHealth"; params?: Record<string, never> }
-  | { name: "editProgram"; params?: Record<string, never> }
+  | { name: "editProgram"; params?: { plannerState: IPlannerState } }
   | {
       name: "editProgramExercise";
-      params?: { exerciseType: IExerciseType; dayData: Required<IDayData> };
+      params?: { exerciseType: IExerciseType; dayData: Required<IDayData>; plannerState: IPlannerExerciseState };
     }
   | { name: "measurements"; params?: { key: IStatsKey } }
   | { name: "subscription"; params?: Record<string, never> }
@@ -41,8 +43,6 @@ export type IScreenStack = IScreenData[];
 export type IScreenParams<T extends IScreen> = Extract<IScreenData, { name: T }>["params"];
 
 export namespace Screen {
-  export const editProgramScreens: IScreen[] = ["editProgram"];
-
   export function currentName(stack: IScreenStack): IScreen {
     return stack[stack.length - 1].name;
   }
@@ -79,11 +79,7 @@ export namespace Screen {
     return ["first", "finishDay", "subscription", "programs", "measurements"].indexOf(curr) === -1;
   }
 
-  export function shouldConfirmNavigation(
-    state: IState,
-    type: "push" | "pull",
-    toScreen?: IScreen
-  ): string | undefined {
+  export function shouldConfirmNavigation(state: IState): string | undefined {
     const progress = Progress.getProgress(state);
     if (progress && !Progress.isCurrent(progress)) {
       const oldHistoryRecord = state.storage.history.find((hr) => hr.id === progress.id);
@@ -92,29 +88,46 @@ export namespace Screen {
       }
     }
 
-    const currentScreen = Screen.currentName(state.screenStack);
-    if (currentScreen === "editProgram" && !(type === "push" && toScreen === "editProgramExercise")) {
-      const editProgramV2 = state.editProgramV2;
-      if (editProgramV2) {
-        let editProgram = Program.getEditingProgram(state);
-        editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
-        if (editProgram?.planner && !ObjectUtils.isEqual(editProgram.planner, editProgramV2.current.program.planner!)) {
-          return "Are you sure? Your program changes won't be saved";
+    const currentScreen = Screen.current(state.screenStack);
+    if (currentScreen.name === "editProgram") {
+      const editProgramState = currentScreen.params?.plannerState;
+      if (editProgramState) {
+        const currentProgram = Program.getProgram(state, editProgramState.current.program.id);
+        if (currentProgram != null && currentProgram.planner && editProgramState.current.program.planner) {
+          if (!ObjectUtils.isEqual(currentProgram.planner, editProgramState.current.program.planner)) {
+            return "Are you sure? Your program changes won't be saved.";
+          }
         }
       }
     }
 
-    if (currentScreen === "editProgramExercise") {
-      const editProgramExercise = state.editProgramExercise;
-      if (editProgramExercise) {
-        let editProgram = state.editProgramV2?.current.program;
-        editProgram = editProgram || Program.getEditingProgram(state);
-        editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
-        if (
-          editProgram?.planner &&
-          !ObjectUtils.isEqual(editProgram.planner, editProgramExercise.current.program.planner!)
-        ) {
-          return "Are you sure? Your program exercise changes won't be saved";
+    if (currentScreen.name === "editProgramExercise") {
+      const editProgramExerciseState = currentScreen.params?.plannerState;
+      if (editProgramExerciseState) {
+        const editProgramScreen = CollectionUtils.findBy(state.screenStack, "name", "editProgram");
+        if (editProgramScreen != null && editProgramScreen.name === "editProgram") {
+          const editProgramState = editProgramScreen.params?.plannerState;
+          if (
+            editProgramState &&
+            editProgramState.current.program.planner &&
+            editProgramExerciseState.current.program.planner
+          ) {
+            if (
+              !ObjectUtils.isEqual(
+                editProgramExerciseState.current.program.planner,
+                editProgramState.current.program.planner
+              )
+            ) {
+              return "Are you sure? Your program exercise changes won't be saved.";
+            }
+          }
+        } else {
+          const currentProgram = Program.getProgram(state, editProgramExerciseState.current.program.id);
+          if (currentProgram != null && currentProgram.planner && editProgramExerciseState.current.program.planner) {
+            if (!ObjectUtils.isEqual(currentProgram.planner, editProgramExerciseState.current.program.planner)) {
+              return "Are you sure? Your program exercise changes won't be saved.";
+            }
+          }
         }
       }
     }
