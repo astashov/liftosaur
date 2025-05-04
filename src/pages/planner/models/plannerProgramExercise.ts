@@ -331,13 +331,17 @@ export class PlannerProgramExercise {
   }
 
   public static getState(exercise: IPlannerProgramExercise): IProgramState {
-    const originalState = exercise.progress?.reuse?.exercise
-      ? this.getState(exercise.progress.reuse.exercise)
-      : exercise.reuse?.exercise
-        ? this.getState(exercise.reuse.exercise)
-        : {};
+    if (exercise.progress?.state && !exercise.progress.reuse) {
+      return exercise.progress.state;
+    } else {
+      const originalState = exercise.progress?.reuse?.exercise
+        ? this.getState(exercise.progress.reuse.exercise)
+        : exercise.reuse?.exercise
+          ? this.getState(exercise.reuse.exercise)
+          : {};
 
-    return { ...originalState, ...exercise.progress?.state };
+      return { ...originalState, ...exercise.progress?.state };
+    }
   }
 
   public static getOnlyChangedState(exercise: IPlannerProgramExercise): IProgramState {
@@ -363,13 +367,17 @@ export class PlannerProgramExercise {
   }
 
   public static getStateMetadata(exercise: IPlannerProgramExercise): IProgramStateMetadata {
-    const originalState = exercise.progress?.reuse?.exercise
-      ? this.getStateMetadata(exercise.progress.reuse.exercise)
-      : exercise.reuse?.exercise
-        ? this.getStateMetadata(exercise.reuse.exercise)
-        : {};
+    if (exercise.progress?.stateMetadata && !exercise.progress.reuse) {
+      return exercise.progress.stateMetadata;
+    } else {
+      const originalState = exercise.progress?.reuse?.exercise
+        ? this.getStateMetadata(exercise.progress.reuse.exercise)
+        : exercise.reuse?.exercise
+          ? this.getStateMetadata(exercise.reuse.exercise)
+          : {};
 
-    return { ...originalState, ...exercise.progress?.stateMetadata };
+      return { ...originalState, ...exercise.progress?.stateMetadata };
+    }
   }
 
   public static getUpdateScript(exercise: IPlannerProgramExercise): string | undefined {

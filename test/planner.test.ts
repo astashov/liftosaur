@@ -1076,6 +1076,30 @@ Squat / 1x1 / 100lb / update: custom() {~
 `);
   });
 
+  it("allows reusing progress of exercise that reuses original exercise sets, but has custom progress", () => {
+    const programText = `# Week 1
+## Day 1
+
+Squat / 1x8 100lb / progress: custom(foo: 10lb) { ...Bench Press }
+Bench Press / ...Squat / warmup: none / progress: custom(foo: 5lb, blah: 10lb) {~
+  weights += state.foo + state.blah
+~}
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [[8]],
+    });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x8 / 120lb / progress: custom(foo: 10lb) { ...Bench Press }
+Bench Press / ...Squat / 100lb / warmup: none / progress: custom(foo: 5lb, blah: 10lb) {~
+  weights += state.foo + state.blah
+~}
+
+
+`);
+  });
+
   it("uses the right exercise for reuse", () => {
     const programText = `# Week 1
 ## Day 1
