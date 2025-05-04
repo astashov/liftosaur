@@ -13,24 +13,22 @@ import { ProgramToPlanner } from "../../../models/programToPlanner";
 
 export class EditProgramUiHelpers {
   public static changeFirstInstance(
-    program: IPlannerProgram,
+    planner: IPlannerProgram,
     plannerExercise: IPlannerProgramExercise,
     settings: ISettings,
     cb: (exercise: IPlannerProgramExercise) => void
   ): IPlannerProgram {
     const key = PlannerKey.fromFullName(plannerExercise.fullName, settings);
-    const { evaluatedWeeks } = ObjectUtils.clone(PlannerProgram.evaluate(program, settings));
-    let applied = false;
-    PP.iterate(evaluatedWeeks, (e) => {
-      if (!applied) {
-        const aKey = PlannerKey.fromFullName(e.fullName, settings);
-        if (key === aKey) {
-          cb(e);
-          applied = true;
-        }
+    const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
+    PP.iterate2(evaluatedProgram.weeks, (e) => {
+      const aKey = PlannerKey.fromFullName(e.fullName, settings);
+      if (key === aKey) {
+        cb(e);
+        return true;
       }
+      return false;
     });
-    return this.validateAndReturnProgram(program, evaluatedWeeks, settings);
+    return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
   }
 
   private static getWeeks2(

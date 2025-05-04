@@ -218,6 +218,8 @@ export interface IPlannerUi {
   mode?: "reorder" | "ui" | "perday" | "full";
 }
 
+export interface IPlannerExerciseUi {}
+
 export interface IPlannerFullText {
   text: string;
   currentLine?: number;
@@ -229,6 +231,10 @@ export interface IPlannerState extends IUndoRedoState<{ program: IProgram }> {
   fulltext?: IPlannerFullText;
   initialEncodedProgram?: string;
   encodedProgram?: string;
+}
+
+export interface IPlannerExerciseState extends IUndoRedoState<{ program: IProgram }> {
+  ui: IPlannerExerciseUi;
 }
 
 export interface IExportedPlannerProgram {

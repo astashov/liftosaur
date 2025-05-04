@@ -282,6 +282,15 @@ export class PlannerProgramExercise {
     return groupDisplaySets(displaySets);
   }
 
+  public static degroupWarmupSets(warmupSets: IPlannerProgramExerciseWarmupSet[]): IPlannerProgramExerciseWarmupSet[] {
+    return warmupSets.reduce<IPlannerProgramExerciseWarmupSet[]>((acc, set) => {
+      for (let i = 0; i < set.numberOfSets; i++) {
+        acc.push({ ...set, numberOfSets: 1 });
+      }
+      return acc;
+    }, []);
+  }
+
   public static currentSetVariationIndex(exercise: IPlannerProgramExercise): number {
     const index = exercise.setVariations.findIndex((sv) => sv.isCurrent);
     return index === -1 ? 0 : index;

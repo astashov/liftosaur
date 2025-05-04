@@ -378,6 +378,7 @@ export class ProgramToPlanner {
                   const warmupSets = this.getWarmupSets(evalExercise);
                   if (warmupSets != null) {
                     plannerExercise += ` / warmup: ${warmupSets}`;
+                    addedWarmupsMap[key] = true;
                   }
                 }
 
@@ -652,6 +653,7 @@ export class ProgramToPlanner {
     const groups: [IPlannerProgramExerciseWarmupSet, number][] = [];
     for (const set of sets) {
       const key = this.warmupSetToKey(set);
+      console.log("Warmup key", key);
       if (lastKey == null || lastKey !== key) {
         groups.push([set, 0]);
       }
@@ -724,7 +726,7 @@ export class ProgramToPlanner {
   }
 
   private warmupSetToKey(set: IPlannerProgramExerciseWarmupSet): string {
-    return `${set.reps}-${set.numberOfSets}-${Weight.print(set.weight || set.percentage || 0)}`;
+    return `${set.reps}-${Weight.print(set.weight || set.percentage || 0)}`;
   }
 
   private setToKey(set: IPlannerProgramExerciseEvaluatedSet): string {

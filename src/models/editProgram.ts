@@ -5,7 +5,7 @@ import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
 import { IProgram, IDayData, IProgramState, ISettings } from "../types";
 import { updateStateVariable } from "./editProgramLenses";
-import { IPlannerProgramExercise, IPlannerState } from "../pages/planner/models/types";
+import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerState } from "../pages/planner/models/types";
 import { PP } from "./pp";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { ProgramToPlanner } from "./programToPlanner";
@@ -91,6 +91,14 @@ export namespace EditProgram {
         weekUi: { collapsed: new Set() },
       },
       history: { past: [], future: [] },
+    };
+  }
+
+  export function initPlannerProgramExerciseState(program: IProgram): IPlannerExerciseState {
+    return {
+      current: { program: ObjectUtils.clone(program) },
+      history: { past: [], future: [] },
+      ui: {},
     };
   }
 
