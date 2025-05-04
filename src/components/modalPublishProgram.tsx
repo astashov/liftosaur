@@ -59,7 +59,7 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
             onClick={() => {
               props.onClose();
               dispatch(
-                Thunk.publishProgram({
+                Thunk.publishProgram(program, {
                   id: idRef.current.value,
                   name: nameRef.current.value,
                   shortDescription: shortDescriptionRef.current.value,

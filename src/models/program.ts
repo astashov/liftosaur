@@ -15,7 +15,6 @@ import {
   ISettings,
   IHistoryEntry,
   IExerciseType,
-  IProgramSet,
   IProgramState,
   ISet,
   IHistoryRecord,
@@ -148,10 +147,6 @@ export namespace Program {
     } else {
       return program;
     }
-  }
-
-  export function getEditingProgram(state: IState): IProgram | undefined {
-    return state.storage.programs.find((p) => p.id === state.editProgramV2?.id);
   }
 
   export function isEmpty(program?: IProgram | IEvaluatedProgram): boolean {
@@ -888,56 +883,7 @@ export namespace Program {
 
   export function editAction(dispatch: IDispatch, program: IProgram, dayData?: IDayData, resetStack?: boolean): void {
     const plannerState = EditProgram.initPlannerState(program.id, program, dayData);
-    updateState(dispatch, [lb<IState>().p("editProgramV2").record(plannerState)]);
-    dispatch(Thunk.pushScreen("editProgram", undefined, resetStack));
-  }
-
-  export function isEligibleForSimpleExercise(programExercise: IProgramExercise): IEither<true, string[]> {
-    const errors = [];
-    if (programExercise.quickAddSets) {
-      errors.push("Must not have Quick Add Sets enabled");
-    }
-    if (programExercise.enableRepRanges) {
-      errors.push("Must not have Rep Ranges enabled");
-    }
-    if (programExercise.enableRpe) {
-      errors.push("Must not have RPE enabled");
-    }
-    if (programExercise.reuseLogic?.selected != null) {
-      errors.push("Must not reuse another experiment logic");
-    }
-    if (programExercise.descriptions.length > 1) {
-      errors.push("Must not use multiple descriptions");
-    }
-    if (programExercise.state.weight == null) {
-      const keys = Object.keys(programExercise.state)
-        .map((k) => `<strong>${k}</strong>`)
-        .join(", ");
-      errors.push(`Must have 'weight' state variable. But has - ${keys}`);
-    }
-    if (programExercise.variations.length !== 1) {
-      errors.push("Should only have one variation");
-    }
-    const variation = programExercise.variations[0];
-    const sets = variation.sets;
-    const firstSet: IProgramSet | undefined = sets[0];
-    if (!firstSet) {
-      errors.push("Should have at least one set");
-    }
-    if (!/^\d*$/.test((firstSet?.repsExpr || "").trim())) {
-      errors.push("The reps can't be a Liftoscript expression");
-    }
-    if (sets.some((s) => firstSet?.repsExpr !== s.repsExpr)) {
-      errors.push("All sets should have the same reps");
-    }
-    if (sets.some((s) => s.weightExpr !== "state.weight")) {
-      errors.push("All sets should have the weight = <strong>state.weight</strong>");
-    }
-    if (errors.length > 0) {
-      return { success: false, error: errors };
-    } else {
-      return { success: true, data: true };
-    }
+    dispatch(Thunk.pushScreen("editProgram", { plannerState }, resetStack));
   }
 
   export function exportProgramToFile(program: IProgram, settings: ISettings, version: string): void {
