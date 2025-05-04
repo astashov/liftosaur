@@ -51,6 +51,8 @@ import { exceptionIgnores } from "../utils/rollbar";
 import { ScreenWorkout } from "./screenWorkout";
 import { Account } from "../models/account";
 import { ImagePreloader } from "../utils/imagePreloader";
+import { ScreenEditProgramExercise } from "./editProgramExercise/screenEditProgramExercise";
+import { FallbackScreen } from "./fallbackScreen";
 
 declare let Rollbar: RB;
 
@@ -465,6 +467,25 @@ export function AppView(props: IProps): JSX.Element | null {
         history={state.storage.history}
         stats={state.storage.stats}
       />
+    );
+  } else if (Screen.currentName(state.screenStack) === "editProgramExercise") {
+    const screenData = Screen.current(navCommon.screenStack);
+    const exerciseType = screenData.name === "editProgramExercise" ? screenData.params?.exerciseType : undefined;
+    const dayData = screenData.name === "editProgramExercise" ? screenData.params?.dayData : undefined;
+    console.log(exerciseType, dayData);
+    content = (
+      <FallbackScreen state={{ plannerState: state.editProgramExercise, exerciseType, dayData }} dispatch={dispatch}>
+        {({ plannerState, exerciseType, dayData }) => (
+          <ScreenEditProgramExercise
+            plannerState={plannerState}
+            exerciseType={exerciseType}
+            dayData={dayData}
+            dispatch={dispatch}
+            settings={state.storage.settings}
+            navCommon={navCommon}
+          />
+        )}
+      </FallbackScreen>
     );
   } else if (Screen.editProgramScreens.indexOf(Screen.currentName(state.screenStack)) !== -1) {
     let editProgram = Program.getEditingProgram(state);

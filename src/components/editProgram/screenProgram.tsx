@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../../ducks/types";
 import { INavCommon, IState, updateState } from "../../models/state";
-import { useCallback, useLayoutEffect, useMemo, useState } from "preact/hooks";
+import { useCallback, useLayoutEffect, useState } from "preact/hooks";
 import { IProgram, ISettings } from "../../types";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";

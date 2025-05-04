@@ -21,6 +21,8 @@ import { PlannerKey } from "../../pages/planner/plannerKey";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { IconGraphsE } from "../icons/iconGraphsE";
 import { IconSwap } from "../icons/iconSwap";
+import { Thunk } from "../../ducks/thunks";
+import { IDispatch } from "../../ducks/types";
 
 interface IEditProgramUiExerciseViewProps {
   plannerExercise: IPlannerProgramExercise;
@@ -29,6 +31,7 @@ interface IEditProgramUiExerciseViewProps {
   weekIndex: number;
   dayIndex: number;
   settings: ISettings;
+  dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
 }
@@ -142,6 +145,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
           exercise={exercise}
           plannerExercise={props.plannerExercise}
           settings={props.settings}
+          dispatch={props.dispatch}
           plannerDispatch={props.plannerDispatch}
         />
       )}
@@ -156,6 +160,7 @@ interface IEditProgramUiExerciseContentViewProps {
   dayIndex: number;
   plannerExercise: IPlannerProgramExercise;
   settings: ISettings;
+  dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
@@ -251,7 +256,16 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
       </div>
       <div className="bg-white border-l border-purplev3-150">
         <div className="text-center">
-          <button className="p-2">
+          <button
+            className="p-2"
+            onClick={() => {
+              if (props.plannerExercise.exerciseType) {
+                props.dispatch(
+                  Thunk.pushToEditProgramExercise(props.plannerExercise.exerciseType, props.plannerExercise.dayData)
+                );
+              }
+            }}
+          >
             <IconEdit2 />
           </button>
         </div>

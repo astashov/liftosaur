@@ -27,6 +27,7 @@ import { IconPlus2 } from "../icons/iconPlus2";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { IconGraphsE } from "../icons/iconGraphsE";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
+import { IDispatch } from "../../ducks/types";
 
 interface IEditProgramDayViewProps {
   state: IPlannerState;
@@ -40,6 +41,7 @@ interface IEditProgramDayViewProps {
   dayInWeekIndex: number;
   settings: ISettings;
   exerciseFullNames: string[];
+  dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
 }
@@ -163,6 +165,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
         <EditProgramUiDayContentView
           isValidProgram={props.isValidProgram}
           day={props.day}
+          dispatch={props.dispatch}
           settings={props.settings}
           ui={ui}
           dayData={props.dayData}
@@ -180,6 +183,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
 
 interface IEditProgramDayContentViewProps {
   day: IPlannerProgramDay;
+  dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
   lbPlannerDay: LensBuilder<IPlannerState, IPlannerProgramDay, {}>;
   ui: IPlannerUi;
@@ -292,6 +296,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                   <EditProgramUiExerciseView
                     ui={props.ui}
                     plannerExercise={exercise}
+                    dispatch={props.dispatch}
                     plannerDispatch={props.plannerDispatch}
                     weekIndex={props.weekIndex}
                     dayIndex={props.dayIndex}

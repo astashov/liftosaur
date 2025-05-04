@@ -54,4 +54,10 @@ User debug page:
 * Toggle between lb/kg by tapping on header
 
 
-- Undo doesn't work in full text
+- Add help NUX for playground
+
+* Warmups
+  - Default -> Customize
+  - Customized -> Switch to default
+  - Reused -> Override
+  - Overridden -> Remove override
