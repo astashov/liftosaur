@@ -10,7 +10,7 @@ import { IconFullTextMode } from "../icons/iconFullTextMode";
 import { Button } from "../button";
 import { EditProgramUiWeekView } from "./editProgramUiWeek";
 import { IProgram, ISettings } from "../../types";
-import { lb, lbu } from "lens-shmens";
+import { lb } from "lens-shmens";
 import { IconReorder } from "../icons/iconReorder";
 import { EditProgramV2Weeks } from "./editProgramV2Weeks";
 import { EditProgramV2Full } from "./editProgramV2Full";
@@ -73,6 +73,7 @@ export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
               isInvalid: evaluatedWeeks[weekIndex].some((day) => !day.success),
               children: () => (
                 <EditProgramUiWeekView
+                  dispatch={props.dispatch}
                   state={props.state}
                   exerciseFullNames={exerciseFullNames}
                   evaluatedWeeks={evaluatedWeeks}

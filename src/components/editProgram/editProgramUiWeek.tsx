@@ -17,12 +17,14 @@ import { IconPlus2 } from "../icons/iconPlus2";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { Program } from "../../models/program";
 import { applyChangesInEditor } from "./editProgramUtils";
+import { IDispatch } from "../../ducks/types";
 
 interface IEditProgramViewProps {
   state: IPlannerState;
   settings: ISettings;
   evaluatedWeeks: IPlannerEvalResult[][];
   exerciseFullNames: string[];
+  dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
@@ -160,6 +162,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
             <EditProgramUiDayView
               key={plannerDay.id}
               settings={props.settings}
+              dispatch={props.dispatch}
               isValidProgram={isValidProgram}
               evaluatedDay={evaluatedDay}
               exerciseFullNames={props.exerciseFullNames}

@@ -4,7 +4,7 @@ import { dequal } from "dequal";
 import { Program } from "./program";
 import { Progress } from "./progress";
 import { ObjectUtils } from "../utils/object";
-import { IStatsKey } from "../types";
+import { IDayData, IExerciseType, IStatsKey } from "../types";
 
 export type ITab = "home" | "program" | "workout" | "graphs" | "me";
 
@@ -26,6 +26,10 @@ export type IScreenData =
   | { name: "appleHealth"; params?: Record<string, never> }
   | { name: "googleHealth"; params?: Record<string, never> }
   | { name: "editProgram"; params?: Record<string, never> }
+  | {
+      name: "editProgramExercise";
+      params?: { exerciseType: IExerciseType; dayData: Required<IDayData> };
+    }
   | { name: "measurements"; params?: { key: IStatsKey } }
   | { name: "subscription"; params?: Record<string, never> }
   | { name: "exerciseStats"; params?: Record<string, never> }
@@ -148,6 +152,9 @@ export namespace Screen {
         return "me";
       }
       case "editProgram": {
+        return "program";
+      }
+      case "editProgramExercise": {
         return "program";
       }
       case "measurements": {

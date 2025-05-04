@@ -6,7 +6,7 @@ import { lb } from "lens-shmens";
 import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IEnv, IState, updateState } from "../models/state";
-import { IProgram, IStorage, IExerciseType, ISettings } from "../types";
+import { IProgram, IStorage, IExerciseType, ISettings, IDayData } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ImportExporter } from "../lib/importexporter";
 import { Storage } from "../models/storage";
@@ -36,6 +36,7 @@ import { EditStats } from "../models/editStats";
 import { HealthSync } from "../lib/healthSync";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { Weight } from "../models/weight";
+import { EditProgram } from "../models/editProgram";
 
 declare let Rollbar: RB;
 
@@ -381,6 +382,21 @@ export namespace Thunk {
         dispatch(Thunk.pushScreen("programs"));
       } else if (currentProgram) {
         Program.editAction(dispatch, currentProgram, undefined, true);
+      }
+    };
+  }
+
+  export function pushToEditProgramExercise(exerciseType: IExerciseType, dayData: Required<IDayData>): IThunk {
+    return async (dispatch, getState) => {
+      const state = getState();
+      const currentProgram =
+        state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
+      if (currentProgram && !Program.isEmpty(currentProgram)) {
+        const plannerState = EditProgram.initPlannerProgramExerciseState(currentProgram);
+        updateState(dispatch, [lb<IState>().p("editProgramExercise").record(plannerState)]);
+        dispatch(Thunk.pushScreen("editProgramExercise", { exerciseType, dayData }));
+      } else {
+        dispatch(Thunk.pushScreen("main"));
       }
     };
   }
