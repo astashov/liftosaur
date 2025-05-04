@@ -79,7 +79,11 @@ export namespace Screen {
     return ["first", "finishDay", "subscription", "programs", "measurements"].indexOf(curr) === -1;
   }
 
-  export function shouldConfirmNavigation(state: IState): string | undefined {
+  export function shouldConfirmNavigation(
+    state: IState,
+    type: "push" | "pull",
+    toScreen?: IScreen
+  ): string | undefined {
     const progress = Progress.getProgress(state);
     if (progress && !Progress.isCurrent(progress)) {
       const oldHistoryRecord = state.storage.history.find((hr) => hr.id === progress.id);
@@ -88,12 +92,30 @@ export namespace Screen {
       }
     }
 
-    const editProgramV2 = state.editProgramV2;
-    if (editProgramV2) {
-      let editProgram = Program.getEditingProgram(state);
-      editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
-      if (editProgram?.planner && !ObjectUtils.isEqual(editProgram.planner, editProgramV2.current.program.planner!)) {
-        return "Are you sure? Your changes won't be saved";
+    const currentScreen = Screen.currentName(state.screenStack);
+    if (currentScreen === "editProgram" && !(type === "push" && toScreen === "editProgramExercise")) {
+      const editProgramV2 = state.editProgramV2;
+      if (editProgramV2) {
+        let editProgram = Program.getEditingProgram(state);
+        editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
+        if (editProgram?.planner && !ObjectUtils.isEqual(editProgram.planner, editProgramV2.current.program.planner!)) {
+          return "Are you sure? Your program changes won't be saved";
+        }
+      }
+    }
+
+    if (currentScreen === "editProgramExercise") {
+      const editProgramExercise = state.editProgramExercise;
+      if (editProgramExercise) {
+        let editProgram = state.editProgramV2?.current.program;
+        editProgram = editProgram || Program.getEditingProgram(state);
+        editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
+        if (
+          editProgram?.planner &&
+          !ObjectUtils.isEqual(editProgram.planner, editProgramExercise.current.program.planner!)
+        ) {
+          return "Are you sure? Your program exercise changes won't be saved";
+        }
       }
     }
 

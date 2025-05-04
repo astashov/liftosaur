@@ -1,11 +1,11 @@
 import { h, JSX } from "preact";
-import { IPlannerExerciseState } from "../../pages/planner/models/types";
+import { IPlannerExerciseState, IPlannerState } from "../../pages/planner/models/types";
 import { IDispatch } from "../../ducks/types";
 import { IDayData, IExerciseType, ISettings } from "../../types";
 import { INavCommon, IState, updateState } from "../../models/state";
-import { ILensRecordingPayload, lb } from "lens-shmens";
+import { lb } from "lens-shmens";
 import { useCallback } from "preact/hooks";
-import { undoRedoMiddleware, useUndoRedo } from "../../pages/builder/utils/undoredo";
+import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { Footer2View } from "../footer2";
 import { NavbarView } from "../navbar";
@@ -15,11 +15,16 @@ import { equipmentName, Exercise } from "../../models/exercise";
 import { ExerciseImage } from "../exerciseImage";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { EditProgramExerciseWarmups } from "./editProgramExerciseWarmups";
+import { Button } from "../button";
+import { CollectionUtils } from "../../utils/collection";
+import { Thunk } from "../../ducks/thunks";
+import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 
 interface IProps {
   plannerState: IPlannerExerciseState;
   exerciseType: IExerciseType;
   dayData: Required<IDayData>;
+  editProgramState?: IPlannerState;
   dispatch: IDispatch;
   settings: ISettings;
   navCommon: INavCommon;
@@ -29,21 +34,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const { plannerState, exerciseType } = props;
 
   const plannerDispatch: ILensDispatch<IPlannerExerciseState> = useCallback(
-    (
-      lensRecording: ILensRecordingPayload<IPlannerExerciseState> | ILensRecordingPayload<IPlannerExerciseState>[],
-      desc?: string
-    ) => {
-      const lensRecordings = Array.isArray(lensRecording) ? lensRecording : [lensRecording];
-      updateState(
-        props.dispatch,
-        lensRecordings.map((recording) => recording.prepend(lb<IState>().pi("editProgramExercise"))),
-        desc
-      );
-      const changesCurrent = lensRecordings.some((recording) => recording.lens.from.some((f) => f === "current"));
-      if (!(desc === "undo") && changesCurrent && plannerState != null) {
-        undoRedoMiddleware(plannerDispatch, plannerState);
-      }
-    },
+    buildPlannerDispatch(props.dispatch, lb<IState>().pi("editProgramExercise"), plannerState),
     [plannerState]
   );
   useUndoRedo(plannerState, plannerDispatch);
@@ -60,7 +51,52 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
 
   return (
     <Surface
-      navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Edit Program Exercise" />}
+      navbar={
+        <NavbarView
+          navCommon={props.navCommon}
+          dispatch={props.dispatch}
+          title="Edit Program Exercise"
+          rightButtons={[
+            <Button
+              name="save-program-exercise"
+              kind="purple"
+              buttonSize="md"
+              data-cy="save-program-exercise"
+              onClick={() => {
+                if (confirm("Are you sure?")) {
+                  if (props.editProgramState) {
+                    const plannerDispatch = buildPlannerDispatch(
+                      props.dispatch,
+                      lb<IState>().pi("editProgramV2"),
+                      props.editProgramState
+                    );
+                    plannerDispatch(lb<IPlannerState>().p("current").p("program").record(plannerState.current.program));
+                  } else {
+                    updateState(props.dispatch, [
+                      lb<IState>()
+                        .p("storage")
+                        .p("programs")
+                        .recordModify((programs) => {
+                          return CollectionUtils.setBy(
+                            programs,
+                            "id",
+                            plannerState.current.program.id,
+                            plannerState.current.program
+                          );
+                        }),
+                      lb<IState>().p("editProgramV2").record(undefined),
+                    ]);
+                  }
+                  props.dispatch(Thunk.pullScreen());
+                  updateState(props.dispatch, [lb<IState>().p("editProgramExercise").record(undefined)]);
+                }
+              }}
+            >
+              Save
+            </Button>,
+          ]}
+        />
+      }
       footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
       <div className="flex items-center gap-4 px-4">
