@@ -14,6 +14,7 @@ import {
   IPlannerProgramExerciseWarmupSet,
   IProgramExerciseProgress,
   IProgramExerciseUpdate,
+  IProgramExerciseProgressType,
 } from "./models/types";
 import { IWeight, IProgramState, IDayData, ISettings, IExerciseType, IUnit, IProgramStateMetadata } from "../../types";
 import * as W from "../../models/weight";
@@ -531,16 +532,24 @@ export class PlannerExerciseEvaluator {
   }
 
   private evaluateProgress(expr: SyntaxNode, exerciseType?: IExerciseType): IProgramExerciseProgress {
+    const result = this.evaluateProgressImpl(expr, exerciseType);
+    if (result.success) {
+      return result.data;
+    } else {
+      throw this.error(result.error, expr);
+    }
+  }
+
+  private evaluateProgressImpl(
+    expr: SyntaxNode,
+    exerciseType?: IExerciseType
+  ): IEither<IProgramExerciseProgress, string> {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
       if (valueNode == null) {
         const none = expr.getChild(PlannerNodeName.None);
         if (none != null) {
-          return {
-            type: "none",
-            state: {},
-            stateMetadata: {},
-          };
+          return PlannerProgramExercise.buildProgress("none", []);
         } else {
           throw this.error(`Missing value for the property 'progress'`, expr);
         }
@@ -553,82 +562,11 @@ export class PlannerExerciseEvaluator {
       const fnArgs = valueNode.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
       this.validateProgress(fnName, fnArgs, fnNameNode, valueNode);
 
-      if (fnName === "lp") {
-        const increment = fnArgs[0] ? Weight.parsePct(fnArgs[0]) : Weight.build(0, "lb");
-        const decrement = fnArgs[3] ? Weight.parsePct(fnArgs[3]) : Weight.build(0, "lb");
-        const state: IProgramState = {
-          increment: increment ?? Weight.build(0, "lb"),
-          successes: fnArgs[1] ? parseInt(fnArgs[1], 10) : 1,
-          successCounter: fnArgs[2] ? parseInt(fnArgs[2], 10) : 0,
-          decrement: decrement ?? Weight.build(0, "lb"),
-          failures: fnArgs[4] ? parseInt(fnArgs[4], 10) : (decrement?.value ?? 0) > 0 ? 1 : 0,
-          failureCounter: fnArgs[5] ? parseInt(fnArgs[5], 10) : 0,
-        };
-        const script = `if (completedReps >= reps && completedRPE <= RPE) {
-  state.successCounter += 1;
-  if (state.successCounter >= state.successes) {
-    weights += state.increment
-    state.successCounter = 0
-    state.failureCounter = 0
-  }
-}
-if (state.decrement > 0 && state.failures > 0) {
-  if (!(completedReps >= minReps && completedRPE <= RPE)) {
-    state.failureCounter += 1;
-    if (state.failureCounter >= state.failures) {
-      weights -= state.decrement
-      state.failureCounter = 0
-      state.successCounter = 0
-    }
-  }
-}`;
-        return {
-          type: "lp",
-          state,
-          stateMetadata: {},
-          script,
-        };
-      } else if (fnName === "dp") {
-        const increment = fnArgs[0] ? Weight.parsePct(fnArgs[0]) : Weight.build(0, "lb");
-        const state: IProgramState = {
-          increment: increment ?? Weight.build(0, "lb"),
-          minReps: fnArgs[1] ? parseInt(fnArgs[1], 10) : 0,
-          maxReps: fnArgs[2] ? parseInt(fnArgs[2], 10) : 0,
-        };
-        const script = `
-if (completedReps >= reps && completedRPE <= RPE) {
-  if (reps[ns] < state.maxReps) {
-    reps += 1
-  } else {
-    reps = state.minReps
-    weights += state.increment
-  }
-}`;
-        return {
-          type: "dp",
-          state,
-          stateMetadata: {},
-          script,
-        };
-      } else if (fnName === "sum") {
-        const increment = fnArgs[1] ? Weight.parsePct(fnArgs[1]) : Weight.build(0, "lb");
-        const state: IProgramState = {
-          reps: fnArgs[0] ? parseInt(fnArgs[0], 10) : 0,
-          increment: increment ?? Weight.build(0, "lb"),
-        };
-        const script = `if (sum(completedReps) >= state.reps) {
-        weights += state.increment
-      }`;
-        return {
-          type: "sum",
-          state,
-          stateMetadata: {},
-          script,
-        };
-      } else if (fnName === "custom") {
+      const type = fnName as IProgramExerciseProgressType;
+      if (type === "custom") {
         const liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript);
         const script = liftoscriptNode ? this.getValueTrim(liftoscriptNode) : undefined;
-        const { state, stateMetadata } = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs, (message) =>
+        const { state } = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs, (message) =>
           this.error(message, fnNameNode)
         );
         if (script) {
@@ -664,15 +602,12 @@ if (completedReps >= reps && completedRPE <= RPE) {
           ?.getChild(PlannerNodeName.ReuseSection)
           ?.getChild(PlannerNodeName.ExerciseName);
         const body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
-        return {
-          type: "custom",
-          state,
-          stateMetadata,
+        return PlannerProgramExercise.buildProgress(type, fnArgs, {
           script,
-          reuse: body ? { fullName: body } : undefined,
-        };
+          reuseFullname: body,
+        });
       } else {
-        this.error(`Unknown progression type - '${fnName}'`, fnNameNode);
+        return PlannerProgramExercise.buildProgress(type, fnArgs);
       }
     } else {
       assert(PlannerNodeName.ExerciseProperty);

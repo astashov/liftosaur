@@ -4,7 +4,7 @@ import { IDispatch } from "../../ducks/types";
 import { IDayData, IExerciseType, ISettings } from "../../types";
 import { INavCommon, IState, updateState } from "../../models/state";
 import { lb, LensBuilder } from "lens-shmens";
-import { useCallback } from "preact/hooks";
+import { useCallback, useState } from "preact/hooks";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { Footer2View } from "../footer2";
@@ -19,6 +19,9 @@ import { Button } from "../button";
 import { CollectionUtils } from "../../utils/collection";
 import { Thunk } from "../../ducks/thunks";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
+import { IconKebab } from "../icons/iconKebab";
+import { DropdownMenu, DropdownMenuItem } from "../editProgram/editProgramUi/editProgramUiDropdownMenu";
+import { EditProgramExerciseProgress } from "./editProgramExerciseProgress";
 
 interface IProps {
   plannerState: IPlannerExerciseState;
@@ -59,6 +62,8 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
   const editProgramScreen = props.navCommon.screenStack.find((s) => s.name === "editProgram");
   const editProgramState = editProgramScreen?.params?.plannerState;
+  const ui = plannerState.ui;
+  const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
 
   return (
     <Surface
@@ -129,12 +134,55 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
             <div className="px-1 ml-3 text-xs font-bold text-white rounded bg-grayv2-main">UNUSED</div>
           )}
         </div>
+        <div className="relative">
+          <button
+            className="p-2"
+            onClick={() => {
+              setIsKebabMenuOpen(!isKebabMenuOpen);
+            }}
+          >
+            <IconKebab />
+          </button>
+          {isKebabMenuOpen && (
+            <DropdownMenu rightOffset="3rem" onClose={() => setIsKebabMenuOpen(false)}>
+              <DropdownMenuItem
+                isTop={true}
+                data-cy="program-exercise-toggle-progress"
+                onClick={() => {
+                  setIsKebabMenuOpen(false);
+                  plannerDispatch(
+                    lb<IPlannerExerciseState>()
+                      .p("ui")
+                      .p("isProgressEnabled")
+                      .record(!plannerState.ui.isProgressEnabled)
+                  );
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div>{ui.isProgressEnabled ? "Disable" : "Enable"} Progress</div>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
-      <EditProgramExerciseWarmups
-        plannerExercise={plannerExercise}
-        settings={props.settings}
-        plannerDispatch={plannerDispatch}
-      />
+      <div className="mb-4">
+        <EditProgramExerciseWarmups
+          plannerExercise={plannerExercise}
+          settings={props.settings}
+          plannerDispatch={plannerDispatch}
+        />
+      </div>
+      <div className="mb-4">
+        {ui.isProgressEnabled && (
+          <EditProgramExerciseProgress
+            program={plannerState.current.program}
+            plannerExercise={plannerExercise}
+            settings={props.settings}
+            plannerDispatch={plannerDispatch}
+          />
+        )}
+      </div>
     </Surface>
   );
 }

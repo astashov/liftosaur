@@ -7,7 +7,7 @@ import { IconTrash } from "./icons/iconTrash";
 import { SendMessage } from "../utils/sendMessage";
 import { lg } from "../utils/posthog";
 
-type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select";
+type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select" | "select2";
 
 interface IMenuItemEditableValueProps {
   name: string;
