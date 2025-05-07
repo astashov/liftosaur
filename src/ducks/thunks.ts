@@ -397,7 +397,11 @@ export namespace Thunk {
           ? Program.getProgram(state, state.storage.currentProgramId)
           : undefined);
       if (currentProgram && !Program.isEmpty(currentProgram)) {
-        const plannerState = EditProgram.initPlannerProgramExerciseState(currentProgram);
+        const plannerState = EditProgram.initPlannerProgramExerciseState(
+          currentProgram,
+          state.storage.settings,
+          exerciseType
+        );
         dispatch(Thunk.pushScreen("editProgramExercise", { exerciseType, dayData, plannerState }));
       } else {
         dispatch(Thunk.pushScreen("main"));

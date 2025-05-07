@@ -114,7 +114,7 @@ export interface IPlannerProgramReuse {
   exercise?: IPlannerProgramExercise;
 }
 
-type IProgramExerciseProgressType = "custom" | "lp" | "dp" | "sum" | "none";
+export type IProgramExerciseProgressType = "custom" | "lp" | "dp" | "sum" | "none";
 type IProgramExerciseUpdateType = "custom" | "lp" | "dp" | "sum";
 
 export interface IProgramExerciseDescriptions {
@@ -218,7 +218,9 @@ export interface IPlannerUi {
   mode?: "reorder" | "ui" | "perday" | "full";
 }
 
-export interface IPlannerExerciseUi {}
+export interface IPlannerExerciseUi {
+  isProgressEnabled?: boolean;
+}
 
 export interface IPlannerFullText {
   text: string;

@@ -7,6 +7,8 @@ import {
   IPlannerProgramExerciseSetVariation,
   IPlannerProgramExerciseUsed,
   IPlannerProgramExerciseWarmupSet,
+  IProgramExerciseProgress,
+  IProgramExerciseProgressType,
 } from "./types";
 import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../plannerExerciseEvaluator";
 import { ObjectUtils } from "../../../utils/object";
@@ -28,6 +30,7 @@ import { MathUtils } from "../../../utils/math";
 import { UidFactory } from "../../../utils/generator";
 import { PlannerKey } from "../plannerKey";
 import { CollectionUtils } from "../../../utils/collection";
+import { IEither } from "../../../utils/types";
 
 export type ILinearProgressionType = {
   type: "linear";
@@ -405,6 +408,150 @@ export class PlannerProgramExercise {
     return exercise.setVariations.some((sv, i) =>
       this.sets(exercise, i).some((s) => s.repRange != null && s.repRange.minrep === s.repRange.maxrep)
     );
+  }
+
+  public static getProgressDefaultArgs(type: IProgramExerciseProgressType): string[] {
+    switch (type) {
+      case "none":
+        return [];
+      case "lp":
+        return ["5lb"];
+      case "dp":
+        return ["5lb", "8", "12"];
+      case "sum":
+        return ["30", "5lb"];
+      case "custom":
+        return [];
+    }
+  }
+
+  public static buildProgress(
+    type: IProgramExerciseProgressType,
+    args: string[],
+    opts: {
+      reuseFullname?: string;
+      script?: string;
+    } = {}
+  ): IEither<IProgramExerciseProgress, string> {
+    switch (type) {
+      case "none": {
+        return {
+          success: true,
+          data: {
+            type: "none",
+            state: {},
+            stateMetadata: {},
+          },
+        };
+      }
+      case "lp": {
+        const increment = args[0] ? Weight.parsePct(args[0]) : Weight.build(0, "lb");
+        const decrement = args[3] ? Weight.parsePct(args[3]) : Weight.build(0, "lb");
+        const state: IProgramState = {
+          increment: increment ?? Weight.build(0, "lb"),
+          successes: args[1] ? parseInt(args[1], 10) : 1,
+          successCounter: args[2] ? parseInt(args[2], 10) : 0,
+          decrement: decrement ?? Weight.build(0, "lb"),
+          failures: args[4] ? parseInt(args[4], 10) : (decrement?.value ?? 0) > 0 ? 1 : 0,
+          failureCounter: args[5] ? parseInt(args[5], 10) : 0,
+        };
+        const script = `if (completedReps >= reps && completedRPE <= RPE) {
+    state.successCounter += 1;
+    if (state.successCounter >= state.successes) {
+      weights += state.increment
+      state.successCounter = 0
+      state.failureCounter = 0
+    }
+  }
+  if (state.decrement > 0 && state.failures > 0) {
+    if (!(completedReps >= minReps && completedRPE <= RPE)) {
+      state.failureCounter += 1;
+      if (state.failureCounter >= state.failures) {
+        weights -= state.decrement
+        state.failureCounter = 0
+        state.successCounter = 0
+      }
+    }
+  }`;
+        return {
+          success: true,
+          data: {
+            type: "lp",
+            state,
+            stateMetadata: {},
+            script,
+          },
+        };
+      }
+      case "dp": {
+        const increment = args[0] ? Weight.parsePct(args[0]) : Weight.build(0, "lb");
+        const state: IProgramState = {
+          increment: increment ?? Weight.build(0, "lb"),
+          minReps: args[1] ? parseInt(args[1], 10) : 0,
+          maxReps: args[2] ? parseInt(args[2], 10) : 0,
+        };
+        const script = `
+if (completedReps >= reps && completedRPE <= RPE) {
+  if (reps[ns] < state.maxReps) {
+    reps += 1
+  } else {
+    reps = state.minReps
+    weights += state.increment
+  }
+}`;
+        return {
+          success: true,
+          data: {
+            type: "dp",
+            state,
+            stateMetadata: {},
+            script,
+          },
+        };
+      }
+      case "sum": {
+        const increment = args[1] ? Weight.parsePct(args[1]) : Weight.build(0, "lb");
+        const state: IProgramState = {
+          reps: args[0] ? parseInt(args[0], 10) : 0,
+          increment: increment ?? Weight.build(0, "lb"),
+        };
+        const script = `if (sum(completedReps) >= state.reps) {
+        weights += state.increment
+      }`;
+        return {
+          success: true,
+          data: {
+            type: "sum",
+            state,
+            stateMetadata: {},
+            script,
+          },
+        };
+      }
+      case "custom": {
+        const script = opts.script;
+        let errorMessage: string | undefined;
+        const { state, stateMetadata } = PlannerExerciseEvaluator.fnArgsToStateVars(args, (message) => {
+          errorMessage = message;
+        });
+        if (errorMessage) {
+          return {
+            success: false,
+            error: errorMessage,
+          };
+        }
+        return {
+          success: true,
+          data: {
+            type: "custom",
+            state,
+            stateMetadata,
+            script,
+            reuse: opts.reuseFullname ? { fullName: opts.reuseFullname } : undefined,
+          },
+        };
+      }
+    }
   }
 
   public static progressionType(exercise: IPlannerProgramExercise): IProgressionType | undefined {

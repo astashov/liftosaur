@@ -72,7 +72,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
   const shouldUseTouch = isMobile && !isPlaywright;
 
   return (
-    <div className="px-4 py-3 my-1 bg-white border rounded-2xl border-grayv3-200">
+    <div className="px-4 py-3 bg-white border rounded-2xl border-grayv3-200">
       <div className="flex gap-4 pb-2">
         <div className="text-base font-bold">Edit Warmups</div>
         <div className="ml-auto">
