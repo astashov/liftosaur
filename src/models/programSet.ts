@@ -1,5 +1,7 @@
 import { IPlannerProgramExerciseEvaluatedSet } from "../pages/planner/models/types";
-import { IProgramSet, ISettings } from "../types";
+import { IExerciseType, IProgramSet, ISettings, IWeight } from "../types";
+import { Equipment } from "./equipment";
+import { Weight } from "./weight";
 
 export namespace ProgramSet {
   export function group(sets: IProgramSet[]): IProgramSet[][] {
@@ -35,15 +37,22 @@ export namespace ProgramSet {
     return totalTime;
   }
 
-  export function isEqual(set1: IProgramSet, set2: IProgramSet): boolean {
-    return (
-      set1.weightExpr === set2.weightExpr &&
-      !!set1.askWeight === !!set2.askWeight &&
-      set1.repsExpr === set2.repsExpr &&
-      set1.minRepsExpr === set2.minRepsExpr &&
-      !!set1.isAmrap === !!set2.isAmrap &&
-      set1.rpeExpr === set2.rpeExpr &&
-      !!set1.logRpe === !!set2.logRpe
-    );
+  export function isEligibleForInferredWeight(set: IPlannerProgramExerciseEvaluatedSet): boolean {
+    return set.weight == null && set.maxrep != null && set.rpe != null;
+  }
+
+  export function getEvaluatedWeight(
+    programSet: IPlannerProgramExerciseEvaluatedSet,
+    exerciseType: IExerciseType,
+    settings: ISettings
+  ): IWeight | undefined {
+    const originalWeight = programSet.weight;
+    const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
+    const evaluatedWeight = originalWeight
+      ? Weight.evaluateWeight(originalWeight, exerciseType, settings)
+      : ProgramSet.isEligibleForInferredWeight(programSet) && programSet.maxrep != null && programSet.rpe != null
+        ? Weight.evaluateWeight(Weight.rpePct(programSet.maxrep, programSet.rpe), exerciseType, settings)
+        : undefined;
+    return evaluatedWeight ? Weight.roundConvertTo(evaluatedWeight, settings, unit, exerciseType) : undefined;
   }
 }

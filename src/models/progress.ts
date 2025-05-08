@@ -38,6 +38,7 @@ import { IPlannerProgramExercise, IPlannerProgramExerciseUsed } from "../pages/p
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { IScreenStack, Screen } from "./screen";
 import { UidFactory } from "../utils/generator";
+import { ProgramSet } from "./programSet";
 
 export interface IScriptBindings {
   day: number;
@@ -939,14 +940,8 @@ export namespace Progress {
         if (!!progressSet?.isCompleted) {
           newSets.push(progressSet);
         } else if (programSet != null) {
-          const unit = Equipment.getUnitOrDefaultForExerciseType(settings, programExercise.exerciseType);
           const originalWeight = programSet.weight;
-          const evaluatedWeight = originalWeight
-            ? Weight.evaluateWeight(originalWeight, programExercise.exerciseType, settings)
-            : undefined;
-          const weight = evaluatedWeight
-            ? Weight.roundConvertTo(evaluatedWeight, settings, unit, programExercise.exerciseType)
-            : undefined;
+          const weight = ProgramSet.getEvaluatedWeight(programSet, programExercise.exerciseType, settings);
           newSets.push({
             ...progressSet,
             reps: programSet.maxrep,
@@ -975,17 +970,11 @@ export namespace Progress {
       };
     } else {
       const newSets = sets.map((set) => {
-        const unit = Equipment.getUnitOrDefaultForExerciseType(settings, programExercise.exerciseType);
-        const originalWeight = set.weight
-          ? Weight.evaluateWeight(set.weight, programExercise.exerciseType, settings)
-          : undefined;
-        const weight = originalWeight
-          ? Weight.roundConvertTo(originalWeight, settings, unit, programExercise.exerciseType)
-          : undefined;
+        const weight = ProgramSet.getEvaluatedWeight(set, programExercise.exerciseType, settings);
         return {
           reps: set.maxrep,
           minReps: set.minrep,
-          originalWeight,
+          originalWeight: set.weight,
           weight,
           rpe: set.rpe,
           logRpe: set.logRpe,

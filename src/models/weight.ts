@@ -19,6 +19,10 @@ export namespace Weight {
     }
   }
 
+  export function rpePct(reps: number, rpe: number): IPercentage {
+    return Weight.buildPct(MathUtils.roundTo005(Weight.rpeMultiplier(reps, rpe) * 100));
+  }
+
   export function evaluateWeight(
     weight: IWeight | IPercentage,
     exerciseType: IExerciseType,
@@ -226,7 +230,7 @@ export namespace Weight {
     } else if (reps === 1) {
       return weight;
     } else {
-      return Weight.roundTo005(Weight.divide(weight, Weight.rpeMultiplier(reps, rpe || 10)));
+      return Weight.roundTo005(Weight.divide(weight, Weight.rpeMultiplier(reps, rpe ?? 10)));
     }
   }
 

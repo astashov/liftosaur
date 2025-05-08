@@ -80,7 +80,7 @@ export namespace ProgramExercise {
   export function doesUse1RM(programExercise: IPlannerProgramExercise): boolean {
     const usesPercentageWeights = programExercise.evaluatedSetVariations.some((v) => {
       return v.sets.some((set) => {
-        return Weight.isPct(set.weight);
+        return Weight.isPct(set.weight) || ProgramSet.isEligibleForInferredWeight(set);
       });
     });
     const usesRM1Var = ProgramExercise.isUsingVariable(programExercise, "rm1");
@@ -251,7 +251,11 @@ export namespace ProgramExercise {
       }
     } else {
       const onerm = Exercise.onerm(programExercise.exerciseType, settings);
-      const oldValue = set[key];
+      let oldValue = set[key];
+      if (oldValue == null && ProgramSet.isEligibleForInferredWeight(set)) {
+        const inferredWeight = ProgramSet.getEvaluatedWeight(set, programExercise.exerciseType, settings);
+        oldValue = inferredWeight;
+      }
       const newValue = Weight.applyOp(onerm, oldValue ?? 0, value, op);
       if (key === "weight" && (Weight.is(newValue) || Weight.isPct(newValue))) {
         set[key] = newValue;

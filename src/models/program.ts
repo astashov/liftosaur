@@ -42,7 +42,6 @@ import {
   IPlannerProgramExerciseUsed,
 } from "../pages/planner/models/types";
 import memoize from "micro-memoize";
-import { Equipment } from "./equipment";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { PlannerEvaluator, IByExercise, IByTag } from "../pages/planner/plannerEvaluator";
 import { PP } from "./pp";
@@ -52,6 +51,7 @@ import { PlannerSyntaxError } from "../pages/planner/plannerExerciseEvaluator";
 import { UrlUtils } from "../utils/url";
 import { Service } from "../api/service";
 import { EditProgram } from "./editProgram";
+import { ProgramSet } from "./programSet";
 
 declare let __HOST__: string;
 
@@ -201,14 +201,7 @@ export namespace Program {
       const programSet = programSets[i];
       const minReps =
         programSet.minrep != null && programSet.minrep !== programSet.maxrep ? programSet.minrep : undefined;
-      const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exercise);
-      const originalWeight = programSet.weight;
-      const evaluatedWeight = originalWeight
-        ? Weight.evaluateWeight(originalWeight, programExercise.exerciseType, settings)
-        : undefined;
-      const weight = evaluatedWeight
-        ? Weight.roundConvertTo(evaluatedWeight, settings, unit, programExercise.exerciseType)
-        : undefined;
+      const weight = ProgramSet.getEvaluatedWeight(programSet, programExercise.exerciseType, settings);
       sets.push({
         id: UidFactory.generateUid(6),
         reps: programSet.maxrep,
@@ -218,7 +211,7 @@ export namespace Program {
         timer: programSet.timer,
         logRpe: programSet.logRpe,
         askWeight: programSet.askWeight,
-        originalWeight,
+        originalWeight: programSet.weight,
         isAmrap: programSet.isAmrap,
         label: programSet.label,
         isCompleted: false,

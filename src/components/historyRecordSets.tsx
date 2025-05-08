@@ -48,7 +48,7 @@ function setToDisplaySet(set: ISet, isNext: boolean, settings: ISettings): IDisp
     reps: isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set),
     rpe: set.completedRpe?.toString() ?? set.rpe?.toString(),
     weight: isNext
-      ? set.weight
+      ? set.weight && set.originalWeight
         ? Weight.display(set.weight, false)
         : undefined
       : completedOrRequiredWeight
