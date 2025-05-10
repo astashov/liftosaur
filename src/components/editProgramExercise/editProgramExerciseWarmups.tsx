@@ -31,7 +31,7 @@ function changeWeight(
   setIndex: number,
   value: IWeight | IPercentage
 ): IPlannerProgram {
-  return EditProgramUiHelpers.changeFirstInstance(planner, plannerExercise, settings, (e) => {
+  return EditProgramUiHelpers.changeFirstInstance(planner, plannerExercise, settings, true, (e) => {
     e.warmupSets = PlannerProgramExercise.degroupWarmupSets(e.warmupSets || []);
     if (value.unit === "%") {
       e.warmupSets[setIndex].percentage = value.value;
@@ -48,7 +48,7 @@ function changeReps(
   setIndex: number,
   value: number
 ): IPlannerProgram {
-  return EditProgramUiHelpers.changeFirstInstance(planner, plannerExercise, settings, (e) => {
+  return EditProgramUiHelpers.changeFirstInstance(planner, plannerExercise, settings, true, (e) => {
     e.warmupSets = PlannerProgramExercise.degroupWarmupSets(e.warmupSets || []);
     e.warmupSets[setIndex].reps = value;
   });
@@ -84,9 +84,15 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
                   if (ownWarmups == null) {
-                    return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, (e) => {
-                      e.warmupSets = ObjectUtils.clone(reuseWarmups) || defaultWarmups;
-                    });
+                    return EditProgramUiHelpers.changeFirstInstance(
+                      program,
+                      plannerExercise,
+                      props.settings,
+                      true,
+                      (e) => {
+                        e.warmupSets = ObjectUtils.clone(reuseWarmups) || defaultWarmups;
+                      }
+                    );
                   } else {
                     return EditProgramUiHelpers.changeAllInstances(
                       program,
@@ -245,6 +251,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                                       program,
                                       plannerExercise,
                                       props.settings,
+                                      true,
                                       (e) => {
                                         e.warmupSets = PlannerProgramExercise.degroupWarmupSets(e.warmupSets || []);
                                         e.warmupSets = CollectionUtils.removeAt(e.warmupSets, setIndex);
@@ -273,24 +280,30 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
               onClick={() => {
                 props.plannerDispatch(
                   lbProgram.recordModify((program) => {
-                    return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, (e) => {
-                      const lastReps = e.warmupSets?.[e.warmupSets.length - 1]?.reps ?? 5;
-                      const lastWeight = e.warmupSets?.[e.warmupSets.length - 1]?.weight;
-                      let lastPercentage = e.warmupSets?.[e.warmupSets.length - 1]?.percentage;
-                      if (lastWeight == null && lastPercentage == null) {
-                        lastPercentage = 50;
+                    return EditProgramUiHelpers.changeFirstInstance(
+                      program,
+                      plannerExercise,
+                      props.settings,
+                      true,
+                      (e) => {
+                        const lastReps = e.warmupSets?.[e.warmupSets.length - 1]?.reps ?? 5;
+                        const lastWeight = e.warmupSets?.[e.warmupSets.length - 1]?.weight;
+                        let lastPercentage = e.warmupSets?.[e.warmupSets.length - 1]?.percentage;
+                        if (lastWeight == null && lastPercentage == null) {
+                          lastPercentage = 50;
+                        }
+                        e.warmupSets = [
+                          ...(e.warmupSets || []),
+                          {
+                            type: "warmup",
+                            numberOfSets: 1,
+                            reps: lastReps,
+                            weight: lastWeight,
+                            percentage: lastPercentage,
+                          },
+                        ];
                       }
-                      e.warmupSets = [
-                        ...(e.warmupSets || []),
-                        {
-                          type: "warmup",
-                          numberOfSets: 1,
-                          reps: lastReps,
-                          weight: lastWeight,
-                          percentage: lastPercentage,
-                        },
-                      ];
-                    });
+                    );
                   })
                 );
               }}

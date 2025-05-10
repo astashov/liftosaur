@@ -5,7 +5,9 @@ import { IconArrowDown2 } from "./icons/iconArrowDown2";
 
 interface IInputSelectProps<T extends string> {
   name: string;
-  includeEmpty?: boolean;
+  label?: string;
+  placeholder?: string;
+  expandValue?: boolean;
   value?: T;
   values?: [T, string][];
   onChange?: (v?: T) => void;
@@ -13,6 +15,35 @@ interface IInputSelectProps<T extends string> {
 
 export function InputSelect<T extends string>(props: IInputSelectProps<T>): JSX.Element {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+  if (props.label != null) {
+    return (
+      <div className="flex items-center gap-4">
+        <label
+          className={`${!props.expandValue ? "flex-1" : ""} text-sm`}
+          onClick={() => {
+            setIsExpanded(!isExpanded);
+          }}
+        >
+          {props.label}
+        </label>
+        <div className="flex-1">
+          <InputSelectValue {...props} setIsExpanded={setIsExpanded} isExpanded={isExpanded} />
+        </div>
+      </div>
+    );
+  } else {
+    return <InputSelectValue {...props} setIsExpanded={setIsExpanded} isExpanded={isExpanded} />;
+  }
+}
+
+export function InputSelectValue<T extends string>(
+  props: IInputSelectProps<T> & {
+    isExpanded: boolean;
+    setIsExpanded: (v: boolean) => void;
+  }
+): JSX.Element {
+  const { isExpanded, setIsExpanded } = props;
   const selectedLabel = props.values?.find((v) => v[0] === props.value)?.[1];
 
   return (
@@ -23,7 +54,9 @@ export function InputSelect<T extends string>(props: IInputSelectProps<T>): JSX.
           setIsExpanded(!isExpanded);
         }}
       >
-        <div className="flex-1 text-base">{selectedLabel}</div>
+        <div className="flex-1 text-sm">
+          {selectedLabel ?? <span className="text-grayv3-main">{props.placeholder}</span>}
+        </div>
         <div>
           <IconArrowDown2 />
         </div>

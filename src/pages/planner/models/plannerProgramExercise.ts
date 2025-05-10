@@ -36,8 +36,10 @@ export type ILinearProgressionType = {
   type: "linear";
   increase: IWeight | IPercentage;
   successesRequired?: number;
+  successesCounter?: number;
   decrease?: IWeight | IPercentage;
   failuresRequired?: number;
+  failuresCounter?: number;
 };
 export type IDoubleProgressionType = {
   type: "double";
@@ -566,8 +568,10 @@ if (completedReps >= reps && completedRPE <= RPE) {
         type: "linear",
         increase: state.increment as IWeight,
         successesRequired: state.successes as number,
+        successesCounter: state.successCounter as number,
         decrease: state.decrement as IWeight,
         failuresRequired: state.failures as number,
+        failuresCounter: state.failureCounter as number,
       };
     } else if (name === "dp") {
       return {

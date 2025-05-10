@@ -16,6 +16,7 @@ interface IInputNumber2Props {
   placeholder?: string;
   value?: number;
   width?: number;
+  autowidth?: boolean;
   step?: number;
   min?: number;
   max?: number;
@@ -32,6 +33,7 @@ interface IInputNumber2Props {
   enableUnits?: (IUnit | IPercentageUnit)[];
   onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
   selectedUnit?: IUnit | IPercentageUnit;
+  showUnitInside?: boolean;
 }
 
 function clamp(value: string | number, min?: number, max?: number): number | undefined {
@@ -278,7 +280,9 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     <div ref={containerRef} className="input-number">
       <div
         className="flex items-center justify-center h-6 bg-white border rounded border-grayv3-200 input-number-child"
-        style={{ width: `${props.width ?? 4}rem` }}
+        style={
+          props.autowidth ? { paddingLeft: "0.5rem", paddingRight: "0.5rem" } : { width: `${props.width ?? 4}rem` }
+        }
         tabIndex={props.tabIndex ?? 0}
         onFocus={() => {
           setIsFocused(true);
@@ -302,7 +306,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         }}
         data-cy={`input-${StringUtils.dashcase(props.name)}-field`}
       >
-        <div ref={inputRef}>
+        <div ref={inputRef} className="leading-none">
           {!value && !isFocused && props.placeholder ? (
             <span className="text-sm text-grayv3-300 text-ellipsis whitespace-nowrap">{props.placeholder}</span>
           ) : (
@@ -316,6 +320,9 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         </div>
         {isFocused && (
           <div className="inline-block h-3 leading-none blinking bg-grayv3-main" style={{ width: "1px" }} />
+        )}
+        {props.showUnitInside && props.selectedUnit && (
+          <div className="text-xs text-grayv3-main"> {props.selectedUnit}</div>
         )}
       </div>
       {isFocused && isMobile && (

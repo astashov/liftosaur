@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
 import { LiftoscriptEvaluator, NodeName, LiftoscriptSyntaxError } from "./liftoscriptEvaluator";
 import { parser as LiftoscriptParser } from "./liftoscript";
-import { IScriptBindings, IScriptFnContext, IScriptFunctions } from "./models/progress";
+import { IScriptBindings, IScriptFnContext, IScriptFunctions, Progress } from "./models/progress";
 import { Weight } from "./models/weight";
-import { IUnit, IWeight, IProgramState, IPercentage } from "./types";
+import { IUnit, IWeight, IProgramState, IPercentage, IDayData, IExerciseType, ISettings } from "./types";
 import type { Tree } from "@lezer/common";
 import RB from "rollbar";
 import { IState } from "./models/state";
@@ -43,6 +43,35 @@ export class ScriptRunner {
     this.units = units;
     this.context = context;
     this.mode = mode;
+  }
+
+  public static isValid(
+    script: string,
+    state: IProgramState,
+    dayData: IDayData,
+    settings: ISettings,
+    exerciseType?: IExerciseType
+  ): LiftoscriptSyntaxError | undefined {
+    const liftoscriptEvaluator = new ScriptRunner(
+      script,
+      state,
+      {},
+      Progress.createEmptyScriptBindings(dayData, settings),
+      Progress.createScriptFunctions(settings),
+      settings.units,
+      { exerciseType: exerciseType, unit: settings.units, prints: [] },
+      "planner"
+    );
+    try {
+      liftoscriptEvaluator.parse();
+    } catch (e) {
+      if (e instanceof LiftoscriptSyntaxError) {
+        return e;
+      } else {
+        throw e;
+      }
+    }
+    return undefined;
   }
 
   public parse(): [LiftoscriptEvaluator, Tree] {
@@ -89,6 +118,23 @@ export class ScriptRunner {
       this.mode
     );
     return liftoscriptEvaluator.getStateVariableKeys(liftoscriptTree.topNode);
+  }
+
+  public static hasStateVariable(script: string, name: string): boolean {
+    const expr = LiftoscriptParser.parse(script);
+    const cursor = expr.cursor();
+    do {
+      if (cursor.node.type.name === NodeName.StateVariable) {
+        const keywordNode = cursor.node.getChild(NodeName.Keyword);
+        if (keywordNode != null) {
+          const value = LiftoscriptEvaluator.getValue(script, keywordNode);
+          if (value === name) {
+            return true;
+          }
+        }
+      }
+    } while (cursor.next());
+    return false;
   }
 
   public static hasKeyword(script: string, name: string): boolean {

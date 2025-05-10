@@ -45,9 +45,15 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
             onClick={() => {
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
-                  return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, (e) => {
-                    e.warmupSets = ObjectUtils.clone(reuseWarmups) || defaultWarmups;
-                  });
+                  return EditProgramUiHelpers.changeFirstInstance(
+                    program,
+                    plannerExercise,
+                    props.settings,
+                    false,
+                    (e) => {
+                      e.warmupSets = ObjectUtils.clone(reuseWarmups) || defaultWarmups;
+                    }
+                  );
                 })
               );
             }}
@@ -64,9 +70,15 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
             onClick={() => {
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
-                  return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, (e) => {
-                    e.warmupSets = undefined;
-                  });
+                  return EditProgramUiHelpers.changeFirstInstance(
+                    program,
+                    plannerExercise,
+                    props.settings,
+                    false,
+                    (e) => {
+                      e.warmupSets = undefined;
+                    }
+                  );
                 })
               );
             }}
@@ -91,15 +103,21 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
             onUpdate={(newWarmupSet) => {
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
-                  return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, (e) => {
-                    if (newWarmupSet != null) {
-                      e.warmupSets = e.warmupSets || [];
-                      e.warmupSets[index] = newWarmupSet;
-                    } else {
-                      e.warmupSets = e.warmupSets || [];
-                      e.warmupSets.splice(index, 1);
+                  return EditProgramUiHelpers.changeFirstInstance(
+                    program,
+                    plannerExercise,
+                    props.settings,
+                    false,
+                    (e) => {
+                      if (newWarmupSet != null) {
+                        e.warmupSets = e.warmupSets || [];
+                        e.warmupSets[index] = newWarmupSet;
+                      } else {
+                        e.warmupSets = e.warmupSets || [];
+                        e.warmupSets.splice(index, 1);
+                      }
                     }
-                  });
+                  );
                 })
               );
             }}
@@ -115,15 +133,21 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
             onClick={() => {
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
-                  return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, (e) => {
-                    e.warmupSets = e.warmupSets || [];
-                    e.warmupSets.push({
-                      numberOfSets: 1,
-                      reps: 5,
-                      percentage: 50,
-                      type: "warmup",
-                    });
-                  });
+                  return EditProgramUiHelpers.changeFirstInstance(
+                    program,
+                    plannerExercise,
+                    props.settings,
+                    false,
+                    (e) => {
+                      e.warmupSets = e.warmupSets || [];
+                      e.warmupSets.push({
+                        numberOfSets: 1,
+                        reps: 5,
+                        percentage: 50,
+                        type: "warmup",
+                      });
+                    }
+                  );
                 })
               );
             }}

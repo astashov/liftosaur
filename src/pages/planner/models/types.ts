@@ -220,6 +220,8 @@ export interface IPlannerUi {
 
 export interface IPlannerExerciseUi {
   isProgressEnabled?: boolean;
+  showAddStateVariableModal?: boolean;
+  showEditProgressScriptModal?: boolean;
 }
 
 export interface IPlannerFullText {

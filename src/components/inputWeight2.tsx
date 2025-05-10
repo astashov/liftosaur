@@ -13,6 +13,8 @@ interface IInputWeight2Props {
   name: string;
   max?: number;
   min?: number;
+  autowidth?: boolean;
+  showUnitInside?: boolean;
   placeholder?: string;
   exerciseType?: IExerciseType;
   units?: (IUnit | IPercentageUnit)[];
@@ -47,6 +49,7 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
       <InputNumber2
         tabIndex={props.tabIndex}
         placeholder={props.placeholder}
+        autowidth={props.autowidth}
         allowDot={true}
         allowNegative={true}
         min={props.min}
@@ -92,6 +95,7 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
         name={props.name}
         enableUnits={props.units}
         selectedUnit={unit}
+        showUnitInside={props.showUnitInside}
         onChangeUnits={(newUnit) => {
           setUnit(newUnit);
           const weight = props.value != null ? Weight.buildAny(props.value.value, newUnit) : undefined;
