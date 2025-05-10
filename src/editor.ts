@@ -90,5 +90,3 @@ export class CodeEditor {
     }
   }
 }
-
-export function attachCodemirror(container: HTMLElement): void {}

@@ -414,5 +414,3 @@ export class PlannerEditor {
     this.codeMirror = codemirror;
   }
 }
-
-export function attachCodemirror(container: HTMLElement): void {}

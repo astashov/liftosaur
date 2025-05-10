@@ -45,6 +45,18 @@ interface IPlannerEvalMetadata {
 }
 
 export class PlannerEvaluator {
+  public static getFirstError(evaluatedWeeks: IPlannerEvalResult[][]): PlannerSyntaxError | undefined {
+    let error: PlannerSyntaxError | undefined;
+    for (const week of evaluatedWeeks) {
+      for (const day of week) {
+        if (!day.success) {
+          error = day.error;
+        }
+      }
+    }
+    return error;
+  }
+
   private static fillInMetadata(
     exercise: IPlannerProgramExercise,
     metadata: IPlannerEvalMetadata,

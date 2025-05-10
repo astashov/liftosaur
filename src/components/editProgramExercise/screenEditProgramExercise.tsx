@@ -176,6 +176,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
       <div className="mb-4">
         {ui.isProgressEnabled && (
           <EditProgramExerciseProgress
+            ui={plannerState.ui}
             program={plannerState.current.program}
             plannerExercise={plannerExercise}
             settings={props.settings}

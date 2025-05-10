@@ -40,115 +40,113 @@ export function selectInputOnFocus(e: Event): boolean | undefined {
   return undefined;
 }
 
-export const Input = forwardRef(
-  (props: IProps, ref: Ref<HTMLInputElement> | Ref<HTMLTextAreaElement>): JSX.Element => {
-    const { inputSize, label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
-    const changeType = props.changeType || "onblur";
-    const identifier = props.identifier || StringUtils.dashcase((label || UidFactory.generateUid(8))?.toLowerCase());
-    const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
-    const size = inputSize || "md";
+export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref<HTMLTextAreaElement>): JSX.Element => {
+  const { inputSize, label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
+  const changeType = props.changeType || "onblur";
+  const identifier = props.identifier || StringUtils.dashcase((label || UidFactory.generateUid(8))?.toLowerCase());
+  const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
+  const size = inputSize || "md";
 
-    const onInputHandler = useCallback(
-      (e: Event) => {
-        const target = e.target;
-        if (target instanceof HTMLInputElement) {
-          const errors = new Set<IValidationError>();
-          if (target.validity.patternMismatch) {
-            errors.add("pattern-mismatch");
-          }
-          if (target.validity.valueMissing) {
-            errors.add("required");
-          }
-          setValidationErrors(errors);
-          if (props.changeHandler != null) {
-            if (errors.size > 0) {
-              props.changeHandler({ success: false, error: errors });
-            } else {
-              const value = (e.target as HTMLInputElement).value;
-              props.changeHandler({ success: true, data: value });
-            }
+  const onInputHandler = useCallback(
+    (e: Event) => {
+      const target = e.target;
+      if (target instanceof HTMLInputElement) {
+        const errors = new Set<IValidationError>();
+        if (target.validity.patternMismatch) {
+          errors.add("pattern-mismatch");
+        }
+        if (target.validity.valueMissing) {
+          errors.add("required");
+        }
+        setValidationErrors(errors);
+        if (props.changeHandler != null) {
+          if (errors.size > 0) {
+            props.changeHandler({ success: false, error: errors });
+          } else {
+            const value = (e.target as HTMLInputElement).value;
+            props.changeHandler({ success: true, data: value });
           }
         }
-      },
-      [changeHandler]
-    );
-
-    let className = "relative block w-full text-left border rounded-lg appearance-none ";
-    if (props.errorMessage || validationErrors.size > 0) {
-      className += " border-redv2-main";
-    } else {
-      className += " border-grayv2-200";
-    }
-
-    const errorMessages = [];
-    if (props.errorMessage) {
-      errorMessages.push(props.errorMessage);
-    }
-    for (const error of validationErrors) {
-      if (error === "required") {
-        errorMessages.push(props.requiredMessage);
-      } else if (error === "pattern-mismatch") {
-        errorMessages.push(props.patternMessage);
       }
-    }
+    },
+    [changeHandler]
+  );
 
-    let containerClassName = "inline-block bg-white rounded-lg";
-    if (className.indexOf("w-full") !== -1) {
-      containerClassName += " w-full";
-    }
-    const labelSize = props.labelSize || "sm";
-    return (
-      <div className={containerClassName}>
-        <label
-          data-cy={`${identifier}-label`}
-          className={className}
-          style={{ minHeight: size === "md" ? "48px" : "40px" }}
-        >
-          <div
-            className={`relative mx-4 ${size === "md" ? "my-1" : ""}`}
-            style={size !== "md" ? { marginTop: "1px", marginBottom: "1px" } : {}}
-          >
-            {props.label && (
-              <div
-                className={`leading-none relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
-                style={{ top: "2px", left: "0" }}
-              >
-                {props.label}
-              </div>
-            )}
-            <div className="relative flex" style={{ top: props.label ? "3px" : "8px", left: "0" }}>
-              {props.multiline ? (
-                <textarea
-                  data-cy={`${identifier}-input`}
-                  ref={ref as Ref<HTMLTextAreaElement>}
-                  onBlur={changeType === "onblur" ? onInputHandler : undefined}
-                  onInput={changeType === "oninput" ? onInputHandler : undefined}
-                  onFocus={selectInputOnFocus}
-                  className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
-                  style={{ fontSize: size === "md" ? "16px" : "15px", height: `${props.multiline * 25}px` }}
-                  {...otherProps}
-                />
-              ) : (
-                <input
-                  data-cy={`${identifier}-input`}
-                  ref={ref as Ref<HTMLInputElement>}
-                  onBlur={changeType === "onblur" ? onInputHandler : undefined}
-                  onInput={changeType === "oninput" ? onInputHandler : undefined}
-                  onFocus={selectInputOnFocus}
-                  className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
-                  style={{ height: "1.25rem", fontSize: size === "md" ? "16px" : "15px" }}
-                  {...otherProps}
-                />
-              )}
-            </div>
-          </div>
-        </label>
-        {errorMessages.map((message) => (
-          <div className="text-xs text-left text-redv2-main" key={message}>
-            {message}
-          </div>
-        ))}
-      </div>
-    );
+  let className = "relative block w-full text-left border rounded-lg appearance-none ";
+  if (props.errorMessage || validationErrors.size > 0) {
+    className += " border-redv2-main";
+  } else {
+    className += " border-grayv2-200";
   }
-);
+
+  const errorMessages = [];
+  if (props.errorMessage) {
+    errorMessages.push(props.errorMessage);
+  }
+  for (const error of validationErrors) {
+    if (error === "required") {
+      errorMessages.push(props.requiredMessage);
+    } else if (error === "pattern-mismatch") {
+      errorMessages.push(props.patternMessage);
+    }
+  }
+
+  let containerClassName = "inline-block bg-white rounded-lg";
+  if (className.indexOf("w-full") !== -1) {
+    containerClassName += " w-full";
+  }
+  const labelSize = props.labelSize || "sm";
+  return (
+    <div className={containerClassName}>
+      <label
+        data-cy={`${identifier}-label`}
+        className={className}
+        style={{ minHeight: size === "md" ? "48px" : "40px" }}
+      >
+        <div
+          className={`relative mx-4 ${size === "md" ? "my-1" : ""}`}
+          style={size !== "md" ? { marginTop: "1px", marginBottom: "1px" } : {}}
+        >
+          {props.label && (
+            <div
+              className={`leading-none relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
+              style={{ top: "2px", left: "0" }}
+            >
+              {props.label}
+            </div>
+          )}
+          <div className="relative flex" style={{ top: props.label ? "3px" : "8px", left: "0" }}>
+            {props.multiline ? (
+              <textarea
+                data-cy={`${identifier}-input`}
+                ref={ref as Ref<HTMLTextAreaElement>}
+                onBlur={changeType === "onblur" ? onInputHandler : undefined}
+                onInput={changeType === "oninput" ? onInputHandler : undefined}
+                onFocus={selectInputOnFocus}
+                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
+                style={{ fontSize: size === "md" ? "16px" : "15px", height: `${props.multiline * 25}px` }}
+                {...otherProps}
+              />
+            ) : (
+              <input
+                data-cy={`${identifier}-input`}
+                ref={ref as Ref<HTMLInputElement>}
+                onBlur={changeType === "onblur" ? onInputHandler : undefined}
+                onInput={changeType === "oninput" ? onInputHandler : undefined}
+                onFocus={selectInputOnFocus}
+                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
+                style={{ height: "1.25rem", fontSize: size === "md" ? "16px" : "15px" }}
+                {...otherProps}
+              />
+            )}
+          </div>
+        </div>
+      </label>
+      {errorMessages.map((message) => (
+        <div className="text-xs text-left text-redv2-main" key={message}>
+          {message}
+        </div>
+      ))}
+    </div>
+  );
+});

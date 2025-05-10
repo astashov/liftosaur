@@ -16,10 +16,11 @@ export class EditProgramUiHelpers {
     planner: IPlannerProgram,
     plannerExercise: IPlannerProgramExercise,
     settings: ISettings,
+    shouldValidate: boolean,
     cb: (exercise: IPlannerProgramExercise) => void
   ): IPlannerProgram {
     const key = PlannerKey.fromFullName(plannerExercise.fullName, settings);
-    const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
+    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
     PP.iterate2(evaluatedProgram.weeks, (e) => {
       const aKey = PlannerKey.fromFullName(e.fullName, settings);
       if (key === aKey) {
@@ -28,7 +29,34 @@ export class EditProgramUiHelpers {
       }
       return false;
     });
-    return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
+    return this.validate(
+      shouldValidate,
+      planner,
+      new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
+      settings
+    );
+  }
+
+  private static validate(
+    shouldValidate: boolean,
+    oldPlanner: IPlannerProgram,
+    newPlanner: IPlannerProgram,
+    settings: ISettings
+  ): IPlannerProgram {
+    if (shouldValidate) {
+      const { evaluatedWeeks } = PlannerEvaluator.evaluate(newPlanner, settings);
+      const error = PlannerEvaluator.getFirstError(evaluatedWeeks);
+      if (error) {
+        if (typeof window !== "undefined") {
+          alert(error.message);
+        }
+        return oldPlanner;
+      } else {
+        return newPlanner;
+      }
+    } else {
+      return newPlanner;
+    }
   }
 
   private static getWeeks2(
