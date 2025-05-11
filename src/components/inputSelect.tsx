@@ -8,6 +8,7 @@ interface IInputSelectProps<T extends string> {
   label?: string;
   placeholder?: string;
   expandValue?: boolean;
+  disabled?: boolean;
   value?: T;
   values?: [T, string][];
   onChange?: (v?: T) => void;
@@ -22,7 +23,9 @@ export function InputSelect<T extends string>(props: IInputSelectProps<T>): JSX.
         <label
           className={`${!props.expandValue ? "flex-1" : ""} text-sm`}
           onClick={() => {
-            setIsExpanded(!isExpanded);
+            if (!props.disabled) {
+              setIsExpanded(!isExpanded);
+            }
           }}
         >
           {props.label}
@@ -51,7 +54,9 @@ export function InputSelectValue<T extends string>(
       <button
         className="flex items-center w-full gap-2 p-2 text-left border rounded border-grayv3-200"
         onClick={() => {
-          setIsExpanded(!isExpanded);
+          if (!props.disabled) {
+            setIsExpanded(!isExpanded);
+          }
         }}
       >
         <div className="flex-1 text-sm">

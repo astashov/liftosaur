@@ -352,6 +352,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
               children: () => (
                 <EditProgramView
                   evaluatedWeeks={evaluatedWeeks}
+                  evaluatedProgram={evaluatedProgram}
                   exerciseFullNames={exerciseFullNames}
                   dispatch={props.dispatch}
                   originalProgram={props.originalProgram}

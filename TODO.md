@@ -61,3 +61,8 @@ User debug page:
   - Customized -> Switch to default
   - Reused -> Override
   - Overridden -> Remove override
+
+* Own Progress
+* Progress set-reused from other exercise
+  - own progress is none, reuse is not none
+* Progress custom-reused from other exercise

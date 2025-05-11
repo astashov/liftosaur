@@ -15,7 +15,7 @@ import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator
 import { Button } from "../button";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
-import { Program } from "../../models/program";
+import { IEvaluatedProgram, Program } from "../../models/program";
 import { applyChangesInEditor } from "./editProgramUtils";
 import { IDispatch } from "../../ducks/types";
 
@@ -23,6 +23,7 @@ interface IEditProgramViewProps {
   state: IPlannerState;
   settings: ISettings;
   evaluatedWeeks: IPlannerEvalResult[][];
+  evaluatedProgram: IEvaluatedProgram;
   exerciseFullNames: string[];
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
@@ -163,6 +164,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
               key={plannerDay.id}
               settings={props.settings}
               dispatch={props.dispatch}
+              evaluatedProgram={props.evaluatedProgram}
               isValidProgram={isValidProgram}
               evaluatedDay={evaluatedDay}
               exerciseFullNames={props.exerciseFullNames}

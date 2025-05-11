@@ -16,7 +16,7 @@ import { EditProgramV2Weeks } from "./editProgramV2Weeks";
 import { EditProgramV2Full } from "./editProgramV2Full";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { ScrollableTabs } from "../scrollableTabs";
-import { Program } from "../../models/program";
+import { IEvaluatedProgram, Program } from "../../models/program";
 import { Thunk } from "../../ducks/thunks";
 import { updateState, IState } from "../../models/state";
 import { CollectionUtils } from "../../utils/collection";
@@ -27,6 +27,7 @@ import { ObjectUtils } from "../../utils/object";
 interface IEditProgramViewProps {
   evaluatedWeeks: IPlannerEvalResult[][];
   exerciseFullNames: string[];
+  evaluatedProgram: IEvaluatedProgram;
   state: IPlannerState;
   originalProgram: IProgram;
   dispatch: IDispatch;
@@ -73,6 +74,7 @@ export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
               isInvalid: evaluatedWeeks[weekIndex].some((day) => !day.success),
               children: () => (
                 <EditProgramUiWeekView
+                  evaluatedProgram={props.evaluatedProgram}
                   dispatch={props.dispatch}
                   state={props.state}
                   exerciseFullNames={exerciseFullNames}

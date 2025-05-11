@@ -12,7 +12,6 @@ import { IconEdit2 } from "../icons/iconEdit2";
 import { lb } from "lens-shmens";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { HistoryRecordSet } from "../historyRecordSets";
-import { Progression } from "../programShareOutput";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
 import { IconTrash } from "../icons/iconTrash";
 import { GroupHeader } from "../groupHeader";
@@ -23,8 +22,11 @@ import { IconGraphsE } from "../icons/iconGraphsE";
 import { IconSwap } from "../icons/iconSwap";
 import { Thunk } from "../../ducks/thunks";
 import { IDispatch } from "../../ducks/types";
+import { EditProgramUiProgress } from "./editProgramUiProgress";
+import { IEvaluatedProgram } from "../../models/program";
 
 interface IEditProgramUiExerciseViewProps {
+  evaluatedProgram: IEvaluatedProgram;
   plannerExercise: IPlannerProgramExercise;
   ui: IPlannerUi;
   exerciseIndex: number;
@@ -41,9 +43,6 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
   const isCollapsed = props.ui.exerciseUi.collapsed.has(props.plannerExercise.id);
   const exercise = Exercise.findByName(props.plannerExercise.name, props.settings.exercises);
   const exerciseType = exercise != null ? { id: exercise.id, equipment: exercise.equipment } : undefined;
-  if (exercise == null) {
-    return <div />;
-  }
 
   const repeatStr = PlannerProgramExercise.repeatToRangeStr(props.plannerExercise);
   const order = props.plannerExercise.order !== 0 ? props.plannerExercise.order : undefined;
@@ -141,6 +140,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
         <EditProgramUiExerciseContentView
           weekIndex={weekIndex}
           dayIndex={dayIndex}
+          evaluatedProgram={props.evaluatedProgram}
           exerciseIndex={exerciseIndex}
           exercise={exercise}
           plannerExercise={props.plannerExercise}
@@ -154,7 +154,8 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
 }
 
 interface IEditProgramUiExerciseContentViewProps {
-  exercise: IExercise;
+  exercise?: IExercise;
+  evaluatedProgram: IEvaluatedProgram;
   exerciseIndex: number;
   weekIndex: number;
   dayIndex: number;
@@ -180,10 +181,12 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
     <div className="flex border-t border-purplev3-150">
       <div className="flex-1">
         <div className="flex">
-          {exerciseType && (
+          {exerciseType ? (
             <div className="px-3">
               <ExerciseImage settings={props.settings} className="w-10" exerciseType={exerciseType} size="small" />
             </div>
+          ) : (
+            <div className="w-2" />
           )}
           <div className="flex-1">
             <div>
@@ -251,7 +254,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
           </div>
         </div>
         <div className="px-3 pb-2 text-xs">
-          <Progression exercise={props.plannerExercise} />
+          <EditProgramUiProgress evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
         </div>
       </div>
       <div className="bg-white border-l border-purplev3-150">
