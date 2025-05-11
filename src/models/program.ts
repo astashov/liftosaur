@@ -1088,4 +1088,43 @@ export namespace Program {
     };
     return { program: newProgram, dayData: newDayData };
   }
+
+  export function getReusingCustomProgressExercises(
+    evaluatedProgram: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise[] {
+    const exercises: IPlannerProgramExercise[] = [];
+    PP.iterate2(evaluatedProgram.weeks, (e) => {
+      if (e.progress?.reuse?.fullName === programExercise.fullName) {
+        exercises.push(e);
+      }
+    });
+    return exercises;
+  }
+
+  export function getReusingSetProgressExercises(
+    evaluatedProgram: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise[] {
+    const exercises: IPlannerProgramExercise[] = [];
+    PP.iterate2(evaluatedProgram.weeks, (e) => {
+      if (e.reuse?.fullName === programExercise.fullName && e.progress) {
+        exercises.push(e);
+      }
+    });
+    return exercises;
+  }
+
+  export function getReusingProgressExercises(
+    evaluatedProgram: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise[] {
+    const reusingCustomProgressExercises = getReusingCustomProgressExercises(evaluatedProgram, programExercise);
+    const reusingSetProgressExercises = getReusingSetProgressExercises(evaluatedProgram, programExercise);
+    const exercises = CollectionUtils.uniqBy(
+      [...reusingCustomProgressExercises, ...reusingSetProgressExercises],
+      "fullName"
+    );
+    return exercises;
+  }
 }

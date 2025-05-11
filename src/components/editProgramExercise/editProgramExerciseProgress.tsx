@@ -22,6 +22,8 @@ import { SumRepsProgressSettings } from "./progressions/sumRepsProgressSettings"
 import { CustomProgressSettings } from "./progressions/customProgressSettings";
 import { ModalEditProgressScript } from "./progressions/modalEditProgressScript";
 import { useState } from "preact/hooks";
+import { CollectionUtils } from "../../utils/collection";
+import { DayData } from "../../models/dayData";
 
 interface IEditProgramExerciseProgressProps {
   program: IProgram;
@@ -51,6 +53,16 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
   const evaluatedProgram = Program.evaluate(props.program, props.settings);
   const reuseCandidates = getProgressReuseCandidates(plannerExercise.fullName, evaluatedProgram);
   const reuseFullName = plannerExercise.reuse?.fullName;
+  const reusingCustomProgressExercises = Program.getReusingCustomProgressExercises(evaluatedProgram, plannerExercise);
+  const reusingSetProgressExercises = Program.getReusingSetProgressExercises(evaluatedProgram, plannerExercise);
+  const reusingProgressExercises = Array.from(
+    new Set(
+      CollectionUtils.uniqByExpr(
+        [...reusingCustomProgressExercises, ...reusingSetProgressExercises],
+        (e) => e.fullName + "_" + DayData.toString(e.dayData)
+      )
+    )
+  );
   const ownProgress = plannerExercise.progress;
   const reuseSetValues: [string, string][] = reuseCandidates.map((fullName) => {
     return [fullName.trim(), fullName.trim()];
@@ -87,16 +99,46 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
             </div>
           )}
         </div>
+        {reusingProgressExercises.length > 0 && (
+          <div>
+            <MenuItemWrapper name="program-exercise-progress-reusing">
+              <div className="mb-1 text-xs">
+                <div>Custom progress of this exercise is reused by:</div>
+                <ul>
+                  {reusingProgressExercises.map((exercise) => (
+                    <li key={exercise} className="ml-4 text-xs font-semibold list-disc">
+                      {exercise.fullName} (
+                      {evaluatedProgram.weeks.length > 1 && <span>Week {exercise.dayData.week}, </span>}
+                      {evaluatedProgram.weeks[exercise.dayData.week - 1].days.length > 1 && (
+                        <span>Day {exercise.dayData.dayInWeek}</span>
+                      )}
+                      )
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </MenuItemWrapper>
+          </div>
+        )}
         {reuseSetValues.length > 0 && (
           <div>
-            <MenuItemWrapper name="program-exercise-progress-reuse">
-              <div className="flex py-1">
+            <MenuItemWrapper
+              name="program-exercise-progress-reuse"
+              onClick={() => {
+                if (reusingProgressExercises.length > 0) {
+                  alert("You cannot reuse progress if this custom progress is reused by other exercises.");
+                }
+              }}
+            >
+              <div className="flex items-center py-1">
                 <div className="flex-1 text-sm">Reuse progress from:</div>
                 <div className="flex-1">
                   <InputSelect
                     name="program-exercise-progress-reuse-select"
                     values={reuseSetValues}
                     value={reuseFullName}
+                    disabled={reusingProgressExercises.length > 0}
+                    placeholder="None"
                     onChange={(value) => {
                       props.plannerDispatch(
                         lbProgram.recordModify((program) => {
@@ -124,13 +166,21 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
           </div>
         )}
         <div>
-          <MenuItemWrapper name="program-exercise-progress-type">
+          <MenuItemWrapper
+            name="program-exercise-progress-type"
+            onClick={() => {
+              if (reusingCustomProgressExercises.length > 0) {
+                alert("You cannot use other progress types if this custom progress is reused by other exercises.");
+              }
+            }}
+          >
             <div className="flex items-center py-1">
-              <div className="flex-1 text-base">Progress:</div>
+              <div className="flex-1 text-sm">Progress:</div>
               <div className="flex-1 text-sm">
                 <InputSelect
                   name="program-exercise-progress-type-select"
                   values={progressTypes}
+                  disabled={reusingProgressExercises.length > 0}
                   value={plannerExercise.progress?.type}
                   onChange={(value) => {
                     props.plannerDispatch(
@@ -176,48 +226,48 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
                 />
               </div>
             </div>
-            {ownProgress?.type === "lp" && (
-              <div className="py-2">
-                <LinearProgressSettings
-                  plannerExercise={plannerExercise}
-                  settings={props.settings}
-                  plannerDispatch={props.plannerDispatch}
-                  program={props.program}
-                />
-              </div>
-            )}
-            {ownProgress?.type === "dp" && (
-              <div className="py-2">
-                <DoubleProgressSettings
-                  plannerExercise={plannerExercise}
-                  settings={props.settings}
-                  plannerDispatch={props.plannerDispatch}
-                  program={props.program}
-                />
-              </div>
-            )}
-            {ownProgress?.type === "sum" && (
-              <div className="py-2">
-                <SumRepsProgressSettings
-                  plannerExercise={plannerExercise}
-                  settings={props.settings}
-                  plannerDispatch={props.plannerDispatch}
-                  program={props.program}
-                />
-              </div>
-            )}
-            {ownProgress?.type === "custom" && (
-              <div className="py-2">
-                <CustomProgressSettings
-                  ui={props.ui}
-                  plannerExercise={plannerExercise}
-                  settings={props.settings}
-                  plannerDispatch={props.plannerDispatch}
-                  program={props.program}
-                />
-              </div>
-            )}
           </MenuItemWrapper>
+          {ownProgress?.type === "lp" && (
+            <div className="py-2">
+              <LinearProgressSettings
+                plannerExercise={plannerExercise}
+                settings={props.settings}
+                plannerDispatch={props.plannerDispatch}
+                program={props.program}
+              />
+            </div>
+          )}
+          {ownProgress?.type === "dp" && (
+            <div className="py-2">
+              <DoubleProgressSettings
+                plannerExercise={plannerExercise}
+                settings={props.settings}
+                plannerDispatch={props.plannerDispatch}
+                program={props.program}
+              />
+            </div>
+          )}
+          {ownProgress?.type === "sum" && (
+            <div className="py-2">
+              <SumRepsProgressSettings
+                plannerExercise={plannerExercise}
+                settings={props.settings}
+                plannerDispatch={props.plannerDispatch}
+                program={props.program}
+              />
+            </div>
+          )}
+          {ownProgress?.type === "custom" && (
+            <div className="py-2">
+              <CustomProgressSettings
+                ui={props.ui}
+                plannerExercise={plannerExercise}
+                settings={props.settings}
+                plannerDispatch={props.plannerDispatch}
+                program={props.program}
+              />
+            </div>
+          )}
         </div>
       </div>
       {props.ui.showEditProgressScriptModal && (

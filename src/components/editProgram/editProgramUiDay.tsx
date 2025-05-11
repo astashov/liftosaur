@@ -28,12 +28,14 @@ import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { IconGraphsE } from "../icons/iconGraphsE";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { IDispatch } from "../../ducks/types";
+import { IEvaluatedProgram } from "../../models/program";
 
 interface IEditProgramDayViewProps {
   state: IPlannerState;
   day: IPlannerProgramDay;
   dayData: Required<IDayData>;
   isValidProgram: boolean;
+  evaluatedProgram: IEvaluatedProgram;
   evaluatedDay: IPlannerEvalResult;
   lbPlannerWeek: LensBuilder<IPlannerState, IPlannerProgramWeek, {}>;
   showDelete: boolean;
@@ -163,6 +165,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
       </div>
       {!isCollapsed && (
         <EditProgramUiDayContentView
+          evaluatedProgram={props.evaluatedProgram}
           isValidProgram={props.isValidProgram}
           day={props.day}
           dispatch={props.dispatch}
@@ -185,6 +188,7 @@ interface IEditProgramDayContentViewProps {
   day: IPlannerProgramDay;
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
+  evaluatedProgram: IEvaluatedProgram;
   lbPlannerDay: LensBuilder<IPlannerState, IPlannerProgramDay, {}>;
   ui: IPlannerUi;
   isValidProgram: boolean;
@@ -198,6 +202,7 @@ interface IEditProgramDayContentViewProps {
 
 function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JSX.Element {
   const { evaluatedDay } = props;
+  console.log("Evaluated day", evaluatedDay);
   const duration = TimeUtils.formatHOrMin(
     PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.success ? evaluatedDay.data : [], props.settings.timers.workout || 0)
   );
@@ -296,6 +301,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                   <EditProgramUiExerciseView
                     ui={props.ui}
                     plannerExercise={exercise}
+                    evaluatedProgram={props.evaluatedProgram}
                     dispatch={props.dispatch}
                     plannerDispatch={props.plannerDispatch}
                     weekIndex={props.weekIndex}
