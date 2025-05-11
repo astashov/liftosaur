@@ -107,8 +107,11 @@ export interface IPlannerProgramExerciseWarmupSet {
   weight?: IWeight;
 }
 
+export type IPlannerProgramReuseSource = "specific" | "overall";
+
 export interface IPlannerProgramReuse {
   fullName: string;
+  source: IPlannerProgramReuseSource;
   week?: number;
   day?: number;
   exercise?: IPlannerProgramExercise;
@@ -220,8 +223,10 @@ export interface IPlannerUi {
 
 export interface IPlannerExerciseUi {
   isProgressEnabled?: boolean;
+  isUpdateEnabled?: boolean;
   showAddStateVariableModal?: boolean;
   showEditProgressScriptModal?: boolean;
+  showEditUpdateScriptModal?: boolean;
 }
 
 export interface IPlannerFullText {

@@ -102,7 +102,7 @@ export function EditProgramUiReuseSets(props: IEditProgramUiReuseSetsProps): JSX
                         week != null || (currentWeek != null && currentWeek.size > 1)
                           ? Array.from(newReuseCandidate.weekAndDays[week ?? props.dayData.week])[0]
                           : undefined;
-                      ex.reuse = { fullName: value.trim(), week, day };
+                      ex.reuse = { fullName: value.trim(), week, day, source: "specific" };
                       ex.setVariations = [];
                     }
                   }
@@ -180,11 +180,11 @@ function ReuseAtWeekDay(props: IReuseAtWeekDayProps): JSX.Element {
                     }
                     const days = reuseCandidate.weekAndDays[value];
                     const newDay = days != null ? Array.from(days)[0] : 1;
-                    ex.reuse = { fullName: reuseCandidate.fullname, week: value, day: newDay };
+                    ex.reuse = { fullName: reuseCandidate.fullname, week: value, day: newDay, source: "overall" };
                   } else {
                     const currW = reuseCandidate.weekAndDays[props.dayData.week];
                     const newDay = currW != null && currW.size > 1 ? Array.from(currW)[0] : undefined;
-                    ex.reuse = { fullName: reuseCandidate.fullname, week: undefined, day: newDay };
+                    ex.reuse = { fullName: reuseCandidate.fullname, week: undefined, day: newDay, source: "overall" };
                   }
                 }
               );

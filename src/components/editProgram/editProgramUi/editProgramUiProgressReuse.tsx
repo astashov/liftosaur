@@ -76,6 +76,7 @@ export function EditProgramUiProgressReuse(props: IEditProgramUiProgressReusePro
                                 script: undefined,
                                 reuse: {
                                   fullName: value,
+                                  source: "specific",
                                   exercise: reusedExercise,
                                 },
                               };

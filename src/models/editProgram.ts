@@ -109,6 +109,7 @@ export namespace EditProgram {
       history: { past: [], future: [] },
       ui: {
         isProgressEnabled: !!programExercise?.progress,
+        isUpdateEnabled: !!programExercise?.update,
       },
     };
   }

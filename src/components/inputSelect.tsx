@@ -11,7 +11,7 @@ interface IInputSelectProps<T extends string> {
   disabled?: boolean;
   value?: T;
   values?: [T, string][];
-  onChange?: (v?: T) => void;
+  onChange?: (v?: T, label?: string) => void;
 }
 
 export function InputSelect<T extends string>(props: IInputSelectProps<T>): JSX.Element {
@@ -77,7 +77,7 @@ export function InputSelectValue<T extends string>(
                 }`}
                 onClick={() => {
                   if (props.onChange) {
-                    props.onChange(key);
+                    props.onChange(key, value);
                   }
                   setIsExpanded(false);
                 }}

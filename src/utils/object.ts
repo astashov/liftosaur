@@ -117,7 +117,7 @@ export namespace ObjectUtils {
   export function changedKeys<T extends {}>(
     oldObj: T,
     newObj: T,
-    eq: (a: any, b: any) => boolean = (a, b) => a === b,
+    eq: (a: any, b: any) => boolean = (a, b) => a === b
   ): Partial<Record<keyof T, "delete" | "update" | "add">> {
     let oldKeys = keys(oldObj);
     const newKeys = keys(newObj);
@@ -149,7 +149,7 @@ export namespace ObjectUtils {
         memo[k] = fn(obj[k]);
         return memo;
       },
-      {} as Record<keyof T, V>,
+      {} as Record<keyof T, V>
     );
   }
 
@@ -201,7 +201,7 @@ export namespace ObjectUtils {
 
   export function combinedKeys<T extends Record<string, unknown>, U extends Record<string, unknown>>(
     obj1: T,
-    obj2: U,
+    obj2: U
   ): Array<keyof T | keyof U> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return Array.from(new Set(ObjectUtils.keys(obj1).concat(ObjectUtils.keys(obj2) as any)));
@@ -226,5 +226,15 @@ export namespace ObjectUtils {
     } else {
       return JSON.parse(JSON.stringify(obj));
     }
+  }
+
+  export function fromArray<K extends string, V>(arr: Array<[K, V]>): Record<K, V> {
+    return arr.reduce<Record<K, V>>(
+      (memo, [key, value]) => {
+        memo[key] = value;
+        return memo;
+      },
+      {} as Record<K, V>
+    );
   }
 }

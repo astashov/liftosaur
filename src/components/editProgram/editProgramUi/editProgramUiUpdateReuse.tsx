@@ -72,6 +72,7 @@ export function EditProgramUiUpdateReuse(props: IEditProgramUiUpdateReuseProps):
                                 reuse: {
                                   fullName: value,
                                   exercise: reusedExercise,
+                                  source: "specific" as const,
                                 },
                               };
                         ex.update = newUpdate;
