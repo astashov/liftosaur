@@ -24,6 +24,7 @@ import { Thunk } from "../../ducks/thunks";
 import { IDispatch } from "../../ducks/types";
 import { EditProgramUiProgress } from "./editProgramUiProgress";
 import { IEvaluatedProgram } from "../../models/program";
+import { EditProgramUiUpdate } from "./editProgramUiUpdate";
 
 interface IEditProgramUiExerciseViewProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -256,6 +257,11 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
         <div className="px-3 pb-2 text-xs">
           <EditProgramUiProgress evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
         </div>
+        {props.plannerExercise.update && (
+          <div className="px-3 pb-2 text-xs">
+            <EditProgramUiUpdate evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
+          </div>
+        )}
       </div>
       <div className="bg-white border-l border-purplev3-150">
         <div className="text-center">

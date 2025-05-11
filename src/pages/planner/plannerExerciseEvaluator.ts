@@ -437,7 +437,7 @@ export class PlannerExerciseEvaluator {
           script,
           liftoscriptNode,
           meta,
-          reuse: body ? { fullName: body } : undefined,
+          reuse: body ? { fullName: body, source: "specific" } : undefined,
         };
       } else {
         this.error(`There's no such update progression exists - '${fnName}'`, fnNameNode);
@@ -696,7 +696,7 @@ export class PlannerExerciseEvaluator {
       }
       const name = this.getValue(nameNode);
       const { week, day } = this.getReuseWeekDay(expr.getChild(PlannerNodeName.WeekDay));
-      return { type: "reuse", data: { fullName: name, week, day } };
+      return { type: "reuse", data: { fullName: name, week, day, source: "overall" } };
     } else {
       assert(PlannerNodeName.ReuseSectionWithWeekDay);
     }

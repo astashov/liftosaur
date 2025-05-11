@@ -22,6 +22,8 @@ import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { IconKebab } from "../icons/iconKebab";
 import { DropdownMenu, DropdownMenuItem } from "../editProgram/editProgramUi/editProgramUiDropdownMenu";
 import { EditProgramExerciseProgress } from "./editProgramExerciseProgress";
+import { EditProgramExerciseUpdate } from "./editProgramExerciseUpdate";
+import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 
 interface IProps {
   plannerState: IPlannerExerciseState;
@@ -64,6 +66,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const editProgramState = editProgramScreen?.params?.plannerState;
   const ui = plannerState.ui;
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
+  const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
 
   return (
     <Surface
@@ -150,16 +153,68 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                 data-cy="program-exercise-toggle-progress"
                 onClick={() => {
                   setIsKebabMenuOpen(false);
-                  plannerDispatch(
+                  plannerDispatch([
                     lb<IPlannerExerciseState>()
                       .p("ui")
                       .p("isProgressEnabled")
-                      .record(!plannerState.ui.isProgressEnabled)
-                  );
+                      .record(!plannerState.ui.isProgressEnabled),
+                    lbProgram.recordModify((program) => {
+                      return EditProgramUiHelpers.changeFirstInstance(
+                        program,
+                        plannerExercise,
+                        props.settings,
+                        true,
+                        (e) => {
+                          if (plannerState.ui.isProgressEnabled) {
+                            e.progress = undefined;
+                          } else {
+                            const result = PlannerProgramExercise.buildProgress(
+                              "lp",
+                              PlannerProgramExercise.getProgressDefaultArgs("lp")
+                            );
+                            if (result.success) {
+                              e.progress = result.data;
+                            } else {
+                              alert(result.error);
+                            }
+                          }
+                        }
+                      );
+                    }),
+                  ]);
                 }}
               >
                 <div className="flex items-center gap-2">
                   <div>{ui.isProgressEnabled ? "Disable" : "Enable"} Progress</div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                isTop={true}
+                data-cy="program-exercise-toggle-update"
+                onClick={() => {
+                  setIsKebabMenuOpen(false);
+                  plannerDispatch([
+                    lb<IPlannerExerciseState>().p("ui").p("isUpdateEnabled").record(!plannerState.ui.isUpdateEnabled),
+                    lbProgram.recordModify((program) => {
+                      return EditProgramUiHelpers.changeFirstInstance(
+                        program,
+                        plannerExercise,
+                        props.settings,
+                        true,
+                        (e) => {
+                          if (plannerState.ui.isUpdateEnabled) {
+                            e.update = undefined;
+                          } else {
+                            e.update = { type: "custom", script: `{~~}` };
+                          }
+                        }
+                      );
+                    }),
+                  ]);
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div>{ui.isUpdateEnabled ? "Disable" : "Enable"} Update</div>
                 </div>
               </DropdownMenuItem>
             </DropdownMenu>
@@ -176,6 +231,17 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
       <div className="mb-4">
         {ui.isProgressEnabled && (
           <EditProgramExerciseProgress
+            ui={plannerState.ui}
+            program={plannerState.current.program}
+            plannerExercise={plannerExercise}
+            settings={props.settings}
+            plannerDispatch={plannerDispatch}
+          />
+        )}
+      </div>
+      <div className="mb-4">
+        {ui.isUpdateEnabled && (
+          <EditProgramExerciseUpdate
             ui={plannerState.ui}
             program={plannerState.current.program}
             plannerExercise={plannerExercise}

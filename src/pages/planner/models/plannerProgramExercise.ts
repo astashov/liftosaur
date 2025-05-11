@@ -344,6 +344,18 @@ export class PlannerProgramExercise {
     );
   }
 
+  public static isReusingSetsProgress(exercise: IPlannerProgramExercise): boolean {
+    const reuseExercise = exercise.reuse?.exercise;
+    return (
+      reuseExercise?.progress != null &&
+      exercise.progress != null &&
+      exercise.progress.type === reuseExercise.progress?.type &&
+      (exercise.progress.reuse?.fullName === reuseExercise.fullName ||
+        exercise.progress.script === reuseExercise.progress.script) &&
+      Object.keys(PlannerProgramExercise.getOnlyChangedState(exercise)).length === 0
+    );
+  }
+
   public static getState(exercise: IPlannerProgramExercise): IProgramState {
     if (exercise.progress?.state && !exercise.progress.reuse) {
       return exercise.progress.state;
@@ -549,7 +561,7 @@ if (completedReps >= reps && completedRPE <= RPE) {
             state,
             stateMetadata,
             script,
-            reuse: opts.reuseFullname ? { fullName: opts.reuseFullname } : undefined,
+            reuse: opts.reuseFullname ? { fullName: opts.reuseFullname, source: "specific" } : undefined,
           },
         };
       }

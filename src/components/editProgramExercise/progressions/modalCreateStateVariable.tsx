@@ -5,10 +5,11 @@ import { IPercentageUnit, IUnit } from "../../../types";
 import { useRef, useState } from "preact/hooks";
 import { Button } from "../../button";
 import { InputSelect } from "../../inputSelect";
+import { MenuItemEditable } from "../../menuItemEditable";
 
 interface IModalCreateStateVariableProps {
   onClose: () => void;
-  onCreate: (name: string, type: IStateVariableType) => void;
+  onCreate: (name: string, type: IStateVariableType, isUserPrompted: boolean) => void;
 }
 
 type IStateVariableType = "number" | IUnit | IPercentageUnit;
@@ -24,6 +25,7 @@ export function ModalCreateStateVariable(props: IModalCreateStateVariableProps):
     ["lb", "Weight (lb)"],
     ["%", "Percentage"],
   ];
+  const [isUserPrompted, setIsUserPrompted] = useState<boolean>(false);
 
   return (
     <Modal name="new-state-variable-modal" onClose={props.onClose} shouldShowClose={true}>
@@ -36,7 +38,7 @@ export function ModalCreateStateVariable(props: IModalCreateStateVariableProps):
             return;
           }
           if (name && isValid) {
-            props.onCreate(name, type);
+            props.onCreate(name, type, isUserPrompted);
             props.onClose();
           }
         }}
@@ -61,7 +63,7 @@ export function ModalCreateStateVariable(props: IModalCreateStateVariableProps):
             setName((e.target as HTMLInputElement).value);
           }}
         />
-        <div className="w-full py-2">
+        <div className="w-full pt-2">
           <InputSelect
             name="create-state-variable-type"
             label="Type"
@@ -81,6 +83,19 @@ export function ModalCreateStateVariable(props: IModalCreateStateVariableProps):
           />
           {showTypeError && <div className="text-xs text-redv2-main">Please select a type for the variable.</div>}
         </div>
+        <MenuItemEditable
+          name="User Prompted?"
+          type="boolean"
+          nextLine={
+            <div className="pb-2 text-xs text-grayv3-main" style={{ marginTop: "-0.5rem" }}>
+              Will be asked for value at the end of workout
+            </div>
+          }
+          value={isUserPrompted ? "true" : "false"}
+          onChange={(v) => {
+            setIsUserPrompted(v === "true");
+          }}
+        />
         <div className="mt-4 text-center">
           <Button kind="orange" name="modal-create-state-variable-submit">
             Create

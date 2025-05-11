@@ -388,7 +388,13 @@ export class PlannerEvaluator {
           type: originalExercise.exercise.progress.type,
           state: ObjectUtils.clone(originalExercise.exercise.progress.state),
           stateMetadata: ObjectUtils.clone(originalExercise.exercise.progress.stateMetadata),
-          reuse: { fullName: originalExercise.exercise.fullName },
+          reuse: { fullName: originalExercise.exercise.fullName, source: "overall" },
+        };
+      }
+      if (originalExercise.exercise.update != null && exercise.update == null) {
+        exercise.update = {
+          type: originalExercise.exercise.update.type,
+          reuse: { fullName: originalExercise.exercise.fullName, source: "overall" },
         };
       }
 
@@ -439,7 +445,7 @@ export class PlannerEvaluator {
         const { descriptions, exercise: originalExercise } = result;
         exercise.descriptions = {
           values: [...ObjectUtils.clone(descriptions.values)],
-          reuse: { fullName: originalExercise.fullName, exercise: originalExercise },
+          reuse: { fullName: originalExercise.fullName, exercise: originalExercise, source: "specific" },
         };
       }
     }

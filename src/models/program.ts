@@ -1127,4 +1127,17 @@ export namespace Program {
     );
     return exercises;
   }
+
+  export function getReusingUpdateExercises(
+    evaluatedProgram: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise[] {
+    const exercises: IPlannerProgramExercise[] = [];
+    PP.iterate2(evaluatedProgram.weeks, (e) => {
+      if (e.reuse?.fullName === programExercise.fullName) {
+        exercises.push(e);
+      }
+    });
+    return exercises;
+  }
 }

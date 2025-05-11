@@ -103,7 +103,6 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                           newDay,
                           ...days.slice(props.dayInWeekIndex + 1),
                         ];
-                        console.log("New days", newDays);
                         return newDays;
                       })
                   );
@@ -202,7 +201,6 @@ interface IEditProgramDayContentViewProps {
 
 function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JSX.Element {
   const { evaluatedDay } = props;
-  console.log("Evaluated day", evaluatedDay);
   const duration = TimeUtils.formatHOrMin(
     PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.success ? evaluatedDay.data : [], props.settings.timers.workout || 0)
   );

@@ -17,6 +17,7 @@ import { Weight } from "../../../models/weight";
 import { IconTrash } from "../../icons/iconTrash";
 import { ScriptRunner } from "../../../parser";
 import { Tailwind } from "../../../utils/tailwindConfig";
+import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";
 
 interface ICustomProgressSettingsProps {
   program: IProgram;
@@ -34,7 +35,8 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
   if (!progress || progress.type !== "custom") {
     return <div />;
   }
-  const ownState = progress.state;
+  const ownState = PlannerProgramExercise.getState(plannerExercise);
+  const onlyChangedState = PlannerProgramExercise.getOnlyChangedState(plannerExercise);
 
   return (
     <div>
@@ -43,95 +45,105 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
         <ul>
           {ObjectUtils.entries(ownState).map(([key, value]) => {
             const isUsedVariable = ScriptRunner.hasStateVariable(progress.script ?? "", key);
+            const metadata = progress.stateMetadata?.[key];
+            const isReused = !onlyChangedState[key];
             return (
-              <li key={key} className="flex items-center gap-4 p-2 text-base border-b border-purplev3-150">
-                <div className="flex-1">{key}</div>
-                <div>
-                  {typeof value === "number" ? (
-                    <InputNumber2
-                      name={key}
-                      value={value}
-                      step={1}
-                      onInput={(newValue) => {
-                        props.plannerDispatch(
-                          lbProgram.recordModify((program) => {
-                            return EditProgramUiHelpers.changeFirstInstance(
-                              program,
-                              plannerExercise,
-                              props.settings,
-                              true,
-                              (e) => {
-                                const state = e.progress?.state;
-                                if (state && newValue) {
-                                  state[key] = newValue;
+              <li key={key} className="p-2 text-base border-b border-purplev3-150">
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <div className="leading-none">{key}</div>
+                    {metadata?.userPrompted && <div className="text-xs text-grayv3-main">User prompted</div>}
+                    {isReused && <div className="text-xs text-grayv3-main">Reused</div>}
+                  </div>
+                  <div>
+                    {typeof value === "number" ? (
+                      <InputNumber2
+                        name={key}
+                        value={value}
+                        step={1}
+                        onInput={(newValue) => {
+                          props.plannerDispatch(
+                            lbProgram.recordModify((program) => {
+                              return EditProgramUiHelpers.changeFirstInstance(
+                                program,
+                                plannerExercise,
+                                props.settings,
+                                true,
+                                (e) => {
+                                  const state = e.progress?.state;
+                                  if (state && newValue) {
+                                    state[key] = newValue;
+                                  }
                                 }
-                              }
-                            );
-                          })
-                        );
+                              );
+                            })
+                          );
+                        }}
+                      />
+                    ) : (
+                      <InputWeight2
+                        name={key}
+                        value={value}
+                        showUnitInside={true}
+                        settings={settings}
+                        units={["lb", "kg", "%"]}
+                        exerciseType={plannerExercise.exerciseType}
+                        onInput={(newValue) => {
+                          props.plannerDispatch(
+                            lbProgram.recordModify((program) => {
+                              return EditProgramUiHelpers.changeFirstInstance(
+                                program,
+                                plannerExercise,
+                                props.settings,
+                                true,
+                                (e) => {
+                                  const state = e.progress?.state;
+                                  if (state && newValue) {
+                                    state[key] = newValue;
+                                  }
+                                }
+                              );
+                            })
+                          );
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <button
+                      className="py-1 pl-1 pr-2"
+                      onClick={() => {
+                        if (isUsedVariable) {
+                          alert("You cannot delete it, because this state variable is used in the script.");
+                        } else if (isReused) {
+                          alert("You cannot delete reused state variable.");
+                        } else {
+                          props.plannerDispatch(
+                            lbProgram.recordModify((program) => {
+                              return EditProgramUiHelpers.changeFirstInstance(
+                                program,
+                                plannerExercise,
+                                props.settings,
+                                true,
+                                (e) => {
+                                  const state = e.progress?.state;
+                                  if (state) {
+                                    delete state[key];
+                                  }
+                                }
+                              );
+                            })
+                          );
+                        }
                       }}
-                    />
-                  ) : (
-                    <InputWeight2
-                      name={key}
-                      value={value}
-                      showUnitInside={true}
-                      settings={settings}
-                      units={["lb", "kg", "%"]}
-                      exerciseType={plannerExercise.exerciseType}
-                      onInput={(newValue) => {
-                        props.plannerDispatch(
-                          lbProgram.recordModify((program) => {
-                            return EditProgramUiHelpers.changeFirstInstance(
-                              program,
-                              plannerExercise,
-                              props.settings,
-                              true,
-                              (e) => {
-                                const state = e.progress?.state;
-                                if (state && newValue) {
-                                  state[key] = newValue;
-                                }
-                              }
-                            );
-                          })
-                        );
-                      }}
-                    />
-                  )}
-                </div>
-                <div>
-                  <button
-                    className="py-1 pl-1 pr-2"
-                    onClick={() => {
-                      if (isUsedVariable) {
-                        alert("You cannot delete it, because this state variable is used in the script.");
-                      } else {
-                        props.plannerDispatch(
-                          lbProgram.recordModify((program) => {
-                            return EditProgramUiHelpers.changeFirstInstance(
-                              program,
-                              plannerExercise,
-                              props.settings,
-                              true,
-                              (e) => {
-                                const state = e.progress?.state;
-                                if (state) {
-                                  delete state[key];
-                                }
-                              }
-                            );
-                          })
-                        );
-                      }
-                    }}
-                  >
-                    <IconTrash
-                      color={isUsedVariable ? Tailwind.colors().grayv3[300] : Tailwind.colors().blackv2}
-                      width={14}
-                      height={18}
-                    />
-                  </button>
+                    >
+                      <IconTrash
+                        color={isUsedVariable ? Tailwind.colors().grayv3[300] : Tailwind.colors().blackv2}
+                        width={14}
+                        height={18}
+                      />
+                    </button>
+                  </div>
                 </div>
               </li>
             );
@@ -151,13 +163,17 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
       {props.ui.showAddStateVariableModal && (
         <ModalCreateStateVariable
           onClose={() => props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(false))}
-          onCreate={(name, type) => {
+          onCreate={(name, type, isUserPrompted) => {
             props.plannerDispatch(
               lbProgram.recordModify((program) => {
                 return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
                   const state = e.progress?.state;
+                  const stateMetadata = e.progress?.stateMetadata;
                   if (state) {
                     state[name] = type === "number" ? 0 : Weight.buildAny(0, type);
+                  }
+                  if (stateMetadata && isUserPrompted) {
+                    stateMetadata[name] = { userPrompted: true };
                   }
                 });
               })

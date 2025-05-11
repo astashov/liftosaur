@@ -11,27 +11,21 @@ interface IEditProgramUiProgressProps {
 
 export function EditProgramUiProgress(props: IEditProgramUiProgressProps): JSX.Element | null {
   let reusingString: JSX.Element | null = null;
+  let reusedByString: JSX.Element | null = null;
   let progressExercise: IPlannerProgramExercise | undefined = undefined;
   const { evaluatedProgram, exercise } = props;
-  if (exercise.progress?.reuse?.fullName && exercise.progress.reuse.exercise?.progress) {
-    progressExercise = exercise.progress.reuse.exercise;
+  if (exercise.progress?.reuse) {
+    progressExercise = exercise.progress.reuse.exercise ?? exercise.reuse?.exercise;
     reusingString = (
       <>
         Reusing progress of '<strong>{exercise.progress.reuse?.fullName}</strong>'
-      </>
-    );
-  } else if (exercise.reuse?.exercise?.progress && !exercise.progress) {
-    progressExercise = exercise.reuse.exercise;
-    reusingString = (
-      <>
-        Reusing progress of '<strong>{exercise.reuse?.fullName}</strong>'
       </>
     );
   } else if (exercise.progress) {
     progressExercise = exercise;
     const reusingProgressExercises = Program.getReusingProgressExercises(evaluatedProgram, exercise);
     if (reusingProgressExercises.length > 0) {
-      reusingString = (
+      reusedByString = (
         <>
           This progress reused by:{" "}
           {reusingProgressExercises.map((e, i) => (
@@ -50,9 +44,10 @@ export function EditProgramUiProgress(props: IEditProgramUiProgressProps): JSX.E
     return null;
   }
   return (
-    <div>
-      <div className="text-xs">{reusingString}</div>
+    <div className="text-xs">
+      <div>{reusingString}</div>
       <Progression progressExercise={progressExercise} originalExercise={props.exercise} />
+      <div>{reusedByString}</div>
     </div>
   );
 }
