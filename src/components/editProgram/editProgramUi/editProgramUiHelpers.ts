@@ -37,6 +37,35 @@ export class EditProgramUiHelpers {
     );
   }
 
+  public static changeCurrentInstance2(
+    planner: IPlannerProgram,
+    plannerExercise: IPlannerProgramExercise,
+    dayData: Required<IDayData>,
+    settings: ISettings,
+    shouldValidate: boolean,
+    cb: (exercise: IPlannerProgramExercise) => void
+  ): IPlannerProgram {
+    const fullName = plannerExercise.fullName;
+    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
+
+    const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName);
+    for (const week of weeks) {
+      PP.iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
+        const current = week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1 && e.fullName === fullName;
+        if (current) {
+          cb(e);
+        }
+      });
+    }
+
+    return this.validate(
+      shouldValidate,
+      planner,
+      new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
+      settings
+    );
+  }
+
   private static validate(
     shouldValidate: boolean,
     oldPlanner: IPlannerProgram,

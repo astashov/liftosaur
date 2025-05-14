@@ -227,6 +227,12 @@ export interface IPlannerExerciseUi {
   showAddStateVariableModal?: boolean;
   showEditProgressScriptModal?: boolean;
   showEditUpdateScriptModal?: boolean;
+  weekIndex: number;
+  editSetBottomSheet?: {
+    dayInWeekIndex: number;
+    setVariationIndex: number;
+    setIndex: number;
+  };
 }
 
 export interface IPlannerFullText {
