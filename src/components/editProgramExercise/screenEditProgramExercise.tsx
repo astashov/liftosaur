@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IPlannerExerciseState, IPlannerState } from "../../pages/planner/models/types";
 import { IDispatch } from "../../ducks/types";
 import { IDayData, IExerciseType, ISettings } from "../../types";
@@ -24,6 +24,8 @@ import { DropdownMenu, DropdownMenuItem } from "../editProgram/editProgramUi/edi
 import { EditProgramExerciseProgress } from "./editProgramExerciseProgress";
 import { EditProgramExerciseUpdate } from "./editProgramExerciseUpdate";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramExerciseSets } from "./editProgramExerciseSets";
+import { BottomSheetEditProgramExerciseSet } from "./bottomSheetEditProgramExerciseSet";
 
 interface IProps {
   plannerState: IPlannerExerciseState;
@@ -121,6 +123,15 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
         />
       }
       footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
+      addons={
+        <>
+          <BottomSheetEditProgramExerciseSet
+            ui={plannerState.ui}
+            plannerDispatch={plannerDispatch}
+            settings={props.settings}
+          />
+        </>
+      }
     >
       <div className="flex items-center gap-4 px-4">
         <div>
@@ -249,6 +260,15 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
             plannerDispatch={plannerDispatch}
           />
         )}
+      </div>
+      <div className="mb-8">
+        <EditProgramExerciseSets
+          ui={plannerState.ui}
+          evaluatedProgram={evaluatedProgram}
+          plannerExercise={plannerExercise}
+          settings={props.settings}
+          plannerDispatch={plannerDispatch}
+        />
       </div>
     </Surface>
   );

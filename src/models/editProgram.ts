@@ -108,6 +108,7 @@ export namespace EditProgram {
       current: { program: ObjectUtils.clone(program) },
       history: { past: [], future: [] },
       ui: {
+        weekIndex: 0,
         isProgressEnabled: !!programExercise?.progress,
         isUpdateEnabled: !!programExercise?.update,
       },

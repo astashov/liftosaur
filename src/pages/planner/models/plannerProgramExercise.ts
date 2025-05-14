@@ -251,6 +251,10 @@ export class PlannerProgramExercise {
     return groupDisplaySets(displaySets);
   }
 
+  public static uniqueKey(exercise: IPlannerProgramExercise): string {
+    return `${exercise.key}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`;
+  }
+
   public static setsToDisplaySets(
     sets: IPlannerProgramExerciseSet[],
     hasCurrentSets: boolean,
