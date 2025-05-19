@@ -126,6 +126,7 @@ https://www.liftosaur.com/exercises/barbell-deficit-deadlift
 https://www.liftosaur.com/exercises/trap-bar-deficit-deadlift
 https://www.liftosaur.com/exercises/leverage-machine-elliptical-machine
 https://www.liftosaur.com/exercises/band-face-pull
+https://www.liftosaur.com/exercises/dumbbell-farmers-walk
 https://www.liftosaur.com/exercises/bodyweight-flat-knee-raise
 https://www.liftosaur.com/exercises/bodyweight-flat-leg-raise
 https://www.liftosaur.com/exercises/barbell-front-raise
@@ -247,6 +248,7 @@ https://www.liftosaur.com/exercises/band-reverse-curl
 https://www.liftosaur.com/exercises/dumbbell-reverse-fly
 https://www.liftosaur.com/exercises/band-reverse-fly
 https://www.liftosaur.com/exercises/leverage-machine-reverse-fly
+https://www.liftosaur.com/exercises/cable-reverse-lat-pulldown
 https://www.liftosaur.com/exercises/barbell-reverse-lunge
 https://www.liftosaur.com/exercises/dumbbell-reverse-lunge
 https://www.liftosaur.com/exercises/kettlebell-reverse-lunge
@@ -331,6 +333,7 @@ https://www.liftosaur.com/exercises/cable-standing-calf-raise
 https://www.liftosaur.com/exercises/dumbbell-standing-calf-raise
 https://www.liftosaur.com/exercises/bodyweight-standing-calf-raise
 https://www.liftosaur.com/exercises/leverage-machine-standing-calf-raise
+https://www.liftosaur.com/exercises/smith-machine-standing-calf-raise
 https://www.liftosaur.com/exercises/cable-standing-row
 https://www.liftosaur.com/exercises/cable-standing-row-close-grip
 https://www.liftosaur.com/exercises/cable-standing-row-rear-delt-with-rope
@@ -366,6 +369,7 @@ https://www.liftosaur.com/exercises/barbell-upright-row
 https://www.liftosaur.com/exercises/cable-upright-row
 https://www.liftosaur.com/exercises/dumbbell-upright-row
 https://www.liftosaur.com/exercises/band-upright-row
+https://www.liftosaur.com/exercises/ez-bar-upright-row
 https://www.liftosaur.com/exercises/dumbbell-v-up
 https://www.liftosaur.com/exercises/band-v-up
 https://www.liftosaur.com/exercises/bodyweight-v-up

@@ -419,6 +419,15 @@ export const exercises: Record<IExerciseId, IExercise> = {
     startingWeightLb: { value: 0, unit: "lb" },
     startingWeightKg: { value: 0, unit: "kg" },
   },
+  farmersWalk: {
+    id: "farmersWalk",
+    name: "Farmers Walk",
+    defaultWarmup: 10,
+    defaultEquipment: "dumbbell",
+    types: ["upper"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
+  },
   flatKneeRaise: {
     id: "flatKneeRaise",
     name: "Flat Knee Raise",
@@ -2108,6 +2117,27 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     bodyParts: ["Shoulders"],
     sortedEquipment: ["band"],
   },
+  farmersWalk: {
+    targetMuscles: [
+      "Wrist Flexors", 
+      "Trapezius Upper Fibers",
+      "Trapezius Middle Fibers", 
+      "Levator Scapulae", 
+      "Erector Spinae", 
+      "Rectus Abdominis",
+      "Obliques"
+    ],
+    synergistMuscles: [
+      "Gluteus Maximus", 
+      "Hamstrings", 
+      "Quadriceps", 
+      "Adductor Magnus", 
+      "Soleus", 
+      "Gastrocnemius"
+    ],
+    bodyParts: ["Forearms"],
+    sortedEquipment: ["dumbbell"],
+  },
   flatKneeRaise: {
     targetMuscles: ["Iliopsoas"],
     synergistMuscles: ["Adductor Brevis", "Adductor Longus", "Pectineous", "Sartorius"],
@@ -3155,7 +3185,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     targetMuscles: ["Gastrocnemius"],
     synergistMuscles: ["Soleus"],
     bodyParts: ["Calves"],
-    sortedEquipment: ["barbell", "dumbbell", "leverageMachine", "bodyweight", "cable"],
+    sortedEquipment: ["barbell", "dumbbell", "leverageMachine", "bodyweight", "cable", "smith"],
   },
   standingRow: {
     targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
@@ -3350,7 +3380,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Trapezius Middle Fibers",
     ],
     bodyParts: ["Shoulders"],
-    sortedEquipment: ["barbell", "cable", "dumbbell", "band"],
+    sortedEquipment: ["barbell", "cable", "dumbbell", "band", "ezbar"],
   },
   vUp: {
     targetMuscles: ["Iliopsoas", "Rectus Abdominis"],
