@@ -12,6 +12,8 @@ const fullCommitHash = require("child_process").execSync("git rev-parse HEAD").t
 const localapi = `https://${localapidomain}.liftosaur.com:3000/`;
 const local = `https://${localdomain}.liftosaur.com:8080/`;
 
+const isDevServer = process.env.USE_DEV_SERVER === "true";
+
 // Export a function. Accept the base config as the only param.
 module.exports = {
   entry: {
@@ -202,176 +204,178 @@ module.exports = {
     new BundleAnalyzerPlugin({ analyzerMode: "static", openAnalyzer: false }),
   ],
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
-  devServer: {
-    devMiddleware: {
-      index: false, // specify to enable root proxying
-    },
-    static: path.join(__dirname, "dist"),
-    compress: true,
-    https:
-      process.env.NODE_ENV === "production"
-        ? undefined
-        : {
+  ...(isDevServer && {
+    devServer: {
+      devMiddleware: {
+        index: false, // specify to enable root proxying
+      },
+      static: path.join(__dirname, "dist"),
+      compress: true,
+      https:
+        process.env.NODE_ENV === "production"
+          ? undefined
+          : {
             key: fs.readFileSync(path.join(process.env.HOME, `.secrets/live/${localdomain}.liftosaur.com/privkey.pem`)),
             cert: fs.readFileSync(
               path.join(process.env.HOME, `.secrets/live/${localdomain}.liftosaur.com/fullchain.pem`)
             ),
           },
-    hot: false,
-    allowedHosts: "all",
-    liveReload: false,
-    host: "0.0.0.0",
-    proxy: {
-      "/p/*": {
-        target: localapi,
-        secure: false,
-      },
-      "/docs": {
-        target: local + "/blog",
-        secure: false,
-      },
-      "/about": {
-        target: localapi,
-        pathRewrite: (p, req) => {
-          return "/main";
+      hot: false,
+      allowedHosts: "all",
+      liveReload: false,
+      host: "0.0.0.0",
+      proxy: {
+        "/p/*": {
+          target: localapi,
+          secure: false,
         },
-        secure: false,
-      },
-      "/n/*": {
-        target: localapi,
-        secure: false,
-      },
-      "/record": {
-        target: localapi + "/api",
-        secure: false,
-      },
-      "/admin": {
-        target: localapi,
-        secure: false,
-      },
-      "/profileimage/*": {
-        target: localapi,
-        secure: false,
-        pathRewrite: (p, req) => {
-          const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
-          return `/profileimage?user=${user}`;
+        "/docs": {
+          target: local + "/blog",
+          secure: false,
         },
-      },
-      "/profile/*": {
-        target: localapi,
-        secure: false,
-        pathRewrite: (p, req) => {
-          const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
-          return `/profile?user=${user}`;
-        },
-      },
-      "/programs/*": {
-        target: localapi,
-        secure: false,
-      },
-      "/planner": {
-        target: localapi,
-        secure: false,
-      },
-      "/dashboards/affiliates/*": {
-        target: localapi,
-        secure: false,
-      },
-      "/externalimages/*": {
-        target: "https://www.liftosaur.com/",
-        secure: true,
-        changeOrigin: true,
-      },
-      "/dashboards/users": {
-        target: localapi,
-        secure: false,
-      },
-      "/dashboards/user/*": {
-        target: localapi,
-        secure: false,
-      },
-      "/login": {
-        target: localapi,
-        secure: false,
-      },
-      "/exercises": {
-        target: localapi,
-        secure: false,
-      },
-      "/rep-max-calculator": { target: localapi, secure: false },
-      "/one-rep-max-calculator": { target: localapi, secure: false },
-      "/two-rep-max-calculator": { target: localapi, secure: false },
-      "/three-rep-max-calculator": { target: localapi, secure: false },
-      "/four-rep-max-calculator": { target: localapi, secure: false },
-      "/five-rep-max-calculator": { target: localapi, secure: false },
-      "/six-rep-max-calculator": { target: localapi, secure: false },
-      "/seven-rep-max-calculator": { target: localapi, secure: false },
-      "/eight-rep-max-calculator": { target: localapi, secure: false },
-      "/nine-rep-max-calculator": { target: localapi, secure: false },
-      "/ten-rep-max-calculator": { target: localapi, secure: false },
-      "/evelen-rep-max-calculator": { target: localapi, secure: false },
-      "/twelve-rep-max-calculator": { target: localapi, secure: false },
-      "/rm": { target: localapi, secure: false },
-      "/1rm": { target: localapi, secure: false },
-      "/2rm": { target: localapi, secure: false },
-      "/3rm": { target: localapi, secure: false },
-      "/4rm": { target: localapi, secure: false },
-      "/5rm": { target: localapi, secure: false },
-      "/6rm": { target: localapi, secure: false },
-      "/7rm": { target: localapi, secure: false },
-      "/8rm": { target: localapi, secure: false },
-      "/9rm": { target: localapi, secure: false },
-      "/10rm": { target: localapi, secure: false },
-      "/11rm": { target: localapi, secure: false },
-      "/12rm": { target: localapi, secure: false },
-      "/exercises/*": {
-        target: localapi,
-        secure: false,
-      },
-      "/.well-known/skadnetwork/report-attribution": {
-        pathRewrite: { "^/.well-known/skadnetwork/report-attribution": "/api/adattr" },
-        target: localapi,
-        secure: false,
-      },
-      "/program": {
-        target: localapi,
-        secure: false,
-      },
-      "/user/*": {
-        target: localapi,
-        secure: false,
-      },
-      "/affiliates": {
-        target: localapi,
-        secure: false,
-      },
-      "/programimage/*": {
-        target: localapi + "/api",
-        secure: false,
-      },
-      "/user/programs": {
-        target: localapi,
-        secure: false,
-      },
-      "/": {
-        target: localapi,
-        bypass: function (req, res, proxyOptions) {
-          // If the request is not for the root path, bypass the proxy
-          if (req.path !== "/") {
-            return req.path;
-          }
-        },
-        pathRewrite: (p, req) => {
-          console.log(p);
-          const url = new URL(p, "https://www.example.com");
-          if (url.pathname === "/") {
+        "/about": {
+          target: localapi,
+          pathRewrite: (p, req) => {
             return "/main";
-          } else {
-            return p;
-          }
+          },
+          secure: false,
         },
-        secure: false,
+        "/n/*": {
+          target: localapi,
+          secure: false,
+        },
+        "/record": {
+          target: localapi + "/api",
+          secure: false,
+        },
+        "/admin": {
+          target: localapi,
+          secure: false,
+        },
+        "/profileimage/*": {
+          target: localapi,
+          secure: false,
+          pathRewrite: (p, req) => {
+            const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
+            return `/profileimage?user=${user}`;
+          },
+        },
+        "/profile/*": {
+          target: localapi,
+          secure: false,
+          pathRewrite: (p, req) => {
+            const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
+            return `/profile?user=${user}`;
+          },
+        },
+        "/programs/*": {
+          target: localapi,
+          secure: false,
+        },
+        "/planner": {
+          target: localapi,
+          secure: false,
+        },
+        "/dashboards/affiliates/*": {
+          target: localapi,
+          secure: false,
+        },
+        "/externalimages/*": {
+          target: "https://www.liftosaur.com/",
+          secure: true,
+          changeOrigin: true,
+        },
+        "/dashboards/users": {
+          target: localapi,
+          secure: false,
+        },
+        "/dashboards/user/*": {
+          target: localapi,
+          secure: false,
+        },
+        "/login": {
+          target: localapi,
+          secure: false,
+        },
+        "/exercises": {
+          target: localapi,
+          secure: false,
+        },
+        "/rep-max-calculator": { target: localapi, secure: false },
+        "/one-rep-max-calculator": { target: localapi, secure: false },
+        "/two-rep-max-calculator": { target: localapi, secure: false },
+        "/three-rep-max-calculator": { target: localapi, secure: false },
+        "/four-rep-max-calculator": { target: localapi, secure: false },
+        "/five-rep-max-calculator": { target: localapi, secure: false },
+        "/six-rep-max-calculator": { target: localapi, secure: false },
+        "/seven-rep-max-calculator": { target: localapi, secure: false },
+        "/eight-rep-max-calculator": { target: localapi, secure: false },
+        "/nine-rep-max-calculator": { target: localapi, secure: false },
+        "/ten-rep-max-calculator": { target: localapi, secure: false },
+        "/evelen-rep-max-calculator": { target: localapi, secure: false },
+        "/twelve-rep-max-calculator": { target: localapi, secure: false },
+        "/rm": { target: localapi, secure: false },
+        "/1rm": { target: localapi, secure: false },
+        "/2rm": { target: localapi, secure: false },
+        "/3rm": { target: localapi, secure: false },
+        "/4rm": { target: localapi, secure: false },
+        "/5rm": { target: localapi, secure: false },
+        "/6rm": { target: localapi, secure: false },
+        "/7rm": { target: localapi, secure: false },
+        "/8rm": { target: localapi, secure: false },
+        "/9rm": { target: localapi, secure: false },
+        "/10rm": { target: localapi, secure: false },
+        "/11rm": { target: localapi, secure: false },
+        "/12rm": { target: localapi, secure: false },
+        "/exercises/*": {
+          target: localapi,
+          secure: false,
+        },
+        "/.well-known/skadnetwork/report-attribution": {
+          pathRewrite: { "^/.well-known/skadnetwork/report-attribution": "/api/adattr" },
+          target: localapi,
+          secure: false,
+        },
+        "/program": {
+          target: localapi,
+          secure: false,
+        },
+        "/user/*": {
+          target: localapi,
+          secure: false,
+        },
+        "/affiliates": {
+          target: localapi,
+          secure: false,
+        },
+        "/programimage/*": {
+          target: localapi + "/api",
+          secure: false,
+        },
+        "/user/programs": {
+          target: localapi,
+          secure: false,
+        },
+        "/": {
+          target: localapi,
+          bypass: function (req, res, proxyOptions) {
+            // If the request is not for the root path, bypass the proxy
+            if (req.path !== "/") {
+              return req.path;
+            }
+          },
+          pathRewrite: (p, req) => {
+            console.log(p);
+            const url = new URL(p, "https://www.example.com");
+            if (url.pathname === "/") {
+              return "/main";
+            } else {
+              return p;
+            }
+          },
+          secure: false,
+        },
       },
     },
-  },
+  }),
 };
