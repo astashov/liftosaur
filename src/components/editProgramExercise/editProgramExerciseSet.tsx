@@ -12,6 +12,9 @@ import { Mobile } from "../../../lambda/utils/mobile";
 import { InputNumber2 } from "../inputNumber2";
 import { InputWeight2 } from "../inputWeight2";
 import { lb } from "lens-shmens";
+import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { CollectionUtils } from "../../utils/collection";
+import { StateUpdater } from "preact/hooks";
 
 interface IEditProgramExerciseSetProps {
   set: IPlannerProgramExerciseEvaluatedSet;
@@ -20,6 +23,8 @@ interface IEditProgramExerciseSetProps {
   ui: IPlannerExerciseUi;
   setVariationIndex: number;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
+  setIds: string[];
+  setSetIds: StateUpdater<string[]>;
   settings: ISettings;
   opts: {
     hasMinReps: boolean;
@@ -30,11 +35,53 @@ interface IEditProgramExerciseSetProps {
 }
 
 export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX.Element {
-  const { set, setIndex } = props;
+  const { set, setIndex, setVariationIndex } = props;
   const isMobile = Mobile.isMobileFromWindow();
   const isPlaywright = Mobile.isPlaywrightFromWindow();
   const shouldUseTouch = isMobile && !isPlaywright;
   const lbUi = lb<IPlannerExerciseState>().pi("ui");
+  const lastRowData = (
+    [
+      ["weight", set.weight != null],
+      ["rpe", set.rpe != null],
+      ["timer", set.timer != null],
+    ] as const
+  ).filter(([k, v]) => v);
+  const lastRow = lastRowData[lastRowData.length - 1]?.[0];
+  const rowRightPaddings = {
+    weight: lastRow === "weight" ? "0.25rem" : "0rem",
+    rpe: lastRow === "rpe" ? "0.25rem" : "0rem",
+    timer: lastRow === "timer" ? "0.25rem" : "0rem",
+  };
+  const plannerExercise = props.plannerExercise;
+  const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
+  const additionalFields = [
+    set.minrep != null ? 1 : 0,
+    set.weight != null ? 1 : 0,
+    set.rpe != null ? 1 : 0,
+    set.timer != null ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+  const widthAdd = (4 - additionalFields) * 0.5;
+
+  function changeSet(cb: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
+    if (!plannerExercise) return;
+    props.plannerDispatch(
+      lbProgram.recordModify((program) => {
+        return EditProgramUiHelpers.changeCurrentInstance2(
+          program,
+          plannerExercise,
+          plannerExercise.dayData,
+          props.settings,
+          true,
+          (ex) => {
+            const setVariation = ex.evaluatedSetVariations[setVariationIndex];
+            const set = setVariation.sets[setIndex];
+            cb(set);
+          }
+        );
+      })
+    );
+  }
 
   return (
     <SwipeableRow width={128} openThreshold={30} closeThreshold={110} scrollThreshold={7} initiateTreshold={15}>
@@ -49,42 +96,65 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
           onPointerMove={!shouldUseTouch ? onPointerMove : undefined}
           onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
         >
-          <div className="table-cell px-2 py-1 text-sm align-middle border-b border-purplev3-150">
-            <div className={`w-6 h-6 flex items-center justify-start rounded-full`}>
+          <div className="table-cell w-2 px-2 py-1 text-sm align-middle border-b border-purplev3-150">
+            <div className={`text-center h-6 flex items-center justify-center rounded-full`}>
               <div>{setIndex + 1}</div>
             </div>
           </div>
-          {props.opts.hasMinReps &&
-            (set.minrep != null ? (
-              <div className="table-cell py-2 align-middle border-b border-purplev3-150">
-                <div className="flex justify-center text-center">
-                  <InputNumber2
-                    width={3.5}
-                    data-cy="min-reps-value"
-                    name="set-min-reps"
-                    onInput={(value) => {}}
-                    onBlur={(value) => {}}
-                    value={set.minrep}
-                    min={0}
-                    max={9999}
-                    step={1}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="table-cell border-b border-purplev3-150" />
-            ))}
+          {props.opts.hasMinReps && (
+            <>
+              {set.minrep != null ? (
+                <>
+                  <div className="table-cell py-2 align-middle border-b border-purplev3-150">
+                    <div className="flex justify-center text-center">
+                      <InputNumber2
+                        width={2.5 + widthAdd}
+                        data-cy="min-reps-value"
+                        name="set-min-reps"
+                        onInput={(value) => {}}
+                        onBlur={(value) => {}}
+                        value={set.minrep}
+                        min={0}
+                        max={999}
+                        step={1}
+                      />
+                    </div>
+                  </div>
+                  <div className="table-cell px-1 py-2 text-center align-middle border-b border-purplev3-150">-</div>
+                </>
+              ) : (
+                <>
+                  <div className="table-cell border-b border-purplev3-150" />
+                  <div className="table-cell border-b border-purplev3-150" />
+                </>
+              )}
+            </>
+          )}
           <div className="table-cell py-2 align-middle border-b border-purplev3-150">
             <div className="flex justify-center text-center">
               <InputNumber2
-                width={3.5}
+                width={2.5 + widthAdd}
                 data-cy="reps-value"
                 name="set-reps"
-                onInput={(value) => {}}
-                onBlur={(value) => {}}
+                onBlur={(value) => changeSet((set) => (set.maxrep = value))}
+                onInput={(value) => changeSet((set) => (set.maxrep = value))}
+                after={() => {
+                  return set.isAmrap ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+                }}
+                keyboardAddon={
+                  <div className="py-2">
+                    <InputNumberAddOn
+                      label="Is AMRAP?"
+                      value={set.isAmrap}
+                      onChange={(value) => {
+                        changeSet((set) => (set.isAmrap = value));
+                      }}
+                    />
+                  </div>
+                }
                 value={set.maxrep}
                 min={0}
-                max={9999}
+                max={999}
                 step={1}
               />
             </div>
@@ -94,20 +164,38 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
               <div className="table-cell px-1 py-2 text-center align-middle border-b border-purplev3-150">×</div>
               {set.weight != null ? (
                 <div className="table-cell py-2 align-middle border-b border-purplev3-150">
-                  <div className="flex items-center justify-center text-center">
+                  <div
+                    className="flex items-center justify-center text-center"
+                    style={{ paddingRight: rowRightPaddings.weight }}
+                  >
                     <InputWeight2
                       name="set-weight"
+                      width={3 + widthAdd}
                       exerciseType={props.plannerExercise.exerciseType}
                       data-cy="weight-value"
                       units={["lb", "kg", "%"] as const}
-                      onBlur={(value) => {}}
-                      onInput={(value) => {}}
+                      onBlur={(value) => changeSet((set) => (set.weight = value))}
+                      onInput={(value) => changeSet((set) => (set.weight = value))}
                       showUnitInside={true}
                       subscription={undefined}
                       value={set.weight}
+                      after={() => {
+                        return set.askWeight ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+                      }}
                       max={9999}
                       min={-9999}
                       settings={props.settings}
+                      addOn={() => {
+                        return (
+                          <InputNumberAddOn
+                            label="Ask Weight?"
+                            value={set.askWeight}
+                            onChange={(value) => {
+                              changeSet((set) => (set.askWeight = value));
+                            }}
+                          />
+                        );
+                      }}
                     />
                   </div>
                 </div>
@@ -119,13 +207,32 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
           {props.opts.hasRpe &&
             (set.rpe != null ? (
               <div className="table-cell py-2 align-middle border-b border-purplev3-150">
-                <div className="flex justify-center text-center">
+                <div className="flex justify-center text-center" style={{ paddingRight: rowRightPaddings.rpe }}>
                   <InputNumber2
-                    width={3.5}
+                    width={2.2 + widthAdd}
                     data-cy="rpe-value"
+                    allowDot={true}
                     name="set-rpe"
-                    onInput={(value) => {}}
-                    onBlur={(value) => {}}
+                    after={() => {
+                      return set.logRpe ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+                    }}
+                    keyboardAddon={
+                      <div className="py-2">
+                        <InputNumberAddOn
+                          label="Log RPE?"
+                          value={set.isAmrap}
+                          onChange={(value) => {
+                            changeSet((set) => (set.logRpe = value));
+                          }}
+                        />
+                      </div>
+                    }
+                    onBlur={(value) => changeSet((set) => (set.rpe = value))}
+                    onInput={(value) => {
+                      if (value != null && !isNaN(value)) {
+                        changeSet((set) => (set.rpe = value));
+                      }
+                    }}
                     value={set.rpe}
                     min={0}
                     max={10}
@@ -139,13 +246,13 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
           {props.opts.hasTimer &&
             (set.timer != null ? (
               <div className="table-cell py-2 align-middle border-b border-purplev3-150">
-                <div className="flex justify-center text-center">
+                <div className="flex justify-center text-center" style={{ paddingRight: rowRightPaddings.timer }}>
                   <InputNumber2
-                    width={3.5}
-                    data-cy="rpe-value"
-                    name="set-rpe"
-                    onInput={(value) => {}}
-                    onBlur={(value) => {}}
+                    width={2.5 + widthAdd}
+                    data-cy="set-timer"
+                    name="timer-value"
+                    onBlur={(value) => changeSet((set) => (set.timer = value))}
+                    onInput={(value) => changeSet((set) => (set.timer = value))}
                     value={set.timer}
                     min={0}
                     max={9999}
@@ -168,6 +275,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   close();
                   props.plannerDispatch(
                     lbUi.p("editSetBottomSheet").record({
+                      exerciseKey: props.plannerExercise.key,
                       setVariationIndex: props.setVariationIndex,
                       setIndex: props.setIndex,
                       dayInWeekIndex: props.plannerExercise.dayData.dayInWeek - 1,
@@ -183,6 +291,23 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                 tabIndex={-1}
                 onClick={() => {
                   close();
+                  props.plannerDispatch(
+                    lbProgram.recordModify((program) => {
+                      return EditProgramUiHelpers.changeCurrentInstance2(
+                        program,
+                        plannerExercise,
+                        plannerExercise.dayData,
+                        props.settings,
+                        true,
+                        (ex) => {
+                          const setVariation = ex.evaluatedSetVariations[setVariationIndex];
+                          const sets = [...setVariation.sets];
+                          setVariation.sets = CollectionUtils.removeAt(sets, setIndex);
+                        }
+                      );
+                    })
+                  );
+                  props.setSetIds((prev) => CollectionUtils.removeAt(prev, setIndex));
                 }}
                 className="flex-1 h-full text-white bg-redv3-600 nm-workout-exercise-set-delete"
               >
@@ -193,5 +318,29 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
         </div>
       )}
     </SwipeableRow>
+  );
+}
+
+interface IInputNumberAddOnProps {
+  label: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+}
+
+function InputNumberAddOn(props: IInputNumberAddOnProps): JSX.Element {
+  return (
+    <div>
+      <label className="leading-none">
+        <span className="mr-2 text-sm font-semibold">{props.label}</span>
+        <input
+          checked={props.value}
+          className="block align-middle checkbox text-bluev2"
+          type="checkbox"
+          onChange={(e) => {
+            props.onChange(e.currentTarget.checked);
+          }}
+        />
+      </label>
+    </div>
   );
 }

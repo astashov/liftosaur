@@ -14,8 +14,6 @@ import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgra
 import { HistoryRecordSet } from "../historyRecordSets";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
 import { IconTrash } from "../icons/iconTrash";
-import { GroupHeader } from "../groupHeader";
-import { IconArrowDown3 } from "../icons/iconArrowDown3";
 import { PlannerKey } from "../../pages/planner/plannerKey";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { IconGraphsE } from "../icons/iconGraphsE";
@@ -25,6 +23,7 @@ import { IDispatch } from "../../ducks/types";
 import { EditProgramUiProgress } from "./editProgramUiProgress";
 import { IEvaluatedProgram } from "../../models/program";
 import { EditProgramUiUpdate } from "./editProgramUiUpdate";
+import { EditProgramUiExerciseSetVariations } from "./editProgramUiExerciseSetVariations";
 
 interface IEditProgramUiExerciseViewProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -210,45 +209,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                 <div>
                   <div className="pb-1 text-xs text-left text-grayv2-main">Workout</div>
                   {reusingSets && <div className="pb-1 text-xs text-grayv2-main">Reusing {reusingSets}</div>}
-                  {PlannerProgramExercise.setVariations(plannerExercise).map((_, i) => {
-                    const sets = PlannerProgramExercise.sets(plannerExercise, i);
-                    const hasCurrentSets = !!plannerExercise.setVariations[i]?.sets;
-                    const globals = plannerExercise.globals;
-                    const displayGroups = PlannerProgramExercise.setsToDisplaySets(
-                      sets,
-                      hasCurrentSets,
-                      globals,
-                      props.settings
-                    );
-                    let currentIndex = plannerExercise.setVariations.findIndex((v) => v.isCurrent);
-                    currentIndex = currentIndex === -1 ? 0 : currentIndex;
-                    return (
-                      <div className={`${i > 0 ? "mt-2 pt-2 border-t border-grayv3-200" : ""}`}>
-                        <div>
-                          {plannerExercise.setVariations.length > 1 && (
-                            <GroupHeader
-                              highlighted={true}
-                              name={`Set Variation ${i + 1}`}
-                              rightAddOn={
-                                plannerExercise.setVariations.length > 1 && currentIndex === i ? (
-                                  <IconArrowDown3 size={14} className="ml-2" style={{ transform: "rotate(90deg)" }} />
-                                ) : undefined
-                              }
-                            />
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <div className="flex">
-                            <div>
-                              {displayGroups.map((g) => (
-                                <HistoryRecordSet sets={g} isNext={true} settings={props.settings} />
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <EditProgramUiExerciseSetVariations plannerExercise={plannerExercise} settings={props.settings} />
                 </div>
               </div>
             </div>

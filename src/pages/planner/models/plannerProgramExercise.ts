@@ -255,6 +255,10 @@ export class PlannerProgramExercise {
     return `${exercise.key}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`;
   }
 
+  public static uniqueSetKey(set: IPlannerProgramExerciseEvaluatedSet): string {
+    return `${set.minrep}-${set.maxrep}-${set.isAmrap}-${set.weight?.value}${set.weight?.unit}${set.askWeight}-${set.rpe}${set.logRpe}-${set.timer}`;
+  }
+
   public static setsToDisplaySets(
     sets: IPlannerProgramExerciseSet[],
     hasCurrentSets: boolean,

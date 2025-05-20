@@ -14,6 +14,9 @@ import { lb } from "lens-shmens";
 import { ObjectUtils } from "../../utils/object";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { EditProgramExerciseSetVariationsList } from "./editProgramExerciseSetVariationsList";
+import { EditProgramUiExerciseSetVariations } from "../editProgram/editProgramUiExerciseSetVariations";
+import { LinkButton } from "../linkButton";
+import { Weight } from "../../models/weight";
 
 interface IEditProgramExerciseDayExerciseProps {
   plannerExercise: IPlannerProgramExercise;
@@ -63,6 +66,8 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
     props.evaluatedProgram,
     plannerExercise.dayData
   );
+  const hasOwnSets = plannerExercise.setVariations.length > 0;
+  console.log("Planner exercise", plannerExercise);
   const reusingExercises = Program.getReusingSetsExercises(props.evaluatedProgram, plannerExercise);
   const reuseCandidate = reuseKey ? reuseCandidates[reuseKey] : undefined;
   const reuseValues: [string, string][] = [
@@ -144,20 +149,98 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
         />
       </div>
       {reuseCandidate && reuse && (
-        <ReuseAtWeekDay
+        <div className="flex gap-4 px-4 mt-1 mb-2">
+          <div className="flex-1">
+            <ReuseAtWeekDay
+              plannerExercise={plannerExercise}
+              settings={props.settings}
+              reuse={reuse}
+              reuseCandidate={reuseCandidate}
+              plannerDispatch={props.plannerDispatch}
+            />
+          </div>
+          {reuse &&
+            (hasOwnSets ? (
+              <LinkButton
+                className="text-sm"
+                name="edit-exercise-remove-override-sets"
+                onClick={() => {
+                  props.plannerDispatch(
+                    lbProgram.recordModify((program) => {
+                      return EditProgramUiHelpers.changeCurrentInstance2(
+                        program,
+                        plannerExercise,
+                        plannerExercise.dayData,
+                        props.settings,
+                        true,
+                        (ex) => {
+                          if (reuse.exercise?.evaluatedSetVariations) {
+                            ex.evaluatedSetVariations = reuse.exercise.evaluatedSetVariations;
+                          }
+                        }
+                      );
+                    })
+                  );
+                }}
+              >
+                Back to reused sets
+              </LinkButton>
+            ) : (
+              <LinkButton
+                className="text-sm"
+                name="edit-exercise-override-sets"
+                onClick={() => {
+                  props.plannerDispatch(
+                    lbProgram.recordModify((program) => {
+                      return EditProgramUiHelpers.changeCurrentInstance2(
+                        program,
+                        plannerExercise,
+                        plannerExercise.dayData,
+                        props.settings,
+                        true,
+                        (ex) => {
+                          ex.evaluatedSetVariations = [
+                            {
+                              isCurrent: true,
+                              sets: [
+                                {
+                                  maxrep: 5,
+                                  weight: Weight.build(100, props.settings.units),
+                                  logRpe: false,
+                                  isAmrap: false,
+                                  askWeight: false,
+                                  isQuickAddSet: false,
+                                },
+                              ],
+                            },
+                          ];
+                        }
+                      );
+                    })
+                  );
+                }}
+              >
+                Override Sets
+              </LinkButton>
+            ))}
+        </div>
+      )}
+      {reuse && !hasOwnSets ? (
+        <div className="px-4">
+          <EditProgramUiExerciseSetVariations
+            plannerExercise={plannerExercise}
+            settings={props.settings}
+            isCurrentIndicatorNearby={true}
+          />
+        </div>
+      ) : (
+        <EditProgramExerciseSetVariationsList
+          ui={props.ui}
           plannerExercise={plannerExercise}
           settings={props.settings}
-          reuse={reuse}
-          reuseCandidate={reuseCandidate}
           plannerDispatch={props.plannerDispatch}
         />
       )}
-      <EditProgramExerciseSetVariationsList
-        ui={props.ui}
-        plannerExercise={plannerExercise}
-        settings={props.settings}
-        plannerDispatch={props.plannerDispatch}
-      />
     </div>
   );
 }
@@ -184,7 +267,7 @@ function ReuseAtWeekDay(props: IReuseAtWeekDayProps): JSX.Element {
       : undefined);
 
   return (
-    <div className="px-4 mt-1 mb-2 text-sm">
+    <div className="text-sm">
       <span>At week</span>
       <select
         className="mx-1 border border-grayv3-200"

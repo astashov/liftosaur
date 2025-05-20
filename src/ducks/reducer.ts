@@ -334,7 +334,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      if (oldState.screenStack !== newState.screenStack) {
+      if (Screen.currentName(oldState.screenStack) !== Screen.currentName(newState.screenStack)) {
         setTimeout(() => {
           window.scroll(0, 0);
         }, 0);

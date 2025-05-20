@@ -14,6 +14,7 @@ interface IInputWeight2Props {
   max?: number;
   min?: number;
   autowidth?: boolean;
+  width?: number;
   showUnitInside?: boolean;
   placeholder?: string;
   exerciseType?: IExerciseType;
@@ -21,6 +22,7 @@ interface IInputWeight2Props {
   initialValue?: IWeight | IPercentage;
   addOn?: () => JSX.Element;
   settings: ISettings;
+  after?: () => JSX.Element | undefined;
   onBlur?: (value: IWeight | IPercentage | undefined) => void;
   onInput?: (value: IWeight | IPercentage | undefined) => void;
   subscription?: ISubscription;
@@ -47,8 +49,10 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
   return (
     <div>
       <InputNumber2
+        width={props.width}
         tabIndex={props.tabIndex}
         placeholder={props.placeholder}
+        after={props.after}
         autowidth={props.autowidth}
         allowDot={true}
         allowNegative={true}

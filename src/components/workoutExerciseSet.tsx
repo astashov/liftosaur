@@ -42,6 +42,7 @@ interface IWorkoutExerciseSet {
 
 export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const set = props.set;
+  console.log(props.exerciseType?.id, "Set", set);
   const placeholderReps = `${set.minReps != null ? `${set.minReps}-` : ""}${set.reps != null ? set.reps : ""}${set.reps != null && set.isAmrap ? "+" : ""}`;
   const placeholderWeight = set.weight?.value != null ? `${set.weight.value}${set.askWeight ? "+" : ""}` : undefined;
   const completedRpeValue = set.logRpe && set.completedRpe != null ? set.completedRpe : undefined;

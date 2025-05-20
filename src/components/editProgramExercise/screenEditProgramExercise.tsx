@@ -126,6 +126,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
       addons={
         <>
           <BottomSheetEditProgramExerciseSet
+            evaluatedProgram={evaluatedProgram}
             ui={plannerState.ui}
             plannerDispatch={plannerDispatch}
             settings={props.settings}

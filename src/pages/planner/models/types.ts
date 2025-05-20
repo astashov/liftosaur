@@ -221,6 +221,13 @@ export interface IPlannerUi {
   mode?: "reorder" | "ui" | "perday" | "full";
 }
 
+export interface IPlannerExerciseUiEditSetBottomSheet {
+  exerciseKey: string;
+  dayInWeekIndex: number;
+  setVariationIndex: number;
+  setIndex: number;
+}
+
 export interface IPlannerExerciseUi {
   isProgressEnabled?: boolean;
   isUpdateEnabled?: boolean;
@@ -228,11 +235,7 @@ export interface IPlannerExerciseUi {
   showEditProgressScriptModal?: boolean;
   showEditUpdateScriptModal?: boolean;
   weekIndex: number;
-  editSetBottomSheet?: {
-    dayInWeekIndex: number;
-    setVariationIndex: number;
-    setIndex: number;
-  };
+  editSetBottomSheet?: IPlannerExerciseUiEditSetBottomSheet;
 }
 
 export interface IPlannerFullText {

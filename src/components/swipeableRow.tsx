@@ -34,9 +34,9 @@ export function SwipeableRow(props: ISwipeableRowProps) {
     if (props.onPointerDown) {
       props.onPointerDown();
     }
-    const workoutExerciseScroller = document.querySelector("#workout-exercise-scroller") as HTMLElement | null;
-    if (workoutExerciseScroller) {
-      workoutExerciseScroller.style.overflowX = "hidden";
+    const workoutExerciseScroller = document.querySelectorAll(".parent-scroller");
+    for (const scroller of Array.from(workoutExerciseScroller)) {
+      (scroller as HTMLElement).style.overflowX = "hidden";
     }
     startX.current = "touches" in event ? event.touches[0].clientX : event.clientX;
     startY.current = "touches" in event ? event.touches[0].clientY : event.clientY;

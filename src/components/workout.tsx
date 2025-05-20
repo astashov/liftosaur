@@ -84,8 +84,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
       {selectedEntry != null && (
         <div className="mt-2">
           <div
-            className="flex overflow-x-scroll overflow-y-hidden"
-            id="workout-exercise-scroller"
+            className="flex overflow-x-scroll overflow-y-hidden parent-scroller"
             ref={screensRef}
             onScroll={() => {
               const scrollLeft = screensRef.current?.scrollLeft ?? 0;

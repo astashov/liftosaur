@@ -5,6 +5,10 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconArrowDown3 } from "../icons/iconArrowDown3";
 import { Tailwind } from "../../utils/tailwindConfig";
 import { EditProgramExerciseSetVariation } from "./editProgramExerciseSetVariation";
+import { IconPlus2 } from "../icons/iconPlus2";
+import { lb } from "lens-shmens";
+import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { ObjectUtils } from "../../utils/object";
 
 interface IEditProgramExerciseSetVariationsListProps {
   plannerExercise: IPlannerProgramExercise;
@@ -15,6 +19,7 @@ interface IEditProgramExerciseSetVariationsListProps {
 
 export function EditProgramExerciseSetVariationsList(props: IEditProgramExerciseSetVariationsListProps): JSX.Element {
   const setVariations = props.plannerExercise.evaluatedSetVariations;
+  const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
 
   return (
     <div>
@@ -22,6 +27,31 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
         <div className="flex items-center gap-4 pt-3 mx-4 mt-1 mb-2 border-t border-grayv3-200">
           <div className="flex-1">Set Variations</div>
           <div className="flex items-center gap-1">
+            <button
+              className="p-2 mr-4 border rounded-full border-grayv3-200"
+              onClick={() => {
+                props.plannerDispatch(
+                  lbProgram.recordModify((program) => {
+                    return EditProgramUiHelpers.changeCurrentInstance2(
+                      program,
+                      props.plannerExercise,
+                      props.plannerExercise.dayData,
+                      props.settings,
+                      true,
+                      (ex) => {
+                        const lastSetVariation = ex.evaluatedSetVariations[ex.evaluatedSetVariations.length - 1];
+                        return {
+                          ...ex,
+                          evaluatedSetVariations: [...ex.evaluatedSetVariations, ObjectUtils.clone(lastSetVariation)],
+                        };
+                      }
+                    );
+                  })
+                );
+              }}
+            >
+              <IconPlus2 color={Tailwind.colors().grayv3.main} size={16} />
+            </button>
             <button className="p-2 border rounded-full border-grayv3-200">
               <IconArrowDown3 className="rotate-90" color={Tailwind.colors().grayv3.main} size={16} />
             </button>
@@ -32,8 +62,7 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
         </div>
       )}
       <div
-        className="flex overflow-x-scroll overflow-y-hidden"
-        id="set-variations-scroller"
+        className="flex overflow-x-scroll overflow-y-hidden parent-scroller"
         onScroll={() => {}}
         style={{
           WebkitOverflowScrolling: "touch",

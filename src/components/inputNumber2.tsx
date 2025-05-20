@@ -27,6 +27,7 @@ interface IInputNumber2Props {
   onInput?: (value: number | undefined) => void;
   onBlur?: (value: number | undefined) => void;
   keyboardAddon?: JSX.Element;
+  after?: () => JSX.Element | undefined;
   allowDot?: boolean;
   allowNegative?: boolean;
   enableCalculator?: boolean;
@@ -324,6 +325,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         {props.showUnitInside && props.selectedUnit && (
           <div className="text-xs text-grayv3-main"> {props.selectedUnit}</div>
         )}
+        {props.after && props.after()}
       </div>
       {isFocused && isMobile && (
         <CustomKeyboard
