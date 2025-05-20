@@ -6,6 +6,7 @@ import { Weight } from "../models/weight";
 import { IconBarbellSide } from "./icons/iconBarbellSide";
 import { Tailwind } from "../utils/tailwindConfig";
 import { Subscriptions } from "../utils/subscriptions";
+import { Equipment } from "../models/equipment";
 
 interface IInputWeight2Props {
   value: IWeight | IPercentage | undefined;
@@ -26,7 +27,9 @@ interface IInputWeight2Props {
 
 export function InputWeight2(props: IInputWeight2Props): JSX.Element {
   const [unit, setUnit] = useState<IUnit | IPercentageUnit>(
-    props.value?.unit ?? props.initialValue?.unit ?? props.settings.units
+    props.value?.unit ??
+      props.initialValue?.unit ??
+      Equipment.getUnitOrDefaultForExerciseType(props.settings, props.exerciseType)
   );
   const unitRef = useRef(unit);
   useEffect(() => {

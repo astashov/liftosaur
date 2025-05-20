@@ -35,7 +35,8 @@ export namespace Weight {
       const onerm = Exercise.onerm(exercise, settings);
       return Weight.multiply(onerm, weight.value / 100);
     } else {
-      return Weight.build(0, settings.units);
+      const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
+      return Weight.build(0, unit);
     }
   }
 
