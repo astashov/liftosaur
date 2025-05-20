@@ -15,10 +15,15 @@ interface ILiftosaurRecord {
   isWarmupSet: string;
   requiredReps: string;
   completedReps: string;
-  rpe: string;
   isAmrap: string;
+  rpe: string;
+  completedRpe: string;
+  logRpe: string;
   weightValue: string;
   weightUnit: string;
+  completedWeightValue: string;
+  completedWeightUnit: string;
+  askWeight: string;
   completedRepsTime: string;
   targetMuscles: string;
   synergistMuscles: string;
@@ -67,10 +72,15 @@ export class ImportFromLiftosaur {
           "isWarmupSet",
           "requiredReps",
           "completedReps",
-          "rpe",
           "isAmrap",
+          "rpe",
+          "completedRpe",
+          "logRpe",
           "weightValue",
           "weightUnit",
+          "completedWeightValue",
+          "completedWeightUnit",
+          "askWeight",
           "completedRepsTime",
           "targetMuscles",
           "synergistMuscles",
@@ -119,26 +129,60 @@ export class ImportFromLiftosaur {
 
         const entry: IHistoryEntry = {
           exercise: { id: exerciseId, equipment: exerciseEquipment },
-          warmupSets: rawWarmupSets.map((set) => ({
-            reps: getNumber(set.requiredReps),
-            weight: Weight.build(getNumber(set.weightValue), getUnit(set.weightUnit)),
-            originalWeight: Weight.build(getNumber(set.weightValue), getUnit(set.weightUnit)),
-            completedReps: set.completedReps ? getNumber(set.completedReps) : undefined,
-            completedRpe: set.rpe ? getNumber(set.rpe) : undefined,
-            isAmrap: set.isAmrap === "1",
-            label: "",
-            timestamp: getTimestamp(set.completedRepsTime) || getTimestamp(set.workoutDateTime),
-          })),
-          sets: rawWorkoutSets.map((set) => ({
-            reps: getNumber(set.requiredReps ?? 0),
-            weight: Weight.build(getNumber(set.weightValue ?? 0), getUnit(set.weightUnit)),
-            originalWeight: Weight.build(getNumber(set.weightValue ?? 0), getUnit(set.weightUnit)),
-            completedReps: set.completedReps ? getNumber(set.completedReps) : undefined,
-            completedRpe: set.rpe ? getNumber(set.rpe) : undefined,
-            isAmrap: set.isAmrap === "1",
-            label: "",
-            timestamp: getTimestamp(set.completedRepsTime) || getTimestamp(set.workoutDateTime),
-          })),
+          warmupSets: rawWarmupSets.map((set) => {
+            const weight =
+              set.weightValue && set.weightUnit
+                ? Weight.build(getNumber(set.weightValue), getUnit(set.weightUnit))
+                : undefined;
+            const completedReps = set.completedReps ? getNumber(set.completedReps) : undefined;
+            const completedWeight =
+              set.completedWeightValue && set.completedWeightUnit
+                ? Weight.build(getNumber(set.completedWeightValue), getUnit(set.completedWeightUnit))
+                : undefined;
+            const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
+            return {
+              reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
+              completedReps: completedReps,
+              isAmrap: set.isAmrap === "1",
+              rpe: set.rpe ? getNumber(set.rpe) : undefined,
+              completedRpe: completedRpe,
+              logRpe: set.logRpe === "1",
+              weight: weight,
+              originalWeight: weight,
+              completedWeight: completedWeight,
+              askWeight: set.askWeight === "1",
+              label: "",
+              timestamp: getTimestamp(set.completedRepsTime) || getTimestamp(set.workoutDateTime),
+              isCompleted: completedReps != null || completedWeight != null || completedRpe != null,
+            };
+          }),
+          sets: rawWorkoutSets.map((set) => {
+            const weight =
+              set.weightValue && set.weightUnit
+                ? Weight.build(getNumber(set.weightValue), getUnit(set.weightUnit))
+                : undefined;
+            const completedReps = set.completedReps ? getNumber(set.completedReps) : undefined;
+            const completedWeight =
+              set.completedWeightValue && set.completedWeightUnit
+                ? Weight.build(getNumber(set.completedWeightValue), getUnit(set.completedWeightUnit))
+                : undefined;
+            const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
+            return {
+              reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
+              completedReps: completedReps,
+              isAmrap: set.isAmrap === "1",
+              rpe: set.rpe ? getNumber(set.rpe) : undefined,
+              completedRpe: completedRpe,
+              logRpe: set.logRpe === "1",
+              weight: weight,
+              originalWeight: weight,
+              completedWeight: completedWeight,
+              askWeight: set.askWeight === "1",
+              label: "",
+              timestamp: getTimestamp(set.completedRepsTime) || getTimestamp(set.workoutDateTime),
+              isCompleted: completedReps != null || completedWeight != null || completedRpe != null,
+            };
+          }),
           notes: firstSet.notes,
         };
         return entry;

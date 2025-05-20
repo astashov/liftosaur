@@ -589,7 +589,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
       const program =
         progress.programId === emptyProgramId ? Program.createEmptyProgram() : state.storage.programs[programIndex];
-      const evaluatedProgram = Program.evaluate(program, settings);
+      const evaluatedProgram = program ? Program.evaluate(program, settings) : undefined;
       Progress.stopTimer(progress);
       const historyRecord = History.finishProgramDay(progress, state.storage.settings, progress.day, evaluatedProgram);
       let newHistory;

@@ -313,9 +313,7 @@ interface IHevyStruct {
 }
 
 export class ImportFromHevy {
-  public static convertHevyCsvToHistoryRecords(
-    hevyCsvRaw: string
-  ): {
+  public static convertHevyCsvToHistoryRecords(hevyCsvRaw: string): {
     historyRecords: IHistoryRecord[];
     customExercises: Record<string, ICustomExercise>;
   } {
@@ -408,8 +406,11 @@ export class ImportFromHevy {
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             weight:
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
+            completedWeight:
+              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             reps: set.reps ?? 1,
             completedReps: set.reps ?? 1,
+            isCompleted: true,
             isAmrap: false,
             timestamp: startTs,
           })),
@@ -418,10 +419,13 @@ export class ImportFromHevy {
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             originalWeight:
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
+            completedWeight:
+              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             reps: set.reps ?? 1,
             completedReps: set.reps ?? 1,
             isAmrap: false,
             timestamp: startTs,
+            isCompleted: true,
           })),
           notes: record.exercise_notes,
         };
