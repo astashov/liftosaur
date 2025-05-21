@@ -97,7 +97,7 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
         </div>
       )}
       <div
-        className="flex-1 px-4 text-sm"
+        className="flex-1 px-4 mb-2 text-sm"
         onClick={() => {
           if (reusingExercises.length > 0) {
             alert("You cannot reuse sets from this exercise because it is already reused by other exercises.");
@@ -149,7 +149,7 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
         />
       </div>
       {reuseCandidate && reuse && (
-        <div className="flex gap-4 px-4 mt-1 mb-2">
+        <div className="flex gap-4 px-4 mb-2">
           <div className="flex-1">
             <ReuseAtWeekDay
               plannerExercise={plannerExercise}

@@ -34,8 +34,8 @@ export function SwipeableRow(props: ISwipeableRowProps) {
     if (props.onPointerDown) {
       props.onPointerDown();
     }
-    const workoutExerciseScroller = document.querySelectorAll(".parent-scroller");
-    for (const scroller of Array.from(workoutExerciseScroller)) {
+    const parentScroller = document.querySelectorAll(".parent-scroller");
+    for (const scroller of Array.from(parentScroller)) {
       (scroller as HTMLElement).style.overflowX = "hidden";
     }
     startX.current = "touches" in event ? event.touches[0].clientX : event.clientX;
@@ -71,9 +71,9 @@ export function SwipeableRow(props: ISwipeableRowProps) {
 
   const handlePointerUp = () => {
     isDragging.current = false;
-    const workoutExerciseScroller = document.querySelector("#workout-exercise-scroller") as HTMLElement | null;
-    if (workoutExerciseScroller) {
-      workoutExerciseScroller.style.overflowX = "scroll";
+    const parentScroller = document.querySelectorAll(".parent-scroller");
+    for (const scroller of Array.from(parentScroller)) {
+      (scroller as HTMLElement).style.overflowX = "scroll";
     }
 
     if (!isOpen.current && translateX < -openThreshold) {

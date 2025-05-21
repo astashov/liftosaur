@@ -10,15 +10,18 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { Tailwind } from "../../utils/tailwindConfig";
 import { EditProgramExerciseSet } from "./editProgramExerciseSet";
-import { lb } from "lens-shmens";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { ObjectUtils } from "../../utils/object";
 import { Weight } from "../../models/weight";
 import { useState } from "preact/hooks";
 import { UidFactory } from "../../utils/generator";
+import { IconTrash } from "../icons/iconTrash";
+import { CollectionUtils } from "../../utils/collection";
+import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 
 interface IEditProgramExerciseSetVariationProps {
   name: string;
+  areSetVariationsEnabled: boolean;
   plannerExercise: IPlannerProgramExercise;
   ui: IPlannerExerciseUi;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
@@ -33,13 +36,57 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
   const hasWeight = props.setVariation.sets.some((set) => set.weight != null);
   const hasMinReps = props.setVariation.sets.some((set) => set.minrep != null);
   const hasTimer = props.setVariation.sets.some((set) => set.timer != null);
-  const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const [setIds, setSetIds] = useState<string[]>(setVariation.sets.map((set) => UidFactory.generateUid(4)));
+  const currentIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(props.plannerExercise);
 
   return (
     <div className="border rounded-lg bg-purplev3-50 border-purplev3-150">
-      <div className="flex items-center gap-4 px-4 pt-2 pb-1">
+      <div className="flex items-center gap-4 pt-2 pb-1 pl-4 pr-2">
         <div className="flex-1 font-semibold">{props.name}</div>
+        {props.areSetVariationsEnabled && (
+          <div className="flex items-center gap-2">
+            <div>
+              <label className="leading-none">
+                <span className="mr-2 text-xs">Is Current?</span>
+                <input
+                  checked={currentIndex === props.setVariationIndex}
+                  className="block align-middle checkbox text-bluev2"
+                  type="checkbox"
+                  onChange={(e) => {
+                    EditProgramUiHelpers.changeCurrentInstanceExercise(
+                      props.plannerDispatch,
+                      props.plannerExercise,
+                      props.settings,
+                      (ex) => {
+                        for (let i = 0; i < ex.evaluatedSetVariations.length; i++) {
+                          ex.evaluatedSetVariations[i].isCurrent = i === props.setVariationIndex;
+                        }
+                      }
+                    );
+                  }}
+                />
+              </label>
+            </div>
+            <button
+              className="p-2"
+              onClick={() => {
+                EditProgramUiHelpers.changeCurrentInstanceExercise(
+                  props.plannerDispatch,
+                  props.plannerExercise,
+                  props.settings,
+                  (ex) => {
+                    ex.evaluatedSetVariations = CollectionUtils.removeAt(
+                      ex.evaluatedSetVariations,
+                      props.setVariationIndex
+                    );
+                  }
+                );
+              }}
+            >
+              <IconTrash />
+            </button>
+          </div>
+        )}
       </div>
       <div className="table w-full overflow-hidden">
         <div className="table-row-group pt-1">
@@ -118,35 +165,29 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
           className="flex-1 py-2 m-2 text-xs font-semibold text-center rounded-md bg-purplev3-100 text-bluev3-main"
           data-cy="add-set"
           onClick={() => {
-            props.plannerDispatch(
-              lbProgram.recordModify((program) => {
-                return EditProgramUiHelpers.changeCurrentInstance2(
-                  program,
-                  props.plannerExercise,
-                  props.plannerExercise.dayData,
-                  props.settings,
-                  true,
-                  (ex) => {
-                    const setVariation = ex.evaluatedSetVariations[props.setVariationIndex];
-                    const lastSet = setVariation.sets[setVariation.sets.length - 1];
-                    if (lastSet) {
-                      setVariation.sets = [...setVariation.sets, ObjectUtils.clone(lastSet)];
-                    } else {
-                      setVariation.sets = [
-                        ...setVariation.sets,
-                        {
-                          maxrep: 5,
-                          weight: Weight.build(100, props.settings.units),
-                          isAmrap: false,
-                          logRpe: false,
-                          askWeight: false,
-                          isQuickAddSet: false,
-                        },
-                      ];
-                    }
-                  }
-                );
-              })
+            EditProgramUiHelpers.changeCurrentInstanceExercise(
+              props.plannerDispatch,
+              props.plannerExercise,
+              props.settings,
+              (ex) => {
+                const setVariation = ex.evaluatedSetVariations[props.setVariationIndex];
+                const lastSet = setVariation.sets[setVariation.sets.length - 1];
+                if (lastSet) {
+                  setVariation.sets = [...setVariation.sets, ObjectUtils.clone(lastSet)];
+                } else {
+                  setVariation.sets = [
+                    ...setVariation.sets,
+                    {
+                      maxrep: 5,
+                      weight: Weight.build(100, props.settings.units),
+                      isAmrap: false,
+                      logRpe: false,
+                      askWeight: false,
+                      isQuickAddSet: false,
+                    },
+                  ];
+                }
+              }
             );
             setSetIds((prev) => [...prev, UidFactory.generateUid(4)]);
           }}

@@ -1,6 +1,6 @@
 import { PP } from "../../../models/pp";
 import { PlannerProgram } from "../../../pages/planner/models/plannerProgram";
-import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
+import { IPlannerExerciseState, IPlannerProgramExercise } from "../../../pages/planner/models/types";
 import { PlannerEvaluator } from "../../../pages/planner/plannerEvaluator";
 import { PlannerKey } from "../../../pages/planner/plannerKey";
 import { IPlannerProgram, ISettings, IDayData, IExerciseType } from "../../../types";
@@ -10,6 +10,8 @@ import { equipmentName, Exercise } from "../../../models/exercise";
 import { IPlannerEvaluatedProgramToTextOpts } from "../../../pages/planner/plannerEvaluatedProgramToText";
 import { IEvaluatedProgram, Program } from "../../../models/program";
 import { ProgramToPlanner } from "../../../models/programToPlanner";
+import { ILensDispatch } from "../../../utils/useLensReducer";
+import { lb } from "lens-shmens";
 
 export class EditProgramUiHelpers {
   public static changeFirstInstance(
@@ -34,6 +36,27 @@ export class EditProgramUiHelpers {
       planner,
       new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
       settings
+    );
+  }
+
+  public static changeCurrentInstanceExercise(
+    dispatch: ILensDispatch<IPlannerExerciseState>,
+    plannerExercise: IPlannerProgramExercise,
+    settings: ISettings,
+    cb: (exercise: IPlannerProgramExercise) => void
+  ): void {
+    const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
+    dispatch(
+      lbProgram.recordModify((program) => {
+        return EditProgramUiHelpers.changeCurrentInstance2(
+          program,
+          plannerExercise,
+          plannerExercise.dayData,
+          settings,
+          true,
+          cb
+        );
+      })
     );
   }
 
