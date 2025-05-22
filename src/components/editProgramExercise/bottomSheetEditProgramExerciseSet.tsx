@@ -63,65 +63,80 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
 
   return (
     <BottomSheet isHidden={!props.ui.editSetBottomSheet} onClose={onClose} shouldShowClose={true}>
-      <h3 className="px-4 pt-1 text-base font-bold">Edit Set</h3>
-      <div className="px-4 py-2">
-        <MenuItemEditable
-          type="boolean"
-          name="Reps Range"
-          value={set.minrep != null ? "true" : "false"}
-          onChange={(value) => {
-            changeSet((set) => {
-              if (value === "true") {
-                set.minrep = Math.min(set.maxrep ?? 5, set.minrep ?? 3);
-              } else {
-                set.minrep = undefined;
-              }
-            });
-          }}
-        />
-        <MenuItemEditable
-          type="boolean"
-          name="Weight"
-          value={set.weight != null ? "true" : "false"}
-          onChange={(value) => {
-            changeSet((set) => {
-              if (value === "true") {
-                set.weight = set.weight ?? Weight.build(0, props.settings.units);
-              } else {
-                set.weight = undefined;
-              }
-            });
-          }}
-        />
-        <MenuItemEditable
-          type="boolean"
-          name="RPE"
-          value={set.rpe != null ? "true" : "false"}
-          onChange={(value) => {
-            changeSet((set) => {
-              if (value === "true") {
-                set.rpe = set.rpe ?? 8;
-              } else {
-                set.rpe = undefined;
-              }
-            });
-          }}
-        />
-        <MenuItemEditable
-          type="boolean"
-          name="Timer"
-          value={set.timer != null ? "true" : "false"}
-          onChange={(value) => {
-            changeSet((set) => {
-              if (value === "true") {
-                set.timer = set.timer ?? 120;
-              } else {
-                set.timer = undefined;
-              }
-            });
-          }}
-        />
-      </div>
+      {set && (
+        <div>
+          <h3 className="px-4 pt-1 text-base font-bold">Edit Set</h3>
+          <div className="px-4 py-2">
+            <MenuItemEditable
+              type="text"
+              name="Label"
+              value={set.label}
+              maxLength={8}
+              onChange={(value) => {
+                changeSet((set) => {
+                  set.label = value;
+                });
+              }}
+            />
+            <MenuItemEditable
+              type="boolean"
+              name="Reps Range"
+              value={set.minrep != null ? "true" : "false"}
+              onChange={(value) => {
+                changeSet((set) => {
+                  if (value === "true") {
+                    set.minrep = Math.min(set.maxrep ?? 5, set.minrep ?? 3);
+                  } else {
+                    set.minrep = undefined;
+                  }
+                });
+              }}
+            />
+            <MenuItemEditable
+              type="boolean"
+              name="Weight"
+              value={set.weight != null ? "true" : "false"}
+              onChange={(value) => {
+                changeSet((set) => {
+                  if (value === "true") {
+                    set.weight = set.weight ?? Weight.build(0, props.settings.units);
+                  } else {
+                    set.weight = undefined;
+                  }
+                });
+              }}
+            />
+            <MenuItemEditable
+              type="boolean"
+              name="RPE"
+              value={set.rpe != null ? "true" : "false"}
+              onChange={(value) => {
+                changeSet((set) => {
+                  if (value === "true") {
+                    set.rpe = set.rpe ?? 8;
+                  } else {
+                    set.rpe = undefined;
+                  }
+                });
+              }}
+            />
+            <MenuItemEditable
+              type="boolean"
+              name="Timer"
+              value={set.timer != null ? "true" : "false"}
+              onChange={(value) => {
+                changeSet((set) => {
+                  if (value === "true") {
+                    set.timer = set.timer ?? 120;
+                  } else {
+                    set.timer = undefined;
+                  }
+                });
+              }}
+            />
+          </div>
+        </div>
+      )}
     </BottomSheet>
   );
 }

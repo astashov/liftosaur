@@ -37,6 +37,8 @@ export function EditProgramExerciseSetsByWeekDay(props: IEditProgramExerciseSets
                 ui={props.ui}
                 evaluatedProgram={props.evaluatedProgram}
                 exerciseKey={plannerExercise.key}
+                fullName={plannerExercise.fullName}
+                exerciseType={plannerExercise.exerciseType}
                 weekIndex={weekIndex}
                 plannerDispatch={props.plannerDispatch}
                 settings={props.settings}

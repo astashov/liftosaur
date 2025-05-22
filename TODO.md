@@ -55,14 +55,10 @@ User debug page:
 
 
 - Add help NUX for playground
+- Don't show here/everywhere if only one instance of exercise
+- Add exercise label
+- Edit exercise name
+- Add description
+- Add repeat
+- Add forced order
 
-* Warmups
-  - Default -> Customize
-  - Customized -> Switch to default
-  - Reused -> Override
-  - Overridden -> Remove override
-
-* Own Progress
-* Progress set-reused from other exercise
-  - own progress is none, reuse is not none
-* Progress custom-reused from other exercise

@@ -19,6 +19,7 @@ interface IMenuItemEditableValueProps {
   onChange?: (v?: string, e?: Event) => void;
   pattern?: string;
   patternMessage?: string;
+  maxLength?: number;
 }
 
 interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
@@ -70,6 +71,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           <div className="flex-1" style={{ minWidth: "3rem" }}>
             <MenuItemValue
               name={props.name}
+              maxLength={props.maxLength}
               type={props.type}
               value={props.value}
               pattern={props.pattern}
@@ -153,6 +155,7 @@ export function MenuItemValue(
         className="flex-1 w-full py-2 text-right bg-transparent text-bluev2"
         value={props.value || undefined}
         title={props.patternMessage}
+        maxLength={props.maxLength}
         onBlur={handleChange(props.onChange, props.setPatternError)}
         onFocus={(e) => {
           const target = e.target;

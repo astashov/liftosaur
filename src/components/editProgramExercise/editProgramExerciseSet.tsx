@@ -26,6 +26,7 @@ interface IEditProgramExerciseSetProps {
   setIds: string[];
   setSetIds: StateUpdater<string[]>;
   settings: ISettings;
+  widthAdd: number;
   opts: {
     hasMinReps: boolean;
     hasWeight: boolean;
@@ -35,7 +36,7 @@ interface IEditProgramExerciseSetProps {
 }
 
 export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX.Element {
-  const { set, setIndex, setVariationIndex } = props;
+  const { set, setIndex, setVariationIndex, widthAdd } = props;
   const isMobile = Mobile.isMobileFromWindow();
   const isPlaywright = Mobile.isPlaywrightFromWindow();
   const shouldUseTouch = isMobile && !isPlaywright;
@@ -55,13 +56,6 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
   };
   const plannerExercise = props.plannerExercise;
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
-  const additionalFields = [
-    set.minrep != null ? 1 : 0,
-    set.weight != null ? 1 : 0,
-    set.rpe != null ? 1 : 0,
-    set.timer != null ? 1 : 0,
-  ].reduce((a, b) => a + b, 0);
-  const widthAdd = (4 - additionalFields) * 0.5;
 
   function changeSet(cb: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
     if (!plannerExercise) return;
@@ -98,7 +92,10 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
         >
           <div className="table-cell w-2 px-2 py-1 text-sm align-middle border-b border-purplev3-150">
             <div className={`text-center h-6 flex items-center justify-center rounded-full`}>
-              <div>{setIndex + 1}</div>
+              <div>
+                <div>{setIndex + 1}</div>
+                {set.label && <div className="text-xs text-grayv3-main">{set.label}</div>}
+              </div>
             </div>
           </div>
           {props.opts.hasMinReps && (

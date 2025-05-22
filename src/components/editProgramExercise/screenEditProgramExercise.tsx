@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IPlannerExerciseState } from "../../pages/planner/models/types";
 import { IDispatch } from "../../ducks/types";
-import { IDayData, IExerciseType, ISettings } from "../../types";
+import { IDayData, ISettings } from "../../types";
 import { INavCommon, IState } from "../../models/state";
 import { lb, LensBuilder } from "lens-shmens";
 import { useCallback, useState } from "preact/hooks";
@@ -11,7 +11,6 @@ import { Footer2View } from "../footer2";
 import { NavbarView } from "../navbar";
 import { Surface } from "../surface";
 import { Program } from "../../models/program";
-import { Exercise } from "../../models/exercise";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { EditProgramExerciseWarmups } from "./editProgramExerciseWarmups";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
@@ -26,7 +25,7 @@ import { EditProgramExerciseNavbar } from "./editProgramExerciseNavbar";
 
 interface IProps {
   plannerState: IPlannerExerciseState;
-  exerciseType: IExerciseType;
+  exerciseKey: string;
   dayData: Required<IDayData>;
   dispatch: IDispatch;
   settings: ISettings;
@@ -53,14 +52,30 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   useUndoRedo(plannerState, plannerDispatch);
 
   const evaluatedProgram = Program.evaluate(plannerState.current.program, props.settings);
-  const plannerExercise = evaluatedProgram.weeks[props.dayData.week - 1]?.days[
+  let plannerExercise = evaluatedProgram.weeks[props.dayData.week - 1]?.days[
     props.dayData.dayInWeek - 1
-  ].exercises.find((e) => Exercise.eq(e.exerciseType!, props.exerciseType))!;
+  ].exercises.find((e) => e.key === props.exerciseKey);
+
+  if (!plannerExercise) {
+    plannerExercise = Program.getFirstProgramExercise(evaluatedProgram, props.exerciseKey);
+  }
+
   const editProgramScreen = props.navCommon.screenStack.find((s) => s.name === "editProgram");
   const editProgramState = editProgramScreen?.params?.plannerState;
   const ui = plannerState.ui;
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
+
+  if (!plannerExercise) {
+    return (
+      <Surface
+        navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Edit Program Exercise" />}
+        footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
+      >
+        No such exercise
+      </Surface>
+    );
+  }
 
   return (
     <Surface
@@ -70,7 +85,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           title="Edit Program Exercise"
           rightButtons={[
-            <div className="flex items-center gap-4 px-4">
+            <div className="flex items-center gap-4">
               <div className="relative flex items-center">
                 <button
                   className="p-2"

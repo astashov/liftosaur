@@ -231,7 +231,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
             onClick={() => {
               if (props.plannerExercise.exerciseType) {
                 props.dispatch(
-                  Thunk.pushToEditProgramExercise(props.plannerExercise.exerciseType, props.plannerExercise.dayData)
+                  Thunk.pushToEditProgramExercise(props.plannerExercise.key, props.plannerExercise.dayData)
                 );
               }
             }}
@@ -276,7 +276,9 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                     program,
                     plannerExercise.dayData,
                     plannerExercise.fullName,
-                    props.settings
+                    props.settings,
+                    false,
+                    true
                   );
                 })
               );

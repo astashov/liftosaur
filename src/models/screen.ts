@@ -2,7 +2,7 @@
 import { IState } from "./state";
 import { dequal } from "dequal";
 import { Progress } from "./progress";
-import { IDayData, IExerciseType, IStatsKey } from "../types";
+import { IDayData, IStatsKey } from "../types";
 import { IPlannerExerciseState, IPlannerState } from "../pages/planner/models/types";
 import { Program } from "./program";
 import { ObjectUtils } from "../utils/object";
@@ -30,7 +30,7 @@ export type IScreenData =
   | { name: "editProgram"; params?: { plannerState: IPlannerState } }
   | {
       name: "editProgramExercise";
-      params?: { exerciseType: IExerciseType; dayData: Required<IDayData>; plannerState: IPlannerExerciseState };
+      params?: { key: string; dayData: Required<IDayData>; plannerState: IPlannerExerciseState };
     }
   | { name: "measurements"; params?: { key: IStatsKey } }
   | { name: "subscription"; params?: Record<string, never> }

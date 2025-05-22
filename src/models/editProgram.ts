@@ -3,14 +3,13 @@ import { emptyProgramId, IEvaluatedProgram, Program } from "./program";
 import { IDispatch } from "../ducks/types";
 import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
-import { IProgram, IDayData, IProgramState, ISettings, IExerciseType } from "../types";
+import { IProgram, IDayData, IProgramState, ISettings } from "../types";
 import { updateStateVariable } from "./editProgramLenses";
 import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerState } from "../pages/planner/models/types";
 import { PP } from "./pp";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { ProgramToPlanner } from "./programToPlanner";
 import { Thunk } from "../ducks/thunks";
-import { Exercise } from "./exercise";
 
 export namespace EditProgram {
   export function properlyUpdateStateVariableInPlace(
@@ -98,12 +97,10 @@ export namespace EditProgram {
   export function initPlannerProgramExerciseState(
     program: IProgram,
     settings: ISettings,
-    exerciseType: IExerciseType
+    key: string
   ): IPlannerExerciseState {
     const evaluatedProgram = Program.evaluate(program, settings);
-    const programExercise = Program.getAllProgramExercises(evaluatedProgram).find(
-      (e) => e.exerciseType && Exercise.eq(e.exerciseType, exerciseType)
-    );
+    const programExercise = Program.getFirstProgramExercise(evaluatedProgram, key);
     return {
       current: { program: ObjectUtils.clone(program) },
       history: { past: [], future: [] },

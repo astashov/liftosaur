@@ -5,13 +5,15 @@ import { PlannerEvaluator } from "../../../pages/planner/plannerEvaluator";
 import { PlannerKey } from "../../../pages/planner/plannerKey";
 import { IPlannerProgram, ISettings, IDayData, IExerciseType } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
-import { IPlannerEvalResult } from "../../../pages/planner/plannerExerciseEvaluator";
+import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../../../pages/planner/plannerExerciseEvaluator";
 import { equipmentName, Exercise } from "../../../models/exercise";
 import { IPlannerEvaluatedProgramToTextOpts } from "../../../pages/planner/plannerEvaluatedProgramToText";
 import { IEvaluatedProgram, Program } from "../../../models/program";
 import { ProgramToPlanner } from "../../../models/programToPlanner";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb } from "lens-shmens";
+import { UidFactory } from "../../../utils/generator";
+import { Weight } from "../../../models/weight";
 
 export class EditProgramUiHelpers {
   public static changeFirstInstance(
@@ -213,7 +215,9 @@ export class EditProgramUiHelpers {
     planner: IPlannerProgram,
     dayData: Required<IDayData>,
     fullName: string,
-    settings: ISettings
+    settings: ISettings,
+    shouldValidate: boolean,
+    allowDeleteEverywhere: boolean
   ): IPlannerProgram {
     const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
     const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName);
@@ -229,7 +233,105 @@ export class EditProgramUiHelpers {
       }
     }
 
-    return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
+    const newPlanner = this.validate(
+      shouldValidate,
+      planner,
+      new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
+      settings
+    );
+    if (!allowDeleteEverywhere) {
+      const newEvaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner: newPlanner }, settings);
+      const firstExercise = Program.getFirstProgramExercise(newEvaluatedProgram, fullName);
+      if (!firstExercise) {
+        alert("You cannot delete this exercise from all days on the screen. Do it from the Program screen.");
+        return planner;
+      }
+    }
+    return newPlanner;
+  }
+
+  public static addInstance(
+    planner: IPlannerProgram,
+    dayData: Required<IDayData>,
+    fullName: string,
+    exerciseType: IExerciseType | undefined,
+    settings: ISettings
+  ): IPlannerProgram {
+    const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
+    const { week, dayInWeek } = dayData;
+    const targetDay = evaluatedProgram.weeks[week - 1]?.days[dayInWeek - 1];
+    let { name } = PlannerExerciseEvaluator.extractNameParts(fullName, settings);
+
+    const add = [];
+    if (targetDay) {
+      const newExercise: IPlannerProgramExercise = {
+        fullName: fullName,
+        shortName: fullName,
+        key: PlannerKey.fromFullName(fullName, settings),
+        exerciseType: exerciseType,
+        name: name,
+        id: UidFactory.generateUid(8),
+        dayData: dayData,
+        repeat: [],
+        repeating: [],
+        order: 0,
+        text: "",
+        tags: [],
+        line: 0,
+        evaluatedSetVariations: [
+          {
+            sets: [
+              {
+                maxrep: 5,
+                weight: Weight.build(100, settings.units),
+                logRpe: false,
+                isAmrap: false,
+                isQuickAddSet: false,
+                askWeight: false,
+              },
+            ],
+            isCurrent: true,
+          },
+        ],
+        setVariations: [
+          {
+            sets: [
+              {
+                repRange: {
+                  isQuickAddSet: false,
+                  maxrep: 5,
+                  isAmrap: false,
+                  numberOfSets: 1,
+                },
+                weight: Weight.build(100, settings.units),
+                logRpe: false,
+                askWeight: false,
+              },
+            ],
+            isCurrent: true,
+          },
+        ],
+        descriptions: { values: [] },
+        globals: {},
+        points: {
+          fullName: {
+            line: 0,
+            offset: 0,
+            from: 0,
+            to: 0,
+          },
+        },
+      };
+      targetDay.exercises.push(newExercise);
+      add.push({ dayData, fullName, index: targetDay.exercises.length });
+    }
+
+    return this.validate(
+      true,
+      planner,
+      new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ add }),
+      settings
+    );
   }
 
   public static changeCurrentInstancePosition(

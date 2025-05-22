@@ -11,8 +11,6 @@ import { IconPlus2 } from "../icons/iconPlus2";
 import { Tailwind } from "../../utils/tailwindConfig";
 import { EditProgramExerciseSet } from "./editProgramExerciseSet";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { ObjectUtils } from "../../utils/object";
-import { Weight } from "../../models/weight";
 import { useState } from "preact/hooks";
 import { UidFactory } from "../../utils/generator";
 import { IconTrash } from "../icons/iconTrash";
@@ -38,6 +36,11 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
   const hasTimer = props.setVariation.sets.some((set) => set.timer != null);
   const [setIds, setSetIds] = useState<string[]>(setVariation.sets.map((set) => UidFactory.generateUid(4)));
   const currentIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(props.plannerExercise);
+  const additionalFields = [hasMinReps ? 1 : 0, hasWeight ? 1 : 0, hasRpe ? 1 : 0, hasTimer ? 1 : 0].reduce(
+    (a, b) => a + b,
+    0
+  );
+  const widthAdd = (4 - additionalFields) * 0.5;
 
   return (
     <div className="border rounded-lg bg-purplev3-50 border-purplev3-150">
@@ -148,6 +151,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
                 setVariationIndex={props.setVariationIndex}
                 plannerExercise={props.plannerExercise}
                 plannerDispatch={props.plannerDispatch}
+                widthAdd={widthAdd}
                 settings={props.settings}
                 opts={{
                   hasMinReps: hasMinReps,
@@ -170,23 +174,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
               props.plannerExercise,
               props.settings,
               (ex) => {
-                const setVariation = ex.evaluatedSetVariations[props.setVariationIndex];
-                const lastSet = setVariation.sets[setVariation.sets.length - 1];
-                if (lastSet) {
-                  setVariation.sets = [...setVariation.sets, ObjectUtils.clone(lastSet)];
-                } else {
-                  setVariation.sets = [
-                    ...setVariation.sets,
-                    {
-                      maxrep: 5,
-                      weight: Weight.build(100, props.settings.units),
-                      isAmrap: false,
-                      logRpe: false,
-                      askWeight: false,
-                      isQuickAddSet: false,
-                    },
-                  ];
-                }
+                PlannerProgramExercise.addSet(ex, props.setVariationIndex, props.settings);
               }
             );
             setSetIds((prev) => [...prev, UidFactory.generateUid(4)]);

@@ -112,38 +112,32 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
           values={reuseValues}
           value={reuseKey ?? ""}
           onChange={(value) => {
-            props.plannerDispatch(
-              lbProgram.recordModify((program) => {
-                return EditProgramUiHelpers.changeCurrentInstance2(
-                  program,
-                  plannerExercise,
-                  plannerExercise.dayData,
-                  props.settings,
-                  true,
-                  (ex) => {
-                    if (!value) {
-                      ex.reuse = undefined;
-                      return;
-                    }
-                    const newReuseCandidate = reuseCandidates[value];
-                    if (newReuseCandidate) {
-                      const currentWeek = newReuseCandidate.weekAndDays[plannerExercise.dayData.week];
-                      const week = !currentWeek ? ObjectUtils.keys(newReuseCandidate.weekAndDays)[0] : undefined;
-                      const day =
-                        week != null || (currentWeek != null && currentWeek.size > 1)
-                          ? Array.from(newReuseCandidate.weekAndDays[week ?? plannerExercise.dayData.week])[0]
-                          : undefined;
-                      ex.reuse = {
-                        fullName: newReuseCandidate.exercise.fullName,
-                        week,
-                        day,
-                        source: "overall",
-                        exercise: newReuseCandidate.exercise,
-                      };
-                    }
-                  }
-                );
-              })
+            return EditProgramUiHelpers.changeCurrentInstanceExercise(
+              props.plannerDispatch,
+              plannerExercise,
+              props.settings,
+              (ex) => {
+                if (!value) {
+                  ex.reuse = undefined;
+                  return;
+                }
+                const newReuseCandidate = reuseCandidates[value];
+                if (newReuseCandidate) {
+                  const currentWeek = newReuseCandidate.weekAndDays[plannerExercise.dayData.week];
+                  const week = !currentWeek ? ObjectUtils.keys(newReuseCandidate.weekAndDays)[0] : undefined;
+                  const day =
+                    week != null || (currentWeek != null && currentWeek.size > 1)
+                      ? Array.from(newReuseCandidate.weekAndDays[week ?? plannerExercise.dayData.week])[0]
+                      : undefined;
+                  ex.reuse = {
+                    fullName: newReuseCandidate.exercise.fullName,
+                    week,
+                    day,
+                    source: "overall",
+                    exercise: newReuseCandidate.exercise,
+                  };
+                }
+              }
             );
           }}
         />

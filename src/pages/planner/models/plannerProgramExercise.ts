@@ -326,6 +326,49 @@ export class PlannerProgramExercise {
     return exercise.descriptions.values[index]?.value;
   }
 
+  public static addSet(
+    ex: IPlannerProgramExercise,
+    setVariationIndex: number,
+    settings: ISettings
+  ): IPlannerProgramExercise {
+    const evaluatedSetVariation = ex.evaluatedSetVariations[setVariationIndex];
+    let lastEvaluatedSet = evaluatedSetVariation.sets[evaluatedSetVariation.sets.length - 1];
+    if (lastEvaluatedSet) {
+      evaluatedSetVariation.sets = [...evaluatedSetVariation.sets, ObjectUtils.clone(lastEvaluatedSet)];
+    } else {
+      const originalSets = PlannerProgramExercise.sets(ex, setVariationIndex);
+      const lastSet = originalSets[originalSets.length - 1];
+      if (lastSet) {
+        lastEvaluatedSet = {
+          maxrep: lastSet.repRange?.maxrep || 1,
+          minrep: lastSet.repRange?.minrep,
+          weight: lastSet.weight || Weight.zero,
+          logRpe: lastSet.logRpe || false,
+          isAmrap: lastSet.repRange?.isAmrap || false,
+          isQuickAddSet: lastSet.repRange?.isQuickAddSet || false,
+          askWeight: lastSet.askWeight || false,
+          rpe: lastSet.rpe,
+          timer: lastSet.timer,
+          label: lastSet.label,
+        };
+        evaluatedSetVariation.sets = [...evaluatedSetVariation.sets, ObjectUtils.clone(lastEvaluatedSet)];
+      } else {
+        evaluatedSetVariation.sets = [
+          ...evaluatedSetVariation.sets,
+          {
+            maxrep: 5,
+            weight: Weight.build(100, settings.units),
+            isAmrap: false,
+            logRpe: false,
+            askWeight: false,
+            isQuickAddSet: false,
+          },
+        ];
+      }
+    }
+    return ex;
+  }
+
   public static currentDescriptionIndex(exercise: IPlannerProgramExercise): number {
     const index = exercise.descriptions.values.findIndex((d) => d.isCurrent);
     return index === -1 ? 0 : index;

@@ -28,7 +28,7 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
           <div className="flex-1">{setVariations.length} Set Variations</div>
           <div className="flex items-center gap-1">
             <button
-              className="p-2 mr-4 border rounded-full border-grayv3-200"
+              className="p-1 mr-4 border rounded-full border-grayv3-200"
               onClick={() => {
                 return EditProgramUiHelpers.changeCurrentInstanceExercise(
                   props.plannerDispatch,
@@ -43,10 +43,10 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
                 );
               }}
             >
-              <IconPlus2 color={Tailwind.colors().grayv3.main} size={16} />
+              <IconPlus2 color={Tailwind.colors().grayv3.main} size={14} />
             </button>
             <button
-              className="p-2 border rounded-full border-grayv3-200"
+              className="p-1 border rounded-full border-grayv3-200"
               onClick={() => {
                 scrollRef.current.scrollTo({
                   left: scrollRef.current.scrollLeft - scrollRef.current.clientWidth,
@@ -54,10 +54,10 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
                 });
               }}
             >
-              <IconArrowDown3 className="rotate-90" color={Tailwind.colors().grayv3.main} size={16} />
+              <IconArrowDown3 className="rotate-90" color={Tailwind.colors().grayv3.main} size={14} />
             </button>
             <button
-              className="p-2 border rounded-full border-grayv3-200"
+              className="p-1 border rounded-full border-grayv3-200"
               onClick={() => {
                 scrollRef.current.scrollTo({
                   left: scrollRef.current.scrollLeft + scrollRef.current.clientWidth,
@@ -65,7 +65,7 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
                 });
               }}
             >
-              <IconArrowDown3 className="-rotate-90" color={Tailwind.colors().grayv3.main} size={16} />
+              <IconArrowDown3 className="-rotate-90" color={Tailwind.colors().grayv3.main} size={14} />
             </button>
           </div>
         </div>

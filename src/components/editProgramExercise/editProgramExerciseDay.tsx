@@ -1,8 +1,8 @@
 import { h, JSX } from "preact";
 import { IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
-import { ISettings } from "../../types";
+import { IExerciseType, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IEvaluatedProgram } from "../../models/program";
+import { IEvaluatedProgram, Program } from "../../models/program";
 import { EditProgramExerciseDayExercise } from "./editProgramExerciseDayExercise";
 import { Button } from "../button";
 import { IconKebab } from "../icons/iconKebab";
@@ -10,11 +10,14 @@ import { useState } from "preact/hooks";
 import { DropdownMenu, DropdownMenuItem } from "../editProgram/editProgramUi/editProgramUiDropdownMenu";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { ObjectUtils } from "../../utils/object";
+import { lb } from "lens-shmens";
 
 interface IEditProgramExerciseDayProps {
   weekIndex: number;
   dayInWeekIndex: number;
   exerciseKey: string;
+  fullName: string;
+  exerciseType?: IExerciseType;
   evaluatedProgram: IEvaluatedProgram;
   ui: IPlannerExerciseUi;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
@@ -26,6 +29,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
   const plannerExercise = day?.exercises.find((exercise) => exercise.key === props.exerciseKey);
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
   const hasSetVariations = (plannerExercise?.evaluatedSetVariations.length ?? 0) > 1;
+  const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
 
   return (
     <div className="py-3 bg-white border rounded-2xl border-grayv3-200">
@@ -63,6 +67,32 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                     <div>Enable Set Variations</div>
                   </div>
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  data-cy="program-exercise-delete-at-this-day"
+                  onClick={() => {
+                    const dayData = {
+                      week: props.weekIndex + 1,
+                      dayInWeek: props.dayInWeekIndex + 1,
+                      day: Program.getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
+                    };
+                    props.plannerDispatch(
+                      lbProgram.recordModify((program) => {
+                        return EditProgramUiHelpers.deleteCurrentInstance(
+                          program,
+                          dayData,
+                          props.fullName,
+                          props.settings,
+                          true,
+                          false
+                        );
+                      })
+                    );
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div>Delete At This Day</div>
+                  </div>
+                </DropdownMenuItem>
               </DropdownMenu>
             )}
           </div>
@@ -78,7 +108,29 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
         />
       ) : (
         <div className="px-4 text-sm text-grayv3-main">
-          <Button kind="lightgrayv3" className="w-full text-sm" name="edit-exercise-add-to-day">
+          <Button
+            kind="lightgrayv3"
+            className="w-full text-sm"
+            name="edit-exercise-add-to-day"
+            onClick={() => {
+              const dayData = {
+                week: props.weekIndex + 1,
+                dayInWeek: props.dayInWeekIndex + 1,
+                day: Program.getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
+              };
+              props.plannerDispatch(
+                lbProgram.recordModify((program) => {
+                  return EditProgramUiHelpers.addInstance(
+                    program,
+                    dayData,
+                    props.fullName,
+                    props.exerciseType,
+                    props.settings
+                  );
+                })
+              );
+            }}
+          >
             + Add exercise
           </Button>
         </div>

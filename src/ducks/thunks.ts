@@ -386,7 +386,7 @@ export namespace Thunk {
     };
   }
 
-  export function pushToEditProgramExercise(exerciseType: IExerciseType, dayData: Required<IDayData>): IThunk {
+  export function pushToEditProgramExercise(key: string, dayData: Required<IDayData>): IThunk {
     return async (dispatch, getState) => {
       const state = getState();
       const programScreen = state.screenStack.find((s) => s.name === "editProgram");
@@ -397,12 +397,8 @@ export namespace Thunk {
           ? Program.getProgram(state, state.storage.currentProgramId)
           : undefined);
       if (currentProgram && !Program.isEmpty(currentProgram)) {
-        const plannerState = EditProgram.initPlannerProgramExerciseState(
-          currentProgram,
-          state.storage.settings,
-          exerciseType
-        );
-        dispatch(Thunk.pushScreen("editProgramExercise", { exerciseType, dayData, plannerState }));
+        const plannerState = EditProgram.initPlannerProgramExerciseState(currentProgram, state.storage.settings, key);
+        dispatch(Thunk.pushScreen("editProgramExercise", { key, dayData, plannerState }));
       } else {
         dispatch(Thunk.pushScreen("main"));
       }

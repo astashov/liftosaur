@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
-import { ISettings } from "../../types";
+import { IExerciseType, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IEvaluatedProgram } from "../../models/program";
 import { EditProgramExerciseDay } from "./editProgramExerciseDay";
@@ -8,6 +8,8 @@ import { EditProgramExerciseDay } from "./editProgramExerciseDay";
 interface IEditProgramExerciseDaysListProps {
   evaluatedProgram: IEvaluatedProgram;
   exerciseKey: string;
+  fullName: string;
+  exerciseType?: IExerciseType;
   weekIndex: number;
   ui: IPlannerExerciseUi;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
@@ -26,6 +28,8 @@ export function EditProgramExerciseDaysList(props: IEditProgramExerciseDaysListP
               exerciseKey={props.exerciseKey}
               weekIndex={props.weekIndex}
               dayInWeekIndex={dayInWeekIndex}
+              fullName={props.fullName}
+              exerciseType={props.exerciseType}
               ui={props.ui}
               evaluatedProgram={props.evaluatedProgram}
               settings={props.settings}

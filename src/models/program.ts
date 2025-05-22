@@ -847,6 +847,13 @@ export namespace Program {
     return programDay?.exercises.find((e) => e.key === key);
   }
 
+  export function getFirstProgramExercise(
+    program: IEvaluatedProgram,
+    key: string
+  ): IPlannerProgramExercise | undefined {
+    return Program.getAllProgramExercises(program).find((e) => e.key === key || e.fullName === key);
+  }
+
   export function getProgramExerciseFromDay(
     programDay?: IEvaluatedProgramDay,
     key?: string
