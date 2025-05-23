@@ -1920,7 +1920,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
   },
   chestPress: {
     targetMuscles: ["Pectoralis Major Sternal Head"],
-    synergistMuscles: ["Biceps Brachii", "Deltoid Lateral", "Pectoralis Major Clavicular Head"],
+    synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
     bodyParts: ["Chest"],
     sortedEquipment: ["leverageMachine", "band"],
   },
