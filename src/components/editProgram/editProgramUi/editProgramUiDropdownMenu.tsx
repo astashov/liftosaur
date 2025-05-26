@@ -3,6 +3,7 @@ import { ComponentChildren, JSX, h } from "preact";
 export function DropdownMenu(props: {
   rightOffset?: string;
   children: ComponentChildren;
+  bgColor?: string;
   onClose: () => void;
 }): JSX.Element {
   return (
@@ -12,8 +13,13 @@ export function DropdownMenu(props: {
         className={`absolute shadow rounded`}
         style={{ maxWidth: "12rem", top: "0", right: props.rightOffset ?? "2.5rem" }}
       >
-        <div className={`relative h-full z-20 bg-white rounded p-2 text-right`}>{props.children}</div>
-        <div className="add-tip" />
+        <div
+          className={`relative h-full z-20 rounded p-2 text-right`}
+          style={{ backgroundColor: props.bgColor ?? "white" }}
+        >
+          {props.children}
+        </div>
+        <div className="add-tip" style={{ backgroundColor: props.bgColor ?? "white" }} />
       </div>
     </section>
   );

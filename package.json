@@ -107,6 +107,7 @@
     "@codemirror/view": "^6.35.3",
     "@lezer/highlight": "^1.1.6",
     "@lezer/lr": "^1.3.7",
+    "@tailwindcss/line-clamp": "^0.4.4",
     "aws-cdk-lib": "^2.83.1",
     "codemirror": "^6.0.1",
     "constructs": "^10.2.49",

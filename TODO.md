@@ -56,9 +56,10 @@ User debug page:
 
 - Add help NUX for playground
 - Don't show here/everywhere if only one instance of exercise
+
 - Add exercise label
 - Edit exercise name
-- Add description
+
 - Add repeat
 - Add forced order
 

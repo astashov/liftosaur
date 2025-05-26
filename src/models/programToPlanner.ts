@@ -198,6 +198,47 @@ export class ProgramToPlanner {
     }
   }
 
+  private addExerciseDescriptions(
+    exercise: IPlannerProgramExercise | undefined,
+    weekIndex: number,
+    dayInWeekIndex: number,
+    addedCurrentDescription: boolean
+  ): { lines: string[]; addedCurrentDescription: boolean } | undefined {
+    if (!exercise) {
+      return undefined;
+    }
+    if (
+      exercise?.descriptions.reuse == null ||
+      !ObjectUtils.isEqual(
+        exercise.descriptions.values || [],
+        exercise.descriptions.reuse.exercise?.descriptions.values || []
+      )
+    ) {
+      const lines: string[] = [];
+      const currentIndex = this.getCurrentDescriptionIndex(exercise.key, weekIndex, dayInWeekIndex);
+      for (let i = 0; i < exercise.descriptions.values.length; i += 1) {
+        if (i > 0) {
+          lines.push("");
+        }
+        const description = exercise.descriptions.values[i];
+        const parts = description.value.split("\n");
+        for (const part of parts) {
+          if (currentIndex !== 0 && currentIndex === i && !addedCurrentDescription) {
+            lines.push(`// ! ${part}`);
+            addedCurrentDescription = true;
+          } else {
+            lines.push(`// ${part}`);
+          }
+        }
+      }
+      return { lines, addedCurrentDescription };
+    } else if (exercise?.descriptions.reuse?.exercise) {
+      return { lines: [`// ...${exercise.descriptions.reuse.exercise.fullName}`], addedCurrentDescription };
+    } else {
+      return undefined;
+    }
+  }
+
   public convertToPlanner(opts: IPlannerToProgramConvertOpts = {}): IPlannerProgram {
     const plannerWeeks: IPlannerProgramWeek[] = [];
     const plannerProgram = this.program.planner;
@@ -257,30 +298,15 @@ export class ProgramToPlanner {
                 }
                 if (key != null) {
                   const exercise = this.getCurrentDescriptionExercise(key, weekIndex, dayInWeekIndex);
-                  if (
-                    exercise != null &&
-                    exercise.descriptions.reuse != null &&
-                    !ObjectUtils.isEqual(
-                      exercise.descriptions.values || [],
-                      exercise.descriptions.reuse.exercise?.descriptions.values || []
-                    )
-                  ) {
-                    const currentIndex = this.getCurrentDescriptionIndex(key, weekIndex, dayInWeekIndex);
-                    for (let i = 0; i < exercise.descriptions.values.length; i += 1) {
-                      if (i > 0) {
-                        exerciseTextArr.push("");
-                      }
-                      const description = exercise.descriptions.values[i];
-                      const parts = description.value.split("\n");
-                      for (const part of parts) {
-                        if (currentIndex !== 0 && currentIndex === i && !addedCurrentDescription) {
-                          exerciseTextArr.push(`// ! ${part}`);
-                          addedCurrentDescription = true;
-                        } else {
-                          exerciseTextArr.push(`// ${part}`);
-                        }
-                      }
-                    }
+                  const result = this.addExerciseDescriptions(
+                    exercise,
+                    weekIndex,
+                    dayInWeekIndex,
+                    addedCurrentDescription
+                  );
+                  if (result) {
+                    exerciseTextArr.push(...result.lines);
+                    addedCurrentDescription = result.addedCurrentDescription;
                     finishedToAddDescription = true;
                   } else {
                     const currentIndex = this.getCurrentDescriptionIndex(key, weekIndex, dayInWeekIndex);
@@ -307,8 +333,6 @@ export class ProgramToPlanner {
               }
               case "exercise": {
                 descriptionIndex = undefined;
-                finishedToAddDescription = false;
-                addedCurrentDescription = false;
                 const value = this.getRenamedValue(opts, line, weekIndex, dayInWeekIndex);
                 const evalExercise = Program.getProgramExercise(dayIndex + 1, this.program, value)!;
 
@@ -317,6 +341,25 @@ export class ProgramToPlanner {
                 }
 
                 const key = evalExercise.key;
+
+                if (
+                  !finishedToAddDescription &&
+                  (evalExercise.descriptions.reuse || evalExercise.descriptions.values.length > 0)
+                ) {
+                  const result = this.addExerciseDescriptions(
+                    evalExercise,
+                    weekIndex,
+                    dayInWeekIndex,
+                    addedCurrentDescription
+                  );
+                  if (result) {
+                    exerciseTextArr.push(...result.lines);
+                  }
+                }
+
+                finishedToAddDescription = false;
+                addedCurrentDescription = false;
+
                 let plannerExercise = "";
                 plannerExercise += this.getExerciseName(evalExercise);
                 plannerExercise += " / ";

@@ -24,6 +24,7 @@ import { EditProgramUiProgress } from "./editProgramUiProgress";
 import { IEvaluatedProgram } from "../../models/program";
 import { EditProgramUiUpdate } from "./editProgramUiUpdate";
 import { EditProgramUiExerciseSetVariations } from "./editProgramUiExerciseSetVariations";
+import { EditProgramUiExerciseDescriptions } from "./editProgramUiExerciseDescriptions";
 
 interface IEditProgramUiExerciseViewProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -178,114 +179,121 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
 
   return (
-    <div className="flex border-t border-purplev3-150">
-      <div className="flex-1">
-        <div className="flex">
-          {exerciseType ? (
-            <div className="px-3">
-              <ExerciseImage settings={props.settings} className="w-10" exerciseType={exerciseType} size="small" />
+    <div>
+      <div className="flex border-t border-purplev3-150">
+        <div className="flex-1">
+          {plannerExercise.descriptions.values.length > 0 && (
+            <div className="flex border-b border-purplev3-150">
+              <div className="flex-1 px-3 py-1">
+                <EditProgramUiExerciseDescriptions plannerExercise={plannerExercise} settings={props.settings} />
+              </div>
             </div>
-          ) : (
-            <div className="w-2" />
           )}
-          <div className="flex-1">
-            <div>
-              <div className="flex items-start my-2">
-                {displayWarmupSets.flat().length > 0 && (
-                  <>
-                    <div>
-                      <div className="pb-1 text-xs text-left text-grayv2-main">Warmups</div>
+          <div className="flex">
+            {exerciseType ? (
+              <div className="px-3">
+                <ExerciseImage settings={props.settings} className="w-10" exerciseType={exerciseType} size="small" />
+              </div>
+            ) : (
+              <div className="w-2" />
+            )}
+            <div className="flex-1">
+              <div>
+                <div className="flex items-start my-2">
+                  {displayWarmupSets.flat().length > 0 && (
+                    <>
                       <div>
+                        <div className="pb-1 text-xs text-left text-grayv2-main">Warmups</div>
                         <div>
-                          {displayWarmupSets.map((g) => (
-                            <HistoryRecordSet sets={g} isNext={true} settings={props.settings} />
-                          ))}
+                          <div>
+                            {displayWarmupSets.map((g) => (
+                              <HistoryRecordSet sets={g} isNext={true} settings={props.settings} />
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="self-stretch ml-4 mr-4 bg-grayv2-200" style={{ width: "1px" }} />
-                  </>
-                )}
-                <div>
-                  <div className="pb-1 text-xs text-left text-grayv2-main">Workout</div>
-                  {reusingSets && <div className="pb-1 text-xs text-grayv2-main">Reusing {reusingSets}</div>}
-                  <EditProgramUiExerciseSetVariations plannerExercise={plannerExercise} settings={props.settings} />
+                      <div className="self-stretch ml-4 mr-4 bg-grayv2-200" style={{ width: "1px" }} />
+                    </>
+                  )}
+                  <div>
+                    <div className="pb-1 text-xs text-left text-grayv2-main">Workout</div>
+                    {reusingSets && <div className="pb-1 text-xs text-grayv2-main">Reusing {reusingSets}</div>}
+                    <EditProgramUiExerciseSetVariations plannerExercise={plannerExercise} settings={props.settings} />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="px-3 pb-2 text-xs">
-          <EditProgramUiProgress evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
-        </div>
-        {props.plannerExercise.update && (
           <div className="px-3 pb-2 text-xs">
-            <EditProgramUiUpdate evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
+            <EditProgramUiProgress evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
           </div>
-        )}
-      </div>
-      <div className="bg-white border-l border-purplev3-150">
-        <div className="text-center">
-          <button
-            className="p-2"
-            onClick={() => {
-              if (props.plannerExercise.exerciseType) {
+          {props.plannerExercise.update && (
+            <div className="px-3 pb-2 text-xs">
+              <EditProgramUiUpdate evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
+            </div>
+          )}
+        </div>
+        <div className="bg-white border-l border-purplev3-150">
+          <div className="text-center">
+            <button
+              className="p-2"
+              onClick={() => {
                 props.dispatch(
                   Thunk.pushToEditProgramExercise(props.plannerExercise.key, props.plannerExercise.dayData)
                 );
-              }
-            }}
-          >
-            <IconEdit2 />
-          </button>
-        </div>
-        <div className="text-center">
-          <button
-            className="p-2"
-            onClick={() => {
-              props.plannerDispatch(
-                lb<IPlannerState>()
-                  .p("ui")
-                  .p("modalExercise")
-                  .record({
-                    focusedExercise: {
-                      weekIndex,
-                      dayIndex,
-                      exerciseLine: exerciseIndex,
-                    },
-                    types: [],
-                    muscleGroups: [],
-                    exerciseKey: PlannerKey.fromFullName(plannerExercise.fullName, props.settings),
-                    fullName: plannerExercise.fullName,
-                    exerciseType,
-                    change: "duplicate",
+              }}
+            >
+              <IconEdit2 />
+            </button>
+          </div>
+          <div className="text-center">
+            <button
+              className="p-2"
+              onClick={() => {
+                props.plannerDispatch(
+                  lb<IPlannerState>()
+                    .p("ui")
+                    .p("modalExercise")
+                    .record({
+                      focusedExercise: {
+                        weekIndex,
+                        dayIndex,
+                        exerciseLine: exerciseIndex,
+                      },
+                      types: [],
+                      muscleGroups: [],
+                      exerciseKey: PlannerKey.fromFullName(plannerExercise.fullName, props.settings),
+                      fullName: plannerExercise.fullName,
+                      exerciseType,
+                      change: "duplicate",
+                    })
+                );
+              }}
+            >
+              <IconDuplicate2 />
+            </button>
+          </div>
+          <div className="text-center">
+            <button
+              className="p-2"
+              onClick={() => {
+                props.plannerDispatch(
+                  lbProgram.recordModify((program) => {
+                    return EditProgramUiHelpers.deleteCurrentInstance(
+                      program,
+                      plannerExercise.dayData,
+                      plannerExercise.fullName,
+                      props.settings,
+                      false,
+                      true
+                    );
                   })
-              );
-            }}
-          >
-            <IconDuplicate2 />
-          </button>
-        </div>
-        <div className="text-center">
-          <button
-            className="p-2"
-            onClick={() => {
-              props.plannerDispatch(
-                lbProgram.recordModify((program) => {
-                  return EditProgramUiHelpers.deleteCurrentInstance(
-                    program,
-                    plannerExercise.dayData,
-                    plannerExercise.fullName,
-                    props.settings,
-                    false,
-                    true
-                  );
-                })
-              );
-            }}
-          >
-            <IconTrash />
-          </button>
+                );
+              }}
+            >
+              <IconTrash />
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -231,6 +231,7 @@ export interface IPlannerExerciseUiEditSetBottomSheet {
 export interface IPlannerExerciseUi {
   isProgressEnabled?: boolean;
   isUpdateEnabled?: boolean;
+  isLabelEnabled?: boolean;
   showAddStateVariableModal?: boolean;
   showEditProgressScriptModal?: boolean;
   showEditUpdateScriptModal?: boolean;
@@ -253,6 +254,11 @@ export interface IPlannerState extends IUndoRedoState<{ program: IProgram }> {
 
 export interface IPlannerExerciseState extends IUndoRedoState<{ program: IProgram }> {
   ui: IPlannerExerciseUi;
+}
+
+export interface IReuseCandidate {
+  exercise: IPlannerProgramExercise;
+  weekAndDays: Record<number, Set<number>>;
 }
 
 export interface IExportedPlannerProgram {

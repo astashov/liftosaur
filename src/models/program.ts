@@ -1113,6 +1113,23 @@ export namespace Program {
     return exercises;
   }
 
+  export function getReusingDescriptionsExercises(
+    evaluatedProgram: IEvaluatedProgram,
+    programExercise: IPlannerProgramExercise
+  ): IPlannerProgramExercise[] {
+    const exercises: IPlannerProgramExercise[] = [];
+    PP.iterate2(evaluatedProgram.weeks, (e) => {
+      if (
+        e.descriptions.reuse?.exercise?.key === programExercise.key &&
+        e.descriptions.reuse?.exercise.dayData.week === programExercise.dayData.week &&
+        e.descriptions.reuse?.exercise.dayData.dayInWeek === programExercise.dayData.dayInWeek
+      ) {
+        exercises.push(e);
+      }
+    });
+    return exercises;
+  }
+
   export function getReusingCustomProgressExercises(
     evaluatedProgram: IEvaluatedProgram,
     programExercise: IPlannerProgramExercise

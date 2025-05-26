@@ -79,9 +79,6 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
               <div className="">, {equipmentName(props.plannerExercise.equipment)}</div>
             )}
           {orderAndRepeat ? <span className="text-sm font-normal text-blackv2"> [{orderAndRepeat}]</span> : ""}
-          {props.plannerExercise.notused && (
-            <div className="px-1 ml-3 text-xs font-bold text-white rounded bg-grayv2-main">UNUSED</div>
-          )}
         </div>
       </div>
       <div className="flex items-center">

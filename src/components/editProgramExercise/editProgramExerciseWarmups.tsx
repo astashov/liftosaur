@@ -98,6 +98,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                       program,
                       plannerExercise.fullName,
                       props.settings,
+                      true,
                       (e) => {
                         e.warmupSets = undefined;
                       }

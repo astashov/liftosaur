@@ -9,6 +9,7 @@ import { defaultKeymap, historyKeymap, history } from "@codemirror/commands";
 interface IProps {
   value?: string;
   placeholder: string;
+  isTransparent?: boolean;
   onChange?: (newValue: string) => void;
 }
 
@@ -59,7 +60,7 @@ export function MarkdownEditorBorderless(props: IProps): JSX.Element {
     <div className="markdown-editor-view">
       <div
         data-cy="markdown-editor"
-        className="text-sm bg-white appearance-none focus:outline-none focus:shadow-outline"
+        className={`text-sm ${!props.isTransparent ? "bg-white" : ""} appearance-none focus:outline-none focus:shadow-outline`}
         ref={divRef}
       ></div>
     </div>

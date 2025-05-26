@@ -30,12 +30,14 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
   const hasSetVariations = (plannerExercise?.evaluatedSetVariations.length ?? 0) > 1;
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
+  const areDescriptionsEnabled =
+    plannerExercise?.descriptions.reuse != null || (plannerExercise?.descriptions.values.length ?? 0) > 0;
 
   return (
     <div className="py-3 bg-white border rounded-2xl border-grayv3-200">
       <div className="flex items-center gap-4 px-4 pb-2">
         <div className="mr-auto text-base font-bold">{day?.name}</div>
-        {plannerExercise && !hasSetVariations && (
+        {plannerExercise && (
           <div className="relative flex items-center">
             <button
               className="p-2"
@@ -48,8 +50,8 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
             {isKebabMenuOpen && (
               <DropdownMenu rightOffset="3rem" onClose={() => setIsKebabMenuOpen(false)}>
                 <DropdownMenuItem
+                  data-cy="program-exercise-toggle-descriptions"
                   isTop={true}
-                  data-cy="program-exercise-toggle-update"
                   onClick={() => {
                     setIsKebabMenuOpen(false);
                     EditProgramUiHelpers.changeCurrentInstanceExercise(
@@ -57,16 +59,40 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                       plannerExercise,
                       props.settings,
                       (ex) => {
-                        const lastSetVariation = ObjectUtils.clone(ex.evaluatedSetVariations[0]);
-                        ex.evaluatedSetVariations.push(lastSetVariation);
+                        if (areDescriptionsEnabled) {
+                          ex.descriptions = { values: [] };
+                        } else {
+                          ex.descriptions = { values: [{ isCurrent: true, value: "" }] };
+                        }
                       }
                     );
                   }}
                 >
                   <div className="flex items-center gap-2">
-                    <div>Enable Set Variations</div>
+                    <div>{areDescriptionsEnabled ? "Disable" : "Enable"} Descriptions</div>
                   </div>
                 </DropdownMenuItem>
+                {!hasSetVariations && (
+                  <DropdownMenuItem
+                    data-cy="program-exercise-toggle-update"
+                    onClick={() => {
+                      setIsKebabMenuOpen(false);
+                      EditProgramUiHelpers.changeCurrentInstanceExercise(
+                        props.plannerDispatch,
+                        plannerExercise,
+                        props.settings,
+                        (ex) => {
+                          const lastSetVariation = ObjectUtils.clone(ex.evaluatedSetVariations[0]);
+                          ex.evaluatedSetVariations.push(lastSetVariation);
+                        }
+                      );
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div>Enable Set Variations</div>
+                    </div>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   data-cy="program-exercise-delete-at-this-day"
                   onClick={() => {

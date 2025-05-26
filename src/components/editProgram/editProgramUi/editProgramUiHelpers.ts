@@ -11,9 +11,11 @@ import { IPlannerEvaluatedProgramToTextOpts } from "../../../pages/planner/plann
 import { IEvaluatedProgram, Program } from "../../../models/program";
 import { ProgramToPlanner } from "../../../models/programToPlanner";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { lb } from "lens-shmens";
+import { lb, LensBuilder } from "lens-shmens";
 import { UidFactory } from "../../../utils/generator";
 import { Weight } from "../../../models/weight";
+import { IState, updateState } from "../../../models/state";
+import { IDispatch } from "../../../ducks/types";
 
 export class EditProgramUiHelpers {
   public static changeFirstInstance(
@@ -39,6 +41,36 @@ export class EditProgramUiHelpers {
       new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
       settings
     );
+  }
+
+  public static changeLabel(
+    dispatch: IDispatch,
+    plannerDispatch: ILensDispatch<IPlannerExerciseState>,
+    fullName: string,
+    value: string | undefined,
+    settings: ISettings
+  ): void {
+    const { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings);
+    const newKey = PlannerKey.fromLabelNameAndEquipment(value, name, equipment, settings);
+    const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
+    plannerDispatch([
+      lbProgram.recordModify((program) => {
+        return EditProgramUiHelpers.changeAllInstances(program, fullName, settings, true, (e) => {
+          e.label = value;
+        });
+      }),
+    ]);
+    updateState(dispatch, [
+      (
+        lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
+          IState,
+          { key: string },
+          {}
+        >
+      )
+        .pi("key")
+        .record(newKey),
+    ]);
   }
 
   public static changeCurrentInstanceExercise(
@@ -352,6 +384,7 @@ export class EditProgramUiHelpers {
     planner: IPlannerProgram,
     fullName: string,
     settings: ISettings,
+    shouldValidate: boolean,
     cb: (exercise: IPlannerProgramExercise) => void
   ): IPlannerProgram {
     const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
@@ -360,7 +393,7 @@ export class EditProgramUiHelpers {
         cb(e);
       }
     });
-    return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
+    return this.validate(true, planner, new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(), settings);
   }
 
   public static changeCurrentInstance(

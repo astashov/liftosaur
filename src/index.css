@@ -342,6 +342,10 @@ input[type="checkbox"].checkbox:disabled {
   margin-bottom: 0.25rem;
 }
 
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+
 .markdown a {
   font-weight: bold;
   text-decoration: underline;
