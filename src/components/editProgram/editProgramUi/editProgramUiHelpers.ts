@@ -82,14 +82,7 @@ export class EditProgramUiHelpers {
     const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
     dispatch(
       lbProgram.recordModify((program) => {
-        return EditProgramUiHelpers.changeCurrentInstance2(
-          program,
-          plannerExercise,
-          plannerExercise.dayData,
-          settings,
-          true,
-          cb
-        );
+        return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, settings, true, cb);
       })
     );
   }
@@ -97,15 +90,15 @@ export class EditProgramUiHelpers {
   public static changeCurrentInstance2(
     planner: IPlannerProgram,
     plannerExercise: IPlannerProgramExercise,
-    dayData: Required<IDayData>,
     settings: ISettings,
     shouldValidate: boolean,
     cb: (exercise: IPlannerProgramExercise) => void
   ): IPlannerProgram {
     const fullName = plannerExercise.fullName;
+    const dayData = plannerExercise.dayData;
     const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
 
-    const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName);
+    const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName, plannerExercise.isRepeat);
     for (const week of weeks) {
       PP.iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
         const current = week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1 && e.fullName === fullName;
@@ -148,13 +141,14 @@ export class EditProgramUiHelpers {
   private static getWeeks2(
     evaluatedProgram: IEvaluatedProgram,
     dayData: Required<IDayData>,
-    fullName: string
+    fullName: string,
+    ignoreRepeats: boolean = false
   ): number[] {
     const day = evaluatedProgram.weeks[dayData.week - 1].days[dayData.dayInWeek - 1];
     const weeks: Set<number> = new Set();
     weeks.add(dayData.week);
     const exercise = day.exercises.find((e) => e.fullName === fullName);
-    if (exercise != null) {
+    if (!ignoreRepeats && exercise != null) {
       for (const repeating of exercise.repeating) {
         weeks.add(repeating);
       }
@@ -241,6 +235,54 @@ export class EditProgramUiHelpers {
     } else {
       return planner;
     }
+  }
+
+  public static changeRepeating(
+    planner: IPlannerProgram,
+    dayData: Required<IDayData>,
+    repeatTo: number,
+    fullName: string,
+    settings: ISettings,
+    shouldValidate: boolean
+  ): IPlannerProgram {
+    const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
+
+    let repeatingExercise: IPlannerProgramExercise | undefined;
+    const newRepeating: number[] = [];
+    for (let week = dayData.week; week <= repeatTo; week += 1) {
+      newRepeating.push(week);
+    }
+    const add = [];
+    for (let week = 1; week <= planner.weeks.length; week += 1) {
+      const targetDay = evaluatedProgram.weeks[week - 1]?.days[dayData.dayInWeek - 1];
+      if (targetDay) {
+        const index = targetDay.exercises.findIndex((e) => e.fullName === fullName);
+        let exercise = targetDay.exercises[index] as IPlannerProgramExercise | undefined;
+        if (exercise && week >= dayData.week && !repeatingExercise) {
+          exercise.repeat = newRepeating;
+          exercise.repeating = newRepeating;
+          repeatingExercise = exercise;
+        }
+        if (repeatingExercise && week > dayData.week) {
+          if (week <= repeatTo && index === -1) {
+            exercise = { ...repeatingExercise, isRepeat: true };
+            targetDay.exercises.push(exercise);
+            add.push({ dayData: { ...dayData, week }, fullName, index: targetDay.exercises.length - 1 });
+          } else if (week > repeatTo) {
+            targetDay.exercises.splice(index, 1);
+          }
+        }
+        if (repeatingExercise && week > dayData.week && !exercise?.isRepeat) {
+          break;
+        }
+      }
+    }
+    return this.validate(
+      shouldValidate,
+      planner,
+      new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ add }),
+      settings
+    );
   }
 
   public static deleteCurrentInstance(
@@ -393,7 +435,12 @@ export class EditProgramUiHelpers {
         cb(e);
       }
     });
-    return this.validate(true, planner, new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(), settings);
+    return this.validate(
+      shouldValidate,
+      planner,
+      new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
+      settings
+    );
   }
 
   public static changeCurrentInstance(

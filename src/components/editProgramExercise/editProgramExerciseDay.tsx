@@ -32,12 +32,14 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const areDescriptionsEnabled =
     plannerExercise?.descriptions.reuse != null || (plannerExercise?.descriptions.values.length ?? 0) > 0;
+  const [showRepeat, setShowRepeat] = useState((plannerExercise?.repeating.length ?? 0) > 0);
+  console.log(props.evaluatedProgram);
 
   return (
     <div className="py-3 bg-white border rounded-2xl border-grayv3-200">
       <div className="flex items-center gap-4 px-4 pb-2">
         <div className="mr-auto text-base font-bold">{day?.name}</div>
-        {plannerExercise && (
+        {plannerExercise && !plannerExercise.isRepeat && (
           <div className="relative flex items-center">
             <button
               className="p-2"
@@ -119,6 +121,33 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                     <div>Delete At This Day</div>
                   </div>
                 </DropdownMenuItem>
+                {props.evaluatedProgram.weeks.length > 1 && (
+                  <DropdownMenuItem
+                    data-cy="program-exercise-toggle-forced-order"
+                    onClick={() => {
+                      setIsKebabMenuOpen(false);
+                      if (showRepeat) {
+                        props.plannerDispatch(
+                          lbProgram.recordModify((program) => {
+                            return EditProgramUiHelpers.changeRepeating(
+                              program,
+                              plannerExercise.dayData,
+                              plannerExercise.dayData.week,
+                              plannerExercise.fullName,
+                              props.settings,
+                              true
+                            );
+                          })
+                        );
+                      }
+                      setShowRepeat(!showRepeat);
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div>{showRepeat ? "Disable" : "Enable"} Repeating</div>
+                    </div>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenu>
             )}
           </div>
@@ -127,6 +156,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
       {plannerExercise ? (
         <EditProgramExerciseDayExercise
           ui={props.ui}
+          showRepeat={showRepeat}
           plannerExercise={plannerExercise}
           evaluatedProgram={props.evaluatedProgram}
           plannerDispatch={props.plannerDispatch}

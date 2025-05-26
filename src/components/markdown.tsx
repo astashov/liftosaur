@@ -27,7 +27,6 @@ export function Markdown(props: IProps): JSX.Element {
   useEffect(() => {
     const container = containerRef.current;
     if (isTruncated) {
-      console.log(container?.scrollHeight, container?.clientHeight);
       setShouldTruncate(container.scrollHeight > container.clientHeight);
     }
     if (container) {

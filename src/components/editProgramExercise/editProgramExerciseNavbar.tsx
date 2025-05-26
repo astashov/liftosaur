@@ -13,7 +13,6 @@ import { CollectionUtils } from "../../utils/collection";
 import { ExerciseImage } from "../exerciseImage";
 import { equipmentName, Exercise } from "../../models/exercise";
 import { ISettings } from "../../types";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 
 interface IEditProgramExerciseNavbarProps {
   state: IPlannerExerciseState;
@@ -27,10 +26,6 @@ interface IEditProgramExerciseNavbarProps {
 export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps): JSX.Element {
   const exerciseType = props.plannerExercise.exerciseType;
   const exercise = exerciseType ? Exercise.get(exerciseType, props.settings.exercises) : undefined;
-
-  const repeatStr = PlannerProgramExercise.repeatToRangeStr(props.plannerExercise);
-  const order = props.plannerExercise.order !== 0 ? props.plannerExercise.order : undefined;
-  const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
 
   return (
     <div
@@ -78,7 +73,6 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
             props.plannerExercise.equipment !== exercise?.defaultEquipment && (
               <div className="">, {equipmentName(props.plannerExercise.equipment)}</div>
             )}
-          {orderAndRepeat ? <span className="text-sm font-normal text-blackv2"> [{orderAndRepeat}]</span> : ""}
         </div>
       </div>
       <div className="flex items-center">

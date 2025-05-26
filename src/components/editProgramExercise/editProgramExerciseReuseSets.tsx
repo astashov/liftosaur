@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IPlannerProgramExercise, IPlannerExerciseState, IReuseCandidate } from "../../pages/planner/models/types";
 import { IDayData, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -26,7 +26,10 @@ function getReuseSetsCandidates(
 ): Record<string, IReuseCandidate> {
   const result: Record<string, IReuseCandidate> = {};
   PP.iterate2(evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
-    if (exercise.key === key && dayData.week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1) {
+    if (
+      exercise.key === key &&
+      ((dayData.week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1) || exercise.isRepeat)
+    ) {
       return;
     }
     let reuseSetCandidate = result[exercise.key];
@@ -50,7 +53,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
   const reuseKey = reuse?.exercise?.key;
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const reuseSetsCandidates = getReuseSetsCandidates(
-    plannerExercise.fullName,
+    plannerExercise.key,
     props.evaluatedProgram,
     plannerExercise.dayData
   );
@@ -66,6 +69,10 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
       )
     ),
   ];
+
+  if (reuseSetValues.length < 2) {
+    return <></>;
+  }
 
   return (
     <div>
@@ -186,7 +193,6 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                       return EditProgramUiHelpers.changeCurrentInstance2(
                         program,
                         plannerExercise,
-                        plannerExercise.dayData,
                         props.settings,
                         true,
                         (ex) => {
@@ -211,7 +217,6 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                       return EditProgramUiHelpers.changeCurrentInstance2(
                         program,
                         plannerExercise,
-                        plannerExercise.dayData,
                         props.settings,
                         true,
                         (ex) => {

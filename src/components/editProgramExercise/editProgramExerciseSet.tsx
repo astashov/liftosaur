@@ -61,18 +61,11 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
     if (!plannerExercise) return;
     props.plannerDispatch(
       lbProgram.recordModify((program) => {
-        return EditProgramUiHelpers.changeCurrentInstance2(
-          program,
-          plannerExercise,
-          plannerExercise.dayData,
-          props.settings,
-          true,
-          (ex) => {
-            const setVariation = ex.evaluatedSetVariations[setVariationIndex];
-            const set = setVariation.sets[setIndex];
-            cb(set);
-          }
-        );
+        return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, props.settings, true, (ex) => {
+          const setVariation = ex.evaluatedSetVariations[setVariationIndex];
+          const set = setVariation.sets[setIndex];
+          cb(set);
+        });
       })
     );
   }
@@ -293,7 +286,6 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                       return EditProgramUiHelpers.changeCurrentInstance2(
                         program,
                         plannerExercise,
-                        plannerExercise.dayData,
                         props.settings,
                         true,
                         (ex) => {

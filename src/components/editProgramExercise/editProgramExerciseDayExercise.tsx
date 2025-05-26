@@ -9,10 +9,14 @@ import { EditProgramExerciseDescriptionsList } from "./editProgramExerciseDescri
 import { EditProgramExerciseReuseSetsExercise } from "./editProgramExerciseReuseSets";
 import { EditProgramExerciseReuseDescriptions } from "./editProgramExerciseReuseDescriptions";
 import { EditProgramUiExerciseDescriptions } from "../editProgram/editProgramUiExerciseDescriptions";
+import { EditProgramExerciseRepeat } from "./editProgramExerciseRepeat";
+import { LinkButton } from "../linkButton";
+import { useState } from "preact/hooks";
 
 interface IEditProgramExerciseDayExerciseProps {
   plannerExercise: IPlannerProgramExercise;
   evaluatedProgram: IEvaluatedProgram;
+  showRepeat: boolean;
   ui: IPlannerExerciseUi;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
@@ -23,9 +27,46 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
 
   const reuse = plannerExercise.reuse;
   const hasOwnSets = plannerExercise.setVariations.length > 0;
+  const [showRepeating, setShowRepeating] = useState(plannerExercise.isRepeat);
+
+  if (showRepeating) {
+    return (
+      <div className="px-4 pb-4">
+        <div className="flex gap-4">
+          <div className="text-sm">Repeating from week {plannerExercise.repeating[0]}</div>
+          <div className="ml-auto text-sm">
+            <LinkButton
+              name="override-repeating"
+              onClick={() => {
+                setShowRepeating(false);
+              }}
+            >
+              Override
+            </LinkButton>
+          </div>
+        </div>
+        <EditProgramUiExerciseSetVariations
+          plannerExercise={plannerExercise}
+          settings={props.settings}
+          isCurrentIndicatorNearby={true}
+        />
+      </div>
+    );
+  }
 
   return (
     <div>
+      {props.showRepeat && (
+        <div className="px-4">
+          <EditProgramExerciseRepeat
+            plannerExercise={plannerExercise}
+            numberOfWeeks={props.evaluatedProgram.weeks.length}
+            settings={props.settings}
+            onRemoveOverride={() => setShowRepeating(true)}
+            plannerDispatch={props.plannerDispatch}
+          />
+        </div>
+      )}
       {plannerExercise.descriptions.values.length > 0 && (
         <EditProgramExerciseReuseDescriptions
           plannerExercise={plannerExercise}
