@@ -180,7 +180,10 @@ export namespace Weight {
     const equipmentData = Equipment.getEquipmentDataForExerciseType(settings, exerciseType);
     if (equipmentData) {
       if (equipmentData.isFixed) {
-        const items = CollectionUtils.sort(equipmentData.fixed, (a, b) => Weight.compare(a, b));
+        const items = CollectionUtils.sort(
+          equipmentData.fixed.filter((e) => e.unit === weight.unit),
+          (a, b) => Weight.compare(a, b)
+        );
         const item = items.find((i) => Weight.gt(i, roundWeight));
         return item ?? items[items.length - 1] ?? roundWeight;
       } else {
@@ -207,7 +210,10 @@ export namespace Weight {
     const equipmentData = exerciseType ? Equipment.getEquipmentDataForExerciseType(settings, exerciseType) : undefined;
     if (equipmentData) {
       if (equipmentData.isFixed) {
-        const items = CollectionUtils.sort(equipmentData.fixed, (a, b) => Weight.compareReverse(a, b));
+        const items = CollectionUtils.sort(
+          equipmentData.fixed.filter((e) => e.unit === weight.unit),
+          (a, b) => Weight.compareReverse(a, b)
+        );
         const item = items.find((i) => Weight.lt(i, roundWeight));
         return item ?? items[items.length - 1] ?? roundWeight;
       } else {
