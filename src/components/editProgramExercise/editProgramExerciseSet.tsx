@@ -101,8 +101,8 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                         width={2.5 + widthAdd}
                         data-cy="min-reps-value"
                         name="set-min-reps"
-                        onInput={(value) => {}}
-                        onBlur={(value) => {}}
+                        onBlur={(value) => changeSet((set) => (set.minrep = value))}
+                        onInput={(value) => changeSet((set) => (set.minrep = value))}
                         value={set.minrep}
                         min={0}
                         max={999}

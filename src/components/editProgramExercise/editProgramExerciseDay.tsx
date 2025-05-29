@@ -33,6 +33,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
   const areDescriptionsEnabled =
     plannerExercise?.descriptions.reuse != null || (plannerExercise?.descriptions.values.length ?? 0) > 0;
   const [showRepeat, setShowRepeat] = useState((plannerExercise?.repeating.length ?? 0) > 0);
+  const [showOrder, setShowOrder] = useState((plannerExercise?.order ?? 0) !== 0);
   console.log(props.evaluatedProgram);
 
   return (
@@ -148,6 +149,25 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                     </div>
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem
+                  data-cy="edit-menu-exercise-toggle-order"
+                  onClick={() => {
+                    if (showOrder) {
+                      EditProgramUiHelpers.changeCurrentInstanceExercise(
+                        props.plannerDispatch,
+                        plannerExercise,
+                        props.settings,
+                        (ex) => {
+                          ex.order = 0;
+                        }
+                      );
+                    }
+                    setShowOrder(!showOrder);
+                    setIsKebabMenuOpen(false);
+                  }}
+                >
+                  {plannerExercise.order !== 0 ? "Disable" : "Enable"} Forced Order
+                </DropdownMenuItem>
               </DropdownMenu>
             )}
           </div>
@@ -157,6 +177,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
         <EditProgramExerciseDayExercise
           ui={props.ui}
           showRepeat={showRepeat}
+          showOrder={showOrder}
           plannerExercise={plannerExercise}
           evaluatedProgram={props.evaluatedProgram}
           plannerDispatch={props.plannerDispatch}

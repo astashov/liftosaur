@@ -12,11 +12,13 @@ import { EditProgramUiExerciseDescriptions } from "../editProgram/editProgramUiE
 import { EditProgramExerciseRepeat } from "./editProgramExerciseRepeat";
 import { LinkButton } from "../linkButton";
 import { useState } from "preact/hooks";
+import { EditProgramExerciseOrder } from "./editProgramExerciseOrder";
 
 interface IEditProgramExerciseDayExerciseProps {
   plannerExercise: IPlannerProgramExercise;
   evaluatedProgram: IEvaluatedProgram;
   showRepeat: boolean;
+  showOrder: boolean;
   ui: IPlannerExerciseUi;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
@@ -63,6 +65,15 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
             numberOfWeeks={props.evaluatedProgram.weeks.length}
             settings={props.settings}
             onRemoveOverride={() => setShowRepeating(true)}
+            plannerDispatch={props.plannerDispatch}
+          />
+        </div>
+      )}
+      {props.showOrder && (
+        <div className="px-4">
+          <EditProgramExerciseOrder
+            plannerExercise={plannerExercise}
+            settings={props.settings}
             plannerDispatch={props.plannerDispatch}
           />
         </div>

@@ -1,9 +1,13 @@
 import { PP } from "../../../models/pp";
 import { PlannerProgram } from "../../../pages/planner/models/plannerProgram";
-import { IPlannerExerciseState, IPlannerProgramExercise } from "../../../pages/planner/models/types";
+import {
+  IPlannerExerciseState,
+  IPlannerProgramExercise,
+  IPlannerProgramExerciseEvaluatedSet,
+} from "../../../pages/planner/models/types";
 import { PlannerEvaluator } from "../../../pages/planner/plannerEvaluator";
 import { PlannerKey } from "../../../pages/planner/plannerKey";
-import { IPlannerProgram, ISettings, IDayData, IExerciseType } from "../../../types";
+import { IPlannerProgram, ISettings, IDayData, IExerciseType, IDaySetData } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../../../pages/planner/plannerExerciseEvaluator";
 import { equipmentName, Exercise } from "../../../models/exercise";
@@ -85,6 +89,38 @@ export class EditProgramUiHelpers {
         return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, settings, true, cb);
       })
     );
+  }
+
+  public static changeSets(
+    planner: IPlannerProgram,
+    key: string,
+    daySets: IDaySetData[],
+    settings: ISettings,
+    cb: (set: IPlannerProgramExerciseEvaluatedSet) => void
+  ): IPlannerProgram {
+    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
+
+    PP.iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
+      if (e.key !== key) {
+        return;
+      }
+      for (const daySet of daySets) {
+        if (daySet.week === weekIndex + 1 && daySet.dayInWeek === dayInWeekIndex + 1) {
+          for (let setVariationIndex = 0; setVariationIndex < e.evaluatedSetVariations.length; setVariationIndex++) {
+            if (daySet.setVariation === setVariationIndex + 1) {
+              const sets = e.evaluatedSetVariations[setVariationIndex].sets;
+              for (let setIndex = 0; setIndex < sets.length; setIndex++) {
+                if (daySet.set === setIndex + 1) {
+                  cb(sets[setIndex]);
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return this.validate(true, planner, new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(), settings);
   }
 
   public static changeCurrentInstance2(

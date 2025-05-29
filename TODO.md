@@ -60,6 +60,4 @@ User debug page:
 - Add exercise label
 - Edit exercise name
 
-- Add repeat
-- Add forced order
-
+- Add across all weeks
