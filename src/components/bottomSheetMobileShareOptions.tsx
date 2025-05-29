@@ -69,7 +69,7 @@ export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
             icon={<IconLink />}
             onClick={() => {
               if (props.userId) {
-                const link = Share.generateLink(props.userId, props.history[0].id);
+                const link = Share.generateLink(props.userId, props.record.id);
                 ClipboardUtils.copy(link);
                 alert("Copied!");
               } else {
