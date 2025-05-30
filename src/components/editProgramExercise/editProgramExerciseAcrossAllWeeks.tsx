@@ -14,6 +14,7 @@ import { lb } from "lens-shmens";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { CollectionUtils } from "../../utils/collection";
 import { ObjectUtils } from "../../utils/object";
+import { SetUtils } from "../../utils/setUtils";
 
 interface IEditProgramExerciseAcrossAllWeeksProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -125,6 +126,29 @@ function Tab(props: ITabProps): JSX.Element {
     );
   }
 
+  const groupsValues = ObjectUtils.values(groups);
+
+  const allWeeks = groupsValues.map((group) => new Set(group.map((setData) => setData.week)));
+  const allDays = groupsValues.map((group) => new Set(group.map((setData) => setData.dayInWeek)));
+  const setVariationsPerWeekDay: Record<string, Set<number>> = {};
+  for (const group of groupsValues) {
+    for (const setData of group) {
+      const key = `${setData.week}-${setData.dayInWeek}`;
+      setVariationsPerWeekDay[key] = setVariationsPerWeekDay[key] || new Set();
+      setVariationsPerWeekDay[key].add(setData.setVariation);
+    }
+  }
+  const setsPerWeekDaySetVariation: Record<string, Set<number>> = {};
+  for (const group of groupsValues) {
+    for (const setData of group) {
+      const key = `${setData.week}-${setData.dayInWeek}-${setData.setVariation}`;
+      setsPerWeekDaySetVariation[key] = setsPerWeekDaySetVariation[key] || new Set();
+      setsPerWeekDaySetVariation[key].add(setData.set);
+    }
+  }
+  const allWeeksEqual = SetUtils.areAllEqual(allWeeks);
+  const allDaysEqual = SetUtils.areAllEqual(allDays);
+
   return (
     <div className="px-4">
       {Object.entries(groups).map(([key, group]) => {
@@ -138,7 +162,13 @@ function Tab(props: ITabProps): JSX.Element {
         return (
           <div className="flex items-center gap-4 p-2 mb-4 border rounded-lg bg-purplev3-50 border-purplev3-150">
             <div className="text-sm font-semibold">
-              <GroupLabel groups={ObjectUtils.values(groups)} group={group} />
+              <GroupLabel
+                group={group}
+                allWeeksEqual={allWeeksEqual}
+                allDaysEqual={allDaysEqual}
+                setVariationsPerWeekDay={setVariationsPerWeekDay}
+                setsPerWeekDaySetVariation={setsPerWeekDaySetVariation}
+              />
             </div>
             <div className="flex items-center gap-2 ml-auto">
               {set.minrep != null && (
@@ -206,8 +236,11 @@ function Tab(props: ITabProps): JSX.Element {
 }
 
 interface IGroupLabelProps {
-  groups: IDaySetData[][];
   group: IDaySetData[];
+  allWeeksEqual: boolean;
+  allDaysEqual: boolean;
+  setVariationsPerWeekDay: Record<string, Set<number>>;
+  setsPerWeekDaySetVariation: Record<string, Set<number>>;
 }
 
 function GroupLabel(props: IGroupLabelProps): JSX.Element {
@@ -215,46 +248,42 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
     return <div className="">All Reps</div>;
   }
 
-  // Week - if all weeks for each group are the same, do not show the week
-  // Day - if all days for each group are the same, do not show the day
-  // Set Variation - if all set variations for each group are the same, do not show the set variation
+  const groupSetVariationsPerWeekDay: Record<string, Set<number>> = {};
+  for (const setData of props.group) {
+    const key = `${setData.week}-${setData.dayInWeek}`;
+    groupSetVariationsPerWeekDay[key] = groupSetVariationsPerWeekDay[key] || new Set();
+    groupSetVariationsPerWeekDay[key].add(setData.setVariation);
+  }
+  const allSetVariationsEqual = ObjectUtils.entries(groupSetVariationsPerWeekDay).every(([key, setVariations]) => {
+    return SetUtils.areEqual(props.setVariationsPerWeekDay[key], setVariations);
+  });
 
-  // const allWeeks = props.groups.map((group) => new Set(group.map((setData) => setData.week)));
-  // const allDays = props.groups.map((group) => new Set(group.map((setData) => setData.dayInWeek)));
+  const groupSetsPerWeekDaySetVariation: Record<string, Set<number>> = {};
+  for (const setData of props.group) {
+    const key = `${setData.week}-${setData.dayInWeek}-${setData.setVariation}`;
+    groupSetsPerWeekDaySetVariation[key] = groupSetsPerWeekDaySetVariation[key] || new Set();
+    groupSetsPerWeekDaySetVariation[key].add(setData.set);
+  }
+  const allSetsEqual = ObjectUtils.entries(groupSetsPerWeekDaySetVariation).every(([key, sets]) => {
+    return SetUtils.areEqual(props.setsPerWeekDaySetVariation[key], sets);
+  });
 
-  // const allSetGroups = props.groups.filter((group) => {
-  //   return group.some((g) => g.week === props.group[0].week && g.dayInWeek === props.group[0].dayInWeek);
-  // });
-
-  // const allSetVariations = props.groups.map((group) => new Set(group.map((setData) => setData.setVariation)));
-  // const allSets = props.groups.map((group) => new Set(group.map((setData) => setData.set)));
-  // const allWeeksEqual = SetUtils.areAllEqual(allWeeks);
-  // const allDaysEqual = SetUtils.areAllEqual(allDays);
-  // const allSetVariationsEqual = SetUtils.areAllEqual(allSetVariations);
-  // const allSetsEqual = SetUtils.areAllEqual(allSets); //  && group.;
-
-  const allWeeksEqual = false;
-  const allDaysEqual = false;
-  const allSetVariationsEqual = false;
-  const allSetsEqual = false;
+  const parts = props.group.map((setData) => {
+    return CollectionUtils.compact([
+      props.allWeeksEqual ? undefined : `Week ${setData.week}`,
+      props.allDaysEqual ? undefined : `Day ${setData.dayInWeek}`,
+      allSetVariationsEqual ? undefined : `Set Variation ${setData.setVariation}`,
+      allSetsEqual ? undefined : `Set ${setData.set}`,
+    ]).join(", ");
+  });
+  const uniqueParts = Array.from(new Set(parts));
 
   return (
     <ul>
-      {props.group.map((setData) => {
-        const parts = CollectionUtils.compact([
-          allWeeksEqual ? undefined : `Week ${setData.week}`,
-          allDaysEqual ? undefined : `Day ${setData.dayInWeek}`,
-          allSetVariationsEqual ? undefined : `Set Variation ${setData.setVariation}`,
-          allSetsEqual ? undefined : `Set ${setData.set}`,
-        ]);
+      {uniqueParts.map((part, index) => {
         return (
-          <li className="text-sm">
-            {parts.map((part, i) => (
-              <>
-                {i > 0 && <span>, </span>}
-                <span>{part}</span>
-              </>
-            ))}
+          <li key={index} className="text-sm">
+            {part}
           </li>
         );
       })}
