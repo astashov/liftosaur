@@ -23,7 +23,6 @@ import { CustomProgressSettings } from "./progressions/customProgressSettings";
 import { ModalEditProgressScript } from "./progressions/modalEditProgressScript";
 import { useState } from "preact/hooks";
 import { CollectionUtils } from "../../utils/collection";
-import { DayData } from "../../models/dayData";
 import { EditProgramUiProgress } from "../editProgram/editProgramUiProgress";
 import { ObjectUtils } from "../../utils/object";
 
@@ -164,10 +163,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
   const reusingSetProgressExercises = Program.getReusingSetProgressExercises(evaluatedProgram, plannerExercise);
   const reusingProgressExercises = Array.from(
     new Set(
-      CollectionUtils.uniqByExpr(
-        [...reusingCustomProgressExercises, ...reusingSetProgressExercises],
-        (e) => e.fullName + "_" + DayData.toString(e.dayData)
-      )
+      CollectionUtils.uniqByExpr([...reusingCustomProgressExercises, ...reusingSetProgressExercises], (e) => e.fullName)
     )
   );
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");

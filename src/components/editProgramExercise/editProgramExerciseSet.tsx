@@ -310,13 +310,13 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
   );
 }
 
-interface IInputNumberAddOnProps {
+export interface IInputNumberAddOnProps {
   label: string;
   value: boolean;
   onChange: (value: boolean) => void;
 }
 
-function InputNumberAddOn(props: IInputNumberAddOnProps): JSX.Element {
+export function InputNumberAddOn(props: IInputNumberAddOnProps): JSX.Element {
   return (
     <div>
       <label className="leading-none">
