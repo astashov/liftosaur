@@ -188,6 +188,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
           )}
           {props.plannerState.ui.modalExercise && (
             <EditProgramModalExercise
+              evaluatedProgram={evaluatedProgram}
               settings={props.settings}
               plannerState={plannerState}
               plannerDispatch={plannerDispatch}

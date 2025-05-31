@@ -530,7 +530,7 @@ export class ProgramToPlanner {
         const fullName = Exercise.fullName(exercise, settings, update.reuse.exercise.label);
         return `update: custom() { ...${fullName} }`;
       } else {
-        return ` / update: custom() { ...${update.reuse.fullName} }`;
+        return ` / update: custom() { ...${update.reuse.exercise?.fullName || update.reuse.fullName} }`;
       }
     } else {
       return `update: custom() ${hideScript ? "{~ ... ~}" : update.script}`;
@@ -604,7 +604,7 @@ export class ProgramToPlanner {
           const fullName = Exercise.fullName(exercise, settings, progress.reuse.exercise.label);
           progressStr += ` { ...${fullName} }`;
         } else {
-          progressStr += ` { ...${progress.reuse.fullName} }`;
+          progressStr += ` { ...${progress.reuse.exercise?.fullName || progress.reuse.fullName} }`;
         }
       } else {
         progressStr += hideScript ? ` {~ ... ~}` : ` ${progress.script}`;

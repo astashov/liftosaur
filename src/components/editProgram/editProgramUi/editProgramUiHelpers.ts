@@ -4,22 +4,21 @@ import {
   IPlannerExerciseState,
   IPlannerProgramExercise,
   IPlannerProgramExerciseEvaluatedSet,
+  IPlannerState,
 } from "../../../pages/planner/models/types";
 import { PlannerEvaluator } from "../../../pages/planner/plannerEvaluator";
 import { PlannerKey } from "../../../pages/planner/plannerKey";
 import { IPlannerProgram, ISettings, IDayData, IExerciseType, IDaySetData } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../../../pages/planner/plannerExerciseEvaluator";
-import { equipmentName, Exercise } from "../../../models/exercise";
+import { Exercise, IExercise } from "../../../models/exercise";
 import { IPlannerEvaluatedProgramToTextOpts } from "../../../pages/planner/plannerEvaluatedProgramToText";
 import { IEvaluatedProgram, Program } from "../../../models/program";
 import { ProgramToPlanner } from "../../../models/programToPlanner";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { lb, LensBuilder } from "lens-shmens";
+import { lb } from "lens-shmens";
 import { UidFactory } from "../../../utils/generator";
 import { Weight } from "../../../models/weight";
-import { IState, updateState } from "../../../models/state";
-import { IDispatch } from "../../../ducks/types";
 
 export class EditProgramUiHelpers {
   public static changeFirstInstance(
@@ -48,32 +47,44 @@ export class EditProgramUiHelpers {
   }
 
   public static changeLabel(
-    dispatch: IDispatch,
-    plannerDispatch: ILensDispatch<IPlannerExerciseState>,
+    plannerDispatch: ILensDispatch<IPlannerState>,
     fullName: string,
     value: string | undefined,
-    settings: ISettings
+    settings: ISettings,
+    dayData: Required<IDayData>,
+    change?: "all" | "one" | "duplicate"
   ): void {
+    const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
+
     const { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings);
     const newKey = PlannerKey.fromLabelNameAndEquipment(value, name, equipment, settings);
-    const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
+
     plannerDispatch([
       lbProgram.recordModify((program) => {
-        return EditProgramUiHelpers.changeAllInstances(program, fullName, settings, true, (e) => {
-          e.label = value;
-        });
+        if (change === "all") {
+          return EditProgramUiHelpers.changeAllInstances(program, fullName, settings, true, (e) => {
+            e.label = value;
+          });
+        } else {
+          return EditProgramUiHelpers.changeCurrentInstance3(program, fullName, dayData, false, settings, true, (e) => {
+            e.label = value;
+          });
+        }
       }),
-    ]);
-    updateState(dispatch, [
-      (
-        lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
-          IState,
-          { key: string },
-          {}
-        >
-      )
-        .pi("key")
-        .record(newKey),
+      lb<IPlannerState>()
+        .p("ui")
+        .p("modalExercise")
+        .recordModify((modalExercise) => {
+          const exercise = Exercise.findByNameEquipment(settings.exercises, name, equipment);
+          if (!exercise) {
+            return modalExercise;
+          }
+          if (modalExercise && modalExercise.fullName === fullName) {
+            const newFullName = Exercise.fullName(exercise, settings, value);
+            return { ...modalExercise, label: value, exerciseKey: newKey, fullName: newFullName };
+          }
+          return modalExercise;
+        }),
     ]);
   }
 
@@ -132,9 +143,22 @@ export class EditProgramUiHelpers {
   ): IPlannerProgram {
     const fullName = plannerExercise.fullName;
     const dayData = plannerExercise.dayData;
+    const isRepeat = !!plannerExercise.isRepeat;
+    return this.changeCurrentInstance3(planner, fullName, dayData, isRepeat, settings, shouldValidate, cb);
+  }
+
+  public static changeCurrentInstance3(
+    planner: IPlannerProgram,
+    fullName: string,
+    dayData: Required<IDayData>,
+    isRepeat: boolean,
+    settings: ISettings,
+    shouldValidate: boolean,
+    cb: (exercise: IPlannerProgramExercise) => void
+  ): IPlannerProgram {
     const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
 
-    const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName, plannerExercise.isRepeat);
+    const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName, isRepeat);
     for (const week of weeks) {
       PP.iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
         const current = week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1 && e.fullName === fullName;
@@ -232,7 +256,8 @@ export class EditProgramUiHelpers {
     planner: IPlannerProgram,
     dayData: Required<IDayData>,
     fullName: string,
-    newExerciseType: IExerciseType,
+    label: string | undefined,
+    newExerciseType: IExerciseType | string,
     settings: ISettings
   ): IPlannerProgram {
     const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
@@ -246,19 +271,22 @@ export class EditProgramUiHelpers {
       let index = targetDay.exercises.findIndex((e) => e.fullName === fullName);
       const previousExercise = targetDay.exercises[index];
       if (index !== -1 && previousExercise) {
-        const exercise = Exercise.get(newExerciseType, settings.exercises);
-        newFullName = `${exercise.name}${
-          newExerciseType.equipment != null && newExerciseType.equipment !== exercise.defaultEquipment
-            ? `, ${equipmentName(newExerciseType.equipment)}`
-            : ""
-        }`;
+        let exercise: IExercise | undefined;
+        if (typeof newExerciseType === "string") {
+          newFullName = `${label ? `${label}: ` : ""}${newExerciseType}`;
+        } else {
+          exercise = Exercise.get(newExerciseType, settings.exercises);
+          newFullName = Exercise.fullName(exercise, settings, label);
+        }
         const newExercise: IPlannerProgramExercise = {
           ...ObjectUtils.clone(previousExercise),
+          label: label ?? previousExercise.label,
           fullName: newFullName,
           shortName: newFullName,
+          notused: typeof newExerciseType === "string" ? true : previousExercise.notused,
           key: PlannerKey.fromFullName(newFullName, settings),
-          exerciseType: newExerciseType,
-          name: exercise.name,
+          exerciseType: typeof newExerciseType === "string" ? undefined : newExerciseType,
+          name: exercise ? exercise.name : typeof newExerciseType === "string" ? newExerciseType : "",
         };
         targetDay.exercises.splice(index + 1, 0, newExercise);
       }

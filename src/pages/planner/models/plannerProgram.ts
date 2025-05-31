@@ -79,7 +79,7 @@ export class PlannerProgram {
   public static replaceExercise(
     planner: IPlannerProgram,
     key: string,
-    toExerciseType: IExerciseType,
+    toExerciseType: IExerciseType | string,
     settings: ISettings,
     dayData?: Required<IDayData>
   ): IPlannerProgram {
@@ -94,7 +94,10 @@ export class PlannerProgram {
 
     while (!noConflicts) {
       const conflictingExercises = allExercises.filter((e) => {
-        const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, getLabel(e.label));
+        const newKey =
+          typeof toExerciseType === "string"
+            ? PlannerKey.fromLabelNameAndEquipment(getLabel(e.label), toExerciseType, undefined, settings)
+            : PlannerKey.fromExerciseType(toExerciseType, settings, getLabel(e.label));
         return (
           e.key === newKey &&
           (!dayData || (dayData.week !== e.dayData.week && dayData.dayInWeek !== e.dayData.dayInWeek))
@@ -112,10 +115,19 @@ export class PlannerProgram {
     PP.iterate2(evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex) => {
       if (exercise.key === key) {
         if (!dayData || (dayData.week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1)) {
-          exercise.exerciseType = toExerciseType;
+          exercise.exerciseType = typeof toExerciseType === "string" ? undefined : toExerciseType;
           const newLabel = getLabel(exercise.label);
           exercise.label = newLabel;
-          const newKey = PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
+          if (typeof toExerciseType === "string") {
+            exercise.notused = true;
+            exercise.fullName = `${newLabel ? `${newLabel}: ` : ""}${toExerciseType}`;
+            // exercise.shortName = exercise.fullName;
+            // exercise.name = toExerciseType;
+          }
+          const newKey =
+            typeof toExerciseType === "string"
+              ? PlannerKey.fromLabelNameAndEquipment(newLabel, toExerciseType, undefined, settings)
+              : PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
           renameMapping[exercise.key] = { to: newKey, dayData };
           exercise.key = newKey;
         }

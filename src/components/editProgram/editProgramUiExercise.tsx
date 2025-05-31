@@ -61,13 +61,15 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
           <SetNumber size="sm" setIndex={props.exerciseIndex} />
         </div>
         <div className="flex items-center flex-1 text-base font-bold" data-cy="planner-ui-exercise-name">
-          {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
-          {props.plannerExercise.name}
-          {props.plannerExercise.equipment != null &&
-            props.plannerExercise.equipment !== exercise?.defaultEquipment && (
-              <div className="">, {equipmentName(props.plannerExercise.equipment)}</div>
-            )}
-          {orderAndRepeat ? <span className="text-sm font-normal text-blackv2"> [{orderAndRepeat}]</span> : ""}
+          <div>
+            {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
+            {props.plannerExercise.name}
+            {props.plannerExercise.equipment != null &&
+              props.plannerExercise.equipment !== exercise?.defaultEquipment && (
+                <span className="">, {equipmentName(props.plannerExercise.equipment)}</span>
+              )}
+            {orderAndRepeat ? <span className="text-sm font-normal text-blackv2"> [{orderAndRepeat}]</span> : ""}
+          </div>
           {props.plannerExercise.notused && (
             <div className="px-1 ml-3 text-xs font-bold text-white rounded bg-grayv2-main">UNUSED</div>
           )}

@@ -60,4 +60,5 @@ User debug page:
 - Add exercise label
 - Edit exercise name
 
-- Add across all weeks
+- Repeat in Program screen
+- Open edit exercise at proper daydata

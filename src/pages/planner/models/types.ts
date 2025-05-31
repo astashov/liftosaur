@@ -231,7 +231,6 @@ export interface IPlannerExerciseUiEditSetBottomSheet {
 export interface IPlannerExerciseUi {
   isProgressEnabled?: boolean;
   isUpdateEnabled?: boolean;
-  isLabelEnabled?: boolean;
   showAddStateVariableModal?: boolean;
   showEditProgressScriptModal?: boolean;
   showEditUpdateScriptModal?: boolean;

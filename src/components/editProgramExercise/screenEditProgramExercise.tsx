@@ -23,7 +23,6 @@ import { EditProgramExerciseSets } from "./editProgramExerciseSets";
 import { BottomSheetEditProgramExerciseSet } from "./bottomSheetEditProgramExerciseSet";
 import { EditProgramExerciseNavbar } from "./editProgramExerciseNavbar";
 import { Tailwind } from "../../utils/tailwindConfig";
-import { MenuItemEditable } from "../menuItemEditable";
 
 interface IProps {
   plannerState: IPlannerExerciseState;
@@ -110,30 +109,6 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                     rightOffset="3rem"
                     onClose={() => setIsKebabMenuOpen(false)}
                   >
-                    <DropdownMenuItem
-                      data-cy="program-exercise-toggle-label"
-                      isTop={true}
-                      onClick={() => {
-                        setIsKebabMenuOpen(false);
-                        plannerDispatch([
-                          lb<IPlannerExerciseState>()
-                            .p("ui")
-                            .p("isLabelEnabled")
-                            .record(!plannerState.ui.isLabelEnabled),
-                        ]);
-                        EditProgramUiHelpers.changeLabel(
-                          props.dispatch,
-                          plannerDispatch,
-                          plannerExercise.fullName,
-                          plannerExercise.label ?? "label",
-                          props.settings
-                        );
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div>{ui.isLabelEnabled ? "Disable" : "Enable"} Label</div>
-                      </div>
-                    </DropdownMenuItem>
                     <DropdownMenuItem
                       data-cy="program-exercise-toggle-progress"
                       onClick={() => {
@@ -255,24 +230,6 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
         settings={props.settings}
         plannerExercise={plannerExercise}
       />
-      {ui.isLabelEnabled && (
-        <div className="px-4 mb-4">
-          <MenuItemEditable
-            type="text"
-            name="Label"
-            value={plannerExercise.label}
-            onChange={(value) => {
-              EditProgramUiHelpers.changeLabel(
-                props.dispatch,
-                plannerDispatch,
-                plannerExercise.fullName,
-                value,
-                props.settings
-              );
-            }}
-          />
-        </div>
-      )}
       <div className="mb-4">
         <EditProgramExerciseWarmups
           plannerExercise={plannerExercise}

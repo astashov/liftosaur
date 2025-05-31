@@ -108,7 +108,6 @@ export namespace EditProgram {
         weekIndex: 0,
         isProgressEnabled: !!programExercise?.progress,
         isUpdateEnabled: !!programExercise?.update,
-        isLabelEnabled: !!programExercise?.label,
       },
     };
   }
