@@ -21,7 +21,7 @@ import { IconSwap } from "../icons/iconSwap";
 import { Thunk } from "../../ducks/thunks";
 import { IDispatch } from "../../ducks/types";
 import { EditProgramUiProgress } from "./editProgramUiProgress";
-import { IEvaluatedProgram } from "../../models/program";
+import { IEvaluatedProgram, Program } from "../../models/program";
 import { EditProgramUiUpdate } from "./editProgramUiUpdate";
 import { EditProgramUiExerciseSetVariations } from "./editProgramUiExerciseSetVariations";
 import { EditProgramUiExerciseDescriptions } from "./editProgramUiExerciseDescriptions";
@@ -76,21 +76,46 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
           <button
             className="p-2"
             onClick={() => {
-              props.plannerDispatch(
-                lb<IPlannerState>()
-                  .p("ui")
-                  .p("editExerciseModal")
-                  .record({
-                    focusedExercise: {
-                      weekIndex,
-                      dayIndex,
-                      exerciseLine: props.plannerExercise.line,
-                    },
-                    exerciseKey: PlannerKey.fromPlannerExercise(props.plannerExercise, props.settings),
-                    fullName: props.plannerExercise.fullName,
-                    exerciseType,
-                  })
+              const numberOfExerciseInstances = Program.getNumberOfExerciseInstances(
+                props.evaluatedProgram,
+                props.plannerExercise.key
               );
+              if (numberOfExerciseInstances > 1) {
+                props.plannerDispatch(
+                  lb<IPlannerState>()
+                    .p("ui")
+                    .p("editExerciseModal")
+                    .record({
+                      focusedExercise: {
+                        weekIndex,
+                        dayIndex,
+                        exerciseLine: props.plannerExercise.line,
+                      },
+                      exerciseKey: PlannerKey.fromPlannerExercise(props.plannerExercise, props.settings),
+                      fullName: props.plannerExercise.fullName,
+                      exerciseType,
+                    })
+                );
+              } else {
+                props.plannerDispatch(
+                  lb<IPlannerState>()
+                    .p("ui")
+                    .p("modalExercise")
+                    .record({
+                      focusedExercise: {
+                        weekIndex,
+                        dayIndex,
+                        exerciseLine: props.plannerExercise.line,
+                      },
+                      types: [],
+                      muscleGroups: [],
+                      exerciseKey: PlannerKey.fromPlannerExercise(props.plannerExercise, props.settings),
+                      fullName: props.plannerExercise.fullName,
+                      exerciseType,
+                      change: "all",
+                    })
+                );
+              }
             }}
           >
             <IconSwap size={12} />

@@ -678,6 +678,16 @@ export namespace Program {
     }
   );
 
+  export function getNumberOfExerciseInstances(program: IEvaluatedProgram, exerciseKey: string): number {
+    let count = 0;
+    PP.iterate2(program.weeks, (exercise) => {
+      if (exercise.key === exerciseKey) {
+        count += 1;
+      }
+    });
+    return count;
+  }
+
   export function changeExerciseName(from: string, to: string, program: IProgram, settings: ISettings): IProgram {
     const planner = program.planner;
     if (!planner) {

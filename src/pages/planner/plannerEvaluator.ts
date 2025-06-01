@@ -22,8 +22,6 @@ import { PP } from "../../models/pp";
 import { ScriptRunner } from "../../parser";
 import { Progress } from "../../models/progress";
 import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
-import { IPlannerEvaluatedProgramToTextOpts, PlannerEvaluatedProgramToText } from "./plannerEvaluatedProgramToText";
-import { IEither } from "../../utils/types";
 import { PlannerProgramExercise } from "./models/plannerProgramExercise";
 
 export type IByTag<T> = Record<number, T>;
@@ -648,36 +646,6 @@ export class PlannerEvaluator {
         }
         update.reuse.exercise = originalExercise;
       }
-    }
-  }
-
-  private static getFirstErrorFromEvaluatedWeeks(
-    evaluatedWeeks: IPlannerEvalResult[][]
-  ): PlannerSyntaxError | undefined {
-    for (const week of evaluatedWeeks) {
-      for (const day of week) {
-        if (!day.success) {
-          return day.error;
-        }
-      }
-    }
-    return undefined;
-  }
-
-  public static evaluatedProgramToText(
-    oldPlannerProgram: IPlannerProgram,
-    evaluatedWeeks: IPlannerEvalResult[][],
-    settings: ISettings,
-    opts: IPlannerEvaluatedProgramToTextOpts = {}
-  ): IEither<IPlannerProgram, PlannerSyntaxError> {
-    const result = new PlannerEvaluatedProgramToText(oldPlannerProgram, evaluatedWeeks, settings).run(opts);
-    console.log(PlannerProgram.generateFullText(result.weeks));
-    const { evaluatedWeeks: newEvaluatedWeeks } = this.evaluate(result, settings);
-    const error = this.getFirstErrorFromEvaluatedWeeks(newEvaluatedWeeks);
-    if (error) {
-      return { success: false, error: error };
-    } else {
-      return { success: true, data: result };
     }
   }
 
