@@ -13,6 +13,8 @@ import { CollectionUtils } from "../../utils/collection";
 import { ExerciseImage } from "../exerciseImage";
 import { equipmentName, Exercise } from "../../models/exercise";
 import { ISettings } from "../../types";
+import { PlannerKey } from "../../pages/planner/plannerKey";
+import { IconSwap } from "../icons/iconSwap";
 
 interface IEditProgramExerciseNavbarProps {
   state: IPlannerExerciseState;
@@ -66,13 +68,42 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
             <ExerciseImage settings={props.settings} className="w-6" exerciseType={exerciseType} size="small" />
           </div>
         )}
-        <div className="flex-1 text-xs">
-          {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
-          {props.plannerExercise.name}
-          {props.plannerExercise.equipment != null &&
-            props.plannerExercise.equipment !== exercise?.defaultEquipment && (
-              <div className="">, {equipmentName(props.plannerExercise.equipment)}</div>
-            )}
+        <div className="flex items-center flex-1 gap-1 text-xs">
+          <div>
+            {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
+            {props.plannerExercise.name}
+            {props.plannerExercise.equipment != null &&
+              props.plannerExercise.equipment !== exercise?.defaultEquipment && (
+                <div className="">, {equipmentName(props.plannerExercise.equipment)}</div>
+              )}
+          </div>
+          <div>
+            <button
+              className="p-2"
+              onClick={() => {
+                props.plannerDispatch(
+                  lb<IPlannerExerciseState>()
+                    .p("ui")
+                    .p("modalExercise")
+                    .record({
+                      focusedExercise: {
+                        weekIndex: props.plannerExercise.dayData.week - 1,
+                        dayIndex: props.plannerExercise.dayData.dayInWeek - 1,
+                        exerciseLine: props.plannerExercise.line,
+                      },
+                      exerciseKey: PlannerKey.fromPlannerExercise(props.plannerExercise, props.settings),
+                      fullName: props.plannerExercise.fullName,
+                      exerciseType,
+                      types: [],
+                      muscleGroups: [],
+                      change: "all",
+                    })
+                );
+              }}
+            >
+              <IconSwap size={12} />
+            </button>
+          </div>
         </div>
       </div>
       <div className="flex items-center">

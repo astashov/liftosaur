@@ -190,8 +190,24 @@ export function ScreenProgram(props: IProps): JSX.Element {
             <EditProgramModalExercise
               evaluatedProgram={evaluatedProgram}
               settings={props.settings}
-              plannerState={plannerState}
-              plannerDispatch={plannerDispatch}
+              planner={plannerState.current.program.planner!}
+              modalExerciseUi={props.plannerState.ui.modalExercise}
+              onProgramChange={(program) => {
+                plannerDispatch(lbProgram.record(program));
+              }}
+              onUiChange={(modalExerciseUi) => {
+                plannerDispatch(lbUi.p("modalExercise").record(modalExerciseUi));
+              }}
+              onStopIsUndoing={() => {
+                plannerDispatch(
+                  [
+                    lb<IPlannerState>()
+                      .p("ui")
+                      .recordModify((ui) => ui),
+                  ],
+                  "stop-is-undoing"
+                );
+              }}
               dispatch={props.dispatch}
             />
           )}

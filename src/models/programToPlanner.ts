@@ -286,7 +286,7 @@ export class ProgramToPlanner {
                 let key: string | undefined;
                 for (let i = lineIndex; i < group.length; i += 1) {
                   if (group[i].type === "exercise") {
-                    key = group[i].value;
+                    key = this.getRenamedValue(opts, group[i], weekIndex, dayInWeekIndex);
                     break;
                   }
                 }

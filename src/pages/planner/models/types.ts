@@ -182,18 +182,20 @@ export interface IPlannerUiFocusedExercise {
 
 export type IPlannerUiMode = "full" | "perday";
 
+export interface IModalExerciseUi {
+  focusedExercise: IPlannerUiFocusedExercise;
+  types: IExerciseKind[];
+  muscleGroups: IScreenMuscle[];
+  exerciseType?: IExerciseType;
+  exerciseKey?: string;
+  fullName?: string;
+  customExerciseName?: string;
+  change?: "all" | "one" | "duplicate";
+}
+
 export interface IPlannerUi {
   focusedExercise?: IPlannerUiFocusedExercise;
-  modalExercise?: {
-    focusedExercise: IPlannerUiFocusedExercise;
-    types: IExerciseKind[];
-    muscleGroups: IScreenMuscle[];
-    exerciseType?: IExerciseType;
-    exerciseKey?: string;
-    fullName?: string;
-    customExerciseName?: string;
-    change?: "all" | "one" | "duplicate";
-  };
+  modalExercise?: IModalExerciseUi;
   exerciseUi: {
     edit: Set<string>;
     collapsed: Set<string>;
@@ -229,6 +231,7 @@ export interface IPlannerExerciseUiEditSetBottomSheet {
 }
 
 export interface IPlannerExerciseUi {
+  modalExercise?: IModalExerciseUi;
   isProgressEnabled?: boolean;
   isUpdateEnabled?: boolean;
   showAddStateVariableModal?: boolean;

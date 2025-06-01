@@ -2,7 +2,7 @@ import { h, JSX, Fragment } from "preact";
 import { IPlannerExerciseState } from "../../pages/planner/models/types";
 import { IDispatch } from "../../ducks/types";
 import { IDayData, ISettings } from "../../types";
-import { INavCommon, IState } from "../../models/state";
+import { INavCommon, IState, updateState } from "../../models/state";
 import { lb, LensBuilder } from "lens-shmens";
 import { useCallback, useState } from "preact/hooks";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
@@ -23,6 +23,7 @@ import { EditProgramExerciseSets } from "./editProgramExerciseSets";
 import { BottomSheetEditProgramExerciseSet } from "./bottomSheetEditProgramExerciseSet";
 import { EditProgramExerciseNavbar } from "./editProgramExerciseNavbar";
 import { Tailwind } from "../../utils/tailwindConfig";
+import { EditProgramModalExercise } from "../editProgram/editProgramModalExercise";
 
 interface IProps {
   plannerState: IPlannerExerciseState;
@@ -66,6 +67,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const ui = plannerState.ui;
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
+  const lbUi = lb<IPlannerExerciseState>().p("ui");
 
   if (!plannerExercise) {
     return (
@@ -219,6 +221,50 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
             plannerDispatch={plannerDispatch}
             settings={props.settings}
           />
+          {props.plannerState.ui.modalExercise && (
+            <EditProgramModalExercise
+              evaluatedProgram={evaluatedProgram}
+              settings={props.settings}
+              planner={plannerState.current.program.planner!}
+              modalExerciseUi={props.plannerState.ui.modalExercise}
+              onProgramChange={(newPlanner) => {
+                const changedKeys = EditProgramUiHelpers.getChangedKeys(
+                  plannerState.current.program.planner!,
+                  newPlanner,
+                  props.settings
+                );
+                const newKey = changedKeys[plannerExercise.key];
+                plannerDispatch(lbProgram.record(newPlanner));
+                if (newKey) {
+                  updateState(props.dispatch, [
+                    (
+                      lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
+                        IState,
+                        { key: string },
+                        {}
+                      >
+                    )
+                      .pi("key")
+                      .record(newKey),
+                  ]);
+                }
+              }}
+              onUiChange={(modalExerciseUi) => {
+                plannerDispatch(lbUi.p("modalExercise").record(modalExerciseUi));
+              }}
+              onStopIsUndoing={() => {
+                plannerDispatch(
+                  [
+                    lb<IPlannerExerciseState>()
+                      .p("ui")
+                      .recordModify((ui) => ui),
+                  ],
+                  "stop-is-undoing"
+                );
+              }}
+              dispatch={props.dispatch}
+            />
+          )}
         </>
       }
     >

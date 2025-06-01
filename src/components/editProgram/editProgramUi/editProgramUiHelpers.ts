@@ -1,10 +1,10 @@
 import { PP } from "../../../models/pp";
 import { PlannerProgram } from "../../../pages/planner/models/plannerProgram";
 import {
+  IModalExerciseUi,
   IPlannerExerciseState,
   IPlannerProgramExercise,
   IPlannerProgramExerciseEvaluatedSet,
-  IPlannerState,
 } from "../../../pages/planner/models/types";
 import { PlannerEvaluator } from "../../../pages/planner/plannerEvaluator";
 import { PlannerKey } from "../../../pages/planner/plannerKey";
@@ -47,45 +47,40 @@ export class EditProgramUiHelpers {
   }
 
   public static changeLabel(
-    plannerDispatch: ILensDispatch<IPlannerState>,
+    planner: IPlannerProgram,
+    modalExerciseUi: IModalExerciseUi,
+    onProgramChange: (program: IPlannerProgram) => void,
+    onUiChange: (modalExerciseUi?: IModalExerciseUi) => void,
     fullName: string,
     value: string | undefined,
     settings: ISettings,
     dayData: Required<IDayData>,
     change?: "all" | "one" | "duplicate"
   ): void {
-    const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
-
     const { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings);
     const newKey = PlannerKey.fromLabelNameAndEquipment(value, name, equipment, settings);
 
-    plannerDispatch([
-      lbProgram.recordModify((program) => {
-        if (change === "all") {
-          return EditProgramUiHelpers.changeAllInstances(program, fullName, settings, true, (e) => {
-            e.label = value;
-          });
-        } else {
-          return EditProgramUiHelpers.changeCurrentInstance3(program, fullName, dayData, false, settings, true, (e) => {
-            e.label = value;
-          });
-        }
-      }),
-      lb<IPlannerState>()
-        .p("ui")
-        .p("modalExercise")
-        .recordModify((modalExercise) => {
-          const exercise = Exercise.findByNameEquipment(settings.exercises, name, equipment);
-          if (!exercise) {
-            return modalExercise;
-          }
-          if (modalExercise && modalExercise.fullName === fullName) {
-            const newFullName = Exercise.fullName(exercise, settings, value);
-            return { ...modalExercise, label: value, exerciseKey: newKey, fullName: newFullName };
-          }
-          return modalExercise;
-        }),
-    ]);
+    if (change === "all") {
+      onProgramChange(
+        EditProgramUiHelpers.changeAllInstances(planner, fullName, settings, true, (e) => {
+          e.label = value;
+        })
+      );
+    } else {
+      onProgramChange(
+        EditProgramUiHelpers.changeCurrentInstance3(planner, fullName, dayData, false, settings, true, (e) => {
+          e.label = value;
+        })
+      );
+    }
+
+    const exercise = Exercise.findByNameEquipment(settings.exercises, name, equipment);
+    let newModalExercise = modalExerciseUi;
+    if (exercise && modalExerciseUi && modalExerciseUi.fullName === fullName) {
+      const newFullName = Exercise.fullName(exercise, settings, value);
+      newModalExercise = { ...modalExerciseUi, exerciseKey: newKey, fullName: newFullName };
+      onUiChange(newModalExercise);
+    }
   }
 
   public static changeCurrentInstanceExercise(
@@ -260,7 +255,7 @@ export class EditProgramUiHelpers {
     newExerciseType: IExerciseType | string,
     settings: ISettings
   ): IPlannerProgram {
-    const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
+    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
     const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName);
 
     const add = [];
@@ -309,7 +304,7 @@ export class EditProgramUiHelpers {
     settings: ISettings,
     shouldValidate: boolean
   ): IPlannerProgram {
-    const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
+    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
 
     let repeatingExercise: IPlannerProgramExercise | undefined;
     const newRepeating: number[] = [];
@@ -357,7 +352,7 @@ export class EditProgramUiHelpers {
     shouldValidate: boolean,
     allowDeleteEverywhere: boolean
   ): IPlannerProgram {
-    const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
+    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
     const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName);
 
     for (const week of weeks) {
@@ -395,7 +390,7 @@ export class EditProgramUiHelpers {
     exerciseType: IExerciseType | undefined,
     settings: ISettings
   ): IPlannerProgram {
-    const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
+    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
     const { week, dayInWeek } = dayData;
     const targetDay = evaluatedProgram.weeks[week - 1]?.days[dayInWeek - 1];
     let { name } = PlannerExerciseEvaluator.extractNameParts(fullName, settings);
@@ -480,7 +475,7 @@ export class EditProgramUiHelpers {
     toIndex: number,
     settings: ISettings
   ): IPlannerProgram {
-    const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
+    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
     const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName);
     const reorder = weeks.map((week) => ({ dayData: { ...dayData, week }, fromIndex, toIndex }));
     return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ reorder });
@@ -493,7 +488,7 @@ export class EditProgramUiHelpers {
     shouldValidate: boolean,
     cb: (exercise: IPlannerProgramExercise) => void
   ): IPlannerProgram {
-    const evaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner }, settings);
+    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
     PP.iterate2(evaluatedProgram.weeks, (e) => {
       if (e.fullName === fullName) {
         cb(e);
@@ -550,5 +545,37 @@ export class EditProgramUiHelpers {
     }
 
     return this.validateAndReturnProgram(program, evaluatedWeeks, settings);
+  }
+
+  public static getChangedKeys(
+    oldPlanner: IPlannerProgram,
+    newPlanner: IPlannerProgram,
+    settings: ISettings
+  ): Partial<Record<string, string>> {
+    const { evaluatedWeeks: oldEvaluatedWeeks } = ObjectUtils.clone(PlannerProgram.evaluate(oldPlanner, settings));
+    const { evaluatedWeeks: newEvaluatedWeeks } = ObjectUtils.clone(PlannerProgram.evaluate(newPlanner, settings));
+    const changedKeys: Partial<Record<string, string>> = {};
+    for (let weekIndex = 0; weekIndex < oldEvaluatedWeeks.length; weekIndex++) {
+      const oldWeek = oldEvaluatedWeeks[weekIndex];
+      const newWeek = newEvaluatedWeeks[weekIndex];
+      if (oldWeek && newWeek) {
+        for (let dayInWeekIndex = 0; dayInWeekIndex < oldWeek.length; dayInWeekIndex++) {
+          const oldDay = oldWeek[dayInWeekIndex];
+          const newDay = newWeek[dayInWeekIndex];
+          if (oldDay && newDay) {
+            if (oldDay.success && newDay.success) {
+              for (let exerciseIndex = 0; exerciseIndex < oldDay.data.length; exerciseIndex++) {
+                const oldExercise = oldDay.data[exerciseIndex];
+                const newExercise = newDay.data[exerciseIndex];
+                if (oldExercise && newExercise && oldExercise.key !== newExercise.key) {
+                  changedKeys[oldExercise.key] = newExercise.key;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return changedKeys;
   }
 }
