@@ -22,7 +22,6 @@ import { updateState, IState } from "../../models/state";
 import { CollectionUtils } from "../../utils/collection";
 import { IDispatch } from "../../ducks/types";
 import { IPlannerEvalFullResult, IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
-import { ObjectUtils } from "../../utils/object";
 
 interface IEditProgramViewProps {
   evaluatedWeeks: IPlannerEvalResult[][];
@@ -189,19 +188,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
           buttonSize="md"
           data-cy="save-program"
           onClick={() => {
-            let newPlanner = {
-              ...planner,
-              weeks: planner.weeks.map((w) => ({
-                ...ObjectUtils.omit(w, ["id"]),
-                days: w.days.map((d) => ({
-                  ...ObjectUtils.omit(d, ["id"]),
-                })),
-              })),
-            };
-            const newProgram: IProgram = {
-              ...Program.cleanPlannerProgram(props.originalProgram),
-              planner: newPlanner,
-            };
+            const newProgram: IProgram = Program.cleanPlannerProgram({ ...props.originalProgram, planner });
             updateState(props.dispatch, [
               lb<IState>()
                 .p("storage")

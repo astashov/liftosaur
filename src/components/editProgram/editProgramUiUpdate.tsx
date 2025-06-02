@@ -1,6 +1,7 @@
 import { JSX, h, Fragment } from "preact";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IEvaluatedProgram, Program } from "../../models/program";
+import { CollectionUtils } from "../../utils/collection";
 
 interface IEditProgramUiUpdateProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -21,12 +22,15 @@ export function EditProgramUiUpdate(props: IEditProgramUiUpdateProps): JSX.Eleme
     );
   } else if (exercise.update) {
     progressExercise = exercise;
-    const reusingProgressExercises = Program.getReusingUpdateExercises(evaluatedProgram, exercise);
-    if (reusingProgressExercises.length > 0) {
+    const reusingUpdateExercises = CollectionUtils.uniqBy(
+      Program.getReusingUpdateExercises(evaluatedProgram, exercise),
+      "fullName"
+    );
+    if (reusingUpdateExercises.length > 0) {
       reusedByString = (
         <>
           This update reused by:{" "}
-          {reusingProgressExercises.map((e, i) => (
+          {reusingUpdateExercises.map((e, i) => (
             <>
               {i !== 0 ? ", " : ""}
               <strong>{e.fullName}</strong>

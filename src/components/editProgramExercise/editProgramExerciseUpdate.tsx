@@ -13,6 +13,7 @@ import { useState } from "preact/hooks";
 import { ObjectUtils } from "../../utils/object";
 import { ModalEditUpdateScript } from "./progressions/modalEditUpdateScript";
 import { EditProgramUiUpdate } from "../editProgram/editProgramUiUpdate";
+import { CollectionUtils } from "../../utils/collection";
 
 interface IEditProgramExerciseUpdateProps {
   program: IProgram;
@@ -145,7 +146,10 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
   const ownUpdate = plannerExercise.update;
   const reuseCandidates = getUpdateReuseCandidates(plannerExercise.key, evaluatedProgram);
   const reuseKey = ownUpdate?.reuse?.exercise?.key;
-  const reusingUpdateExercises = Program.getReusingUpdateExercises(evaluatedProgram, plannerExercise);
+  const reusingUpdateExercises = CollectionUtils.uniqBy(
+    Program.getReusingUpdateExercises(evaluatedProgram, plannerExercise),
+    "fullName"
+  );
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   return (
     <>

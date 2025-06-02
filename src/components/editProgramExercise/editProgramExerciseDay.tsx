@@ -34,7 +34,6 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
     plannerExercise?.descriptions.reuse != null || (plannerExercise?.descriptions.values.length ?? 0) > 0;
   const [showRepeat, setShowRepeat] = useState((plannerExercise?.repeating.length ?? 0) > 0);
   const [showOrder, setShowOrder] = useState((plannerExercise?.order ?? 0) !== 0);
-  console.log(props.evaluatedProgram);
 
   return (
     <div className="py-3 bg-white border rounded-2xl border-grayv3-200">

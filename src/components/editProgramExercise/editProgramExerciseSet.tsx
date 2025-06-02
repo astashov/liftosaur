@@ -70,6 +70,55 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
     );
   }
 
+  const buttons = (
+    <div className={`absolute top-0 bottom-0 flex w-32 will-change-transform left-full`} style={{ marginLeft: "1px" }}>
+      <button
+        tabIndex={-1}
+        data-cy="edit-set-target"
+        onClick={() => {
+          close();
+          props.plannerDispatch(
+            lbUi.p("editSetBottomSheet").record({
+              exerciseKey: props.plannerExercise.key,
+              setVariationIndex: props.setVariationIndex,
+              setIndex: props.setIndex,
+              dayInWeekIndex: props.plannerExercise.dayData.dayInWeek - 1,
+            })
+          );
+        }}
+        className="flex-1 h-full text-white bg-grayv3-main nm-workout-exercise-set-edit"
+      >
+        Edit
+      </button>
+      <button
+        data-cy="delete-set"
+        tabIndex={-1}
+        onClick={() => {
+          close();
+          props.plannerDispatch(
+            lbProgram.recordModify((program) => {
+              return EditProgramUiHelpers.changeCurrentInstance2(
+                program,
+                plannerExercise,
+                props.settings,
+                true,
+                (ex) => {
+                  const setVariation = ex.evaluatedSetVariations[setVariationIndex];
+                  const sets = [...setVariation.sets];
+                  setVariation.sets = CollectionUtils.removeAt(sets, setIndex);
+                }
+              );
+            })
+          );
+          props.setSetIds((prev) => CollectionUtils.removeAt(prev, setIndex));
+        }}
+        className="flex-1 h-full text-white bg-redv3-600 nm-workout-exercise-set-delete"
+      >
+        Delete
+      </button>
+    </div>
+  );
+
   return (
     <SwipeableRow width={128} openThreshold={30} closeThreshold={110} scrollThreshold={7} initiateTreshold={15}>
       {({ onPointerDown, onPointerMove, onPointerUp, style, close }) => (
@@ -151,9 +200,11 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
           </div>
           {props.opts.hasWeight && (
             <>
-              <div className="table-cell px-1 py-2 text-center align-middle border-b border-purplev3-150">×</div>
+              <div className="relative table-cell px-1 py-2 text-center align-middle border-b border-purplev3-150">
+                ×
+              </div>
               {set.weight != null ? (
-                <div className="table-cell py-2 align-middle border-b border-purplev3-150">
+                <div className="relative table-cell py-2 align-middle border-b border-purplev3-150">
                   <div
                     className="flex items-center justify-center text-center"
                     style={{ paddingRight: rowRightPaddings.weight }}
@@ -188,15 +239,18 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                       }}
                     />
                   </div>
+                  {lastRow === "weight" && buttons}
                 </div>
               ) : (
-                <div className="table-cell border-b border-purplev3-150" />
+                <div className="relative table-cell border-b border-purplev3-150">
+                  {lastRow === "weight" && buttons}
+                </div>
               )}
             </>
           )}
           {props.opts.hasRpe &&
             (set.rpe != null ? (
-              <div className="table-cell py-2 align-middle border-b border-purplev3-150">
+              <div className="relative table-cell py-2 align-middle border-b border-purplev3-150">
                 <div className="flex justify-center text-center" style={{ paddingRight: rowRightPaddings.rpe }}>
                   <InputNumber2
                     width={2.2 + widthAdd}
@@ -229,13 +283,14 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                     step={0.5}
                   />
                 </div>
+                {lastRow === "rpe" && buttons}
               </div>
             ) : (
-              <div className="table-cell border-b border-purplev3-150" />
+              <div className="relative table-cell border-b border-purplev3-150">{lastRow === "rpe" && buttons}</div>
             ))}
           {props.opts.hasTimer &&
             (set.timer != null ? (
-              <div className="table-cell py-2 align-middle border-b border-purplev3-150">
+              <div className="relative table-cell py-2 align-middle border-b border-purplev3-150">
                 <div className="flex justify-center text-center" style={{ paddingRight: rowRightPaddings.timer }}>
                   <InputNumber2
                     width={2.5 + widthAdd}
@@ -249,61 +304,11 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                     step={15}
                   />
                 </div>
+                {lastRow === "timer" && buttons}
               </div>
             ) : (
-              <div className="table-cell border-b border-purplev3-150" />
+              <div className="relative table-cell border-b border-purplev3-150">{lastRow === "timer" && buttons}</div>
             ))}
-          <div>
-            <div
-              className={`absolute top-0 bottom-0 flex w-32 will-change-transform left-full`}
-              style={{ marginLeft: "1px" }}
-            >
-              <button
-                tabIndex={-1}
-                data-cy="edit-set-target"
-                onClick={() => {
-                  close();
-                  props.plannerDispatch(
-                    lbUi.p("editSetBottomSheet").record({
-                      exerciseKey: props.plannerExercise.key,
-                      setVariationIndex: props.setVariationIndex,
-                      setIndex: props.setIndex,
-                      dayInWeekIndex: props.plannerExercise.dayData.dayInWeek - 1,
-                    })
-                  );
-                }}
-                className="flex-1 h-full text-white bg-grayv3-main nm-workout-exercise-set-edit"
-              >
-                Edit
-              </button>
-              <button
-                data-cy="delete-set"
-                tabIndex={-1}
-                onClick={() => {
-                  close();
-                  props.plannerDispatch(
-                    lbProgram.recordModify((program) => {
-                      return EditProgramUiHelpers.changeCurrentInstance2(
-                        program,
-                        plannerExercise,
-                        props.settings,
-                        true,
-                        (ex) => {
-                          const setVariation = ex.evaluatedSetVariations[setVariationIndex];
-                          const sets = [...setVariation.sets];
-                          setVariation.sets = CollectionUtils.removeAt(sets, setIndex);
-                        }
-                      );
-                    })
-                  );
-                  props.setSetIds((prev) => CollectionUtils.removeAt(prev, setIndex));
-                }}
-                className="flex-1 h-full text-white bg-redv3-600 nm-workout-exercise-set-delete"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </SwipeableRow>

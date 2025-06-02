@@ -94,7 +94,9 @@ export namespace Screen {
       if (editProgramState) {
         const currentProgram = Program.getProgram(state, editProgramState.current.program.id);
         if (currentProgram != null && currentProgram.planner && editProgramState.current.program.planner) {
-          if (!ObjectUtils.isEqual(currentProgram.planner, editProgramState.current.program.planner)) {
+          const oldCleanedProgram = Program.cleanPlannerProgram(currentProgram);
+          const newCleanedProgram = Program.cleanPlannerProgram(editProgramState.current.program);
+          if (!ObjectUtils.isEqual(oldCleanedProgram.planner!, newCleanedProgram.planner!)) {
             return "Are you sure? Your program changes won't be saved.";
           }
         }

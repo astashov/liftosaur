@@ -134,9 +134,20 @@ export namespace Program {
   );
 
   export function cleanPlannerProgram(program: IProgram): IProgram {
-    if (program.planner != null) {
+    const planner = program.planner;
+    if (planner != null) {
+      const newPlanner = {
+        ...planner,
+        weeks: planner.weeks.map((w) => ({
+          ...ObjectUtils.omit(w, ["id"]),
+          days: w.days.map((d) => ({
+            ...ObjectUtils.omit(d, ["id"]),
+          })),
+        })),
+      };
       return {
         ...program,
+        planner: newPlanner,
         exercises: [],
         days: [],
         weeks: [],

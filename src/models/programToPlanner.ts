@@ -696,7 +696,6 @@ export class ProgramToPlanner {
     const groups: [IPlannerProgramExerciseWarmupSet, number][] = [];
     for (const set of sets) {
       const key = this.warmupSetToKey(set);
-      console.log("Warmup key", key);
       if (lastKey == null || lastKey !== key) {
         groups.push([set, 0]);
       }
