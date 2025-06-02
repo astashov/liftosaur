@@ -602,6 +602,10 @@ export const TProgressUi = t.partial(
         userVars: t.boolean,
       }),
     ]),
+    editModal: t.type({
+      programExerciseId: t.string,
+      entryIndex: t.number,
+    }),
     dateModal: t.type({
       date: t.string,
       time: t.number,
