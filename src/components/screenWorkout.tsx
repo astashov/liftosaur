@@ -16,7 +16,6 @@ import { Timer } from "./timer";
 import { Button } from "./button";
 import { Workout } from "./workout";
 import { ModalAmrap } from "./modalAmrap";
-import { ModalEditMode } from "./modalEditMode";
 import { ModalDate } from "./modalDate";
 import { ModalExercise } from "./modalExercise";
 import { Exercise } from "../models/exercise";
@@ -49,7 +48,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const evaluatedProgram = props.program ? Program.evaluate(props.program, props.settings) : undefined;
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
-  const editModalProgramExerciseId = progress.ui?.editModal?.programExerciseId;
   const dateModal = progress.ui?.dateModal;
   const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, progress.day) : undefined;
   const [forceUpdateEntryIndex, setForceUpdateEntryIndex] = useState(false);
@@ -131,17 +129,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
                 )}
                 progress={progress}
-              />
-            )}
-            {editModalProgramExerciseId && evaluatedProgram && (
-              <ModalEditMode
-                program={evaluatedProgram}
-                programExerciseId={editModalProgramExerciseId}
-                entryIndex={progress.ui?.editModal?.entryIndex || 0}
-                progressId={props.progress.id}
-                day={props.progress.day}
-                settings={props.settings}
-                dispatch={props.dispatch}
               />
             )}
             {dateModal != null && (

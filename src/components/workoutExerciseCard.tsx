@@ -149,30 +149,21 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
               <IconKebab />
             </button>
             {isKebabMenuOpen && (
-              <DropdownMenu rightOffset="2rem" onClose={() => setIsKebabMenuOpen(false)}>
+              <DropdownMenu rightOffset="2rem" onClose={() => setIsKebabMenuOpen(false)} maxWidth="20rem">
                 {programExercise && programExerciseId && (
                   <DropdownMenuItem
                     isTop={true}
                     data-cy="exercise-edit-mode"
                     onClick={() => {
                       setIsKebabMenuOpen(false);
-                      updateProgress(
-                        props.dispatch,
-                        [
-                          lb<IHistoryRecord>()
-                            .pi("ui")
-                            .p("editModal")
-                            .record({ programExerciseId, entryIndex: props.entryIndex }),
-                        ],
-                        "kebab-edit-exercise"
-                      );
+                      props.dispatch(Thunk.pushToEditProgramExercise(programExercise.key, programExercise.dayData));
                     }}
                   >
                     <div className="flex items-center gap-2">
                       <div>
                         <IconEdit2 size={22} />
                       </div>
-                      <div>Edit Exercise</div>
+                      <div>Edit Program Exercise</div>
                     </div>
                   </DropdownMenuItem>
                 )}
