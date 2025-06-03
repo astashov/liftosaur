@@ -45,7 +45,7 @@ export function DoubleProgressSettings(props: IDoubleProgressSettingsProps): JSX
                     (e) => {
                       const state = e.progress?.state;
                       if (state && value) {
-                        state.increase = value;
+                        state.increment = value;
                       }
                     }
                   );

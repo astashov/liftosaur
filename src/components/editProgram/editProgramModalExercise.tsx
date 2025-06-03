@@ -70,7 +70,7 @@ function onChange(
       if (typeof exerciseType === "string") {
         fullName = `${newLabel ? `${newLabel}: ` : ""}${exerciseType} / used: none`;
       } else if (exerciseType != null) {
-        const exercise = Exercise.getById(exerciseType.id, settings.exercises);
+        const exercise = Exercise.get(exerciseType, settings.exercises);
         fullName = Exercise.fullName(exercise, settings, newLabel);
       }
       if (fullName != null) {
