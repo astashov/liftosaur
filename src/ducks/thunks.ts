@@ -960,6 +960,12 @@ function _load<T>(
           ],
           "Failed loading"
         );
+        if (type === "Logging in") {
+          Rollbar.error("Error while logging in", {
+            error: e instanceof Error ? e.message : String(e),
+          });
+          Rollbar.error(e);
+        }
         reject(e);
       } else {
         setTimeout(() => {
