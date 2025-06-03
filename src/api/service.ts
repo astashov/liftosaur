@@ -106,16 +106,20 @@ export class Service {
     id: string,
     args: { forcedUserEmail?: string }
   ): Promise<IGetStorageResponse> {
+    const body = JSON.stringify({
+      token,
+      id,
+      forceuseremail: args.forcedUserEmail,
+    });
+    console.log("Sending body", body);
     const response = await this.client(`${__API_HOST__}/api/signin/google`, {
       method: "POST",
-      body: JSON.stringify({
-        token,
-        id,
-        forceuseremail: args.forcedUserEmail,
-      }),
+      body: body,
       credentials: "include",
     });
+    console.log("got response from google signin", response.status);
     const json = await response.json();
+    console.log("Response from google signin", json);
     return { email: json.email, storage: json.storage, user_id: json.user_id };
   }
 

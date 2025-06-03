@@ -50,13 +50,17 @@ export namespace Thunk {
       const forcedUserEmail = url.searchParams.get("forceuseremail");
       if (forcedUserEmail == null) {
         const accessToken = await getGoogleAccessToken();
+        console.log("Access token:", accessToken);
         if (accessToken != null) {
           const state = getState();
           const userId = state.user?.id || state.storage.tempUserId;
-          const result = await load(dispatch, "Logging in", async () =>
-            env.service.googleSignIn(accessToken, userId, {})
-          );
-          await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+          const result = await load(dispatch, "Logging in", async () => {
+            console.log("Starting to log in");
+            return env.service.googleSignIn(accessToken, userId, {});
+          });
+          await load(dispatch, "Signing in", () => {
+            return handleLogin(dispatch, result, env.service.client, userId);
+          });
           if (cb) {
             cb();
           }
@@ -107,7 +111,7 @@ export namespace Thunk {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
         const result = await load(dispatch, "Logging in", async () => env.service.appleSignIn(code, id_token, userId));
-        await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+        await load(dispatch, "Signing in", () => handleLogin(dispatch, result, env.service.client, userId));
         if (cb) {
           cb();
         }
@@ -981,38 +985,43 @@ async function handleLogin(
   client: Window["fetch"],
   oldUserId?: string
 ): Promise<void> {
-  if (result.email != null) {
-    dispatch(Thunk.postevent("login"));
-    Rollbar.configure(RollbarUtils.config({ person: { email: result.email, id: result.user_id } }));
-    let storage: IStorage;
-    const storageResult = await Storage.get(client, result.storage, true);
-    const service = new Service(client);
-    if (storageResult.success) {
-      storage = storageResult.data;
-    } else {
-      storage = result.storage;
-      const userid = result.user_id || result.storage.tempUserId || `missing-${UidFactory.generateUid(8)}`;
-      await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" });
-    }
-    storage.tempUserId = result.user_id;
-    storage.email = result.email;
-    if (oldUserId === result.user_id) {
-      dispatch(Thunk.postevent("login-same-user"));
-      updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(storage)]);
-      dispatch({ type: "Login", email: result.email, userId: result.user_id });
-      if (storage.subscription.key !== result.key) {
-        updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)]);
+  try {
+    if (result.email != null) {
+      dispatch(Thunk.postevent("login"));
+      Rollbar.configure(RollbarUtils.config({ person: { email: result.email, id: result.user_id } }));
+      let storage: IStorage;
+      const storageResult = await Storage.get(client, result.storage, true);
+      const service = new Service(client);
+      if (storageResult.success) {
+        storage = storageResult.data;
+      } else {
+        storage = result.storage;
+        const userid = result.user_id || result.storage.tempUserId || `missing-${UidFactory.generateUid(8)}`;
+        await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" });
       }
-    } else {
-      dispatch(Thunk.postevent("login-different-user"));
-      storage.subscription.key = result.key;
-      const newState = await getInitialState(client, { storage });
-      newState.lastSyncedStorage = ObjectUtils.clone(newState.storage);
-      newState.user = { id: result.user_id, email: result.email };
-      dispatch({ type: "ReplaceState", state: newState });
+      storage.tempUserId = result.user_id;
+      storage.email = result.email;
+      if (oldUserId === result.user_id) {
+        dispatch(Thunk.postevent("login-same-user"));
+        updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(storage)]);
+        dispatch({ type: "Login", email: result.email, userId: result.user_id });
+        if (storage.subscription.key !== result.key) {
+          updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)]);
+        }
+      } else {
+        dispatch(Thunk.postevent("login-different-user"));
+        storage.subscription.key = result.key;
+        const newState = await getInitialState(client, { storage });
+        newState.lastSyncedStorage = ObjectUtils.clone(newState.storage);
+        newState.user = { id: result.user_id, email: result.email };
+        dispatch({ type: "ReplaceState", state: newState });
+      }
+      dispatch(Thunk.fetchInitial());
+    } else if (result.key) {
+      updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)]);
     }
-    dispatch(Thunk.fetchInitial());
-  } else if (result.key) {
-    updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)]);
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
 }
