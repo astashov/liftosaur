@@ -65,6 +65,7 @@ export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
           className="gap-2 px-4"
           nonSticky={true}
           shouldNotExpand={true}
+          defaultIndex={ui.weekIndex ?? 0}
           type="squares"
           onChange={(weekIndex) => props.plannerDispatch(lb<IPlannerState>().p("ui").p("weekIndex").record(weekIndex))}
           tabs={planner.weeks.map((week, weekIndex) => {

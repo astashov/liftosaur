@@ -83,7 +83,7 @@ export namespace EditProgram {
       id,
       current: { program: { ...program } },
       ui: {
-        weekIndex: 0,
+        weekIndex: focusedDay?.week != null ? focusedDay.week - 1 : 0,
         focusedDay,
         mode: "ui",
         exerciseUi: { edit: new Set(), collapsed: new Set() },
@@ -97,7 +97,8 @@ export namespace EditProgram {
   export function initPlannerProgramExerciseState(
     program: IProgram,
     settings: ISettings,
-    key: string
+    key: string,
+    dayData: Required<IDayData>
   ): IPlannerExerciseState {
     const evaluatedProgram = Program.evaluate(program, settings);
     const programExercise = Program.getFirstProgramExercise(evaluatedProgram, key);
@@ -105,7 +106,7 @@ export namespace EditProgram {
       current: { program: ObjectUtils.clone(program) },
       history: { past: [], future: [] },
       ui: {
-        weekIndex: 0,
+        weekIndex: dayData.week - 1,
         isProgressEnabled: !!programExercise?.progress,
         isUpdateEnabled: !!programExercise?.update,
       },

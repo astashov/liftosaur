@@ -373,7 +373,7 @@ export namespace Thunk {
     };
   }
 
-  export function pushToEditProgram(): IThunk {
+  export function pushToEditProgram(dayData?: Required<IDayData>): IThunk {
     return async (dispatch, getState) => {
       const state = getState();
       const currentProgram =
@@ -381,7 +381,7 @@ export namespace Thunk {
       if (Program.isEmpty(currentProgram)) {
         dispatch(Thunk.pushScreen("programs"));
       } else if (currentProgram) {
-        Program.editAction(dispatch, currentProgram, undefined, true);
+        Program.editAction(dispatch, currentProgram, dayData, true);
       }
     };
   }
@@ -397,7 +397,12 @@ export namespace Thunk {
           ? Program.getProgram(state, state.storage.currentProgramId)
           : undefined);
       if (currentProgram && !Program.isEmpty(currentProgram)) {
-        const plannerState = EditProgram.initPlannerProgramExerciseState(currentProgram, state.storage.settings, key);
+        const plannerState = EditProgram.initPlannerProgramExerciseState(
+          currentProgram,
+          state.storage.settings,
+          key,
+          dayData
+        );
         dispatch(Thunk.pushScreen("editProgramExercise", { key, dayData, plannerState }));
       } else {
         dispatch(Thunk.pushScreen("main"));

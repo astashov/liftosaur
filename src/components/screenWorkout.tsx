@@ -174,7 +174,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   }
                 }}
                 onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
-                onChange={(exerciseType, shouldClose) => {
+                onChange={(exerciseType, label, shouldClose) => {
                   if (exerciseType != null) {
                     if (progress.ui?.exerciseModal?.entryIndex == null) {
                       Progress.addExercise(props.dispatch, exerciseType, progress.entries.length);

@@ -544,7 +544,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         <ModalExercise
           isHidden={!modalExerciseUi}
           shouldAddExternalLinks={true}
-          onChange={(exerciseType, shouldClose) => {
+          onChange={(exerciseType, label, shouldClose) => {
             window.isUndoing = true;
             if (shouldClose) {
               dispatch([

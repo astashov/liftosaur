@@ -1,6 +1,6 @@
 import { h, JSX, ComponentChildren } from "preact";
 import { StringUtils } from "../utils/string";
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { Scroller } from "./scroller";
 
 export interface IScrollableTabsProps {
@@ -24,6 +24,16 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
   const { tabs } = props;
   const [selectedIndex, setSelectedIndex] = useState<number>(props.defaultIndex || 0);
   const color = props.color || "orange";
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (tabsRef.current) {
+      const tabElement = tabsRef.current.querySelector(".selected-tab-button") as HTMLButtonElement | null;
+      if (tabElement && tabElement.offsetLeft + tabElement.clientWidth > window.innerWidth) {
+        tabElement.scrollIntoView({ behavior: "instant", block: "nearest", inline: "start" });
+      }
+    }
+  }, []);
 
   return (
     <div className="relative">
@@ -40,13 +50,15 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
             <div
               className={`flex w-full ${props.topPadding == null ? "pt-6" : ""} pb-2 ${props.className}`}
               style={{ paddingTop: props.topPadding }}
+              ref={tabsRef}
             >
               {tabs.map(({ label, isInvalid }, index) => {
                 const nameClass = `tab-${StringUtils.dashcase(label.toLowerCase())}`;
 
                 const containerClassName =
                   props.type === "squares" ? "" : `flex-1 text-center border-b whitespace-nowrap border-grayv2-50`;
-                const selectedWeekButtonStyles = "bg-white border border-purplev3-main text-purplev3-main";
+                const selectedWeekButtonStyles =
+                  "bg-white border border-purplev3-main text-purplev3-main selected-tab-button";
                 const unselectedWeekButtonStyles = "bg-grayv3-100 border border-white text-grayv3-main";
                 const buttonClassName =
                   props.type === "squares"
@@ -54,8 +66,8 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
                     : `ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
                         selectedIndex === index
                           ? color === "orange"
-                            ? "text-orangev2 border-b border-orangev2"
-                            : "text-purplev3-main border-b border-purplev3-main"
+                            ? "text-orangev2 border-b border-orangev2 selected-tab-button"
+                            : "text-purplev3-main border-b border-purplev3-main selected-tab-button"
                           : ""
                       } ${isInvalid ? " text-redv2-main" : ""} nm-tab-${nameClass}`;
 

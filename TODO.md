@@ -53,12 +53,5 @@ User debug page:
 * Hide warmups when completed
 * Toggle between lb/kg by tapping on header
 
-
-- Add help NUX for playground
-- Don't show here/everywhere if only one instance of exercise
-
-- Add exercise label
-- Edit exercise name
-
+- Add help NUXes for playground, etc
 - Repeat in Program screen
-- Open edit exercise at proper daydata
