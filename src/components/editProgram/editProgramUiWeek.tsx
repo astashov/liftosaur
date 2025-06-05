@@ -45,6 +45,9 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
   const isValidProgram = props.evaluatedWeeks.every((week) => week.every((day) => day.success));
   const evaluatedCurrentWeek = props.evaluatedWeeks[currentWeekIndex];
   const dayIndexOffset = Program.getDayNumber(planner, currentWeekIndex + 1, 1);
+  const allDaysCollapsed = Array.from(currentWeek.days).every((d, i) => {
+    return ui.dayUi.collapsed.has(`${currentWeekIndex}-${i}`);
+  });
 
   return (
     <div>
@@ -115,27 +118,25 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
                   .p("dayUi")
                   .p("collapsed")
                   .recordModify((collapsed) => {
-                    if (collapsed.size > 0) {
-                      return new Set<string>();
-                    } else {
-                      const newCollapsed = new Set<string>();
-                      for (let weekIndex = 0; weekIndex < planner.weeks.length; weekIndex += 1) {
-                        for (
-                          let dayInWeekIndex = 0;
-                          dayInWeekIndex < planner.weeks[weekIndex].days.length;
-                          dayInWeekIndex += 1
-                        ) {
-                          const key = `${weekIndex}-${dayInWeekIndex}`;
-                          newCollapsed.add(key);
-                        }
+                    const newCollapsed = new Set<string>(collapsed);
+                    for (
+                      let dayInWeekIndex = 0;
+                      dayInWeekIndex < planner.weeks[currentWeekIndex].days.length;
+                      dayInWeekIndex += 1
+                    ) {
+                      const key = `${currentWeekIndex}-${dayInWeekIndex}`;
+                      if (allDaysCollapsed) {
+                        newCollapsed.delete(key);
+                      } else {
+                        newCollapsed.add(key);
                       }
-                      return newCollapsed;
                     }
+                    return newCollapsed;
                   })
               );
             }}
           >
-            {ui.dayUi.collapsed.size > 0 ? "Expand" : "Collapse"} all days
+            {allDaysCollapsed ? "Expand" : "Collapse"} all days
           </LinkButton>
         </div>
       </div>

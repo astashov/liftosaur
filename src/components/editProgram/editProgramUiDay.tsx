@@ -225,6 +225,11 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
   );
   const { weekIndex, dayIndex } = props;
   const lbPlanner = lb<IPlannerState>().p("current").p("program").pi("planner");
+  const allExercisesCollapsed = evaluatedDay.success
+    ? evaluatedDay.data.every((e) => {
+        return props.ui.exerciseUi.collapsed.has(`${e.key}-${props.weekIndex}-${props.dayIndex}`);
+      })
+    : false;
   return (
     <div className="px-1">
       <div className="px-1">
@@ -274,21 +279,22 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                     .p("exerciseUi")
                     .p("collapsed")
                     .recordModify((collapsed) => {
-                      if (collapsed.size > 0) {
-                        return new Set<string>();
-                      } else {
-                        const newCollapsed = new Set<string>();
-                        for (const exercise of evaluatedDay.data) {
-                          const exKey = `${exercise.key}-${exercise.dayData.week - 1}-${exercise.dayData.dayInWeek - 1}`;
-                          newCollapsed.add(exKey);
+                      const newCollapsed = new Set<string>(collapsed);
+                      const exercises = evaluatedDay.data;
+                      for (const exercise of exercises) {
+                        const key = `${exercise.key}-${props.weekIndex}-${props.dayIndex}`;
+                        if (allExercisesCollapsed) {
+                          newCollapsed.delete(key);
+                        } else {
+                          newCollapsed.add(key);
                         }
-                        return newCollapsed;
                       }
+                      return newCollapsed;
                     })
                 );
               }}
             >
-              {props.ui.exerciseUi.collapsed.size > 0 ? "Expand" : "Collapse"} all exercises
+              {allExercisesCollapsed ? "Expand" : "Collapse"} all exercises
             </LinkButton>
           </div>
         )}
