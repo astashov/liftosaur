@@ -35,7 +35,6 @@ interface IProps {
 }
 
 export function ScreenEditProgramExercise(props: IProps): JSX.Element {
-  console.log("Day data", props.dayData);
   const { plannerState } = props;
 
   const plannerDispatch: ILensDispatch<IPlannerExerciseState> = useCallback(

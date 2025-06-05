@@ -50,7 +50,10 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
   const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
 
   return (
-    <div className="my-1 overflow-hidden border bg-purplev3-50 rounded-xl border-purplev3-150">
+    <div
+      id={`edit-program-ui-exercise-${props.plannerExercise.dayData.week}-${props.plannerExercise.dayData.dayInWeek}-${props.plannerExercise.key}`}
+      className="my-1 overflow-hidden border bg-purplev3-50 rounded-xl border-purplev3-150"
+    >
       <div className="flex items-center">
         <div className="p-2 cursor-move" style={{ touchAction: "none" }}>
           <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
@@ -265,6 +268,15 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
             <button
               className="p-2"
               onClick={() => {
+                props.plannerDispatch(
+                  lb<IPlannerState>()
+                    .p("ui")
+                    .p("focusedDay")
+                    .record({
+                      ...props.plannerExercise.dayData,
+                      key: props.plannerExercise.key,
+                    })
+                );
                 props.dispatch(
                   Thunk.pushToEditProgramExercise(props.plannerExercise.key, props.plannerExercise.dayData)
                 );

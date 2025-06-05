@@ -78,13 +78,13 @@ export namespace EditProgram {
     ]);
   }
 
-  export function initPlannerState(id: string, program: IProgram, focusedDay?: IDayData): IPlannerState {
+  export function initPlannerState(id: string, program: IProgram, focusedDay?: IDayData, key?: string): IPlannerState {
     return {
       id,
       current: { program: { ...program } },
       ui: {
         weekIndex: focusedDay?.week != null ? focusedDay.week - 1 : 0,
-        focusedDay,
+        focusedDay: focusedDay ? { ...focusedDay, key } : undefined,
         mode: "ui",
         exerciseUi: { edit: new Set(), collapsed: new Set() },
         dayUi: { collapsed: new Set() },

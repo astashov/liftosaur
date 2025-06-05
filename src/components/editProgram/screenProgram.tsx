@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../../ducks/types";
 import { INavCommon, IState, updateState } from "../../models/state";
-import { useCallback, useLayoutEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useLayoutEffect, useState } from "preact/hooks";
 import { IProgram, ISettings } from "../../types";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
@@ -92,6 +92,17 @@ export function ScreenProgram(props: IProps): JSX.Element {
       }
     }
   });
+
+  useEffect(() => {
+    const focusedDay = plannerState.ui.focusedDay;
+    if (focusedDay) {
+      const id = `edit-program-ui-exercise-${focusedDay.week}-${focusedDay.dayInWeek}-${focusedDay.key}`;
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "instant", block: "center" });
+      }
+    }
+  }, []);
 
   const program: IProgram = plannerState.current.program;
   const planner = program.planner!;

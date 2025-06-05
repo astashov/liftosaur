@@ -125,7 +125,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                 ).pi("plannerState"),
                 props.editProgramState
               );
-              plannerDispatch(lb<IPlannerState>().p("current").p("program").record(props.state.current.program));
+              plannerDispatch([lb<IPlannerState>().p("current").p("program").record(props.state.current.program)]);
             } else {
               updateState(props.dispatch, [
                 lb<IState>()

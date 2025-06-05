@@ -373,7 +373,7 @@ export namespace Thunk {
     };
   }
 
-  export function pushToEditProgram(dayData?: Required<IDayData>): IThunk {
+  export function pushToEditProgram(dayData?: Required<IDayData>, key?: string): IThunk {
     return async (dispatch, getState) => {
       const state = getState();
       const currentProgram =
@@ -381,7 +381,7 @@ export namespace Thunk {
       if (Program.isEmpty(currentProgram)) {
         dispatch(Thunk.pushScreen("programs"));
       } else if (currentProgram) {
-        Program.editAction(dispatch, currentProgram, dayData, true);
+        Program.editAction(dispatch, currentProgram, dayData, key, true);
       }
     };
   }

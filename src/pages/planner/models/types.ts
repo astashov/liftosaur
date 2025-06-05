@@ -218,7 +218,7 @@ export interface IPlannerUi {
   showDayStats?: number;
   showExerciseStats?: boolean;
   showPreview?: boolean;
-  focusedDay?: IDayData;
+  focusedDay?: IDayData & { key?: string };
   showSettingsModal?: boolean;
   mode?: "reorder" | "ui" | "perday" | "full";
 }

@@ -909,8 +909,14 @@ export namespace Program {
     return isNaN(nd) ? 1 : nd;
   }
 
-  export function editAction(dispatch: IDispatch, program: IProgram, dayData?: IDayData, resetStack?: boolean): void {
-    const plannerState = EditProgram.initPlannerState(program.id, program, dayData);
+  export function editAction(
+    dispatch: IDispatch,
+    program: IProgram,
+    dayData?: IDayData,
+    key?: string,
+    resetStack?: boolean
+  ): void {
+    const plannerState = EditProgram.initPlannerState(program.id, program, dayData, key);
     dispatch(Thunk.pushScreen("editProgram", { plannerState }, resetStack));
   }
 
