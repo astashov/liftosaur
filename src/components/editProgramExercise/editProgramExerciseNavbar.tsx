@@ -113,37 +113,35 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           buttonSize="md"
           data-cy="save-program-exercise"
           onClick={() => {
-            if (confirm("Are you sure?")) {
-              if (props.editProgramState) {
-                const plannerDispatch = buildPlannerDispatch(
-                  props.dispatch,
-                  (
-                    lb<IState>().p("screenStack").findBy("name", "editProgram").p("params") as LensBuilder<
-                      IState,
-                      { plannerState: IPlannerState },
-                      {}
-                    >
-                  ).pi("plannerState"),
-                  props.editProgramState
-                );
-                plannerDispatch(lb<IPlannerState>().p("current").p("program").record(props.state.current.program));
-              } else {
-                updateState(props.dispatch, [
-                  lb<IState>()
-                    .p("storage")
-                    .p("programs")
-                    .recordModify((programs) => {
-                      return CollectionUtils.setBy(
-                        programs,
-                        "id",
-                        props.state.current.program.id,
-                        props.state.current.program
-                      );
-                    }),
-                ]);
-              }
-              props.dispatch(Thunk.pullScreen());
+            if (props.editProgramState) {
+              const plannerDispatch = buildPlannerDispatch(
+                props.dispatch,
+                (
+                  lb<IState>().p("screenStack").findBy("name", "editProgram").p("params") as LensBuilder<
+                    IState,
+                    { plannerState: IPlannerState },
+                    {}
+                  >
+                ).pi("plannerState"),
+                props.editProgramState
+              );
+              plannerDispatch(lb<IPlannerState>().p("current").p("program").record(props.state.current.program));
+            } else {
+              updateState(props.dispatch, [
+                lb<IState>()
+                  .p("storage")
+                  .p("programs")
+                  .recordModify((programs) => {
+                    return CollectionUtils.setBy(
+                      programs,
+                      "id",
+                      props.state.current.program.id,
+                      props.state.current.program
+                    );
+                  }),
+              ]);
             }
+            props.dispatch(Thunk.pullScreen());
           }}
         >
           Save

@@ -99,6 +99,7 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
           />
         ))}
       <EditProgramExerciseReuseSetsExercise
+        ui={props.ui}
         plannerExercise={plannerExercise}
         settings={props.settings}
         plannerDispatch={props.plannerDispatch}

@@ -27,7 +27,7 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
     (currentProgramId ? CollectionUtils.findBy(props.allPrograms, "id", currentProgramId) : undefined) ??
     props.allPrograms[0];
   if (!currentProgram) {
-    return <div>No Programs</div>;
+    return <div className="mx-4">No Programs</div>;
   }
   const evaluatedProgram = Program.evaluate(currentProgram, props.settings);
   const days = Program.getListOfDays(evaluatedProgram);

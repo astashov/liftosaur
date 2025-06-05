@@ -169,6 +169,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 )}
                 <DropdownMenuItem
                   data-cy="exercise-swap"
+                  isTop={!programExercise || !programExerciseId}
                   onClick={() => {
                     setIsKebabMenuOpen(false);
                     updateProgress(

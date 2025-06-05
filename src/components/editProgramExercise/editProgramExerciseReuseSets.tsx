@@ -1,5 +1,10 @@
 import { h, JSX, Fragment } from "preact";
-import { IPlannerProgramExercise, IPlannerExerciseState, IReuseCandidate } from "../../pages/planner/models/types";
+import {
+  IPlannerProgramExercise,
+  IPlannerExerciseState,
+  IReuseCandidate,
+  IPlannerExerciseUi,
+} from "../../pages/planner/models/types";
 import { IDayData, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IEvaluatedProgram, Program } from "../../models/program";
@@ -13,6 +18,7 @@ import { Weight } from "../../models/weight";
 import { EditProgramExerciseReuseAtWeekDay } from "./editProgramExerciseReuseAtWeekDay";
 
 interface IEditProgramExerciseReuseSetsExerciseProps {
+  ui: IPlannerExerciseUi;
   plannerExercise: IPlannerProgramExercise;
   evaluatedProgram: IEvaluatedProgram;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
@@ -106,7 +112,9 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
           values={reuseSetValues}
           value={reuseKey ?? ""}
           onChange={(value) => {
-            return EditProgramUiHelpers.changeCurrentInstanceExercise(
+            let isProgressEnabled = props.ui.isProgressEnabled;
+            let isUpdateEnabled = props.ui.isUpdateEnabled;
+            EditProgramUiHelpers.changeCurrentInstanceExercise(
               props.plannerDispatch,
               plannerExercise,
               props.settings,
@@ -130,9 +138,18 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                     source: "overall",
                     exercise: newReuseCandidate.exercise,
                   };
+                  if (ex.reuse.exercise) {
+                    ex.evaluatedSetVariations = ex.reuse.exercise.evaluatedSetVariations;
+                  }
+                  isProgressEnabled = !!ex.reuse.exercise?.progress || !!ex.progress;
+                  isUpdateEnabled = !!ex.reuse.exercise?.update || !!ex.update;
                 }
               }
             );
+            props.plannerDispatch([
+              lb<IPlannerExerciseState>().p("ui").p("isProgressEnabled").record(isProgressEnabled),
+              lb<IPlannerExerciseState>().p("ui").p("isUpdateEnabled").record(isUpdateEnabled),
+            ]);
           }}
         />
       </div>
@@ -188,20 +205,15 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                 className="text-sm"
                 name="edit-exercise-remove-override-sets"
                 onClick={() => {
-                  props.plannerDispatch(
-                    lbProgram.recordModify((program) => {
-                      return EditProgramUiHelpers.changeCurrentInstance2(
-                        program,
-                        plannerExercise,
-                        props.settings,
-                        true,
-                        (ex) => {
-                          if (reuse.exercise?.evaluatedSetVariations) {
-                            ex.evaluatedSetVariations = reuse.exercise.evaluatedSetVariations;
-                          }
-                        }
-                      );
-                    })
+                  EditProgramUiHelpers.changeCurrentInstanceExercise(
+                    props.plannerDispatch,
+                    plannerExercise,
+                    props.settings,
+                    (ex) => {
+                      if (reuse.exercise?.evaluatedSetVariations) {
+                        ex.evaluatedSetVariations = reuse.exercise.evaluatedSetVariations;
+                      }
+                    }
                   );
                 }}
               >

@@ -55,3 +55,9 @@ User debug page:
 
 - Add help NUXes for playground, etc
 - Repeat in Program screen
+
+
+
+- Borders on the edit exercise screen
+- Pop out the buttons on the choose program screen more
+- Pop out the NUXes more

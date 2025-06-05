@@ -19,7 +19,7 @@ function cleanScript(script?: string): string {
   if (!script) {
     return "";
   }
-  return script.replace(/{~/, "").replace(/~}/, "");
+  return StringUtils.unindent(script.replace(/{~/, "").replace(/~}/, ""));
 }
 
 export function ModalEditProgressScript(props: IModalEditProgressScriptProps): JSX.Element {
@@ -65,7 +65,7 @@ export function ModalEditProgressScript(props: IModalEditProgressScriptProps): J
           disabled={error != null}
           onClick={() => {
             props.onClose();
-            const wrappedScript = script ? `{~\n${StringUtils.indent(cleanScript(script), 2)}\n~}` : script;
+            const wrappedScript = script ? `{~\n${StringUtils.indent(cleanScript(script), 2)}\n~}` : `{~~}`;
             props.onChange(wrappedScript);
           }}
         >

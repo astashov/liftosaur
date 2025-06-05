@@ -46,7 +46,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
           {ObjectUtils.entries(ownState).map(([key, value]) => {
             const isUsedVariable = ScriptRunner.hasStateVariable(progress.script ?? "", key);
             const metadata = progress.stateMetadata?.[key];
-            const isReused = !onlyChangedState[key];
+            const isReused = onlyChangedState[key] == null;
             return (
               <li key={key} className="p-2 text-base border-b border-purplev3-150">
                 <div className="flex items-center gap-4">

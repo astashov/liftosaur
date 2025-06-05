@@ -32,10 +32,10 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
     setIndex: 0,
     dayInWeekIndex: 0,
   };
-  const set =
-    props.evaluatedProgram.weeks[weekIndex]?.days[dayInWeekIndex]?.exercises[setVariationIndex]?.evaluatedSetVariations[
-      setVariationIndex
-    ]?.sets[setIndex];
+  const exercise = props.evaluatedProgram.weeks[weekIndex]?.days[dayInWeekIndex]?.exercises.find(
+    (e) => e.key === editSetBottomSheet?.exerciseKey
+  );
+  const set = exercise?.evaluatedSetVariations[setVariationIndex]?.sets[setIndex];
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const plannerExercise = props.evaluatedProgram.weeks[weekIndex]?.days[dayInWeekIndex]?.exercises.find(
     (e) => e.key === editSetBottomSheet?.exerciseKey
