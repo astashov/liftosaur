@@ -61,3 +61,6 @@ User debug page:
 - Borders on the edit exercise screen
 - Pop out the buttons on the choose program screen more
 - Pop out the NUXes more
+
+- Show reusing exercises in the reuse list
+- Progress looks weird if tried to pick reuse set that reuses something else

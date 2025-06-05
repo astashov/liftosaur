@@ -18,6 +18,7 @@ import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { IEvaluatedProgram, Program } from "../../models/program";
 import { applyChangesInEditor } from "./editProgramUtils";
 import { IDispatch } from "../../ducks/types";
+import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 
 interface IEditProgramViewProps {
   state: IPlannerState;
@@ -119,8 +120,13 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
                     } else {
                       const newCollapsed = new Set<string>();
                       for (let weekIndex = 0; weekIndex < planner.weeks.length; weekIndex += 1) {
-                        for (const day of planner.weeks[weekIndex].days) {
-                          newCollapsed.add(day.id ?? "");
+                        for (
+                          let dayInWeekIndex = 0;
+                          dayInWeekIndex < planner.weeks[weekIndex].days.length;
+                          dayInWeekIndex += 1
+                        ) {
+                          const key = `${weekIndex}-${dayInWeekIndex}`;
+                          newCollapsed.add(key);
                         }
                       }
                       return newCollapsed;
@@ -138,18 +144,28 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
         mode="vertical"
         onDragEnd={(startIndex, endIndex) => {
           applyChangesInEditor(props.plannerDispatch, () => {
-            props.plannerDispatch([
-              lbPlanner
-                .p("weeks")
-                .i(currentWeekIndex)
-                .p("days")
-                .recordModify((days) => {
-                  const newDays = [...days];
-                  const [daysToMove] = newDays.splice(startIndex, 1);
-                  newDays.splice(endIndex, 0, daysToMove);
-                  return newDays;
-                }),
-            ]);
+            EditProgramUiHelpers.onDaysChange(
+              props.plannerDispatch,
+              props.state.ui,
+              currentWeekIndex,
+              currentWeek.days,
+              (order) => {
+                props.plannerDispatch([
+                  lbPlanner
+                    .p("weeks")
+                    .i(currentWeekIndex)
+                    .p("days")
+                    .recordModify((days) => {
+                      const newDays = [...days];
+                      const [daysToMove] = newDays.splice(startIndex, 1);
+                      newDays.splice(endIndex, 0, daysToMove);
+                      return newDays;
+                    }),
+                ]);
+                const [daysToMove] = order.splice(startIndex, 1);
+                order.splice(endIndex, 0, daysToMove);
+              }
+            );
           });
         }}
         element={(plannerDay, dayInWeekIndex, handleTouchStart) => {

@@ -2,8 +2,8 @@
 import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { Exercise } from "../../models/exercise";
-import { IPlannerState } from "../../pages/planner/models/types";
-import { ISettings } from "../../types";
+import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
+import { IPlannerProgramWeek, ISettings } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
 import { ObjectUtils } from "../../utils/object";
 import { StringUtils } from "../../utils/string";
@@ -20,6 +20,7 @@ import { Button } from "../button";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { LinkButton } from "../linkButton";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
+import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 
 export interface IPlannerContentWeeksProps {
   state: IPlannerState;
@@ -27,11 +28,42 @@ export interface IPlannerContentWeeksProps {
   settings: ISettings;
 }
 
+function onWeeksChange(
+  plannerDispatch: ILensDispatch<IPlannerState>,
+  ui: IPlannerUi,
+  weeks: IPlannerProgramWeek[],
+  cb: (order: boolean[]) => void
+): void {
+  const lbUi = lb<IPlannerState>().p("ui");
+  const collapsedOrder = weeks.map((d, i) => {
+    return ui.weekUi.collapsed.has(`${i}`);
+  });
+  cb(collapsedOrder);
+  plannerDispatch([
+    lbUi.p("dayUi").p("collapsed").record(new Set()),
+    lbUi
+      .p("weekUi")
+      .p("collapsed")
+      .recordModify((collapsed) => {
+        const newCollapsed = new Set<string>(collapsed);
+        for (let i = 0; i < collapsedOrder.length; i++) {
+          if (collapsedOrder[i]) {
+            newCollapsed.add(`${i}`);
+          } else {
+            newCollapsed.delete(`${i}`);
+          }
+        }
+        return newCollapsed;
+      }),
+  ]);
+}
+
 export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Element {
   const collapsedWeeks = props.state.ui.weekUi.collapsed;
 
   const program = props.state.current.program;
   const plannerProgram = program.planner!;
+  const ui = props.state.ui;
 
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, props.settings);
@@ -41,7 +73,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
       <div className="px-4">
         <div>
           <LinkButton
-            name="collapse-all-exercises"
+            name="collapse-all-weeks"
             className="text-xs font-normal"
             onClick={() => {
               props.plannerDispatch(
@@ -54,8 +86,12 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                       return new Set<string>();
                     } else {
                       const newCollapsed = new Set<string>();
-                      for (const week of props.state.current.program.planner!.weeks) {
-                        newCollapsed.add(week.id ?? "");
+                      for (
+                        let weekIndex = 0;
+                        weekIndex < props.state.current.program.planner!.weeks.length;
+                        weekIndex++
+                      ) {
+                        newCollapsed.add(`${weekIndex}`);
                       }
                       return newCollapsed;
                     }
@@ -70,14 +106,18 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
           items={plannerProgram.weeks}
           mode="vertical"
           onDragEnd={(startIndex, endIndex) => {
-            props.plannerDispatch([
-              lbProgram.p("weeks").recordModify((weeks) => {
-                const newWeeks = [...weeks];
-                const [weekToMove] = newWeeks.splice(startIndex, 1);
-                newWeeks.splice(endIndex, 0, weekToMove);
-                return newWeeks;
-              }),
-            ]);
+            onWeeksChange(props.plannerDispatch, ui, props.state.current.program.planner!.weeks, (order) => {
+              props.plannerDispatch([
+                lbProgram.p("weeks").recordModify((weeks) => {
+                  const newWeeks = [...weeks];
+                  const [weekToMove] = newWeeks.splice(startIndex, 1);
+                  newWeeks.splice(endIndex, 0, weekToMove);
+                  return newWeeks;
+                }),
+              ]);
+              const [weekToMove] = order.splice(startIndex, 1);
+              order.splice(endIndex, 0, weekToMove);
+            });
           }}
           element={(week, weekIndex, handleTouchStart) => {
             return (
@@ -96,7 +136,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                   <div className="flex">
                     <div>
                       <button
-                        title={collapsedWeeks.has(week.id ?? "") ? "Expand day" : "Collapse day"}
+                        title={collapsedWeeks.has(`${weekIndex}`) ? "Expand week" : "Collapse week"}
                         onClick={() => {
                           props.plannerDispatch(
                             lb<IPlannerState>()
@@ -105,7 +145,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                               .p("collapsed")
                               .recordModify((collapsed) => {
                                 const newCollapsed = new Set(Array.from(collapsed));
-                                const exKey = week.id ?? "";
+                                const exKey = `${weekIndex}`;
                                 if (newCollapsed.has(exKey)) {
                                   newCollapsed.delete(exKey);
                                 } else {
@@ -117,7 +157,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                         }}
                         className="w-8 p-2 mr-1 text-center nm-web-editor-expand-collapse-day"
                       >
-                        {collapsedWeeks.has(week.id ?? "") ? (
+                        {collapsedWeeks.has(`${weekIndex}`) ? (
                           <IconArrowRight className="inline-block" />
                         ) : (
                           <IconArrowDown2 className="inline-block" />
@@ -141,10 +181,18 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                         onClick={() => {
                           const newName = StringUtils.nextName(week.name);
                           const newWeek = { ...ObjectUtils.clone(week), name: newName };
-                          props.plannerDispatch(
-                            lbProgram.p("weeks").recordModify((weeks) => {
-                              return [...weeks.slice(0, weekIndex + 1), newWeek, ...weeks.slice(weekIndex + 1)];
-                            })
+                          onWeeksChange(
+                            props.plannerDispatch,
+                            ui,
+                            props.state.current.program.planner!.weeks,
+                            (order) => {
+                              props.plannerDispatch(
+                                lbProgram.p("weeks").recordModify((weeks) => {
+                                  return [...weeks.slice(0, weekIndex + 1), newWeek, ...weeks.slice(weekIndex + 1)];
+                                })
+                              );
+                              order.splice(weekIndex + 1, 0, order[weekIndex]);
+                            }
                           );
                         }}
                       >
@@ -155,10 +203,18 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                           data-cy={`delete-week-v2`}
                           className="p-2 align-middle ls-delete-week-v2 button nm-delete-week-v2"
                           onClick={() => {
-                            props.plannerDispatch(
-                              lbProgram.p("weeks").recordModify((weeks) => {
-                                return CollectionUtils.removeAt(weeks, weekIndex);
-                              })
+                            onWeeksChange(
+                              props.plannerDispatch,
+                              ui,
+                              props.state.current.program.planner!.weeks,
+                              (order) => {
+                                props.plannerDispatch(
+                                  lbProgram.p("weeks").recordModify((weeks) => {
+                                    return CollectionUtils.removeAt(weeks, weekIndex);
+                                  })
+                                );
+                                order.splice(weekIndex, 1);
+                              }
                             );
                           }}
                         >
@@ -167,24 +223,34 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                       )}
                     </div>
                   </div>
-                  {!collapsedWeeks.has(week.id ?? "") && (
+                  {!collapsedWeeks.has(`${weekIndex}`) && (
                     <div>
                       <DraggableList
                         items={week.days}
                         mode="vertical"
                         onDragEnd={(startIndex, endIndex) => {
-                          props.plannerDispatch([
-                            lbProgram
-                              .p("weeks")
-                              .i(weekIndex)
-                              .p("days")
-                              .recordModify((days) => {
-                                const newDays = [...days];
-                                const [daysToMove] = newDays.splice(startIndex, 1);
-                                newDays.splice(endIndex, 0, daysToMove);
-                                return newDays;
-                              }),
-                          ]);
+                          EditProgramUiHelpers.onDaysChange(
+                            props.plannerDispatch,
+                            props.state.ui,
+                            weekIndex,
+                            week.days,
+                            (order) => {
+                              props.plannerDispatch([
+                                lbProgram
+                                  .p("weeks")
+                                  .i(weekIndex)
+                                  .p("days")
+                                  .recordModify((days) => {
+                                    const newDays = [...days];
+                                    const [daysToMove] = newDays.splice(startIndex, 1);
+                                    newDays.splice(endIndex, 0, daysToMove);
+                                    return newDays;
+                                  }),
+                              ]);
+                              const [daysToMove] = order.splice(startIndex, 1);
+                              order.splice(endIndex, 0, daysToMove);
+                            }
+                          );
                         }}
                         element={(day, dayIndex, handleTouchStart2) => {
                           const evalResult = evaluatedWeeks[weekIndex][dayIndex];

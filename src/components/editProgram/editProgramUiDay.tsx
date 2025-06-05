@@ -51,8 +51,9 @@ interface IEditProgramDayViewProps {
 export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Element {
   const lbPlannerDay = props.lbPlannerWeek.p("days").i(props.dayInWeekIndex);
   const ui = props.state.ui;
-  const isCollapsed = ui.dayUi.collapsed.has(props.day.id ?? "");
+  const isCollapsed = ui.dayUi.collapsed.has(`${props.weekIndex}-${props.dayInWeekIndex}`);
   const lbPlanner = lb<IPlannerState>().p("current").p("program").pi("planner");
+  const days = props.state.current.program.planner!.weeks[props.weekIndex].days;
 
   return (
     <div key={props.day.id} className="p-1 my-1 bg-white border rounded-2xl border-grayv3-300">
@@ -92,19 +93,28 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                 const newName = StringUtils.nextName(props.day.name);
                 const newDay = { name: newName, exerciseText: props.day.exerciseText, id: UidFactory.generateUid(8) };
                 applyChangesInEditor(props.plannerDispatch, () => {
-                  props.plannerDispatch(
-                    lbPlanner
-                      .p("weeks")
-                      .i(props.weekIndex)
-                      .p("days")
-                      .recordModify((days) => {
-                        const newDays = [
-                          ...days.slice(0, props.dayInWeekIndex + 1),
-                          newDay,
-                          ...days.slice(props.dayInWeekIndex + 1),
-                        ];
-                        return newDays;
-                      })
+                  EditProgramUiHelpers.onDaysChange(
+                    props.plannerDispatch,
+                    props.state.ui,
+                    props.weekIndex,
+                    days,
+                    (order) => {
+                      props.plannerDispatch(
+                        lbPlanner
+                          .p("weeks")
+                          .i(props.weekIndex)
+                          .p("days")
+                          .recordModify((days) => {
+                            const newDays = [
+                              ...days.slice(0, props.dayInWeekIndex + 1),
+                              newDay,
+                              ...days.slice(props.dayInWeekIndex + 1),
+                            ];
+                            return newDays;
+                          })
+                      );
+                      order.splice(props.dayInWeekIndex + 1, 0, order[props.dayInWeekIndex]);
+                    }
                   );
                 });
               }}
@@ -119,14 +129,23 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                 className="px-2 align-middle ls-delete-day button nm-delete-day"
                 onClick={() => {
                   applyChangesInEditor(props.plannerDispatch, () => {
-                    props.plannerDispatch(
-                      lbPlanner
-                        .p("weeks")
-                        .i(props.weekIndex)
-                        .p("days")
-                        .recordModify((days) => {
-                          return CollectionUtils.removeAt(days, props.dayInWeekIndex);
-                        })
+                    EditProgramUiHelpers.onDaysChange(
+                      props.plannerDispatch,
+                      props.state.ui,
+                      props.weekIndex,
+                      days,
+                      (order) => {
+                        props.plannerDispatch(
+                          lbPlanner
+                            .p("weeks")
+                            .i(props.weekIndex)
+                            .p("days")
+                            .recordModify((days) => {
+                              return CollectionUtils.removeAt(days, props.dayInWeekIndex);
+                            })
+                        );
+                        order.splice(props.dayInWeekIndex, 1);
+                      }
                     );
                   });
                 }}
@@ -146,7 +165,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                     .p("collapsed")
                     .recordModify((collapsed) => {
                       const newCollapsed = new Set(Array.from(collapsed));
-                      const key = props.day.id ?? "";
+                      const key = `${props.weekIndex}-${props.dayInWeekIndex}`;
                       if (newCollapsed.has(key)) {
                         newCollapsed.delete(key);
                       } else {
@@ -260,7 +279,8 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                       } else {
                         const newCollapsed = new Set<string>();
                         for (const exercise of evaluatedDay.data) {
-                          newCollapsed.add(exercise.id);
+                          const exKey = `${exercise.key}-${exercise.dayData.week - 1}-${exercise.dayData.dayInWeek - 1}`;
+                          newCollapsed.add(exKey);
                         }
                         return newCollapsed;
                       }

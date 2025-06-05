@@ -41,7 +41,9 @@ interface IEditProgramUiExerciseViewProps {
 
 export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps): JSX.Element {
   const { weekIndex, dayIndex, exerciseIndex } = props;
-  const isCollapsed = props.ui.exerciseUi.collapsed.has(props.plannerExercise.id);
+  const isCollapsed = props.ui.exerciseUi.collapsed.has(
+    `${props.plannerExercise.key}-${props.plannerExercise.dayData.week - 1}-${props.plannerExercise.dayData.dayInWeek - 1}`
+  );
   const exercise = Exercise.findByName(props.plannerExercise.name, props.settings.exercises);
   const exerciseType = exercise != null ? { id: exercise.id, equipment: exercise.equipment } : undefined;
 
@@ -152,7 +154,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
                   .p("collapsed")
                   .recordModify((collapsed) => {
                     const newCollapsed = new Set(Array.from(collapsed));
-                    const exKey = props.plannerExercise.id;
+                    const exKey = `${props.plannerExercise.key}-${props.plannerExercise.dayData.week - 1}-${props.plannerExercise.dayData.dayInWeek - 1}`;
                     if (newCollapsed.has(exKey)) {
                       newCollapsed.delete(exKey);
                     } else {

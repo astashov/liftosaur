@@ -5,10 +5,12 @@ import {
   IPlannerExerciseState,
   IPlannerProgramExercise,
   IPlannerProgramExerciseEvaluatedSet,
+  IPlannerState,
+  IPlannerUi,
 } from "../../../pages/planner/models/types";
 import { PlannerEvaluator } from "../../../pages/planner/plannerEvaluator";
 import { PlannerKey } from "../../../pages/planner/plannerKey";
-import { IPlannerProgram, ISettings, IDayData, IExerciseType, IDaySetData } from "../../../types";
+import { IPlannerProgram, ISettings, IDayData, IExerciseType, IDaySetData, IPlannerProgramDay } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { PlannerExerciseEvaluator } from "../../../pages/planner/plannerExerciseEvaluator";
 import { Exercise, IExercise } from "../../../models/exercise";
@@ -94,6 +96,36 @@ export class EditProgramUiHelpers {
         return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, settings, true, cb);
       })
     );
+  }
+
+  public static onDaysChange(
+    plannerDispatch: ILensDispatch<IPlannerState>,
+    ui: IPlannerUi,
+    weekIndex: number,
+    days: IPlannerProgramDay[],
+    cb: (order: boolean[]) => void
+  ): void {
+    const lbUi = lb<IPlannerState>().p("ui");
+    const collapsedOrder = days.map((d, i) => {
+      return ui.dayUi.collapsed.has(`${weekIndex}-${i}`);
+    });
+    cb(collapsedOrder);
+    plannerDispatch([
+      lbUi
+        .p("dayUi")
+        .p("collapsed")
+        .recordModify((collapsed) => {
+          const newCollapsed = new Set<string>(collapsed);
+          for (let i = 0; i < collapsedOrder.length; i++) {
+            if (collapsedOrder[i]) {
+              newCollapsed.add(`${weekIndex}-${i}`);
+            } else {
+              newCollapsed.delete(`${weekIndex}-${i}`);
+            }
+          }
+          return newCollapsed;
+        }),
+    ]);
   }
 
   public static changeSets(
