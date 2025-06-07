@@ -80,6 +80,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           <div>
             <button
               className="p-2"
+              data-cy="edit-program-exercise-change"
               onClick={() => {
                 props.plannerDispatch(
                   lb<IPlannerExerciseState>()

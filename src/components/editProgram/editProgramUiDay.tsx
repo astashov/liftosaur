@@ -25,7 +25,6 @@ import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator
 import { Button } from "../button";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
-import { IconGraphsE } from "../icons/iconGraphsE";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { IDispatch } from "../../ducks/types";
 import { IEvaluatedProgram } from "../../models/program";
@@ -56,7 +55,11 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
   const days = props.state.current.program.planner!.weeks[props.weekIndex].days;
 
   return (
-    <div key={props.day.id} className="p-1 my-1 bg-white border rounded-2xl border-grayv3-300">
+    <div
+      key={props.day.id}
+      className="p-1 my-1 bg-white border rounded-2xl border-grayv3-300"
+      data-cy={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
+    >
       <div className="flex items-center">
         <div className="p-2 cursor-move" style={{ touchAction: "none" }}>
           <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
@@ -255,18 +258,6 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
             {duration.value} {duration.unit}
           </div>
         </div>
-        {props.ui.mode !== "ui" && props.ui.focusedExercise && evaluatedDay.success && (
-          <div className="ml-auto">
-            <button
-              className="px-2"
-              onClick={() => {
-                props.plannerDispatch([lb<IPlannerState>().p("ui").p("showExerciseStats").record(true)]);
-              }}
-            >
-              <IconGraphsE width={16} height={19} />
-            </button>
-          </div>
-        )}
         {props.ui.mode === "ui" && evaluatedDay.success && (
           <div className="ml-auto mr-2">
             <LinkButton
@@ -341,6 +332,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
               <Button
                 kind="lightgrayv3"
                 buttonSize="md"
+                data-cy="add-exercise"
                 name="add-exercise"
                 className="flex items-center justify-center w-full text-sm text-center"
                 onClick={() => {

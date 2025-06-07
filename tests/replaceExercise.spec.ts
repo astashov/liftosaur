@@ -10,7 +10,6 @@ test("replaces exercises", async ({ page }) => {
   await page.getByTestId("modal-create-experimental-program-submit").click();
 
   await page.getByTestId("editor-v2-full-program").click();
-  await page.getByTestId("editor-v2-full-program").click();
   await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
   await PlaywrightUtils.typeCodeMirror(
     page,
@@ -33,18 +32,16 @@ t1: Squat / 3x5
 Bicep Curl / 1x5`
   );
 
-  await page.getByTestId("editor-v2-save-full").click();
-  await page.getByTestId("editor-save-v2-top").click();
+  await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-program").click();
-  await page.getByTestId("editor-v2-full-program").click();
 
-  await page.getByTestId("planner-editor").first().locator(".cm-content").click();
-  await page.getByTestId("editor-v2-exercise-stats").click();
+  await page.getByTestId("exercise-benchpress_barbell").getByTestId("show-exercise-stats").click();
   await page.getByTestId("planner-swap-exercise").click();
 
   await page.getByTestId("modal-exercise").getByTestId("menu-item-bent-over-row-dumbbell").click();
 
+  await page.getByTestId("editor-v2-perday-program").click();
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText("Squat / 3x8");
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
     "Bent Over Row, Dumbbell[1-2] / 3x8 / update: custom() {~ weights = 5lb ~} / progress: custom() {~ weights = 5lb ~}"
@@ -66,7 +63,7 @@ Bicep Curl / 1x5`
     "Bicep Curl / 1x5"
   );
 
-  await page.getByTestId("editor-save-v2-top").click();
+  await page.getByTestId("save-program").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
@@ -76,7 +73,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("modal-exercise").getByTestId("menu-item-squat-dumbbell").click();
 
   await page.getByTestId("footer-program").click();
-  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-perday-program").click();
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText("Squat / 3x8");
 
   await page.getByTestId("footer-workout").click();
@@ -87,7 +84,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("modal-exercise").getByTestId("menu-item-hack-squat-smith").click();
 
   await page.getByTestId("footer-program").click();
-  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-perday-program").click();
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
     "Hack Squat, Smith Machine / 3x8"
   );

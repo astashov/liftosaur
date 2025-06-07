@@ -21,8 +21,7 @@ test("custom equipment", async ({ page }) => {
 Bicep Curl / 1x5 20lb / warmup: none`
   );
 
-  await page.getByTestId("editor-v2-save-full").click();
-  await page.getByTestId("editor-save-v2-top").click();
+  await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
@@ -47,19 +46,15 @@ Bicep Curl / 1x5 20lb / warmup: none`
   await page.getByTestId("menu-item-value-8-lb").clear();
   await page.getByTestId("menu-item-value-8-lb").type("6");
 
-  await page.getByTestId("footer-program").click();
-  await page.getByTestId("edit-exercise").click();
-
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
 
-  await page.getByTestId("exercise-options").click();
-  await page.getByTestId("exercise-edit-mode").click();
-  await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("exercise-equipment-picker").click();
+  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
   await page.getByTestId("scroll-barrel-item-boom").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-boom").click();
   await page.waitForTimeout(1000);
-  await page.getByTestId("modal-edit-mode-save-statvars").click();
+  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
 
   await expect(page.getByTestId("plates-list")).toHaveText("10/10");
 
@@ -77,7 +72,6 @@ Bicep Curl / 1x5 20lb / warmup: none`
 
   await page.getByTestId("footer-workout").click();
 
-  await page.getByTestId("exercise-options").click();
-  await page.getByTestId("exercise-edit-mode").click();
-  await expect(page.getByTestId("menu-item-value-equipment")).toHaveText("");
+  await page.getByTestId("exercise-equipment-picker").click();
+  await expect(page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment")).toHaveText("None");
 });

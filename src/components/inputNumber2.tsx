@@ -120,6 +120,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   };
 
   const blur = useCallback(() => {
+    console.log("Blurring input number");
     setIsFocused(false);
     setIsTyping(false);
     isTypingRef.current = false;
@@ -233,6 +234,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     let foundOtherInput: HTMLElement | null = null;
     while (target) {
       if (target.classList?.contains("keyboard-close")) {
+        console.log("Closing keyboard because of keyboard-close");
         blur();
         return true;
       } else if (target === containerRef.current || target === keyboardRef.current) {
@@ -277,6 +279,8 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     };
   }, []);
 
+  console.log("Is calculator open:", isCalculatorOpen);
+
   return (
     <div ref={containerRef} className="input-number">
       <div
@@ -300,7 +304,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
                 currentTarget.focus();
               }
             }
-          }, 0);
+          }, 10);
         }}
         onClick={(e) => {
           e.currentTarget.focus();
@@ -358,6 +362,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
           withDot={value.includes(".")}
           enableCalculator={props.enableCalculator}
           onShowCalculator={() => {
+            console.log("Opening calculator");
             blur();
             setIsCalculatorOpen(true);
           }}

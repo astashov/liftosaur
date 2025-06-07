@@ -24,11 +24,18 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("edit-exercise").click();
   await page.getByTestId("edit-exercise-warmups-customize").click();
-  await page.getByTestId("edit-exercise-warmupset-delete").first().click();
-  await page.getByTestId("edit-exercise-warmupset-delete").first().click();
-  await page.getByTestId("edit-exercise-warmupset-delete").first().click();
 
-  await page.getByTestId("editor-save-v2-top").click();
+  await PlaywrightUtils.swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
+  await page.getByTestId("delete-warmup-set").nth(0).click();
+
+  await PlaywrightUtils.swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
+  await page.getByTestId("delete-warmup-set").nth(0).click();
+
+  await PlaywrightUtils.swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
+  await page.getByTestId("delete-warmup-set").nth(0).click();
+
+  await page.getByTestId("save-program-exercise").click();
+  await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
@@ -39,8 +46,8 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("footer-program").click({ force: true });
   await page.getByTestId("edit-exercise").click();
-  await page.getByTestId("num-input-edit-exercise-numofsets-value").fill("2");
-  await page.getByTestId("edit-exercise-change-here").click({ force: true });
+  await page.getByTestId("add-set").click();
+  await page.getByTestId("edit-program-exercise-change").click();
   await page.getByTestId("custom-exercise-delete-my-exercise-2").click({ force: true });
 
   await page.getByTestId("custom-exercise-create").click({ force: true });
@@ -48,7 +55,8 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("custom-exercise-create").click({ force: true });
 
   await page.getByTestId("menu-item-blah-one").click({ force: true });
-  await page.getByTestId("editor-save-v2-top").click();
+  await page.getByTestId("save-program-exercise").click();
+  await page.getByTestId("save-program").click();
   await page.getByTestId("footer-home").click();
 
   await expect(page.getByTestId("history-entry-exercise-name").nth(1)).toHaveText("My Exercise 2 🏆");
@@ -61,7 +69,7 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("footer-program").click({ force: true });
   await page.getByTestId("edit-exercise").click();
-  await page.getByTestId("edit-exercise-change-here").click({ force: true });
+  await page.getByTestId("edit-program-exercise-change").click();
   await page.getByTestId("custom-exercise-create").click({ force: true });
 
   await page.getByTestId("custom-exercise-name-input").fill("My Exercise 2");
@@ -78,7 +86,8 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("custom-exercise-create").click({ force: true });
 
   await page.getByTestId("menu-item-my-exercise-3").click({ force: true });
-  await page.getByTestId("editor-save-v2-top").click();
+  await page.getByTestId("save-program-exercise").click();
+  await page.getByTestId("save-program").click();
   await page.getByTestId("footer-home").click();
 
   await expect(page.getByTestId("history-entry-exercise-name").nth(1)).toHaveText("My Exercise 3 🏆");

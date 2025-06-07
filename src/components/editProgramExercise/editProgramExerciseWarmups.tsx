@@ -163,7 +163,10 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                         onPointerMove={!shouldUseTouch ? onPointerMove : undefined}
                         onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
                       >
-                        <div className="table-cell px-2 py-1 text-sm align-middle border-b border-purplev3-150">
+                        <div
+                          className="table-cell px-2 py-1 text-sm align-middle border-b border-purplev3-150"
+                          data-cy="warmup-set-number"
+                        >
                           <div className={`w-6 h-6 flex items-center justify-start rounded-full`}>
                             <div>{setIndex + 1}</div>
                           </div>
@@ -199,10 +202,13 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                             />
                           </div>
                         </div>
-                        <div className="table-cell px-1 py-2 text-center align-middle border-b border-purplev3-150">
+                        <div
+                          className="table-cell px-1 py-2 text-center align-middle border-b border-purplev3-150"
+                          data-cy="warmup-set-x"
+                        >
                           ×
                         </div>
-                        <div className="table-cell py-2 align-middle border-b border-purplev3-150">
+                        <div className="relative table-cell py-2 align-middle border-b border-purplev3-150">
                           <div className="flex items-center justify-center text-center">
                             <InputWeight2
                               name="set-weight"
@@ -244,7 +250,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                             style={{ marginLeft: "1px" }}
                           >
                             <button
-                              data-cy="delete-set"
+                              data-cy="delete-warmup-set"
                               tabIndex={-1}
                               onClick={() => {
                                 close();

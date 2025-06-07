@@ -145,7 +145,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
         <EditProgramModeSwitchButton
           isSelected={props.state.ui.mode === "reorder"}
           disabled={!isValid}
-          name="program-mode-reorder"
+          name="editor-v2-reorder-program"
           onClick={() => {
             props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("reorder")]);
           }}
@@ -154,7 +154,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
         </EditProgramModeSwitchButton>
         <EditProgramModeSwitchButton
           isSelected={props.state.ui.mode === "ui"}
-          name="program-mode-ui"
+          name="editor-v2-ui-program"
           disabled={!isValid}
           onClick={() => {
             props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("ui")]);
@@ -164,7 +164,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
         </EditProgramModeSwitchButton>
         <EditProgramModeSwitchButton
           isSelected={props.state.ui.mode === "perday"}
-          name="program-mode-day-text"
+          name="editor-v2-perday-program"
           onClick={() => {
             props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("perday")]);
           }}
@@ -173,7 +173,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
         </EditProgramModeSwitchButton>
         <EditProgramModeSwitchButton
           isSelected={props.state.ui.mode === "full"}
-          name="program-mode-full-text"
+          name="editor-v2-full-program"
           onClick={() => {
             props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("full")]);
           }}
@@ -220,6 +220,7 @@ function EditProgramModeSwitchButton(props: IEditProgramModeSwitchButtonProps): 
   const isSelected = props.isSelected;
   return (
     <button
+      data-cy={props.name}
       className={`p-2 ${isSelected ? "bg-purplev3-200" : ""} rounded nm-${props.name}`}
       style={{ opacity: props.disabled && !isSelected ? 0.5 : 1 }}
       onClick={() => {

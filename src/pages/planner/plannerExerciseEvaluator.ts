@@ -954,10 +954,13 @@ export class PlannerExerciseEvaluator {
       const [line] = this.getLineAndOffset(expr);
       const rawDescriptions: string[] = this.latestDescriptions.map((d) => d.join("\n"));
       const currentDescriptionIndex = rawDescriptions.findIndex((d) => d.startsWith("!"));
-      const descriptions = rawDescriptions.map((d, i) => ({
+      let descriptions = rawDescriptions.map((d, i) => ({
         value: d.replace(/^!/, "").trim(),
         isCurrent: i === currentDescriptionIndex,
       }));
+      if (descriptions.length > 1) {
+        descriptions = descriptions.filter((d) => d.value);
+      }
       this.latestDescriptions = [];
       const fullNamePoint = this.getPoint(nameNode);
 

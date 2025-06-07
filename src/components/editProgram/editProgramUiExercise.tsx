@@ -54,6 +54,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
   return (
     <div
       id={`edit-program-ui-exercise-${props.plannerExercise.dayData.week}-${props.plannerExercise.dayData.dayInWeek}-${props.plannerExercise.key}`}
+      data-cy={`exercise-${props.plannerExercise.key}`}
       className="my-1 overflow-hidden border bg-purplev3-50 rounded-xl border-purplev3-150"
     >
       <div className="flex items-center">
@@ -129,6 +130,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
         <div>
           <button
             className="p-2"
+            data-cy="show-exercise-stats"
             onClick={() => {
               props.plannerDispatch([
                 lb<IPlannerState>().p("ui").p("focusedExercise").record({
@@ -234,7 +236,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                 <div className="flex items-start my-2">
                   {displayWarmupSets.flat().length > 0 && (
                     <>
-                      <div>
+                      <div data-cy="ui-warmups-sets">
                         <div className="pb-1 text-xs text-left text-grayv2-main">Warmups</div>
                         <div>
                           <div>
@@ -247,7 +249,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                       <div className="self-stretch ml-4 mr-4 bg-grayv2-200" style={{ width: "1px" }} />
                     </>
                   )}
-                  <div>
+                  <div data-cy="ui-workout-sets">
                     <div className="pb-1 text-xs text-left text-grayv2-main">Workout</div>
                     {reusingSets && <div className="pb-1 text-xs text-grayv2-main">Reusing {reusingSets}</div>}
                     <EditProgramUiExerciseSetVariations plannerExercise={plannerExercise} settings={props.settings} />
@@ -269,6 +271,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
           <div className="text-center">
             <button
               className="p-2"
+              data-cy="edit-exercise"
               onClick={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>()

@@ -59,3 +59,5 @@ User debug page:
 - Pop out the buttons on the choose program screen more
 - Pop out the NUXes more
 - Progress looks weird if tried to pick reuse set that reuses something else
+
+- Invalid full program allows to save

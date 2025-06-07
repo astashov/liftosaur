@@ -482,7 +482,7 @@ function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
       </div>
       <div className="mt-1 text-xs text-grayv2-main">
         <strong>Next Day: </strong>
-        <LinkButton name="change-program-day" onClick={() => props.onChangeDay()}>
+        <LinkButton data-cy="change-program-day" name="change-program-day" onClick={() => props.onChangeDay()}>
           {Program.getDayName(evaluatedProgram, evaluatedProgram.nextDay)}
         </LinkButton>
       </div>

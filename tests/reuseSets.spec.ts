@@ -10,7 +10,6 @@ test("reuses sets", async ({ page }) => {
   await page.getByTestId("modal-create-program-input").type("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
   await page.getByTestId("editor-v2-full-program").click();
-  await page.getByTestId("editor-v2-full-program").click();
 
   await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
   await PlaywrightUtils.typeCodeMirror(
@@ -47,25 +46,40 @@ a: Squat / ...Squat[1:2]
 Triceps Extension / ...Bench Press[1]`
   );
 
-  await page.getByTestId("editor-v2-save-full").click();
-
-  await page.getByTestId("program-preview").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   await expect(
-    page.getByTestId("preview-day-day-2").getByTestId("hack-squat").getByTestId("history-entry-sets-next")
+    page
+      .getByTestId("edit-day-1-2")
+      .getByTestId("exercise-hacksquat_barbell")
+      .getByTestId("ui-workout-sets")
+      .getByTestId("history-entry-sets-next")
   ).toHaveCount(1);
   await expect(
-    page.getByTestId("preview-day-day-2").getByTestId("hack-squat").getByTestId("history-entry-sets-next").first()
-  ).toHaveText("1 × 115lb");
-  await page.getByTestId("tab-week-2").nth(1).click();
+    page
+      .getByTestId("edit-day-1-2")
+      .getByTestId("exercise-hacksquat_barbell")
+      .getByTestId("ui-workout-sets")
+      .getByTestId("history-entry-sets-next")
+      .first()
+  ).toHaveText("1 × 100%");
+  await page.getByTestId("tab-week-2").click();
   await expect(
-    page.getByTestId("preview-day-day-2").getByTestId("squat").getByTestId("history-entry-sets-next")
+    page
+      .getByTestId("edit-day-2-2")
+      .getByTestId("exercise-a-squat_barbell")
+      .getByTestId("ui-workout-sets")
+      .getByTestId("history-entry-sets-next")
   ).toHaveCount(1);
   await expect(
-    page.getByTestId("preview-day-day-2").getByTestId("squat").getByTestId("history-entry-sets-next").first()
-  ).toHaveText("2 × 130lb");
-  await page.getByTestId("modal-close-program-preview").click();
+    page
+      .getByTestId("edit-day-2-2")
+      .getByTestId("exercise-a-squat_barbell")
+      .getByTestId("ui-workout-sets")
+      .getByTestId("history-entry-sets-next")
+      .first()
+  ).toHaveText("2 × 95%");
 
-  await page.getByTestId("editor-save-v2-top").click();
+  await page.getByTestId("save-program").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
@@ -75,7 +89,7 @@ Triceps Extension / ...Bench Press[1]`
   await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("footer-program").click();
-  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-perday-program").click();
 
   await expect(page.getByTestId("planner-editor").first()).toContainText("Squat / 1x1 / 140lb");
   await expect(page.getByTestId("planner-editor").nth(1)).toContainText("Squat / 1x2 / 133.25lb");

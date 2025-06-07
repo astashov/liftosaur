@@ -65,6 +65,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
         <div className="flex items-center">
           <div>
             <button
+              data-cy="editor-v2-week-muscles"
               className="px-2"
               onClick={() => {
                 props.plannerDispatch(lb<IPlannerState>().pi("ui").p("showWeekStats").record(currentWeekIndex));

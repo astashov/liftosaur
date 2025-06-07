@@ -3,9 +3,9 @@ import { PlaywrightUtils, startpage } from "./playwrightUtils";
 
 async function switchBackToFirstDay(page: Page): Promise<void> {
   await page.getByTestId("footer-program").click({ force: true });
-  await page.getByTestId("menu-item-name-next-day").click({ force: true });
-  await page.getByTestId("scroll-barrel-item-week-1---workout-a").first().scrollIntoViewIfNeeded();
-  await page.getByTestId("scroll-barrel-item-week-1---workout-a").first().click();
+  await page.getByTestId("change-program-day").click();
+  await page.getByTestId("menu-item-next-day-picker-1").first().scrollIntoViewIfNeeded();
+  await page.getByTestId("menu-item-next-day-picker-1").first().click();
   await page.waitForTimeout(1000);
   await page.getByTestId("footer-home").click({ force: true });
 }
