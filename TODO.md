@@ -54,12 +54,8 @@ User debug page:
 * Toggle between lb/kg by tapping on header
 
 - Add help NUXes for playground, etc
-- Repeat in Program screen
-
-
 
 - Borders on the edit exercise screen
 - Pop out the buttons on the choose program screen more
 - Pop out the NUXes more
-
 - Progress looks weird if tried to pick reuse set that reuses something else
