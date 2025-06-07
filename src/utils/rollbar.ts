@@ -28,7 +28,7 @@ export const exceptionIgnores = [
   "play() failed because the user",
   "play() request was interrupted",
   "The request is not allowed by the user agent or the platform",
-  // "Load failed",
+  "Load failed",
   "Function timed out",
   "is out of range for changeset",
   "when attempting to fetch resource",
