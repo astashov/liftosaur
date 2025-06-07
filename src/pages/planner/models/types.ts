@@ -1,7 +1,7 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
 import { IExerciseType, IPercentage, IProgram, IProgramState, IProgramStateMetadata } from "../../../types";
-import { IPlannerSyntaxPointer } from "../plannerExerciseEvaluator";
+import { IPlannerSyntaxPointer, PlannerSyntaxError } from "../plannerExerciseEvaluator";
 import { SyntaxNode } from "@lezer/common";
 import {
   IDayData,
@@ -218,6 +218,7 @@ export interface IPlannerUi {
   showDayStats?: number;
   showExerciseStats?: boolean;
   showPreview?: boolean;
+  fullTextError?: PlannerSyntaxError;
   focusedDay?: IDayData & { key?: string };
   showSettingsModal?: boolean;
   mode?: "reorder" | "ui" | "perday" | "full";

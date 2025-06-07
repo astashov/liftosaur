@@ -21,7 +21,7 @@ import { Thunk } from "../../ducks/thunks";
 import { updateState, IState } from "../../models/state";
 import { CollectionUtils } from "../../utils/collection";
 import { IDispatch } from "../../ducks/types";
-import { IPlannerEvalFullResult, IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
+import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 
 interface IEditProgramViewProps {
   evaluatedWeeks: IPlannerEvalResult[][];
@@ -93,7 +93,6 @@ export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
 
 interface IEditProgramNavbarProps {
   state: IPlannerState;
-  fullEvaluatedWeeks?: IPlannerEvalFullResult;
   originalProgram: IProgram;
   settings: ISettings;
   dispatch: IDispatch;
@@ -101,8 +100,7 @@ interface IEditProgramNavbarProps {
 }
 
 function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
-  const isValidFull = props.fullEvaluatedWeeks ? props.fullEvaluatedWeeks.success : true;
-
+  const isValidFull = !props.state.ui.fullTextError;
   const planner = props.state.current.program.planner!;
   const evaluatedWeeks = PlannerProgram.evaluate(planner, props.settings).evaluatedWeeks;
   const isValidPerDay = evaluatedWeeks.every((week) => week.every((day) => day.success)) ?? true;

@@ -23,6 +23,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
     return PlannerProgram.evaluateFull(fulltext, props.settings);
   }, [fulltext, props.settings.exercises]);
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
+  const lbUi = lb<IPlannerState>().p("ui");
 
   return (
     <div className="relative">
@@ -32,14 +33,24 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
             name="Program"
             customExercises={props.settings.exercises}
             exerciseFullNames={exerciseFullNames}
-            error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
+            error={
+              props.ui.fullTextError
+                ? props.ui.fullTextError
+                : evaluatedWeeks.success
+                  ? undefined
+                  : evaluatedWeeks.error
+            }
             value={fulltext}
             onCustomErrorCta={(err) => (
               <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.plannerDispatch} err={err} />
             )}
             onChange={(text) => {
               const weeks = PlannerProgram.evaluateText(text);
-              props.plannerDispatch(lbProgram.p("weeks").record(weeks));
+              const { evaluatedWeeks } = PlannerProgram.evaluateFull(text, props.settings);
+              props.plannerDispatch([
+                lbUi.p("fullTextError").record(evaluatedWeeks.success ? undefined : evaluatedWeeks.error),
+                lbProgram.p("weeks").record(weeks),
+              ]);
             }}
             lineNumbers={true}
             onBlur={(e, text) => {}}
