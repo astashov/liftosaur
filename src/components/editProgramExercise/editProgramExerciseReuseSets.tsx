@@ -38,6 +38,9 @@ function getReuseSetsCandidates(
     ) {
       return;
     }
+    if (exercise.reuse != null || exercise.progress?.reuse != null || exercise.update?.reuse != null) {
+      return;
+    }
     let reuseSetCandidate = result[exercise.key];
     if (!reuseSetCandidate) {
       reuseSetCandidate = {
@@ -66,7 +69,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
   const hasOwnSets = plannerExercise.setVariations.length > 0;
   const reusingSetsExercises = Program.getReusingSetsExercises(props.evaluatedProgram, plannerExercise);
   const reuseSetCandidate = reuseKey ? reuseSetsCandidates[reuseKey] : undefined;
-  const reuseSetValues: [string, string][] = [
+  const reuseSetValues: [string, string | JSX.Element][] = [
     ["", "None"],
     ...ObjectUtils.entries(
       ObjectUtils.mapValues<IReuseCandidate, string, typeof reuseSetsCandidates>(
@@ -105,6 +108,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
         }}
       >
         <InputSelect
+          hint="You can only reuse sets of exercises that don't reuse other exercises"
           name="program-exercise-reuse-select"
           expandValue
           label="Reuse sets from"

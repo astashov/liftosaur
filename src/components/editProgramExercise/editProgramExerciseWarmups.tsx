@@ -35,8 +35,10 @@ function changeWeight(
     e.warmupSets = PlannerProgramExercise.degroupWarmupSets(e.warmupSets || []);
     if (value.unit === "%") {
       e.warmupSets[setIndex].percentage = value.value;
+      e.warmupSets[setIndex].weight = undefined;
     } else {
       e.warmupSets[setIndex].weight = value;
+      e.warmupSets[setIndex].percentage = undefined;
     }
   });
 }

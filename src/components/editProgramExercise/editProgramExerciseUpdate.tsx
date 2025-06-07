@@ -185,12 +185,13 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
                 <div className="flex-1 text-sm">Reuse update from:</div>
                 <div className="flex-1">
                   <InputSelect
+                    hint="You can only reuse update of exercises that don't reuse other exercises"
                     name="program-exercise-update-reuse-select"
                     values={reuseCandidates}
                     value={reuseKey}
                     disabled={reusingUpdateExercises.length > 0}
                     placeholder="None"
-                    onChange={(key, fullName) => {
+                    onChange={(fullName) => {
                       props.plannerDispatch(
                         lbProgram.recordModify((program) => {
                           return EditProgramUiHelpers.changeFirstInstance(
@@ -199,7 +200,7 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
                             props.settings,
                             true,
                             (e) => {
-                              if (key) {
+                              if (fullName) {
                                 e.update = {
                                   type: "custom",
                                   reuse: fullName ? { fullName, source: "specific" } : undefined,

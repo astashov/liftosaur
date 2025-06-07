@@ -8,10 +8,11 @@ interface IInputSelectProps<T extends string> {
   label?: string;
   placeholder?: string;
   expandValue?: boolean;
+  hint?: string;
   disabled?: boolean;
   value?: T;
-  values?: [T, string][];
-  onChange?: (v?: T, label?: string) => void;
+  values?: [T, string | JSX.Element][];
+  onChange?: (v?: T) => void;
 }
 
 export function InputSelect<T extends string>(props: IInputSelectProps<T>): JSX.Element {
@@ -68,16 +69,17 @@ export function InputSelectValue<T extends string>(
       </button>
       {props.values && props.values.length > 0 && (
         <BottomSheet shouldShowClose={true} onClose={() => setIsExpanded(false)} isHidden={!isExpanded}>
-          <div className="flex flex-col px-4 py-2">
+          {props.hint && <div className="pt-1 pl-2 pr-8 text-xs text-grayv3-main">{props.hint}</div>}
+          <div className="flex flex-col px-2 py-2">
             {props.values?.map(([key, value], i) => (
               <button
                 key={key}
-                className={`py-2 ${i !== 0 ? "border-t" : ""} cursor-pointer text-left ${
-                  value === props.value ? "bg-grayv3-200" : "border-grayv3-200"
+                className={`py-2 px-2 ${i !== 0 && value !== props.value ? "border-t" : ""} cursor-pointer text-left ${
+                  value === props.value ? "bg-grayv3-100 rounded" : "border-grayv3-200"
                 }`}
                 onClick={() => {
                   if (props.onChange) {
-                    props.onChange(key, value);
+                    props.onChange(key);
                   }
                   setIsExpanded(false);
                 }}

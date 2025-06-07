@@ -44,7 +44,7 @@ function getProgressReuseCandidates(key: string, evaluatedProgram: IEvaluatedPro
     if (!progress || progress.type !== "custom" || progress.reuse) {
       return;
     }
-    result[exercise.key] = exercise.fullName;
+    result[exercise.fullName] = exercise.fullName;
   });
   return ObjectUtils.entries(result);
 }
@@ -157,8 +157,11 @@ interface IProgressContentProps {
 function ProgressContent(props: IProgressContentProps): JSX.Element {
   const { plannerExercise, evaluatedProgram } = props;
   const ownProgress = plannerExercise.progress;
-  const reuseCandidates = getProgressReuseCandidates(plannerExercise.key, evaluatedProgram);
-  const reuseKey = ownProgress?.reuse?.exercise?.key;
+  const reuseCandidates: [string, string][] = [
+    ["", "None"],
+    ...getProgressReuseCandidates(plannerExercise.key, evaluatedProgram),
+  ];
+  const reuseFullName = ownProgress?.reuse?.exercise?.fullName;
   const reusingCustomProgressExercises = Program.getReusingCustomProgressExercises(evaluatedProgram, plannerExercise);
   const reusingSetProgressExercises = Program.getReusingSetProgressExercises(evaluatedProgram, plannerExercise);
   const reusingProgressExercises = Array.from(
@@ -270,12 +273,13 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                 <div className="flex-1 text-sm">Reuse progress from:</div>
                 <div className="flex-1">
                   <InputSelect
+                    hint="You can only reuse progress of exercises that don't reuse other exercises"
                     name="program-exercise-progress-reuse-select"
                     values={reuseCandidates}
-                    value={reuseKey}
+                    value={reuseFullName}
                     disabled={reusingProgressExercises.length > 0}
                     placeholder="None"
-                    onChange={(key, fullName) => {
+                    onChange={(fullName) => {
                       props.plannerDispatch(
                         lbProgram.recordModify((program) => {
                           return EditProgramUiHelpers.changeFirstInstance(

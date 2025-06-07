@@ -45,7 +45,7 @@ export function SumRepsProgressSettings(props: ISumRepsProgressSettingsProps): J
                     (e) => {
                       const state = e.progress?.state;
                       if (state && value) {
-                        state.increase = value;
+                        state.increment = value;
                       }
                     }
                   );
