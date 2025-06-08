@@ -41,6 +41,8 @@ import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats"
 import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
 import { UidFactory } from "../../utils/generator";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
+import { UrlUtils } from "../../utils/url";
+import { ClipboardUtils } from "../../utils/clipboard";
 
 interface IProps {
   originalProgram: IProgram;
@@ -54,6 +56,8 @@ interface IProps {
   revisions: string[];
   navCommon: INavCommon;
 }
+
+declare let __HOST__: string;
 
 export function ScreenProgram(props: IProps): JSX.Element {
   const plannerState = props.plannerState;
@@ -138,6 +142,12 @@ export function ScreenProgram(props: IProps): JSX.Element {
             isLoadingRevisions={isLoadingRevisions}
             isLoggedIn={props.isLoggedIn}
             onExportProgramToLink={() => {
+              setShouldShowBottomSheet(false);
+              const url = UrlUtils.build(`/user/p/${props.originalProgram.id}`, __HOST__);
+              ClipboardUtils.copy(url.toString());
+              alert(`Copied link to the clipboard: ${url}`);
+            }}
+            onShareProgramToLink={() => {
               setShouldShowBottomSheet(false);
               props.dispatch(
                 Thunk.generateAndCopyLink(props.originalProgram, props.settings, (url) => {

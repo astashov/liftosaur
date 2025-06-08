@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { BottomSheet } from "./bottomSheet";
 import { BottomSheetItem } from "./bottomSheetItem";
 import { IconLink } from "./icons/iconLink";
@@ -11,6 +11,7 @@ interface IProps {
   isLoggedIn: boolean;
   isLoadingRevisions: boolean;
   onExportProgramToLink: () => void;
+  onShareProgramToLink: () => void;
   onGenerateProgramImage: () => void;
   onLoadRevisions: () => void;
   onClose: () => void;
@@ -23,11 +24,11 @@ export function BottomSheetEditProgramV2(props: IProps): JSX.Element {
         <BottomSheetItem
           isFirst={true}
           name="copy-link"
-          className="ls-export-program"
-          title="Copy Link to Program"
+          className="ls-public-share-program"
+          title="Copy Shareable Link to Program"
           icon={<IconLink />}
           description="To share it with somebody."
-          onClick={props.onExportProgramToLink}
+          onClick={props.onShareProgramToLink}
         />
         <BottomSheetItem
           name="generate-image"
@@ -38,14 +39,24 @@ export function BottomSheetEditProgramV2(props: IProps): JSX.Element {
           onClick={props.onGenerateProgramImage}
         />
         {props.isLoggedIn && (
-          <BottomSheetItem
-            name="show-program-revisions"
-            className="ls-show-program-revisions"
-            title="Show program versions"
-            icon={props.isLoadingRevisions ? <IconSpinner width={17} height={17} /> : <IconDoc2 />}
-            description="See history of changes of your program"
-            onClick={props.onLoadRevisions}
-          />
+          <>
+            <BottomSheetItem
+              name="copy-link"
+              className="ls-private-export-program"
+              title="Copy Private Link to Program"
+              icon={<IconLink />}
+              description="To edit it on your laptop in a browser."
+              onClick={props.onExportProgramToLink}
+            />
+            <BottomSheetItem
+              name="show-program-revisions"
+              className="ls-show-program-revisions"
+              title="Show program versions"
+              icon={props.isLoadingRevisions ? <IconSpinner width={17} height={17} /> : <IconDoc2 />}
+              description="See history of changes of your program"
+              onClick={props.onLoadRevisions}
+            />
+          </>
         )}
       </div>
     </BottomSheet>
