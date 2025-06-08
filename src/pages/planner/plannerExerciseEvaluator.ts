@@ -37,6 +37,7 @@ import { PlannerKey } from "./plannerKey";
 import { UidFactory } from "../../utils/generator";
 import { ObjectUtils } from "../../utils/object";
 import { PlannerProgramExercise } from "./models/plannerProgramExercise";
+import memoize from "micro-memoize";
 
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
@@ -746,24 +747,24 @@ export class PlannerExerciseEvaluator {
     }
   }
 
-  public static extractNameParts(
-    str: string,
-    exercises: IAllCustomExercises
-  ): { name: string; label?: string; equipment?: string } {
-    let [label, ...nameEquipmentItems] = str.split(":");
-    if (nameEquipmentItems.length === 0) {
-      nameEquipmentItems = [label];
-      label = "";
-    } else {
-      label = label.trim();
-    }
-    const nameEquipment = nameEquipmentItems.join(":").trim();
-    const matchingExercise = Exercise.findByNameAndEquipment(nameEquipment, exercises);
-    if (matchingExercise) {
-      return { name: matchingExercise.name, label: label ? label : undefined, equipment: matchingExercise.equipment };
-    }
-    return { name: nameEquipment, label: label ? label : undefined };
-  }
+  public static extractNameParts = memoize(
+    (str: string, exercises: IAllCustomExercises): { name: string; label?: string; equipment?: string } => {
+      let [label, ...nameEquipmentItems] = str.split(":");
+      if (nameEquipmentItems.length === 0) {
+        nameEquipmentItems = [label];
+        label = "";
+      } else {
+        label = label.trim();
+      }
+      const nameEquipment = nameEquipmentItems.join(":").trim();
+      const matchingExercise = Exercise.findByNameAndEquipment(nameEquipment, exercises);
+      if (matchingExercise) {
+        return { name: matchingExercise.name, label: label ? label : undefined, equipment: matchingExercise.equipment };
+      }
+      return { name: nameEquipment, label: label ? label : undefined };
+    },
+    { maxSize: 1000 }
+  );
 
   private addDescription(value: string): void {
     value = value.replace(/^\/\//, "").trim();
