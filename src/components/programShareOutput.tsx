@@ -197,7 +197,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
       {exercises.map((plannerProgramExercise, i) => {
         const { name, equipment } = PlannerExerciseEvaluator.extractNameParts(
           plannerProgramExercise.fullName,
-          props.settings
+          props.settings.exercises
         );
         const nameAndEquipment = `${name}${equipment ? `, ${equipmentName(equipment, props.settings.equipment)}` : ""}`;
         const exercise = Exercise.findByNameAndEquipment(nameAndEquipment, props.settings.exercises);

@@ -57,7 +57,6 @@ export function SwipeableRow(props: ISwipeableRowProps) {
     const clientY = "touches" in event ? event.touches[0].clientY : event.clientY;
     const deltaX = clientX - startX.current - (isOpen.current ? width : 0);
     const deltaY = Math.abs(clientY - startY.current);
-    console.log("Move event", clientX, clientY, deltaX, deltaY);
 
     if (deltaY > props.scrollThreshold && !isSwiping.current) {
       isScrolling.current = true;

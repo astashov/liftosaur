@@ -100,8 +100,8 @@ export class PlannerProgram {
       const conflictingExercises = allExercises.filter((e) => {
         const newKey =
           typeof toExerciseType === "string"
-            ? PlannerKey.fromLabelNameAndEquipment(getLabel(e.label), toExerciseType, undefined, settings)
-            : PlannerKey.fromExerciseType(toExerciseType, settings, getLabel(e.label));
+            ? PlannerKey.fromLabelNameAndEquipment(getLabel(e.label), toExerciseType, undefined, settings.exercises)
+            : PlannerKey.fromExerciseType(toExerciseType, getLabel(e.label));
         return (
           e.key === newKey &&
           (!dayData || (dayData.week !== e.dayData.week && dayData.dayInWeek !== e.dayData.dayInWeek))
@@ -128,8 +128,8 @@ export class PlannerProgram {
           }
           const newKey =
             typeof toExerciseType === "string"
-              ? PlannerKey.fromLabelNameAndEquipment(newLabel, toExerciseType, undefined, settings)
-              : PlannerKey.fromExerciseType(toExerciseType, settings, newLabel);
+              ? PlannerKey.fromLabelNameAndEquipment(newLabel, toExerciseType, undefined, settings.exercises)
+              : PlannerKey.fromExerciseType(toExerciseType, newLabel);
           renameMapping[exercise.key] = { to: newKey, dayData };
           exercise.key = newKey;
         }

@@ -307,7 +307,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                       },
                       types: [],
                       muscleGroups: [],
-                      exerciseKey: PlannerKey.fromFullName(plannerExercise.fullName, props.settings),
+                      exerciseKey: PlannerKey.fromFullName(plannerExercise.fullName, props.settings.exercises),
                       fullName: plannerExercise.fullName,
                       exerciseType,
                       change: "duplicate",

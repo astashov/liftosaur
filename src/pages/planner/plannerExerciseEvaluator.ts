@@ -16,7 +16,16 @@ import {
   IProgramExerciseUpdate,
   IProgramExerciseProgressType,
 } from "./models/types";
-import { IWeight, IProgramState, IDayData, ISettings, IExerciseType, IUnit, IProgramStateMetadata } from "../../types";
+import {
+  IWeight,
+  IProgramState,
+  IDayData,
+  ISettings,
+  IExerciseType,
+  IUnit,
+  IProgramStateMetadata,
+  IAllCustomExercises,
+} from "../../types";
 import * as W from "../../models/weight";
 import { PlannerNodeName } from "./plannerExerciseStyles";
 import { ScriptRunner } from "../../parser";
@@ -739,7 +748,7 @@ export class PlannerExerciseEvaluator {
 
   public static extractNameParts(
     str: string,
-    settings: ISettings
+    exercises: IAllCustomExercises
   ): { name: string; label?: string; equipment?: string } {
     let [label, ...nameEquipmentItems] = str.split(":");
     if (nameEquipmentItems.length === 0) {
@@ -749,7 +758,7 @@ export class PlannerExerciseEvaluator {
       label = label.trim();
     }
     const nameEquipment = nameEquipmentItems.join(":").trim();
-    const matchingExercise = Exercise.findByNameAndEquipment(nameEquipment, settings.exercises);
+    const matchingExercise = Exercise.findByNameAndEquipment(nameEquipment, exercises);
     if (matchingExercise) {
       return { name: matchingExercise.name, label: label ? label : undefined, equipment: matchingExercise.equipment };
     }
@@ -905,8 +914,8 @@ export class PlannerExerciseEvaluator {
       // eslint-disable-next-line prefer-const
       const fullName = this.getValue(nameNode);
       // eslint-disable-next-line prefer-const
-      let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings);
-      const key = PlannerKey.fromFullName(fullName, this.settings);
+      let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings.exercises);
+      const key = PlannerKey.fromFullName(fullName, this.settings.exercises);
       const shortName = PlannerProgramExercise.shortNameFromFullName(fullName, this.settings);
       const exercise = Exercise.findByNameAndEquipment(shortName, this.settings.exercises);
       let notused = this.getIsNotUsed(expr);
@@ -1184,7 +1193,7 @@ export class PlannerExerciseEvaluator {
         ongoingDescriptions = false;
         const nameNode = child.getChild(PlannerNodeName.ExerciseName)!;
         const fullName = this.getValue(nameNode);
-        const key = PlannerKey.fromFullName(fullName, this.settings);
+        const key = PlannerKey.fromFullName(fullName, this.settings.exercises);
         const repeat = this.getRepeat(child);
         const repeatRanges = this.getRepeatRanges(repeat);
         const order = this.getOrder(child);

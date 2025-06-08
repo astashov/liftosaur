@@ -60,9 +60,6 @@ export class PlaywrightUtils {
   }
 
   public static async select(page: Page, locator: Locator, name: string, value: string): Promise<void> {
-    console.log(`select-${name}`);
-    console.log(`select-options-${name}`);
-    console.log(`select-option-${value}`);
     await locator.getByTestId(`select-${name}`).click();
     await page
       .getByTestId(`select-options-${name}`)

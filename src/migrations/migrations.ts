@@ -610,7 +610,7 @@ export const migrations = {
             const custom = newCustom[Exercise.toKey(exerciseType)];
             if (custom) {
               exercise.exerciseType = { id: custom.exercise.id };
-              const { label } = PlannerExerciseEvaluator.extractNameParts(exercise.name, storage.settings);
+              const { label } = PlannerExerciseEvaluator.extractNameParts(exercise.name, storage.settings.exercises);
               const newName = storage.settings.exercises[custom.exercise.id]?.name;
               exercise.name = `${label ? `${label}-` : ""}${newName}`;
             }

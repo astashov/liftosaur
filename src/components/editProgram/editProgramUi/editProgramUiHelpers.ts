@@ -29,10 +29,10 @@ export class EditProgramUiHelpers {
     shouldValidate: boolean,
     cb: (exercise: IPlannerProgramExercise) => void
   ): IPlannerProgram {
-    const key = PlannerKey.fromFullName(plannerExercise.fullName, settings);
+    const key = PlannerKey.fromFullName(plannerExercise.fullName, settings.exercises);
     const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
     PP.iterate2(evaluatedProgram.weeks, (e) => {
-      const aKey = PlannerKey.fromFullName(e.fullName, settings);
+      const aKey = PlannerKey.fromFullName(e.fullName, settings.exercises);
       if (key === aKey) {
         cb(e);
         return true;
@@ -58,8 +58,8 @@ export class EditProgramUiHelpers {
     dayData: Required<IDayData>,
     change?: "all" | "one" | "duplicate"
   ): void {
-    const { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings);
-    const newKey = PlannerKey.fromLabelNameAndEquipment(value, name, equipment, settings);
+    const { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
+    const newKey = PlannerKey.fromLabelNameAndEquipment(value, name, equipment, settings.exercises);
 
     if (change === "all") {
       onProgramChange(
@@ -274,7 +274,7 @@ export class EditProgramUiHelpers {
           fullName: newFullName,
           shortName: newFullName,
           notused: typeof newExerciseType === "string" ? true : previousExercise.notused,
-          key: PlannerKey.fromFullName(newFullName, settings),
+          key: PlannerKey.fromFullName(newFullName, settings.exercises),
           exerciseType: typeof newExerciseType === "string" ? undefined : newExerciseType,
           name: exercise ? exercise.name : typeof newExerciseType === "string" ? newExerciseType : "",
         };
@@ -388,7 +388,7 @@ export class EditProgramUiHelpers {
     const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
     const { week, dayInWeek } = dayData;
     const targetDay = evaluatedProgram.weeks[week - 1]?.days[dayInWeek - 1];
-    let { label, name } = PlannerExerciseEvaluator.extractNameParts(fullName, settings);
+    let { label, name } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
 
     const add = [];
     if (targetDay) {
@@ -396,7 +396,7 @@ export class EditProgramUiHelpers {
         fullName: fullName,
         shortName: fullName,
         label,
-        key: PlannerKey.fromFullName(fullName, settings),
+        key: PlannerKey.fromFullName(fullName, settings.exercises),
         exerciseType: exerciseType,
         name: name,
         id: UidFactory.generateUid(8),

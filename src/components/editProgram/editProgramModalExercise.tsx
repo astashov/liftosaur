@@ -74,7 +74,8 @@ function onChange(
         fullName = Exercise.fullName(exercise, settings, newLabel);
       }
       if (fullName != null) {
-        const newExerciseText = exerciseText + `\n${fullName} / 1x1 100${settings.units}`;
+        const newLine = `${fullName} / 1x1 100${settings.units}`;
+        const newExerciseText = exerciseText.trim() ? exerciseText + `\n${newLine}` : newLine;
         day.exerciseText = newExerciseText;
         onProgramChange(newPlanner);
         onStopIsUndoing();
@@ -101,7 +102,7 @@ export function EditProgramModalExercise(props: IEditProgramModalExerciseProps):
     return <></>;
   }
   const fullName = modalExerciseUi.fullName;
-  const { label, name } = fullName ? PlannerExerciseEvaluator.extractNameParts(fullName, props.settings) : {};
+  const { label, name } = fullName ? PlannerExerciseEvaluator.extractNameParts(fullName, props.settings.exercises) : {};
 
   return (
     <ModalExercise

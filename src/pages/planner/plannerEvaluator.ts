@@ -18,7 +18,6 @@ import { PlannerKey } from "./plannerKey";
 import { ObjectUtils } from "../../utils/object";
 import { Weight } from "../../models/weight";
 import { PlannerProgram } from "./models/plannerProgram";
-import { PP } from "../../models/pp";
 import { ScriptRunner } from "../../parser";
 import { Progress } from "../../models/progress";
 import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
@@ -480,7 +479,7 @@ export class PlannerEvaluator {
     if (progress?.type === "custom") {
       const fullName = progress.reuse?.fullName;
       if (progress.reuse && fullName) {
-        const key = PlannerKey.fromFullName(fullName, settings);
+        const key = PlannerKey.fromFullName(fullName, settings.exercises);
         const point = exercise.points.progressPoint || exercise.points.fullName;
         if (metadata.byExerciseWeekDay[key] == null) {
           throw PlannerSyntaxError.fromPoint(exercise.fullName, `No such exercise ${fullName}`, point);
@@ -583,7 +582,7 @@ export class PlannerEvaluator {
     if (update?.type === "custom") {
       const fullName = update.reuse?.fullName;
       if (update.reuse && fullName) {
-        const key = PlannerKey.fromFullName(fullName, settings);
+        const key = PlannerKey.fromFullName(fullName, settings.exercises);
         const point = exercise.points.updatePoint || exercise.points.fullName;
 
         if (metadata.byExerciseWeekDay[key] == null) {
@@ -672,6 +671,7 @@ export class PlannerEvaluator {
         day: dayInWeekIndex + 1,
       });
     });
+
     this.iterateOverExercises(evaluatedWeeks, (weekIndex, dayInWeekIndex, dayIndex, exerciseIndex, exercise) => {
       this.fillEvaluatedSetVariations(exercise);
     });
@@ -709,7 +709,7 @@ export class PlannerEvaluator {
       }
     }
     reusingName = reusingName.replace(/\[([^]+)\]/, "").trim();
-    const key = PlannerKey.fromFullName(reusingName, settings);
+    const key = PlannerKey.fromFullName(reusingName, settings.exercises);
     const weekExercises = ObjectUtils.values(byExerciseWeekDay[key]?.[weekIndex ?? currentWeekIndex] || []);
     const weekDescriptions = weekExercises.map((d) => d.descriptions);
     const index = dayIndex ?? 0;
@@ -728,22 +728,28 @@ export class PlannerEvaluator {
     atDay?: number
   ): { exercise: IPlannerProgramExercise; dayData: Required<IDayData> }[] {
     const originalExercises: { exercise: IPlannerProgramExercise; dayData: Required<IDayData> }[] = [];
-    PP.iterate(program, (exercise, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
-      if (weekIndex === atWeek - 1 && (atDay == null || atDay === dayInWeekIndex + 1)) {
+    const week = program[atWeek - 1];
+    const candidateDays = atDay != null ? [week[atDay - 1]] : week;
+    for (let dayInWeekIndex = 0; dayInWeekIndex < candidateDays.length; dayInWeekIndex += 1) {
+      const day = candidateDays[dayInWeekIndex];
+      if (day == null || !day.success) {
+        continue;
+      }
+      for (const exercise of day.data) {
         const reusingKey = PlannerKey.fromPlannerExercise(exercise, settings);
-        const originalKey = PlannerKey.fromFullName(fullName, settings);
+        const originalKey = PlannerKey.fromFullName(fullName, settings.exercises);
         if (reusingKey === originalKey) {
           originalExercises.push({
             exercise,
             dayData: {
               week: atWeek,
               dayInWeek: dayInWeekIndex + 1,
-              day: dayIndex + 1,
+              day: 1,
             },
           });
         }
       }
-    });
+    }
     return originalExercises;
   }
 
@@ -759,7 +765,18 @@ export class PlannerEvaluator {
       PlannerEvaluator.postProcess(evaluatedWeeks, settings, metadata);
       return { evaluatedWeeks, exerciseFullNames: Array.from(metadata.fullNames) };
     },
-    { maxSize: 10 }
+    {
+      maxSize: 10,
+      isEqual: (a: IPlannerProgram | ISettings, b: IPlannerProgram | ISettings) => {
+        if ("weeks" in a && "weeks" in b) {
+          const aText = PlannerProgram.generateFullText(a.weeks);
+          const bText = PlannerProgram.generateFullText(b.weeks);
+          return aText === bText;
+        } else {
+          return a === b;
+        }
+      },
+    }
   );
 
   public static evaluateFull(

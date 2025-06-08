@@ -69,7 +69,6 @@ Bicep Curl / 1x8 80lb`
   await expect(page.getByTestId("input-set-weight-field").nth(2)).toHaveText("31 %");
 
   await page.getByTestId("input-set-weight-field").nth(3).click();
-  console.log("Clicking keyboard-rm-calculator");
   await page.getByTestId("keyboard-rm-calculator").click();
 
   await PlaywrightUtils.type("3", () => page.getByTestId("rep-max-calculator-known-reps"));

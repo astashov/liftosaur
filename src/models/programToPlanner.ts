@@ -173,7 +173,7 @@ export class ProgramToPlanner {
       const groupedDay = groupedTopLine[add.dayData.week - 1]?.[add.dayData.dayInWeek - 1];
       if (groupedDay) {
         groupedDay.splice(add.index, 0, [
-          { type: "exercise", value: PlannerKey.fromFullName(add.fullName, this.settings) },
+          { type: "exercise", value: PlannerKey.fromFullName(add.fullName, this.settings.exercises) },
         ]);
       }
     }
