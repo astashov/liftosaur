@@ -64,6 +64,10 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
   };
   const plannerExercise = props.plannerExercise;
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
+  const reusingSets = plannerExercise.reuse != null && plannerExercise.setVariations.length === 0;
+  const reusingWeights = reusingSets && plannerExercise.globals.weight == null;
+  const reusingRpe = reusingSets && plannerExercise.globals.rpe == null;
+  const reusingTimer = reusingSets && plannerExercise.globals.timer == null;
 
   function changeSet(cb: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
     if (!plannerExercise) return;
@@ -157,7 +161,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                 {set.minrep != null ? (
                   <>
                     <div className="table-cell py-2 align-middle border-b border-purplev3-150">
-                      <div className="flex justify-center text-center">
+                      <div className="flex justify-center text-center" style={{ opacity: reusingSets ? 0.5 : 1 }}>
                         <InputNumber2
                           width={2.5 + widthAdd}
                           data-cy="min-reps-value"
@@ -190,7 +194,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
               </>
             )}
             <div className="table-cell py-2 align-middle border-b border-purplev3-150">
-              <div className="flex justify-center text-center">
+              <div className="flex justify-center text-center" style={{ opacity: reusingSets ? 0.3 : 1 }}>
                 <InputNumber2
                   width={2.5 + widthAdd}
                   data-cy="reps-value"
@@ -239,7 +243,10 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   <div className="relative table-cell py-2 align-middle border-b border-purplev3-150">
                     <div
                       className="flex items-center justify-center text-center"
-                      style={{ paddingRight: rowRightPaddings.weight }}
+                      style={{
+                        paddingRight: rowRightPaddings.weight,
+                        opacity: reusingWeights ? 0.3 : 1,
+                      }}
                     >
                       <InputWeight2
                         name="set-weight"
@@ -292,7 +299,10 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
             {props.opts.hasRpe &&
               (set.rpe != null ? (
                 <div className="relative table-cell py-2 align-middle border-b border-purplev3-150">
-                  <div className="flex justify-center text-center" style={{ paddingRight: rowRightPaddings.rpe }}>
+                  <div
+                    className="flex justify-center text-center"
+                    style={{ paddingRight: rowRightPaddings.rpe, opacity: reusingRpe ? 0.3 : 1 }}
+                  >
                     <InputNumber2
                       width={2.2 + widthAdd}
                       data-cy="rpe-value"
@@ -339,7 +349,13 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
             {props.opts.hasTimer &&
               (set.timer != null ? (
                 <div className="relative table-cell py-2 align-middle border-b border-purplev3-150">
-                  <div className="flex justify-center text-center" style={{ paddingRight: rowRightPaddings.timer }}>
+                  <div
+                    className="flex justify-center text-center"
+                    style={{
+                      paddingRight: rowRightPaddings.timer,
+                      opacity: reusingTimer ? 0.3 : 1,
+                    }}
+                  >
                     <InputNumber2
                       width={2.5 + widthAdd}
                       data-cy="set-timer"

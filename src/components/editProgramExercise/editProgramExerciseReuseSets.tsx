@@ -14,13 +14,14 @@ import { lb } from "lens-shmens";
 import { ObjectUtils } from "../../utils/object";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { LinkButton } from "../linkButton";
-import { Weight } from "../../models/weight";
 import { EditProgramExerciseReuseAtWeekDay } from "./editProgramExerciseReuseAtWeekDay";
 
 interface IEditProgramExerciseReuseSetsExerciseProps {
   ui: IPlannerExerciseUi;
   plannerExercise: IPlannerProgramExercise;
   evaluatedProgram: IEvaluatedProgram;
+  isOverriding: boolean;
+  setIsOverriding: (value: boolean) => void;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
 }
@@ -66,7 +67,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
     props.evaluatedProgram,
     plannerExercise.dayData
   );
-  const hasOwnSets = plannerExercise.setVariations.length > 0;
+  const isOverriding = props.isOverriding;
   const reusingSetsExercises = Program.getReusingSetsExercises(props.evaluatedProgram, plannerExercise);
   const reuseSetCandidate = reuseKey ? reuseSetsCandidates[reuseKey] : undefined;
   const reuseSetValues: [string, string | JSX.Element][] = [
@@ -151,6 +152,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                 }
               }
             );
+            props.setIsOverriding(false);
             props.plannerDispatch([
               lb<IPlannerExerciseState>().p("ui").p("isProgressEnabled").record(isProgressEnabled),
               lb<IPlannerExerciseState>().p("ui").p("isUpdateEnabled").record(isUpdateEnabled),
@@ -205,7 +207,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
             />
           </div>
           {reuse &&
-            (hasOwnSets ? (
+            (isOverriding ? (
               <LinkButton
                 className="text-sm"
                 data-cy="edit-exercise-remove-override-sets"
@@ -217,7 +219,8 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                     props.settings,
                     (ex) => {
                       if (reuse.exercise?.evaluatedSetVariations) {
-                        ex.evaluatedSetVariations = reuse.exercise.evaluatedSetVariations;
+                        ex.evaluatedSetVariations = [];
+                        props.setIsOverriding(false);
                       }
                     }
                   );
@@ -239,21 +242,8 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                         props.settings,
                         true,
                         (ex) => {
-                          ex.evaluatedSetVariations = [
-                            {
-                              isCurrent: true,
-                              sets: [
-                                {
-                                  maxrep: 5,
-                                  weight: Weight.build(100, props.settings.units),
-                                  logRpe: false,
-                                  isAmrap: false,
-                                  askWeight: false,
-                                  isQuickAddSet: false,
-                                },
-                              ],
-                            },
-                          ];
+                          ex.evaluatedSetVariations = ObjectUtils.clone(reuse.exercise?.evaluatedSetVariations || []);
+                          props.setIsOverriding(true);
                         }
                       );
                     })

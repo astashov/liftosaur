@@ -13,6 +13,7 @@ import { EditProgramExerciseRepeat } from "./editProgramExerciseRepeat";
 import { LinkButton } from "../linkButton";
 import { useState } from "preact/hooks";
 import { EditProgramExerciseOrder } from "./editProgramExerciseOrder";
+import { ObjectUtils } from "../../utils/object";
 
 interface IEditProgramExerciseDayExerciseProps {
   plannerExercise: IPlannerProgramExercise;
@@ -28,7 +29,13 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
   const plannerExercise = props.plannerExercise;
 
   const reuse = plannerExercise.reuse;
-  const hasOwnSets = plannerExercise.setVariations.length > 0;
+  const [isOverriding, setIsOverriding] = useState<boolean>(
+    plannerExercise.reuse != null &&
+      !ObjectUtils.isEqual(
+        { v: plannerExercise.evaluatedSetVariations },
+        { v: plannerExercise.reuse.exercise?.evaluatedSetVariations || [] }
+      )
+  );
   const [showRepeating, setShowRepeating] = useState(plannerExercise.isRepeat);
 
   if (showRepeating) {
@@ -102,10 +109,12 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
         ui={props.ui}
         plannerExercise={plannerExercise}
         settings={props.settings}
+        isOverriding={isOverriding}
+        setIsOverriding={setIsOverriding}
         plannerDispatch={props.plannerDispatch}
         evaluatedProgram={props.evaluatedProgram}
       />
-      {reuse && !hasOwnSets ? (
+      {reuse && !isOverriding ? (
         <div className="px-4">
           <EditProgramUiExerciseSetVariations
             plannerExercise={plannerExercise}

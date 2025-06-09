@@ -26,21 +26,6 @@ interface IEditProgramExerciseAcrossAllWeeksProps {
 }
 
 export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcrossAllWeeksProps): JSX.Element {
-  let hasWeights = false;
-  let hasRPE = false;
-  let hasTimers = false;
-  PP.iterate2(props.evaluatedProgram.weeks, (ex) => {
-    if (ex.key !== props.plannerExercise.key) {
-      return;
-    }
-    for (const setVariation of ex.evaluatedSetVariations) {
-      for (const set of setVariation.sets) {
-        hasWeights = hasWeights || set.weight != null;
-        hasRPE = hasRPE || set.rpe != null;
-        hasTimers = hasTimers || set.timer != null;
-      }
-    }
-  });
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
 
   function change(setData: IDaySetData[], changeFn: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
@@ -76,75 +61,69 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
       ),
     },
   ];
-  if (hasWeights) {
-    tabs.push({
-      label: "Weights",
-      children: () => (
-        <Tab
-          evaluatedProgram={props.evaluatedProgram}
-          plannerExercise={props.plannerExercise}
-          plannerDispatch={props.plannerDispatch}
-          settings={props.settings}
-          getKey={(set) => `${set.weight?.unit}-${set.weight?.value}-${set.askWeight}`}
-          getRightSide={(group, set) => (
-            <WeightsValue
-              exerciseType={props.plannerExercise.exerciseType}
-              settings={props.settings}
-              group={group}
-              set={set}
-              change={change}
-            />
-          )}
-        />
-      ),
-    });
-  }
-  if (hasRPE) {
-    tabs.push({
-      label: "RPE",
-      children: () => (
-        <Tab
-          evaluatedProgram={props.evaluatedProgram}
-          plannerExercise={props.plannerExercise}
-          plannerDispatch={props.plannerDispatch}
-          settings={props.settings}
-          getKey={(set) => `${set.rpe}-${set.logRpe}`}
-          getRightSide={(group, set) => (
-            <RpeValue
-              exerciseType={props.plannerExercise.exerciseType}
-              settings={props.settings}
-              group={group}
-              set={set}
-              change={change}
-            />
-          )}
-        />
-      ),
-    });
-  }
-  if (hasTimers) {
-    tabs.push({
-      label: "Timers",
-      children: () => (
-        <Tab
-          evaluatedProgram={props.evaluatedProgram}
-          plannerExercise={props.plannerExercise}
-          plannerDispatch={props.plannerDispatch}
-          settings={props.settings}
-          getKey={(set) => `${set.timer}`}
-          getRightSide={(group, set) => (
-            <TimerValue
-              exerciseType={props.plannerExercise.exerciseType}
-              settings={props.settings}
-              group={group}
-              set={set}
-              change={change}
-            />
-          )}
-        />
-      ),
-    });
-  }
+  tabs.push({
+    label: "Weights",
+    children: () => (
+      <Tab
+        evaluatedProgram={props.evaluatedProgram}
+        plannerExercise={props.plannerExercise}
+        plannerDispatch={props.plannerDispatch}
+        settings={props.settings}
+        getKey={(set) => `${set.weight?.unit}-${set.weight?.value}-${set.askWeight}`}
+        getRightSide={(group, set) => (
+          <WeightsValue
+            exerciseType={props.plannerExercise.exerciseType}
+            settings={props.settings}
+            group={group}
+            set={set}
+            change={change}
+          />
+        )}
+      />
+    ),
+  });
+  tabs.push({
+    label: "RPE",
+    children: () => (
+      <Tab
+        evaluatedProgram={props.evaluatedProgram}
+        plannerExercise={props.plannerExercise}
+        plannerDispatch={props.plannerDispatch}
+        settings={props.settings}
+        getKey={(set) => `${set.rpe}-${set.logRpe}`}
+        getRightSide={(group, set) => (
+          <RpeValue
+            exerciseType={props.plannerExercise.exerciseType}
+            settings={props.settings}
+            group={group}
+            set={set}
+            change={change}
+          />
+        )}
+      />
+    ),
+  });
+  tabs.push({
+    label: "Timers",
+    children: () => (
+      <Tab
+        evaluatedProgram={props.evaluatedProgram}
+        plannerExercise={props.plannerExercise}
+        plannerDispatch={props.plannerDispatch}
+        settings={props.settings}
+        getKey={(set) => `${set.timer}`}
+        getRightSide={(group, set) => (
+          <TimerValue
+            exerciseType={props.plannerExercise.exerciseType}
+            settings={props.settings}
+            group={group}
+            set={set}
+            change={change}
+          />
+        )}
+      />
+    ),
+  });
 
   return (
     <div>
@@ -178,7 +157,7 @@ function Tab(props: ITabProps): JSX.Element {
     for (let setVariationIndex = 0; setVariationIndex < exercise.evaluatedSetVariations.length; setVariationIndex++) {
       for (let setIndex = 0; setIndex < exercise.evaluatedSetVariations[setVariationIndex].sets.length; setIndex++) {
         const set = exercise.evaluatedSetVariations[setVariationIndex].sets[setIndex];
-        const key = props.getKey(set); // `${set.minrep}-${set.maxrep}`;
+        const key = props.getKey(set);
         groups[key] = groups[key] || [];
         groups[key].push({
           week: weekIndex + 1,
@@ -393,45 +372,39 @@ function RepsValue(props: IValueProps): JSX.Element {
 function WeightsValue(props: IValueProps): JSX.Element {
   const { group, set, change } = props;
   return (
-    <div>
-      {set.weight != null && (
-        <>
-          <div className="text-center">
-            <div className="text-xs text-grayv3-main">Weight</div>
-            <div>
-              <InputWeight2
-                name="set-weight"
-                width={4}
-                exerciseType={props.exerciseType}
-                data-cy="weight-value"
-                units={["lb", "kg", "%"] as const}
-                onBlur={(value) => change(group, (set) => (set.weight = value))}
-                onInput={(value) => change(group, (set) => (set.weight = value))}
-                showUnitInside={true}
-                subscription={undefined}
-                value={set.weight}
-                after={() => {
-                  return set.askWeight ? <span className="text-xs text-grayv3-main">+</span> : undefined;
-                }}
-                max={9999}
-                min={-9999}
-                settings={props.settings}
-                addOn={() => {
-                  return (
-                    <InputNumberAddOn
-                      label="Ask Weight?"
-                      value={set.askWeight}
-                      onChange={(value) => {
-                        change(group, (set) => (set.askWeight = value));
-                      }}
-                    />
-                  );
+    <div className="text-center">
+      <div className="text-xs text-grayv3-main">Weight</div>
+      <div>
+        <InputWeight2
+          name="set-weight"
+          width={4}
+          exerciseType={props.exerciseType}
+          data-cy="weight-value"
+          units={["lb", "kg", "%"] as const}
+          onBlur={(value) => change(group, (set) => (set.weight = value))}
+          onInput={(value) => change(group, (set) => (set.weight = value))}
+          showUnitInside={true}
+          subscription={undefined}
+          value={set.weight}
+          after={() => {
+            return set.askWeight ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+          }}
+          max={9999}
+          min={-9999}
+          settings={props.settings}
+          addOn={() => {
+            return (
+              <InputNumberAddOn
+                label="Ask Weight?"
+                value={set.askWeight}
+                onChange={(value) => {
+                  change(group, (set) => (set.askWeight = value));
                 }}
               />
-            </div>
-          </div>
-        </>
-      )}
+            );
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -439,46 +412,40 @@ function WeightsValue(props: IValueProps): JSX.Element {
 function RpeValue(props: IValueProps): JSX.Element {
   const { group, set, change } = props;
   return (
-    <div>
-      {set.weight != null && (
-        <>
-          <div className="text-center">
-            <div className="text-xs text-grayv3-main">RPE</div>
-            <div>
-              <InputNumber2
-                width={3}
-                data-cy="rpe-value"
-                allowDot={true}
-                name="set-rpe"
-                after={() => {
-                  return set.logRpe ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+    <div className="text-center">
+      <div className="text-xs text-grayv3-main">RPE</div>
+      <div>
+        <InputNumber2
+          width={3}
+          data-cy="rpe-value"
+          allowDot={true}
+          name="set-rpe"
+          after={() => {
+            return set.logRpe ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+          }}
+          keyboardAddon={
+            <div className="py-2">
+              <InputNumberAddOn
+                label="Log RPE?"
+                value={set.isAmrap}
+                onChange={(value) => {
+                  change(group, (set) => (set.logRpe = value));
                 }}
-                keyboardAddon={
-                  <div className="py-2">
-                    <InputNumberAddOn
-                      label="Log RPE?"
-                      value={set.isAmrap}
-                      onChange={(value) => {
-                        change(group, (set) => (set.logRpe = value));
-                      }}
-                    />
-                  </div>
-                }
-                onBlur={(value) => change(group, (set) => (set.rpe = value))}
-                onInput={(value) => {
-                  if (value != null && !isNaN(value)) {
-                    change(group, (set) => (set.rpe = value));
-                  }
-                }}
-                value={set.rpe}
-                min={0}
-                max={10}
-                step={0.5}
               />
             </div>
-          </div>
-        </>
-      )}
+          }
+          onBlur={(value) => change(group, (set) => (set.rpe = value))}
+          onInput={(value) => {
+            if (value != null && !isNaN(value)) {
+              change(group, (set) => (set.rpe = value));
+            }
+          }}
+          value={set.rpe}
+          min={0}
+          max={10}
+          step={0.5}
+        />
+      </div>
     </div>
   );
 }
@@ -486,27 +453,21 @@ function RpeValue(props: IValueProps): JSX.Element {
 function TimerValue(props: IValueProps): JSX.Element {
   const { group, set, change } = props;
   return (
-    <div>
-      {set.weight != null && (
-        <>
-          <div className="text-center">
-            <div className="text-xs text-grayv3-main">Timer</div>
-            <div>
-              <InputNumber2
-                width={3.5}
-                data-cy="set-timer"
-                name="timer-value"
-                onBlur={(value) => change(group, (set) => (set.timer = value))}
-                onInput={(value) => change(group, (set) => (set.timer = value))}
-                value={set.timer}
-                min={0}
-                max={9999}
-                step={15}
-              />
-            </div>
-          </div>
-        </>
-      )}
+    <div className="text-center">
+      <div className="text-xs text-grayv3-main">Timer</div>
+      <div>
+        <InputNumber2
+          width={3.5}
+          data-cy="set-timer"
+          name="timer-value"
+          onBlur={(value) => change(group, (set) => (set.timer = value))}
+          onInput={(value) => change(group, (set) => (set.timer = value))}
+          value={set.timer}
+          min={0}
+          max={9999}
+          step={15}
+        />
+      </div>
     </div>
   );
 }

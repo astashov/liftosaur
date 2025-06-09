@@ -322,7 +322,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         {isFocused && (
           <div className="inline-block h-3 leading-none blinking bg-grayv3-main" style={{ width: "1px" }} />
         )}
-        {props.showUnitInside && props.selectedUnit && (
+        {props.showUnitInside && props.selectedUnit && props.value != null && (
           <div className="text-xs text-grayv3-main"> {props.selectedUnit}</div>
         )}
         {props.after && props.after()}

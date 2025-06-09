@@ -124,17 +124,29 @@ export class ProgramToPlanner {
               : !Weight.eq(globals.weight || Weight.zero, reusedGlobals.weight || Weight.zero) ||
                 globals.askWeight !== reusedGlobals.askWeight
           ) {
-            dereuseDecisions.add("weight");
+            if (globals.weight != null) {
+              dereuseDecisions.add("weight");
+            } else {
+              dereuseDecisions.add("sets");
+            }
           }
           if (
             reuseSet
               ? programSet.rpe !== reuseSet.rpe || programSet.logRpe !== reuseSet.logRpe
               : globals.rpe !== reusedGlobals.rpe || globals.logRpe !== reusedGlobals.logRpe
           ) {
-            dereuseDecisions.add("rpe");
+            if (globals.rpe != null) {
+              dereuseDecisions.add("rpe");
+            } else {
+              dereuseDecisions.add("sets");
+            }
           }
           if (reuseSet ? programSet.timer !== reuseSet.timer : globals.timer !== reusedGlobals.timer) {
-            dereuseDecisions.add("timer");
+            if (globals.timer != null) {
+              dereuseDecisions.add("timer");
+            } else {
+              dereuseDecisions.add("sets");
+            }
           }
         }
       }
