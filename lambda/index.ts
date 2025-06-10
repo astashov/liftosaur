@@ -1945,6 +1945,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       event.httpMethod,
       event.path,
       resp.success ? resp.data.statusCode : errorStatus,
+      resp.success ? `${resp.data.body.length}b` : undefined,
       `${Date.now() - time}ms`
     );
     return resp.success
