@@ -107,6 +107,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                     (Progress.isCurrent(props.progress) && Progress.isFullyFinishedSet(props.progress)) ||
                     confirm("Are you sure?")
                   ) {
+                    SendMessage.toIosAndAndroid({ type: "pauseWorkout" });
                     props.dispatch({ type: "FinishProgramDayAction" });
                   }
                 }}

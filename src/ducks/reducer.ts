@@ -476,7 +476,7 @@ export function buildCardsReducer(
         if (Progress.isFullyFinishedSet(newProgress)) {
           newProgress = Progress.stopTimer(newProgress);
         }
-        newProgress.intervals = History.resumeWorkout(newProgress.intervals, settings.timers.reminder);
+        newProgress.intervals = History.resumeWorkout(newProgress, settings.timers.reminder);
         newProgress = Progress.startTimer(
           newProgress,
           new Date().getTime(),
@@ -526,7 +526,7 @@ export function buildCardsReducer(
         if (Progress.isFullyFinishedSet(newProgress)) {
           newProgress = Progress.stopTimer(newProgress);
         }
-        newProgress.intervals = History.resumeWorkout(newProgress.intervals, settings.timers.reminder);
+        newProgress.intervals = History.resumeWorkout(newProgress, settings.timers.reminder);
         newProgress = Progress.startTimer(
           newProgress,
           new Date().getTime(),

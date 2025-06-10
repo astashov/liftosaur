@@ -806,8 +806,10 @@ export namespace History {
       lb<IState>()
         .p("progress")
         .pi(0)
-        .p("intervals")
-        .recordModify((intervals) => resumeWorkout(intervals, settings.timers.reminder)),
+        .recordModify((progress) => {
+          const intervals = resumeWorkout(progress, settings.timers.reminder);
+          return { ...progress, intervals };
+        }),
     ]);
   }
 
@@ -815,8 +817,11 @@ export namespace History {
     return intervals ? intervals.length === 0 || intervals[intervals.length - 1][1] != null : false;
   }
 
-  export function resumeWorkout(intervals?: IIntervals, reminder?: number): IIntervals | undefined {
-    SendMessage.toIosAndAndroid({ type: "resumeWorkout", reminder: `${reminder || 0}` });
+  export function resumeWorkout(historyRecord: IHistoryRecord, reminder?: number): IIntervals | undefined {
+    const intervals = historyRecord.intervals;
+    if (Progress.isCurrent(historyRecord)) {
+      SendMessage.toIosAndAndroid({ type: "resumeWorkout", reminder: `${reminder || 0}` });
+    }
     if (isPaused(intervals)) {
       const newIntervals = intervals ? ObjectUtils.clone(intervals) : [];
       newIntervals.push([Date.now(), undefined]);
