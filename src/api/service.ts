@@ -3,6 +3,7 @@ import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
 import { IStorageUpdate } from "../utils/sync";
 import { IExportedProgram } from "../models/program";
+import { CollectionUtils } from "../utils/collection";
 
 export interface IGetStorageResponse {
   email: string;
@@ -106,31 +107,79 @@ export class Service {
     id: string,
     args: { forcedUserEmail?: string }
   ): Promise<IGetStorageResponse> {
+    let historylimit = 20;
     const body = JSON.stringify({
       token,
       id,
       forceuseremail: args.forcedUserEmail,
+      historylimit,
     });
     const response = await this.client(`${__API_HOST__}/api/signin/google`, {
       method: "POST",
       body: body,
       credentials: "include",
     });
-    const json = await response.json();
+    const json: IGetStorageResponse = await response.json();
+    json.storage.history = await this.getAllHistoryRecords({
+      alreadyFetchedHistory: json.storage.history,
+      historyLimit: historylimit,
+    });
     return { email: json.email, storage: json.storage, user_id: json.user_id };
   }
 
+  public async getAllHistoryRecords(args: {
+    alreadyFetchedHistory?: IHistoryRecord[];
+    historyLimit?: number;
+  }): Promise<IHistoryRecord[]> {
+    let history = args.alreadyFetchedHistory || [];
+    let historyResponse: IHistoryRecord[] | undefined = undefined;
+    let historyLimit = args.historyLimit || 20;
+    while ((historyResponse || history).length > historyLimit - 1) {
+      historyLimit = 250;
+      historyResponse = await this.getHistory({
+        after: history.length > 1 ? history[history.length - 2].id : undefined,
+        limit: historyLimit,
+      });
+      if (historyResponse.length > 0) {
+        history = [...history, ...historyResponse];
+      } else {
+        break;
+      }
+    }
+    history = CollectionUtils.uniqBy(history, "id");
+    return history;
+  }
+
+  public async getHistory(args: { after?: number; limit?: number }): Promise<IHistoryRecord[]> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/history`);
+    if (args.after) {
+      url.searchParams.set("after", args.after.toString());
+    }
+    if (args.limit) {
+      url.searchParams.set("limit", args.limit.toString());
+    }
+    const response = await this.client(url.toString(), { credentials: "include" });
+    const json: { history: IHistoryRecord[] } = await response.json();
+    return json.history;
+  }
+
   public async appleSignIn(code: string, idToken: string, id: string): Promise<IGetStorageResponse> {
+    let historylimit = 20;
     const response = await this.client(`${__API_HOST__}/api/signin/apple`, {
       method: "POST",
       body: JSON.stringify({
         code,
         idToken,
         id,
+        historylimit,
       }),
       credentials: "include",
     });
-    const json = await response.json();
+    const json: IGetStorageResponse = await response.json();
+    json.storage.history = await this.getAllHistoryRecords({
+      alreadyFetchedHistory: json.storage.history,
+      historyLimit: historylimit,
+    });
     return { email: json.email, storage: json.storage, user_id: json.user_id };
   }
 
@@ -178,10 +227,16 @@ export class Service {
     }
     const result = await this.client(url.toString(), {
       method: "POST",
-      body: JSON.stringify({ storageUpdate: args.storageUpdate, timestamp: Date.now() }),
+      body: JSON.stringify({ storageUpdate: args.storageUpdate, timestamp: Date.now(), historylimit: 20 }),
       credentials: "include",
     });
-    const json = await result.json();
+    const json: IPostSyncResponse = await result.json();
+    if (json.type === "dirty") {
+      json.storage.history = await this.getAllHistoryRecords({
+        alreadyFetchedHistory: json.storage.history,
+        historyLimit: 20,
+      });
+    }
     return json;
   }
 
@@ -285,6 +340,7 @@ export class Service {
     storageId?: string,
     adminKey?: string
   ): Promise<IGetStorageResponse> {
+    let historylimit = 20;
     const url = UrlUtils.build(`${__API_HOST__}/api/storage`);
     if (tempUserId) {
       url.searchParams.set("tempuserid", tempUserId);
@@ -296,8 +352,13 @@ export class Service {
         url.searchParams.set("storageid", storageId);
       }
     }
+    url.searchParams.set("historylimit", historylimit.toString());
     const result = await this.client(url.toString(), { credentials: "include" });
     const json = await result.json();
+    json.storage.history = await this.getAllHistoryRecords({
+      alreadyFetchedHistory: json.storage.history,
+      historyLimit: historylimit,
+    });
     return { email: json.email, storage: json.storage, user_id: json.user_id, key: json.key };
   }
 
