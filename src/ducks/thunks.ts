@@ -51,12 +51,10 @@ export namespace Thunk {
       const forcedUserEmail = url.searchParams.get("forceuseremail");
       if (forcedUserEmail == null) {
         const accessToken = await getGoogleAccessToken();
-        console.log("Access token:", accessToken);
         if (accessToken != null) {
           const state = getState();
           const userId = state.user?.id || state.storage.tempUserId;
           const result = await load(dispatch, "Logging in", async () => {
-            console.log("Starting to log in");
             return env.service.googleSignIn(accessToken, userId, {});
           });
           await load(dispatch, "Signing in", () => {
