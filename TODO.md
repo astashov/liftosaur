@@ -60,6 +60,3 @@ User debug page:
 - Pop out the NUXes more
 - Progress looks weird if tried to pick reuse set that reuses something else
 
-
-- Made it more clear when overriding sets
-- Add a way to specify weight/rpe/timer if no weight/rpe/timer added sets

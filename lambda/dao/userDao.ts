@@ -88,7 +88,7 @@ interface IStatDb {
 export class UserDao {
   constructor(private readonly di: IDI) {}
 
-  public async getByGoogleId(googleId: string): Promise<IUserDao | undefined> {
+  public async getByGoogleId(googleId: string, args: { historyLimit?: number }): Promise<IUserDao | undefined> {
     const env = Utils.getEnv();
 
     const items = await this.di.dynamo.query<IUserDao>({
@@ -101,7 +101,7 @@ export class UserDao {
 
     const id: string | undefined = items?.[0]?.id;
     if (id != null) {
-      return this.getById(id);
+      return this.getById(id, args);
     } else {
       return undefined;
     }
@@ -204,7 +204,7 @@ export class UserDao {
     return { data: { originalId, newStorage }, success: true };
   }
 
-  public async getByAppleId(appleId: string): Promise<IUserDao | undefined> {
+  public async getByAppleId(appleId: string, args: { historyLimit?: number }): Promise<IUserDao | undefined> {
     const env = Utils.getEnv();
 
     const items = await this.di.dynamo.query<IUserDao>({
@@ -217,7 +217,7 @@ export class UserDao {
 
     const id: string | undefined = items?.[0]?.id;
     if (id != null) {
-      return this.getById(id);
+      return this.getById(id, args);
     } else {
       return undefined;
     }
@@ -326,16 +326,16 @@ export class UserDao {
     }
   }
 
-  public getHistoryByUserId(userId: string): Promise<IHistoryRecord[]> {
+  public getHistoryByUserId(userId: string, args: { limit?: number; after?: number } = {}): Promise<IHistoryRecord[]> {
     const env = Utils.getEnv();
     return this.di.dynamo
       .query<IHistoryRecord & { userId?: string }>({
         tableName: userTableNames[env].historyRecords,
-        indexName: userTableNames[env].historyRecordsDate,
-        expression: "#userId = :userId",
+        expression: ["#userId = :userId", ...(args.after != null ? ["#id < :id"] : [])].join(" AND "),
         scanIndexForward: false,
-        attrs: { "#userId": "userId" },
-        values: { ":userId": userId },
+        attrs: { "#userId": "userId", ...(args.after != null ? { "#id": "id" } : {}) },
+        values: { ":userId": userId, ...(args.after != null ? { ":id": args.after } : {}) },
+        limit: args.limit,
       })
       .then((arr) =>
         arr.map((r) => {
@@ -498,14 +498,17 @@ export class UserDao {
   public async getById(
     userId: string,
     args?: {
-      skipHistory?: boolean;
       skipPrograms?: boolean;
       skipStats?: boolean;
+      historyLimit?: number;
     }
   ): Promise<IUserDao | undefined> {
     const userDao = await this.getLimitedById(userId);
     if (userDao != null) {
-      const history = !args?.skipHistory ? await this.getHistoryByUserId(userId) : [];
+      const history =
+        args?.historyLimit != null && args.historyLimit > 0
+          ? await this.getHistoryByUserId(userId, { limit: args?.historyLimit })
+          : [];
       const programs = !args?.skipPrograms ? await this.getProgramsByUserId(userId) : [];
       const stats = !args?.skipStats ? await this.getStatsByUserId(userId) : { weight: {}, length: {}, percentage: {} };
 

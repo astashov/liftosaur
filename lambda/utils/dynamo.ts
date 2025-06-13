@@ -11,6 +11,7 @@ export interface IDynamoUtil {
     scanIndexForward?: boolean;
     attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
     values?: Partial<Record<string, string | string[] | number | number[]>>;
+    limit?: number;
   }): Promise<T[]>;
   scan<T>(args: {
     tableName: string;
@@ -52,6 +53,7 @@ export class DynamoUtil implements IDynamoUtil {
     scanIndexForward?: boolean;
     attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
     values?: Partial<Record<string, string | string[] | number>>;
+    limit?: number;
   }): Promise<T[]> {
     const startTime = Date.now();
     try {
@@ -65,8 +67,9 @@ export class DynamoUtil implements IDynamoUtil {
           FilterExpression: args.filterExpression,
           ExpressionAttributeNames: args.attrs,
           ExpressionAttributeValues: args.values,
+          Limit: args.limit,
         });
-      });
+      }, args.limit);
       this.log.log(
         `Dynamo query: ${args.tableName}${args.indexName ? ` (${args.indexName})` : ""} - `,
         args.expression,
@@ -296,13 +299,17 @@ export class DynamoUtil implements IDynamoUtil {
 }
 
 async function query<T>(
-  cb: (key?: DynamoDB.DocumentClient.Key) => Request<DynamoDB.DocumentClient.QueryOutput, AWSError>
+  cb: (key?: DynamoDB.DocumentClient.Key) => Request<DynamoDB.DocumentClient.QueryOutput, AWSError>,
+  limit?: number
 ): Promise<T[]> {
   let key: DynamoDB.DocumentClient.Key | undefined;
   let items: DynamoDB.DocumentClient.ItemList = [];
   do {
     const result = await cb(key).promise();
     items = items.concat(result.Items || []);
+    if (limit != null && items.length >= limit) {
+      break;
+    }
     key = result.LastEvaluatedKey;
   } while (key);
   return items as T[];

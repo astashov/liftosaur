@@ -215,6 +215,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
   const bodyJson = getBodyJson(event);
   const timestamp = bodyJson.timestamp || Date.now();
   const storageUpdate = bodyJson.storageUpdate as IStorageUpdate;
+  const historylimit = bodyJson.historylimit as number | undefined;
   if (params.adminkey != null && params.userid != null && params.adminkey === (await di.secrets.getApiKey())) {
     userId = params.userid;
     const cookieSecret = await di.secrets.getCookieSecret();
@@ -282,7 +283,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
         const result = await userDao.applySafeSync(limitedUser, storageUpdate);
         if (result.success) {
           di.log.log("New original id", result.data);
-          const fullUser = (await userDao.getById(userId))!;
+          const fullUser = (await userDao.getById(userId, { historyLimit: historylimit }))!;
           const storage = fullUser.storage;
           const [storageId] = await Promise.all([
             storageDao.store(limitedUser.id, storage),
@@ -319,6 +320,7 @@ const getStorageEndpoint = Endpoint.build("/api/storage", {
   key: "string?",
   userid: "string?",
   storageid: "string?",
+  historylimit: "number?",
 });
 const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getStorageEndpoint> = async ({
   payload,
@@ -349,7 +351,7 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const key = keyResult ? (keyResult.isClaimed ? keyResult.key : "unclaimed") : undefined;
   if (userId != null) {
     const userDao = new UserDao(di);
-    const user = await userDao.getById(userId);
+    const user = await userDao.getById(userId, { historyLimit: match.params.historylimit });
     if (user != null) {
       if (passAdminKey && match.params.storageid) {
         const storageDao = new StorageDao(di);
@@ -405,7 +407,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
   const { event, di } = payload;
   const env = Utils.getEnv();
   const bodyJson = getBodyJson(event);
-  const { idToken, id } = bodyJson;
+  const { idToken, id, historylimit } = bodyJson;
   const keysResponse = await di.fetch("https://appleid.apple.com/auth/keys");
   const keysJson = (await keysResponse.json()) as IAppleKeysResponse;
   const decodedToken = JWT.decode(idToken!, { complete: true });
@@ -426,7 +428,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
 
         await new AppleAuthTokenDao(di).store(env, idToken, result.sub);
         const userDao = new UserDao(di);
-        let user = await userDao.getByAppleId(result.sub);
+        let user = await userDao.getByAppleId(result.sub, { historyLimit: historylimit });
         let userId = user?.id;
 
         if (userId == null) {
@@ -469,7 +471,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   const { event, di } = payload;
   const env = Utils.getEnv();
   const bodyJson = getBodyJson(event);
-  const { token, id, forceuseremail } = bodyJson;
+  const { token, id, forceuseremail, historylimit } = bodyJson;
   let openIdJson: IOpenIdResponseSuccess | IOpenIdResponseError;
   if (env === "dev" && forceuseremail != null) {
     openIdJson = {
@@ -499,7 +501,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
 
   await new GoogleAuthTokenDao(di).store(env, token, openIdJson.sub);
   const userDao = new UserDao(di);
-  let user = await userDao.getByGoogleId(openIdJson.sub);
+  let user = await userDao.getByGoogleId(openIdJson.sub, { historyLimit: historylimit });
   let userId = user?.id;
 
   if (userId == null) {
@@ -528,6 +530,21 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
       }),
     },
   };
+};
+
+const getHistoryEndpoint = Endpoint.build("/api/history", { after: "number?", limit: "number?" });
+const getHistoryHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getHistoryEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const user = await getCurrentLimitedUser(event, di);
+  if (user != null) {
+    const userDao = new UserDao(di);
+    const history = await userDao.getHistoryByUserId(user.id, { after: params.after, limit: params.limit });
+    return ResponseUtils.json(200, event, { history });
+  }
+  return ResponseUtils.json(400, event, { error: "Not Authorized" });
 };
 
 const signoutEndpoint = Endpoint.build("/api/signout");
@@ -1879,6 +1896,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getProgramShorturlResponseEndpoint, getProgramShorturlResponseHandler)
       .get(getPlannerShorturlResponseEndpoint, getPlannerShorturlResponseHandler)
       .get(getPlanShorturlResponseEndpoint, getPlanShorturlResponseHandler)
+      .get(getHistoryEndpoint, getHistoryHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .get(getLoginEndpoint, getLoginHandler)
       .post(postSaveProgramEndpoint, postSaveProgramHandler)
