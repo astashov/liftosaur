@@ -111,15 +111,12 @@ export class Service {
       id,
       forceuseremail: args.forcedUserEmail,
     });
-    console.log("Sending body", body);
     const response = await this.client(`${__API_HOST__}/api/signin/google`, {
       method: "POST",
       body: body,
       credentials: "include",
     });
-    console.log("got response from google signin", response.status);
     const json = await response.json();
-    console.log("Response from google signin", json);
     return { email: json.email, storage: json.storage, user_id: json.user_id };
   }
 

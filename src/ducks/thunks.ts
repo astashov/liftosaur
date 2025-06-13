@@ -193,6 +193,7 @@ export namespace Thunk {
         }
         return true;
       } else if (result.type === "dirty") {
+        result.storage.tempUserId = result.user_id;
         if (requestedLastStorage) {
           updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(result.storage)]);
         } else {

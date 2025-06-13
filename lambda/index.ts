@@ -242,6 +242,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
     const limitedUser = await userDao.getLimitedById(userId);
     if (limitedUser != null) {
       di.log.log(`Server oid: ${limitedUser.storage.originalId}, update oid: ${storageUpdate.originalId}`);
+      storageUpdate.tempUserId = userId;
       if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
         di.log.log("Fetch: Safe update");
         di.log.log(storageUpdate);
