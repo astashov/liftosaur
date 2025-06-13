@@ -954,6 +954,8 @@ export namespace Thunk {
           if (Screen.currentName(getState().screenStack) === "subscription") {
             dispatch(Thunk.pullScreen());
           }
+        } else {
+          dispatch(postevent("google-subscription-invalid", { productId, token }));
         }
       }
     };
