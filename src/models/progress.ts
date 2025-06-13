@@ -955,17 +955,21 @@ export namespace Progress {
           });
         }
       }
-      forceWarmupSets = forceWarmupSets || Reps.isEmpty(newSets);
-
-      const firstWeight = newSets[0]?.weight;
-      return {
-        ...progressEntry,
-        exercise: progressEntry.changed ? progressEntry.exercise : programExercise.exerciseType,
-        warmupSets: forceWarmupSets
+      let newWarmupSets = progressEntry.warmupSets;
+      if (progressEntry.warmupSets.every((w) => !w.isCompleted)) {
+        const firstWeight = newSets[0]?.weight;
+        forceWarmupSets = forceWarmupSets || Reps.isEmpty(newSets);
+        newWarmupSets = forceWarmupSets
           ? firstWeight != null
             ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
             : []
-          : progressEntry.warmupSets,
+          : progressEntry.warmupSets;
+      }
+
+      return {
+        ...progressEntry,
+        exercise: progressEntry.changed ? progressEntry.exercise : programExercise.exerciseType,
+        warmupSets: newWarmupSets,
         sets: newSets,
       };
     } else {
