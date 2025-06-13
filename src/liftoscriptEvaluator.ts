@@ -330,6 +330,7 @@ export class LiftoscriptEvaluator {
         const name = this.getValue(nameNode);
         if (indexExpr != null) {
           const validNames: (keyof IScriptBindings)[] = [
+            "originalWeights",
             "weights",
             "reps",
             "minReps",

@@ -667,7 +667,8 @@ set all the weights equals to the weight of the last finished set and add 5lb to
 
 This is the list of available variables you can get values from in your `progress: custom()` scripts:
 
-- `weights[n]` or `w[n]` - initial weight of an N set. N starts from 1.
+- `weights[n]` or `w[n]` - initial weight after rounding of an N set. N starts from 1.
+- `originalWeights[n]` or `cw[n]` - initial weight before rounding of an N set. N starts from 1.
 - `completedWeights[n]` or `cw[n]` - completed weight of an N set. N starts from 1.
 - `reps[n]` or `r[n]` - number of reps for an N set.
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
@@ -874,6 +875,7 @@ For that, you can use `update: custom()` syntax, which is very similar to `progr
 So, the list of variables you can get values from is pretty much the same:
 
 - `weights`
+- `originalWeights`
 - `completedWeights`
 - `reps`
 - `completedReps`
@@ -1148,8 +1150,9 @@ You cannot assign values to them, but you can use their values. They are:
 
 #### For `progress: custom()`:
 
-- `weights[n]` or `w[n]` - initial weight of an N set. N starts from 1.
-- `completedWeights[n]` or `w[n]` - completed weight of an N set. N starts from 1.
+- `weights[n]` or `w[n]` - initial weight after rounding of an N set. N starts from 1.
+- `originalWeights[n]` - initial weight before rounding of an N set. N starts from 1.
+- `completedWeights[n]` - completed weight of an N set. N starts from 1.
 - `reps[n]` or `r[n]` - number of reps for an N set.
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
 - `RPE[n]` - if exercise has RPE - the RPE expression that's required for an N set.
@@ -1245,7 +1248,7 @@ state.reps = round(2.7);
 
 #### `sum`
 
-It sums all the numbers or weights. Use it with `completedReps`, `completedWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+It sums all the numbers or weights. Use it with `completedReps`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
 
 ```javascript
 if (sum(completedReps) >= 15) {
@@ -1255,7 +1258,7 @@ if (sum(completedReps) >= 15) {
 
 #### `min`
 
-Finds the minimum number or weight in an array. Use it with `completedReps`, `completedWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Finds the minimum number or weight in an array. Use it with `completedReps`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
 
 ```javascript
 state.minWeight = min(weights);
@@ -1263,7 +1266,7 @@ state.minWeight = min(weights);
 
 #### `max`
 
-Finds the maximum number or weight in an array. Use it with `completedReps`, `completedWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Finds the maximum number or weight in an array. Use it with `completedReps`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
 
 ```javascript
 state.maxCompletedReps = max(completedReps);
