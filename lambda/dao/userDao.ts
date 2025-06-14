@@ -506,7 +506,7 @@ export class UserDao {
     const userDao = await this.getLimitedById(userId);
     if (userDao != null) {
       const history =
-        args?.historyLimit != null && args.historyLimit > 0
+        args?.historyLimit == null || args.historyLimit > 0
           ? await this.getHistoryByUserId(userId, { limit: args?.historyLimit })
           : [];
       const programs = !args?.skipPrograms ? await this.getProgramsByUserId(userId) : [];
