@@ -48,6 +48,7 @@ import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
 import { ExceptionDao } from "./dao/exceptionDao";
 import { UrlUtils } from "../src/utils/url";
+import { LlmUtil } from "./utils/llm";
 import { RollbarUtils } from "../src/utils/rollbar";
 import { Account, IAccount } from "../src/models/account";
 import { renderProgramsListHtml } from "./programsList";
@@ -1506,25 +1507,10 @@ const postAiConvertHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   }
 
   try {
-    // TODO: Implement LLM integration here
-    // For now, return a mock response
-    const mockLiftoscript = `# Mock Liftosaur Program
-
-## Day 1: Upper Body
-
-Bench Press / 3x8 / 135lb
-Overhead Press / 3x10 / 95lb
-Dumbbell Row / 3x12 / 50lb
-
-## Day 2: Lower Body
-
-Squat / 3x5 / 225lb
-Deadlift / 1x5 / 315lb
-Leg Press / 3x15 / 400lb
-
-# This is a mock response - LLM integration pending`;
-
-    return ResponseUtils.json(200, event, { program: mockLiftoscript });
+    const llm = new LlmUtil(di.secrets, di.log, di.fetch);
+    const liftoscript = await llm.convertProgramToLiftoscript(input);
+    
+    return ResponseUtils.json(200, event, { program: liftoscript });
   } catch (error) {
     di.log.log("Error in AI conversion:", error);
     return ResponseUtils.json(500, event, { error: "Conversion failed" });

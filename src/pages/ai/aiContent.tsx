@@ -51,6 +51,11 @@ export function AiContent(props: IAiContentProps): JSX.Element {
             onInput={(e) => setInput((e.target as HTMLTextAreaElement).value)}
             disabled={isLoading}
           />
+          {input.trim().match(/^https?:\/\//) && (
+            <div className="mt-2 text-sm text-blue-600">
+              URL detected - will fetch content from: {input.trim().split(/[?#]/)[0]}
+            </div>
+          )}
           <button
             className="px-6 py-2 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleConvert}
@@ -64,7 +69,11 @@ export function AiContent(props: IAiContentProps): JSX.Element {
           <label className="mb-2 font-semibold">Liftoscript Output</label>
           {error && <div className="p-3 mb-4 text-red-700 bg-red-100 border border-red-400 rounded">{error}</div>}
           <pre className="flex-1 w-full p-3 overflow-auto font-mono text-sm whitespace-pre-wrap border rounded-lg bg-gray-50">
-            {output || (isLoading ? "Generating Liftoscript..." : "Output will appear here...")}
+            {output || (isLoading ? (
+              input.trim().match(/^https?:\/\//) 
+                ? "Fetching content from URL and converting to Liftoscript..." 
+                : "Converting to Liftoscript..."
+            ) : "Output will appear here...")}
           </pre>
           {output && (
             <button
