@@ -48,7 +48,6 @@ import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
 import { ExceptionDao } from "./dao/exceptionDao";
 import { UrlUtils } from "../src/utils/url";
-import { LlmUtil } from "./utils/llm";
 import { RollbarUtils } from "../src/utils/rollbar";
 import { Account, IAccount } from "../src/models/account";
 import { renderProgramsListHtml } from "./programsList";
@@ -1494,29 +1493,6 @@ const getAiHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAiEn
   };
 };
 
-const postAiConvertEndpoint = Endpoint.build("/api/ai/convert");
-const postAiConvertHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postAiConvertEndpoint> = async ({
-  payload,
-}) => {
-  const { event, di } = payload;
-  const bodyJson = getBodyJson(event);
-  const { input } = bodyJson;
-
-  if (!input || typeof input !== "string") {
-    return ResponseUtils.json(400, event, { error: "Invalid input" });
-  }
-
-  try {
-    const llm = new LlmUtil(di.secrets, di.log, di.fetch);
-    const liftoscript = await llm.convertProgramToLiftoscript(input);
-    
-    return ResponseUtils.json(200, event, { program: liftoscript });
-  } catch (error) {
-    di.log.log("Error in AI conversion:", error);
-    return ResponseUtils.json(500, event, { error: "Conversion failed" });
-  }
-};
-
 const getProgramShorturlResponseEndpoint = Endpoint.build("/api/p/:id");
 const getProgramShorturlResponseHandler: RouteHandler<
   IPayload,
@@ -1943,7 +1919,6 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
       .get(getAiEndpoint, getAiHandler)
-      .post(postAiConvertEndpoint, postAiConvertHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)

@@ -92,6 +92,7 @@ const cachePromises: Partial<Record<string, unknown>> = {};
 
 declare let __API_HOST__: string;
 declare let __HOST__: string;
+declare let __STREAMING_API_HOST__: string;
 
 export interface IRecordResponse {
   history: IHistoryRecord[];
@@ -498,8 +499,64 @@ export class Service {
         return { success: false, error: errorText || response.statusText };
       }
     } catch (error) {
-      const e = error as Error;
-      return { success: false, error: e.message };
+      return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
+    }
+  }
+
+  public async *convertProgramWithAiStream(
+    input: string
+  ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
+    try {
+      // Use streaming API host for true streaming support
+      const url = `${__STREAMING_API_HOST__}/api/ai/convert-stream`;
+
+      const response = await this.client(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input }),
+        // No credentials needed for Lambda Function URLs
+      });
+
+      if (!response.ok) {
+        yield { type: "error", data: `HTTP ${response.status}: ${response.statusText}` };
+        return;
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        yield { type: "error", data: "No response body" };
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.trim() === "") continue;
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            if (data === "[DONE]") {
+              return;
+            }
+            try {
+              const json = JSON.parse(data);
+              yield json;
+            } catch (e) {
+              console.error("Failed to parse SSE data:", e, data);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      yield { type: "error", data: error instanceof Error ? error.message : "Unknown error" };
     }
   }
 }

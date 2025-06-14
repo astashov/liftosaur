@@ -1,9 +1,8 @@
-import "../utils/markdownLoader";
-
-import liftoscriptDoc from "../../llms/liftoscript.md";
-import liftoscriptExamples from "../../llms/liftoscript_examples.md";
-import plannerGrammar from "../pages/planner/plannerExercise.grammar";
-import liftoscriptGrammar from "../../liftoscript.grammar";
+// Import pre-built content
+import liftoscriptDoc from "../generated/liftoscriptDoc";
+import liftoscriptExamples from "../generated/liftoscriptExamples";
+import plannerGrammar from "../generated/plannerGrammar";
+import liftoscriptGrammar from "../generated/liftoscriptGrammar";
 
 export class LiftoscriptDocs {
   public static getMainDoc(): string {

@@ -39,4 +39,7 @@ export class MockSecretsUtil implements ISecretsUtil {
   public async getOpenAiKey(): Promise<string> {
     return "";
   }
+  public async getAnthropicKey(): Promise<string> {
+    return "";
+  }
 }

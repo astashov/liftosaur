@@ -12,6 +12,7 @@
 /programs/:programId https://api3-dev.liftosaur.com/programs/:programId  200
 /planner https://api3-dev.liftosaur.com/planner  200
 /affiliates https://api3-dev.liftosaur.com/affiliates  200
+/ai https://api3-dev.liftosaur.com/ai  200
 /program https://api3-dev.liftosaur.com/program  200
 /p/:id https://api3-dev.liftosaur.com/p/:id  200
 /n/:id https://api3-dev.liftosaur.com/n/:id  200

@@ -4,13 +4,14 @@ import https from "https";
 import * as path from "path";
 import * as fs from "fs";
 import { getHandler } from "./lambda/index";
+import { getStreamingHandler } from "./lambda/streamingHandler";
 import { APIGatewayProxyEvent, APIGatewayProxyEventHeaders, APIGatewayProxyResult } from "aws-lambda";
 import { URL } from "url";
 import { buildDi } from "./lambda/utils/di";
 import { LogUtil } from "./lambda/utils/log";
 import fetch from "node-fetch";
 import childProcess from "child_process";
-import { localapidomain } from "./src/localdomain";
+import { localapidomain, localstreamingapidomain } from "./src/localdomain";
 
 declare global {
   namespace NodeJS {
@@ -18,9 +19,17 @@ declare global {
     interface Global {
       __COMMIT_HASH__: string;
       __FULL_COMMIT_HASH__: string;
+      awslambda: any;
     }
   }
 }
+
+// Mock awslambda.streamifyResponse for local development
+(global as any).awslambda = {
+  streamifyResponse: (handler: Function) => {
+    return handler;
+  },
+};
 
 function getBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve) => {
@@ -62,6 +71,8 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
 const log = new LogUtil();
 const di = buildDi(log, fetch);
 const handler = getHandler(di);
+
+// Main API server
 const server = https.createServer(
   {
     key: fs.readFileSync(path.join(process.env.HOME!, `.secrets/live/${localapidomain}.liftosaur.com/privkey.pem`)),
@@ -69,6 +80,7 @@ const server = https.createServer(
   },
   async (req, res) => {
     try {
+      // Handle regular API Gateway endpoints
       const result = (await handler(
         await requestToProxyEvent(req),
         { getRemainingTimeInMillis: () => 10000 },
@@ -91,10 +103,124 @@ const server = https.createServer(
     }
   }
 );
+
+// Streaming API server
+const streamingServer = https.createServer(
+  {
+    key: fs.readFileSync(
+      path.join(process.env.HOME!, `.secrets/live/${localstreamingapidomain}.liftosaur.com/privkey.pem`)
+    ),
+    cert: fs.readFileSync(
+      path.join(process.env.HOME!, `.secrets/live/${localstreamingapidomain}.liftosaur.com/fullchain.pem`)
+    ),
+  },
+  async (req, res) => {
+    try {
+      const url = new URL(req.url || "", "http://www.example.com");
+
+      // Handle streaming endpoint
+      if (url.pathname === "/api/ai/convert-stream") {
+        const body = req.method === "OPTIONS" ? "" : await getBody(req);
+
+        // Create Lambda Function URL event
+        const streamingEvent = {
+          version: "2.0",
+          routeKey: "$default",
+          rawPath: url.pathname,
+          rawQueryString: url.search.substring(1),
+          headers: req.headers as { [key: string]: string },
+          requestContext: {
+            accountId: "123456789012",
+            apiId: "local",
+            domainName: "localhost",
+            domainPrefix: "local",
+            http: {
+              method: req.method || "POST",
+              path: url.pathname,
+              protocol: "HTTP/1.1",
+              sourceIp: "127.0.0.1",
+              userAgent: req.headers["user-agent"] || "",
+            },
+            requestId: "local-" + Date.now(),
+            time: new Date().toISOString(),
+            timeEpoch: Date.now(),
+          },
+          body,
+          isBase64Encoded: false,
+        };
+
+        // Get the streaming handler
+        const streamingHandler = getStreamingHandler(di);
+
+        // Create a mock response stream that writes to the Express response
+        const responseStream = {
+          write: (chunk: any) => {
+            if (typeof chunk === "string") {
+              // Check if it's the metadata
+              if (chunk.startsWith("{") && chunk.includes("statusCode")) {
+                try {
+                  const metadata = JSON.parse(chunk);
+                  res.statusCode = metadata.statusCode;
+                  for (const [key, value] of Object.entries(metadata.headers || {})) {
+                    res.setHeader(key, value as string);
+                  }
+                  return;
+                } catch (e) {
+                  // Not metadata, just write it
+                }
+              }
+              res.write(chunk);
+            } else {
+              res.write(chunk);
+            }
+          },
+          end: () => {
+            res.end();
+          },
+        };
+
+        // Call the handler with the mock stream
+        await streamingHandler(streamingEvent, responseStream, {
+          callbackWaitsForEmptyEventLoop: false,
+          functionName: "local-streaming",
+          functionVersion: "$LATEST",
+          invokedFunctionArn: "arn:aws:lambda:local",
+          memoryLimitInMB: "128",
+          awsRequestId: "local-" + Date.now(),
+          logGroupName: "/aws/lambda/local",
+          logStreamName: "local",
+          getRemainingTimeInMillis: () => 300000,
+          done: () => {},
+          fail: () => {},
+          succeed: () => {},
+        });
+
+        return;
+      } else {
+        // Return 404 for non-streaming endpoints on streaming server
+        res.statusCode = 404;
+        res.end("Not Found");
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        console.error(e);
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({ name: e.name, error: e.message, stack: e.stack }));
+      } else {
+        throw e;
+      }
+    }
+  }
+);
+
 // eslint-disable-next-line prefer-const
 (global as any).__COMMIT_HASH__ = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
 (global as any).__FULL_COMMIT_HASH__ = childProcess.execSync("git rev-parse HEAD").toString().trim();
 
 server.listen(3000, "0.0.0.0", () => {
-  console.log(`--------- Server is running ----------`);
+  console.log(`--------- API Server is running on port 3000 ----------`);
+});
+
+streamingServer.listen(3001, "0.0.0.0", () => {
+  console.log(`--------- Streaming API Server is running on port 3001 ----------`);
 });
