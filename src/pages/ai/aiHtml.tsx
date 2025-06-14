@@ -1,4 +1,4 @@
-import { ComponentChildren, h } from "preact";
+import { JSX, h } from "preact";
 import { Page } from "../../components/page";
 import { IAccount } from "../../models/account";
 import { AiContent } from "./aiContent";

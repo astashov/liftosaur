@@ -49,6 +49,10 @@ export type IPostStorageResponse =
 
 type IRedeemCouponError = "not_authorized" | "coupon_not_found" | "coupon_already_claimed" | "unknown";
 
+export interface IAiConvertResponse {
+  program: string;
+}
+
 export type IEventPayload =
   | {
       type: "event";
@@ -475,5 +479,27 @@ export class Service {
     return this.client(`${__API_HOST__}/api/programs`, { credentials: "include" })
       .then((response) => response.json())
       .then((json) => json.programs.map((p: { program: IProgram }) => p.program));
+  }
+
+  public async convertProgramWithAi(input: string): Promise<IEither<IAiConvertResponse, string>> {
+    try {
+      const response = await this.client(`${__API_HOST__}/api/ai/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input }),
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const json: IAiConvertResponse = await response.json();
+        return { success: true, data: json };
+      } else {
+        const errorText = await response.text();
+        return { success: false, error: errorText || response.statusText };
+      }
+    } catch (error) {
+      const e = error as Error;
+      return { success: false, error: e.message };
+    }
   }
 }
