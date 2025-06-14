@@ -1838,6 +1838,19 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250613": {
+    title: <span>Suppressing progress</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can suppress progress for an exercise, if you won't want it to run the progress logic and updates
+          weights/reps/etc after finishing a workout.
+        </li>
+        <li>For that, after finishing all sets of an exercise, tap "Suppress" link near the progress changes info.</li>
+        <li>Super optional, but sometimes you may want to do it.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

@@ -12,7 +12,7 @@ import {
 } from "../types";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { updateProgress } from "../models/state";
-import { LensBuilder } from "lens-shmens";
+import { lb, LensBuilder } from "lens-shmens";
 import { WorkoutExerciseSet } from "./workoutExerciseSet";
 import { Reps } from "../models/set";
 import { IconPlus2 } from "./icons/iconPlus2";
@@ -63,6 +63,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
   const nextSetIndex = [...warmupSets, ...sets].findIndex((s) => !Reps.isFinishedSet(s));
   const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
   const targetLabel = getTargetColumnLabel(props.settings.workoutSettings.targetType);
+  const lbEntry = lb<IHistoryRecord>().p("entries").i(props.entryIndex);
 
   return (
     <div>
@@ -143,6 +144,13 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             programExercise={props.programExercise}
             program={props.program}
             userPromptedStateVars={props.userPromptedStateVars}
+            onSuppressProgress={(isSuppressed) => {
+              updateProgress(
+                props.dispatch,
+                lbEntry.recordModify((entry) => ({ ...entry, isSuppressed })),
+                "suppress"
+              );
+            }}
           />
         </div>
       )}

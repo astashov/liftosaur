@@ -10,6 +10,7 @@ import { IScriptBindings } from "../models/progress";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { LinkButton } from "./linkButton";
 
 interface IProps {
   entry: IHistoryEntry;
@@ -18,6 +19,7 @@ interface IProps {
   programExercise: IPlannerProgramExercise;
   program: IEvaluatedProgram;
   userPromptedStateVars?: IProgramState;
+  onSuppressProgress?: (isSuppressed: boolean) => void;
   forceShow?: boolean;
 }
 
@@ -37,6 +39,7 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
   const isFinished = Reps.isFinished(entry.sets);
   const updatePrints = entry.updatePrints || [];
   const showEndOfDay = props.forceShow || isFinished;
+  const onSuppressProgress = props.onSuppressProgress;
 
   if (result.success) {
     const { state: newState, updates, bindings } = result.data;
@@ -56,10 +59,35 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
           data-help-id="progress-state-changes"
           data-help="This shows how state variables of the exercise are going to change after finishing this workout day. It usually indicates progression or deload, so next time you'd do more/less reps, or lift more/less weight."
         >
-          {showEndOfDay && ObjectUtils.isNotEmpty(diffVars) && <ExerciseChanges diffVars={diffVars} />}
-          {showEndOfDay && ObjectUtils.isNotEmpty(diffState) && <StateVariablesChanges diffState={diffState} />}
-          {showEndOfDay && prints.length > 0 && <Prints title="Progress Prints" prints={prints} />}
-          {updatePrints.length > 0 && <Prints title="Update Prints" prints={updatePrints} />}
+          <div>
+            {showEndOfDay && ObjectUtils.isNotEmpty(diffVars) && (
+              <div className={props.entry.isSuppressed ? "line-through" : ""}>
+                <ExerciseChanges diffVars={diffVars} />
+              </div>
+            )}
+            {showEndOfDay && ObjectUtils.isNotEmpty(diffState) && (
+              <div className={props.entry.isSuppressed ? "line-through" : ""}>
+                <StateVariablesChanges diffState={diffState} />
+              </div>
+            )}
+            {showEndOfDay && prints.length > 0 && <Prints title="Progress Prints" prints={prints} />}
+            {updatePrints.length > 0 && <Prints title="Update Prints" prints={updatePrints} />}
+          </div>
+          {onSuppressProgress && (
+            <div>
+              <LinkButton
+                name="supress-progress"
+                kind="purple"
+                className="text-xs"
+                data-cy="suppress-progress"
+                onClick={() => {
+                  onSuppressProgress(!props.entry.isSuppressed);
+                }}
+              >
+                {props.entry.isSuppressed ? "Enable" : "Suppress"}
+              </LinkButton>
+            </div>
+          )}
         </div>
       );
     }

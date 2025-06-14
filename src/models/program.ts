@@ -449,7 +449,7 @@ export namespace Program {
       return { program, exerciseData };
     }
     for (const entry of progress.entries) {
-      if (entry != null && entry.sets.some((s) => s.isCompleted)) {
+      if (entry != null && !entry.isSuppressed && entry.sets.some((s) => s.isCompleted)) {
         const dayExercises = Program.getProgramDayExercises(programDay);
         const programExercise = dayExercises.find((e) => e.key === entry.programExerciseId);
         if (programExercise) {
