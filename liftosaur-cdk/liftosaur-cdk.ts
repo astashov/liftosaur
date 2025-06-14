@@ -7,6 +7,8 @@ import { aws_s3 as s3 } from "aws-cdk-lib";
 import { aws_certificatemanager as acm } from "aws-cdk-lib";
 import { aws_iam as iam } from "aws-cdk-lib";
 import { aws_events, aws_events_targets } from "aws-cdk-lib";
+import { aws_cloudfront as cloudfront } from "aws-cdk-lib";
+import { aws_cloudfront_origins as origins } from "aws-cdk-lib";
 import { LftS3Buckets } from "../lambda/dao/buckets";
 import childProcess from "child_process";
 
@@ -264,6 +266,12 @@ export class LiftosaurCdkStack extends cdk.Stack {
       "arn:aws:acm:us-west-2:366191129585:certificate/2e317b03-2624-4b47-a116-2cc66107d65b"
     );
 
+    const streamingCert = acm.Certificate.fromCertificateArn(
+      this,
+      `LftEndpointStreamingCert${suffix}`,
+      "arn:aws:acm:us-east-1:366191129585:certificate/8f13a85c-6103-4863-8867-46825961b377"
+    );
+
     const restApi = new apigw.RestApi(this, `LftEndpoint${suffix}`, {
       defaultIntegration: new apigw.LambdaIntegration(lambdaFunction),
       binaryMediaTypes: ["*/*"],
@@ -307,9 +315,89 @@ export class LiftosaurCdkStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
       })
     );
+
+    // Streaming Lambda for AI conversion
+    const streamingLambdaFunction = new lambda.Function(this, `LftStreamingLambda${suffix}`, {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      functionName: `LftStreamingLambda${suffix}`,
+      code: lambda.Code.fromAsset("dist-lambda"),
+      memorySize: 1024,
+      layers: [depsLayer],
+      timeout: cdk.Duration.seconds(300),
+      handler: "lambda/run.streamingHandler",
+      environment: {
+        IS_LOCAL: "false",
+        IS_DEV: `${isDev}`,
+        COMMIT_HASH: commitHash,
+        FULL_COMMIT_HASH: fullCommitHash,
+      },
+    });
+
+    // Grant necessary permissions
+    allSecrets.grantRead(streamingLambdaFunction);
+    usersTable.grantReadWriteData(streamingLambdaFunction);
+
+    // Add Lambda Function URL with streaming response
+    const functionUrl = streamingLambdaFunction.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE, // Public access
+      cors: {
+        allowedOrigins: isDev
+          ? ["https://local.liftosaur.com:8080", "https://stage.liftosaur.com", "https://www.liftosaur.com"]
+          : ["https://www.liftosaur.com"],
+        allowedMethods: [lambda.HttpMethod.POST],
+        allowedHeaders: ["Content-Type", "Cookie"],
+        allowCredentials: true,
+        maxAge: cdk.Duration.days(1),
+      },
+      invokeMode: lambda.InvokeMode.RESPONSE_STREAM, // Enable streaming
+    });
+
+    // Extract the Lambda Function URL domain
+    const functionUrlDomain = cdk.Fn.select(2, cdk.Fn.split("/", functionUrl.url));
+
+    // Create a response headers policy for CORS
+    const responseHeadersPolicy = new cloudfront.ResponseHeadersPolicy(this, `LftStreamingResponseHeaders${suffix}`, {
+      corsBehavior: {
+        accessControlAllowOrigins: isDev
+          ? ["https://local.liftosaur.com:8080", "https://stage.liftosaur.com", "https://www.liftosaur.com"]
+          : ["https://www.liftosaur.com"],
+        accessControlAllowHeaders: ["Content-Type", "Cookie"],
+        accessControlAllowMethods: ["POST", "OPTIONS"],
+        accessControlAllowCredentials: true,
+        originOverride: true,
+      },
+    });
+
+    // Create CloudFront distribution for custom domain
+    const streamingDistribution = new cloudfront.Distribution(this, `LftStreamingDistribution${suffix}`, {
+      defaultBehavior: {
+        origin: new origins.HttpOrigin(functionUrlDomain, {
+          protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+        }),
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        responseHeadersPolicy,
+      },
+      domainNames: [`streaming-api${isDev ? "-dev" : ""}.liftosaur.com`],
+      certificate: streamingCert,
+    });
+
+    // Output the CloudFront distribution domain
+    new cdk.CfnOutput(this, `StreamingDistributionDomain${suffix}`, {
+      value: streamingDistribution.distributionDomainName,
+      description: "CloudFront distribution for streaming endpoint",
+    });
+
+    // Output the custom domain
+    new cdk.CfnOutput(this, `StreamingCustomDomain${suffix}`, {
+      value: `https://streaming-api${isDev ? "-dev" : ""}.liftosaur.com`,
+      description: "Custom domain for streaming endpoint (requires DNS setup)",
+    });
   }
 }
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-new LiftosaurCdkStack(app, "LiftosaurStack", false);
+// new LiftosaurCdkStack(app, "LiftosaurStack", false);

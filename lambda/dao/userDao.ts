@@ -21,6 +21,7 @@ import { subscriptionDetailsTableNames } from "./subscriptionDetailsDao";
 import { IStorageUpdate } from "../../src/utils/sync";
 import { IEither } from "../../src/utils/types";
 import { LftS3Buckets } from "./buckets";
+import JWT from "jsonwebtoken";
 import { DateUtils } from "../../src/utils/date";
 import * as path from "path";
 
@@ -105,6 +106,25 @@ export class UserDao {
     } else {
       return undefined;
     }
+  }
+
+  public async getCurrentUserIdFromCookie(cookies: { [key: string]: string }): Promise<string | undefined> {
+    const cookieSecret = await this.di.secrets.getCookieSecret();
+    if (cookies.session) {
+      let isValid = false;
+      try {
+        isValid = !!JWT.verify(cookies.session, cookieSecret);
+      } catch (e) {
+        if (!(e instanceof Error) || e.constructor.name !== "JsonWebTokenError") {
+          throw e;
+        }
+      }
+      if (isValid) {
+        const session = JWT.decode(cookies.session) as Record<string, string>;
+        return session.userId;
+      }
+    }
+    return undefined;
   }
 
   public async applySafeSync(

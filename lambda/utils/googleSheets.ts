@@ -110,7 +110,7 @@ export class GoogleSheetsUtil {
         content += "Headers: " + (formulas[0] || []).join(" | ") + "\n\n";
       }
 
-      // Format each row with both formula and value
+      // Format each row more compactly
       for (let i = 0; i < Math.max(formulas.length, values.length); i++) {
         const formulaRow = formulas[i] || [];
         const valueRow = values[i] || [];
@@ -120,7 +120,8 @@ export class GoogleSheetsUtil {
           continue;
         }
 
-        content += `Row ${i + 1}:\n`;
+        // Collect non-empty cells for this row
+        const cells: string[] = [];
         for (let j = 0; j < Math.max(formulaRow.length, valueRow.length); j++) {
           const formula = formulaRow[j] || "";
           const value = valueRow[j] || "";
@@ -130,13 +131,18 @@ export class GoogleSheetsUtil {
             continue;
           }
 
+          const cellRef = `${String.fromCharCode(65 + j)}${i + 1}`;
           if (formula && formula.toString().startsWith("=")) {
-            content += `  ${String.fromCharCode(65 + j)}${i + 1}: ${formula} → ${value}\n`;
+            cells.push(`${cellRef}: ${formula} → ${value}`);
           } else if (value !== "") {
-            content += `  ${String.fromCharCode(65 + j)}${i + 1}: ${value}\n`;
+            cells.push(`${cellRef}: ${value}`);
           }
         }
-        content += "\n";
+
+        // Only output row if it has content
+        if (cells.length > 0) {
+          content += `Row ${i + 1}: ${cells.join(" | ")}\n`;
+        }
       }
     }
 

@@ -48,7 +48,6 @@ import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
 import { ExceptionDao } from "./dao/exceptionDao";
 import { UrlUtils } from "../src/utils/url";
-import { LlmUtil } from "./utils/llm";
 import { RollbarUtils } from "../src/utils/rollbar";
 import { Account, IAccount } from "../src/models/account";
 import { renderProgramsListHtml } from "./programsList";
@@ -106,22 +105,8 @@ function getBodyJson(event: APIGatewayProxyEvent): any {
 
 async function getCurrentUserId(event: APIGatewayProxyEvent, di: IDI): Promise<string | undefined> {
   const cookies = Cookie.parse(event.headers.Cookie || event.headers.cookie || "");
-  const cookieSecret = await di.secrets.getCookieSecret();
-  if (cookies.session) {
-    let isValid = false;
-    try {
-      isValid = !!JWT.verify(cookies.session, cookieSecret);
-    } catch (e) {
-      if (!(e instanceof Error) || e.constructor.name !== "JsonWebTokenError") {
-        throw e;
-      }
-    }
-    if (isValid) {
-      const session = JWT.decode(cookies.session) as Record<string, string>;
-      return session.userId;
-    }
-  }
-  return undefined;
+  const userDao = new UserDao(di);
+  return userDao.getCurrentUserIdFromCookie(cookies);
 }
 
 async function getCurrentLimitedUser(event: APIGatewayProxyEvent, di: IDI): Promise<ILimitedUserDao | undefined> {
@@ -1486,34 +1471,15 @@ const getAiHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAiEn
 }) => {
   const di = payload.di;
   const userResult = await getUserAccount(payload);
-  const account = userResult.success ? userResult.data.account : undefined;
-  return {
-    statusCode: 200,
-    body: renderAiHtml(di.fetch, account),
-    headers: { "content-type": "text/html" },
-  };
-};
-
-const postAiConvertEndpoint = Endpoint.build("/api/ai/convert");
-const postAiConvertHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postAiConvertEndpoint> = async ({
-  payload,
-}) => {
-  const { event, di } = payload;
-  const bodyJson = getBodyJson(event);
-  const { input } = bodyJson;
-
-  if (!input || typeof input !== "string") {
-    return ResponseUtils.json(400, event, { error: "Invalid input" });
-  }
-
-  try {
-    const llm = new LlmUtil(di.secrets, di.log, di.fetch);
-    const liftoscript = await llm.convertProgramToLiftoscript(input);
-    
-    return ResponseUtils.json(200, event, { program: liftoscript });
-  } catch (error) {
-    di.log.log("Error in AI conversion:", error);
-    return ResponseUtils.json(500, event, { error: "Conversion failed" });
+  if (!userResult.success) {
+    return userResult.error;
+  } else {
+    const account = userResult.data.account;
+    return {
+      statusCode: 200,
+      body: renderAiHtml(di.fetch, account),
+      headers: { "content-type": "text/html" },
+    };
   }
 };
 
@@ -1943,7 +1909,6 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
       .get(getAiEndpoint, getAiHandler)
-      .post(postAiConvertEndpoint, postAiConvertHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)

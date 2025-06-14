@@ -1,5 +1,5 @@
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
-const { main: localdomain, api: localapidomain } = require("./localdomain");
+const { main: localdomain, api: localapidomain, streamingapi: localstreamingapidomain } = require("./localdomain");
 
 const path = require("path");
 const fs = require("fs");
@@ -69,14 +69,6 @@ module.exports = {
           },
         },
       },
-      {
-        test: /\.md$/,
-        type: "asset/source",
-      },
-      {
-        test: /\.grammar$/,
-        type: "asset/source",
-      },
     ],
   },
   optimization: {
@@ -108,6 +100,13 @@ module.exports = {
             ? "https://api3-dev.liftosaur.com"
             : "https://api3.liftosaur.com"
           : `https://${localapidomain}.liftosaur.com:3000`
+      ),
+      __STREAMING_API_HOST__: JSON.stringify(
+        process.env.NODE_ENV === "production"
+          ? process.env.STAGE
+            ? "https://streaming-api-dev.liftosaur.com"
+            : "https://streaming-api.liftosaur.com"
+          : `https://${localstreamingapidomain}.liftosaur.com:3001`
       ),
       __ENV__: JSON.stringify(process.env.NODE_ENV === "production" ? "production" : "development"),
       __HOST__: JSON.stringify(

@@ -5,7 +5,7 @@ import { AiContent } from "./aiContent";
 
 interface IAiHtmlProps {
   client: Window["fetch"];
-  account?: IAccount;
+  account: IAccount;
 }
 
 export function AiHtml(props: IAiHtmlProps): JSX.Element {

@@ -6,7 +6,7 @@ import { IAccount } from "./models/account";
 
 interface IAiContentProps {
   client: Window["fetch"];
-  account?: IAccount;
+  account: IAccount;
 }
 
 function main(): void {

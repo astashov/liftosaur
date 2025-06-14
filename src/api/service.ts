@@ -92,6 +92,7 @@ const cachePromises: Partial<Record<string, unknown>> = {};
 
 declare let __API_HOST__: string;
 declare let __HOST__: string;
+declare let __STREAMING_API_HOST__: string;
 
 export interface IRecordResponse {
   history: IHistoryRecord[];
@@ -481,25 +482,60 @@ export class Service {
       .then((json) => json.programs.map((p: { program: IProgram }) => p.program));
   }
 
-  public async convertProgramWithAi(input: string): Promise<IEither<IAiConvertResponse, string>> {
+  public async *streamAiLiftoscriptProgram(
+    input: string
+  ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
     try {
-      const response = await this.client(`${__API_HOST__}/api/ai/convert`, {
+      // Use streaming API host for true streaming support
+      const url = `${__STREAMING_API_HOST__}/stream/ai/liftoscript`;
+
+      const response = await this.client(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ input }),
         credentials: "include",
       });
 
-      if (response.ok) {
-        const json: IAiConvertResponse = await response.json();
-        return { success: true, data: json };
-      } else {
-        const errorText = await response.text();
-        return { success: false, error: errorText || response.statusText };
+      if (!response.ok) {
+        yield { type: "error", data: `HTTP ${response.status}: ${response.statusText}` };
+        return;
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        yield { type: "error", data: "No response body" };
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.trim() === "") continue;
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            if (data === "[DONE]") {
+              return;
+            }
+            try {
+              const json = JSON.parse(data);
+              yield json;
+            } catch (e) {
+              console.error("Failed to parse SSE data:", e, data);
+            }
+          }
+        }
       }
     } catch (error) {
-      const e = error as Error;
-      return { success: false, error: e.message };
+      yield { type: "error", data: error instanceof Error ? error.message : "Unknown error" };
     }
   }
 }

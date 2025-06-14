@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { UrlUtils } from "../../src/utils/url";
 import { localdomain } from "../../src/localdomain";
 
-const allowedHosts = [
+export const allowedHosts = [
   `${localdomain}.liftosaur.com:8080`,
   "www.liftosaur.com",
   "localhost:8080",
