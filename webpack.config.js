@@ -31,6 +31,7 @@ module.exports = {
     editor: ["./src/editor.ts", "./src/editor.css"],
     affiliatedashboard: ["./src/affiliatedashboard.tsx", "./src/affiliatedashboard.css", "./src/index.css"],
     affiliates: ["./src/affiliates.tsx", "./src/page.css", "./src/index.css"],
+    ai: ["./src/ai.tsx", "./src/page.css", "./src/index.css"],
     userdashboard: ["./src/userdashboard.tsx", "./src/page.css", "./src/index.css"],
     usersdashboard: ["./src/usersdashboard.tsx", "./src/page.css", "./src/index.css"],
     "webpushr-sw": "./src/webpushr-sw.ts",
@@ -342,6 +343,10 @@ module.exports = {
         secure: false,
       },
       "/affiliates": {
+        target: localapi,
+        secure: false,
+      },
+      "/ai": {
         target: localapi,
         secure: false,
       },
