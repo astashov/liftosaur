@@ -40,6 +40,7 @@ import { DateUtils } from "../src/utils/date";
 import { IUsersDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
 import { Mobile } from "./utils/mobile";
 import { renderAffiliatesHtml } from "./affiliates";
+import { renderAiHtml } from "./ai";
 import { FreeUserDao } from "./dao/freeUserDao";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 import { CouponDao } from "./dao/couponDao";
@@ -1477,6 +1478,21 @@ const getAffiliatesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   };
 };
 
+const getAiEndpoint = Endpoint.build("/ai");
+const getAiHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAiEndpoint> = async ({
+  payload,
+  match,
+}) => {
+  const di = payload.di;
+  const userResult = await getUserAccount(payload);
+  const account = userResult.success ? userResult.data.account : undefined;
+  return {
+    statusCode: 200,
+    body: renderAiHtml(di.fetch, account),
+    headers: { "content-type": "text/html" },
+  };
+};
+
 const getProgramShorturlResponseEndpoint = Endpoint.build("/api/p/:id");
 const getProgramShorturlResponseHandler: RouteHandler<
   IPayload,
@@ -1902,6 +1918,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(postSaveProgramEndpoint, postSaveProgramHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
+      .get(getAiEndpoint, getAiHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
