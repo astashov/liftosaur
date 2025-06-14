@@ -69,6 +69,14 @@ module.exports = {
           },
         },
       },
+      {
+        test: /\.md$/,
+        type: "asset/source",
+      },
+      {
+        test: /\.grammar$/,
+        type: "asset/source",
+      },
     ],
   },
   optimization: {

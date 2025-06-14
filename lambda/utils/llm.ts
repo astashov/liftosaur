@@ -3,6 +3,8 @@ import { ILogUtil } from "./log";
 import { PlannerProgram } from "../../src/pages/planner/models/plannerProgram";
 import { Settings } from "../../src/models/settings";
 import { PlannerSyntaxError } from "../../src/pages/planner/plannerExerciseEvaluator";
+import { LiftoscriptDocs } from "../../src/models/liftoscriptDocs";
+import { GoogleSheetsUtil } from "./googleSheets";
 
 export interface ILlmUtil {
   convertProgramToLiftoscript(input: string): Promise<string>;
@@ -67,27 +69,15 @@ export class LlmUtil implements ILlmUtil {
   }
 
   private async fetchGoogleSheet(url: string): Promise<IFetchedContent> {
-    // Extract sheet ID and GID from URL
-    const sheetIdMatch = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-    const gidMatch = url.match(/[#&]gid=([0-9]+)/);
+    const googleSheets = new GoogleSheetsUtil(this.secrets, this.log, this.fetch);
+    const sheetData = await googleSheets.fetchSheet(url);
 
-    if (!sheetIdMatch) {
-      throw new Error("Invalid Google Sheets URL");
-    }
-
-    const sheetId = sheetIdMatch[1];
-    const gid = gidMatch ? gidMatch[1] : "0";
-
-    // Convert to CSV export URL
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
-
-    const response = await this.fetch(csvUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch Google Sheet: ${response.status}`);
-    }
-
-    const csvContent = await response.text();
-    return { content: csvContent, type: "csv" };
+    // Map the spreadsheet type to our internal type
+    console.log("Fetched Google Sheet data:", sheetData.content);
+    return {
+      content: sheetData.content,
+      type: "csv", // Keep as CSV for compatibility with existing prompt logic
+    };
   }
 
   private validateLiftoscript(liftoscript: string): IValidationResult {
@@ -118,7 +108,11 @@ export class LlmUtil implements ILlmUtil {
 
       // Add context about the content type
       if (contentType === "csv") {
-        programContent = `[This is CSV data from a spreadsheet]:\n\n${programContent}`;
+        if (programContent.includes("with Formulas:")) {
+          programContent = `[This is Google Sheets data with formulas. Cells show both formulas (e.g., =B2*0.8) and their calculated values. Use the formulas to understand the program structure and progressions]:\n\n${programContent}`;
+        } else {
+          programContent = `[This is CSV data from a spreadsheet]:\n\n${programContent}`;
+        }
       } else if (contentType === "html") {
         programContent = `[This is HTML content, extract the workout program information]:\n\n${programContent}`;
       }
@@ -128,38 +122,30 @@ export class LlmUtil implements ILlmUtil {
     let errors: PlannerSyntaxError[] = [];
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const liftoscriptDocumentation = LiftoscriptDocs.getCombinedDocs();
       const systemPrompt = `You are an expert at converting workout programs to Liftoscript format.
 
-Liftoscript is a domain-specific language for defining workout programs with these key features:
-- Programs are organized into weeks (# Week 1) and days (## Day 1)
-- Each exercise line format: ExerciseName / sets x reps / weight [/ optional properties]
-- Weight can be absolute (135lb, 60kg) or percentage (80%)
-- State variables for tracking: state.weight, state.reps, etc.
-- Built-in progression functions: lp() for linear progression, dp() for double progression
+${liftoscriptDocumentation}
 
-Syntax rules:
-- Week headers: # Week 1
-- Day headers: ## Day 1  
-- Exercise format: Exercise Name / 3x5 / 135lb
-- With progression: Squat / 3x5 / 135lb / progress: lp(5lb)
-- Percentages: Bench Press / 5x5 / 80%
-- Rep ranges: Pull Up / 3x8-12 / bodyweight
+${LiftoscriptDocs.getPlannerGrammar()}
 
-Example program:
-# Week 1
-## Day 1: Push
-Bench Press / 5x5 / 80% / progress: lp(5lb)
-Overhead Press / 3x8 / 60lb
-Dips / 3x10-15 / bodyweight
+${LiftoscriptDocs.getLiftoscriptGrammar()}
 
-## Day 2: Pull
-Deadlift / 1x5 / 225lb / progress: lp(10lb)
-Barbell Row / 3x8 / 135lb
-Pull Up / 3x6-10 / bodyweight
+${errors.length > 0 ? `\nIMPORTANT: The previous attempt had these errors: ${errors.map((e) => e.message).join("; ")}\nPlease fix these specific issues.` : ""}
 
-${errors.length > 0 ? `\nIMPORTANT: The previous attempt had these errors: ${errors.map((e) => e.message).join("; ")}\nPlease fix that.` : ""}
+Guidelines for conversion:
+- Convert weight values to appropriate units (lb or kg based on context)
+- Extract sets, reps, and weight from various formats
+- Identify progression schemes and convert to Liftoscript progress functions
+- Use state variables for tracking when needed
+- Preserve the structure and intent of the original program
+- For spreadsheets: look for week/day patterns in rows/columns
+- For percentages: use the % notation (e.g., 80% not 0.8)
 
-Return ONLY the Liftoscript code, no explanations or comments.`;
+Syntax is INCREDIBLY important, it's formalized and YOU'LL NEED TO FOLLOW IT PRECISELY.
+No free form text (unless in comments), and use ONLY THE EXERCISES FROM THE PROVIDED LIST. If there's no matching exercise - use a similar one, FROM THE LIST!
+
+Return ONLY the valid Liftoscript code, no explanations, comments, or markdown code blocks.`;
 
       const userPrompt = `Convert the following workout program to Liftoscript format:\n\n${programContent}`;
 
@@ -172,13 +158,12 @@ Return ONLY the Liftoscript code, no explanations or comments.`;
             Authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model: "gpt-4o-mini",
+            model: "gpt-4.1",
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt },
             ],
             temperature: 0.3,
-            max_tokens: 4000,
           }),
         });
 
