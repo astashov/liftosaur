@@ -1493,6 +1493,44 @@ const getAiHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAiEn
   };
 };
 
+const postAiConvertEndpoint = Endpoint.build("/api/ai/convert");
+const postAiConvertHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postAiConvertEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const bodyJson = getBodyJson(event);
+  const { input } = bodyJson;
+
+  if (!input || typeof input !== "string") {
+    return ResponseUtils.json(400, event, { error: "Invalid input" });
+  }
+
+  try {
+    // TODO: Implement LLM integration here
+    // For now, return a mock response
+    const mockLiftoscript = `# Mock Liftosaur Program
+
+## Day 1: Upper Body
+
+Bench Press / 3x8 / 135lb
+Overhead Press / 3x10 / 95lb
+Dumbbell Row / 3x12 / 50lb
+
+## Day 2: Lower Body
+
+Squat / 3x5 / 225lb
+Deadlift / 1x5 / 315lb
+Leg Press / 3x15 / 400lb
+
+# This is a mock response - LLM integration pending`;
+
+    return ResponseUtils.json(200, event, { program: mockLiftoscript });
+  } catch (error) {
+    di.log.log("Error in AI conversion:", error);
+    return ResponseUtils.json(500, event, { error: "Conversion failed" });
+  }
+};
+
 const getProgramShorturlResponseEndpoint = Endpoint.build("/api/p/:id");
 const getProgramShorturlResponseHandler: RouteHandler<
   IPayload,
@@ -1919,6 +1957,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
       .get(getAiEndpoint, getAiHandler)
+      .post(postAiConvertEndpoint, postAiConvertHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
