@@ -103,7 +103,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         }
       }
     } else if (key === ".") {
-      if (allowDotRef.current && Number(newValue) !== 0 && !newValue.includes(".")) {
+      if (allowDotRef.current && !newValue.includes(".")) {
         newValue += key;
       }
     } else if (newValue.length < maxLength) {
@@ -113,7 +113,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     isTypingRef.current = true;
     valueRef.current = newValue;
     setValue(newValue);
-    if (onInputRef.current) {
+    if (onInputRef.current && !newValue.endsWith(".")) {
       const newValueNum = clamp(newValue, props.min, props.max);
       onInputRef.current(newValueNum);
     }

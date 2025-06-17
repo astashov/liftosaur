@@ -61,6 +61,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                         name={key}
                         value={value}
                         step={1}
+                        allowDot={true}
                         onInput={(newValue) => {
                           props.plannerDispatch(
                             lbProgram.recordModify((program) => {
