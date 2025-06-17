@@ -41,7 +41,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
     buildPlannerDispatch(
       props.dispatch,
       (
-        lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
+        lb<IState>().p("screenStack").findBy("name", "editProgramExercise", true).p("params") as LensBuilder<
           IState,
           { plannerState: IPlannerExerciseState },
           {}

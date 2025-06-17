@@ -89,7 +89,7 @@ export namespace Screen {
     }
 
     const currentScreen = Screen.current(state.screenStack);
-    const screens = isPush ? [...state.screenStack] : [currentScreen];
+    const screens = isPush ? [...state.screenStack].reverse() : [currentScreen];
     for (const screen of screens) {
       if (screen.name === "editProgram") {
         const editProgramState = screen.params?.plannerState;

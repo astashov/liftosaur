@@ -67,7 +67,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
     buildPlannerDispatch(
       props.dispatch,
       (
-        lb<IState>().p("screenStack").findBy("name", "editProgram").p("params") as LensBuilder<
+        lb<IState>().p("screenStack").findBy("name", "editProgram", true).p("params") as LensBuilder<
           IState,
           { plannerState: IPlannerState },
           {}

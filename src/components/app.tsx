@@ -488,9 +488,12 @@ export function AppView(props: IProps): JSX.Element | null {
       </FallbackScreen>
     );
   } else if (Screen.currentName(state.screenStack) === "editProgram") {
-    const editProgram = Program.getProgram(state, state.storage.currentProgramId ?? state.progress[0]?.programId);
     const screenData = Screen.current(navCommon.screenStack);
     const plannerState = screenData.name === "editProgram" ? screenData.params?.plannerState : undefined;
+    const editProgram = Program.getProgram(
+      state,
+      plannerState ? plannerState.current.program.id : state.progress[0]?.programId
+    );
     content = (
       <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>
         {({ plannerState, editProgram }) => (
