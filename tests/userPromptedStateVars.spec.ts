@@ -10,7 +10,7 @@ test("User Prompted State Vars", async ({ page }) => {
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
 
-  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
   await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
   await PlaywrightUtils.typeCodeMirror(

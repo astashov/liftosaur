@@ -9,6 +9,7 @@ test("reuses sets", async ({ page }) => {
   await page.getByTestId("modal-create-program-input").clear();
   await page.getByTestId("modal-create-program-input").type("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
 
   await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
@@ -89,6 +90,7 @@ Triceps Extension / ...Bench Press[1]`
   await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("footer-program").click();
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-perday-program").click();
 
   await expect(page.getByTestId("planner-editor").first()).toContainText("Squat / 1x1 / 140lb");

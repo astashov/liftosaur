@@ -9,7 +9,7 @@ test("replaces weights", async ({ page }) => {
   await page.getByTestId("modal-create-program-input").type("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
 
-  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
   await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
   await PlaywrightUtils.typeCodeMirror(
@@ -84,6 +84,7 @@ Bicep Curl / 1x8 80lb`
   await expect(page.getByTestId("entry-squat").getByTestId("input-set-weight-field").nth(4)).toHaveText("132.5");
 
   await page.getByTestId("footer-program").click();
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-perday-program").click();
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(

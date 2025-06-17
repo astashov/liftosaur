@@ -384,11 +384,30 @@ export function ScreenProgram(props: IProps): JSX.Element {
           topPadding="1rem"
           shouldNotExpand={true}
           nonSticky={true}
-          defaultIndex={0}
+          onChange={(newTabIndex) => {
+            plannerDispatch(lb<IPlannerState>().p("ui").p("tabIndex").record(newTabIndex));
+          }}
+          defaultIndex={plannerState.ui.tabIndex}
           color="purple"
           tabs={[
             {
-              label: "Edit Program",
+              label: "Preview",
+              children: () => (
+                <ProgramPreviewPlayground
+                  scrollableTabsProps={{
+                    topPadding: "0.25rem",
+                    offsetY: "3.75rem",
+                    className: "gap-2 px-4",
+                    type: "squares",
+                  }}
+                  isPlayground={false}
+                  program={program}
+                  settings={props.settings}
+                />
+              ),
+            },
+            {
+              label: "Edit",
               children: () => (
                 <EditProgramView
                   evaluatedWeeks={evaluatedWeeks}

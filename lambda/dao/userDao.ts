@@ -120,7 +120,7 @@ export class UserDao {
     if (limitedUserStorage.version !== storageUpdate.version) {
       return { success: false, error: "outdated_client_storage" };
     }
-    const { originalId: oldOriginalId, version, settings, ...restStorageUpdate } = storageUpdate;
+    const { originalId: oldOriginalId, version, settings, tempUserId, ...restStorageUpdate } = storageUpdate;
     if (Object.keys(restStorageUpdate).length === 0 && ObjectUtils.keys(settings).length === 0) {
       return { success: true, data: { originalId: oldOriginalId || Date.now() } };
     }

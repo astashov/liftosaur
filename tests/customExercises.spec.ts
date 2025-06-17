@@ -11,6 +11,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
 
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("custom-exercise-create").click({ force: true });
   await page.getByTestId("custom-exercise-name-input").fill("My Exercise");
@@ -45,6 +46,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("footer-program").click({ force: true });
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("edit-exercise").click();
   await page.getByTestId("add-set").click();
   await page.getByTestId("edit-program-exercise-change").click();
@@ -68,6 +70,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.waitForTimeout(200);
 
   await page.getByTestId("footer-program").click({ force: true });
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("edit-exercise").click();
   await page.getByTestId("edit-program-exercise-change").click();
   await page.getByTestId("custom-exercise-create").click({ force: true });
@@ -100,6 +103,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.waitForTimeout(200);
 
   await page.getByTestId("footer-program").click({ force: true });
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-week-muscles").click();
   await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Shoulders: 2");
   await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Hamstrings: 2");

@@ -221,6 +221,7 @@ export interface IPlannerUi {
   fullTextError?: PlannerSyntaxError;
   focusedDay?: IDayData & { key?: string };
   showSettingsModal?: boolean;
+  tabIndex?: number;
   mode?: "reorder" | "ui" | "perday" | "full";
 }
 

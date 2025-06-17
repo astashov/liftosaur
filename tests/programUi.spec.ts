@@ -8,6 +8,7 @@ test("Warmups", async ({ page }) => {
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
 
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("edit-exercise").click();
@@ -50,6 +51,7 @@ test("Sets", async ({ page }) => {
   await page.getByTestId("create-program").click();
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("edit-exercise").click();
@@ -106,6 +108,7 @@ test("Change exercise", async ({ page }) => {
   await page.getByTestId("create-program").click();
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("menu-item-arnold-press-dumbbell").click();
   await page.getByTestId("add-day").click();
@@ -130,6 +133,7 @@ test("Reuse without overwrite", async ({ page }) => {
   await page.getByTestId("create-program").click();
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
   await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
   await PlaywrightUtils.typeCodeMirror(
@@ -178,6 +182,7 @@ test("Reuse progresses", async ({ page }) => {
   await page.getByTestId("create-program").click();
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
   await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
   await PlaywrightUtils.typeCodeMirror(

@@ -9,6 +9,7 @@ test("replaces exercises", async ({ page }) => {
   await page.getByTestId("modal-create-program-input").type("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
 
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
   await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
   await PlaywrightUtils.typeCodeMirror(
@@ -36,6 +37,7 @@ Bicep Curl / 1x5`
 
   await page.getByTestId("footer-program").click();
 
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("exercise-benchpress_barbell").getByTestId("show-exercise-stats").click();
   await page.getByTestId("planner-swap-exercise").click();
 
@@ -73,6 +75,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("modal-exercise").getByTestId("menu-item-squat-dumbbell").click();
 
   await page.getByTestId("footer-program").click();
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-perday-program").click();
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText("Squat / 3x8");
 
@@ -84,6 +87,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("modal-exercise").getByTestId("menu-item-hack-squat-smith").click();
 
   await page.getByTestId("footer-program").click();
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-perday-program").click();
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
     "Hack Squat, Smith Machine / 3x8"
