@@ -394,6 +394,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
               label: "Preview",
               children: () => (
                 <ProgramPreviewPlayground
+                  key="preview"
                   scrollableTabsProps={{
                     topPadding: "0.25rem",
                     offsetY: "3.75rem",
@@ -425,6 +426,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
               label: "Playground",
               children: () => (
                 <ProgramPreviewPlayground
+                  key="playground"
                   scrollableTabsProps={{
                     topPadding: "0.25rem",
                     offsetY: "3.75rem",
