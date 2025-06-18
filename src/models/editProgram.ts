@@ -98,7 +98,8 @@ export namespace EditProgram {
     program: IProgram,
     settings: ISettings,
     key: string,
-    dayData: Required<IDayData>
+    dayData: Required<IDayData>,
+    fromWorkout: boolean
   ): IPlannerExerciseState {
     const evaluatedProgram = Program.evaluate(program, settings);
     const programExercise = Program.getFirstProgramExercise(evaluatedProgram, key);
@@ -109,6 +110,8 @@ export namespace EditProgram {
         weekIndex: dayData.week - 1,
         isProgressEnabled: !!programExercise?.progress,
         isUpdateEnabled: !!programExercise?.update,
+        modeTabIndex: fromWorkout ? 1 : 0,
+        acrossWeeksTabIndex: fromWorkout ? 1 : undefined,
       },
     };
   }

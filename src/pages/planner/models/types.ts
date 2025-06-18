@@ -241,6 +241,8 @@ export interface IPlannerExerciseUi {
   showEditUpdateScriptModal?: boolean;
   weekIndex: number;
   editSetBottomSheet?: IPlannerExerciseUiEditSetBottomSheet;
+  modeTabIndex?: number;
+  acrossWeeksTabIndex?: number;
 }
 
 export interface IPlannerFullText {

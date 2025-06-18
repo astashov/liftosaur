@@ -1,6 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import {
   IPlannerExerciseState,
+  IPlannerExerciseUi,
   IPlannerProgramExercise,
   IPlannerProgramExerciseEvaluatedSet,
 } from "../../pages/planner/models/types";
@@ -20,6 +21,7 @@ import { InputNumberAddOn } from "./editProgramExerciseSet";
 
 interface IEditProgramExerciseAcrossAllWeeksProps {
   evaluatedProgram: IEvaluatedProgram;
+  ui: IPlannerExerciseUi;
   plannerExercise: IPlannerProgramExercise;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
@@ -129,9 +131,12 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
     <div>
       <ScrollableTabs
         topPadding="1rem"
+        defaultIndex={props.ui.acrossWeeksTabIndex}
+        onChange={(index: number) => {
+          props.plannerDispatch(lb<IPlannerExerciseState>().p("ui").p("acrossWeeksTabIndex").record(index));
+        }}
         shouldNotExpand={true}
         nonSticky={true}
-        defaultIndex={0}
         color="purple"
         tabs={tabs}
       />

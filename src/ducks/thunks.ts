@@ -417,7 +417,7 @@ export namespace Thunk {
   export function pushToEditProgramExercise(key: string, dayData: Required<IDayData>): IThunk {
     return async (dispatch, getState) => {
       const state = getState();
-      const programScreen = state.screenStack.find((s) => s.name === "editProgram");
+      const programScreen = [...state.screenStack].reverse().find((s) => s.name === "editProgram");
       const data = programScreen?.name === "editProgram" ? programScreen.params?.plannerState : undefined;
       const currentProgram =
         data?.current.program ||
@@ -429,7 +429,8 @@ export namespace Thunk {
           currentProgram,
           state.storage.settings,
           key,
-          dayData
+          dayData,
+          !programScreen
         );
         dispatch(Thunk.pushScreen("editProgramExercise", { key, dayData, plannerState }));
       } else {
