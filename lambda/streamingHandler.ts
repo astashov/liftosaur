@@ -12,6 +12,7 @@ import { UrlUtils } from "../src/utils/url";
 import { IEither } from "../src/utils/types";
 import { ClaudeProvider } from "./utils/llms/claude";
 import { Account, IAccount } from "../src/models/account";
+import { Subscriptions } from "./utils/subscriptions";
 
 // Import the streamifyResponse wrapper
 declare const awslambda: any;
@@ -106,7 +107,22 @@ const postAiConvertStreamHandler: RouteHandler<IPayload, void, typeof postAiConv
     onEnd(403);
     return;
   }
-  // const { account } = result;
+  const { user } = result;
+  const subscriptions = new Subscriptions(di.log, di.secrets);
+  const hasSubscription = await subscriptions.hasSubscription(di, user.id, user.storage.subscription);
+  if (!hasSubscription) {
+    stream.write(
+      JSON.stringify({
+        statusCode: 402,
+        headers: getHeaders(event),
+      })
+    );
+    stream.write(
+      `data: ${JSON.stringify({ type: "error", data: "You need to have premium subscription to use AI Liftoscript generator" })}\n\n`
+    );
+    onEnd(402);
+    return;
+  }
 
   stream.write(
     JSON.stringify({
@@ -171,7 +187,6 @@ export const getStreamingHandler = (di: IDI): IHandler => {
     const userid = await userDao.getCurrentUserIdFromCookie(
       Cookie.parse(event.headers.Cookie || event.headers.cookie || "")
     );
-    console.log("User ID from cookie:", userid);
     const path = event.rawPath || event.requestContext.http.path;
     if (userid) {
       di.log.setUser(userid);
@@ -200,7 +215,6 @@ export const getStreamingHandler = (di: IDI): IHandler => {
     let r = new Router<IPayload, void>(request).post(postAiConvertStreamEndpoint, postAiConvertStreamHandler);
     let resp: IEither<void, string>;
     try {
-      console.log("Path", url.pathname + url.search);
       resp = await r.route(method, url.pathname + url.search);
     } catch (e) {
       rollbar.error(e as Error);

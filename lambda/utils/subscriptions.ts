@@ -6,6 +6,10 @@ import { ISecretsUtil } from "./secrets";
 import { ILimitedUserDao } from "../dao/userDao";
 import { CollectionUtils } from "../../src/utils/collection";
 import { ISubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
+import { ISubscription } from "../../src/types";
+import { FreeUserDao } from "../dao/freeUserDao";
+import { IDI } from "./di";
+import { ObjectUtils } from "../../src/utils/object";
 
 interface IVerifyGoogleProductTokenSuccess {
   purchaseTimeMillis: number;
@@ -93,7 +97,34 @@ export interface IVerifyAppleReceiptResponse {
 }
 
 export class Subscriptions {
-  constructor(private readonly log: ILogUtil, private readonly secretsUtil: ISecretsUtil) {}
+  constructor(
+    private readonly log: ILogUtil,
+    private readonly secretsUtil: ISecretsUtil
+  ) {}
+
+  public async hasSubscription(di: IDI, userId: string, subscription: ISubscription): Promise<boolean> {
+    if (subscription.key) {
+      const fetchedKey = await new FreeUserDao(di).verifyKey(userId);
+      if (fetchedKey === subscription.key) {
+        return true;
+      }
+    }
+    if (subscription.apple) {
+      for (const receipt of ObjectUtils.keys(subscription.apple)) {
+        if (await this.verifyAppleReceipt(receipt)) {
+          return true;
+        }
+      }
+    }
+    if (subscription.google) {
+      for (const receipt of ObjectUtils.keys(subscription.google)) {
+        if (await this.verifyGooglePurchaseToken(receipt)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   public async verifyAppleReceipt(
     appleReceipt?: string,

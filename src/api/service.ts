@@ -486,7 +486,6 @@ export class Service {
     input: string
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
     try {
-      // Use streaming API host for true streaming support
       const url = `${__STREAMING_API_HOST__}/stream/ai/liftoscript`;
 
       const response = await this.client(url, {
@@ -496,7 +495,7 @@ export class Service {
         credentials: "include",
       });
 
-      if (!response.ok) {
+      if (!response.ok && response.status !== 402) {
         yield { type: "error", data: `HTTP ${response.status}: ${response.statusText}` };
         return;
       }
