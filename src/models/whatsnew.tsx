@@ -1851,6 +1851,32 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250619": {
+    title: <span>AI prompt generator</span>,
+    body: (
+      <ul>
+        <li>
+          To help you write Liftoscript, there's now a page -
+          <InternalLink name="web-editor" className="font-bold underline text-bluev2" href="/ai/prompt">
+            liftosaur.com/ai/prompt
+          </InternalLink>{" "}
+          - that you could use to generate a prompt e.g. for ChatGPT, Claude, Gemini, etc that would help you to write
+          your program in Liftoscript. It combines all the documentation and a bunch of examples into that huge prompt,
+          and you can copy it, and paste into AI or your choice, and it'll generate a program for you.
+        </li>
+        <li>
+          It's not perfect, and sometimes makes mistakes - in that case just copy the errors back to AI chat, and it
+          should be able to fix them.
+        </li>
+        <li>
+          You can also paste a URL to some web page, or even a google sheet into the input field on that page, and it
+          will try to generate a program from there.
+        </li>
+        <li>Currently works best with Claude, but should provide decent results with ChatGPT too.</li>
+        <li>You can access it through the website, tap on "AI Helper" at the nav bar.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

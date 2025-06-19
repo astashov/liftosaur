@@ -39,12 +39,14 @@
     "rollbar": "^2.26.2",
     "rsa-pem-from-mod-exp": "^0.8.5",
     "source-map-support": "^0.5.19",
+    "turndown": "^7.2.0",
     "uplot": "^1.6.23",
     "yatro": "^0.2.7",
     "zingtouch": "^1.0.6"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.6.2",
-    "@types/papaparse": "^5.3.14"
+    "@types/papaparse": "^5.3.14",
+    "@types/turndown": "^5.0.5"
   }
 }

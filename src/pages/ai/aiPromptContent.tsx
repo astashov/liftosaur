@@ -73,7 +73,7 @@ export function AiPromptContent(props: IAiPromptContentProps): JSX.Element {
           <label className="mb-2 font-semibold">Input Program (paste text or provide URL)</label>
           <textarea
             ref={textareaRef}
-            className="w-full p-3 font-mono text-sm border rounded-lg resize-none border-grayv3-200 min-h-[150px] max-h-[500px] overflow-y-auto"
+            className="w-full p-3 font-mono text-base border rounded-lg resize-none border-grayv3-200 min-h-[150px] max-h-[500px] overflow-y-auto"
             placeholder="Enter your workout program in plain text, or paste a link to a spreadsheet or website..."
             value={input}
             onInput={(e) => setInput((e.target as HTMLTextAreaElement).value)}
