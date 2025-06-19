@@ -6,6 +6,8 @@ export class LlmPrompt {
 
 ${LiftoscriptDocs.getMainDoc()}
 
+${LiftoscriptDocs.getExercises()}
+
 ${LiftoscriptDocs.getExamplesDoc()}
 
 ${LiftoscriptDocs.getPlannerGrammar()}
@@ -29,8 +31,8 @@ E.g. 2 sets of 60 second planks would be:
 
 Plank / 2x60
 
-REALLY TRY to use repeating and reusing syntax. Identify patterns in the program. E.g. often exercises repeat on the same days across weeks.
-Use repeating syntax like Squat[1-12] for that!
+REALLY TRY to use repeating and reusing syntax. Identify patterns in the program. E.g. often exercises repeat on the same days with the same reps/sets/weights across weeks.
+If they do that - use repeating syntax like Squat[1-12] for that!
 
 Extract the same sets/progress/update logic for multiple exercises into templates, and reuse the template from those exercises.
 

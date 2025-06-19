@@ -1,6 +1,7 @@
 // Import pre-built content
 import liftoscriptDoc from "../generated/liftoscriptDoc";
 import liftoscriptExamples from "../generated/liftoscriptExamples";
+import exercises from "../generated/exercises";
 import plannerGrammar from "../generated/plannerGrammar";
 import liftoscriptGrammar from "../generated/liftoscriptGrammar";
 
@@ -13,8 +14,12 @@ export class LiftoscriptDocs {
     return liftoscriptExamples;
   }
 
+  public static getExercises(): string {
+    return exercises;
+  }
+
   public static getCombinedDocs(): string {
-    return `${liftoscriptDoc}\n\n${liftoscriptExamples}`;
+    return `${liftoscriptDoc}\n\n${exercises}\n\n${liftoscriptExamples}`;
   }
 
   public static getPlannerGrammar(): string {
