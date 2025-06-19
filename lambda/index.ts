@@ -40,7 +40,7 @@ import { DateUtils } from "../src/utils/date";
 import { IUsersDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
 import { Mobile } from "./utils/mobile";
 import { renderAffiliatesHtml } from "./affiliates";
-import { renderAiHtml } from "./ai";
+import { renderAiPromptHtml } from "./aiPrompt";
 import { FreeUserDao } from "./dao/freeUserDao";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 import { CouponDao } from "./dao/couponDao";
@@ -1464,23 +1464,83 @@ const getAffiliatesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   };
 };
 
-const getAiEndpoint = Endpoint.build("/ai");
-const getAiHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAiEndpoint> = async ({
+// const getAiEndpoint = Endpoint.build("/ai");
+// const getAiHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAiEndpoint> = async ({
+//   payload,
+//   match,
+// }) => {
+//   const di = payload.di;
+//   const userResult = await getUserAccount(payload);
+//   if (!userResult.success) {
+//     return userResult.error;
+//   } else {
+//     const account = userResult.data.account;
+//     return {
+//       statusCode: 200,
+//       body: renderAiHtml(di.fetch, account),
+//       headers: { "content-type": "text/html" },
+//     };
+//   }
+// };
+
+const postAiPromptEndpoint = Endpoint.build("/api/ai/prompt");
+const postAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postAiPromptEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const { input } = getBodyJson(event);
+
+  if (!input) {
+    return ResponseUtils.json(400, event, { error: "Input is required" });
+  }
+
+  try {
+    const { UrlContentFetcher } = await import("./utils/urlContentFetcher");
+    const { LlmPrompt } = await import("./utils/llms/llmPrompt");
+
+    const urlFetcher = new UrlContentFetcher(di);
+    let content = input;
+
+    // If it's a URL, fetch the content
+    if (urlFetcher.isUrl(input)) {
+      const fetched = await urlFetcher.fetchUrlContent(input);
+      content = fetched.content;
+
+      if (fetched.type === "csv") {
+        if (content.includes("with Formulas:")) {
+          content = `[This is Google Sheets data with formulas. Cells show both formulas (e.g., =B2*0.8) and their calculated values. Use the formulas to understand the program structure and progressions]:\n\n${content}`;
+        } else {
+          content = `[This is CSV data from a spreadsheet]:\n\n${content}`;
+        }
+      } else if (fetched.type === "html") {
+        const markdownContent = urlFetcher.convertHtmlToMarkdown(content);
+        content = `[This content was extracted from a webpage and converted to Markdown format. Tables are preserved in HTML format between [TABLE] tags. Extract the workout program information]:\n\n${markdownContent}`;
+      }
+    }
+
+    // Generate the full prompt
+    const systemPrompt = LlmPrompt.getSystemPrompt();
+    const userPrompt = LlmPrompt.getUserPrompt(content);
+    const fullPrompt = `${systemPrompt}\n\n---\n\n${userPrompt}`;
+
+    return ResponseUtils.json(200, event, { prompt: fullPrompt });
+  } catch (error) {
+    di.log.log("Error generating prompt:", error);
+    return ResponseUtils.json(400, event, { error: `Failed to generate prompt: ${error}` });
+  }
+};
+
+const getAiPromptEndpoint = Endpoint.build("/ai/prompt");
+const getAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAiPromptEndpoint> = async ({
   payload,
   match,
 }) => {
   const di = payload.di;
-  const userResult = await getUserAccount(payload);
-  if (!userResult.success) {
-    return userResult.error;
-  } else {
-    const account = userResult.data.account;
-    return {
-      statusCode: 200,
-      body: renderAiHtml(di.fetch, account),
-      headers: { "content-type": "text/html" },
-    };
-  }
+  return {
+    statusCode: 200,
+    body: renderAiPromptHtml(di.fetch),
+    headers: { "content-type": "text/html" },
+  };
 };
 
 const getProgramShorturlResponseEndpoint = Endpoint.build("/api/p/:id");
@@ -1908,10 +1968,12 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(postSaveProgramEndpoint, postSaveProgramHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
-      .get(getAiEndpoint, getAiHandler)
+      // .get(getAiEndpoint, getAiHandler)
+      .get(getAiPromptEndpoint, getAiPromptHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
+      .post(postAiPromptEndpoint, postAiPromptHandler)
       .post(postSyncEndpoint, postSyncHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getPlannerEndpoint, getPlannerHandler)

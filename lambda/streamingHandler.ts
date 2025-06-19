@@ -13,6 +13,7 @@ import { IEither } from "../src/utils/types";
 import { ClaudeProvider } from "./utils/llms/claude";
 import { Account, IAccount } from "../src/models/account";
 import { Subscriptions } from "./utils/subscriptions";
+import { UrlContentFetcher } from "./utils/urlContentFetcher";
 
 declare const awslambda: any;
 
@@ -109,17 +110,17 @@ const postAiConvertStreamHandler: RouteHandler<IPayload, void, typeof postAiConv
   const subscriptions = new Subscriptions(di.log, di.secrets);
   const hasSubscription = await subscriptions.hasSubscription(di, user.id, user.storage.subscription);
   if (!hasSubscription) {
-    // stream.write(
-    //   JSON.stringify({
-    //     statusCode: 402,
-    //     headers: getHeaders(event),
-    //   })
-    // );
-    // stream.write(
-    //   `data: ${JSON.stringify({ type: "error", data: "You need to have premium subscription to use AI Liftoscript generator" })}\n\n`
-    // );
-    // onEnd(402);
-    // return;
+    stream.write(
+      JSON.stringify({
+        statusCode: 402,
+        headers: getHeaders(event),
+      })
+    );
+    stream.write(
+      `data: ${JSON.stringify({ type: "error", data: "You need to have premium subscription to use AI Liftoscript generator" })}\n\n`
+    );
+    onEnd(402);
+    return;
   }
 
   stream.write(
@@ -134,8 +135,37 @@ const postAiConvertStreamHandler: RouteHandler<IPayload, void, typeof postAiConv
   const provider = new ClaudeProvider(anthropicKey);
 
   try {
+    // Handle URL fetching if needed
+    const urlFetcher = new UrlContentFetcher(di);
+    let programContent = input;
+
+    if (urlFetcher.isUrl(input)) {
+      stream.write(`data: ${JSON.stringify({ type: "progress", data: "Fetching content from URL..." })}\n\n`);
+
+      try {
+        const fetched = await urlFetcher.fetchUrlContent(input);
+        programContent = fetched.content;
+
+        if (fetched.type === "csv") {
+          if (programContent.includes("with Formulas:")) {
+            programContent = `[This is Google Sheets data with formulas. Cells show both formulas (e.g., =B2*0.8) and their calculated values. Use the formulas to understand the program structure and progressions]:\n\n${programContent}`;
+          } else {
+            programContent = `[This is CSV data from a spreadsheet]:\n\n${programContent}`;
+          }
+        } else if (fetched.type === "html") {
+          const markdownContent = urlFetcher.convertHtmlToMarkdown(programContent);
+          programContent = `[This content was extracted from a webpage and converted to Markdown format. Tables are preserved in HTML format between [TABLE] tags. Extract the workout program information]:\n\n${markdownContent}`;
+        }
+      } catch (err) {
+        const error = `Failed to fetch URL: ${err}`;
+        stream.write(`data: ${JSON.stringify({ type: "error", data: error })}\n\n`);
+        onEnd(400);
+        return;
+      }
+    }
+
     const llm = new LlmUtil(di, provider);
-    for await (const event of llm.generateLiftoscript(input, account)) {
+    for await (const event of llm.generateLiftoscript(programContent, account, input)) {
       const sseData = `data: ${JSON.stringify(event)}\n\n`;
       stream.write(sseData);
     }

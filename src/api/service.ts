@@ -482,6 +482,22 @@ export class Service {
       .then((json) => json.programs.map((p: { program: IProgram }) => p.program));
   }
 
+  public async generateAiPrompt(input: string): Promise<{ prompt?: string; error?: string }> {
+    const response = await this.client(`${__API_HOST__}/api/ai/prompt`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ input }),
+      credentials: "include",
+    });
+    
+    if (!response.ok && response.status !== 200) {
+      return { error: `HTTP ${response.status}: ${response.statusText}` };
+    }
+    
+    const json = await response.json();
+    return json;
+  }
+
   public async *streamAiLiftoscriptProgram(
     input: string
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {

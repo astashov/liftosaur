@@ -130,7 +130,7 @@ function getMenuItemsList(isLoggedIn: boolean): readonly (readonly [string, stri
     ["Blog", "/blog"],
     ["Exercises", "/exercises"],
     ["Web Editor", "/planner"],
-    ["AI Helper", "/ai"],
+    ["AI Helper", "/ai/prompt"],
     ...(isLoggedIn ? [["Your Programs", "/user/programs"] as const] : []),
   ];
 }
