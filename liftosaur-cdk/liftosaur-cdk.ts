@@ -178,6 +178,21 @@ export class LiftosaurCdkStack extends cdk.Stack {
       pointInTimeRecovery: true,
     });
 
+    const aiLogsTable = new dynamodb.Table(this, `LftAiLogs${suffix}`, {
+      tableName: `lftAiLogs${suffix}`,
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      timeToLiveAttribute: "ttl",
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
+    
+    // Add GSI for querying by userId
+    aiLogsTable.addGlobalSecondaryIndex({
+      indexName: "userId-timestamp-index",
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
+    });
+
     const secretArns = {
       dev: {
         all: "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecretsDev-RVo7cG",
@@ -336,6 +351,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     // Grant necessary permissions
     allSecrets.grantRead(streamingLambdaFunction);
     usersTable.grantReadWriteData(streamingLambdaFunction);
+    aiLogsTable.grantReadWriteData(streamingLambdaFunction);
 
     // Add Lambda Function URL with streaming response
     const functionUrl = streamingLambdaFunction.addFunctionUrl({

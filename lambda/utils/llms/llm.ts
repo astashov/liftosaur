@@ -1,8 +1,10 @@
-import { ISecretsUtil } from "../secrets";
-import { ILogUtil } from "../log";
 import { GoogleSheetsUtil } from "../googleSheets";
 import { ILLMProvider } from "./llmTypes";
 import { UrlUtils } from "../../../src/utils/url";
+import { IAccount } from "../../../src/models/account";
+import { IDI } from "../di";
+import { AiLogsDao } from "../../dao/aiLogsDao";
+import TurndownService from "turndown";
 
 interface IFetchedContent {
   content: string;
@@ -10,12 +12,25 @@ interface IFetchedContent {
 }
 
 export class LlmUtil {
+  private turndown: TurndownService;
+
   constructor(
-    private readonly secrets: ISecretsUtil,
-    private readonly log: ILogUtil,
-    private readonly fetch: Window["fetch"],
+    private readonly di: IDI,
     private readonly provider: ILLMProvider
-  ) {}
+  ) {
+    this.turndown = new TurndownService({
+      headingStyle: "atx",
+      codeBlockStyle: "fenced",
+    });
+
+    this.turndown.addRule("tables", {
+      filter: ["table"],
+      replacement: function (content, node) {
+        // Keep tables as they often contain workout data
+        return "\n\n[TABLE]\n" + (node as Element).outerHTML + "\n[/TABLE]\n\n";
+      },
+    });
+  }
 
   private isUrl(input: string): boolean {
     try {
@@ -28,13 +43,11 @@ export class LlmUtil {
 
   private async fetchUrlContent(url: string): Promise<IFetchedContent> {
     try {
-      // Handle Google Sheets specially
       if (url.includes("docs.google.com/spreadsheets")) {
         return await this.fetchGoogleSheet(url);
       }
 
-      // Fetch generic URL
-      const response = await this.fetch(url);
+      const response = await this.di.fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to fetch URL: ${response.status}`);
       }
@@ -53,28 +66,43 @@ export class LlmUtil {
 
       return { content: text, type };
     } catch (error) {
-      this.log.log("Error fetching URL:", error);
+      this.di.log.log("Error fetching URL:", error);
       throw new Error(`Failed to fetch content from URL: ${error}`);
     }
   }
 
   private async fetchGoogleSheet(url: string): Promise<IFetchedContent> {
-    const googleSheets = new GoogleSheetsUtil(this.secrets, this.log, this.fetch);
+    const googleSheets = new GoogleSheetsUtil(this.di.secrets, this.di.log, this.di.fetch);
     const sheetData = await googleSheets.fetchSheet(url);
-
-    // Map the spreadsheet type to our internal type
-    console.log("Fetched Google Sheet data:", sheetData.content);
     return {
       content: sheetData.content,
-      type: "csv", // Keep as CSV for compatibility with existing prompt logic
+      type: "csv",
     };
   }
 
+  private convertHtmlToMarkdown(html: string): string {
+    try {
+      const cleanHtml = html
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "") // Remove scripts
+        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ""); // Remove styles
+
+      const markdown = this.turndown.turndown(cleanHtml);
+
+      return markdown.replace(/\n{3,}/g, "\n\n").replace(/^\s+|\s+$/g, "");
+    } catch (error) {
+      this.di.log.log("Error converting HTML to Markdown:", error);
+      return html;
+    }
+  }
+
   public async *generateLiftoscript(
-    input: string
+    input: string,
+    account: IAccount
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
     let programContent = input;
     let contentType = "text";
+    let fullResponse = "";
+    let error: string | undefined;
 
     if (this.isUrl(input)) {
       yield { type: "progress", data: "Fetching content from URL..." };
@@ -83,7 +111,6 @@ export class LlmUtil {
         programContent = fetched.content;
         contentType = fetched.type;
 
-        // Add context about the content type
         if (contentType === "csv") {
           if (programContent.includes("with Formulas:")) {
             programContent = `[This is Google Sheets data with formulas. Cells show both formulas (e.g., =B2*0.8) and their calculated values. Use the formulas to understand the program structure and progressions]:\n\n${programContent}`;
@@ -91,22 +118,51 @@ export class LlmUtil {
             programContent = `[This is CSV data from a spreadsheet]:\n\n${programContent}`;
           }
         } else if (contentType === "html") {
-          programContent = `[This is HTML content, extract the workout program information]:\n\n${programContent}`;
+          const markdownContent = this.convertHtmlToMarkdown(programContent);
+          programContent = `[This content was extracted from a webpage and converted to Markdown format. Tables are preserved in HTML format between [TABLE] tags. Extract the workout program information]:\n\n${markdownContent}`;
         }
-      } catch (error) {
-        yield { type: "error", data: `Failed to fetch URL: ${error}` };
+      } catch (err) {
+        error = `Failed to fetch URL: ${err}`;
+        yield { type: "error", data: error };
+        await this.logAiInteraction(account, input, "", error);
         return;
       }
     }
 
-    // Use the provider to convert
     try {
       for await (const event of this.provider.generateLiftoscript(programContent)) {
+        if (event.type === "result") {
+          fullResponse += event.data;
+        } else if (event.type === "finish") {
+          fullResponse = event.data;
+        } else if (event.type === "error") {
+          error = event.data;
+        }
         yield event;
       }
-    } catch (error) {
-      this.log.log("Error in streaming conversion:", error);
-      yield { type: "error", data: error instanceof Error ? error.message : "Unknown error" };
+    } catch (err) {
+      error = err instanceof Error ? err.message : "Unknown error";
+      this.di.log.log("Error in streaming conversion:", err);
+      yield { type: "error", data: error };
+    }
+
+    await this.logAiInteraction(account, input, fullResponse, error);
+  }
+
+  private async logAiInteraction(account: IAccount, input: string, response: string, error?: string): Promise<void> {
+    try {
+      const aiLogsDao = new AiLogsDao(this.di);
+      await aiLogsDao.create({
+        userId: account.id,
+        email: account.email,
+        input,
+        response,
+        timestamp: Date.now(),
+        model: this.provider.constructor.name.replace("Provider", ""),
+        error,
+      });
+    } catch (err) {
+      this.di.log.log("Failed to log AI interaction:", err);
     }
   }
 }

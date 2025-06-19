@@ -14,7 +14,6 @@ import { ClaudeProvider } from "./utils/llms/claude";
 import { Account, IAccount } from "../src/models/account";
 import { Subscriptions } from "./utils/subscriptions";
 
-// Import the streamifyResponse wrapper
 declare const awslambda: any;
 
 interface IStream {
@@ -96,7 +95,6 @@ const postAiConvertStreamHandler: RouteHandler<IPayload, void, typeof postAiConv
 
   const userId = await getCurrentUserId(event, di);
   const result = await getUserAccount(di, userId);
-  console.log("User ID:", userId, result);
   if (!result) {
     stream.write(
       JSON.stringify({
@@ -107,21 +105,21 @@ const postAiConvertStreamHandler: RouteHandler<IPayload, void, typeof postAiConv
     onEnd(403);
     return;
   }
-  const { user } = result;
+  const { user, account } = result;
   const subscriptions = new Subscriptions(di.log, di.secrets);
   const hasSubscription = await subscriptions.hasSubscription(di, user.id, user.storage.subscription);
   if (!hasSubscription) {
-    stream.write(
-      JSON.stringify({
-        statusCode: 402,
-        headers: getHeaders(event),
-      })
-    );
-    stream.write(
-      `data: ${JSON.stringify({ type: "error", data: "You need to have premium subscription to use AI Liftoscript generator" })}\n\n`
-    );
-    onEnd(402);
-    return;
+    // stream.write(
+    //   JSON.stringify({
+    //     statusCode: 402,
+    //     headers: getHeaders(event),
+    //   })
+    // );
+    // stream.write(
+    //   `data: ${JSON.stringify({ type: "error", data: "You need to have premium subscription to use AI Liftoscript generator" })}\n\n`
+    // );
+    // onEnd(402);
+    // return;
   }
 
   stream.write(
@@ -136,8 +134,8 @@ const postAiConvertStreamHandler: RouteHandler<IPayload, void, typeof postAiConv
   const provider = new ClaudeProvider(anthropicKey);
 
   try {
-    const llm = new LlmUtil(di.secrets, di.log, di.fetch, provider);
-    for await (const event of llm.generateLiftoscript(input)) {
+    const llm = new LlmUtil(di, provider);
+    for await (const event of llm.generateLiftoscript(input, account)) {
       const sseData = `data: ${JSON.stringify(event)}\n\n`;
       stream.write(sseData);
     }

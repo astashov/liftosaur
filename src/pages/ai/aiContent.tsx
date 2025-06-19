@@ -5,6 +5,7 @@ import { Service } from "../../api/service";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { Settings } from "../../models/settings";
 import { PlannerSyntaxError } from "../../pages/planner/plannerExerciseEvaluator";
+import { Button } from "../../components/button";
 
 interface IAiContentProps {
   client: Window["fetch"];
@@ -129,8 +130,8 @@ export function AiContent(props: IAiContentProps): JSX.Element {
   return (
     <section className="flex flex-col h-screen max-w-full mx-auto">
       <div className="px-4 py-6 border-b">
-        <h1 className="text-2xl font-bold">AI Program Converter</h1>
-        <p className="mt-2 text-gray-600">Convert any workout program to Liftoscript format using AI</p>
+        <h1 className="text-2xl font-bold">Liftoscript AI generator</h1>
+        <p className="mt-2 text-gray-600">Convert your program description to Liftoscript using AI</p>
       </div>
 
       <div className="flex flex-col flex-1 overflow-hidden md:flex-row">
@@ -138,7 +139,7 @@ export function AiContent(props: IAiContentProps): JSX.Element {
           <label className="mb-2 font-semibold">Input Program (paste text or provide URL)</label>
           <textarea
             className="flex-1 w-full p-3 font-mono text-sm border rounded-lg resize-none"
-            placeholder="Paste your workout program here or provide a link to a spreadsheet/document..."
+            placeholder="Enter your workout program in plain text, or paste a link to a spreadsheet or website..."
             value={input}
             onInput={(e) => setInput((e.target as HTMLTextAreaElement).value)}
             disabled={isLoading}
@@ -149,17 +150,19 @@ export function AiContent(props: IAiContentProps): JSX.Element {
             </div>
           )}
           <div className="flex gap-2 mt-4">
-            <button
-              className="px-6 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            <Button
+              name="convert-to-liftoscript"
+              kind="purple"
+              buttonSize="md"
               onClick={handleConvert}
               disabled={isLoading || !input.trim()}
             >
               {isLoading ? "Converting..." : "Convert to Liftoscript"}
-            </button>
+            </Button>
             {isLoading && (
-              <button className="px-6 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700" onClick={handleCancel}>
+              <Button name="cancel-conversion" kind="red" buttonSize="md" onClick={handleCancel}>
                 Cancel
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -171,12 +174,9 @@ export function AiContent(props: IAiContentProps): JSX.Element {
               <div className="flex items-center justify-between">
                 <div>{error}</div>
                 {!isLoading && (
-                  <button
-                    className="px-4 py-2 ml-4 text-white bg-red-600 rounded hover:bg-red-700"
-                    onClick={handleRetry}
-                  >
+                  <Button name="retry-after-error" kind="red" buttonSize="md" className="ml-4" onClick={handleRetry}>
                     Retry
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -192,12 +192,15 @@ export function AiContent(props: IAiContentProps): JSX.Element {
                     ))}
                   </ul>
                 </div>
-                <button
-                  className="px-4 py-2 ml-4 text-white bg-orange-600 rounded hover:bg-orange-700"
+                <Button
+                  name="retry-after-validation"
+                  kind="orange"
+                  buttonSize="md"
+                  className="ml-4"
                   onClick={handleRetry}
                 >
                   Retry
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -213,15 +216,18 @@ export function AiContent(props: IAiContentProps): JSX.Element {
             {output || (!isLoading ? "Output will appear here..." : "")}
           </pre>
           {output && (
-            <button
-              className="px-6 py-2 mt-4 text-white bg-green-600 rounded-lg hover:bg-green-700"
+            <Button
+              name="copy-liftoscript"
+              kind="purple"
+              buttonSize="md"
+              className="mt-4"
               onClick={() => {
                 navigator.clipboard.writeText(output);
                 alert("Liftoscript copied to clipboard!");
               }}
             >
               Copy Liftoscript
-            </button>
+            </Button>
           )}
         </div>
       </div>

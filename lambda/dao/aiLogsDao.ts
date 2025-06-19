@@ -20,6 +20,7 @@ export interface IAiLogDao {
   input: string;
   response: string;
   timestamp: number; // GSI sort key
+  ttl?: number; // TTL for auto-deletion
   model?: string;
   error?: string;
 }
@@ -27,7 +28,7 @@ export interface IAiLogDao {
 export class AiLogsDao {
   constructor(private readonly di: IDI) {}
 
-  public async create(log: Omit<IAiLogDao, "id">): Promise<void> {
+  public async create(log: Omit<IAiLogDao, "id" | "ttl">): Promise<void> {
     const env = Utils.getEnv();
     try {
       await this.di.dynamo.put({
@@ -35,6 +36,7 @@ export class AiLogsDao {
         item: {
           ...log,
           id: UidFactory.generateUid(16),
+          ttl: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days from now in seconds
         },
       });
     } catch (error) {
