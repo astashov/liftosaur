@@ -68,6 +68,9 @@ import { EventDao } from "./dao/eventDao";
 import { StorageDao } from "./dao/storageDao";
 import { renderUserDashboardHtml } from "./userDashboard";
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
+import { UrlContentFetcher } from "./utils/urlContentFetcher";
+import { LlmPrompt } from "./utils/llms/llmPrompt";
+import { AiLogsDao } from "./dao/aiLogsDao";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1495,11 +1498,20 @@ const postAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   }
 
   try {
-    const { UrlContentFetcher } = await import("./utils/urlContentFetcher");
-    const { LlmPrompt } = await import("./utils/llms/llmPrompt");
-
     const urlFetcher = new UrlContentFetcher(di);
     let content = input;
+
+    const userId = await getCurrentUserId(event, di);
+    try {
+      const aiLogsDao = new AiLogsDao(di);
+      await aiLogsDao.create({
+        userId: userId || "anonymous",
+        input,
+        timestamp: Date.now(),
+      });
+    } catch (err) {
+      di.log.log("Failed to log prompt:", err);
+    }
 
     // If it's a URL, fetch the content
     if (urlFetcher.isUrl(input)) {

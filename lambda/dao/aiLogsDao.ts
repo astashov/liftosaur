@@ -18,7 +18,7 @@ export interface IAiLogDao {
   userId: string; // GSI partition key
   email?: string;
   input: string;
-  response: string;
+  response?: string;
   timestamp: number; // GSI sort key
   ttl?: number; // TTL for auto-deletion
   model?: string;

@@ -185,7 +185,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
     });
-    
+
     // Add GSI for querying by userId
     aiLogsTable.addGlobalSecondaryIndex({
       indexName: "userId-timestamp-index",
@@ -416,4 +416,4 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-// new LiftosaurCdkStack(app, "LiftosaurStack", false);
+new LiftosaurCdkStack(app, "LiftosaurStack", false);
