@@ -1245,6 +1245,24 @@ Finds the maximum number or weight in an array. Use it with `completedReps`, `co
 state.maxCompletedReps = max(completedReps);
 ```
 
+#### `increment`
+
+It's a function that accepts weight, and returns incremented weight - minimum possible increment of the weight, based on the equipment settings. I.e. it will take into account the available plates, or what's the next
+fixed weight on the equipment.
+
+```javascript
+weights[1] = increment(completedWeights[1]);
+```
+
+#### `decrement`
+
+It's a function that accepts weight, and returns decremented weight - minimum possible decrement of the weight, based on the equipment settings. I.e. it will take into account the available plates, or what's the previous
+fixed weight on the equipment.
+
+```javascript
+weights[1] = decrement(completedWeights[1]);
+```
+
 #### `sets`
 
 To setup new sets (or change existing), it works only for `update: custom()`. It accepts 9 arguments (!), and looks like this:

@@ -286,6 +286,24 @@ state.nextWeight = calculate1RM(150lb, 5);
 
 It would assign `175lb` to `state.nextWeight`. The function refrains from any additional rounding and provides the unadjusted one-repetition maximum, allowing the user to make any further modifications as required.
 
+#### `increment`
+
+It's a function that accepts weight, and returns incremented weight - minimum possible increment of the weight, based on the equipment settings. I.e. it will take into account the available plates, or what's the next
+fixed weight on the equipment.
+
+```javascript
+weights[1] = increment(completedWeights[1]);
+```
+
+#### `decrement`
+
+It's a function that accepts weight, and returns decremented weight - minimum possible decrement of the weight, based on the equipment settings. I.e. it will take into account the available plates, or what's the previous
+fixed weight on the equipment.
+
+```javascript
+weights[1] = decrement(completedWeights[1]);
+```
+
 #### `rpeMultiplier`
 
 Used for calculating the multiplier of 1RM given the reps and RPE. Like for example, for 13 reps at 9 RPE, it'd

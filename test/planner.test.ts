@@ -2,10 +2,11 @@ import "mocha";
 import { expect } from "chai";
 import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
 import { PlannerTestUtils } from "./utils/plannerTestUtils";
-import { IPlannerProgram, IUnit } from "../src/types";
+import { IPlannerProgram, ISettings, IUnit } from "../src/types";
 import { Settings } from "../src/models/settings";
 import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
 import { Weight } from "../src/models/weight";
+import { ObjectUtils } from "../src/utils/object";
 
 describe("Planner", () => {
   it("updates weight after completing", () => {
@@ -1361,5 +1362,82 @@ Squat / 2x5 / 100lb / progress: custom() {~
     weights = completedWeights[1] * 0.5 + (completedWeights[3] == 30lb ? completedWeights[4] : completedWeights[3])
   }
 ~}`);
+  });
+
+  it("increment() weight", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x10 / 100lb / progress: custom() {~
+  weights[1] = increment(weights[1])
+~}`;
+    const equipment = ObjectUtils.clone(Settings.defaultEquipment());
+    equipment.barbell!.plates = [
+      { weight: Weight.build(10, "lb"), num: 2 },
+      { weight: Weight.build(25, "lb"), num: 2 },
+      { weight: Weight.build(45, "lb"), num: 2 },
+    ];
+    const settings: ISettings = {
+      ...Settings.build(),
+      gyms: [{ id: "default", name: "Main", equipment }],
+      exerciseData: {
+        squat_barbell: { equipment: { default: "barbell" } },
+      },
+    };
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10]] }, settings);
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x10 / 115lb / progress: custom() {~
+  weights[1] = increment(weights[1])
+~}
+
+
+`);
+  });
+
+  it("increment() number", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x10 / 100lb / progress: custom() {~
+  weights[1] = increment(105)
+~}`;
+    const equipment = ObjectUtils.clone(Settings.defaultEquipment());
+    equipment.barbell!.isFixed = true;
+    equipment.barbell!.fixed = [Weight.build(45, "lb"), Weight.build(100, "lb"), Weight.build(120, "lb")];
+    const settings: ISettings = {
+      ...Settings.build(),
+      gyms: [{ id: "default", name: "Main", equipment }],
+      exerciseData: {
+        squat_barbell: { equipment: { default: "barbell" } },
+      },
+    };
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10]] }, settings);
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x10 / 120lb / progress: custom() {~
+  weights[1] = increment(105)
+~}
+
+
+`);
+  });
+
+  it("decrement() percentage", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x10 / 100lb / progress: custom() {~
+  weights[1] = decrement(50%)
+~}`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x10 / 49% / progress: custom() {~
+  weights[1] = decrement(50%)
+~}
+
+
+`);
   });
 });

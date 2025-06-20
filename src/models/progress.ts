@@ -108,6 +108,12 @@ export interface IScriptFunctions {
   max(vals: IWeight[]): IWeight;
   zeroOrGte(a: number[] | IWeight[], b: number[] | IWeight[]): boolean;
   print(...args: unknown[]): (typeof args)[0];
+  increment(val: IWeight, context: IScriptFnContext): IWeight;
+  increment(val: IPercentage, context: IScriptFnContext): IPercentage;
+  increment(val: number, context: IScriptFnContext): number;
+  decrement(val: IWeight, context: IScriptFnContext): IWeight;
+  decrement(val: IPercentage, context: IScriptFnContext): IPercentage;
+  decrement(val: number, context: IScriptFnContext): number;
   sets(
     from: number,
     to: number,
@@ -288,7 +294,41 @@ export namespace Progress {
   }
 
   export function createScriptFunctions(settings: ISettings): IScriptFunctions {
-    return {
+    function increment(vals: number, context: IScriptFnContext): number;
+    function increment(vals: IWeight, context: IScriptFnContext): IWeight;
+    function increment(vals: IPercentage, context: IScriptFnContext): IPercentage;
+    function increment(
+      vals: IWeight | IPercentage | number,
+      context: IScriptFnContext
+    ): IWeight | IPercentage | number {
+      if (typeof vals === "number") {
+        const weight = Weight.build(vals, context.unit);
+        return Weight.increment(weight, settings, context.exerciseType);
+      } else if (Weight.isPct(vals)) {
+        return Weight.buildPct(vals.value + 1);
+      } else {
+        return Weight.increment(vals, settings, context.exerciseType);
+      }
+    }
+
+    function decrement(vals: number, context: IScriptFnContext): number;
+    function decrement(vals: IWeight, context: IScriptFnContext): IWeight;
+    function decrement(vals: IPercentage, context: IScriptFnContext): IPercentage;
+    function decrement(
+      vals: IWeight | IPercentage | number,
+      context: IScriptFnContext
+    ): IWeight | IPercentage | number {
+      if (typeof vals === "number") {
+        const weight = Weight.build(vals, context.unit);
+        return Weight.decrement(weight, settings, context.exerciseType);
+      } else if (Weight.isPct(vals)) {
+        return Weight.buildPct(vals.value - 1);
+      } else {
+        return Weight.decrement(vals, settings, context.exerciseType);
+      }
+    }
+
+    const fns: IScriptFunctions = {
       roundWeight: (num, context) => {
         if (!Weight.is(num)) {
           num = Weight.build(num, settings.units);
@@ -326,6 +366,8 @@ export namespace Progress {
       sum,
       min,
       max,
+      increment,
+      decrement,
       zeroOrGte,
       print: (...fnArgs) => {
         fnArgs.pop();
@@ -364,6 +406,7 @@ export namespace Progress {
         return to - from;
       },
     };
+    return fns;
   }
 
   export function isCurrent(progress: IHistoryRecord): boolean {
