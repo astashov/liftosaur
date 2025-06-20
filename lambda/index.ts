@@ -1548,9 +1548,14 @@ const getAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   match,
 }) => {
   const di = payload.di;
+  const userResult = await getUserAccount(payload, { withPrograms: true });
+  let account: IAccount | undefined;
+  if (userResult.success) {
+    ({ account } = userResult.data);
+  }
   return {
     statusCode: 200,
-    body: renderAiPromptHtml(di.fetch),
+    body: renderAiPromptHtml(di.fetch, account),
     headers: { "content-type": "text/html" },
   };
 };

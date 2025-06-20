@@ -40,7 +40,6 @@ export class AiLogsDao {
         },
       });
     } catch (error) {
-      // Don't throw - we don't want logging failures to break the main flow
       this.di.log.log("Error saving AI log:", error);
     }
   }
@@ -52,7 +51,7 @@ export class AiLogsDao {
       indexName: tableNames[env].userIdIndex,
       expression: "userId = :userId",
       values: { ":userId": userId },
-      scanIndexForward: false, // Most recent first
+      scanIndexForward: false,
       limit,
     });
     return result;

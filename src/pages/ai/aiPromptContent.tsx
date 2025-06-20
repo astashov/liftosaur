@@ -3,9 +3,11 @@ import { useState, useRef, useEffect } from "preact/hooks";
 import { Button } from "../../components/button";
 import { Service } from "../../api/service";
 import { IconDoc } from "../../components/icons/iconDoc";
+import { IAccount } from "../../models/account";
 
 interface IAiPromptContentProps {
   client: Window["fetch"];
+  account?: IAccount;
 }
 
 export function AiPromptContent(props: IAiPromptContentProps): JSX.Element {

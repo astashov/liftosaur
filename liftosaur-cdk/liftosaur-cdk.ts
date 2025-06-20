@@ -297,6 +297,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
     restApi.root.addProxy();
 
+    aiLogsTable.grantReadWriteData(lambdaFunction);
     bucket.grantReadWrite(lambdaFunction);
     debugbucket.grantReadWrite(lambdaFunction);
     exceptionsbucket.grantReadWrite(lambdaFunction);
