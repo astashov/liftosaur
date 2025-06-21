@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { BottomSheet } from "./bottomSheet";
-import { IProgram, ISettings } from "../types";
+import { IProgram, ISettings, IStats } from "../types";
 import { emptyProgramId, Program } from "../models/program";
 import { HistoryRecordView } from "./historyRecord";
 import { IDispatch } from "../ducks/types";
@@ -20,6 +20,7 @@ interface IProps {
   currentProgram?: IProgram;
   allPrograms: IProgram[];
   settings: ISettings;
+  stats: IStats;
   dispatch: IDispatch;
   onClose: () => void;
 }
@@ -30,7 +31,7 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
 
   const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, evaluatedProgram.nextDay) : undefined;
   const nextHistoryRecord = props.currentProgram
-    ? Program.nextHistoryRecord(props.currentProgram, props.settings)
+    ? Program.nextHistoryRecord(props.currentProgram, props.settings, props.stats)
     : undefined;
 
   const doesProgressNotMatchProgram =
@@ -89,6 +90,7 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
       </BottomSheet>
       {showChangeWorkout && evaluatedProgram && (
         <ModalChangeNextDay
+          stats={props.stats}
           onClose={() => setShowChangeWorkout(false)}
           initialCurrentProgramId={evaluatedProgram.id}
           onSelect={(programId, day) => {

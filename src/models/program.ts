@@ -22,6 +22,7 @@ import {
   IUnit,
   IDayData,
   IExerciseData,
+  IStats,
 } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
@@ -50,6 +51,7 @@ import { UrlUtils } from "../utils/url";
 import { Service } from "../api/service";
 import { EditProgram } from "./editProgram";
 import { ProgramSet } from "./programSet";
+import { Stats } from "./stats";
 
 declare let __HOST__: string;
 
@@ -196,6 +198,7 @@ export namespace Program {
     program: IEvaluatedProgram,
     dayData: IDayData,
     programExercise: IPlannerProgramExerciseUsed,
+    stats: IStats,
     settings: ISettings
   ): IHistoryEntry {
     const exercise = programExercise.exerciseType;
@@ -231,7 +234,15 @@ export namespace Program {
       sets,
       warmupSets: sets[0]?.weight != null ? Exercise.getWarmupSets(exercise, sets[0].weight, settings, warmupSets) : [],
     };
-    const newEntry = Progress.runUpdateScriptForEntry(entry, dayData, programExercise, program.states, -1, settings);
+    const newEntry = Progress.runUpdateScriptForEntry(
+      entry,
+      dayData,
+      programExercise,
+      program.states,
+      -1,
+      settings,
+      stats
+    );
     return newEntry;
   }
 
@@ -256,7 +267,12 @@ export namespace Program {
     }
   }
 
-  export function nextHistoryRecord(aProgram: IProgram, settings: ISettings, dayIndex?: number): IHistoryRecord {
+  export function nextHistoryRecord(
+    aProgram: IProgram,
+    settings: ISettings,
+    stats: IStats,
+    dayIndex?: number
+  ): IHistoryRecord {
     const program = Program.evaluate(aProgram, settings);
     const day = Math.max(1, Math.min(numberOfDays(program), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
     const dayData = getDayData(program, day);
@@ -279,7 +295,7 @@ export namespace Program {
       startTime: now,
       updatedAt: now,
       entries: dayExercises.map((exercise) => {
-        return nextHistoryEntry(program, dayData, exercise, settings);
+        return nextHistoryEntry(program, dayData, exercise, stats, settings);
       }),
     };
   }
@@ -291,6 +307,7 @@ export namespace Program {
     state: IProgramState,
     otherStates: IByExercise<IProgramState>,
     programExercise: IPlannerProgramExercise,
+    stats: IStats,
     userPromptedStateVars?: IProgramState
   ): IEither<
     {
@@ -310,6 +327,7 @@ export namespace Program {
       entry,
       settings,
       programExercise.evaluatedSetVariations[setVariationIndex]?.sets.length ?? 0,
+      Stats.getCurrentMovingAverageBodyweight(stats, settings),
       undefined,
       setVariationIndex + 1,
       descriptionIndex + 1
@@ -350,6 +368,7 @@ export namespace Program {
     dayData: IDayData,
     entry: IHistoryEntry,
     settings: ISettings,
+    stats: IStats,
     userPromptedStateVars?: IProgramState
   ): IEither<
     {
@@ -368,6 +387,7 @@ export namespace Program {
       entry,
       settings,
       programExercise.evaluatedSetVariations[setVariationIndex]?.sets.length ?? 0,
+      Stats.getCurrentMovingAverageBodyweight(stats, settings),
       undefined,
       setVariationIndex + 1,
       descriptionIndex + 1
@@ -439,6 +459,7 @@ export namespace Program {
   export function runAllFinishDayScripts(
     program: IProgram,
     progress: IHistoryRecord,
+    stats: IStats,
     settings: ISettings
   ): { program: IProgram; exerciseData: IExerciseData } {
     const exerciseData: IExerciseData = {};
@@ -459,6 +480,7 @@ export namespace Program {
             dayData,
             entry,
             settings,
+            stats,
             progress.userPromptedStateVars?.[programExercise.key]
           );
           if (newStateResult.success) {

@@ -398,7 +398,7 @@ export namespace Thunk {
       } else if (state.storage.currentProgramId != null) {
         const program = Program.getProgram(state, programId ?? state.storage.currentProgramId);
         if (program != null) {
-          const newProgress = Program.nextHistoryRecord(program, state.storage.settings);
+          const newProgress = Program.nextHistoryRecord(program, state.storage.settings, state.storage.stats);
           updateState(dispatch, [
             lb<IState>()
               .p("progress")

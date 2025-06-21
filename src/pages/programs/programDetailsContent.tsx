@@ -18,6 +18,7 @@ import { ProgramDetailsGzclGeneralGainz } from "./detailed/programDetailsGzclGen
 import { ProgramDetailsGzclUhf5w } from "./detailed/programDetailsGzclUhf5w";
 import { ProgramDetailsGzclBurritoButBig } from "./detailed/programDetailsGzclBurritoButBig";
 import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
+import { Stats } from "../../models/stats";
 
 export interface IProgramDetailsContentProps {
   selectedProgramId: string;
@@ -153,6 +154,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
       </div>
       <ProgramPreviewOrPlayground
         key={state.selectedProgramId}
+        stats={Stats.getEmpty()}
         program={program}
         settings={state.settings}
         isMobile={false}

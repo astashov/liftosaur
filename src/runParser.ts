@@ -53,6 +53,7 @@ const bindings: IScriptBindings = {
   completedNumberOfSets: 3,
   setIndex: 1,
   setVariationIndex: 1,
+  bodyweight: Weight.build(0, "lb"),
   descriptionIndex: 1,
   rm1: Weight.build(100, "lb"),
 };

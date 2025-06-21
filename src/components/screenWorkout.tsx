@@ -289,6 +289,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
       >
         <Workout
           setIsShareShown={setIsShareShown}
+          stats={props.navCommon.stats}
           allPrograms={props.allPrograms}
           forceUpdateEntryIndex={forceUpdateEntryIndex}
           setForceUpdateEntryIndex={() => setForceUpdateEntryIndex(!forceUpdateEntryIndex)}

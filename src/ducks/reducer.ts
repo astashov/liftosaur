@@ -19,6 +19,7 @@ import {
   IPercentage,
   IProgramState,
   ISubscription,
+  IStats,
 } from "../types";
 import { IndexedDBUtils } from "../utils/indexeddb";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
@@ -447,6 +448,7 @@ export const reducerWrapper =
 
 export function buildCardsReducer(
   settings: ISettings,
+  stats: IStats,
   subscription?: ISubscription
 ): Reducer<IHistoryRecord, ICardsAction> {
   return (progress, action): IHistoryRecord => {
@@ -469,7 +471,8 @@ export function buildCardsReducer(
             action.entryIndex,
             action.setIndex,
             action.mode,
-            settings
+            settings,
+            stats
           );
         }
 
@@ -520,7 +523,8 @@ export function buildCardsReducer(
             action.entryIndex,
             action.setIndex,
             "workout",
-            settings
+            settings,
+            stats
           );
         }
         if (Progress.isFullyFinishedSet(newProgress)) {
@@ -569,17 +573,29 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   if (action.type === "CompleteSetAction") {
     return Progress.setProgress(
       state,
-      buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)
+      buildCardsReducer(
+        state.storage.settings,
+        state.storage.stats,
+        state.storage.subscription
+      )(Progress.getProgress(state)!, action)
     );
   } else if (action.type === "ChangeAMRAPAction") {
     return Progress.setProgress(
       state,
-      buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)
+      buildCardsReducer(
+        state.storage.settings,
+        state.storage.stats,
+        state.storage.subscription
+      )(Progress.getProgress(state)!, action)
     );
   } else if (action.type === "UpdateProgress") {
     return Progress.setProgress(
       state,
-      buildCardsReducer(state.storage.settings, state.storage.subscription)(Progress.getProgress(state)!, action)
+      buildCardsReducer(
+        state.storage.settings,
+        state.storage.stats,
+        state.storage.subscription
+      )(Progress.getProgress(state)!, action)
     );
   } else if (action.type === "StartProgramDayAction") {
     const progress = state.progress[0];
@@ -591,7 +607,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     } else if (state.storage.currentProgramId != null) {
       const program = Program.getProgram(state, action.programId || state.storage.currentProgramId);
       if (program != null) {
-        const newProgress = Program.nextHistoryRecord(program, state.storage.settings);
+        const newProgress = Program.nextHistoryRecord(program, state.storage.settings, state.storage.stats);
         return {
           ...state,
           screenStack: pushScreen(state.screenStack, "progress", { id: 0 }, true),
@@ -635,7 +651,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const exerciseData = state.storage.settings.exerciseData;
       const { program: newProgram, exerciseData: newExerciseData } =
         Progress.isCurrent(progress) && program != null
-          ? Program.runAllFinishDayScripts(program, progress, settings)
+          ? Program.runAllFinishDayScripts(program, progress, state.storage.stats, settings)
           : { program, exerciseData };
       const newPrograms =
         newProgram != null ? lf(state.storage.programs).i(programIndex).set(newProgram) : state.storage.programs;
@@ -764,7 +780,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         action.programExerciseIds,
         progress.day,
         program,
-        state.storage.settings
+        state.storage.settings,
+        state.storage.stats
       );
 
       return {

@@ -11,6 +11,7 @@ import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 import { Program } from "../../../models/program";
+import { Stats } from "../../../models/stats";
 
 export interface IProgramDetailsGzclpProps {
   settings: ISettings;
@@ -22,7 +23,7 @@ export interface IProgramDetailsGzclpProps {
 export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
   const evaluatedProgram = Program.evaluate(program, props.settings);
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, Stats.getEmpty(), props.settings));
 
   return (
     <section className="px-4">

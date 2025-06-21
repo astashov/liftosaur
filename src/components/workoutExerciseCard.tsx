@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, ISubscription, IWeight } from "../types";
+import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, IStats, ISubscription, IWeight } from "../types";
 import { IState, updateProgress, updateSettings, updateState } from "../models/state";
 import { lb } from "lens-shmens";
 import { ExerciseImage } from "./exerciseImage";
@@ -43,6 +43,7 @@ interface IWorkoutExerciseCardProps {
   day: number;
   history: IHistoryRecord[];
   progress: IHistoryRecord;
+  stats: IStats;
   settings: ISettings;
   dispatch: IDispatch;
   subscription: ISubscription;
@@ -277,6 +278,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
       )}
       <div className="mt-1">
         <WorkoutExerciseAllSets
+          stats={props.stats}
           helps={props.helps}
           onStopShowingHint={() => {
             if (!props.helps.includes("swipeable-set")) {

@@ -12,6 +12,7 @@ import { ProgramDetailsExerciseExample } from "../programDetails/programDetailsE
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 import { Program } from "../../../models/program";
 import { PP } from "../../../models/pp";
+import { Stats } from "../../../models/stats";
 
 export interface IProgramDetailsJackedAndTanProps {
   settings: ISettings;
@@ -34,7 +35,7 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
     }
   });
 
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, Stats.getEmpty(), props.settings));
 
   return (
     <section className="px-4">

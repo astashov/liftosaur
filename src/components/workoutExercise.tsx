@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IProgramState } from "../types";
+import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IProgramState, IStats } from "../types";
 import { updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
 import { Exercise } from "../models/exercise";
@@ -28,6 +28,7 @@ interface IWorkoutExerciseProps {
   showHelp?: boolean;
   isSelected: boolean;
   helps: string[];
+  stats: IStats;
   entryIndex: number;
   entry: IHistoryEntry;
   subscription: ISubscription;
@@ -65,6 +66,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
     <div data-cy={`exercise-progress-${status}`} ref={surfaceRef}>
       <WorkoutExerciseCard
         day={props.day}
+        stats={props.stats}
         entry={props.entry}
         entryIndex={props.entryIndex}
         settings={props.settings}

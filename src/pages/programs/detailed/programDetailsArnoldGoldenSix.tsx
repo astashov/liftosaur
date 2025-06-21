@@ -10,6 +10,7 @@ import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 import { Program } from "../../../models/program";
 import { ObjectUtils } from "../../../utils/object";
+import { Stats } from "../../../models/stats";
 
 export interface IProgramDetailsArnoldGoldenSixProps {
   settings: ISettings;
@@ -21,7 +22,7 @@ export interface IProgramDetailsArnoldGoldenSixProps {
 export function ProgramDetailsArnoldGoldenSix(props: IProgramDetailsArnoldGoldenSixProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
   const points = Muscle.normalizePoints(
-    Muscle.getPointsForProgram(Program.evaluate(program, props.settings), props.settings)
+    Muscle.getPointsForProgram(Program.evaluate(program, props.settings), Stats.getEmpty(), props.settings)
   );
 
   return (

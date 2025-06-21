@@ -10,6 +10,7 @@ import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 import { Program } from "../../../models/program";
+import { Stats } from "../../../models/stats";
 
 export interface IProgramDetailsGzclVdipProps {
   settings: ISettings;
@@ -22,7 +23,7 @@ export function ProgramDetailsGzclGeneralGainz(props: IProgramDetailsGzclVdipPro
   const program = ObjectUtils.clone(props.program);
   const programForMuscles = ObjectUtils.clone(program);
   const evaluatedProgram = Program.evaluate(programForMuscles, props.settings);
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, Stats.getEmpty(), props.settings));
 
   return (
     <section className="px-4">

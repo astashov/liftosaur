@@ -270,6 +270,7 @@ export function AppView(props: IProps): JSX.Element | null {
     allPrograms: state.storage.programs,
     settings: state.storage.settings,
     progress: state.progress[0],
+    stats: state.storage.stats,
     userId: state.user?.id,
   };
 

@@ -34,6 +34,7 @@ export const userTableNames = {
     historyRecords: "lftHistoryRecordsDev",
     historyRecordsDate: "lftHistoryRecordsDateDev",
     stats: "lftStatsDev",
+    statsTimestamp: "lftStatsTimestampDev",
     programs: "lftUserProgramsDev",
     events: "lftEventsDev",
   },
@@ -45,6 +46,7 @@ export const userTableNames = {
     historyRecords: "lftHistoryRecords",
     historyRecordsDate: "lftHistoryRecordsDate",
     stats: "lftStats",
+    statsTimestamp: "lftStatsTimestamp",
     programs: "lftUserPrograms",
     events: "lftEvents",
   },
@@ -373,6 +375,26 @@ export class UserDao {
       scanIndexForward: false,
       attrs: { "#userId": "userId" },
       values: { ":userId": userId },
+    });
+    return convertStatsFromDb(
+      statsDb.map((s) => {
+        const { userId: uid, ...rest } = s;
+        return rest;
+      })
+    );
+  }
+
+  public async getLastBodyweightStats(userId: string): Promise<IStats> {
+    const env = Utils.getEnv();
+    const statsDb = await this.di.dynamo.query<IStatDb & { userId?: string }>({
+      tableName: userTableNames[env].stats,
+      indexName: userTableNames[env].statsTimestamp,
+      expression: "#userId = :userId",
+      filterExpression: "#type = :type",
+      scanIndexForward: false,
+      attrs: { "#userId": "userId", "#type": "type" },
+      values: { ":userId": userId, ":type": "weight" },
+      limit: 10,
     });
     return convertStatsFromDb(
       statsDb.map((s) => {

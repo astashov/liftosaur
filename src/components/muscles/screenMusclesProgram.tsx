@@ -16,7 +16,9 @@ interface IProps {
 
 export function ScreenMusclesProgram(props: IProps): JSX.Element {
   const evaluatedProgram = Program.evaluate(props.program, props.settings);
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
+  const points = Muscle.normalizePoints(
+    Muscle.getPointsForProgram(evaluatedProgram, props.navCommon.stats, props.settings)
+  );
   return (
     <ScreenMuscles
       dispatch={props.dispatch}

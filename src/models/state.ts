@@ -5,7 +5,16 @@ import { IDispatch } from "../ducks/types";
 import { Storage } from "../models/storage";
 import { ILensRecordingPayload } from "lens-shmens";
 import { IUser } from "./user";
-import { IStorage, IProgram, IHistoryRecord, IProgramDay, ISettings, IExerciseType, IEquipment } from "../types";
+import {
+  IStorage,
+  IProgram,
+  IHistoryRecord,
+  IProgramDay,
+  ISettings,
+  IExerciseType,
+  IEquipment,
+  IStats,
+} from "../types";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 
@@ -27,6 +36,7 @@ export interface INavCommon {
   currentProgram?: IProgram;
   allPrograms: IProgram[];
   progress?: IHistoryRecord;
+  stats: IStats;
   settings: ISettings;
 }
 

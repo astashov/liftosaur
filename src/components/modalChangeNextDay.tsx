@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { Modal } from "./modal";
-import { IProgram, ISettings } from "../types";
+import { IProgram, ISettings, IStats } from "../types";
 import { NextDayPicker } from "./nextDayPicker";
 import { LinkButton } from "./linkButton";
 import { emptyProgramId } from "../models/program";
@@ -9,6 +9,7 @@ interface IModalChangeNextDayProps {
   initialCurrentProgramId?: string;
   allPrograms: IProgram[];
   settings: ISettings;
+  stats: IStats;
   onSelect: (programId: string, day: number) => void;
   onClose: () => void;
 }
@@ -33,6 +34,7 @@ export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element
         initialCurrentProgramId={props.initialCurrentProgramId}
         allPrograms={props.allPrograms}
         settings={props.settings}
+        stats={props.stats}
         onSelect={(programId, day) => {
           props.onSelect(programId, day);
           props.onClose();

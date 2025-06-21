@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { ProgramPreviewPlayground } from "./preview/programPreviewPlayground";
-import { IProgram, ISettings, IUnit } from "../types";
+import { IProgram, ISettings, IStats, IUnit } from "../types";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { MenuItemEditable, MenuItemValue } from "./menuItemEditable";
 import { useState } from "preact/hooks";
@@ -11,6 +11,7 @@ interface IProgramPreviewOrPlaygroundProps {
   isMobile: boolean;
   hasNavbar?: boolean;
   onChangeUnit?: (unit: IUnit) => void;
+  stats: IStats;
 }
 
 export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundProps): JSX.Element {
@@ -76,6 +77,7 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
         isPlayground={isPlayground}
         program={props.program}
         settings={props.settings}
+        stats={props.stats}
       />
     </div>
   );

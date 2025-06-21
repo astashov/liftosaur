@@ -12,6 +12,7 @@ import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 import { Program } from "../../../models/program";
 import { PP } from "../../../models/pp";
+import { Stats } from "../../../models/stats";
 
 export interface IProgramDetailsTheRipplerProps {
   settings: ISettings;
@@ -33,7 +34,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
       }
     }
   });
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, Stats.getEmpty(), props.settings));
   const t1Pct = [80, 85, 82.5, 87.5, 85, 90, 87.5, 92.5, 90, 95, 85, 95];
   const t2Pct = [68, 72, 76, 70, 74, 78, 72, 76, 80, 85];
 

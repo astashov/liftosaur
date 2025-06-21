@@ -175,6 +175,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
           {showChangeNextDay && (
             <ModalProgramNextDay
               onClose={() => setShowChangeNextDay(false)}
+              stats={props.navCommon.stats}
               initialCurrentProgramId={program.id}
               onSelect={(_, day) => {
                 updateState(props.dispatch, [
@@ -404,6 +405,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
                   isPlayground={false}
                   program={program}
                   settings={props.settings}
+                  stats={props.navCommon.stats}
                 />
               ),
             },
@@ -436,6 +438,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
                   isPlayground={true}
                   program={program}
                   settings={props.settings}
+                  stats={props.navCommon.stats}
                 />
               ),
             },

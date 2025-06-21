@@ -9,6 +9,7 @@ import {
   IHistoryRecord,
   ITargetType,
   IHistoryEntry,
+  IStats,
 } from "../types";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { updateProgress } from "../models/state";
@@ -34,6 +35,7 @@ interface IWorkoutExerciseAllSets {
   entryIndex: number;
   lastSets?: ISet[];
   helps?: string[];
+  stats: IStats;
   onStopShowingHint?: () => void;
   onTargetClick?: () => void;
   subscription?: ISubscription;
@@ -142,6 +144,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             settings={props.settings}
             dayData={props.programExercise.dayData}
             programExercise={props.programExercise}
+            stats={props.stats}
             program={props.program}
             userPromptedStateVars={props.userPromptedStateVars}
             onSuppressProgress={(isSuppressed) => {

@@ -1203,7 +1203,7 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
       di.log.log(e);
     }
   }
-  const userResult = await getUserAccount(payload);
+  const userResult = await getUserAccount(payload, { withBodyweight: true });
   const account = userResult.success ? userResult.data.account : undefined;
   const user = userResult.success ? userResult.data.user : undefined;
 
@@ -1241,7 +1241,7 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
   let user: ILimitedUserDao | undefined;
   let account: IAccount | undefined;
-  const userResult = await getUserAccount(payload, { withPrograms: true });
+  const userResult = await getUserAccount(payload, { withPrograms: true, withBodyweight: true });
   if (userResult.success) {
     ({ user, account } = userResult.data);
   }
@@ -1290,7 +1290,7 @@ const getUserProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
 
 async function getUserAccount(
   payload: IPayload,
-  args: { withPrograms?: boolean } = {}
+  args: { withPrograms?: boolean; withBodyweight?: boolean } = {}
 ): Promise<IEither<{ user: ILimitedUserDao; account: IAccount }, APIGatewayProxyResult>> {
   const currentUserId = await getCurrentUserId(payload.event, payload.di);
   if (currentUserId == null) {
@@ -1315,6 +1315,8 @@ async function getUserAccount(
   }
   const programs = args.withPrograms ? await userDao.getProgramsByUserId(user.id) : undefined;
   user.storage.programs = programs;
+  const stats = args.withBodyweight ? await userDao.getLastBodyweightStats(user.id) : undefined;
+  user.storage.stats = stats;
   const account = Account.getFromStorage(user.id, user.email, user.storage);
   return { success: true, data: { user, account } };
 }
@@ -1428,7 +1430,7 @@ const getUserProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
 }) => {
   const di = payload.di;
   const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
-  const userResult = await getUserAccount(payload, { withPrograms: true });
+  const userResult = await getUserAccount(payload, { withPrograms: true, withBodyweight: true });
   if (!userResult.success) {
     return userResult.error;
   }
@@ -1701,7 +1703,7 @@ const getProgramShorturlHandler: RouteHandler<
           program = result.data;
           let user: ILimitedUserDao | undefined;
           let account: IAccount | undefined;
-          const userResult = await getUserAccount(payload, { withPrograms: true });
+          const userResult = await getUserAccount(payload, { withPrograms: true, withBodyweight: true });
           if (userResult.success) {
             ({ user, account } = userResult.data);
           }

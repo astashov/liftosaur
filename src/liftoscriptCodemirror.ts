@@ -50,6 +50,7 @@ export function buildLiftoscriptLanguageSupport(codeEditor: { state: IProgramSta
           { label: "completedRPE", type: "keyword liftoscript" },
           { label: "completedWeights", type: "keyword liftoscript" },
           { label: "setVariationIndex", type: "keyword liftoscript" },
+          { label: "bodyweight", type: "keyword liftoscript" },
           { label: "descriptionIndex", type: "keyword liftoscript" },
           { label: "rm1", type: "keyword liftoscript" },
           { label: "day", type: "keyword liftoscript" },

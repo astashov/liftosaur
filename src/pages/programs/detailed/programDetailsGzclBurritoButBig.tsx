@@ -10,6 +10,7 @@ import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 import { Program } from "../../../models/program";
+import { Stats } from "../../../models/stats";
 
 export interface IProgramDetailsGzclBurritoButBigProps {
   settings: ISettings;
@@ -31,7 +32,7 @@ export function ProgramDetailsGzclBurritoButBig(props: IProgramDetailsGzclBurrit
       }
     }
   }
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, props.settings));
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, Stats.getEmpty(), props.settings));
 
   return (
     <section className="px-4">

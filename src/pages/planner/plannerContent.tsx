@@ -23,6 +23,7 @@ import {
   IPlannerProgramDay,
   IPlannerProgramWeek,
   ISettings,
+  IStats,
 } from "../../types";
 import { Service } from "../../api/service";
 import { PlannerProgram } from "./models/plannerProgram";
@@ -149,6 +150,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       past: [],
       future: [],
     },
+  };
+  const stats: IStats = props.partialStorage?.stats || {
+    weight: {},
+    length: {},
+    percentage: {},
   };
 
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
@@ -533,6 +539,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             program={program}
             isMobile={false}
             hasNavbar={false}
+            stats={stats}
             settings={settings}
             onChangeUnit={(unit) => {
               setSettings(lf(settings).p("units").set(unit));

@@ -2,7 +2,7 @@ import { JSX, h } from "preact";
 import { Exercise } from "../models/exercise";
 import { Muscle } from "../models/muscle";
 import { Program } from "../models/program";
-import { IProgram, ISettings, IScreenMuscle } from "../types";
+import { IProgram, ISettings, IScreenMuscle, IStats } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
 import { ExerciseImage } from "./exerciseImage";
@@ -16,6 +16,7 @@ import { useState } from "preact/hooks";
 interface INextDayPickerProps {
   initialCurrentProgramId?: string;
   allPrograms: IProgram[];
+  stats: IStats;
   settings: ISettings;
   onSelect: (programId: string, day: number) => void;
 }
@@ -59,7 +60,7 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
             })
           );
           const points = Muscle.normalizeUnifiedPoints(
-            Muscle.getUnifiedPointsForDay(evaluatedProgram, day, props.settings)
+            Muscle.getUnifiedPointsForDay(evaluatedProgram, day, props.stats, props.settings)
           );
           const muscleData = ObjectUtils.keys(points.screenMusclePoints).reduce<
             Partial<Record<IScreenMuscle, IMuscleStyle>>

@@ -1,6 +1,7 @@
-import { IPercentage, IStats, IStatsKey, IWeight } from "../types";
+import { IPercentage, ISettings, IStats, IStatsKey, IWeight } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
+import { Weight } from "./weight";
 
 export namespace Stats {
   export function name(key: IStatsKey): string {
@@ -42,9 +43,35 @@ export namespace Stats {
     const weights = CollectionUtils.sortBy(stats.weight.weight || [], "timestamp", true);
     return weights[0]?.value;
   }
+
+  export function getCurrentMovingAverageBodyweight(stats: IStats, settings: ISettings): IWeight | undefined {
+    const movingAverageWindowSize = settings.graphOptions.weight?.movingAverageWindowSize;
+    if (!movingAverageWindowSize) {
+      return getCurrentBodyweight(stats);
+    }
+    const weights = CollectionUtils.sortBy(stats.weight.weight || [], "timestamp", true);
+    if (weights.length < movingAverageWindowSize) {
+      return getCurrentBodyweight(stats);
+    }
+    const recentWeights = weights.slice(0, movingAverageWindowSize);
+    const totalWeight = recentWeights.reduce(
+      (sum, item) => Weight.add(sum, item.value),
+      Weight.build(0, settings.units)
+    );
+    return Weight.divide(totalWeight, recentWeights.length);
+  }
+
   export function getCurrentBodyfat(stats: IStats): IPercentage | undefined {
     const weights = CollectionUtils.sortBy(stats.percentage.bodyfat || [], "timestamp", true);
     return weights[0]?.value;
+  }
+
+  export function getEmpty(): IStats {
+    return {
+      weight: {},
+      percentage: {},
+      length: {},
+    };
   }
 
   export function isEmpty(stats: IStats): boolean {

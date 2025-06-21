@@ -81,7 +81,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     if (props.progress) {
       history.unshift(props.progress);
     } else if (props.program && history.length > 0) {
-      const nextHistoryRecord = Program.nextHistoryRecord(props.program, props.settings);
+      const nextHistoryRecord = Program.nextHistoryRecord(props.program, props.settings, props.navCommon.stats);
       history.unshift(nextHistoryRecord);
     }
     return history;

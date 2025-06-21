@@ -25,6 +25,7 @@ import {
   IDayData,
   IExerciseDataValue,
   IUnit,
+  IStats,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { Subscriptions } from "../utils/subscriptions";
@@ -39,6 +40,7 @@ import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramEx
 import { IScreenStack, Screen } from "./screen";
 import { UidFactory } from "../utils/generator";
 import { ProgramSet } from "./programSet";
+import { Stats } from "./stats";
 
 export interface IScriptBindings {
   day: number;
@@ -67,6 +69,7 @@ export interface IScriptBindings {
   numberOfSets: number;
   completedNumberOfSets: number;
   setVariationIndex: number;
+  bodyweight: IWeight;
   descriptionIndex: number;
   setIndex: number;
 }
@@ -249,6 +252,7 @@ export namespace Progress {
       ns: 0,
       setVariationIndex: 1,
       descriptionIndex: 1,
+      bodyweight: Weight.build(0, settings.units),
       setIndex: 1,
       rm1,
     };
@@ -259,6 +263,7 @@ export namespace Progress {
     entry: IHistoryEntry,
     settings: ISettings,
     programNumberOfSets: number,
+    bodyweight: IWeight | undefined,
     setIndex?: number,
     setVariationIndex?: number,
     descriptionIndex?: number
@@ -290,6 +295,7 @@ export namespace Progress {
     bindings.setIndex = setIndex ?? 1;
     bindings.setVariationIndex = setVariationIndex ?? 1;
     bindings.descriptionIndex = descriptionIndex ?? 1;
+    bindings.bodyweight = bodyweight ?? Weight.build(0, settings.units);
     return bindings;
   }
 
@@ -623,7 +629,8 @@ export namespace Progress {
     programExercise: IPlannerProgramExercise,
     otherStates: IByTag<IProgramState>,
     setIndex: number,
-    settings: ISettings
+    settings: ISettings,
+    stats: IStats
   ): IHistoryEntry {
     if (setIndex !== -1 && !entry?.sets[setIndex]?.isCompleted) {
       return entry;
@@ -641,6 +648,7 @@ export namespace Progress {
       entry,
       settings,
       programExercise.evaluatedSetVariations[setVariationIndex]?.sets.length ?? 0,
+      Stats.getCurrentMovingAverageBodyweight(stats, settings),
       setIndex + 1,
       setVariationIndex,
       descriptionIndex
@@ -677,7 +685,8 @@ export namespace Progress {
     programExerciseIds: string[] | undefined,
     day: number,
     program: IEvaluatedProgram,
-    settings: ISettings
+    settings: ISettings,
+    stats: IStats
   ): IHistoryRecord {
     const programDay = Program.getProgramDay(program, day);
     if (!programDay) {
@@ -702,7 +711,8 @@ export namespace Progress {
           programExercise,
           program.states,
           -1,
-          settings
+          settings,
+          stats
         );
       }),
     };
@@ -715,7 +725,8 @@ export namespace Progress {
     entryIndex: number,
     setIndex: number,
     mode: IProgressMode,
-    settings: ISettings
+    settings: ISettings,
+    stats: IStats
   ): IHistoryRecord {
     if (mode === "warmup") {
       return aProgress;
@@ -727,7 +738,8 @@ export namespace Progress {
       programExercise,
       otherStates,
       setIndex,
-      settings
+      settings,
+      stats
     );
     const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
     return progress;

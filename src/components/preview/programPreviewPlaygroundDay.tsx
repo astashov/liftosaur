@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { useCallback } from "preact/hooks";
 import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
-import { IHistoryRecord, ISettings } from "../../types";
+import { IHistoryRecord, ISettings, IStats } from "../../types";
 import { IDispatch } from "../../ducks/types";
 import { ProgramPreviewPlaygroundExercise } from "./programPreviewPlaygroundExercise";
 import { ModalAmrap } from "../modalAmrap";
@@ -31,13 +31,18 @@ interface IProgramPreviewPlaygroundDayProps {
   onProgressChange: (newProgress: IHistoryRecord) => void;
   onProgramChange: (newProgram: IEvaluatedProgram) => void;
   onSettingsChange: (newSettings: ISettings) => void;
+  stats: IStats;
   onFinish: () => void;
 }
 
 export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroundDayProps): JSX.Element => {
   const dispatch: IDispatch = useCallback(
     async (action) => {
-      const newProgress = buildCardsReducer(props.settings, undefined)(props.progress, action as ICardsAction);
+      const newProgress = buildCardsReducer(
+        props.settings,
+        props.stats,
+        undefined
+      )(props.progress, action as ICardsAction);
       props.onProgressChange(newProgress);
     },
     [props.settings, props.progress]
@@ -91,6 +96,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
             program={props.program}
             index={props.isPlayground ? index : i}
             settings={props.settings}
+            stats={props.stats}
             dispatch={dispatch}
           />
         );

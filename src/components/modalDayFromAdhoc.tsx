@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { Modal } from "./modal";
-import { IHistoryRecord, IProgram, ISettings } from "../types";
+import { IHistoryRecord, IProgram, ISettings, IStats } from "../types";
 import { NextDayPicker } from "./nextDayPicker";
 import { LinkButton } from "./linkButton";
 import { useState } from "preact/hooks";
@@ -16,6 +16,7 @@ interface IModalChangeNextDayProps {
   initialCurrentProgramId?: string;
   allPrograms: IProgram[];
   settings: ISettings;
+  stats: IStats;
   record: IHistoryRecord;
   dispatch: IDispatch;
   onClose: () => void;
@@ -42,6 +43,7 @@ export function ModalDayFromAdhoc(props: IModalChangeNextDayProps): JSX.Element 
         <div className="mx-4 mb-1 text-sm">or select day to add after in the existing program:</div>
         <NextDayPicker
           initialCurrentProgramId={props.initialCurrentProgramId}
+          stats={props.stats}
           allPrograms={props.allPrograms}
           settings={props.settings}
           onSelect={(programId, day) => {

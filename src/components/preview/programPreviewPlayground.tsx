@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { memo, useMemo } from "preact/compat";
-import { IHistoryRecord, IProgram, ISettings } from "../../types";
+import { IHistoryRecord, IProgram, ISettings, IStats } from "../../types";
 import { Program } from "../../models/program";
 import { ProgramPreviewPlaygroundDay } from "./programPreviewPlaygroundDay";
 import { useLensReducer } from "../../utils/useLensReducer";
@@ -26,6 +26,7 @@ interface IProgramPreviewPlaygroundProps {
   settings: ISettings;
   isPlayground: boolean;
   scrollableTabsProps?: Partial<IScrollableTabsProps>;
+  stats: IStats;
   hasNavbar?: boolean;
 }
 
@@ -51,7 +52,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
         name: week.name,
         days: week.days.map(() => {
           dayNumber += 1;
-          const progress = Program.nextHistoryRecord(props.program, props.settings, dayNumber);
+          const progress = Program.nextHistoryRecord(props.program, props.settings, props.stats, dayNumber);
           const programDay = Program.getProgramDay(initialEvaluatedProgram, dayNumber);
           const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
           const exerciseTags = new Set(dayExercises.map((e) => e.tags).flat());
@@ -98,6 +99,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                         progress={d.progress}
                         settings={state.settings}
                         isPlayground={state.isPlayground}
+                        stats={props.stats}
                         onProgressChange={(newProgress) => {
                           dispatch(
                             lb<IProgramPreviewPlaygroundState>()
@@ -134,7 +136,8 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                                         undefined,
                                         day.day,
                                         newEvaluatedProgram,
-                                        state.settings
+                                        state.settings,
+                                        props.stats
                                       );
                                       return {
                                         ...day,
@@ -167,7 +170,8 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                                         undefined,
                                         day.day,
                                         evaluatedProgram,
-                                        newSettings
+                                        newSettings,
+                                        props.stats
                                       );
                                       return {
                                         ...day,
@@ -184,6 +188,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                           const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(
                             state.program,
                             d.progress,
+                            props.stats,
                             state.settings
                           );
                           const newSettings = {
@@ -198,7 +203,12 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                                   return {
                                     ...wk,
                                     days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
-                                      const newProgress = Program.nextHistoryRecord(newProgram, newSettings, day.day);
+                                      const newProgress = Program.nextHistoryRecord(
+                                        newProgram,
+                                        newSettings,
+                                        props.stats,
+                                        day.day
+                                      );
                                       return {
                                         ...day,
                                         progress: newProgress,

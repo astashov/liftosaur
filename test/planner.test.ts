@@ -2,11 +2,12 @@ import "mocha";
 import { expect } from "chai";
 import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
 import { PlannerTestUtils } from "./utils/plannerTestUtils";
-import { IPlannerProgram, ISettings, IUnit } from "../src/types";
+import { IPlannerProgram, ISettings, IStats, IUnit } from "../src/types";
 import { Settings } from "../src/models/settings";
 import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
 import { Weight } from "../src/models/weight";
 import { ObjectUtils } from "../src/utils/object";
+import { Stats } from "../src/models/stats";
 
 describe("Planner", () => {
   it("updates weight after completing", () => {
@@ -1026,6 +1027,7 @@ Squat / 1x4 100lb
         completedReps: [[3], [2]],
       },
       Settings.build(),
+      Stats.getEmpty(),
       2
     );
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
@@ -1247,7 +1249,13 @@ Squat[1-3] / 1x5 / 200lb / warmup: none / progress: custom(week: 1, dayInWeek: 1
 ## Day 2
 
 `;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] }, Settings.build(), 4);
+    const { program } = PlannerTestUtils.finish(
+      programText,
+      { completedReps: [[5]] },
+      Settings.build(),
+      Stats.getEmpty(),
+      4
+    );
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
@@ -1435,6 +1443,45 @@ Squat / 1x10 / 100lb / progress: custom() {~
 ## Day 1
 Squat / 1x10 / 49% / progress: custom() {~
   weights[1] = decrement(50%)
+~}
+
+
+`);
+  });
+
+  it("properly uses bodyweight", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x10 / 100lb / progress: custom() {~
+  weights = bodyweight
+~}`;
+    const stats: IStats = {
+      weight: {
+        weight: [
+          { value: Weight.build(200, "lb"), timestamp: 10 },
+          { value: Weight.build(220, "lb"), timestamp: 30 },
+          { value: Weight.build(210, "lb"), timestamp: 20 },
+          { value: Weight.build(240, "lb"), timestamp: 50 },
+          { value: Weight.build(230, "lb"), timestamp: 40 },
+        ],
+      },
+      length: {},
+      percentage: {},
+    };
+    const settings: ISettings = {
+      ...Settings.build(),
+      graphOptions: {
+        weight: {
+          movingAverageWindowSize: 3,
+        },
+      },
+    };
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10]] }, settings, stats);
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x10 / 230lb / progress: custom() {~
+  weights = bodyweight
 ~}
 
 

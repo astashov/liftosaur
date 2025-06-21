@@ -3,7 +3,7 @@ import { JSX, memo } from "preact/compat";
 import { ExerciseImage } from "../exerciseImage";
 import { Markdown } from "../markdown";
 import { equipmentName, Exercise } from "../../models/exercise";
-import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings } from "../../types";
+import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, IStats } from "../../types";
 import { ComparerUtils } from "../../utils/comparer";
 import { IDispatch } from "../../ducks/types";
 import { Reps } from "../../models/set";
@@ -22,6 +22,7 @@ interface IProps {
   entry: IHistoryEntry;
   programExercise: IPlannerProgramExercise;
   program: IEvaluatedProgram;
+  stats: IStats;
   settings: ISettings;
   progress: IHistoryRecord;
   dayIndex: number;
@@ -60,6 +61,7 @@ function getBgColor100(entry: IHistoryEntry): string {
 export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Element => {
   return props.isPlayground ? (
     <ProgramPreviewPlayground
+      stats={props.stats}
       entry={props.entry}
       programExercise={props.programExercise}
       program={props.program}
@@ -135,6 +137,7 @@ interface IProgramPreviewPlaygroundProps {
   programExercise: IPlannerProgramExercise;
   program: IEvaluatedProgram;
   settings: ISettings;
+  stats: IStats;
   progress: IHistoryRecord;
   dayIndex: number;
   index: number;
@@ -185,6 +188,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
             isCurrentProgress={true}
             program={props.program}
             programExercise={props.programExercise}
+            stats={props.stats}
             entry={props.entry}
             entryIndex={props.index}
             otherStates={props.program.states}

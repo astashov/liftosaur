@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
+import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
 import { Thunk } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
@@ -32,6 +32,7 @@ interface IWorkoutViewProps {
   program?: IEvaluatedProgram;
   programDay?: IEvaluatedProgramDay;
   helps: string[];
+  stats: IStats;
   isTimerShown: boolean;
   subscription: ISubscription;
   settings: ISettings;
@@ -109,6 +110,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
                   <WorkoutExercise
                     day={props.progress.day}
                     key={entry.id}
+                    stats={props.stats}
                     history={props.history}
                     otherStates={props.program?.states}
                     isSelected={entryIndex === (props.progress.ui?.currentEntryIndex ?? 0)}
@@ -133,6 +135,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         <ModalDayFromAdhoc
           onClose={() => setIsConvertToProgramShown(false)}
           initialCurrentProgramId={props.progress.programId}
+          stats={props.stats}
           record={props.progress}
           dispatch={props.dispatch}
           allPrograms={props.allPrograms}

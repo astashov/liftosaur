@@ -136,6 +136,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         currentProgram={props.navCommon.currentProgram}
         settings={props.navCommon.settings}
         isHidden={!showNextWorkoutSheet}
+        stats={props.navCommon.stats}
         onClose={onClose}
       />
     </>

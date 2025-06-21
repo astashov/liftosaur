@@ -1,9 +1,10 @@
 import { Program } from "../../src/models/program";
 import { Settings } from "../../src/models/settings";
 import { PlannerProgram } from "../../src/pages/planner/models/plannerProgram";
-import { IProgram, ISettings, IPlannerProgram, IExerciseType } from "../../src/types";
+import { IProgram, ISettings, IPlannerProgram, IExerciseType, IStats } from "../../src/types";
 import { IWeightChange, ProgramExercise } from "../../src/models/programExercise";
 import { PlannerKey } from "../../src/pages/planner/plannerKey";
+import { Stats } from "../../src/models/stats";
 
 export interface ICompletedEntries {
   completedReps: number[][];
@@ -44,10 +45,11 @@ export class PlannerTestUtils {
     text: string,
     completed: ICompletedEntries,
     settings: ISettings = Settings.build(),
+    stats: IStats = Stats.getEmpty(),
     dayIndex?: number
   ): { program: IProgram } {
     const { program } = PlannerTestUtils.get(text);
-    const nextHistoryRecord = Program.nextHistoryRecord(program, settings, dayIndex);
+    const nextHistoryRecord = Program.nextHistoryRecord(program, settings, Stats.getEmpty(), dayIndex);
     for (let entryIndex = 0; entryIndex < completed.completedReps.length; entryIndex++) {
       for (let setIndex = 0; setIndex < completed.completedReps[entryIndex].length; setIndex++) {
         const set = nextHistoryRecord.entries?.[entryIndex]?.sets[setIndex];
@@ -59,7 +61,7 @@ export class PlannerTestUtils {
         }
       }
     }
-    const { program: newProgram } = Program.runAllFinishDayScripts(program, nextHistoryRecord, settings);
+    const { program: newProgram } = Program.runAllFinishDayScripts(program, nextHistoryRecord, stats, settings);
     return { program: newProgram };
   }
 }

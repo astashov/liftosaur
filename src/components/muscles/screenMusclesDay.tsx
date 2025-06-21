@@ -21,7 +21,9 @@ export function ScreenMusclesDay(props: IProps): JSX.Element {
   if (!programDay) {
     return <></>;
   }
-  const points = Muscle.normalizePoints(Muscle.getPointsForDay(evaluatedProgram, programDay, props.settings));
+  const points = Muscle.normalizePoints(
+    Muscle.getPointsForDay(evaluatedProgram, programDay, props.navCommon.stats, props.settings)
+  );
   return (
     <ScreenMuscles
       navCommon={props.navCommon}

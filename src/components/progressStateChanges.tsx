@@ -4,7 +4,7 @@ import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
 import { StringUtils } from "../utils/string";
 import { Reps } from "../models/set";
-import { IHistoryEntry, ISettings, IProgramState, IDayData, IUnit, IPercentage, IWeight } from "../types";
+import { IHistoryEntry, ISettings, IProgramState, IDayData, IUnit, IPercentage, IWeight, IStats } from "../types";
 import { Exercise } from "../models/exercise";
 import { IScriptBindings } from "../models/progress";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
@@ -18,6 +18,7 @@ interface IProps {
   dayData: IDayData;
   programExercise: IPlannerProgramExercise;
   program: IEvaluatedProgram;
+  stats: IStats;
   userPromptedStateVars?: IProgramState;
   onSuppressProgress?: (isSuppressed: boolean) => void;
   forceShow?: boolean;
@@ -34,6 +35,7 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
     state,
     props.program.states,
     props.programExercise,
+    props.stats,
     props.userPromptedStateVars
   );
   const isFinished = Reps.isFinished(entry.sets);

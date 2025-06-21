@@ -8,7 +8,7 @@ import { TopNavMenu } from "../../components/topNavMenu";
 import { IAccount } from "../../models/account";
 import { Program } from "../../models/program";
 import { Settings } from "../../models/settings";
-import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, IProgram, ISettings } from "../../types";
+import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, IProgram, ISettings, IStats } from "../../types";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { PlannerCodeBlock } from "../planner/components/plannerCodeBlock";
 import { PlannerEditorView } from "../planner/components/plannerEditorView";
@@ -689,13 +689,15 @@ interface IMainPlaygroundProps {
 
 function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
   const { planner } = props;
+  const stats: IStats = { weight: {}, length: {}, percentage: {} };
   const [settings, setSettings] = useState(props.settings);
   const [program, setProgram] = useState<IProgram>({ ...Program.create("My Program"), planner });
-  const [progress, setProgress] = useState(Program.nextHistoryRecord(program, settings, 1));
+  const [progress, setProgress] = useState(Program.nextHistoryRecord(program, settings, stats, 1));
   const evaluatedProgram = Program.evaluate(program, settings);
 
   return (
     <ProgramPreviewPlaygroundDay
+      stats={stats}
       program={evaluatedProgram}
       day={1}
       isPlayground={true}
@@ -707,19 +709,24 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
       onProgramChange={(newEvaluatedProgram) => {
         const newProgram = Program.applyEvaluatedProgram(program, newEvaluatedProgram, settings);
         setProgram(newProgram);
-        setProgress(Program.nextHistoryRecord(newProgram, settings, 1));
+        setProgress(Program.nextHistoryRecord(newProgram, settings, stats, 1));
       }}
       onSettingsChange={(newSettings) => {
         setSettings(newSettings);
-        setProgress(Program.nextHistoryRecord(program, newSettings, 1));
+        setProgress(Program.nextHistoryRecord(program, newSettings, stats, 1));
       }}
       onFinish={() => {
-        const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(program, progress, settings);
+        const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(
+          program,
+          progress,
+          stats,
+          settings
+        );
         const newSettings = {
           ...settings,
           exerciseData: deepmerge(settings.exerciseData, exerciseData),
         };
-        const newProgress = Program.nextHistoryRecord(newProgram, newSettings, 1);
+        const newProgress = Program.nextHistoryRecord(newProgram, newSettings, stats, 1);
         setSettings(newSettings);
         setProgram(newProgram);
         setProgress(newProgress);

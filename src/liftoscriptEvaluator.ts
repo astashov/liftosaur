@@ -343,6 +343,7 @@ export class LiftoscriptEvaluator {
             "cw",
             "mr",
             "completedRPE",
+            "bodyweight",
             "RPE",
             "setVariationIndex",
             "descriptionIndex",

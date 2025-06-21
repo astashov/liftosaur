@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IProgram, ISettings, ISubscription, IExerciseType } from "../types";
+import { IProgram, ISettings, ISubscription, IExerciseType, IStats } from "../types";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import { useState } from "preact/hooks";
 import { IPoints, Muscle } from "../models/muscle";
@@ -29,6 +29,7 @@ interface IProps {
   program: IProgram;
   isMobile: boolean;
   subscription: ISubscription;
+  stats: IStats;
   hasNavbar?: boolean;
 }
 
@@ -88,11 +89,13 @@ export function ProgramPreview(props: IProps): JSX.Element {
         settings={props.settings}
         isMobile={props.isMobile}
         hasNavbar={props.hasNavbar}
+        stats={props.stats}
       />
       {musclesModal && (
         <ProgramPreviewMusclesModal
           muscles={musclesModal}
           onClose={() => setMusclesModal(undefined)}
+          stats={props.stats}
           program={evaluatedProgram}
           subscription={props.subscription}
           dispatch={props.dispatch}
@@ -114,6 +117,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
 interface IProgramPreviewMusclesModalProps {
   muscles: IPreviewProgramMuscles;
   program: IEvaluatedProgram;
+  stats: IStats;
   settings: ISettings;
   dispatch?: IDispatch;
   subscription: ISubscription;
@@ -124,12 +128,12 @@ export function ProgramPreviewMusclesModal(props: IProgramPreviewMusclesModalPro
   let points: IPoints | undefined;
   let name = "";
   if (props.muscles.type === "program") {
-    points = Muscle.normalizePoints(Muscle.getPointsForProgram(props.program, props.settings));
+    points = Muscle.normalizePoints(Muscle.getPointsForProgram(props.program, props.stats, props.settings));
     name = props.program.name;
   } else {
     const programDay = Program.getProgramDay(props.program, props.muscles.dayIndex + 1);
     if (programDay) {
-      points = Muscle.normalizePoints(Muscle.getPointsForDay(props.program, programDay, props.settings));
+      points = Muscle.normalizePoints(Muscle.getPointsForDay(props.program, programDay, props.stats, props.settings));
       name = programDay.name;
     }
   }

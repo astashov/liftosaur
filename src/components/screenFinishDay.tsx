@@ -78,6 +78,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         <Fragment>
           {showCreateProgramDay && (
             <ModalDayFromAdhoc
+              stats={props.navCommon.stats}
               initialCurrentProgramId={props.navCommon.currentProgram?.id}
               allPrograms={props.navCommon.allPrograms}
               settings={props.settings}
