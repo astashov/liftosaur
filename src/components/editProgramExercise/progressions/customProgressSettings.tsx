@@ -72,7 +72,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                                 true,
                                 (e) => {
                                   const state = e.progress?.state;
-                                  if (state && newValue) {
+                                  if (state && newValue != null) {
                                     state[key] = newValue;
                                   }
                                 }
@@ -99,7 +99,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                                 true,
                                 (e) => {
                                   const state = e.progress?.state;
-                                  if (state && newValue) {
+                                  if (state && newValue != null) {
                                     state[key] = newValue;
                                   }
                                 }

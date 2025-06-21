@@ -307,7 +307,7 @@ interface IValueProps {
 function RepsValue(props: IValueProps): JSX.Element {
   const { group, set, change } = props;
   return (
-    <div>
+    <div className="flex items-center gap-1">
       {set.minrep != null && (
         <>
           <div className="text-center">
@@ -317,11 +317,6 @@ function RepsValue(props: IValueProps): JSX.Element {
                 width={3.5}
                 data-cy="min-reps-value"
                 name="set-min-reps"
-                onInput={(value) => {
-                  change(group, (set) => {
-                    set.minrep = value;
-                  });
-                }}
                 onBlur={(value) => {
                   change(group, (set) => {
                     set.minrep = value;
@@ -348,7 +343,6 @@ function RepsValue(props: IValueProps): JSX.Element {
             data-cy="reps-value"
             name="set-reps"
             onBlur={(value) => change(group, (set) => (set.maxrep = value))}
-            onInput={(value) => change(group, (set) => (set.maxrep = value))}
             after={() => {
               return set.isAmrap ? <span className="text-xs text-grayv3-main">+</span> : undefined;
             }}
@@ -387,7 +381,6 @@ function WeightsValue(props: IValueProps): JSX.Element {
           data-cy="weight-value"
           units={["lb", "kg", "%"] as const}
           onBlur={(value) => change(group, (set) => (set.weight = value))}
-          onInput={(value) => change(group, (set) => (set.weight = value))}
           showUnitInside={true}
           subscription={undefined}
           value={set.weight}
@@ -440,11 +433,6 @@ function RpeValue(props: IValueProps): JSX.Element {
             </div>
           }
           onBlur={(value) => change(group, (set) => (set.rpe = value))}
-          onInput={(value) => {
-            if (value != null && !isNaN(value)) {
-              change(group, (set) => (set.rpe = value));
-            }
-          }}
           value={set.rpe}
           min={0}
           max={10}
@@ -466,7 +454,6 @@ function TimerValue(props: IValueProps): JSX.Element {
           data-cy="set-timer"
           name="timer-value"
           onBlur={(value) => change(group, (set) => (set.timer = value))}
-          onInput={(value) => change(group, (set) => (set.timer = value))}
           value={set.timer}
           min={0}
           max={9999}
