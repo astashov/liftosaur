@@ -1877,6 +1877,29 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250621": {
+    title: <span>Added increment() and decrement() functions</span>,
+    body: (
+      <ul>
+        <li>
+          They'll accept a weight, and return the previous/next possible weight based on your equipment. E.g. if you
+          have 2x2.5lb smallest plates, <strong>increment()</strong> would increase the weight by 5lb. Or if you have
+          10lb and then 20lb fixed dumbbells, it would increment by 10lb. Use it like this:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`Squat / 3x8 100lb / progress: custom() {~
+  weights = increment(weights[1])
+~}`}
+            />
+          </div>
+        </li>
+        <li>
+          Same thing for <strong>decrement()</strong>. They work exactly the same way as the +/- buttons on the weight
+          keyboard
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
