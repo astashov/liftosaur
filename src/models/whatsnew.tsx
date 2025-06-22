@@ -1900,6 +1900,26 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250622": {
+    title: <span>Added bodyweight varaible</span>,
+    body: (
+      <ul>
+        <li>
+          Now there's a <strong>bodyweight</strong> variable that would return the latest bodyweight moving average from
+          <strong>Measurements</strong> screen. You can use it e.g. for pull ups or some other bodyweight exercises.
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`Pull Up / 3x8 0lb / update: custom() {~
+  if (setIndex == 0) {
+    weights = bodyweight
+  }
+~}`}
+            />
+          </div>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
