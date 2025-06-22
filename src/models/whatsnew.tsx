@@ -1905,7 +1905,7 @@ Squat / 3x8 100lb / ...main`}
     body: (
       <ul>
         <li>
-          Now there's a <strong>bodyweight</strong> variable that would return the latest bodyweight moving average from
+          Now there's a <strong>bodyweight</strong> variable that would return the latest bodyweight moving average from{" "}
           <strong>Measurements</strong> screen. You can use it e.g. for pull ups or some other bodyweight exercises.
           <div className="m-2 overflow-x-auto">
             <PlannerCodeBlock
