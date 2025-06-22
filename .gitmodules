@@ -1,0 +1,3 @@
+[submodule "lambda/scripts"]
+	path = lambda/scripts
+	url = git@github.com:astashov/liftosaur-scripts.git
