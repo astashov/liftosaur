@@ -18,7 +18,7 @@ export class ClaudeProvider implements ILLMProvider {
         {
           type: "text",
           text: systemPrompt,
-          cache_control: { type: "ephemeral" },
+          cache_control: { type: "ephemeral", ttl: "1h" },
         },
       ],
       max_tokens: 8192,
@@ -44,7 +44,7 @@ export class ClaudeProvider implements ILLMProvider {
           "Content-Type": "application/json",
           "x-api-key": this.apiKey,
           "anthropic-version": "2023-06-01",
-          "anthropic-beta": "prompt-caching-2024-07-31",
+          "anthropic-beta": "prompt-caching-2024-07-31,extended-cache-ttl-2025-04-11",
         },
         body: requestBody,
       });
