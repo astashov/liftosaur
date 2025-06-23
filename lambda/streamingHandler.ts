@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventV2, Context } from "aws-lambda";
-import { LlmUtil } from "./utils/llms/llm";
+import { LlmLiftoscript } from "./utils/llms/llmLiftoscript";
 import { IDI } from "./utils/di";
 import Rollbar from "rollbar";
 import { Utils } from "./utils";
@@ -164,7 +164,7 @@ const postAiConvertStreamHandler: RouteHandler<IPayload, void, typeof postAiConv
       }
     }
 
-    const llm = new LlmUtil(di, provider);
+    const llm = new LlmLiftoscript(di, provider);
     for await (const event of llm.generateLiftoscript(programContent, account, input)) {
       const sseData = `data: ${JSON.stringify(event)}\n\n`;
       stream.write(sseData);

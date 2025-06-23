@@ -1,5 +1,4 @@
 import { ILLMProvider } from "./llmTypes";
-import { LlmPrompt } from "./llmPrompt";
 import { HttpStreaming } from "./httpStreaming";
 
 export class OpenAIProvider implements ILLMProvider {
@@ -8,16 +7,15 @@ export class OpenAIProvider implements ILLMProvider {
     private model: string = "gpt-4o-mini"
   ) {}
 
-  async *generateLiftoscript(
-    input: string
+  async *generate(
+    systemPrompt: string,
+    userInput: string
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
-    const systemPrompt = LlmPrompt.getSystemPrompt();
-
     const messages = [
       { role: "system", content: systemPrompt },
       {
         role: "user",
-        content: LlmPrompt.getUserPrompt(input),
+        content: userInput,
       },
     ];
 

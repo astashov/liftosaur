@@ -118,6 +118,85 @@ export class PlannerStatsUtils {
     }
     return results;
   }
+
+  public static setResultsToString(results: ISetResults): string {
+    const lines: string[] = [];
+
+    lines.push(`Total Weekly Volume: ${results.total} sets`);
+    lines.push(`- Strength Sets (<8 reps): ${results.strength} sets`);
+    lines.push(`- Hypertrophy Sets (≥8 reps): ${results.hypertrophy} sets`);
+    lines.push("");
+
+    lines.push("Movement Patterns:");
+    if (results.upper.strength > 0 || results.upper.hypertrophy > 0) {
+      lines.push(
+        `- Upper Body: ${results.upper.strength + results.upper.hypertrophy} sets (${results.upper.strength} strength, ${results.upper.hypertrophy} hypertrophy)`
+      );
+    }
+    if (results.lower.strength > 0 || results.lower.hypertrophy > 0) {
+      lines.push(
+        `- Lower Body: ${results.lower.strength + results.lower.hypertrophy} sets (${results.lower.strength} strength, ${results.lower.hypertrophy} hypertrophy)`
+      );
+    }
+    if (results.push.strength > 0 || results.push.hypertrophy > 0) {
+      lines.push(
+        `- Push: ${results.push.strength + results.push.hypertrophy} sets (${results.push.strength} strength, ${results.push.hypertrophy} hypertrophy)`
+      );
+    }
+    if (results.pull.strength > 0 || results.pull.hypertrophy > 0) {
+      lines.push(
+        `- Pull: ${results.pull.strength + results.pull.hypertrophy} sets (${results.pull.strength} strength, ${results.pull.hypertrophy} hypertrophy)`
+      );
+    }
+    if (results.legs.strength > 0 || results.legs.hypertrophy > 0) {
+      lines.push(
+        `- Legs: ${results.legs.strength + results.legs.hypertrophy} sets (${results.legs.strength} strength, ${results.legs.hypertrophy} hypertrophy)`
+      );
+    }
+    if (results.core.strength > 0 || results.core.hypertrophy > 0) {
+      lines.push(
+        `- Core: ${results.core.strength + results.core.hypertrophy} sets (${results.core.strength} strength, ${results.core.hypertrophy} hypertrophy)`
+      );
+    }
+    lines.push("");
+
+    lines.push("Muscle Groups (Weekly Sets):");
+    const muscleGroups = Object.entries(results.muscleGroup)
+      .filter(([_, stats]) => stats.strength > 0 || stats.hypertrophy > 0)
+      .sort((a, b) => {
+        const totalA = a[1].strength + a[1].hypertrophy;
+        const totalB = b[1].strength + b[1].hypertrophy;
+        return totalB - totalA;
+      });
+
+    for (const [muscle, stats] of muscleGroups) {
+      const total = stats.strength + stats.hypertrophy;
+      const capitalizedMuscle = muscle.charAt(0).toUpperCase() + muscle.slice(1);
+      const frequencyDays = Object.keys(stats.frequency).length;
+
+      lines.push(
+        `- ${capitalizedMuscle}: ${total.toFixed(1)} sets (${stats.strength.toFixed(1)} strength, ${stats.hypertrophy.toFixed(1)} hypertrophy) - ${frequencyDays}x/week`
+      );
+
+      const exercises = stats.exercises
+        .filter((ex) => ex.strengthSets > 0 || ex.hypertrophySets > 0)
+        .sort((a, b) => {
+          const totalA = a.strengthSets + a.hypertrophySets;
+          const totalB = b.strengthSets + b.hypertrophySets;
+          return totalB - totalA;
+        });
+
+      if (exercises.length > 0) {
+        for (const ex of exercises) {
+          const totalSets = ex.strengthSets + ex.hypertrophySets;
+          const synergistNote = ex.isSynergist ? " (synergist)" : "";
+          lines.push(`  • ${ex.exerciseName}: ${totalSets.toFixed(1)} sets${synergistNote}`);
+        }
+      }
+    }
+
+    return lines.join("\n");
+  }
 }
 
 function add(

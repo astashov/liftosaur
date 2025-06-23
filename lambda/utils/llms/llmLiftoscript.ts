@@ -2,8 +2,9 @@ import { ILLMProvider } from "./llmTypes";
 import { IAccount } from "../../../src/models/account";
 import { IDI } from "../di";
 import { AiLogsDao } from "../../dao/aiLogsDao";
+import { LlmPrompt } from "./llmPrompt";
 
-export class LlmUtil {
+export class LlmLiftoscript {
   constructor(
     private readonly di: IDI,
     private readonly provider: ILLMProvider
@@ -12,13 +13,16 @@ export class LlmUtil {
   public async *generateLiftoscript(
     programContent: string,
     account: IAccount,
-    originalInput: string
+    originalInput?: string
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
     let fullResponse = "";
     let error: string | undefined;
 
     try {
-      for await (const event of this.provider.generateLiftoscript(programContent)) {
+      for await (const event of this.provider.generate(
+        LlmPrompt.getSystemPrompt(),
+        LlmPrompt.getUserPrompt(programContent)
+      )) {
         if (event.type === "result") {
           fullResponse += event.data;
         } else if (event.type === "finish") {
@@ -34,7 +38,9 @@ export class LlmUtil {
       yield { type: "error", data: error };
     }
 
-    await this.logAiInteraction(account, originalInput, fullResponse, error);
+    if (originalInput) {
+      await this.logAiInteraction(account, originalInput, fullResponse, error);
+    }
   }
 
   private async logAiInteraction(account: IAccount, input: string, response: string, error?: string): Promise<void> {

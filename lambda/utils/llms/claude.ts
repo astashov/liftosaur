@@ -1,5 +1,4 @@
 import { ILLMProvider } from "./llmTypes";
-import { LlmPrompt } from "./llmPrompt";
 import { HttpStreaming } from "./httpStreaming";
 
 export class ClaudeProvider implements ILLMProvider {
@@ -8,11 +7,10 @@ export class ClaudeProvider implements ILLMProvider {
     private model: string = "claude-sonnet-4-20250514"
   ) {}
 
-  async *generateLiftoscript(
-    input: string
+  async *generate(
+    systemPrompt: string,
+    userInput: string
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
-    const systemPrompt = LlmPrompt.getSystemPrompt();
-
     const requestBody = JSON.stringify({
       model: this.model,
       temperature: 0.2,
@@ -27,7 +25,7 @@ export class ClaudeProvider implements ILLMProvider {
       messages: [
         {
           role: "user",
-          content: LlmPrompt.getUserPrompt(input),
+          content: userInput,
         },
       ],
       stream: true,

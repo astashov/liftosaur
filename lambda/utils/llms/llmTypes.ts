@@ -1,6 +1,7 @@
 export interface ILLMProvider {
-  generateLiftoscript(
-    input: string
+  generate(
+    systemPrompt: string,
+    userInput: string
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown>;
 }
 
