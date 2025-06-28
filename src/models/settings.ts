@@ -249,7 +249,6 @@ export namespace Settings {
         targetType: "target",
       },
       statsEnabled: { weight: { weight: true }, length: {}, percentage: {} },
-      equipment: defaultEquipment(),
       exercises: {},
       graphs: [],
       planner: buildPlannerSettings(),

@@ -112,7 +112,7 @@ export namespace Equipment {
     return currentEquipment(settings)?.[key];
   }
 
-  export function currentEquipment(settings: ISettings): Partial<Record<IEquipment, IEquipmentData>> {
+  export function currentEquipment(settings: ISettings): IAllEquipment {
     const currentGym = settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
     return currentGym?.equipment;
   }

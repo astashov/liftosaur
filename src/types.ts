@@ -1091,7 +1091,6 @@ export const TSettings = t.intersection(
   [
     t.interface({
       timers: TSettingsTimers,
-      equipment: dictionary(TEquipment, TEquipmentData),
       gyms: t.array(TGym),
       deletedGyms: t.array(t.string),
       graphs: t.array(TGraph),

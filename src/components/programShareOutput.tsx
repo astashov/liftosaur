@@ -12,6 +12,7 @@ import { Weight } from "../models/weight";
 import { CollectionUtils } from "../utils/collection";
 import { forwardRef, useEffect, useRef } from "preact/compat";
 import { ProgramQrCode } from "./programQrCode";
+import { Equipment } from "../models/equipment";
 
 export interface IProgramShareOutputOptions {
   showInfo: boolean;
@@ -199,7 +200,8 @@ function Workout(props: IWorkoutProps): JSX.Element {
           plannerProgramExercise.fullName,
           props.settings.exercises
         );
-        const nameAndEquipment = `${name}${equipment ? `, ${equipmentName(equipment, props.settings.equipment)}` : ""}`;
+        const allEquipment = Equipment.currentEquipment(props.settings);
+        const nameAndEquipment = `${name}${equipment ? `, ${equipmentName(equipment, allEquipment)}` : ""}`;
         const exercise = Exercise.findByNameAndEquipment(nameAndEquipment, props.settings.exercises);
         if (!exercise) {
           return <div />;

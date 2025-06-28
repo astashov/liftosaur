@@ -29,6 +29,7 @@ import { IconWatch } from "./icons/iconWatch";
 import { ModalProgramInfo } from "./modalProgramInfo";
 import { Thunk } from "../ducks/thunks";
 import { equipmentName } from "../models/exercise";
+import { Equipment } from "../models/equipment";
 
 interface IProps {
   programs: IProgram[];
@@ -180,7 +181,8 @@ interface IBuiltInProgramProps {
 function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
   const properties = builtinProgramProperties[props.program.id];
   const exercises = properties?.exercises ?? [];
-  const equipment = (properties?.equipment ?? []).map((e) => equipmentName(e, props.settings.equipment));
+  const allEquipment = Equipment.currentEquipment(props.settings);
+  const equipment = (properties?.equipment ?? []).map((e) => equipmentName(e, allEquipment));
   const exercisesRange = properties?.exercisesRange;
   const numberOfWeeks = props.program.planner?.weeks.length ?? 0;
 

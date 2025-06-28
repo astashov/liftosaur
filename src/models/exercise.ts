@@ -3587,7 +3587,8 @@ export namespace Exercise {
   export function fullName(exercise: IExercise, settings: ISettings, label?: string): string {
     let str: string;
     if (exercise.equipment && exercise.defaultEquipment !== exercise.equipment) {
-      const equipment = equipmentName(exercise.equipment, settings?.equipment);
+      const allEquipment = Equipment.currentEquipment(settings);
+      const equipment = equipmentName(exercise.equipment, allEquipment);
       str = `${exercise.name}, ${equipment}`;
     } else {
       str = exercise.name;
@@ -3600,7 +3601,8 @@ export namespace Exercise {
 
   export function reverseName(exercise: IExercise, settings?: ISettings): string {
     if (exercise.equipment) {
-      const equipment = equipmentName(exercise.equipment, settings?.equipment);
+      const allEquipment = settings ? Equipment.currentEquipment(settings) : {};
+      const equipment = equipmentName(exercise.equipment, allEquipment);
       return `${equipment} ${exercise.name}`;
     } else {
       return exercise.name;
@@ -3609,7 +3611,8 @@ export namespace Exercise {
 
   export function nameWithEquipment(exercise: IExercise, settings?: ISettings): string {
     if (exercise.equipment) {
-      const equipment = equipmentName(exercise.equipment, settings?.equipment);
+      const allEquipment = settings ? Equipment.currentEquipment(settings) : {};
+      const equipment = equipmentName(exercise.equipment, allEquipment);
       return `${exercise.name}, ${equipment}`;
     } else {
       return exercise.name;

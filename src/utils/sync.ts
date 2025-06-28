@@ -131,7 +131,6 @@ export class Sync {
     const settingsUpdate: ISettingsUpdate = {
       ...diffVal(lastSettings, currentSettings, "timers"),
       ...diffArr(lastSettings, currentSettings, "deletedGyms"),
-      ...diffObj(lastSettings, currentSettings, "equipment"),
       ...diffVal(lastSettings, currentSettings, "graphs"),
       ...diffVal(lastSettings, currentSettings, "graphOptions"),
       ...diffVal(lastSettings, currentSettings, "graphsSettings"),
