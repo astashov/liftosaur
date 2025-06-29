@@ -361,6 +361,7 @@ export type IExerciseType = t.TypeOf<typeof TExerciseType>;
 export const TCustomExercise = t.intersection(
   [
     t.interface({
+      type: t.literal("custom_exercise"),
       id: TExerciseId,
       name: t.string,
       isDeleted: t.boolean,
@@ -669,6 +670,7 @@ export type tHistoryRecordChange = t.TypeOf<typeof THistoryRecordChange>;
 export const THistoryRecord = t.intersection(
   [
     t.interface({
+      type: t.literal("history_record"),
       // ISO8601, like 2020-02-29T18:02:05+00:00
       date: t.string,
       programId: t.string,
@@ -801,6 +803,7 @@ export type IPlannerProgramWeek = Readonly<t.TypeOf<typeof TPlannerProgramWeek>>
 
 export const TPlannerProgram = t.type(
   {
+    type: t.literal("planner"),
     name: t.string,
     weeks: t.array(TPlannerProgramWeek),
   },
@@ -811,6 +814,7 @@ export type IPlannerProgram = Readonly<t.TypeOf<typeof TPlannerProgram>>;
 export const TProgram = t.intersection(
   [
     t.interface({
+      type: t.literal("program"),
       exercises: t.array(TProgramExercise),
       id: t.string,
       name: t.string,
@@ -855,7 +859,10 @@ export const TLength = t.type({ value: t.number, unit: TLengthUnit }, "TLength")
 export type ILength = t.TypeOf<typeof TLength>;
 
 export const TStatsWeightValue = t.intersection(
-  [t.interface({ value: TWeight, timestamp: t.number }), t.partial({ updatedAt: t.number, appleUuid: t.string })],
+  [
+    t.interface({ type: t.literal("weight"), value: TWeight, timestamp: t.number }),
+    t.partial({ updatedAt: t.number, appleUuid: t.string }),
+  ],
   "TStatsWeightValue"
 );
 export type IStatsWeightValue = t.TypeOf<typeof TStatsWeightValue>;
@@ -867,7 +874,10 @@ export const TStatsWeight = t.partial(statsWeightDef, "TStatsWeight");
 export type IStatsWeight = t.TypeOf<typeof TStatsWeight>;
 
 export const TStatsLengthValue = t.intersection(
-  [t.interface({ value: TLength, timestamp: t.number }), t.partial({ updatedAt: t.number, appleUuid: t.string })],
+  [
+    t.interface({ type: t.literal("length"), value: TLength, timestamp: t.number }),
+    t.partial({ updatedAt: t.number, appleUuid: t.string }),
+  ],
   "TStatsLengthValue"
 );
 export type IStatsLengthValue = t.TypeOf<typeof TStatsLengthValue>;
@@ -891,7 +901,10 @@ export const TStatsLength = t.partial(statsLengthDef, "TStatsLength");
 export type IStatsLength = t.TypeOf<typeof TStatsLength>;
 
 export const TStatsPercentageValue = t.intersection(
-  [t.interface({ value: TPercentage, timestamp: t.number }), t.partial({ updatedAt: t.number, appleUuid: t.string })],
+  [
+    t.interface({ type: t.literal("percentage"), value: TPercentage, timestamp: t.number }),
+    t.partial({ updatedAt: t.number, appleUuid: t.string }),
+  ],
   "TStatsPercentageValue"
 );
 export type IStatsPercentageValue = t.TypeOf<typeof TStatsPercentageValue>;
@@ -975,6 +988,7 @@ export type IGraph = t.TypeOf<typeof TGraph>;
 export const TEquipmentData = t.intersection(
   [
     t.interface({
+      type: t.literal("equipment_data"),
       bar: t.type({
         lb: TWeight,
         kg: TWeight,
@@ -1052,6 +1066,7 @@ export type IPlannerSettings = t.TypeOf<typeof TPlannerSettings>;
 
 export const TGym = t.type(
   {
+    type: t.literal("gym"),
     id: t.string,
     name: t.string,
     equipment: dictionary(TEquipment, TEquipmentData),
@@ -1151,6 +1166,7 @@ export type IStats = t.TypeOf<typeof TStats>;
 
 export const TSubscription = t.intersection([
   t.interface({
+    type: t.literal("subscription"),
     apple: dictionary(t.string, t.null),
     google: dictionary(t.string, t.null),
   }),
@@ -1185,11 +1201,14 @@ export const TStorage = t.intersection(
       originalId: t.number,
       id: t.number,
       referrer: t.string,
+      _versions: t.unknown, // We use unknown because io-ts doesn't support recursive types well
     }),
   ],
   "TStorage"
 );
-export type IStorage = t.TypeOf<typeof TStorage>;
+export type IStorage = Omit<t.TypeOf<typeof TStorage>, "_versions"> & {
+  _versions?: IVersions<Omit<t.TypeOf<typeof TStorage>, "_versions">>;
+};
 
 export type IPartialStorage = Omit<IStorage, "history" | "stats" | "programs"> &
   Partial<Pick<IStorage, "history" | "stats" | "programs">>;
@@ -1209,4 +1228,67 @@ export type IDaySetData = {
   dayInWeek: number;
   setVariation: number;
   set: number;
+};
+
+// Atomic types - these are versioned as a whole unit
+export const ATOMIC_TYPES = [
+  "history_record",
+  "equipment_data",
+  "custom_exercise",
+  "planner",
+  "weight",
+  "length",
+  "percentage",
+  "subscription",
+] as const;
+
+export type IAtomicType = (typeof ATOMIC_TYPES)[number];
+
+// Controlled types - these have specific fields that are versioned
+export const CONTROLLED_TYPES = ["program", "gym"] as const;
+
+export type IControlledType = (typeof CONTROLLED_TYPES)[number];
+
+// Define which fields to version for each controlled type
+export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
+  program: ["name", "nextDay", "planner"] as const,
+  gym: ["name", "equipment"] as const,
+};
+
+// Define id field for each type
+export const TYPE_ID_MAPPING: Partial<Record<IAtomicType | IControlledType, string>> = {
+  program: "id",
+  history_record: "id",
+  gym: "id",
+  custom_exercise: "id",
+  weight: "timestamp",
+  length: "timestamp",
+  percentage: "timestamp",
+};
+
+// Dictionary fields - these are free-form key-value mappings that should use collection versioning
+// Full path from storage root
+export const DICTIONARY_FIELDS = [
+  "settings.exercises",
+  "settings.graphOptions",
+  "settings.exerciseData",
+  "settings.gyms.equipment",
+] as const;
+
+export type IDictionaryFieldPath = (typeof DICTIONARY_FIELDS)[number];
+
+// Version tracking types
+export type IVersions<T> = {
+  [K in keyof T]?: T[K] extends { type: IAtomicType }
+    ? number
+    : T[K] extends Array<infer U>
+      ? ICollectionVersions<U>
+      : T[K] extends object
+        ? IVersions<T[K]>
+        : number;
+};
+
+export type ICollectionVersions<T> = {
+  items: Record<string, number | IVersions<unknown>>; // id -> version timestamp
+  deleted: Record<string, number>; // id -> deletion timestamp
 };

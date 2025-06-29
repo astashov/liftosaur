@@ -481,7 +481,7 @@ export class ProgramToPlanner {
       }
       plannerWeeks.push(plannerWeek);
     }
-    const result: IPlannerProgram = { name: this.program.name, weeks: plannerWeeks };
+    const result: IPlannerProgram = { type: "planner", name: this.program.name, weeks: plannerWeeks };
     const repeatingExercises = new Set<string>();
     PP.iterate2(this.program.weeks, (exercise) => {
       if (exercise.repeat != null && exercise.repeat.length > 0) {

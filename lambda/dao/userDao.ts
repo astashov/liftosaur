@@ -279,7 +279,7 @@ export class UserDao {
         helps: [],
         tempUserId: id,
         settings: Settings.build(),
-        subscription: { apple: {}, google: {} },
+        subscription: { type: "subscription", apple: {}, google: {} },
         email,
         whatsNew: undefined,
       },

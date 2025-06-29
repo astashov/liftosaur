@@ -3,17 +3,17 @@ import * as t from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { UidFactory } from "../utils/generator";
-import { TStorage, IStorage, IPartialStorage } from "../types";
 import { Settings } from "../models/settings";
 import { IEither } from "../utils/types";
 import RB from "rollbar";
 import { IState, updateState } from "./state";
 import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
-import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
 import { DateUtils } from "../utils/date";
 import { IStorageUpdate } from "../utils/sync";
+import { IStorage, TStorage, IPartialStorage } from "../types";
+import { CollectionUtils } from "../utils/collection";
 
 declare let Rollbar: RB;
 
@@ -24,7 +24,9 @@ export namespace Storage {
     type: t.Type<any, any, any>,
     name: string
   ): IEither<IStorage, string[]> {
+    console.log("Validating storage", name);
     const decoded = type.decode(data);
+    console.log("Finished validating storage", name);
     if ("left" in decoded) {
       const error = PathReporter.report(decoded);
       return { success: false, error };
@@ -116,7 +118,7 @@ export namespace Storage {
       settings: Settings.build(),
       history: [],
       version: getLatestMigrationVersion(),
-      subscription: { apple: {}, google: {} },
+      subscription: { type: "subscription", apple: {}, google: {} },
       programs: [],
       helps: [],
       email: undefined,
@@ -175,7 +177,6 @@ export namespace Storage {
     const deletedHistory = Array.from(new Set([...storage.deletedHistory, ...(update.deletedHistory || [])]));
     const deletedPrograms = Array.from(new Set([...storage.deletedPrograms, ...(update.deletedPrograms || [])]));
     const deletedStats = Array.from(new Set([...storage.deletedStats, ...(update.deletedStats || [])]));
-
     const reviewRequests = Array.from(new Set([...storage.reviewRequests, ...(update.reviewRequests || [])]));
     const signupRequests = Array.from(new Set([...storage.signupRequests, ...(update.signupRequests || [])]));
     const helps = Array.from(new Set([...storage.helps, ...(update.helps || [])]));
@@ -200,6 +201,7 @@ export namespace Storage {
         gyms: gymsArr,
       },
     };
+
     return newStorage;
   }
 }

@@ -63,7 +63,7 @@ export namespace EditStats {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
                 memo[key] = [
-                  { value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
+                  { type: "weight", value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
                   ...(memo[key] || []),
                 ];
                 return memo;
@@ -87,7 +87,7 @@ export namespace EditStats {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
                 memo[key] = [
-                  { value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
+                  { type: "length", value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
                   ...(memo[key] || []),
                 ];
                 return memo;
@@ -114,7 +114,7 @@ export namespace EditStats {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
                 memo[key] = [
-                  { value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
+                  { type: "percentage", value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
                   ...(memo[key] || []),
                 ];
                 return memo;
@@ -343,6 +343,7 @@ export namespace EditStats {
       }
       if (d.type === "bodyweight") {
         weightValues.push({
+          type: "weight",
           value: Weight.roundTo005(Weight.convertTo(d.value as IWeight, settings.units)),
           timestamp: d.timestamp,
           updatedAt: Date.now(),
@@ -350,6 +351,7 @@ export namespace EditStats {
         });
       } else if (d.type === "bodyfat") {
         bodyfatValues.push({
+          type: "percentage",
           value: d.value as IPercentage,
           timestamp: d.timestamp,
           updatedAt: Date.now(),
@@ -357,6 +359,7 @@ export namespace EditStats {
         });
       } else if (d.type === "waist") {
         waistValues.push({
+          type: "length",
           value: Length.convertTo(d.value as ILength, settings.lengthUnits),
           timestamp: d.timestamp,
           updatedAt: Date.now(),

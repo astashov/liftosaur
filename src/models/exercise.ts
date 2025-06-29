@@ -4084,6 +4084,7 @@ export namespace Exercise {
       } else {
         const id = UidFactory.generateUid(8);
         const newExercise: ICustomExercise = {
+          type: "custom_exercise",
           id,
           name,
           isDeleted: false,
@@ -4117,6 +4118,7 @@ export namespace Exercise {
       } else if (newExercisesData != null && oldExercisesData != null) {
         acc[name] = {
           id: newExercisesData.id,
+          type: "custom_exercise",
           name: newExercisesData.name,
           defaultEquipment: newExercisesData.defaultEquipment,
           isDeleted: newExercisesData.isDeleted,

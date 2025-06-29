@@ -106,6 +106,7 @@ export class ImportFromLiftosaur {
         } else {
           const id = StringUtils.dashcase(exerciseName || "exercise");
           customExercises[id] = {
+            type: "custom_exercise",
             id,
             name: exerciseName,
             isDeleted: false,
@@ -198,6 +199,7 @@ export class ImportFromLiftosaur {
         endTime = startTime;
       }
       const historyRecord: IHistoryRecord = {
+        type: "history_record",
         date: new Date(startTime).toISOString(),
         day: 1,
         dayName: `${firstRecord.dayname}` || "Workout",

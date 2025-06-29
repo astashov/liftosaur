@@ -40,6 +40,8 @@ import { SendMessage } from "../utils/sendMessage";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgramUiHelpers } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
+import { VersionTracker } from "../models/versionTracker";
+import { DICTIONARY_FIELDS } from "../types";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
@@ -295,6 +297,24 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
     (dispatch, action, oldState, newState) => {
       if (Storage.isChanged(oldState.storage, newState.storage)) {
         dispatch(Thunk.sync2());
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      if ("type" in action && action.type === "UpdateState" && action.desc === "versions") {
+        return;
+      }
+      if (oldState.storage !== newState.storage) {
+        const timestamp = Date.now();
+        const versions = VersionTracker.updateVersions(
+          oldState.storage,
+          newState.storage,
+          newState.storage._versions || {},
+          timestamp,
+          DICTIONARY_FIELDS
+        );
+        if (versions !== newState.storage._versions) {
+          updateState(dispatch, [lb<IState>().p("storage").p("_versions").record(versions)], "versions");
+        }
       }
     },
     (dispatch, action, oldState, newState) => {

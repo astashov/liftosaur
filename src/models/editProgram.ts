@@ -117,9 +117,10 @@ export namespace EditProgram {
   }
 
   export function create(dispatch: IDispatch, name: string): void {
-    const newProgram = {
+    const newProgram: IProgram = {
       ...Program.create(name),
       planner: {
+        type: "planner",
         name,
         weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
       },

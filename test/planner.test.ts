@@ -738,7 +738,11 @@ Bench Press[4-5] / ...tmp: Squat
 Squat / 1x1 100lb / progress: custom(increment: 10lb) { ...Bench Press }
 Bench Press / ...Squat / progress: custom() {~ ~}
 `;
-    const planner: IPlannerProgram = { name: "MyProgram", weeks: PlannerProgram.evaluateText(programText) };
+    const planner: IPlannerProgram = {
+      type: "planner",
+      name: "MyProgram",
+      weeks: PlannerProgram.evaluateText(programText),
+    };
     const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
     expect(evaluatedWeeks[0][0].success).to.be.true;
   });
@@ -749,7 +753,11 @@ Bench Press / ...Squat / progress: custom() {~ ~}
 Squat / 1x1 100lb / update: custom() { ...Bench Press }
 Bench Press / ...Squat / update: custom() {~ ~}
 `;
-    const planner: IPlannerProgram = { name: "MyProgram", weeks: PlannerProgram.evaluateText(programText) };
+    const planner: IPlannerProgram = {
+      type: "planner",
+      name: "MyProgram",
+      weeks: PlannerProgram.evaluateText(programText),
+    };
     const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
     expect(evaluatedWeeks[0][0].success).to.be.true;
   });
@@ -775,7 +783,11 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
 # Week 5
 ## Day 1
 `;
-    const planner: IPlannerProgram = { name: "MyProgram", weeks: PlannerProgram.evaluateText(programText) };
+    const planner: IPlannerProgram = {
+      type: "planner",
+      name: "MyProgram",
+      weeks: PlannerProgram.evaluateText(programText),
+    };
     const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
     expect(evaluatedWeeks[2][0]).to.deep.equal({
       success: false,
@@ -1386,7 +1398,7 @@ Squat / 1x10 / 100lb / progress: custom() {~
     ];
     const settings: ISettings = {
       ...Settings.build(),
-      gyms: [{ id: "default", name: "Main", equipment }],
+      gyms: [{ type: "gym", id: "default", name: "Main", equipment }],
       exerciseData: {
         squat_barbell: { equipment: { default: "barbell" } },
       },
@@ -1414,7 +1426,7 @@ Squat / 1x10 / 100lb / progress: custom() {~
     equipment.barbell!.fixed = [Weight.build(45, "lb"), Weight.build(100, "lb"), Weight.build(120, "lb")];
     const settings: ISettings = {
       ...Settings.build(),
-      gyms: [{ id: "default", name: "Main", equipment }],
+      gyms: [{ type: "gym", id: "default", name: "Main", equipment }],
       exerciseData: {
         squat_barbell: { equipment: { default: "barbell" } },
       },
@@ -1458,11 +1470,11 @@ Squat / 1x10 / 100lb / progress: custom() {~
     const stats: IStats = {
       weight: {
         weight: [
-          { value: Weight.build(200, "lb"), timestamp: 10 },
-          { value: Weight.build(220, "lb"), timestamp: 30 },
-          { value: Weight.build(210, "lb"), timestamp: 20 },
-          { value: Weight.build(240, "lb"), timestamp: 50 },
-          { value: Weight.build(230, "lb"), timestamp: 40 },
+          { type: "weight", value: Weight.build(200, "lb"), timestamp: 10 },
+          { type: "weight", value: Weight.build(220, "lb"), timestamp: 30 },
+          { type: "weight", value: Weight.build(210, "lb"), timestamp: 20 },
+          { type: "weight", value: Weight.build(240, "lb"), timestamp: 50 },
+          { type: "weight", value: Weight.build(230, "lb"), timestamp: 40 },
         ],
       },
       length: {},

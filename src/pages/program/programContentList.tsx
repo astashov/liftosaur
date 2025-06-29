@@ -201,9 +201,10 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
           isLoading={isCreating}
           onClose={() => setShowCreateProgramModal(false)}
           onSelect={async (name) => {
-            const newProgram = {
+            const newProgram: IProgram = {
               ...Program.create(name),
               planner: {
+                type: "planner",
                 name,
                 weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
               },

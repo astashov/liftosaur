@@ -378,6 +378,7 @@ export class ImportFromHevy {
             exerciseId = UidFactory.generateUid(8);
             backMap[record.exercise_title] = exerciseId;
             customExercises[exerciseId] = {
+              type: "custom_exercise",
               id: exerciseId,
               name: record.exercise_title,
               isDeleted: false,
@@ -431,6 +432,7 @@ export class ImportFromHevy {
         };
       });
       return {
+        type: "history_record",
         id: endTs ?? Date.now(),
         date: new Date(endTs ?? Date.now()).toISOString(),
         startTime: startTs ?? Date.now(),

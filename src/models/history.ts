@@ -52,6 +52,7 @@ export interface IHistoryEntryPersonalRecords {
 export namespace History {
   export function buildFromEntry(entry: IHistoryEntry, dayData: IDayData): IHistoryRecord {
     return {
+      type: "history_record",
       id: 0,
       date: new Date().toISOString(),
       programId: "",

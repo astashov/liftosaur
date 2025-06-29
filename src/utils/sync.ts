@@ -9,6 +9,7 @@ export type IStorageUpdate = Partial<Omit<IStorage, "stats" | "settings" | "orig
   originalId?: IStorage["originalId"];
   version: IStorage["version"];
   stats?: IStatsUpdate;
+  _versions?: IStorage["_versions"];
 };
 
 export type ISettingsUpdate = Partial<ISettings>;

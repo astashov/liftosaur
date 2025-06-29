@@ -625,6 +625,7 @@ Bench Press / 3x8 100lb / progress: dp(5lb, 8, 12)`,
   };
 
   const initialPlanner: IPlannerProgram = {
+    type: "planner",
     name: "My Program",
     weeks: [initialWeek],
   };
