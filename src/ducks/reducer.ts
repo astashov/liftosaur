@@ -41,12 +41,14 @@ import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgramUiHelpers } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
 import { VersionTracker } from "../models/versionTracker";
-import { DICTIONARY_FIELDS } from "../types";
+import { STORAGE_VERSION_TYPES } from "../types";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
     ? !!UrlUtils.build(window.location.href).searchParams.get("log")
     : false;
+
+const storageVersionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
 const shouldSkipIntro =
   typeof window !== "undefined" && window?.location
     ? !!UrlUtils.build(window.location.href).searchParams.get("skipintro")
@@ -305,12 +307,11 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
       if (oldState.storage !== newState.storage) {
         const timestamp = Date.now();
-        const versions = VersionTracker.updateVersions(
+        const versions = storageVersionTracker.updateVersions(
           oldState.storage,
           newState.storage,
           newState.storage._versions || {},
-          timestamp,
-          DICTIONARY_FIELDS
+          timestamp
         );
         if (versions !== newState.storage._versions) {
           updateState(dispatch, [lb<IState>().p("storage").p("_versions").record(versions)], "versions");

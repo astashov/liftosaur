@@ -2,6 +2,7 @@ import { unsafeCoerce } from "fp-ts/lib/function";
 import * as t from "io-ts";
 import { ObjectUtils } from "./utils/object";
 import { IArrayElement } from "./utils/types";
+import { IVersions, IVersionTypes } from "./models/versionTracker";
 
 export type IDictionaryC<D extends t.Mixed, C extends t.Mixed> = t.DictionaryType<
   D,
@@ -1256,7 +1257,7 @@ export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
 };
 
 // Define id field for each type
-export const TYPE_ID_MAPPING: Partial<Record<IAtomicType | IControlledType, string>> = {
+export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   program: "id",
   history_record: "id",
   gym: "id",
@@ -1264,6 +1265,9 @@ export const TYPE_ID_MAPPING: Partial<Record<IAtomicType | IControlledType, stri
   weight: "timestamp",
   length: "timestamp",
   percentage: "timestamp",
+  equipment_data: "id",
+  planner: "name",
+  subscription: "id",
 };
 
 // Dictionary fields - these are free-form key-value mappings that should use collection versioning
@@ -1277,18 +1281,11 @@ export const DICTIONARY_FIELDS = [
 
 export type IDictionaryFieldPath = (typeof DICTIONARY_FIELDS)[number];
 
-// Version tracking types
-export type IVersions<T> = {
-  [K in keyof T]?: T[K] extends { type: IAtomicType }
-    ? number
-    : T[K] extends Array<infer U>
-      ? ICollectionVersions<U>
-      : T[K] extends object
-        ? IVersions<T[K]>
-        : number;
-};
-
-export type ICollectionVersions<T> = {
-  items: Record<string, number | IVersions<unknown>>; // id -> version timestamp
-  deleted: Record<string, number>; // id -> deletion timestamp
-};
+// Storage-specific version configuration
+export const STORAGE_VERSION_TYPES: IVersionTypes<IAtomicType, IControlledType> = {
+  atomicTypes: ATOMIC_TYPES,
+  controlledTypes: CONTROLLED_TYPES,
+  typeIdMapping: TYPE_ID_MAPPING,
+  controlledFields: CONTROLLED_FIELDS,
+  dictionaryFields: DICTIONARY_FIELDS,
+} as const;

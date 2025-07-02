@@ -1,13 +1,11 @@
 import "mocha";
 import { expect } from "chai";
-import { VersionTracker } from "../src/models/versionTracker";
-import { DICTIONARY_FIELDS } from "../src/types";
+import { VersionTracker, IVersions, ICollectionVersions } from "../src/models/versionTracker";
+import { STORAGE_VERSION_TYPES } from "../src/types";
 import { Storage } from "../src/models/storage";
 import { Settings } from "../src/models/settings";
 import {
   IStorage,
-  IVersions,
-  ICollectionVersions,
   IProgram,
   IHistoryRecord,
   ICustomExercise,
@@ -17,13 +15,15 @@ import {
 } from "../src/types";
 
 describe("VersionTracker", () => {
+  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+
   describe("updateVersions", () => {
     it("should track version for primitive field changes", () => {
       const oldStorage = Storage.getDefault();
       const newStorage = { ...oldStorage, currentProgramId: "program-123" };
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       expect(versions.currentProgramId).to.equal(timestamp);
     });
@@ -32,7 +32,7 @@ describe("VersionTracker", () => {
       const storage = Storage.getDefault();
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(storage, storage, {}, timestamp);
+      const versions = versionTracker.updateVersions(storage, storage, {}, timestamp);
 
       expect(versions).to.deep.equal({});
     });
@@ -43,7 +43,7 @@ describe("VersionTracker", () => {
       oldStorage.email = undefined;
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       expect(versions.email).to.equal(timestamp);
     });
@@ -59,7 +59,7 @@ describe("VersionTracker", () => {
       };
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       expect(versions.settings).to.deep.equal({ volume: timestamp });
     });
@@ -76,13 +76,7 @@ describe("VersionTracker", () => {
       };
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(
-        oldStorage,
-        newStorage,
-        existingVersions,
-        timestamp,
-        DICTIONARY_FIELDS
-      );
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, existingVersions, timestamp);
 
       expect(versions).to.deep.equal({
         email: 500,
@@ -127,7 +121,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
       expect(programVersions.items.prog2).to.deep.equal({
@@ -169,7 +163,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
       expect(programVersions.items.prog1).to.deep.equal({
@@ -211,7 +205,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
       expect(programVersions).to.deep.equal({
@@ -247,7 +241,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       // When changing from non-empty to empty array, we get a collection structure
       // This preserves the deleted field even when items array is empty
@@ -285,7 +279,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const historyVersions = versions.history as ICollectionVersions<IHistoryRecord>;
       expect(historyVersions.items["1"]).to.equal(timestamp);
@@ -327,7 +321,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
       const exerciseVersions = settingsVersions.exercises as ICollectionVersions<ICustomExercise>;
@@ -370,7 +364,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
       const itemVersion = programVersions.items.prog1 as IVersions<IProgram>;
@@ -422,7 +416,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
       const itemVersion = programVersions.items.prog1 as IVersions<IProgram>;
@@ -467,9 +461,10 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-      const gymVersions = versions.settings?.gyms as ICollectionVersions<IGym>;
+      const settings = versions.settings as IVersions<typeof oldStorage.settings>;
+      const gymVersions = settings.gyms as ICollectionVersions<IGym>;
       expect(gymVersions.items.gym2).to.deep.equal({
         name: timestamp,
         equipment: timestamp,
@@ -524,7 +519,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
       const exerciseVersions = settingsVersions.exercises as ICollectionVersions<ICustomExercise>;
@@ -570,7 +565,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
       const exerciseVersions = settingsVersions.exercises as ICollectionVersions<ICustomExercise>;
@@ -611,7 +606,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       // When a dictionary goes from having items to empty, we get a collection structure
       // This preserves the deleted field even when the dictionary is empty
@@ -668,9 +663,10 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-      const gymVersions = versions.settings?.gyms as ICollectionVersions<IGym>;
+      const settings = versions.settings as IVersions<typeof oldStorage.settings>;
+      const gymVersions = settings?.gyms as ICollectionVersions<IGym>;
       expect(gymVersions.items.gym1).to.deep.equal({
         equipment: timestamp,
       });
@@ -693,9 +689,10 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-      expect(versions.settings?.graphsSettings).to.deep.equal({
+      const settings = versions.settings as IVersions<typeof oldStorage.settings>;
+      expect(settings?.graphsSettings).to.deep.equal({
         isSameXAxis: timestamp,
       });
     });
@@ -735,9 +732,10 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-      const gymVersions = versions.settings?.gyms as ICollectionVersions<IGym>;
+      const settings = versions.settings as IVersions<typeof oldStorage.settings>;
+      const gymVersions = settings?.gyms as ICollectionVersions<IGym>;
       // For a newly added gym with equipment, we expect the whole gym to be versioned
       // with its controlled fields (name and equipment)
       expect(gymVersions.items.gym1).to.deep.equal({
@@ -759,7 +757,7 @@ describe("VersionTracker", () => {
       };
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       // Should not include settings field since nothing changed
       expect(versions).to.deep.equal({});
@@ -793,7 +791,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       // Programs array has trackable items, so it's always treated as a collection
       // Even when no items change, the collection structure is preserved
@@ -833,7 +831,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       // Programs array still creates collection structure even if no controlled fields changed
       // because the array itself is trackable
@@ -856,7 +854,7 @@ describe("VersionTracker", () => {
       };
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       // Should include settings field with only the changed field
       expect(versions).to.deep.equal({
@@ -883,13 +881,7 @@ describe("VersionTracker", () => {
       };
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(
-        oldStorage,
-        newStorage,
-        existingVersions,
-        timestamp,
-        DICTIONARY_FIELDS
-      );
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, existingVersions, timestamp);
 
       // Should preserve existing versions
       expect(versions).to.deep.equal({
@@ -934,13 +926,7 @@ describe("VersionTracker", () => {
 
       const timestamp = 1000;
 
-      const versions = VersionTracker.updateVersions(
-        oldStorage,
-        newStorage,
-        oldStorage._versions!,
-        timestamp,
-        DICTIONARY_FIELDS
-      );
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, oldStorage._versions!, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
       expect(programVersions).to.deep.equal({
@@ -965,7 +951,7 @@ describe("VersionTracker", () => {
 
         const timestamp = 1000;
 
-        const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+        const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
         expect(versions.currentProgramId).to.equal(timestamp);
       });
@@ -983,7 +969,7 @@ describe("VersionTracker", () => {
 
         const timestamp = 1000;
 
-        const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+        const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
         expect(versions.currentProgramId).to.equal(timestamp);
       });
@@ -1001,7 +987,7 @@ describe("VersionTracker", () => {
 
         const timestamp = 1000;
 
-        const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+        const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
         // Arrays are versioned as simple timestamps when they change
         expect(versions.reviewRequests).to.equal(timestamp);
@@ -1016,7 +1002,7 @@ describe("VersionTracker", () => {
 
         const timestamp = 1000;
 
-        const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+        const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
         // Regular object without type field should version individual fields
         expect(versions.affiliates).to.deep.equal({ source1: timestamp });
@@ -1047,7 +1033,7 @@ describe("VersionTracker", () => {
 
         const timestamp = 1000;
 
-        const versions = VersionTracker.updateVersions(oldStorage, newStorage, {}, timestamp, DICTIONARY_FIELDS);
+        const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
         const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
         const exerciseVersions = settingsVersions.exercises as unknown as ICollectionVersions<ICustomExercise>;

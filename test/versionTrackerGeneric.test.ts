@@ -1,7 +1,6 @@
 import "mocha";
 import { expect } from "chai";
-import { VersionTracker } from "../src/models/versionTracker";
-import { IVersions } from "../src/types";
+import { VersionTracker, IVersions, IVersionTypes } from "../src/models/versionTracker";
 
 interface ICustomObject {
   name: string;
@@ -32,6 +31,14 @@ interface IProduct {
 
 describe("VersionTracker - Generic Usage", () => {
   it("should work with any object type", () => {
+    const genericVersionConfig: IVersionTypes<never, never> = {
+      atomicTypes: [],
+      controlledTypes: [],
+      typeIdMapping: {},
+      controlledFields: {},
+      dictionaryFields: [],
+    };
+    const genericVersionTracker = new VersionTracker(genericVersionConfig);
     const oldObj: ICustomObject = {
       name: "John",
       age: 30,
@@ -52,7 +59,7 @@ describe("VersionTracker - Generic Usage", () => {
       tags: ["developer", "typescript", "react"], // Changed
     };
 
-    const versions = VersionTracker.updateVersions(oldObj, newObj, {}, 1000);
+    const versions = genericVersionTracker.updateVersions(oldObj, newObj, {}, 1000);
 
     expect(versions).to.deep.equal({
       age: 1000,
@@ -91,10 +98,16 @@ describe("VersionTracker - Generic Usage", () => {
       },
     };
 
-    // Specify which fields are dictionaries
-    const dictionaryFields = ["users", "config.features"];
+    const genericVersionConfig: IVersionTypes<never, never> = {
+      atomicTypes: [],
+      controlledTypes: [],
+      typeIdMapping: {},
+      controlledFields: {},
+      dictionaryFields: ["users", "config.features"],
+    };
+    const genericVersionTracker = new VersionTracker(genericVersionConfig);
 
-    const versions = VersionTracker.updateVersions(oldApp, newApp, {}, 2000, dictionaryFields);
+    const versions = genericVersionTracker.updateVersions(oldApp, newApp, {}, 2000);
 
     // Dictionary fields are versioned as collections
     expect(versions).to.deep.equal({
@@ -137,15 +150,22 @@ describe("VersionTracker - Generic Usage", () => {
       inStock: 500,
     };
 
-    const versions = VersionTracker.updateVersions(oldProduct, newProduct, existingVersions, 3000);
+    const genericVersionConfig: IVersionTypes<never, never> = {
+      atomicTypes: [],
+      controlledTypes: [],
+      typeIdMapping: {},
+      controlledFields: {},
+      dictionaryFields: [],
+    };
+    const genericVersionTracker = new VersionTracker(genericVersionConfig);
+    const versions = genericVersionTracker.updateVersions(oldProduct, newProduct, existingVersions, 3000);
 
-    // Type-safe result
     const result: IVersions<IProduct> = versions;
 
     expect(result).to.deep.equal({
       name: 3000,
       price: 3000,
-      inStock: 500, // Preserved from existing
+      inStock: 500,
     });
   });
 });
