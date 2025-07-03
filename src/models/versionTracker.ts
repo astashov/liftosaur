@@ -137,7 +137,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     currentVersions: IVersions<T>,
     timestamp: number
   ): IVersions<T> {
-    const versions = { ...currentVersions };
+    const versions = ObjectUtils.clone(currentVersions);
 
     const keys = ObjectUtils.keys(newObj).filter((key) => key !== "_versions");
 
@@ -145,7 +145,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       const oldValue = oldObj[field];
       const newValue = newObj[field];
 
-      if (oldValue === newValue) {
+      if (ObjectUtils.isEqual(oldValue as Record<string, unknown>, newValue as Record<string, unknown>)) {
         continue;
       }
 
@@ -208,7 +208,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
               ? oldValue.find((o: unknown) => this.getId(o) === itemId)
               : undefined;
 
-            if (oldItem !== item) {
+            if (!ObjectUtils.isEqual(oldItem, item)) {
               const itemVersion = this.getItemVersion(oldItem, item, items[itemId], timestamp);
               if (itemVersion !== undefined) {
                 items[itemId] = itemVersion;
@@ -221,7 +221,11 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           }
         }
 
-        return collectionVersions;
+        const hasChanges =
+          Object.keys(items).length > 0 ||
+          (collectionVersions.deleted && Object.keys(collectionVersions.deleted).length > 0);
+
+        return hasChanges || currentVersion ? collectionVersions : undefined;
       } else {
         return timestamp;
       }
@@ -260,7 +264,11 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           }
         }
 
-        return collectionVersions;
+        const hasChanges =
+          Object.keys(items).length > 0 ||
+          (collectionVersions.deleted && Object.keys(collectionVersions.deleted).length > 0);
+
+        return hasChanges || currentVersion ? collectionVersions : undefined;
       } else if (this.isControlledType(newValue)) {
         return this.updateControlledObjectVersion(oldValue, newValue, currentVersion, timestamp);
       } else if (this.isAtomicType(newValue)) {
@@ -316,7 +324,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           : undefined;
       const newFieldValue = (newValue as Record<string, unknown>)[controlledField];
 
-      if (oldFieldValue !== newFieldValue && newFieldValue != null) {
+      if (
+        !ObjectUtils.isEqual(oldFieldValue as Record<string, unknown>, newFieldValue as Record<string, unknown>) &&
+        newFieldValue != null
+      ) {
         (fieldVersions as Record<string, number>)[controlledField] = timestamp;
         hasChanges = true;
       }
@@ -341,9 +352,9 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     for (const key of keys) {
       const oldValue = oldObj?.[key];
       const newValue = newObj[key];
-      const currentPath = parentPath ? `${parentPath}.${String(key)}` : key;
+      const currentPath = parentPath ? `${parentPath}.${String(key)}` : String(key);
 
-      if (oldValue === newValue) {
+      if (ObjectUtils.isEqual(oldValue as Record<string, unknown>, newValue as Record<string, unknown>)) {
         continue;
       }
 
@@ -375,5 +386,193 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     }
 
     return hasChanges || Object.keys(currentVersions).length > 0 ? versions : undefined;
+  }
+
+  /**
+   * Compares two version trees and returns a new version tree containing only
+   * the fields that have changed between them.
+   *
+   * @param oldVersions The previous version tree
+   * @param newVersions The new version tree
+   * @returns A version tree with only changed fields, or undefined if no changes
+   */
+  public diffVersions<T>(oldVersions: IVersions<T> | undefined, newVersions: IVersions<T>): IVersions<T> | undefined {
+    const diff: any = {};
+    let hasChanges = false;
+
+    for (const key in newVersions) {
+      const oldVersion = oldVersions?.[key];
+      const newVersion = newVersions[key];
+
+      const fieldDiff = this.diffFieldVersion(oldVersion, newVersion);
+      if (fieldDiff !== undefined) {
+        diff[key] = fieldDiff;
+        hasChanges = true;
+      }
+    }
+
+    return hasChanges ? diff : undefined;
+  }
+
+  private diffFieldVersion(
+    oldVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    newVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined
+  ): IVersions<unknown> | ICollectionVersions<unknown> | number | undefined {
+    if (typeof oldVersion !== typeof newVersion) {
+      return newVersion;
+    }
+
+    if (typeof newVersion === "number") {
+      return oldVersion !== newVersion ? newVersion : undefined;
+    }
+
+    if (newVersion && typeof newVersion === "object" && "items" in newVersion) {
+      const oldCollection = oldVersion as ICollectionVersions<unknown> | undefined;
+      const diffCollection: ICollectionVersions<unknown> = { items: {} };
+      let hasChanges = false;
+
+      const newCollection = newVersion as ICollectionVersions<unknown>;
+      for (const id in newCollection.items) {
+        const oldItemVersion = oldCollection?.items[id];
+        const newItemVersion = newCollection.items[id];
+
+        const itemDiff = this.diffFieldVersion(oldItemVersion, newItemVersion);
+        if (itemDiff !== undefined) {
+          diffCollection.items[id] = itemDiff as IVersions<unknown> | number;
+          hasChanges = true;
+        }
+      }
+
+      if (newCollection.deleted) {
+        for (const id in newCollection.deleted) {
+          if (oldCollection?.deleted?.[id] !== newCollection.deleted[id]) {
+            diffCollection.deleted = diffCollection.deleted || {};
+            diffCollection.deleted[id] = newCollection.deleted[id];
+            hasChanges = true;
+          }
+        }
+      }
+
+      return hasChanges ? diffCollection : undefined;
+    }
+
+    if (newVersion && typeof newVersion === "object") {
+      const oldObj = oldVersion as IVersions<unknown> | undefined;
+      const diffObj: any = {};
+      let hasChanges = false;
+
+      const newObj = newVersion as IVersions<unknown>;
+      for (const key in newObj) {
+        const fieldDiff = this.diffFieldVersion(oldObj?.[key], newObj[key]);
+        if (fieldDiff !== undefined) {
+          diffObj[key] = fieldDiff;
+          hasChanges = true;
+        }
+      }
+
+      return hasChanges ? diffObj : undefined;
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Extracts only the fields from an object that are present in the given
+   * version tree. This is useful for creating update payloads that contain
+   * only changed data.
+   *
+   * @param obj The object to extract fields from
+   * @param versions The version tree indicating which fields to extract
+   * @returns A partial object with only the fields present in versions
+   */
+  public extractByVersions<T extends Record<string, unknown>>(obj: T, versions: IVersions<T>): Partial<T> {
+    const result: any = {};
+
+    for (const key in versions) {
+      const version = versions[key];
+      const value = obj[key];
+
+      if (value !== undefined) {
+        const extractedValue = this.extractFieldByVersion(value, version, key);
+        if (extractedValue !== undefined) {
+          result[key] = extractedValue;
+        }
+      }
+    }
+
+    return result;
+  }
+
+  private extractFieldByVersion(
+    value: unknown,
+    version: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    path: string
+  ): unknown {
+    if (typeof version === "number") {
+      return value;
+    }
+
+    if (version && typeof version === "object" && "items" in version) {
+      return this.extractCollectionByVersion(value, version as ICollectionVersions<unknown>);
+    }
+
+    if (version && typeof version === "object" && typeof value === "object" && value !== null) {
+      if (this.isControlledType(value)) {
+        const controlledType = (value as any).type as TControlledType;
+        const controlledFields = this.versionTypes.controlledFields[controlledType] || [];
+
+        const hasControlledFieldChange = controlledFields.some((field) => field in version);
+
+        if (hasControlledFieldChange) {
+          return value;
+        }
+        return undefined;
+      }
+
+      return this.extractByVersions(value as Record<string, unknown>, version as IVersions<Record<string, unknown>>);
+    }
+
+    return value;
+  }
+
+  private extractCollectionByVersion(value: unknown, collectionVersion: ICollectionVersions<unknown>): unknown {
+    if (Array.isArray(value)) {
+      const hasChanges =
+        Object.keys(collectionVersion.items).length > 0 || Object.keys(collectionVersion.deleted || {}).length > 0;
+
+      if (hasChanges) {
+        const result = value.filter((item) => {
+          const itemId = this.getId(item);
+          return itemId && itemId in collectionVersion.items;
+        });
+
+        return result.length > 0 ? result : undefined;
+      }
+      return undefined;
+    } else {
+      const result: Record<string, unknown> = {};
+      const dictValue = value as Record<string, unknown>;
+      let hasChanges = false;
+
+      for (const key in collectionVersion.items) {
+        if (key in dictValue) {
+          const itemVersion = collectionVersion.items[key];
+          const itemValue = dictValue[key];
+
+          if (typeof itemVersion === "object" && typeof itemValue === "object" && itemValue !== null) {
+            const extracted = this.extractFieldByVersion(itemValue, itemVersion, key);
+            if (extracted !== undefined) {
+              result[key] = extracted;
+              hasChanges = true;
+            }
+          } else {
+            result[key] = itemValue;
+            hasChanges = true;
+          }
+        }
+      }
+
+      return hasChanges ? result : undefined;
+    }
   }
 }

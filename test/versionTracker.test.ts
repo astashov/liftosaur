@@ -13,6 +13,7 @@ import {
   IEquipmentData,
   IPlannerProgram,
 } from "../src/types";
+import { Weight } from "../src/models/weight";
 
 describe("VersionTracker", () => {
   const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
@@ -200,7 +201,7 @@ describe("VersionTracker", () => {
 
       const newStorage = {
         ...oldStorage,
-        programs: [program1], // prog2 is deleted
+        programs: [program1],
       };
 
       const timestamp = 1000;
@@ -232,19 +233,17 @@ describe("VersionTracker", () => {
 
       const oldStorage = {
         ...Storage.getDefault(),
-        programs: [program], // Start with one program
+        programs: [program],
       };
       const newStorage = {
         ...oldStorage,
-        programs: [], // Change to empty array
+        programs: [],
       };
 
       const timestamp = 1000;
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-      // When changing from non-empty to empty array, we get a collection structure
-      // This preserves the deleted field even when items array is empty
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
       expect(programVersions).to.deep.equal({
         items: {},
@@ -349,7 +348,7 @@ describe("VersionTracker", () => {
       const updatedProgram: IProgram = {
         ...program,
         name: "Updated Program 1",
-        description: "Updated Description", // This shouldn't be versioned
+        description: "Updated Description",
       };
 
       const oldStorage = {
@@ -371,7 +370,6 @@ describe("VersionTracker", () => {
 
       expect(itemVersion).to.deep.equal({
         name: timestamp,
-        // description should not be versioned
       });
     });
 
@@ -559,7 +557,7 @@ describe("VersionTracker", () => {
         ...oldStorage,
         settings: {
           ...oldStorage.settings,
-          exercises: { ex1: exercise1 }, // ex2 is deleted
+          exercises: { ex1: exercise1 },
         },
       };
 
@@ -600,7 +598,7 @@ describe("VersionTracker", () => {
         ...oldStorage,
         settings: {
           ...oldStorage.settings,
-          exercises: {}, // Empty dictionary
+          exercises: {},
         },
       };
 
@@ -608,8 +606,6 @@ describe("VersionTracker", () => {
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-      // When a dictionary goes from having items to empty, we get a collection structure
-      // This preserves the deleted field even when the dictionary is empty
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
       const exerciseVersions = settingsVersions.exercises as ICollectionVersions<ICustomExercise>;
       expect(exerciseVersions).to.deep.equal({
@@ -736,8 +732,7 @@ describe("VersionTracker", () => {
 
       const settings = versions.settings as IVersions<typeof oldStorage.settings>;
       const gymVersions = settings?.gyms as ICollectionVersions<IGym>;
-      // For a newly added gym with equipment, we expect the whole gym to be versioned
-      // with its controlled fields (name and equipment)
+
       expect(gymVersions.items.gym1).to.deep.equal({
         name: timestamp,
         equipment: timestamp,
@@ -752,14 +747,12 @@ describe("VersionTracker", () => {
         ...oldStorage,
         settings: {
           ...oldStorage.settings,
-          // No actual changes, just spreading the same object
         },
       };
       const timestamp = 1000;
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-      // Should not include settings field since nothing changed
       expect(versions).to.deep.equal({});
     });
 
@@ -786,21 +779,14 @@ describe("VersionTracker", () => {
 
       const newStorage = {
         ...oldStorage,
-        programs: [program], // Same program, no changes
+        programs: [program],
       };
 
       const timestamp = 1000;
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-      // Programs array has trackable items, so it's always treated as a collection
-      // Even when no items change, the collection structure is preserved
-      expect(versions).to.deep.equal({
-        programs: {
-          items: {},
-          deleted: {},
-        },
-      });
+      expect(versions).to.deep.equal({});
     });
 
     it("should not include controlled object fields when no controlled fields changed", () => {
@@ -826,21 +812,14 @@ describe("VersionTracker", () => {
 
       const newStorage = {
         ...oldStorage,
-        programs: [{ ...program, description: "Updated Description" }], // Only non-controlled field changed
+        programs: [{ ...program, description: "Updated Description" }],
       };
 
       const timestamp = 1000;
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-      // Programs array still creates collection structure even if no controlled fields changed
-      // because the array itself is trackable
-      expect(versions).to.deep.equal({
-        programs: {
-          items: {},
-          deleted: {},
-        },
-      });
+      expect(versions).to.deep.equal({});
     });
 
     it("should include field when at least one nested item changed", () => {
@@ -849,14 +828,13 @@ describe("VersionTracker", () => {
         ...oldStorage,
         settings: {
           ...oldStorage.settings,
-          units: "kg" as const, // One field changed
+          units: "kg" as const,
         },
       };
       const timestamp = 1000;
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-      // Should include settings field with only the changed field
       expect(versions).to.deep.equal({
         settings: {
           units: timestamp,
@@ -870,7 +848,6 @@ describe("VersionTracker", () => {
         ...oldStorage,
         settings: {
           ...oldStorage.settings,
-          // No changes
         },
       };
       const existingVersions: IVersions<IStorage> = {
@@ -883,7 +860,6 @@ describe("VersionTracker", () => {
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, existingVersions, timestamp);
 
-      // Should preserve existing versions
       expect(versions).to.deep.equal({
         settings: {
           units: 500,
@@ -914,14 +890,14 @@ describe("VersionTracker", () => {
         _versions: {
           programs: {
             items: {},
-            deleted: { prog1: 500 }, // prog1 was previously deleted
+            deleted: { prog1: 500 },
           },
         },
       };
 
       const newStorage = {
         ...oldStorage,
-        programs: [program1], // prog1 is re-added
+        programs: [program1],
       };
 
       const timestamp = 1000;
@@ -933,7 +909,89 @@ describe("VersionTracker", () => {
         items: {
           prog1: { name: timestamp, nextDay: timestamp },
         },
-        deleted: {}, // prog1 removed from deleted
+        deleted: {},
+      });
+    });
+
+    it("should preserve collection structure when deleting all items from array", () => {
+      const program1: IProgram = {
+        type: "program",
+        id: "prog1",
+        name: "Program 1",
+        description: "",
+        url: "",
+        author: "",
+        nextDay: 1,
+        days: [],
+        weeks: [],
+        exercises: [],
+        isMultiweek: false,
+        tags: [],
+      };
+
+      const program2: IProgram = {
+        ...program1,
+        id: "prog2",
+        name: "Program 2",
+      };
+
+      const oldStorage = {
+        ...Storage.getDefault(),
+        programs: [program1, program2],
+      };
+
+      const newStorage = {
+        ...oldStorage,
+        programs: [],
+      };
+
+      const timestamp = 1000;
+      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
+
+      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      expect(programVersions).to.deep.equal({
+        items: {},
+        deleted: {
+          prog1: timestamp,
+          prog2: timestamp,
+        },
+      });
+    });
+
+    it("should preserve collection structure when deleting all items from dictionary", () => {
+      const oldStorage = Storage.getDefault();
+      const newStorage: IStorage = {
+        ...oldStorage,
+        settings: {
+          ...oldStorage.settings,
+          exerciseData: {
+            "bench-press": { rm1: Weight.build(100, "lb") },
+            squat: { rm1: Weight.build(150, "lb") },
+          },
+        },
+      };
+
+      const timestamp1 = 1000;
+      const versions1 = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp1);
+
+      const storageWithEmptyDict = {
+        ...newStorage,
+        settings: {
+          ...newStorage.settings,
+          exerciseData: {},
+        },
+      };
+
+      const timestamp2 = 2000;
+      const versions2 = versionTracker.updateVersions(newStorage, storageWithEmptyDict, versions1, timestamp2);
+
+      const exercisesVersions = (versions2.settings as IVersions<any>).exerciseData as ICollectionVersions<any>;
+      expect(exercisesVersions).to.deep.equal({
+        items: {},
+        deleted: {
+          "bench-press": timestamp2,
+          squat: timestamp2,
+        },
       });
     });
 
@@ -989,7 +1047,6 @@ describe("VersionTracker", () => {
 
         const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-        // Arrays are versioned as simple timestamps when they change
         expect(versions.reviewRequests).to.equal(timestamp);
       });
 
@@ -1004,12 +1061,10 @@ describe("VersionTracker", () => {
 
         const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
-        // Regular object without type field should version individual fields
         expect(versions.affiliates).to.deep.equal({ source1: timestamp });
       });
 
       it("should handle circular references gracefully", () => {
-        // This test ensures the algorithm doesn't infinitely recurse
         const oldStorage = Storage.getDefault();
         const newStorage = {
           ...oldStorage,
@@ -1038,6 +1093,379 @@ describe("VersionTracker", () => {
         const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
         const exerciseVersions = settingsVersions.exercises as unknown as ICollectionVersions<ICustomExercise>;
         expect(exerciseVersions.items.ex1).to.equal(timestamp);
+      });
+    });
+  });
+
+  describe("diffVersions", () => {
+    it("should return undefined when no changes", () => {
+      const oldVersions: IVersions<any> = {
+        name: 1000,
+        age: 2000,
+      };
+      const newVersions: IVersions<any> = {
+        name: 1000,
+        age: 2000,
+      };
+
+      const diff = versionTracker.diffVersions(oldVersions, newVersions);
+      expect(diff).to.be.undefined;
+    });
+
+    it("should return only changed fields", () => {
+      const oldVersions: IVersions<any> = {
+        name: 1000,
+        age: 2000,
+        email: 3000,
+      };
+      const newVersions: IVersions<any> = {
+        name: 1000,
+        age: 4000,
+        email: 3000,
+      };
+
+      const diff = versionTracker.diffVersions(oldVersions, newVersions);
+      expect(diff).to.deep.equal({
+        age: 4000,
+      });
+    });
+
+    it("should handle nested version changes", () => {
+      const oldVersions: IVersions<any> = {
+        settings: {
+          theme: 1000,
+          language: 2000,
+        },
+      };
+      const newVersions: IVersions<any> = {
+        settings: {
+          theme: 3000,
+          language: 2000,
+        },
+      };
+
+      const diff = versionTracker.diffVersions(oldVersions, newVersions);
+      expect(diff).to.deep.equal({
+        settings: {
+          theme: 3000,
+        },
+      });
+    });
+
+    it("should handle collection version diffs", () => {
+      const oldVersions: IVersions<any> = {
+        programs: {
+          items: {
+            prog1: 1000,
+            prog2: 2000,
+          },
+          deleted: {},
+        },
+      };
+      const newVersions: IVersions<any> = {
+        programs: {
+          items: {
+            prog1: 1000,
+            prog2: 3000,
+            prog3: 4000,
+          },
+          deleted: {
+            prog4: 5000,
+          },
+        },
+      };
+
+      const diff = versionTracker.diffVersions(oldVersions, newVersions);
+      expect(diff).to.deep.equal({
+        programs: {
+          items: {
+            prog2: 3000,
+            prog3: 4000,
+          },
+          deleted: {
+            prog4: 5000,
+          },
+        },
+      });
+    });
+
+    it("should handle collection with nested version objects", () => {
+      const oldVersions: IVersions<any> = {
+        programs: {
+          items: {
+            prog1: { name: 1000, nextDay: 2000 },
+          },
+          deleted: {},
+        },
+      };
+      const newVersions: IVersions<any> = {
+        programs: {
+          items: {
+            prog1: { name: 3000, nextDay: 2000 },
+          },
+          deleted: {},
+        },
+      };
+
+      const diff = versionTracker.diffVersions(oldVersions, newVersions);
+      expect(diff).to.deep.equal({
+        programs: {
+          items: {
+            prog1: { name: 3000 },
+          },
+        },
+      });
+    });
+
+    it("should handle when oldVersions is undefined", () => {
+      const newVersions: IVersions<any> = {
+        name: 1000,
+        settings: {
+          theme: 2000,
+        },
+      };
+
+      const diff = versionTracker.diffVersions(undefined, newVersions);
+      expect(diff).to.deep.equal(newVersions);
+    });
+  });
+
+  describe("extractByVersions", () => {
+    it("should extract only fields present in versions", () => {
+      const obj = {
+        name: "John",
+        age: 30,
+        email: "john@example.com",
+        phone: "123-456-7890",
+      };
+      const versions: IVersions<any> = {
+        name: 1000,
+        email: 2000,
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+      expect(extracted).to.deep.equal({
+        name: "John",
+        email: "john@example.com",
+      });
+    });
+
+    it("should handle nested objects", () => {
+      const obj = {
+        name: "John",
+        settings: {
+          theme: "dark",
+          language: "en",
+          notifications: true,
+        },
+      };
+      const versions: IVersions<any> = {
+        settings: {
+          theme: 1000,
+          notifications: 2000,
+        },
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+      expect(extracted).to.deep.equal({
+        settings: {
+          theme: "dark",
+          notifications: true,
+        },
+      });
+    });
+
+    it("should extract entire controlled object when controlled field is in versions", () => {
+      const program: IProgram = {
+        type: "program",
+        id: "prog1",
+        name: "Updated Program",
+        description: "Full description",
+        url: "http://example.com",
+        author: "Author",
+        nextDay: 2,
+        days: [],
+        weeks: [],
+        exercises: [],
+        isMultiweek: false,
+        tags: ["beginner", "barbell"],
+      };
+
+      const obj = {
+        programs: [program],
+      };
+
+      const versions: IVersions<any> = {
+        programs: {
+          items: {
+            prog1: { name: 1000 },
+          },
+        },
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+      expect(extracted).to.deep.equal({
+        programs: [program],
+      });
+    });
+
+    it("should handle array collections", () => {
+      const prog1: IProgram = {
+        type: "program",
+        id: "prog1",
+        name: "Program 1",
+        description: "",
+        url: "",
+        author: "",
+        nextDay: 1,
+        days: [],
+        weeks: [],
+        exercises: [],
+        isMultiweek: false,
+        tags: [],
+      };
+
+      const prog2: IProgram = {
+        ...prog1,
+        id: "prog2",
+        name: "Program 2",
+      };
+
+      const prog3: IProgram = {
+        ...prog1,
+        id: "prog3",
+        name: "Program 3",
+      };
+
+      const obj = {
+        programs: [prog1, prog2, prog3],
+      };
+
+      const versions: IVersions<any> = {
+        programs: {
+          items: {
+            prog1: 1000,
+            prog3: 2000,
+          },
+        },
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+
+      expect(extracted).to.deep.equal({
+        programs: [prog1, prog3],
+      });
+    });
+
+    it("should handle dictionary collections", () => {
+      const obj = {
+        settings: {
+          exercises: {
+            "bench-press": { rm1: 100, notes: "Good form" },
+            squat: { rm1: 150, notes: "Depth check" },
+            deadlift: { rm1: 200, notes: "Back straight" },
+          },
+        },
+      };
+
+      const versions: IVersions<any> = {
+        settings: {
+          exercises: {
+            items: {
+              "bench-press": 1000,
+              deadlift: 2000,
+            },
+          },
+        },
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+      expect(extracted).to.deep.equal({
+        settings: {
+          exercises: {
+            "bench-press": { rm1: 100, notes: "Good form" },
+            deadlift: { rm1: 200, notes: "Back straight" },
+          },
+        },
+      });
+    });
+
+    it("should handle collections with nested versioned objects", () => {
+      const obj = {
+        programs: [
+          {
+            type: "program",
+            id: "prog1",
+            name: "Program 1",
+            description: "Desc 1",
+            nextDay: 1,
+          },
+        ],
+      };
+
+      const versions: IVersions<any> = {
+        programs: {
+          items: {
+            prog1: {
+              name: 1000,
+            },
+          },
+        },
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+      expect((extracted as any).programs[0]).to.include({
+        type: "program",
+        id: "prog1",
+        name: "Program 1",
+        description: "Desc 1",
+        nextDay: 1,
+      });
+    });
+
+    it("should return empty object when no fields match versions", () => {
+      const obj = {
+        name: "John",
+        age: 30,
+      };
+      const versions: IVersions<any> = {
+        email: 1000,
+        phone: 2000,
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+      expect(extracted).to.deep.equal({});
+    });
+
+    it("should handle atomic objects", () => {
+      const historyRecord: IHistoryRecord = {
+        type: "history_record",
+        id: 123,
+        date: "2024-01-01",
+        programId: "prog1",
+        programName: "Program 1",
+        dayName: "Day 1",
+        day: 1,
+        entries: [],
+        startTime: 0,
+        endTime: 0,
+      };
+
+      const obj = {
+        history: [historyRecord],
+      };
+
+      const versions: IVersions<any> = {
+        history: {
+          items: {
+            123: 1000,
+          },
+        },
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+      expect(extracted).to.deep.equal({
+        history: [historyRecord],
       });
     });
   });
