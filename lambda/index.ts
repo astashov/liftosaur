@@ -53,7 +53,7 @@ import { Account, IAccount } from "../src/models/account";
 import { renderProgramsListHtml } from "./programsList";
 import { renderMainHtml } from "./main";
 import { LftS3Buckets } from "./dao/buckets";
-import { IStorageUpdate } from "../src/utils/sync";
+import { IStorageUpdate, IStorageUpdate2 } from "../src/utils/sync";
 import { IEventPayload, IPostSyncResponse } from "../src/api/service";
 import { Settings } from "../src/models/settings";
 import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
@@ -192,6 +192,108 @@ const postReceiveAdAttrHandler: RouteHandler<
     body: body,
   });
   return ResponseUtils.json(200, payload.event, { data: "ok" });
+};
+
+const postSync2Endpoint = Endpoint.build("/api/sync2", {
+  tempuserid: "string?",
+});
+const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postSync2Endpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  let setCookie: string | undefined = undefined;
+  const bodyJson = getBodyJson(event);
+  const timestamp = bodyJson.timestamp || Date.now();
+  const storageUpdate = bodyJson.storageUpdate as IStorageUpdate2;
+  const historylimit = bodyJson.historylimit as number | undefined;
+  const userId = await getCurrentUserId(event, di);
+  let keyResult: { key: string; isClaimed: boolean } | undefined;
+  if (params.tempuserid) {
+    keyResult = await new FreeUserDao(di).getKey(params.tempuserid);
+  }
+  const key = keyResult ? (keyResult.isClaimed ? keyResult.key : "unclaimed") : undefined;
+  const response = (status: number, r: IPostSyncResponse): APIGatewayProxyResult =>
+    ResponseUtils.json(status, event, r, setCookie ? { "set-cookie": setCookie } : undefined);
+  const eventDao = new EventDao(di);
+  const storageDao = new StorageDao(di);
+  if (userId != null) {
+    const userDao = new UserDao(di);
+    const limitedUser = await userDao.getLimitedById(userId);
+    if (limitedUser != null) {
+      di.log.log(`Server oid: ${limitedUser.storage.originalId}, update oid: ${storageUpdate.originalId}`);
+      if (storageUpdate.storage) {
+        storageUpdate.storage.tempUserId = userId;
+      }
+      if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
+        di.log.log("Fetch: Safe update");
+        di.log.log(storageUpdate);
+        const result = await userDao.applySafeSync2(limitedUser, storageUpdate);
+        if (result.success) {
+          di.log.log("New original id", result.data.originalId);
+          const [storageId] = await Promise.all([
+            storageDao.store(limitedUser.id, result.data.newStorage),
+            userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
+          ]);
+          if (storageId) {
+            await eventDao.post({
+              type: "safesnapshot",
+              userId: limitedUser.id,
+              timestamp,
+              storage_id: storageId,
+              update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
+              isMobile: Mobile.isMobile(
+                payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""
+              ),
+            });
+          }
+          return response(200, {
+            type: "clean",
+            new_original_id: result.data.originalId,
+            email: limitedUser.email,
+            user_id: limitedUser.id,
+            key,
+          });
+        } else {
+          return response(400, { type: "error", error: result.error, key });
+        }
+      } else {
+        di.log.log("Fetch: Merging update");
+        di.log.log(storageUpdate);
+        storageUpdate.originalId = Date.now();
+        const result = await userDao.applySafeSync2(limitedUser, storageUpdate);
+        if (result.success) {
+          di.log.log("New original id", result.data.originalId);
+          const fullUser = (await userDao.getById(userId, { historyLimit: historylimit }))!;
+          const storage = fullUser.storage;
+          const [storageId] = await Promise.all([
+            storageDao.store(limitedUser.id, storage),
+            userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
+          ]);
+          if (key) {
+            storage.subscription.key = key;
+          }
+          if (storageId) {
+            await eventDao.post({
+              type: "mergesnapshot",
+              userId: limitedUser.id,
+              timestamp,
+              storage_id: storageId,
+              isMobile: Mobile.isMobile(
+                payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""
+              ),
+              update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
+            });
+          }
+          return response(200, { type: "dirty", storage, email: limitedUser.email, user_id: limitedUser.id, key });
+        } else {
+          di.log.log("Error", result.error);
+          return response(400, { type: "error", error: result.error, key });
+        }
+      }
+    }
+  }
+  return ResponseUtils.json(401, event, { type: "error", error: "not_authorized", key });
 };
 
 const postSyncEndpoint = Endpoint.build("/api/sync", { tempuserid: "string?", adminkey: "string?", userid: "string?" });
@@ -1994,6 +2096,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
       .post(postAiPromptEndpoint, postAiPromptHandler)
       .post(postSyncEndpoint, postSyncHandler)
+      .post(postSync2Endpoint, postSync2Handler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getPlannerEndpoint, getPlannerHandler)
       .get(getProgramEndpoint, getProgramHandler)

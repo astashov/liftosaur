@@ -197,9 +197,10 @@ export namespace Thunk {
         if (requestedLastStorage) {
           updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(result.storage)]);
         } else {
+          const newStorage = Storage.mergeStorage(getState().storage, result.storage);
           updateState(dispatch, [
-            lb<IState>().p("lastSyncedStorage").record(result.storage),
-            lb<IState>().p("storage").record(result.storage),
+            lb<IState>().p("lastSyncedStorage").record(newStorage),
+            lb<IState>().p("storage").record(newStorage),
             lb<IState>().p("storage").p("subscription").p("key").record(result.key),
           ]);
           if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
@@ -230,7 +231,6 @@ export namespace Thunk {
       const result = await env.service.postSync({
         tempUserId: state.storage.tempUserId,
         storageUpdate: {
-          settings: {},
           version: state.storage.version,
         },
       });
@@ -239,10 +239,9 @@ export namespace Thunk {
         await _sync2(dispatch, getState, env, args);
       }
     } else {
-      const storageUpdate = Sync.getStorageUpdate(state.storage, state.lastSyncedStorage);
-      const { settings, originalId, version, ...rest } = storageUpdate;
-      const lastSyncedStorage = state.storage;
-      if (args?.force || Object.keys(rest).length > 0 || Object.keys(settings || {}).length > 0) {
+      const storageUpdate = Sync.getStorageUpdate2(state.storage, state.lastSyncedStorage);
+      if (args?.force || storageUpdate.storage) {
+        const lastSyncedStorage = state.storage;
         const result = await env.service.postSync({
           tempUserId: state.storage.tempUserId,
           storageUpdate: storageUpdate,

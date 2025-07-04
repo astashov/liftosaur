@@ -12,8 +12,9 @@ import { IDispatch } from "../ducks/types";
 import { ObjectUtils } from "../utils/object";
 import { DateUtils } from "../utils/date";
 import { IStorageUpdate } from "../utils/sync";
-import { IStorage, TStorage, IPartialStorage } from "../types";
+import { IStorage, TStorage, IPartialStorage, STORAGE_VERSION_TYPES } from "../types";
 import { CollectionUtils } from "../utils/collection";
+import { VersionTracker } from "./versionTracker";
 
 declare let Rollbar: RB;
 
@@ -24,9 +25,7 @@ export namespace Storage {
     type: t.Type<any, any, any>,
     name: string
   ): IEither<IStorage, string[]> {
-    console.log("Validating storage", name);
     const decoded = type.decode(data);
-    console.log("Finished validating storage", name);
     if ("left" in decoded) {
       const error = PathReporter.report(decoded);
       return { success: false, error };
@@ -138,8 +137,8 @@ export namespace Storage {
   }
 
   export function isChanged(aStorage: IStorage, bStorage: IStorage): boolean {
-    const { originalId: _aOriginalId, id: _aId, ...cleanedAStorage } = aStorage;
-    const { originalId: _bOriginalId, id: _bId, ...cleanedBStorage } = bStorage;
+    const { originalId: _aOriginalId, id: _aId, _versions: _aVersions, ...cleanedAStorage } = aStorage;
+    const { originalId: _bOriginalId, id: _bId, _versions: _bVersions, ...cleanedBStorage } = bStorage;
     const changed = !ObjectUtils.isEqual(cleanedAStorage, cleanedBStorage, ["diffPaths", "version"]);
     return changed;
   }
@@ -163,6 +162,26 @@ export namespace Storage {
         },
       };
     }
+  }
+
+  export function mergeStorage(oldStorage: IStorage, newStorage: IStorage): IStorage {
+    const { id: oldId, originalId: oldOriginalId, _versions: oldVersions, ...oldCleanedStorage } = oldStorage;
+    const { id: newId, originalId: newOriginalId, _versions: newVersions, ...newCleanedStorage } = newStorage;
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const updatedVersions = versionTracker.mergeVersions(oldVersions || {}, newVersions || {});
+    const updatedCleanedStorage = versionTracker.mergeByVersions(
+      oldCleanedStorage,
+      oldVersions || {},
+      newVersions || {},
+      newCleanedStorage
+    );
+    const updatedStorage: IStorage = {
+      ...updatedCleanedStorage,
+      id: Math.max(newId || Date.now(), oldId || Date.now()),
+      originalId: oldOriginalId && newOriginalId ? Math.max(newOriginalId, oldOriginalId) : undefined,
+      _versions: updatedVersions,
+    };
+    return updatedStorage;
   }
 
   export function applyUpdate(storage: IPartialStorage, updateWithStats: IStorageUpdate): IPartialStorage {

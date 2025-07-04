@@ -622,6 +622,24 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     }
 
     if (diffVersion !== undefined && fullVersion === undefined) {
+      // For nested objects, we need to recursively merge
+      if (
+        typeof fullValue === "object" &&
+        fullValue !== null &&
+        typeof extractedValue === "object" &&
+        extractedValue !== null &&
+        typeof diffVersion === "object" &&
+        !("items" in diffVersion)
+      ) {
+        // Recursively merge with empty full versions
+        return this.mergeByVersions(
+          fullValue as Record<string, unknown>,
+          {}, // empty full versions
+          diffVersion as IVersions<Record<string, unknown>>,
+          extractedValue as Record<string, unknown>
+        );
+      }
+      // For primitives or non-matching types, take extracted value
       return extractedValue;
     }
 

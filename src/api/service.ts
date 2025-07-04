@@ -1,7 +1,7 @@
 import { IStorage, IHistoryRecord, ISettings, IProgram } from "../types";
 import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
-import { IStorageUpdate } from "../utils/sync";
+import { IStorageUpdate2 } from "../utils/sync";
 import { IExportedProgram } from "../models/program";
 import { CollectionUtils } from "../utils/collection";
 
@@ -223,10 +223,10 @@ export class Service {
   }
 
   public async postSync(args: {
-    storageUpdate: IStorageUpdate;
+    storageUpdate: IStorageUpdate2;
     tempUserId: string | undefined;
   }): Promise<IPostSyncResponse> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/sync`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/sync2`);
     if (args.tempUserId) {
       url.searchParams.set("tempuserid", args.tempUserId);
     }
@@ -489,11 +489,11 @@ export class Service {
       body: JSON.stringify({ input }),
       credentials: "include",
     });
-    
+
     if (!response.ok && response.status !== 200) {
       return { error: `HTTP ${response.status}: ${response.statusText}` };
     }
-    
+
     const json = await response.json();
     return json;
   }

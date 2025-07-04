@@ -7,6 +7,7 @@ import {
   IStats,
   IPartialStorage,
   IPercentage,
+  STORAGE_VERSION_TYPES,
 } from "../../src/types";
 import { Settings } from "../../src/models/settings";
 import { Storage } from "../../src/models/storage";
@@ -18,12 +19,13 @@ import { getLatestMigrationVersion } from "../../src/migrations/migrations";
 import { freeUsersTableNames } from "./freeUserDao";
 import { LogDao, logTableNames } from "./logDao";
 import { subscriptionDetailsTableNames } from "./subscriptionDetailsDao";
-import { IStorageUpdate } from "../../src/utils/sync";
+import { IStorageUpdate, IStorageUpdate2 } from "../../src/utils/sync";
 import { IEither } from "../../src/utils/types";
 import { LftS3Buckets } from "./buckets";
 import JWT from "jsonwebtoken";
 import { DateUtils } from "../../src/utils/date";
 import * as path from "path";
+import { ICollectionVersions, VersionTracker } from "../../src/models/versionTracker";
 
 export const userTableNames = {
   dev: {
@@ -127,6 +129,133 @@ export class UserDao {
       }
     }
     return undefined;
+  }
+
+  public async applySafeSync2(
+    limitedUser: ILimitedUserDao,
+    storageUpdate: IStorageUpdate2
+  ): Promise<IEither<{ originalId: number; newStorage?: IPartialStorage }, string>> {
+    const env = Utils.getEnv();
+    const result = await Storage.get(fetch, limitedUser.storage);
+    if (!result.success) {
+      return { success: false, error: "corrupted_server_storage" };
+    }
+    const { _versions, ...limitedUserStorage } = result.data;
+    if (limitedUserStorage.version !== storageUpdate.version) {
+      return { success: false, error: "outdated_client_storage" };
+    }
+    if (Object.keys(storageUpdate.storage || {}).length === 0) {
+      return { success: true, data: { originalId: storageUpdate.originalId || Date.now() } };
+    }
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const originalId = Date.now();
+    const newVersions = versionTracker.mergeVersions(_versions || {}, storageUpdate.versions || {});
+    const mergedStorage = versionTracker.mergeByVersions(
+      limitedUserStorage,
+      _versions || {},
+      storageUpdate.versions || {},
+      storageUpdate.storage || {}
+    );
+    const newStorage: IPartialStorage = {
+      ...mergedStorage,
+      originalId,
+      _versions: newVersions,
+    };
+    console.log("New storage", newStorage.settings);
+
+    const versionsHistory = storageUpdate.versions?.history as ICollectionVersions<IHistoryRecord[]> | undefined;
+    const deletedVersionsHistory = ObjectUtils.keys(versionsHistory?.deleted || {}).map((v) => Number(v));
+    const historyDeletes = this.di.dynamo.batchDelete({
+      tableName: userTableNames[env].historyRecords,
+      keys: deletedVersionsHistory.map((id) => ({ id, userId: limitedUser.id })),
+    });
+    const historyUpdates = this.di.dynamo.batchPut({
+      tableName: userTableNames[env].historyRecords,
+      items: CollectionUtils.uniqBy(storageUpdate.storage?.history || [], "id")
+        .filter((hr) => deletedVersionsHistory.indexOf(hr.id) === -1)
+        .map((record) => ({
+          ...record,
+          userId: limitedUser.id,
+        })),
+    });
+
+    const versionsPrograms = storageUpdate.versions?.programs as ICollectionVersions<IProgram[]> | undefined;
+    const deletedVersionsPrograms = ObjectUtils.keys(versionsPrograms?.deleted || {}).map((v) => Number(v));
+    const userPrograms = deletedVersionsPrograms.length > 0 ? await this.getProgramsByUserId(limitedUser.id) : [];
+    const programIdsToDelete = userPrograms
+      .filter((p) => p.clonedAt != null && deletedVersionsPrograms.indexOf(p.clonedAt) !== -1)
+      .map((p) => p.id);
+    const programDeletes = this.di.dynamo.batchDelete({
+      tableName: userTableNames[env].programs,
+      keys: programIdsToDelete.map((id) => ({ id, userId: limitedUser.id })),
+    });
+
+    const programUpdates = this.di.dynamo.batchPut({
+      tableName: userTableNames[env].programs,
+      items: (storageUpdate.storage?.programs || [])
+        .filter((p) => programIdsToDelete.indexOf(p.id) === -1)
+        .map((record) => ({ ...record, userId: limitedUser.id })),
+    });
+
+    const versionsStats = storageUpdate.versions?.stats as ICollectionVersions<IStats> | undefined;
+    const deletedVersionsStats = ObjectUtils.keys(versionsStats?.deleted || {}).map((v) => Number(v));
+    const stats = storageUpdate.storage?.stats! || {};
+    const statsDb: IStatDb[] = [];
+    for (const type of ObjectUtils.keys(stats.weight || {})) {
+      for (const stat of stats.weight[type] || []) {
+        if (deletedVersionsStats.indexOf(stat.timestamp) === -1) {
+          statsDb.push({ ...stat, name: `${stat.timestamp}_${type}` });
+        }
+      }
+    }
+    for (const type of ObjectUtils.keys(stats.length || {})) {
+      for (const stat of stats.length[type] || []) {
+        if (deletedVersionsStats.indexOf(stat.timestamp) === -1) {
+          statsDb.push({ ...stat, name: `${stat.timestamp}_${type}` });
+        }
+      }
+    }
+    for (const type of ObjectUtils.keys(stats.percentage || {})) {
+      for (const stat of stats.percentage[type] || []) {
+        if (deletedVersionsStats.indexOf(stat.timestamp) === -1) {
+          statsDb.push({ ...stat, name: `${stat.timestamp}_${type}` });
+        }
+      }
+    }
+    const statsDeletes =
+      deletedVersionsStats.length > 0
+        ? (async () => {
+            const userStats = await this.di.dynamo.query<IStatDb & { userId?: string }>({
+              tableName: userTableNames[env].stats,
+              expression: "#userId = :userId",
+              attrs: { "#userId": "userId" },
+              values: { ":userId": limitedUser.id },
+            });
+            const statsIdToDelete = userStats.filter((s) => deletedVersionsStats?.indexOf(s.timestamp) !== -1);
+            return this.di.dynamo.batchDelete({
+              tableName: userTableNames[env].stats,
+              keys: statsIdToDelete.map((s) => ({ userId: limitedUser.id, name: s.name })),
+            });
+          })()
+        : Promise.resolve();
+    const statsUpdates = this.di.dynamo.batchPut({
+      tableName: userTableNames[env].stats,
+      items: statsDb.map((record) => ({ ...record, userId: limitedUser.id })),
+    });
+
+    delete newStorage.history;
+    delete newStorage.programs;
+    delete newStorage.stats;
+    await Promise.all([
+      this.store({ ...limitedUser, storage: newStorage }),
+      historyUpdates,
+      historyDeletes,
+      programUpdates,
+      programDeletes,
+      statsDeletes,
+      statsUpdates,
+    ]);
+    return { data: { originalId, newStorage }, success: true };
   }
 
   public async applySafeSync(
@@ -560,8 +689,8 @@ export class UserDao {
     }
   }
 
-  public async maybeSaveProgramRevision(userId: string, storageUpdate: IStorageUpdate): Promise<void> {
-    const programs = storageUpdate.programs || [];
+  public async maybeSaveProgramRevision(userId: string, storageUpdate: IStorageUpdate2): Promise<void> {
+    const programs = storageUpdate.storage?.programs || [];
     await Promise.all(programs.map((p) => this.saveProgramRevision(userId, p)));
   }
 

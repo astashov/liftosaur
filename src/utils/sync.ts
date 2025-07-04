@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import { ISettings, IStorage, IStatsWeight, IStatsPercentage, IStatsLength } from "../types";
+import { IVersions, VersionTracker } from "../models/versionTracker";
+import { ISettings, IStorage, IStatsWeight, IStatsPercentage, IStatsLength, STORAGE_VERSION_TYPES } from "../types";
 import { CollectionUtils } from "./collection";
 import { ObjectUtils } from "./object";
 
@@ -35,8 +36,42 @@ export type IStatsUpdate = Partial<
     Record<keyof IStatsPercentage, IStatsUpdatePercentage>
 >;
 
+export interface IStorageUpdate2 {
+  versions?: IVersions<IStorage>;
+  storage?: Partial<IStorage>;
+  version: IStorage["version"];
+  originalId?: IStorage["originalId"];
+}
+
 export class Sync {
+  public static getStorageUpdate2(currentStorage: IStorage, lastStorage: IStorage): IStorageUpdate2 {
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const versionsDiff = versionTracker.diffVersions(lastStorage._versions, currentStorage._versions || {});
+    if (versionsDiff) {
+      const storageDiff = versionTracker.extractByVersions(currentStorage, versionsDiff);
+      return {
+        version: currentStorage.version,
+        originalId: currentStorage.originalId,
+        versions: versionsDiff,
+        storage: storageDiff,
+      };
+    } else {
+      return {
+        version: currentStorage.version,
+        originalId: currentStorage.originalId,
+      };
+    }
+  }
+
   public static getStorageUpdate(currentStorage: IStorage, lastStorage: IStorage): IStorageUpdate {
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const versionsDiff = versionTracker.diffVersions(lastStorage._versions, currentStorage._versions || {});
+    console.log("Current versions", currentStorage._versions);
+    console.log("versionsDiff", versionsDiff);
+    if (versionsDiff) {
+      console.log("storage diff", versionTracker.extractByVersions(currentStorage, versionsDiff));
+    }
+
     const settingsUpdate = Sync.getSettingsUpdate(currentStorage.settings, lastStorage.settings);
 
     const lastHistory = CollectionUtils.groupByKeyUniq(lastStorage.history, "id");

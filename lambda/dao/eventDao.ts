@@ -1,6 +1,6 @@
 import { IEventPayload } from "../../src/api/service";
 import { DateUtils } from "../../src/utils/date";
-import { IStorageUpdate } from "../../src/utils/sync";
+import { IStorageUpdate2 } from "../../src/utils/sync";
 import { Utils } from "../utils";
 import { IDI } from "../utils/di";
 
@@ -16,9 +16,9 @@ export const eventsTableNames = {
 export class EventDao {
   constructor(private readonly di: IDI) {}
 
-  public static prepareStorageUpdateForEvent(storageUpdate: IStorageUpdate): string {
+  public static prepareStorageUpdateForEvent(storageUpdate: IStorageUpdate2): string {
     const preparedStorageUpdate: any = { ...storageUpdate };
-    preparedStorageUpdate.history = storageUpdate.history?.map((h) => {
+    preparedStorageUpdate.history = storageUpdate.storage?.history?.map((h) => {
       return {
         date: h.date,
         programName: h.programName,
@@ -29,7 +29,7 @@ export class EventDao {
         endTime: h.endTime ? DateUtils.formatYYYYMMDDHHMM(h.endTime) : undefined,
       };
     });
-    preparedStorageUpdate.programs = storageUpdate.programs?.map((p) => {
+    preparedStorageUpdate.programs = storageUpdate.storage?.programs?.map((p) => {
       return {
         name: p.name,
         numWeeks: p.planner?.weeks.length,

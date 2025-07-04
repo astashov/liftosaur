@@ -1258,7 +1258,7 @@ export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
 
 // Define id field for each type
 export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
-  program: "id",
+  program: "clonedAt",
   history_record: "id",
   gym: "id",
   custom_exercise: "id",

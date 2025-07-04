@@ -45,7 +45,11 @@ export namespace Subscriptions {
         .p("subscription")
         .p("apple")
         .recordModify((v) => {
-          return { ...v, [receipt]: null };
+          if (receipt in v) {
+            return v;
+          } else {
+            return { ...v, [receipt]: null };
+          }
         }),
     ]);
   }
@@ -57,7 +61,11 @@ export namespace Subscriptions {
         .p("subscription")
         .p("google")
         .recordModify((v) => {
-          return { ...v, [purchaseToken]: null };
+          if (purchaseToken in v) {
+            return v;
+          } else {
+            return { ...v, [purchaseToken]: null };
+          }
         }),
     ]);
   }

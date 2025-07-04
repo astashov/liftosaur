@@ -298,14 +298,6 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   return [
     (dispatch, action, oldState, newState) => {
       if (Storage.isChanged(oldState.storage, newState.storage)) {
-        dispatch(Thunk.sync2());
-      }
-    },
-    (dispatch, action, oldState, newState) => {
-      if ("type" in action && action.type === "UpdateState" && action.desc === "versions") {
-        return;
-      }
-      if (oldState.storage !== newState.storage) {
         const timestamp = Date.now();
         const versions = storageVersionTracker.updateVersions(
           oldState.storage,
@@ -316,6 +308,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
         if (versions !== newState.storage._versions) {
           updateState(dispatch, [lb<IState>().p("storage").p("_versions").record(versions)], "versions");
         }
+        dispatch(Thunk.sync2());
       }
     },
     (dispatch, action, oldState, newState) => {
