@@ -711,7 +711,11 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
       for (const extractedItem of extractedValue) {
         const itemId = this.getId(extractedItem);
-        if (itemId) {
+        if (
+          itemId &&
+          (!diffVersion.deleted || !(itemId in diffVersion.deleted)) &&
+          (!fullVersion?.deleted || !(itemId in fullVersion.deleted))
+        ) {
           processedIds.add(itemId);
           const diffItemVersion = diffVersion.items[itemId];
           const fullItemVersion = fullVersion?.items[itemId];
@@ -730,7 +734,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       for (const fullItem of fullValue) {
         const itemId = this.getId(fullItem);
         if (itemId && !processedIds.has(itemId)) {
-          if (!diffVersion.deleted || !(itemId in diffVersion.deleted)) {
+          if (
+            (!fullVersion?.deleted || !(itemId in fullVersion.deleted)) &&
+            (!diffVersion.deleted || !(itemId in diffVersion.deleted))
+          ) {
             result.push(fullItem);
           }
         }
@@ -748,7 +755,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       const extractedDict = extractedValue as Record<string, unknown>;
 
       for (const [key, value] of Object.entries(fullDict)) {
-        if (!diffVersion.deleted || !(key in diffVersion.deleted)) {
+        if (
+          (!fullVersion?.deleted || !(key in fullVersion.deleted)) &&
+          (!diffVersion.deleted || !(key in diffVersion.deleted))
+        ) {
           result[key] = value;
         }
       }
@@ -757,7 +767,11 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const diffItemVersion = diffVersion.items[key];
         const fullItemVersion = fullVersion?.items[key];
 
-        if (this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)) {
+        if (
+          (!fullVersion?.deleted || !(key in fullVersion.deleted)) &&
+          (!diffVersion.deleted || !(key in diffVersion.deleted)) &&
+          this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)
+        ) {
           result[key] = value;
         }
       }

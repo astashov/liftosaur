@@ -9,7 +9,7 @@ import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import { Utils } from "./utils";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IStorage } from "../src/types";
+import { IStorage, STORAGE_VERSION_TYPES } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -71,6 +71,7 @@ import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { UrlContentFetcher } from "./utils/urlContentFetcher";
 import { LlmPrompt } from "./utils/llms/llmPrompt";
 import { AiLogsDao } from "./dao/aiLogsDao";
+import { VersionTracker } from "../src/models/versionTracker";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -227,7 +228,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
       }
       if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
         di.log.log("Fetch: Safe update");
-        di.log.log(storageUpdate);
+        di.log.log(JSON.stringify(storageUpdate, null, 2));
         const result = await userDao.applySafeSync2(limitedUser, storageUpdate);
         if (result.success) {
           di.log.log("New original id", result.data.originalId);
@@ -259,7 +260,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
         }
       } else {
         di.log.log("Fetch: Merging update");
-        di.log.log(storageUpdate);
+        di.log.log(JSON.stringify(storageUpdate, null, 2));
         storageUpdate.originalId = Date.now();
         const result = await userDao.applySafeSync2(limitedUser, storageUpdate);
         if (result.success) {
@@ -695,10 +696,18 @@ const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
     if (program == null) {
       return ResponseUtils.json(404, event, { error: "Not Found" });
     }
-    user.storage = {
+    const programs = await userDao.getProgramsByUserId(user.id);
+    const oldStorage = { ...user.storage, programs };
+    const newStorage = {
       ...user.storage,
-      deletedPrograms: user.storage.deletedPrograms.concat([program.clonedAt || Date.now()]),
+      programs: CollectionUtils.removeBy(programs || [], "id", params.id),
       originalId: Date.now(),
+    };
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const newVersions = versionTracker.updateVersions(oldStorage, newStorage, oldStorage._versions || {}, Date.now());
+    user.storage = {
+      ...newStorage,
+      _versions: newVersions,
     };
     await Promise.all([userDao.deleteProgram(user.id, program.id), userDao.store(user)]);
     return ResponseUtils.json(200, event, { data: { id: program.id } });

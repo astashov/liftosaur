@@ -8,6 +8,9 @@ import {
   IPartialStorage,
   IPercentage,
   STORAGE_VERSION_TYPES,
+  IStatsLengthValue,
+  IStatsWeightValue,
+  IStatsPercentageValue,
 } from "../../src/types";
 import { Settings } from "../../src/models/settings";
 import { Storage } from "../../src/models/storage";
@@ -161,7 +164,6 @@ export class UserDao {
       originalId,
       _versions: newVersions,
     };
-    console.log("New storage", newStorage.settings);
 
     const versionsHistory = storageUpdate.versions?.history as ICollectionVersions<IHistoryRecord[]> | undefined;
     const deletedVersionsHistory = ObjectUtils.keys(versionsHistory?.deleted || {}).map((v) => Number(v));
@@ -930,7 +932,14 @@ function convertStatsFromDb(statsDb: IStatDb[]): IStats {
       const type = statDb.type;
       const name = statDb.name.split("_")[1];
       memo[type][name] = memo[type][name] || [];
-      memo[type][name]!.push({ timestamp: statDb.timestamp, value: statDb.value });
+      const stat: IStatsLengthValue | IStatsWeightValue | IStatsPercentageValue = {
+        timestamp: statDb.timestamp,
+        updatedAt: statDb.timestamp,
+        value: statDb.value as any,
+        type: statDb.type,
+        vtype: "stat",
+      };
+      memo[type][name]!.push(stat);
       return memo;
     },
     { weight: {}, length: {}, percentage: {} }

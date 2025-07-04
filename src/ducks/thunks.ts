@@ -37,6 +37,7 @@ import { HealthSync } from "../lib/healthSync";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { Weight } from "../models/weight";
 import { EditProgram } from "../models/editProgram";
+import { ICollectionVersions } from "../models/versionTracker";
 
 declare let Rollbar: RB;
 
@@ -251,6 +252,18 @@ export namespace Thunk {
     }
   }
 
+  function getDeletedStats(state: IState): number[] {
+    let deleted: string[] = [];
+    const versionStats = state.storage._versions?.stats as Record<string, Record<string, ICollectionVersions<unknown>>>;
+    for (const type of ObjectUtils.keys(versionStats || {})) {
+      for (const statType of ObjectUtils.keys(versionStats[type] || {})) {
+        const stats = versionStats[type][statType];
+        deleted = deleted.concat(ObjectUtils.keys(stats.deleted || {}));
+      }
+    }
+    return deleted.map(Number);
+  }
+
   async function _syncHealthKit(dispatch: IDispatch, getState: () => IState, env: IEnv): Promise<void> {
     if (SendMessage.isIos()) {
       dispatch(postevent("read-apple-health"));
@@ -262,13 +275,7 @@ export namespace Thunk {
         anchor,
       });
       if (result != null) {
-        EditStats.uploadHealthStats(
-          "ios",
-          dispatch,
-          result,
-          getState().storage.settings,
-          getState().storage.deletedStats
-        );
+        EditStats.uploadHealthStats("ios", dispatch, result, getState().storage.settings, getDeletedStats(getState()));
       }
     } else {
       dispatch(postevent("read-google-health"));
@@ -285,7 +292,7 @@ export namespace Thunk {
           dispatch,
           result,
           getState().storage.settings,
-          getState().storage.deletedStats
+          getDeletedStats(getState())
         );
       }
     }

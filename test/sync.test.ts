@@ -176,11 +176,14 @@ describe("sync", () => {
     await logStat(mockReducer2, 130);
     await logStat(mockReducer, 140);
 
-    const weights = mockReducer.state.storage.stats.weight.weight || [];
-    const weight140Index = weights.findIndex((w) => w.value.value === 140) ?? 0;
+    let weights = mockReducer.state.storage.stats.weight.weight || [];
     const weight130Index = weights.findIndex((w) => w.value.value === 130) ?? 0;
     await mockReducer.run([
       mockDispatch((ds) => EditStats.deleteWeightStat(ds, "weight", weight130Index, weights[weight130Index].timestamp)),
+    ]);
+    weights = mockReducer.state.storage.stats.weight.weight || [];
+    const weight140Index = weights.findIndex((w) => w.value.value === 140) ?? 0;
+    await mockReducer.run([
       mockDispatch((ds) => EditStats.deleteWeightStat(ds, "weight", weight140Index, weights[weight140Index].timestamp)),
     ]);
     await logStat(mockReducer2, 150);

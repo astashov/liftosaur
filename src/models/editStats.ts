@@ -62,8 +62,9 @@ export namespace EditStats {
           .recordModify((st) => {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
+                const time = Date.now();
                 memo[key] = [
-                  { vtype: "stat", type: "weight", value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
+                  { vtype: "stat", type: "weight", value: payload[key]!, timestamp: time, updatedAt: time },
                   ...(memo[key] || []),
                 ];
                 return memo;
@@ -86,8 +87,9 @@ export namespace EditStats {
           .recordModify((st) => {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
+                const time = Date.now();
                 memo[key] = [
-                  { vtype: "stat", type: "length", value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
+                  { vtype: "stat", type: "length", value: payload[key]!, timestamp: time, updatedAt: time },
                   ...(memo[key] || []),
                 ];
                 return memo;
@@ -113,13 +115,14 @@ export namespace EditStats {
           .recordModify((st) => {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
+                const time = Date.now();
                 memo[key] = [
                   {
                     vtype: "stat",
                     type: "percentage",
                     value: payload[key]!,
-                    timestamp: Date.now(),
-                    updatedAt: Date.now(),
+                    timestamp: time,
+                    updatedAt: time,
                   },
                   ...(memo[key] || []),
                 ];
@@ -275,10 +278,6 @@ export namespace EditStats {
           .p("weight")
           .p(key)
           .recordModify((s) => [...(s || [])].filter((_, i) => i !== index)),
-        lb<IState>()
-          .p("storage")
-          .p("deletedStats")
-          .recordModify((deletedStats) => [...deletedStats, ts]),
       ],
     });
   }
@@ -294,10 +293,6 @@ export namespace EditStats {
           .p("length")
           .p(key)
           .recordModify((s) => [...(s || [])].filter((_, i) => i !== index)),
-        lb<IState>()
-          .p("storage")
-          .p("deletedStats")
-          .recordModify((deletedStats) => [...deletedStats, ts]),
       ],
     });
   }
@@ -318,10 +313,6 @@ export namespace EditStats {
           .p("percentage")
           .p(key)
           .recordModify((s) => [...(s || [])].filter((_, i) => i !== index)),
-        lb<IState>()
-          .p("storage")
-          .p("deletedStats")
-          .recordModify((deletedStats) => [...deletedStats, ts]),
       ],
     });
   }
