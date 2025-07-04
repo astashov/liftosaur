@@ -92,6 +92,7 @@ describe("VersionTracker", () => {
       const program1: IProgram = {
         type: "program",
         id: "prog1",
+        clonedAt: 1,
         name: "Program 1",
         description: "",
         url: "",
@@ -107,7 +108,9 @@ describe("VersionTracker", () => {
       const program2: IProgram = {
         ...program1,
         id: "prog2",
+        clonedAt: 2,
         name: "Program 2",
+        nextDay: 2,
       };
 
       const oldStorage = {
@@ -125,7 +128,7 @@ describe("VersionTracker", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
-      expect(programVersions.items.prog2).to.deep.equal({
+      expect(programVersions.items["2"]).to.deep.equal({
         name: timestamp,
         nextDay: timestamp,
       });
@@ -135,6 +138,7 @@ describe("VersionTracker", () => {
       const program1: IProgram = {
         type: "program",
         id: "prog1",
+        clonedAt: 1,
         name: "Program 1",
         description: "",
         url: "",
@@ -167,7 +171,7 @@ describe("VersionTracker", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
-      expect(programVersions.items.prog1).to.deep.equal({
+      expect(programVersions.items["1"]).to.deep.equal({
         name: timestamp,
       });
     });
@@ -181,6 +185,7 @@ describe("VersionTracker", () => {
         url: "",
         author: "",
         nextDay: 1,
+        clonedAt: 1,
         days: [],
         weeks: [],
         exercises: [],
@@ -191,6 +196,7 @@ describe("VersionTracker", () => {
       const program2: IProgram = {
         ...program1,
         id: "prog2",
+        clonedAt: 2,
         name: "Program 2",
       };
 
@@ -211,7 +217,7 @@ describe("VersionTracker", () => {
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
       expect(programVersions).to.deep.equal({
         items: {},
-        deleted: { prog2: timestamp },
+        deleted: { "2": timestamp },
       });
     });
 
@@ -219,6 +225,7 @@ describe("VersionTracker", () => {
       const program: IProgram = {
         type: "program",
         id: "prog1",
+        clonedAt: 1,
         name: "Program 1",
         description: "",
         url: "",
@@ -247,7 +254,7 @@ describe("VersionTracker", () => {
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
       expect(programVersions).to.deep.equal({
         items: {},
-        deleted: { prog1: timestamp },
+        deleted: { "1": timestamp },
       });
     });
   });
@@ -338,6 +345,7 @@ describe("VersionTracker", () => {
         url: "",
         author: "",
         nextDay: 1,
+        clonedAt: 1,
         days: [],
         weeks: [],
         exercises: [],
@@ -366,7 +374,7 @@ describe("VersionTracker", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
-      const itemVersion = programVersions.items.prog1 as IVersions<IProgram>;
+      const itemVersion = programVersions.items["1"] as IVersions<IProgram>;
 
       expect(itemVersion).to.deep.equal({
         name: timestamp,
@@ -377,6 +385,7 @@ describe("VersionTracker", () => {
       const program: IProgram = {
         type: "program",
         id: "prog1",
+        clonedAt: 1,
         name: "Program 1",
         description: "",
         url: "",
@@ -417,7 +426,7 @@ describe("VersionTracker", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
-      const itemVersion = programVersions.items.prog1 as IVersions<IProgram>;
+      const itemVersion = programVersions.items["1"] as IVersions<IProgram>;
 
       expect(itemVersion).to.deep.equal({
         name: timestamp,
@@ -793,6 +802,7 @@ describe("VersionTracker", () => {
       const program: IProgram = {
         type: "program",
         id: "prog1",
+        clonedAt: 1,
         name: "Program 1",
         description: "Description",
         url: "",
@@ -877,6 +887,7 @@ describe("VersionTracker", () => {
         url: "",
         author: "",
         nextDay: 1,
+        clonedAt: 1,
         days: [],
         weeks: [],
         exercises: [],
@@ -890,7 +901,7 @@ describe("VersionTracker", () => {
         _versions: {
           programs: {
             items: {},
-            deleted: { prog1: 500 },
+            deleted: { "1": 500 },
           },
         },
       };
@@ -907,7 +918,7 @@ describe("VersionTracker", () => {
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
       expect(programVersions).to.deep.equal({
         items: {
-          prog1: { name: timestamp, nextDay: timestamp },
+          "1": { name: timestamp, nextDay: timestamp },
         },
         deleted: {},
       });
@@ -922,6 +933,7 @@ describe("VersionTracker", () => {
         url: "",
         author: "",
         nextDay: 1,
+        clonedAt: 1,
         days: [],
         weeks: [],
         exercises: [],
@@ -931,6 +943,7 @@ describe("VersionTracker", () => {
 
       const program2: IProgram = {
         ...program1,
+        clonedAt: 2,
         id: "prog2",
         name: "Program 2",
       };
@@ -952,8 +965,8 @@ describe("VersionTracker", () => {
       expect(programVersions).to.deep.equal({
         items: {},
         deleted: {
-          prog1: timestamp,
-          prog2: timestamp,
+          "1": timestamp,
+          "2": timestamp,
         },
       });
     });
@@ -1284,6 +1297,7 @@ describe("VersionTracker", () => {
         url: "http://example.com",
         author: "Author",
         nextDay: 2,
+        clonedAt: 1,
         days: [],
         weeks: [],
         exercises: [],
@@ -1298,7 +1312,7 @@ describe("VersionTracker", () => {
       const versions: IVersions<any> = {
         programs: {
           items: {
-            prog1: { name: 1000 },
+            "1": { name: 1000 },
           },
         },
       };
@@ -1318,6 +1332,7 @@ describe("VersionTracker", () => {
         url: "",
         author: "",
         nextDay: 1,
+        clonedAt: 1,
         days: [],
         weeks: [],
         exercises: [],
@@ -1327,6 +1342,7 @@ describe("VersionTracker", () => {
 
       const prog2: IProgram = {
         ...prog1,
+        clonedAt: 2,
         id: "prog2",
         name: "Program 2",
       };
@@ -1334,6 +1350,7 @@ describe("VersionTracker", () => {
       const prog3: IProgram = {
         ...prog1,
         id: "prog3",
+        clonedAt: 3,
         name: "Program 3",
       };
 
@@ -1344,8 +1361,8 @@ describe("VersionTracker", () => {
       const versions: IVersions<any> = {
         programs: {
           items: {
-            prog1: 1000,
-            prog3: 2000,
+            "1": 1000,
+            "3": 2000,
           },
         },
       };
@@ -1396,6 +1413,7 @@ describe("VersionTracker", () => {
           {
             type: "program",
             id: "prog1",
+            clonedAt: 1,
             name: "Program 1",
             description: "Desc 1",
             nextDay: 1,
@@ -1406,7 +1424,7 @@ describe("VersionTracker", () => {
       const versions: IVersions<any> = {
         programs: {
           items: {
-            prog1: {
+            "1": {
               name: 1000,
             },
           },
@@ -1417,6 +1435,7 @@ describe("VersionTracker", () => {
       expect((extracted as any).programs[0]).to.include({
         type: "program",
         id: "prog1",
+        clonedAt: 1,
         name: "Program 1",
         description: "Desc 1",
         nextDay: 1,
@@ -1477,19 +1496,19 @@ describe("VersionTracker", () => {
         age: 30,
         email: "john@old.com",
       };
-      
+
       const fullVersions: IVersions<any> = {
         name: 1000,
         age: 2000,
         email: 3000,
       };
-      
+
       const versionDiff: IVersions<any> = {
         name: 5000, // Newer
-        age: 1500,  // Older
+        age: 1500, // Older
         email: 4000, // Newer
       };
-      
+
       const extractedObj = {
         name: "Jane",
         age: 31,
@@ -1497,10 +1516,10 @@ describe("VersionTracker", () => {
       };
 
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
-      
+
       expect(merged).to.deep.equal({
         name: "Jane", // Newer version wins
-        age: 30,      // Older version loses
+        age: 30, // Older version loses
         email: "jane@new.com", // Newer version wins
       });
     });
@@ -1513,7 +1532,7 @@ describe("VersionTracker", () => {
           volume: 50,
         },
       };
-      
+
       const fullVersions: IVersions<any> = {
         settings: {
           theme: 1000,
@@ -1521,14 +1540,14 @@ describe("VersionTracker", () => {
           volume: 3000,
         },
       };
-      
+
       const versionDiff: IVersions<any> = {
         settings: {
           theme: 4000, // Newer
           language: 1500, // Older
         },
       };
-      
+
       const extractedObj = {
         settings: {
           theme: "light",
@@ -1537,12 +1556,12 @@ describe("VersionTracker", () => {
       };
 
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
-      
+
       expect(merged).to.deep.equal({
         settings: {
           theme: "light", // Newer
           language: "en", // Older, keep original
-          volume: 50,     // Not in diff, keep original
+          volume: 50, // Not in diff, keep original
         },
       });
     });
@@ -1562,14 +1581,14 @@ describe("VersionTracker", () => {
         isMultiweek: false,
         tags: [],
       };
-      
+
       const extractedProgram: IProgram = {
         ...fullProgram,
         name: "New Program",
         description: "New Description",
         nextDay: 2,
       };
-      
+
       const fullObj = { program: fullProgram };
       const fullVersions: IVersions<any> = {
         program: {
@@ -1577,59 +1596,59 @@ describe("VersionTracker", () => {
           nextDay: 2000,
         },
       };
-      
+
       const versionDiff: IVersions<any> = {
         program: {
           name: 3000, // Newer
           nextDay: 1500, // Older
         },
       };
-      
+
       const extractedObj = { program: extractedProgram };
 
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
-      
+
       // Since name is newer, the entire controlled object should be taken
       expect(merged.program).to.deep.equal(extractedProgram);
     });
 
     it("should merge array collections", () => {
-      const prog1 = { type: "program", id: "prog1", name: "Program 1" };
-      const prog2 = { type: "program", id: "prog2", name: "Program 2" };
-      const prog3 = { type: "program", id: "prog3", name: "Program 3" };
-      const prog2Updated = { type: "program", id: "prog2", name: "Program 2 Updated" };
-      
+      const prog1 = { type: "program", id: "prog1", clonedAt: 1, name: "Program 1" };
+      const prog2 = { type: "program", id: "prog2", clonedAt: 2, name: "Program 2" };
+      const prog3 = { type: "program", id: "prog3", clonedAt: 3, name: "Program 3" };
+      const prog2Updated = { type: "program", id: "prog2", clonedAt: 2, name: "Program 2 Updated" };
+
       const fullObj = {
         programs: [prog1, prog2, prog3],
       };
-      
+
       const fullVersions: IVersions<any> = {
         programs: {
           items: {
-            prog1: 1000,
-            prog2: 2000,
-            prog3: 3000,
+            "1": 1000,
+            "2": 2000,
+            "3": 3000,
           },
         },
       };
-      
+
       const versionDiff: IVersions<any> = {
         programs: {
           items: {
-            prog2: 4000, // Newer
+            "2": 4000, // Newer
           },
           deleted: {
-            prog3: 5000, // Deleted
+            "3": 5000, // Deleted
           },
         },
       };
-      
+
       const extractedObj = {
         programs: [prog2Updated],
       };
 
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
-      
+
       expect(merged.programs).to.have.length(2);
       expect(merged.programs).to.deep.include(prog1); // Unchanged
       expect(merged.programs).to.deep.include(prog2Updated); // Updated
@@ -1641,24 +1660,24 @@ describe("VersionTracker", () => {
         settings: {
           exercises: {
             "bench-press": { rm1: 100 },
-            "squat": { rm1: 150 },
-            "deadlift": { rm1: 200 },
+            squat: { rm1: 150 },
+            deadlift: { rm1: 200 },
           },
         },
       };
-      
+
       const fullVersions: IVersions<any> = {
         settings: {
           exercises: {
             items: {
               "bench-press": 1000,
-              "squat": 2000,
-              "deadlift": 3000,
+              squat: 2000,
+              deadlift: 3000,
             },
           },
         },
       };
-      
+
       const versionDiff: IVersions<any> = {
         settings: {
           exercises: {
@@ -1667,12 +1686,12 @@ describe("VersionTracker", () => {
               "overhead-press": 5000, // New
             },
             deleted: {
-              "deadlift": 6000, // Deleted
+              deadlift: 6000, // Deleted
             },
           },
         },
       };
-      
+
       const extractedObj = {
         settings: {
           exercises: {
@@ -1683,10 +1702,10 @@ describe("VersionTracker", () => {
       };
 
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
-      
+
       expect(merged.settings.exercises).to.deep.equal({
         "bench-press": { rm1: 120 }, // Updated
-        "squat": { rm1: 150 },       // Unchanged
+        squat: { rm1: 150 }, // Unchanged
         "overhead-press": { rm1: 80 }, // Added
         // deadlift removed
       });
@@ -1697,22 +1716,22 @@ describe("VersionTracker", () => {
         name: "John",
         newField: "should be replaced",
       };
-      
+
       const fullVersions: IVersions<any> = {
         name: 1000,
         // newField has no version
       };
-      
+
       const versionDiff: IVersions<any> = {
         newField: 2000,
       };
-      
+
       const extractedObj = {
         newField: "new value",
       };
 
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
-      
+
       expect(merged).to.deep.equal({
         name: "John",
         newField: "new value", // Should take extracted since full has no version
@@ -1738,7 +1757,7 @@ describe("VersionTracker", () => {
           },
         },
       };
-      
+
       const fullVersions: IVersions<any> = {
         users: {
           user1: {
@@ -1755,7 +1774,7 @@ describe("VersionTracker", () => {
           },
         },
       };
-      
+
       const versionDiff: IVersions<any> = {
         users: {
           user1: {
@@ -1770,7 +1789,7 @@ describe("VersionTracker", () => {
           },
         },
       };
-      
+
       const extractedObj = {
         users: {
           user1: {
@@ -1787,12 +1806,12 @@ describe("VersionTracker", () => {
       };
 
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
-      
+
       expect(merged.users.user1.settings).to.deep.equal({
         theme: "blue", // Updated
         notifications: true, // Kept original
       });
-      
+
       expect(merged.users.user2.settings).to.deep.equal({
         theme: "light", // Kept original
         notifications: false, // Kept original (older version)
@@ -1812,17 +1831,17 @@ describe("VersionTracker", () => {
         startTime: 0,
         endTime: 0,
       };
-      
+
       const record1Updated = {
         ...record1,
         dayName: "Day 1 Updated",
         entries: [{ exercise: "bench" }],
       };
-      
+
       const fullObj = {
         history: [record1],
       };
-      
+
       const fullVersions: IVersions<any> = {
         history: {
           items: {
@@ -1830,7 +1849,7 @@ describe("VersionTracker", () => {
           },
         },
       };
-      
+
       const versionDiff: IVersions<any> = {
         history: {
           items: {
@@ -1838,15 +1857,283 @@ describe("VersionTracker", () => {
           },
         },
       };
-      
+
       const extractedObj = {
         history: [record1Updated],
       };
 
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
-      
+
       // Entire atomic object should be replaced
       expect(merged.history[0]).to.deep.equal(record1Updated);
+    });
+  });
+
+  describe("mergeVersions", () => {
+    it("should merge simple timestamp fields taking higher values", () => {
+      const fullVersions: IVersions<any> = {
+        name: 1000,
+        age: 2000,
+        email: 3000,
+      };
+
+      const versionDiff: IVersions<any> = {
+        name: 500, // Older
+        age: 2500, // Newer
+        phone: 4000, // New field
+      };
+
+      const merged = versionTracker.mergeVersions(fullVersions, versionDiff);
+
+      expect(merged).to.deep.equal({
+        name: 1000, // Kept higher value
+        age: 2500, // Updated to higher value
+        email: 3000, // Unchanged
+        phone: 4000, // Added new field
+      });
+    });
+
+    it("should merge nested version objects", () => {
+      const fullVersions: IVersions<any> = {
+        settings: {
+          theme: 1000,
+          language: 2000,
+        },
+        profile: {
+          name: 3000,
+        },
+      };
+
+      const versionDiff: IVersions<any> = {
+        settings: {
+          theme: 1500, // Newer
+          volume: 2500, // New field
+        },
+        profile: {
+          name: 2500, // Older
+          avatar: 4000, // New field
+        },
+      };
+
+      const merged = versionTracker.mergeVersions(fullVersions, versionDiff);
+
+      expect(merged).to.deep.equal({
+        settings: {
+          theme: 1500, // Updated
+          language: 2000, // Kept from full
+          volume: 2500, // Added
+        },
+        profile: {
+          name: 3000, // Kept higher value
+          avatar: 4000, // Added
+        },
+      });
+    });
+
+    it("should merge collection versions", () => {
+      const fullVersions: IVersions<any> = {
+        programs: {
+          items: {
+            prog1: 1000,
+            prog2: 2000,
+          },
+          deleted: {
+            prog3: 3000,
+          },
+        },
+      };
+
+      const versionDiff: IVersions<any> = {
+        programs: {
+          items: {
+            prog1: 1500, // Newer
+            prog2: 1800, // Older
+            prog4: 4000, // New
+          },
+          deleted: {
+            prog3: 2500, // Older deletion
+            prog5: 5000, // New deletion
+          },
+        },
+      };
+
+      const merged = versionTracker.mergeVersions(fullVersions, versionDiff);
+
+      expect(merged).to.deep.equal({
+        programs: {
+          items: {
+            prog1: 1500, // Updated
+            prog2: 2000, // Kept higher
+            prog4: 4000, // Added
+          },
+          deleted: {
+            prog3: 3000, // Kept higher deletion time
+            prog5: 5000, // Added deletion
+          },
+        },
+      });
+    });
+
+    it("should merge collections with nested version objects", () => {
+      const fullVersions: IVersions<any> = {
+        programs: {
+          deleted: {},
+          items: {
+            prog1: {
+              name: 1000,
+              nextDay: 2000,
+            },
+          },
+        },
+      };
+
+      const versionDiff: IVersions<any> = {
+        programs: {
+          deleted: {},
+          items: {
+            prog1: {
+              name: 1500, // Newer
+              nextDay: 1800, // Older
+              planner: 3000, // New field
+            },
+            prog2: {
+              name: 4000,
+            },
+          },
+        },
+      };
+
+      const merged = versionTracker.mergeVersions(fullVersions, versionDiff);
+
+      expect(merged).to.deep.equal({
+        programs: {
+          deleted: {},
+          items: {
+            prog1: {
+              name: 1500, // Updated
+              nextDay: 2000, // Kept higher
+              planner: 3000, // Added
+            },
+            prog2: {
+              name: 4000, // Added
+            },
+          },
+        },
+      });
+    });
+
+    it("should handle empty full versions", () => {
+      const fullVersions: IVersions<any> = {};
+
+      const versionDiff: IVersions<any> = {
+        name: 1000,
+        settings: {
+          theme: 2000,
+        },
+        programs: {
+          deleted: {},
+          items: {
+            prog1: 3000,
+          },
+        },
+      };
+
+      const merged = versionTracker.mergeVersions(fullVersions, versionDiff);
+
+      expect(merged).to.deep.equal(versionDiff);
+    });
+
+    it("should handle empty diff", () => {
+      const fullVersions: IVersions<any> = {
+        name: 1000,
+        settings: {
+          theme: 2000,
+        },
+      };
+
+      const versionDiff: IVersions<any> = {};
+
+      const merged = versionTracker.mergeVersions(fullVersions, versionDiff);
+
+      expect(merged).to.deep.equal(fullVersions);
+    });
+
+    it("should handle deeply nested structures", () => {
+      const fullVersions: IVersions<any> = {
+        level1: {
+          level2: {
+            level3: {
+              field1: 1000,
+              field2: 2000,
+            },
+          },
+        },
+      };
+
+      const versionDiff: IVersions<any> = {
+        level1: {
+          level2: {
+            level3: {
+              field1: 500, // Older
+              field2: 2500, // Newer
+              field3: 3000, // New
+            },
+            newLevel3: {
+              field4: 4000,
+            },
+          },
+        },
+      };
+
+      const merged = versionTracker.mergeVersions(fullVersions, versionDiff);
+
+      expect(merged).to.deep.equal({
+        level1: {
+          level2: {
+            level3: {
+              field1: 1000, // Kept higher
+              field2: 2500, // Updated
+              field3: 3000, // Added
+            },
+            newLevel3: {
+              field4: 4000, // Added
+            },
+          },
+        },
+      });
+    });
+
+    it("should preserve collection structure when merging", () => {
+      const fullVersions: IVersions<any> = {
+        exercises: {
+          items: {},
+          deleted: {},
+        },
+      };
+
+      const versionDiff: IVersions<any> = {
+        exercises: {
+          items: {
+            ex1: 1000,
+          },
+          deleted: {
+            ex2: 2000,
+          },
+        },
+      };
+
+      const merged = versionTracker.mergeVersions(fullVersions, versionDiff);
+
+      expect(merged).to.deep.equal({
+        exercises: {
+          items: {
+            ex1: 1000,
+          },
+          deleted: {
+            ex2: 2000,
+          },
+        },
+      });
     });
   });
 });

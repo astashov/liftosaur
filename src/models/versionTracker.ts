@@ -617,17 +617,14 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     extractedValue: unknown,
     path: string
   ): unknown {
-    // If version is a timestamp, compare and take the newer value
     if (typeof diffVersion === "number" && typeof fullVersion === "number") {
       return diffVersion > fullVersion ? extractedValue : fullValue;
     }
 
-    // If diff has a version but full doesn't, take the extracted value
     if (diffVersion !== undefined && fullVersion === undefined) {
       return extractedValue;
     }
 
-    // Handle collections
     if (diffVersion && typeof diffVersion === "object" && "items" in diffVersion) {
       return this.mergeCollectionByVersion(
         fullValue,
@@ -637,16 +634,13 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       );
     }
 
-    // Handle nested objects
     if (
       diffVersion &&
       typeof diffVersion === "object" &&
       typeof extractedValue === "object" &&
       extractedValue !== null
     ) {
-      // Check if this is a controlled object
       if (this.isControlledType(extractedValue)) {
-        // For controlled objects, check if any controlled field in diff has a newer version
         const controlledType = (extractedValue as any).type as TControlledType;
         const controlledFields = this.versionTypes.controlledFields[controlledType] || [];
 
@@ -670,7 +664,6 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         return shouldTakeExtracted ? extractedValue : fullValue;
       }
 
-      // For regular objects, recursively merge
       if (typeof fullValue === "object" && fullValue !== null) {
         return this.mergeByVersions(
           fullValue as Record<string, unknown>,
@@ -679,12 +672,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           extractedValue as Record<string, unknown>
         );
       } else {
-        // Full value is not an object, take the extracted value
         return extractedValue;
       }
     }
 
-    // Default: keep full value
     return fullValue;
   }
 
@@ -698,7 +689,6 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       const result: unknown[] = [];
       const processedIds = new Set<string>();
 
-      // First, process items from the diff
       for (const extractedItem of extractedValue) {
         const itemId = this.getId(extractedItem);
         if (itemId) {
@@ -706,11 +696,9 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           const diffItemVersion = diffVersion.items[itemId];
           const fullItemVersion = fullVersion?.items[itemId];
 
-          // Check if this item should be included based on version
           if (this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)) {
             result.push(extractedItem);
           } else {
-            // Find the corresponding item in full array
             const fullItem = fullValue.find((item) => this.getId(item) === itemId);
             if (fullItem) {
               result.push(fullItem);
@@ -719,11 +707,9 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         }
       }
 
-      // Then, add items from full array that weren't in the diff
       for (const fullItem of fullValue) {
         const itemId = this.getId(fullItem);
         if (itemId && !processedIds.has(itemId)) {
-          // Check if this item was deleted in the diff
           if (!diffVersion.deleted || !(itemId in diffVersion.deleted)) {
             result.push(fullItem);
           }
@@ -737,20 +723,16 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       typeof extractedValue === "object" &&
       extractedValue !== null
     ) {
-      // Handle dictionary collections
       const result: Record<string, unknown> = {};
       const fullDict = fullValue as Record<string, unknown>;
       const extractedDict = extractedValue as Record<string, unknown>;
 
-      // First, add all items from full dictionary
       for (const [key, value] of Object.entries(fullDict)) {
-        // Check if this item was deleted in the diff
         if (!diffVersion.deleted || !(key in diffVersion.deleted)) {
           result[key] = value;
         }
       }
 
-      // Then, update/add items from extracted dictionary
       for (const [key, value] of Object.entries(extractedDict)) {
         const diffItemVersion = diffVersion.items[key];
         const fullItemVersion = fullVersion?.items[key];
@@ -763,7 +745,6 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       return result;
     }
 
-    // Default: return extracted value
     return extractedValue;
   }
 
@@ -771,23 +752,117 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     diffVersion: IVersions<unknown> | number | undefined,
     fullVersion: IVersions<unknown> | number | undefined
   ): boolean {
-    // If both are timestamps, compare them
     if (typeof diffVersion === "number" && typeof fullVersion === "number") {
       return diffVersion > fullVersion;
     }
 
-    // If diff has version but full doesn't, take extracted
     if (diffVersion !== undefined && fullVersion === undefined) {
       return true;
     }
 
-    // If both are version objects, we need deeper comparison
     if (typeof diffVersion === "object" && typeof fullVersion === "object") {
-      // For now, assume if there's a diff version object, we should take it
-      // This could be made more sophisticated by comparing all nested timestamps
       return true;
     }
 
     return false;
+  }
+
+  /**
+   * Merges a version diff into a full version tree, choosing higher timestamps
+   * when there are conflicts. This is used to update version information after
+   * syncing with another source.
+   *
+   * @param fullVersions The complete version tree to merge into
+   * @param versionDiff The version diff to apply
+   * @returns A new version tree with the diff applied
+   */
+  public mergeVersions<T>(fullVersions: IVersions<T>, versionDiff: IVersions<T>): IVersions<T> {
+    const result = ObjectUtils.clone(fullVersions);
+
+    for (const key in versionDiff) {
+      const fullVersion = result[key];
+      const diffVersion = versionDiff[key];
+
+      const mergedVersion = this.mergeVersionField(fullVersion, diffVersion);
+      if (mergedVersion !== undefined) {
+        (result as any)[key] = mergedVersion;
+      }
+    }
+
+    return result;
+  }
+
+  private mergeVersionField(
+    fullVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    diffVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined
+  ): IVersions<unknown> | ICollectionVersions<unknown> | number | undefined {
+    if (diffVersion === undefined) {
+      return fullVersion;
+    }
+
+    if (typeof fullVersion === "number" && typeof diffVersion === "number") {
+      return Math.max(fullVersion, diffVersion);
+    }
+
+    if (typeof diffVersion === "number") {
+      return diffVersion;
+    }
+
+    if (diffVersion && typeof diffVersion === "object" && "items" in diffVersion) {
+      return this.mergeCollectionVersions(
+        fullVersion as ICollectionVersions<unknown> | undefined,
+        diffVersion as ICollectionVersions<unknown>
+      );
+    }
+
+    if (diffVersion && typeof diffVersion === "object") {
+      const fullObj = (fullVersion || {}) as IVersions<unknown>;
+      const result: any = { ...fullObj };
+
+      for (const key in diffVersion) {
+        const mergedField = this.mergeVersionField(fullObj[key], diffVersion[key]);
+        if (mergedField !== undefined) {
+          result[key] = mergedField;
+        }
+      }
+
+      return result;
+    }
+
+    return diffVersion;
+  }
+
+  private mergeCollectionVersions(
+    fullCollection: ICollectionVersions<unknown> | undefined,
+    diffCollection: ICollectionVersions<unknown>
+  ): ICollectionVersions<unknown> {
+    const result: ICollectionVersions<unknown> = {
+      items: { ...(fullCollection?.items || {}) },
+      deleted: { ...(fullCollection?.deleted || {}) },
+    };
+
+    for (const id in diffCollection.items) {
+      const fullItemVersion = result.items[id];
+      const diffItemVersion = diffCollection.items[id];
+
+      const mergedItemVersion = this.mergeVersionField(fullItemVersion, diffItemVersion);
+      if (mergedItemVersion !== undefined) {
+        result.items[id] = mergedItemVersion as IVersions<unknown> | number;
+      }
+    }
+
+    if (diffCollection.deleted) {
+      for (const id in diffCollection.deleted) {
+        const fullDeletedTime = result.deleted?.[id];
+        const diffDeletedTime = diffCollection.deleted[id];
+
+        if (!fullDeletedTime || diffDeletedTime > fullDeletedTime) {
+          result.deleted = result.deleted || {};
+          result.deleted[id] = diffDeletedTime;
+        }
+      }
+    }
+
+    return result;
   }
 }
