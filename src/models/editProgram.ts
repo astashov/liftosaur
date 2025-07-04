@@ -120,7 +120,7 @@ export namespace EditProgram {
     const newProgram: IProgram = {
       ...Program.create(name),
       planner: {
-        type: "planner",
+        vtype: "planner",
         name,
         weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
       },

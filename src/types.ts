@@ -362,7 +362,7 @@ export type IExerciseType = t.TypeOf<typeof TExerciseType>;
 export const TCustomExercise = t.intersection(
   [
     t.interface({
-      type: t.literal("custom_exercise"),
+      vtype: t.literal("custom_exercise"),
       id: TExerciseId,
       name: t.string,
       isDeleted: t.boolean,
@@ -671,7 +671,7 @@ export type tHistoryRecordChange = t.TypeOf<typeof THistoryRecordChange>;
 export const THistoryRecord = t.intersection(
   [
     t.interface({
-      type: t.literal("history_record"),
+      vtype: t.literal("history_record"),
       // ISO8601, like 2020-02-29T18:02:05+00:00
       date: t.string,
       programId: t.string,
@@ -804,7 +804,7 @@ export type IPlannerProgramWeek = Readonly<t.TypeOf<typeof TPlannerProgramWeek>>
 
 export const TPlannerProgram = t.type(
   {
-    type: t.literal("planner"),
+    vtype: t.literal("planner"),
     name: t.string,
     weeks: t.array(TPlannerProgramWeek),
   },
@@ -815,7 +815,7 @@ export type IPlannerProgram = Readonly<t.TypeOf<typeof TPlannerProgram>>;
 export const TProgram = t.intersection(
   [
     t.interface({
-      type: t.literal("program"),
+      vtype: t.literal("program"),
       exercises: t.array(TProgramExercise),
       id: t.string,
       name: t.string,
@@ -861,7 +861,7 @@ export type ILength = t.TypeOf<typeof TLength>;
 
 export const TStatsWeightValue = t.intersection(
   [
-    t.interface({ type: t.literal("weight"), value: TWeight, timestamp: t.number }),
+    t.interface({ vtype: t.literal("stat"), type: t.literal("weight"), value: TWeight, timestamp: t.number }),
     t.partial({ updatedAt: t.number, appleUuid: t.string }),
   ],
   "TStatsWeightValue"
@@ -876,7 +876,7 @@ export type IStatsWeight = t.TypeOf<typeof TStatsWeight>;
 
 export const TStatsLengthValue = t.intersection(
   [
-    t.interface({ type: t.literal("length"), value: TLength, timestamp: t.number }),
+    t.interface({ vtype: t.literal("stat"), type: t.literal("length"), value: TLength, timestamp: t.number }),
     t.partial({ updatedAt: t.number, appleUuid: t.string }),
   ],
   "TStatsLengthValue"
@@ -903,7 +903,7 @@ export type IStatsLength = t.TypeOf<typeof TStatsLength>;
 
 export const TStatsPercentageValue = t.intersection(
   [
-    t.interface({ type: t.literal("percentage"), value: TPercentage, timestamp: t.number }),
+    t.interface({ vtype: t.literal("stat"), type: t.literal("percentage"), value: TPercentage, timestamp: t.number }),
     t.partial({ updatedAt: t.number, appleUuid: t.string }),
   ],
   "TStatsPercentageValue"
@@ -978,18 +978,18 @@ export const TSettingsTimers = t.intersection(
 export type ISettingsTimers = t.TypeOf<typeof TSettingsTimers>;
 
 export const TGraph = t.union([
-  t.type({ type: t.literal("exercise"), id: TExerciseId }),
-  t.type({ type: t.literal("statsWeight"), id: t.keyof(statsWeightDef) }),
-  t.type({ type: t.literal("statsLength"), id: t.keyof(statsLengthDef) }),
-  t.type({ type: t.literal("statsPercentage"), id: t.keyof(statsPercentageDef) }),
-  t.type({ type: t.literal("muscleGroup"), id: t.string }),
+  t.type({ vtype: t.literal("graph"), type: t.literal("exercise"), id: TExerciseId }),
+  t.type({ vtype: t.literal("graph"), type: t.literal("statsWeight"), id: t.keyof(statsWeightDef) }),
+  t.type({ vtype: t.literal("graph"), type: t.literal("statsLength"), id: t.keyof(statsLengthDef) }),
+  t.type({ vtype: t.literal("graph"), type: t.literal("statsPercentage"), id: t.keyof(statsPercentageDef) }),
+  t.type({ vtype: t.literal("graph"), type: t.literal("muscleGroup"), id: t.string }),
 ]);
 export type IGraph = t.TypeOf<typeof TGraph>;
 
 export const TEquipmentData = t.intersection(
   [
     t.interface({
-      type: t.literal("equipment_data"),
+      vtype: t.literal("equipment_data"),
       bar: t.type({
         lb: TWeight,
         kg: TWeight,
@@ -1067,7 +1067,7 @@ export type IPlannerSettings = t.TypeOf<typeof TPlannerSettings>;
 
 export const TGym = t.type(
   {
-    type: t.literal("gym"),
+    vtype: t.literal("gym"),
     id: t.string,
     name: t.string,
     equipment: dictionary(TEquipment, TEquipmentData),
@@ -1165,11 +1165,17 @@ export const TStats = t.type(
 );
 export type IStats = t.TypeOf<typeof TStats>;
 
+export const TSubscriptionReceipt = t.type({
+  vtype: t.literal("subscription_receipt"),
+  id: t.string,
+  value: t.string,
+  createdAt: t.number,
+});
+
 export const TSubscription = t.intersection([
   t.interface({
-    type: t.literal("subscription"),
-    apple: dictionary(t.string, t.null),
-    google: dictionary(t.string, t.null),
+    apple: t.array(TSubscriptionReceipt),
+    google: t.array(TSubscriptionReceipt),
   }),
   t.partial({
     key: t.union([t.string, t.undefined]),
@@ -1237,10 +1243,9 @@ export const ATOMIC_TYPES = [
   "equipment_data",
   "custom_exercise",
   "planner",
-  "weight",
-  "length",
-  "percentage",
-  "subscription",
+  "stat",
+  "graph",
+  "subscription_receipt",
 ] as const;
 
 export type IAtomicType = (typeof ATOMIC_TYPES)[number];
@@ -1262,22 +1267,16 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   history_record: "id",
   gym: "id",
   custom_exercise: "id",
-  weight: "timestamp",
-  length: "timestamp",
-  percentage: "timestamp",
+  stat: "timestamp",
   equipment_data: "id",
   planner: "name",
-  subscription: "id",
+  subscription_receipt: "id",
+  graph: "id",
 };
 
 // Dictionary fields - these are free-form key-value mappings that should use collection versioning
 // Full path from storage root
-export const DICTIONARY_FIELDS = [
-  "settings.exercises",
-  "settings.graphOptions",
-  "settings.exerciseData",
-  "settings.gyms.equipment",
-] as const;
+export const DICTIONARY_FIELDS = ["settings.exercises", "settings.exerciseData", "settings.gyms.equipment"] as const;
 
 export type IDictionaryFieldPath = (typeof DICTIONARY_FIELDS)[number];
 

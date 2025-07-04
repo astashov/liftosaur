@@ -283,7 +283,7 @@ export namespace Program {
     const programDay = Program.getProgramDay(program, day);
     const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
     return {
-      type: "history_record",
+      vtype: "history_record",
       id: 0,
       date: new Date().toISOString(),
       programId: program.id,
@@ -568,7 +568,7 @@ export namespace Program {
 
   export function createEmptyProgram(): IProgram {
     return {
-      type: "program",
+      vtype: "program",
       exercises: [],
       id: emptyProgramId,
       name: "Ad-Hoc Workout",
@@ -580,7 +580,7 @@ export namespace Program {
       weeks: [],
       isMultiweek: false,
       planner: {
-        type: "planner",
+        vtype: "planner",
         name: "Ad-Hoc Workout",
         weeks: [{ name: "", days: [{ name: "", exerciseText: "" }] }],
       },
@@ -638,7 +638,7 @@ export namespace Program {
           type: "evaluatedProgram",
           id: program.id,
           planner: {
-            type: "planner",
+            vtype: "planner",
             name: program.name,
             weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
           },
@@ -1005,7 +1005,7 @@ export namespace Program {
 
   export function create(name: string, id?: string): IProgram {
     return {
-      type: "program" as const,
+      vtype: "program" as const,
       id: id || UidFactory.generateUid(8),
       name: name,
       url: "",
@@ -1043,7 +1043,7 @@ export namespace Program {
     const deletedDays = new Set([...(oldProgram.deletedDays || []), ...(newProgram.deletedDays || [])]);
     const deletedExercises = new Set([...(oldProgram.deletedExercises || []), ...(newProgram.deletedExercises || [])]);
     return {
-      type: "program",
+      vtype: "program",
       id: newProgram.id,
       name: newProgram.name,
       description: newProgram.description,
@@ -1089,7 +1089,7 @@ export namespace Program {
     const program: IProgram = {
       ...Program.create(programName),
       planner: {
-        type: "planner",
+        vtype: "planner",
         name: programName,
         weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
       },

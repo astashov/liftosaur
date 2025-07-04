@@ -102,31 +102,33 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   }
 
   private isAtomicType(value: unknown): value is { type: TAtomicType } {
-    if (typeof value !== "object" || value === null || !("type" in value)) {
+    if (typeof value !== "object" || value === null || !("vtype" in value)) {
       return false;
     }
-    return typeof value.type === "string" && this.versionTypes.atomicTypes.includes(value.type as TAtomicType);
+    return typeof value.vtype === "string" && this.versionTypes.atomicTypes.includes(value.vtype as TAtomicType);
   }
 
   private isControlledType(value: unknown): value is { type: TControlledType } {
-    if (typeof value !== "object" || value === null || !("type" in value)) {
+    if (typeof value !== "object" || value === null || !("vtype" in value)) {
       return false;
     }
-    return typeof value.type === "string" && this.versionTypes.controlledTypes.includes(value.type as TControlledType);
+    return (
+      typeof value.vtype === "string" && this.versionTypes.controlledTypes.includes(value.vtype as TControlledType)
+    );
   }
 
   private getId(obj: unknown): string | undefined {
-    if (typeof obj !== "object" || obj === null || !("type" in obj)) {
+    if (typeof obj !== "object" || obj === null || !("vtype" in obj)) {
       return undefined;
     }
-    if (typeof obj.type !== "string") {
+    if (typeof obj.vtype !== "string") {
       return undefined;
     }
-    const idField = this.versionTypes.typeIdMapping[obj.type as TAtomicType | TControlledType];
+    const idField = this.versionTypes.typeIdMapping[obj.vtype as TAtomicType | TControlledType];
     if (!idField || !(idField in obj)) {
       return undefined;
     }
-    const typedObj = obj as { type: unknown } & Record<string, unknown>;
+    const typedObj = obj as { vtype: unknown } & Record<string, unknown>;
     const id = typedObj[idField];
     return id != null ? String(id) : undefined;
   }
@@ -310,7 +312,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
     timestamp: number
   ): IVersions<unknown> | undefined {
-    const controlledFields = this.versionTypes.controlledFields[(newValue as { type: TControlledType }).type] || [];
+    const controlledFields = this.versionTypes.controlledFields[(newValue as { vtype: TControlledType }).vtype] || [];
     let fieldVersions = currentVersion;
     if (!fieldVersions || typeof fieldVersions !== "object") {
       fieldVersions = {};
@@ -518,7 +520,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
     if (version && typeof version === "object" && typeof value === "object" && value !== null) {
       if (this.isControlledType(value)) {
-        const controlledType = (value as any).type as TControlledType;
+        const controlledType = (value as any).vtype as TControlledType;
         const controlledFields = this.versionTypes.controlledFields[controlledType] || [];
 
         const hasControlledFieldChange = controlledFields.some((field) => field in version);
@@ -659,7 +661,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       extractedValue !== null
     ) {
       if (this.isControlledType(extractedValue)) {
-        const controlledType = (extractedValue as any).type as TControlledType;
+        const controlledType = (extractedValue as any).vtype as TControlledType;
         const controlledFields = this.versionTypes.controlledFields[controlledType] || [];
 
         let shouldTakeExtracted = false;

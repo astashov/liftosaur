@@ -739,7 +739,7 @@ Squat / 1x1 100lb / progress: custom(increment: 10lb) { ...Bench Press }
 Bench Press / ...Squat / progress: custom() {~ ~}
 `;
     const planner: IPlannerProgram = {
-      type: "planner",
+      vtype: "planner",
       name: "MyProgram",
       weeks: PlannerProgram.evaluateText(programText),
     };
@@ -754,7 +754,7 @@ Squat / 1x1 100lb / update: custom() { ...Bench Press }
 Bench Press / ...Squat / update: custom() {~ ~}
 `;
     const planner: IPlannerProgram = {
-      type: "planner",
+      vtype: "planner",
       name: "MyProgram",
       weeks: PlannerProgram.evaluateText(programText),
     };
@@ -784,7 +784,7 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
 ## Day 1
 `;
     const planner: IPlannerProgram = {
-      type: "planner",
+      vtype: "planner",
       name: "MyProgram",
       weeks: PlannerProgram.evaluateText(programText),
     };
@@ -1398,7 +1398,7 @@ Squat / 1x10 / 100lb / progress: custom() {~
     ];
     const settings: ISettings = {
       ...Settings.build(),
-      gyms: [{ type: "gym", id: "default", name: "Main", equipment }],
+      gyms: [{ vtype: "gym", id: "default", name: "Main", equipment }],
       exerciseData: {
         squat_barbell: { equipment: { default: "barbell" } },
       },
@@ -1426,7 +1426,7 @@ Squat / 1x10 / 100lb / progress: custom() {~
     equipment.barbell!.fixed = [Weight.build(45, "lb"), Weight.build(100, "lb"), Weight.build(120, "lb")];
     const settings: ISettings = {
       ...Settings.build(),
-      gyms: [{ type: "gym", id: "default", name: "Main", equipment }],
+      gyms: [{ vtype: "gym", id: "default", name: "Main", equipment }],
       exerciseData: {
         squat_barbell: { equipment: { default: "barbell" } },
       },
@@ -1470,11 +1470,11 @@ Squat / 1x10 / 100lb / progress: custom() {~
     const stats: IStats = {
       weight: {
         weight: [
-          { type: "weight", value: Weight.build(200, "lb"), timestamp: 10 },
-          { type: "weight", value: Weight.build(220, "lb"), timestamp: 30 },
-          { type: "weight", value: Weight.build(210, "lb"), timestamp: 20 },
-          { type: "weight", value: Weight.build(240, "lb"), timestamp: 50 },
-          { type: "weight", value: Weight.build(230, "lb"), timestamp: 40 },
+          { vtype: "stat", type: "weight", value: Weight.build(200, "lb"), timestamp: 10 },
+          { vtype: "stat", type: "weight", value: Weight.build(220, "lb"), timestamp: 30 },
+          { vtype: "stat", type: "weight", value: Weight.build(210, "lb"), timestamp: 20 },
+          { vtype: "stat", type: "weight", value: Weight.build(240, "lb"), timestamp: 50 },
+          { vtype: "stat", type: "weight", value: Weight.build(230, "lb"), timestamp: 40 },
         ],
       },
       length: {},

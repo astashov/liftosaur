@@ -12,7 +12,7 @@ export interface ICompletedEntries {
 
 export class PlannerTestUtils {
   public static get(text: string): { program: IProgram; planner: IPlannerProgram } {
-    const planner: IPlannerProgram = { type: "planner", name: "MyProgram", weeks: PlannerProgram.evaluateText(text) };
+    const planner: IPlannerProgram = { vtype: "planner", name: "MyProgram", weeks: PlannerProgram.evaluateText(text) };
     const program: IProgram = { ...Program.create("MyProgram"), planner };
     return { program, planner };
   }

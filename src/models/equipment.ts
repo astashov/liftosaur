@@ -17,7 +17,7 @@ import { Weight } from "./weight";
 export namespace Equipment {
   export function build(name: string): IEquipmentData {
     return {
-      type: "equipment_data",
+      vtype: "equipment_data",
       name,
       multiplier: 1,
       bar: {

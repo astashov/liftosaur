@@ -408,7 +408,7 @@ export class UserDao {
         helps: [],
         tempUserId: id,
         settings: Settings.build(),
-        subscription: { type: "subscription", apple: {}, google: {} },
+        subscription: { apple: [], google: [] },
         email,
         whatsNew: undefined,
       },

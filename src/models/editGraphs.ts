@@ -47,7 +47,7 @@ export namespace EditGraphs {
           .p("settings")
           .p("graphs")
           .recordModify((ex) => {
-            return Array.from(new Set([...ex, { type: "exercise", id: Exercise.toKey(exercise) }]));
+            return Array.from(new Set([...ex, { vtype: "graph", type: "exercise", id: Exercise.toKey(exercise) }]));
           }),
       ],
     });
@@ -63,7 +63,7 @@ export namespace EditGraphs {
           .p("graphs")
           .recordModify((ex) => {
             if (!ex.some((e) => e.type === "muscleGroup" && e.id === muscleGroup)) {
-              return [...ex, { type: "muscleGroup", id: muscleGroup }];
+              return [...ex, { vtype: "graph", type: "muscleGroup", id: muscleGroup }];
             } else {
               return ex;
             }
@@ -78,7 +78,7 @@ export namespace EditGraphs {
       lensRecording: lb<ISettings>()
         .p("graphs")
         .recordModify((ex) => {
-          return Array.from(new Set([...ex, { type: "statsWeight", id: statsKey }]));
+          return Array.from(new Set([...ex, { vtype: "graph", type: "statsWeight", id: statsKey }]));
         }),
     });
   }
@@ -89,7 +89,7 @@ export namespace EditGraphs {
       lensRecording: lb<ISettings>()
         .p("graphs")
         .recordModify((ex) => {
-          return Array.from(new Set([...ex, { type: "statsLength", id: statsKey }]));
+          return Array.from(new Set([...ex, { vtype: "graph", type: "statsLength", id: statsKey }]));
         }),
     });
   }
@@ -100,7 +100,7 @@ export namespace EditGraphs {
       lensRecording: lb<ISettings>()
         .p("graphs")
         .recordModify((ex) => {
-          return Array.from(new Set([...ex, { type: "statsPercentage", id: statsKey }]));
+          return Array.from(new Set([...ex, { vtype: "graph", type: "statsPercentage", id: statsKey }]));
         }),
     });
   }

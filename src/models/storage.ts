@@ -117,7 +117,7 @@ export namespace Storage {
       settings: Settings.build(),
       history: [],
       version: getLatestMigrationVersion(),
-      subscription: { type: "subscription", apple: {}, google: {} },
+      subscription: { apple: [], google: [] },
       programs: [],
       helps: [],
       email: undefined,

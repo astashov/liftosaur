@@ -3,9 +3,12 @@ import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
 import { lb } from "lens-shmens";
 import { ISubscription } from "../types";
+import { UidFactory } from "./generator";
+import { CollectionUtils } from "./collection";
 
 export namespace Subscriptions {
   export function hasSubscription(subscription: ISubscription): boolean {
+    return true;
     if (subscription.key && subscription.key !== "unclaimed") {
       return true;
     }
@@ -16,10 +19,10 @@ export namespace Subscriptions {
 
   export function listOfSubscriptions(subscription: ISubscription): string[] {
     const arr: string[] = [];
-    if (Object.keys(subscription.apple || []).length > 0) {
+    if ((subscription.apple || []).length > 0) {
       arr.push("apple");
     }
-    if (Object.keys(subscription.google || []).length > 0) {
+    if ((subscription.google || []).length > 0) {
       arr.push("google");
     }
     if (subscription.key === "unclaimed") {
@@ -31,11 +34,11 @@ export namespace Subscriptions {
   }
 
   function hasAppleSubscription(subscription: ISubscription): boolean {
-    return Object.keys(subscription.apple).length > 0;
+    return subscription.apple.length > 0;
   }
 
   function hasGoogleSubscription(subscription: ISubscription): boolean {
-    return Object.keys(subscription.google).length > 0;
+    return subscription.google.length > 0;
   }
 
   export function setAppleReceipt(dispatch: IDispatch, receipt: string): void {
@@ -91,14 +94,28 @@ export namespace Subscriptions {
               .p("storage")
               .p("subscription")
               .p("apple")
-              .record({ [validReceipt]: null }),
+              .recordModify((apple) => {
+                const existing = apple.find((r) => r.value === validReceipt);
+                if (existing) {
+                  return [existing];
+                } else {
+                  return [
+                    {
+                      vtype: "subscription_receipt",
+                      value: validReceipt,
+                      id: UidFactory.generateUid(6),
+                      createdAt: Date.now(),
+                    },
+                  ];
+                }
+              }),
           ],
           "Clean up outdated Apple receipts - leave only the valid one"
         );
       } else {
         updateState(
           dispatch,
-          [lb<IState>().p("storage").p("subscription").p("apple").record({})],
+          [lb<IState>().p("storage").p("subscription").p("apple").record([])],
           "Clean up outdated Apple receipts - remove all"
         );
       }
@@ -112,11 +129,11 @@ export namespace Subscriptions {
     subscription: ISubscription
   ): Promise<void> {
     return Promise.all(
-      Object.keys(subscription.google).map<Promise<[string, boolean]>>(async (key) => {
-        return [key, await Subscriptions.verifyGooglePurchaseToken(service, userId, key)];
+      subscription.google.map<Promise<[string, boolean]>>(async (token) => {
+        return [token.id, await Subscriptions.verifyGooglePurchaseToken(service, userId, token.value)];
       })
     ).then((results) => {
-      for (const [key, result] of results) {
+      for (const [id, result] of results) {
         if (!result) {
           updateState(dispatch, [
             lb<IState>()
@@ -124,9 +141,7 @@ export namespace Subscriptions {
               .p("subscription")
               .p("google")
               .recordModify((r) => {
-                const copy = { ...r };
-                delete copy[key];
-                return copy;
+                return CollectionUtils.removeBy([...r], "id", id);
               }),
           ]);
         }

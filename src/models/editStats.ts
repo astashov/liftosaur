@@ -63,7 +63,7 @@ export namespace EditStats {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
                 memo[key] = [
-                  { type: "weight", value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
+                  { vtype: "stat", type: "weight", value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
                   ...(memo[key] || []),
                 ];
                 return memo;
@@ -87,7 +87,7 @@ export namespace EditStats {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
                 memo[key] = [
-                  { type: "length", value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
+                  { vtype: "stat", type: "length", value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
                   ...(memo[key] || []),
                 ];
                 return memo;
@@ -114,7 +114,13 @@ export namespace EditStats {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
                 memo[key] = [
-                  { type: "percentage", value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
+                  {
+                    vtype: "stat",
+                    type: "percentage",
+                    value: payload[key]!,
+                    timestamp: Date.now(),
+                    updatedAt: Date.now(),
+                  },
                   ...(memo[key] || []),
                 ];
                 return memo;
@@ -343,6 +349,7 @@ export namespace EditStats {
       }
       if (d.type === "bodyweight") {
         weightValues.push({
+          vtype: "stat",
           type: "weight",
           value: Weight.roundTo005(Weight.convertTo(d.value as IWeight, settings.units)),
           timestamp: d.timestamp,
@@ -351,6 +358,7 @@ export namespace EditStats {
         });
       } else if (d.type === "bodyfat") {
         bodyfatValues.push({
+          vtype: "stat",
           type: "percentage",
           value: d.value as IPercentage,
           timestamp: d.timestamp,
@@ -359,6 +367,7 @@ export namespace EditStats {
         });
       } else if (d.type === "waist") {
         waistValues.push({
+          vtype: "stat",
           type: "length",
           value: Length.convertTo(d.value as ILength, settings.lengthUnits),
           timestamp: d.timestamp,

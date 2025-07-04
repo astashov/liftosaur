@@ -396,7 +396,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      if (oldState.storage.subscription.google !== newState.storage.subscription.google) {
+      if (!ObjectUtils.isEqual(oldState.storage.subscription.google, newState.storage.subscription.google)) {
         const userId = newState.user?.id || newState.storage.tempUserId;
         Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, env.service, newState.storage.subscription);
       }

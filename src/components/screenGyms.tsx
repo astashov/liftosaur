@@ -46,7 +46,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                   .p("gyms")
                   .recordModify((oldGyms) => {
                     const id = `gym-${UidFactory.generateUid(8)}`;
-                    return [...oldGyms, { type: "gym", id, name, equipment: Settings.defaultEquipment() }];
+                    return [...oldGyms, { vtype: "gym", id, name, equipment: Settings.defaultEquipment() }];
                   }),
               ]);
             }

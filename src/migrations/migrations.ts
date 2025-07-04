@@ -169,4 +169,75 @@ export const migrations = {
     }
     return storage;
   },
+  "20250704123128_add_vtypes_and_restructure_subscriptions": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    if (storage.subscription) {
+      if (!Array.isArray(storage.subscription.apple)) {
+        storage.subscription.apple = ObjectUtils.keys(storage.subscription.apple as Record<string, null>).map(
+          (key) => ({
+            vtype: "subscription_receipt",
+            value: key,
+            id: UidFactory.generateUid(6),
+            createdAt: Date.now(),
+          })
+        );
+      }
+      if (!Array.isArray(storage.subscription.google)) {
+        storage.subscription.google = ObjectUtils.keys(storage.subscription.google as Record<string, null>).map(
+          (key) => ({
+            vtype: "subscription_receipt",
+            value: key,
+            id: UidFactory.generateUid(6),
+            createdAt: Date.now(),
+          })
+        );
+      }
+    }
+
+    for (const program of storage.programs) {
+      program.vtype = program.vtype ?? "program";
+      if (program.planner) {
+        program.planner.vtype = program.planner.vtype ?? "planner";
+      }
+    }
+    for (const record of storage.history) {
+      record.vtype = record.vtype ?? "history_record";
+    }
+    for (const key of ObjectUtils.keys(storage.stats?.weight || {})) {
+      for (const record of storage.stats?.weight[key] || []) {
+        record.vtype = record.vtype ?? "stat";
+      }
+    }
+    for (const key of ObjectUtils.keys(storage.stats?.length || {})) {
+      for (const record of storage.stats?.length[key] || []) {
+        record.vtype = record.vtype ?? "stat";
+      }
+    }
+    for (const key of ObjectUtils.keys(storage.stats?.percentage || {})) {
+      for (const record of storage.stats?.percentage[key] || []) {
+        record.vtype = record.vtype ?? "stat";
+      }
+    }
+    for (const gym of storage.settings.gyms) {
+      gym.vtype = gym.vtype ?? "gym";
+      for (const equipment of ObjectUtils.values(gym.equipment)) {
+        if (equipment) {
+          equipment.vtype = equipment.vtype ?? "equipment_data";
+        }
+      }
+    }
+    for (const exercise of ObjectUtils.values(storage.settings.exercises)) {
+      if (exercise) {
+        exercise.vtype = exercise.vtype ?? "custom_exercise";
+      }
+    }
+    for (const graph of storage.settings.graphs) {
+      graph.vtype = graph.vtype ?? "graph";
+    }
+
+    return storage;
+  },
 };

@@ -23,7 +23,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
     exercises: { ...defaultSettings.exercises, ...(props.exportedProgram?.customExercises || {}) },
   };
   const program = props.exportedProgram?.program || {
-    type: "program",
+    vtype: "program",
     id: UidFactory.generateUid(8),
     name: "My Program",
     url: "",

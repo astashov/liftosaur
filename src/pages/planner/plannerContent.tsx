@@ -107,7 +107,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   };
 
   const initialPlanner: IPlannerProgram = props.initialProgram?.program?.planner || {
-    type: "planner",
+    vtype: "planner",
     name: "My Program",
     weeks: [initialWeek],
   };
@@ -566,7 +566,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               }
               if (state.fulltext) {
                 const newPlanner: IPlannerProgram = {
-                  type: "planner",
+                  vtype: "planner",
                   name: state.current.program.name,
                   weeks: PlannerProgram.evaluateText(state.fulltext.text),
                 };

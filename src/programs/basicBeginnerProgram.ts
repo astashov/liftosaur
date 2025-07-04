@@ -1,7 +1,7 @@
 import { IProgram } from "../types";
 
 export const basicBeginnerProgram: IProgram = {
-  type: "program",
+  vtype: "program",
   weeks: [],
   author: "/r/fitness",
   clonedAt: 1708563096401,
@@ -15,7 +15,7 @@ export const basicBeginnerProgram: IProgram = {
   days: [],
   id: "basicBeginner",
   planner: {
-    type: "planner",
+    vtype: "planner",
     name: "Basic Beginner Routine",
     weeks: [
       {

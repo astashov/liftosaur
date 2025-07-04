@@ -9,7 +9,6 @@ import { ISubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
 import { ISubscription } from "../../src/types";
 import { FreeUserDao } from "../dao/freeUserDao";
 import { IDI } from "./di";
-import { ObjectUtils } from "../../src/utils/object";
 
 interface IVerifyGoogleProductTokenSuccess {
   purchaseTimeMillis: number;
@@ -110,15 +109,15 @@ export class Subscriptions {
       }
     }
     if (subscription.apple) {
-      for (const receipt of ObjectUtils.keys(subscription.apple)) {
-        if (await this.verifyAppleReceipt(receipt)) {
+      for (const receipt of subscription.apple) {
+        if (await this.verifyAppleReceipt(receipt.value)) {
           return true;
         }
       }
     }
     if (subscription.google) {
-      for (const receipt of ObjectUtils.keys(subscription.google)) {
-        if (await this.verifyGooglePurchaseToken(receipt)) {
+      for (const receipt of subscription.google) {
+        if (await this.verifyGooglePurchaseToken(receipt.value)) {
           return true;
         }
       }

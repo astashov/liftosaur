@@ -90,7 +90,7 @@ describe("VersionTracker", () => {
   describe("array handling", () => {
     it("should track versions for array items with IDs", () => {
       const program1: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         clonedAt: 1,
         name: "Program 1",
@@ -136,7 +136,7 @@ describe("VersionTracker", () => {
 
     it("should track version changes for existing array items", () => {
       const program1: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         clonedAt: 1,
         name: "Program 1",
@@ -178,7 +178,7 @@ describe("VersionTracker", () => {
 
     it("should track deleted items in arrays", () => {
       const program1: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         name: "Program 1",
         description: "",
@@ -223,7 +223,7 @@ describe("VersionTracker", () => {
 
     it("should handle empty arrays", () => {
       const program: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         clonedAt: 1,
         name: "Program 1",
@@ -262,7 +262,7 @@ describe("VersionTracker", () => {
   describe("atomic object handling", () => {
     it("should version atomic objects as a whole", () => {
       const historyRecord: IHistoryRecord = {
-        type: "history_record",
+        vtype: "history_record",
         id: 1,
         date: "2023-01-01",
         programId: "prog1",
@@ -293,7 +293,7 @@ describe("VersionTracker", () => {
 
     it("should track atomic object field changes", () => {
       const customExercise: ICustomExercise = {
-        type: "custom_exercise",
+        vtype: "custom_exercise",
         id: "custom1",
         name: "Custom Exercise",
         isDeleted: false,
@@ -338,7 +338,7 @@ describe("VersionTracker", () => {
   describe("controlled object handling", () => {
     it("should version only specific fields for controlled objects", () => {
       const program: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         name: "Program 1",
         description: "Description",
@@ -383,7 +383,7 @@ describe("VersionTracker", () => {
 
     it("should track multiple controlled fields", () => {
       const program: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         clonedAt: 1,
         name: "Program 1",
@@ -399,7 +399,7 @@ describe("VersionTracker", () => {
       };
 
       const plannerProgram: IPlannerProgram = {
-        type: "planner",
+        vtype: "planner",
         name: "Planner",
         weeks: [],
       };
@@ -437,14 +437,14 @@ describe("VersionTracker", () => {
 
     it("should handle controlled objects in collections", () => {
       const gym1: IGym = {
-        type: "gym",
+        vtype: "gym",
         id: "gym1",
         name: "Gym 1",
         equipment: {},
       };
 
       const gym2: IGym = {
-        type: "gym",
+        vtype: "gym",
         id: "gym2",
         name: "Gym 2",
         equipment: {},
@@ -482,7 +482,7 @@ describe("VersionTracker", () => {
   describe("dictionary handling", () => {
     it("should handle dictionary fields like collections", () => {
       const exercise1: ICustomExercise = {
-        type: "custom_exercise",
+        vtype: "custom_exercise",
         id: "custom1",
         name: "Exercise 1",
         isDeleted: false,
@@ -494,7 +494,7 @@ describe("VersionTracker", () => {
       };
 
       const exercise2: ICustomExercise = {
-        type: "custom_exercise",
+        vtype: "custom_exercise",
         id: "custom2",
         name: "Exercise 2",
         isDeleted: false,
@@ -537,7 +537,7 @@ describe("VersionTracker", () => {
 
     it("should track deleted items in dictionaries", () => {
       const exercise1: ICustomExercise = {
-        type: "custom_exercise",
+        vtype: "custom_exercise",
         id: "ex1",
         name: "Exercise 1",
         isDeleted: false,
@@ -584,7 +584,7 @@ describe("VersionTracker", () => {
 
     it("should handle empty dictionaries", () => {
       const exercise: ICustomExercise = {
-        type: "custom_exercise",
+        vtype: "custom_exercise",
         id: "custom1",
         name: "Exercise 1",
         isDeleted: false,
@@ -625,7 +625,7 @@ describe("VersionTracker", () => {
 
     it("should track changes in dictionary items", () => {
       const equipment1: IEquipmentData = {
-        type: "equipment_data",
+        vtype: "equipment_data",
         bar: { lb: { value: 45, unit: "lb" }, kg: { value: 20, unit: "kg" } },
         multiplier: 1,
         plates: [],
@@ -639,7 +639,7 @@ describe("VersionTracker", () => {
       };
 
       const gym: IGym = {
-        type: "gym",
+        vtype: "gym",
         id: "gym1",
         name: "Gym 1",
         equipment: { barbell: equipment1 },
@@ -704,7 +704,7 @@ describe("VersionTracker", () => {
 
     it("should handle nested collections", () => {
       const equipment: IEquipmentData = {
-        type: "equipment_data",
+        vtype: "equipment_data",
         bar: { lb: { value: 45, unit: "lb" }, kg: { value: 20, unit: "kg" } },
         multiplier: 1,
         plates: [],
@@ -713,7 +713,7 @@ describe("VersionTracker", () => {
       };
 
       const gym: IGym = {
-        type: "gym",
+        vtype: "gym",
         id: "gym1",
         name: "Gym 1",
         equipment: { barbell: equipment },
@@ -767,7 +767,7 @@ describe("VersionTracker", () => {
 
     it("should not include collection fields when no items changed", () => {
       const program: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         name: "Program 1",
         description: "",
@@ -800,7 +800,7 @@ describe("VersionTracker", () => {
 
     it("should not include controlled object fields when no controlled fields changed", () => {
       const program: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         clonedAt: 1,
         name: "Program 1",
@@ -880,7 +880,7 @@ describe("VersionTracker", () => {
 
     it("should remove items from deleted when they are re-added", () => {
       const program1: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         name: "Program 1",
         description: "",
@@ -926,7 +926,7 @@ describe("VersionTracker", () => {
 
     it("should preserve collection structure when deleting all items from array", () => {
       const program1: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         name: "Program 1",
         description: "",
@@ -1085,7 +1085,7 @@ describe("VersionTracker", () => {
             ...oldStorage.settings,
             exercises: {
               ex1: {
-                type: "custom_exercise" as const,
+                vtype: "custom_exercise" as const,
                 id: "ex1",
                 name: "Exercise 1",
                 isDeleted: false,
@@ -1290,7 +1290,7 @@ describe("VersionTracker", () => {
 
     it("should extract entire controlled object when controlled field is in versions", () => {
       const program: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         name: "Updated Program",
         description: "Full description",
@@ -1325,7 +1325,7 @@ describe("VersionTracker", () => {
 
     it("should handle array collections", () => {
       const prog1: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         name: "Program 1",
         description: "",
@@ -1411,7 +1411,7 @@ describe("VersionTracker", () => {
       const obj = {
         programs: [
           {
-            type: "program",
+            vtype: "program",
             id: "prog1",
             clonedAt: 1,
             name: "Program 1",
@@ -1433,7 +1433,7 @@ describe("VersionTracker", () => {
 
       const extracted = versionTracker.extractByVersions(obj, versions);
       expect((extracted as any).programs[0]).to.include({
-        type: "program",
+        vtype: "program",
         id: "prog1",
         clonedAt: 1,
         name: "Program 1",
@@ -1458,7 +1458,7 @@ describe("VersionTracker", () => {
 
     it("should handle atomic objects", () => {
       const historyRecord: IHistoryRecord = {
-        type: "history_record",
+        vtype: "history_record",
         id: 123,
         date: "2024-01-01",
         programId: "prog1",
@@ -1568,7 +1568,7 @@ describe("VersionTracker", () => {
 
     it("should handle controlled objects", () => {
       const fullProgram: IProgram = {
-        type: "program",
+        vtype: "program",
         id: "prog1",
         name: "Old Program",
         description: "Old Description",
@@ -1613,10 +1613,10 @@ describe("VersionTracker", () => {
     });
 
     it("should merge array collections", () => {
-      const prog1 = { type: "program", id: "prog1", clonedAt: 1, name: "Program 1" };
-      const prog2 = { type: "program", id: "prog2", clonedAt: 2, name: "Program 2" };
-      const prog3 = { type: "program", id: "prog3", clonedAt: 3, name: "Program 3" };
-      const prog2Updated = { type: "program", id: "prog2", clonedAt: 2, name: "Program 2 Updated" };
+      const prog1 = { vtype: "program", id: "prog1", clonedAt: 1, name: "Program 1" };
+      const prog2 = { vtype: "program", id: "prog2", clonedAt: 2, name: "Program 2" };
+      const prog3 = { vtype: "program", id: "prog3", clonedAt: 3, name: "Program 3" };
+      const prog2Updated = { vtype: "program", id: "prog2", clonedAt: 2, name: "Program 2 Updated" };
 
       const fullObj = {
         programs: [prog1, prog2, prog3],
@@ -1820,7 +1820,7 @@ describe("VersionTracker", () => {
 
     it("should handle atomic objects in collections", () => {
       const record1: IHistoryRecord = {
-        type: "history_record",
+        vtype: "history_record",
         id: 1,
         date: "2024-01-01",
         programId: "prog1",

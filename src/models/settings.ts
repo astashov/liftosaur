@@ -19,7 +19,7 @@ export namespace Settings {
   export function defaultEquipment(): IAllEquipment {
     return {
       barbell: {
-        type: "equipment_data",
+        vtype: "equipment_data",
         multiplier: 2,
         bar: {
           lb: Weight.build(45, "lb"),
@@ -43,7 +43,7 @@ export namespace Settings {
         isFixed: false,
       },
       trapbar: {
-        type: "equipment_data",
+        vtype: "equipment_data",
         multiplier: 2,
         bar: {
           lb: Weight.build(45, "lb"),
@@ -67,7 +67,7 @@ export namespace Settings {
         isFixed: false,
       },
       leverageMachine: {
-        type: "equipment_data",
+        vtype: "equipment_data",
         multiplier: 1,
         bar: {
           lb: Weight.build(0, "lb"),
@@ -91,7 +91,7 @@ export namespace Settings {
         isFixed: false,
       },
       smith: {
-        type: "equipment_data",
+        vtype: "equipment_data",
         multiplier: 2,
         bar: {
           lb: Weight.build(45, "lb"),
@@ -115,7 +115,7 @@ export namespace Settings {
         isFixed: false,
       },
       dumbbell: {
-        type: "equipment_data",
+        vtype: "equipment_data",
         multiplier: 2,
         bar: {
           lb: Weight.build(10, "lb"),
@@ -150,7 +150,7 @@ export namespace Settings {
         isFixed: false,
       },
       ezbar: {
-        type: "equipment_data",
+        vtype: "equipment_data",
         multiplier: 2,
         bar: {
           lb: Weight.build(20, "lb"),
@@ -174,7 +174,7 @@ export namespace Settings {
         isFixed: false,
       },
       cable: {
-        type: "equipment_data",
+        vtype: "equipment_data",
         multiplier: 1,
         bar: {
           lb: Weight.build(0, "lb"),
@@ -202,7 +202,7 @@ export namespace Settings {
         isFixed: false,
       },
       kettlebell: {
-        type: "equipment_data",
+        vtype: "equipment_data",
         multiplier: 1,
         bar: {
           lb: Weight.build(0, "lb"),
@@ -243,7 +243,7 @@ export namespace Settings {
       },
       gyms: [
         {
-          type: "gym",
+          vtype: "gym",
           id: "default",
           name: "Main",
           equipment: defaultEquipment(),
