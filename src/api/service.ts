@@ -4,6 +4,7 @@ import { UrlUtils } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
 import { IExportedProgram } from "../models/program";
 import { CollectionUtils } from "../utils/collection";
+import { Encoder } from "../utils/encoder";
 
 export interface IGetStorageResponse {
   email: string;
@@ -230,9 +231,12 @@ export class Service {
     if (args.tempUserId) {
       url.searchParams.set("tempuserid", args.tempUserId);
     }
+    const body = JSON.stringify({ storageUpdate: args.storageUpdate, timestamp: Date.now(), historylimit: 20 });
+    const compressedBody = await Encoder.encode(body);
+    const payload = JSON.stringify({ data: compressedBody });
     const result = await this.client(url.toString(), {
       method: "POST",
-      body: JSON.stringify({ storageUpdate: args.storageUpdate, timestamp: Date.now(), historylimit: 20 }),
+      body: payload,
       credentials: "include",
     });
     const json: IPostSyncResponse = await result.json();

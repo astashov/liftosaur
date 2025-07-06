@@ -209,21 +209,21 @@ export class UserDao {
     for (const type of ObjectUtils.keys(stats.weight || {})) {
       for (const stat of stats.weight[type] || []) {
         if (deletedVersionsStats.indexOf(stat.timestamp) === -1) {
-          statsDb.push({ ...stat, name: `${stat.timestamp}_${type}` });
+          statsDb.push({ ...stat, type: "weight", name: `${stat.timestamp}_${type}` });
         }
       }
     }
     for (const type of ObjectUtils.keys(stats.length || {})) {
       for (const stat of stats.length[type] || []) {
         if (deletedVersionsStats.indexOf(stat.timestamp) === -1) {
-          statsDb.push({ ...stat, name: `${stat.timestamp}_${type}` });
+          statsDb.push({ ...stat, type: "length", name: `${stat.timestamp}_${type}` });
         }
       }
     }
     for (const type of ObjectUtils.keys(stats.percentage || {})) {
       for (const stat of stats.percentage[type] || []) {
         if (deletedVersionsStats.indexOf(stat.timestamp) === -1) {
-          statsDb.push({ ...stat, name: `${stat.timestamp}_${type}` });
+          statsDb.push({ ...stat, type: "percentage", name: `${stat.timestamp}_${type}` });
         }
       }
     }
@@ -939,7 +939,6 @@ function convertStatsFromDb(statsDb: IStatDb[]): IStats {
         timestamp: statDb.timestamp,
         updatedAt: statDb.timestamp,
         value: statDb.value as any,
-        type: statDb.type,
         vtype: "stat",
       };
       memo[type][name]!.push(stat);

@@ -205,7 +205,9 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
 }) => {
   const { event, di } = payload;
   let setCookie: string | undefined = undefined;
-  const bodyJson = getBodyJson(event);
+  const compressedBodyJson = getBodyJson(event);
+  const bodyJsonStr = await NodeEncoder.decode(compressedBodyJson.data);
+  const bodyJson = JSON.parse(bodyJsonStr);
   const timestamp = bodyJson.timestamp || Date.now();
   const storageUpdate = bodyJson.storageUpdate as IStorageUpdate2;
   const historylimit = bodyJson.historylimit as number | undefined;

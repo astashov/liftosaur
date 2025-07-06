@@ -847,9 +847,11 @@ export namespace Thunk {
               dispatch({ type: "ReplaceState", state: newState });
               dispatch(Thunk.fetchInitial());
             } else {
+              console.error("Failed to switch account, error:", result.error);
               alert(`Error while trying to switch the account: ${result.error}`);
             }
           } else {
+            console.error("Error while trying to switch the account: missing account", id);
             alert(`Error while trying to switch the account: missing account ${id}`);
           }
         })

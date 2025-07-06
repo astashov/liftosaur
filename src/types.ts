@@ -861,7 +861,7 @@ export type ILength = t.TypeOf<typeof TLength>;
 
 export const TStatsWeightValue = t.intersection(
   [
-    t.interface({ vtype: t.literal("stat"), type: t.literal("weight"), value: TWeight, timestamp: t.number }),
+    t.interface({ vtype: t.literal("stat"), value: TWeight, timestamp: t.number }),
     t.partial({ updatedAt: t.number, appleUuid: t.string }),
   ],
   "TStatsWeightValue"
@@ -876,7 +876,7 @@ export type IStatsWeight = t.TypeOf<typeof TStatsWeight>;
 
 export const TStatsLengthValue = t.intersection(
   [
-    t.interface({ vtype: t.literal("stat"), type: t.literal("length"), value: TLength, timestamp: t.number }),
+    t.interface({ vtype: t.literal("stat"), value: TLength, timestamp: t.number }),
     t.partial({ updatedAt: t.number, appleUuid: t.string }),
   ],
   "TStatsLengthValue"
@@ -903,7 +903,7 @@ export type IStatsLength = t.TypeOf<typeof TStatsLength>;
 
 export const TStatsPercentageValue = t.intersection(
   [
-    t.interface({ vtype: t.literal("stat"), type: t.literal("percentage"), value: TPercentage, timestamp: t.number }),
+    t.interface({ vtype: t.literal("stat"), value: TPercentage, timestamp: t.number }),
     t.partial({ updatedAt: t.number, appleUuid: t.string }),
   ],
   "TStatsPercentageValue"
@@ -1171,6 +1171,7 @@ export const TSubscriptionReceipt = t.type({
   value: t.string,
   createdAt: t.number,
 });
+export type ISubscriptionReceipt = t.TypeOf<typeof TSubscriptionReceipt>;
 
 export const TSubscription = t.intersection([
   t.interface({

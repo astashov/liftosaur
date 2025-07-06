@@ -1,7 +1,7 @@
 import "mocha";
 import { expect } from "chai";
 import { VersionTracker, IVersions, ICollectionVersions, IVersionTypes } from "../src/models/versionTracker";
-import { IAtomicType, IControlledType, STORAGE_VERSION_TYPES } from "../src/types";
+import { IAtomicType, IControlledType, ISubscriptionReceipt, STORAGE_VERSION_TYPES } from "../src/types";
 import { Storage } from "../src/models/storage";
 import { Settings } from "../src/models/settings";
 import {
@@ -2265,8 +2265,8 @@ describe("VersionTracker", () => {
       const tracker = new VersionTracker(versionTypes);
 
       const now = Date.now();
-      const oldTimestamp = now - (20 * 24 * 60 * 60 * 1000); // 20 days ago
-      const recentTimestamp = now - (5 * 24 * 60 * 60 * 1000); // 5 days ago
+      const oldTimestamp = now - 20 * 24 * 60 * 60 * 1000; // 20 days ago
+      const recentTimestamp = now - 5 * 24 * 60 * 60 * 1000; // 5 days ago
 
       // Simulate existing versions with old and recent tombstones
       const currentVersions: IVersions<IStorage> = {
@@ -2317,14 +2317,14 @@ describe("VersionTracker", () => {
       const tracker = new VersionTracker(versionTypes);
 
       const now = Date.now();
-      const oldTimestamp = now - (20 * 24 * 60 * 60 * 1000); // 20 days ago
+      const oldTimestamp = now - 20 * 24 * 60 * 60 * 1000; // 20 days ago
 
       // Current versions with an old tombstone
       const currentVersions: IVersions<IStorage> = {
         subscription: {
           google: {
             items: {
-              "current-receipt": now - (1 * 24 * 60 * 60 * 1000),
+              "current-receipt": now - 1 * 24 * 60 * 60 * 1000,
             },
             deleted: {
               "old-receipt": oldTimestamp,
