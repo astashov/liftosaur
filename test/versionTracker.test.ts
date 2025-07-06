@@ -1,7 +1,7 @@
 import "mocha";
 import { expect } from "chai";
-import { VersionTracker, IVersions, ICollectionVersions } from "../src/models/versionTracker";
-import { STORAGE_VERSION_TYPES } from "../src/types";
+import { VersionTracker, IVersions, ICollectionVersions, IVersionTypes } from "../src/models/versionTracker";
+import { IAtomicType, IControlledType, STORAGE_VERSION_TYPES } from "../src/types";
 import { Storage } from "../src/models/storage";
 import { Settings } from "../src/models/settings";
 import {
@@ -1505,9 +1505,9 @@ describe("VersionTracker", () => {
       };
 
       const versionDiff: IVersions<any> = {
-        name: 5000, // Newer
-        age: 1500, // Older
-        email: 4000, // Newer
+        name: 5000,
+        age: 1500,
+        email: 4000,
       };
 
       const extractedObj = {
@@ -1519,9 +1519,9 @@ describe("VersionTracker", () => {
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
 
       expect(merged).to.deep.equal({
-        name: "Jane", // Newer version wins
-        age: 30, // Older version loses
-        email: "jane@new.com", // Newer version wins
+        name: "Jane",
+        age: 30,
+        email: "jane@new.com",
       });
     });
 
@@ -1544,8 +1544,8 @@ describe("VersionTracker", () => {
 
       const versionDiff: IVersions<any> = {
         settings: {
-          theme: 4000, // Newer
-          language: 1500, // Older
+          theme: 4000,
+          language: 1500,
         },
       };
 
@@ -1560,9 +1560,9 @@ describe("VersionTracker", () => {
 
       expect(merged).to.deep.equal({
         settings: {
-          theme: "light", // Newer
-          language: "en", // Older, keep original
-          volume: 50, // Not in diff, keep original
+          theme: "light",
+          language: "en",
+          volume: 50,
         },
       });
     });
@@ -1600,8 +1600,8 @@ describe("VersionTracker", () => {
 
       const versionDiff: IVersions<any> = {
         program: {
-          name: 3000, // Newer
-          nextDay: 1500, // Older
+          name: 3000,
+          nextDay: 1500,
         },
       };
 
@@ -1609,7 +1609,6 @@ describe("VersionTracker", () => {
 
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
 
-      // Since name is newer, the entire controlled object should be taken
       expect(merged.program).to.deep.equal(extractedProgram);
     });
 
@@ -1636,10 +1635,10 @@ describe("VersionTracker", () => {
       const versionDiff: IVersions<any> = {
         programs: {
           items: {
-            "2": 4000, // Newer
+            "2": 4000,
           },
           deleted: {
-            "3": 5000, // Deleted
+            "3": 5000,
           },
         },
       };
@@ -1651,9 +1650,8 @@ describe("VersionTracker", () => {
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
 
       expect(merged.programs).to.have.length(2);
-      expect(merged.programs).to.deep.include(prog1); // Unchanged
-      expect(merged.programs).to.deep.include(prog2Updated); // Updated
-      // prog3 should be removed (deleted)
+      expect(merged.programs).to.deep.include(prog1);
+      expect(merged.programs).to.deep.include(prog2Updated);
     });
 
     it("should merge dictionary collections", () => {
@@ -1683,11 +1681,11 @@ describe("VersionTracker", () => {
         settings: {
           exercises: {
             items: {
-              "bench-press": 4000, // Newer
-              "overhead-press": 5000, // New
+              "bench-press": 4000,
+              "overhead-press": 5000,
             },
             deleted: {
-              deadlift: 6000, // Deleted
+              deadlift: 6000,
             },
           },
         },
@@ -1705,10 +1703,9 @@ describe("VersionTracker", () => {
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
 
       expect(merged.settings.exercises).to.deep.equal({
-        "bench-press": { rm1: 120 }, // Updated
-        squat: { rm1: 150 }, // Unchanged
-        "overhead-press": { rm1: 80 }, // Added
-        // deadlift removed
+        "bench-press": { rm1: 120 },
+        squat: { rm1: 150 },
+        "overhead-press": { rm1: 80 },
       });
     });
 
@@ -1720,7 +1717,6 @@ describe("VersionTracker", () => {
 
       const fullVersions: IVersions<any> = {
         name: 1000,
-        // newField has no version
       };
 
       const versionDiff: IVersions<any> = {
@@ -1735,7 +1731,7 @@ describe("VersionTracker", () => {
 
       expect(merged).to.deep.equal({
         name: "John",
-        newField: "new value", // Should take extracted since full has no version
+        newField: "new value",
       });
     });
 
@@ -1780,12 +1776,12 @@ describe("VersionTracker", () => {
         users: {
           user1: {
             settings: {
-              theme: 5000, // Newer
+              theme: 5000,
             },
           },
           user2: {
             settings: {
-              notifications: 3500, // Older
+              notifications: 3500,
             },
           },
         },
@@ -1809,13 +1805,13 @@ describe("VersionTracker", () => {
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
 
       expect(merged.users.user1.settings).to.deep.equal({
-        theme: "blue", // Updated
-        notifications: true, // Kept original
+        theme: "blue",
+        notifications: true,
       });
 
       expect(merged.users.user2.settings).to.deep.equal({
-        theme: "light", // Kept original
-        notifications: false, // Kept original (older version)
+        theme: "light",
+        notifications: false,
       });
     });
 
@@ -1846,7 +1842,7 @@ describe("VersionTracker", () => {
       const fullVersions: IVersions<any> = {
         history: {
           items: {
-            1: 1000, // Atomic object timestamp
+            1: 1000,
           },
         },
       };
@@ -1854,7 +1850,7 @@ describe("VersionTracker", () => {
       const versionDiff: IVersions<any> = {
         history: {
           items: {
-            1: 2000, // Newer
+            1: 2000,
           },
         },
       };
@@ -1865,7 +1861,6 @@ describe("VersionTracker", () => {
 
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
 
-      // Entire atomic object should be replaced
       expect(merged.history[0]).to.deep.equal(record1Updated);
     });
   });
@@ -1879,18 +1874,18 @@ describe("VersionTracker", () => {
       };
 
       const versionDiff: IVersions<any> = {
-        name: 500, // Older
-        age: 2500, // Newer
-        phone: 4000, // New field
+        name: 500,
+        age: 2500,
+        phone: 4000,
       };
 
       const merged = versionTracker.mergeVersions(fullVersions, versionDiff);
 
       expect(merged).to.deep.equal({
-        name: 1000, // Kept higher value
-        age: 2500, // Updated to higher value
-        email: 3000, // Unchanged
-        phone: 4000, // Added new field
+        name: 1000,
+        age: 2500,
+        email: 3000,
+        phone: 4000,
       });
     });
 
@@ -1907,12 +1902,12 @@ describe("VersionTracker", () => {
 
       const versionDiff: IVersions<any> = {
         settings: {
-          theme: 1500, // Newer
-          volume: 2500, // New field
+          theme: 1500,
+          volume: 2500,
         },
         profile: {
-          name: 2500, // Older
-          avatar: 4000, // New field
+          name: 2500,
+          avatar: 4000,
         },
       };
 
@@ -1920,13 +1915,13 @@ describe("VersionTracker", () => {
 
       expect(merged).to.deep.equal({
         settings: {
-          theme: 1500, // Updated
-          language: 2000, // Kept from full
-          volume: 2500, // Added
+          theme: 1500,
+          language: 2000,
+          volume: 2500,
         },
         profile: {
-          name: 3000, // Kept higher value
-          avatar: 4000, // Added
+          name: 3000,
+          avatar: 4000,
         },
       });
     });
@@ -1947,13 +1942,13 @@ describe("VersionTracker", () => {
       const versionDiff: IVersions<any> = {
         programs: {
           items: {
-            prog1: 1500, // Newer
-            prog2: 1800, // Older
-            prog4: 4000, // New
+            prog1: 1500,
+            prog2: 1800,
+            prog4: 4000,
           },
           deleted: {
-            prog3: 2500, // Older deletion
-            prog5: 5000, // New deletion
+            prog3: 2500,
+            prog5: 5000,
           },
         },
       };
@@ -1963,13 +1958,13 @@ describe("VersionTracker", () => {
       expect(merged).to.deep.equal({
         programs: {
           items: {
-            prog1: 1500, // Updated
-            prog2: 2000, // Kept higher
-            prog4: 4000, // Added
+            prog1: 1500,
+            prog2: 2000,
+            prog4: 4000,
           },
           deleted: {
-            prog3: 3000, // Kept higher deletion time
-            prog5: 5000, // Added deletion
+            prog3: 3000,
+            prog5: 5000,
           },
         },
       });
@@ -1993,9 +1988,9 @@ describe("VersionTracker", () => {
           deleted: {},
           items: {
             prog1: {
-              name: 1500, // Newer
-              nextDay: 1800, // Older
-              planner: 3000, // New field
+              name: 1500,
+              nextDay: 1800,
+              planner: 3000,
             },
             prog2: {
               name: 4000,
@@ -2011,12 +2006,12 @@ describe("VersionTracker", () => {
           deleted: {},
           items: {
             prog1: {
-              name: 1500, // Updated
-              nextDay: 2000, // Kept higher
-              planner: 3000, // Added
+              name: 1500,
+              nextDay: 2000,
+              planner: 3000,
             },
             prog2: {
-              name: 4000, // Added
+              name: 4000,
             },
           },
         },
@@ -2075,9 +2070,9 @@ describe("VersionTracker", () => {
         level1: {
           level2: {
             level3: {
-              field1: 500, // Older
-              field2: 2500, // Newer
-              field3: 3000, // New
+              field1: 500,
+              field2: 2500,
+              field3: 3000,
             },
             newLevel3: {
               field4: 4000,
@@ -2092,12 +2087,12 @@ describe("VersionTracker", () => {
         level1: {
           level2: {
             level3: {
-              field1: 1000, // Kept higher
-              field2: 2500, // Updated
-              field3: 3000, // Added
+              field1: 1000,
+              field2: 2500,
+              field3: 3000,
             },
             newLevel3: {
-              field4: 4000, // Added
+              field4: 4000,
             },
           },
         },
@@ -2135,6 +2130,239 @@ describe("VersionTracker", () => {
           },
         },
       });
+    });
+  });
+
+  describe("tombstone compaction", () => {
+    it("should compact old tombstones when merging versions", () => {
+      const versionTypes: IVersionTypes<IAtomicType, IControlledType> = {
+        ...STORAGE_VERSION_TYPES,
+        compactionThresholds: {
+          "subscription.apple": 14 * 24 * 60 * 60 * 1000,
+          "subscription.google": 14 * 24 * 60 * 60 * 1000,
+        },
+      };
+      const tracker = new VersionTracker(versionTypes);
+
+      const now = Date.now();
+      const oldTimestamp = now - 15 * 24 * 60 * 60 * 1000;
+      const recentTimestamp = now - 5 * 24 * 60 * 60 * 1000;
+
+      const fullVersions: IVersions<IStorage> = {
+        subscription: {
+          apple: {
+            items: {},
+            deleted: {
+              "old-receipt": oldTimestamp,
+              "recent-receipt": recentTimestamp,
+            },
+          },
+        },
+      };
+
+      const versionDiff: IVersions<IStorage> = {
+        subscription: {
+          apple: {
+            items: {},
+            deleted: {},
+          },
+        },
+      };
+
+      const merged = tracker.mergeVersions(fullVersions, versionDiff);
+      const appleDeleted = (merged.subscription as any).apple.deleted;
+
+      expect(appleDeleted["old-receipt"]).to.be.undefined;
+
+      expect(appleDeleted["recent-receipt"]).to.equal(recentTimestamp);
+    });
+
+    it("should keep tombstones when no threshold is configured", () => {
+      const versionTypes: IVersionTypes<IAtomicType, IControlledType> = {
+        ...STORAGE_VERSION_TYPES,
+        compactionThresholds: undefined,
+      };
+      const tracker = new VersionTracker(versionTypes);
+
+      const now = Date.now();
+      const oldTimestamp = now - 30 * 24 * 60 * 60 * 1000;
+
+      const fullVersions: IVersions<IStorage> = {
+        subscription: {
+          apple: {
+            items: {},
+            deleted: {
+              "old-receipt": oldTimestamp,
+            },
+          },
+        },
+      };
+
+      const versionDiff: IVersions<IStorage> = {
+        subscription: {
+          apple: {
+            items: {},
+            deleted: {},
+          },
+        },
+      };
+
+      const merged = tracker.mergeVersions(fullVersions, versionDiff);
+      const appleDeleted = (merged.subscription as any).apple.deleted;
+
+      expect(appleDeleted["old-receipt"]).to.equal(oldTimestamp);
+    });
+
+    it("should handle merging new tombstones during compaction", () => {
+      const versionTypes: IVersionTypes<IAtomicType, IControlledType> = {
+        ...STORAGE_VERSION_TYPES,
+        compactionThresholds: {
+          "subscription.google": 14 * 24 * 60 * 60 * 1000,
+        },
+      };
+      const tracker = new VersionTracker(versionTypes);
+
+      const now = Date.now();
+      const oldTimestamp = now - 20 * 24 * 60 * 60 * 1000;
+      const newTimestamp = now - 2 * 24 * 60 * 60 * 1000;
+
+      const fullVersions: IVersions<IStorage> = {
+        subscription: {
+          google: {
+            items: {},
+            deleted: {
+              "old-receipt": oldTimestamp,
+            },
+          },
+        },
+      };
+
+      const versionDiff: IVersions<IStorage> = {
+        subscription: {
+          google: {
+            items: {},
+            deleted: {
+              "new-receipt": newTimestamp,
+            },
+          },
+        },
+      };
+
+      const merged = tracker.mergeVersions(fullVersions, versionDiff);
+      const googleDeleted = (merged.subscription as any).google.deleted;
+
+      expect(googleDeleted["old-receipt"]).to.be.undefined;
+      expect(googleDeleted["new-receipt"]).to.equal(newTimestamp);
+    });
+
+    it("should compact old tombstones during updateVersions when field changes", () => {
+      const versionTypes: IVersionTypes<IAtomicType, IControlledType> = {
+        ...STORAGE_VERSION_TYPES,
+        compactionThresholds: {
+          "subscription.apple": 14 * 24 * 60 * 60 * 1000, // 14 days
+        },
+      };
+      const tracker = new VersionTracker(versionTypes);
+
+      const now = Date.now();
+      const oldTimestamp = now - (20 * 24 * 60 * 60 * 1000); // 20 days ago
+      const recentTimestamp = now - (5 * 24 * 60 * 60 * 1000); // 5 days ago
+
+      // Simulate existing versions with old and recent tombstones
+      const currentVersions: IVersions<IStorage> = {
+        subscription: {
+          apple: {
+            items: {},
+            deleted: {
+              "old-receipt": oldTimestamp,
+              "recent-receipt": recentTimestamp,
+            },
+          },
+        },
+      };
+
+      const receipt: ISubscriptionReceipt = {
+        vtype: "subscription_receipt",
+        id: "new-receipt",
+        value: "new-receipt-data",
+        createdAt: now,
+      };
+
+      const oldStorage = Storage.getDefault();
+      const newStorage = {
+        ...Storage.getDefault(),
+        subscription: {
+          ...Storage.getDefault().subscription,
+          apple: [receipt], // Add a new receipt to trigger field update
+        },
+      };
+
+      // Update versions with a change that affects the subscription field
+      const updatedVersions = tracker.updateVersions(oldStorage, newStorage, currentVersions, now);
+      const appleDeleted = (updatedVersions.subscription as any)?.apple?.deleted;
+
+      // Old tombstone should be removed during update
+      expect(appleDeleted["old-receipt"]).to.be.undefined;
+      // Recent tombstone should be kept
+      expect(appleDeleted["recent-receipt"]).to.equal(recentTimestamp);
+    });
+
+    it("should compact tombstones when items are deleted", () => {
+      const versionTypes: IVersionTypes<IAtomicType, IControlledType> = {
+        ...STORAGE_VERSION_TYPES,
+        compactionThresholds: {
+          "subscription.google": 14 * 24 * 60 * 60 * 1000, // 14 days
+        },
+      };
+      const tracker = new VersionTracker(versionTypes);
+
+      const now = Date.now();
+      const oldTimestamp = now - (20 * 24 * 60 * 60 * 1000); // 20 days ago
+
+      // Current versions with an old tombstone
+      const currentVersions: IVersions<IStorage> = {
+        subscription: {
+          google: {
+            items: {
+              "current-receipt": now - (1 * 24 * 60 * 60 * 1000),
+            },
+            deleted: {
+              "old-receipt": oldTimestamp,
+            },
+          },
+        },
+      };
+
+      const receipt: ISubscriptionReceipt = {
+        vtype: "subscription_receipt",
+        id: "current-receipt",
+        value: "receipt-data",
+        createdAt: now,
+      };
+
+      const oldStorage = {
+        ...Storage.getDefault(),
+        subscription: {
+          ...Storage.getDefault().subscription,
+          google: [receipt],
+        },
+      };
+
+      const newStorage = {
+        ...Storage.getDefault(),
+        subscription: {
+          ...Storage.getDefault().subscription,
+          google: [], // Deleted the receipt
+        },
+      };
+
+      const updatedVersions = tracker.updateVersions(oldStorage, newStorage, currentVersions, now);
+      const googleDeleted = (updatedVersions.subscription as any)?.google?.deleted;
+
+      // Old tombstone should be removed
+      expect(googleDeleted["old-receipt"]).to.be.undefined;
+      // New deletion should be tracked
+      expect(googleDeleted["current-receipt"]).to.equal(now);
     });
   });
 });

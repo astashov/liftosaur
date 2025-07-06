@@ -93,6 +93,7 @@ export interface IVersionTypes<TAtomicType extends string, TControlledType exten
   typeIdMapping: Record<TAtomicType | TControlledType, string>;
   controlledFields: Record<TControlledType, readonly string[]>;
   dictionaryFields: readonly string[];
+  compactionThresholds?: Record<string, number>; // path -> threshold in ms
 }
 
 export class VersionTracker<TAtomicType extends string, TControlledType extends string> {
@@ -228,7 +229,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           Object.keys(items).length > 0 ||
           (collectionVersions.deleted && Object.keys(collectionVersions.deleted).length > 0);
 
-        return hasChanges || currentVersion ? collectionVersions : undefined;
+        const compactedCollection = this.applyCompaction(collectionVersions, path, timestamp);
+        return hasChanges || currentVersion ? compactedCollection : undefined;
       } else {
         return timestamp;
       }
@@ -271,7 +273,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           Object.keys(items).length > 0 ||
           (collectionVersions.deleted && Object.keys(collectionVersions.deleted).length > 0);
 
-        return hasChanges || currentVersion ? collectionVersions : undefined;
+        const compactedCollection = this.applyCompaction(collectionVersions, path, timestamp);
+        return hasChanges || currentVersion ? compactedCollection : undefined;
       } else if (this.isControlledType(newValue)) {
         return this.updateControlledObjectVersion(oldValue, newValue, currentVersion, timestamp);
       } else if (this.isAtomicType(newValue)) {
@@ -813,7 +816,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       const fullVersion = result[key];
       const diffVersion = versionDiff[key];
 
-      const mergedVersion = this.mergeVersionField(fullVersion, diffVersion);
+      const mergedVersion = this.mergeVersionField(fullVersion, diffVersion, key);
       if (mergedVersion !== undefined) {
         (result as any)[key] = mergedVersion;
       }
@@ -824,7 +827,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
   private mergeVersionField(
     fullVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
-    diffVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined
+    diffVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    path: string = ""
   ): IVersions<unknown> | ICollectionVersions<unknown> | number | undefined {
     if (diffVersion === undefined) {
       return fullVersion;
@@ -841,7 +845,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     if (diffVersion && typeof diffVersion === "object" && "items" in diffVersion) {
       return this.mergeCollectionVersions(
         fullVersion as ICollectionVersions<unknown> | undefined,
-        diffVersion as ICollectionVersions<unknown>
+        diffVersion as ICollectionVersions<unknown>,
+        path
       );
     }
 
@@ -850,7 +855,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       const result: any = { ...fullObj };
 
       for (const key in diffVersion) {
-        const mergedField = this.mergeVersionField(fullObj[key], diffVersion[key]);
+        const mergedField = this.mergeVersionField(fullObj[key], diffVersion[key], path ? `${path}.${key}` : key);
         if (mergedField !== undefined) {
           result[key] = mergedField;
         }
@@ -864,7 +869,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
   private mergeCollectionVersions(
     fullCollection: ICollectionVersions<unknown> | undefined,
-    diffCollection: ICollectionVersions<unknown>
+    diffCollection: ICollectionVersions<unknown>,
+    path?: string
   ): ICollectionVersions<unknown> {
     const result: ICollectionVersions<unknown> = {
       items: { ...(fullCollection?.items || {}) },
@@ -881,13 +887,48 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       }
     }
 
+    const threshold =
+      path && this.versionTypes.compactionThresholds ? this.versionTypes.compactionThresholds[path] : undefined;
+    const currentTimestamp = Date.now();
+
     for (const key of ObjectUtils.keys(result.deleted || {})) {
       delete result.items[key];
       const fullDeletedTime = fullCollection?.deleted?.[key];
       const diffDeletedTime = diffCollection?.deleted?.[key];
       const max = (diffDeletedTime ?? 0) > (fullDeletedTime ?? 0) ? diffDeletedTime : fullDeletedTime;
+
       if (max != null) {
-        result.deleted![key] = max;
+        if (!threshold || currentTimestamp - max < threshold) {
+          result.deleted![key] = max;
+        } else {
+          delete result.deleted![key];
+        }
+      }
+    }
+
+    return result;
+  }
+
+  private applyCompaction(
+    collection: ICollectionVersions<unknown>,
+    path: string,
+    currentTimestamp: number
+  ): ICollectionVersions<unknown> {
+    const threshold =
+      path && this.versionTypes.compactionThresholds ? this.versionTypes.compactionThresholds[path] : undefined;
+
+    if (!threshold || !collection.deleted || Object.keys(collection.deleted).length === 0) {
+      return collection;
+    }
+
+    const result: ICollectionVersions<unknown> = {
+      items: collection.items,
+      deleted: {},
+    };
+
+    for (const [key, deletionTimestamp] of Object.entries(collection.deleted)) {
+      if (currentTimestamp - deletionTimestamp < threshold) {
+        result.deleted![key] = deletionTimestamp;
       }
     }
 

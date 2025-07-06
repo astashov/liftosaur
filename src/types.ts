@@ -1287,4 +1287,8 @@ export const STORAGE_VERSION_TYPES: IVersionTypes<IAtomicType, IControlledType> 
   typeIdMapping: TYPE_ID_MAPPING,
   controlledFields: CONTROLLED_FIELDS,
   dictionaryFields: DICTIONARY_FIELDS,
+  compactionThresholds: {
+    "subscription.apple": 14 * 24 * 60 * 60 * 1000, // 14 days
+    "subscription.google": 14 * 24 * 60 * 60 * 1000, // 14 days
+  },
 } as const;
