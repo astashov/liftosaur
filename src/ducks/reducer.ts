@@ -40,15 +40,12 @@ import { SendMessage } from "../utils/sendMessage";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgramUiHelpers } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
-import { VersionTracker } from "../models/versionTracker";
-import { STORAGE_VERSION_TYPES } from "../types";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
     ? !!UrlUtils.build(window.location.href).searchParams.get("log")
     : false;
 
-const storageVersionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
 const shouldSkipIntro =
   typeof window !== "undefined" && window?.location
     ? !!UrlUtils.build(window.location.href).searchParams.get("skipintro")
@@ -298,16 +295,8 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   return [
     (dispatch, action, oldState, newState) => {
       if (Storage.isChanged(oldState.storage, newState.storage)) {
-        const timestamp = Date.now();
-        const versions = storageVersionTracker.updateVersions(
-          oldState.storage,
-          newState.storage,
-          newState.storage._versions || {},
-          timestamp
-        );
-        if (versions !== newState.storage._versions) {
-          updateState(dispatch, [lb<IState>().p("storage").p("_versions").record(versions)], "versions");
-        }
+        const versions = Storage.updateVersions(oldState.storage, newState.storage);
+        updateState(dispatch, [lb<IState>().p("storage").p("_versions").record(versions)], "versions");
         dispatch(Thunk.sync2());
       }
     },

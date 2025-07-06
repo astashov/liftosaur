@@ -4,8 +4,6 @@ import { Storage } from "../../src/models/storage";
 import { Thunk } from "../../src/ducks/thunks";
 import { IGThunk, IReducerOnIGAction } from "../../src/ducks/types";
 import { IEnv, IState, updateState } from "../../src/models/state";
-import { VersionTracker } from "../../src/models/versionTracker";
-import { STORAGE_VERSION_TYPES } from "../../src/types";
 import { lb } from "lens-shmens";
 
 export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> {
@@ -25,17 +23,8 @@ export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> 
     return new MockReducer(reducerWrapper(true), state, env, [
       async (dispatch, action, oldState, newState) => {
         if (Storage.isChanged(oldState.storage, newState.storage)) {
-          const timestamp = Date.now();
-          const storageVersionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
-          const versions = storageVersionTracker.updateVersions(
-            oldState.storage,
-            newState.storage,
-            newState.storage._versions || {},
-            timestamp
-          );
-          if (versions !== newState.storage._versions) {
-            updateState(dispatch, [lb<IState>().p("storage").p("_versions").record(versions)], "versions");
-          }
+          const versions = Storage.updateVersions(oldState.storage, newState.storage);
+          updateState(dispatch, [lb<IState>().p("storage").p("_versions").record(versions)], "versions");
           await dispatch(Thunk.sync2());
         }
       },

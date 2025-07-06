@@ -9,7 +9,7 @@ import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import { Utils } from "./utils";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IPartialStorage, IProgram, IStorage, STORAGE_VERSION_TYPES } from "../src/types";
+import { IPartialStorage, IProgram, IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -50,6 +50,7 @@ import { ExceptionDao } from "./dao/exceptionDao";
 import { UrlUtils } from "../src/utils/url";
 import { RollbarUtils } from "../src/utils/rollbar";
 import { Account, IAccount } from "../src/models/account";
+import { Storage } from "../src/models/storage";
 import { renderProgramsListHtml } from "./programsList";
 import { renderMainHtml } from "./main";
 import { LftS3Buckets } from "./dao/buckets";
@@ -71,7 +72,7 @@ import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { UrlContentFetcher } from "./utils/urlContentFetcher";
 import { LlmPrompt } from "./utils/llms/llmPrompt";
 import { AiLogsDao } from "./dao/aiLogsDao";
-import { ICollectionVersions, VersionTracker } from "../src/models/versionTracker";
+import { ICollectionVersions } from "../src/models/versionTracker";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -682,8 +683,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       settings: Settings.applyExportedProgram(user.storage.settings, exportedProgram),
       originalId: Date.now(),
     };
-    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
-    const newVersions = versionTracker.updateVersions(oldStorage, newStorage, oldStorage._versions || {}, Date.now());
+    const newVersions = Storage.updateVersions(oldStorage, newStorage);
     newStorage._versions = newVersions;
     delete newStorage.programs;
     user.storage = newStorage;

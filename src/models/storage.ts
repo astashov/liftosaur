@@ -14,7 +14,7 @@ import { DateUtils } from "../utils/date";
 import { IStorageUpdate } from "../utils/sync";
 import { IStorage, TStorage, IPartialStorage, STORAGE_VERSION_TYPES } from "../types";
 import { CollectionUtils } from "../utils/collection";
-import { VersionTracker } from "./versionTracker";
+import { IVersions, VersionTracker } from "./versionTracker";
 
 declare let Rollbar: RB;
 
@@ -162,6 +162,14 @@ export namespace Storage {
         },
       };
     }
+  }
+
+  export function updateVersions(oldStorage: IPartialStorage, newStorage: IPartialStorage): IVersions<IStorage> {
+    const { id: oldId, originalId: oldOriginalId, _versions: oldVersions, ...oldCleanedStorage } = oldStorage;
+    const { id: newId, originalId: newOriginalId, _versions: newVersions, ...newCleanedStorage } = newStorage;
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const timestamp = Date.now();
+    return versionTracker.updateVersions(oldCleanedStorage, newCleanedStorage, oldStorage._versions || {}, timestamp);
   }
 
   export function mergeStorage(oldStorage: IStorage, newStorage: IStorage): IStorage {
