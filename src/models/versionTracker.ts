@@ -199,8 +199,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
             const oldItemId = this.getId(oldItem);
             if (oldItemId && !newValue.some((item) => this.getId(item) === oldItemId)) {
               collectionVersions.deleted = collectionVersions.deleted || {};
-              collectionVersions.deleted[oldItemId] = timestamp;
-              delete items[oldItemId];
+              // collectionVersions.deleted[oldItemId] = timestamp;
+              // delete items[oldItemId];
             }
           }
         }
@@ -249,8 +249,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           for (const key of ObjectUtils.keys(oldDict)) {
             if (!(key in newDict)) {
               collectionVersions.deleted = collectionVersions.deleted || {};
-              collectionVersions.deleted[key] = timestamp;
-              delete items[key];
+              // collectionVersions.deleted[key] = timestamp;
+              // delete items[key];
             }
           }
         }
@@ -448,7 +448,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         if (diffCollection.deleted && id in diffCollection.deleted) {
           continue;
         }
-        const oldItemVersion = oldCollection?.items[id];
+        const oldItemVersion = oldCollection?.items?.[id];
         const newItemVersion = newCollection.items[id];
 
         const itemDiff = this.diffFieldVersion(oldItemVersion, newItemVersion);
