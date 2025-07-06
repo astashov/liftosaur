@@ -147,7 +147,10 @@ export class UserDao {
     if (limitedUserStorage.version !== storageUpdate.version) {
       return { success: false, error: "outdated_client_storage" };
     }
-    if (Object.keys(storageUpdate.storage || {}).length === 0) {
+    if (
+      Object.keys(storageUpdate.storage || {}).length === 0 &&
+      Object.keys(storageUpdate.versions || {}).length === 0
+    ) {
       return { success: true, data: { originalId: storageUpdate.originalId || Date.now() } };
     }
     const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);

@@ -1223,6 +1223,7 @@ describe("VersionTracker", () => {
       const diff = versionTracker.diffVersions(oldVersions, newVersions);
       expect(diff).to.deep.equal({
         programs: {
+          deleted: {},
           items: {
             prog1: { name: 3000 },
           },

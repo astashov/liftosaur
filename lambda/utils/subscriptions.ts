@@ -139,10 +139,7 @@ export class Subscriptions {
     return this.verifyAppleReceiptJson(appleReceipt, json);
   }
 
-  public async verifyAppleReceiptJson(
-    appleReceipt: string,
-    json: IVerifyAppleReceiptResponse
-  ): Promise<string | undefined | null> {
+  public verifyAppleReceiptJson(appleReceipt: string, json: IVerifyAppleReceiptResponse): string | undefined | null {
     try {
       const products = [
         "com.liftosaur.subscription.ios_montly",
@@ -195,10 +192,10 @@ export class Subscriptions {
     }
   }
 
-  public async getAppleVerificationInfo(
+  public getAppleVerificationInfo(
     userId: string,
     json: IVerifyAppleReceiptResponse
-  ): Promise<ISubscriptionDetailsDao | undefined> {
+  ): ISubscriptionDetailsDao | undefined {
     try {
       const latestReceipt = CollectionUtils.sort(
         json.latest_receipt_info || [],

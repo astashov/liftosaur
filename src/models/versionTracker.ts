@@ -76,6 +76,7 @@
  * ```
  */
 import { ObjectUtils } from "../utils/object";
+import { SetUtils } from "../utils/setUtils";
 
 export interface IVersions<T> {
   [key: string]: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined;
@@ -434,7 +435,16 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       let hasChanges = false;
 
       const newCollection = newVersion as ICollectionVersions<unknown>;
+      const oldDeletedKeys = new Set(Object.keys(oldCollection?.deleted || {}));
+      const newDeletedKeys = new Set(Object.keys(newCollection.deleted || {}));
+      if (!SetUtils.areEqual(oldDeletedKeys, newDeletedKeys)) {
+        hasChanges = true;
+      }
+      diffCollection.deleted = { ...(oldCollection?.deleted || {}), ...(newCollection.deleted || {}) };
       for (const id in newCollection.items) {
+        if (diffCollection.deleted && id in diffCollection.deleted) {
+          continue;
+        }
         const oldItemVersion = oldCollection?.items[id];
         const newItemVersion = newCollection.items[id];
 
@@ -442,16 +452,6 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         if (itemDiff !== undefined) {
           diffCollection.items[id] = itemDiff as IVersions<unknown> | number;
           hasChanges = true;
-        }
-      }
-
-      if (newCollection.deleted) {
-        for (const id in newCollection.deleted) {
-          if (oldCollection?.deleted?.[id] !== newCollection.deleted[id]) {
-            diffCollection.deleted = diffCollection.deleted || {};
-            diffCollection.deleted[id] = newCollection.deleted[id];
-            hasChanges = true;
-          }
         }
       }
 
@@ -705,17 +705,17 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     diffVersion: ICollectionVersions<unknown>,
     extractedValue: unknown
   ): unknown {
+    const deletedKeys = new Set<string>([
+      ...(fullVersion?.deleted ? Object.keys(fullVersion.deleted) : []),
+      ...(diffVersion.deleted ? Object.keys(diffVersion.deleted) : []),
+    ]);
     if (Array.isArray(fullValue) && Array.isArray(extractedValue)) {
       const result: unknown[] = [];
       const processedIds = new Set<string>();
 
       for (const extractedItem of extractedValue) {
         const itemId = this.getId(extractedItem);
-        if (
-          itemId &&
-          (!diffVersion.deleted || !(itemId in diffVersion.deleted)) &&
-          (!fullVersion?.deleted || !(itemId in fullVersion.deleted))
-        ) {
+        if (itemId && !deletedKeys.has(itemId)) {
           processedIds.add(itemId);
           const diffItemVersion = diffVersion.items[itemId];
           const fullItemVersion = fullVersion?.items[itemId];
@@ -726,6 +726,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
             const fullItem = fullValue.find((item) => this.getId(item) === itemId);
             if (fullItem) {
               result.push(fullItem);
+            } else {
+              result.push(extractedItem);
             }
           }
         }
@@ -734,10 +736,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       for (const fullItem of fullValue) {
         const itemId = this.getId(fullItem);
         if (itemId && !processedIds.has(itemId)) {
-          if (
-            (!fullVersion?.deleted || !(itemId in fullVersion.deleted)) &&
-            (!diffVersion.deleted || !(itemId in diffVersion.deleted))
-          ) {
+          if (!deletedKeys.has(itemId)) {
             result.push(fullItem);
           }
         }
@@ -755,10 +754,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       const extractedDict = extractedValue as Record<string, unknown>;
 
       for (const [key, value] of Object.entries(fullDict)) {
-        if (
-          (!fullVersion?.deleted || !(key in fullVersion.deleted)) &&
-          (!diffVersion.deleted || !(key in diffVersion.deleted))
-        ) {
+        if (!deletedKeys.has(key)) {
           result[key] = value;
         }
       }
@@ -767,11 +763,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const diffItemVersion = diffVersion.items[key];
         const fullItemVersion = fullVersion?.items[key];
 
-        if (
-          (!fullVersion?.deleted || !(key in fullVersion.deleted)) &&
-          (!diffVersion.deleted || !(key in diffVersion.deleted)) &&
-          this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)
-        ) {
+        if (!deletedKeys.has(key) && this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)) {
           result[key] = value;
         }
       }
@@ -795,6 +787,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     }
 
     if (typeof diffVersion === "object" && typeof fullVersion === "object") {
+      return true;
+    }
+
+    if (diffVersion === undefined && fullVersion === undefined) {
       return true;
     }
 
@@ -872,7 +868,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   ): ICollectionVersions<unknown> {
     const result: ICollectionVersions<unknown> = {
       items: { ...(fullCollection?.items || {}) },
-      deleted: { ...(fullCollection?.deleted || {}) },
+      deleted: { ...(fullCollection?.deleted || {}), ...(diffCollection?.deleted || {}) },
     };
 
     for (const id in diffCollection.items) {
@@ -885,15 +881,13 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       }
     }
 
-    if (diffCollection.deleted) {
-      for (const id in diffCollection.deleted) {
-        const fullDeletedTime = result.deleted?.[id];
-        const diffDeletedTime = diffCollection.deleted[id];
-
-        if (!fullDeletedTime || diffDeletedTime > fullDeletedTime) {
-          result.deleted = result.deleted || {};
-          result.deleted[id] = diffDeletedTime;
-        }
+    for (const key of ObjectUtils.keys(result.deleted || {})) {
+      delete result.items[key];
+      const fullDeletedTime = fullCollection?.deleted?.[key];
+      const diffDeletedTime = diffCollection?.deleted?.[key];
+      const max = (diffDeletedTime ?? 0) > (fullDeletedTime ?? 0) ? diffDeletedTime : fullDeletedTime;
+      if (max != null) {
+        result.deleted![key] = max;
       }
     }
 

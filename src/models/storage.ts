@@ -139,7 +139,7 @@ export namespace Storage {
   export function isChanged(aStorage: IStorage, bStorage: IStorage): boolean {
     const { originalId: _aOriginalId, id: _aId, _versions: _aVersions, ...cleanedAStorage } = aStorage;
     const { originalId: _bOriginalId, id: _bId, _versions: _bVersions, ...cleanedBStorage } = bStorage;
-    const changed = !ObjectUtils.isEqual(cleanedAStorage, cleanedBStorage, ["diffPaths", "version"]);
+    const changed = !ObjectUtils.isEqual(cleanedAStorage, cleanedBStorage, ["version"]);
     return changed;
   }
 

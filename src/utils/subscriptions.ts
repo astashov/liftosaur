@@ -47,10 +47,18 @@ export namespace Subscriptions {
         .p("subscription")
         .p("apple")
         .recordModify((v) => {
-          if (receipt in v) {
+          if (v.some((s) => s.value === receipt)) {
             return v;
           } else {
-            return { ...v, [receipt]: null };
+            return [
+              ...v,
+              {
+                vtype: "subscription_receipt",
+                value: receipt,
+                id: UidFactory.generateUid(6),
+                createdAt: Date.now(),
+              },
+            ];
           }
         }),
     ]);
@@ -63,10 +71,18 @@ export namespace Subscriptions {
         .p("subscription")
         .p("google")
         .recordModify((v) => {
-          if (purchaseToken in v) {
+          if (v.some((s) => s.value === purchaseToken)) {
             return v;
           } else {
-            return { ...v, [purchaseToken]: null };
+            return [
+              ...v,
+              {
+                vtype: "subscription_receipt",
+                value: purchaseToken,
+                id: UidFactory.generateUid(6),
+                createdAt: Date.now(),
+              },
+            ];
           }
         }),
     ]);
@@ -79,8 +95,8 @@ export namespace Subscriptions {
     subscription: ISubscription
   ): Promise<void> {
     return Promise.all(
-      Object.keys(subscription.apple).map<Promise<[string, boolean]>>(async (key) => {
-        return [key, await Subscriptions.verifyAppleReceipt(userId, service, key)];
+      subscription.apple.map<Promise<[string, boolean]>>(async (value) => {
+        return [value.value, await Subscriptions.verifyAppleReceipt(userId, service, value.value)];
       })
     ).then((results) => {
       const validReceipts = results.filter(([, result]) => result).map(([key]) => key);

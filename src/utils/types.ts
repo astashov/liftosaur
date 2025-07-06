@@ -8,3 +8,7 @@ export type IRect = { x: number; y: number; width: number; height: number };
 export type INonNullObject<T> = {
   [K in keyof T as T[K] extends null ? never : K]: T[K];
 };
+
+export function c<T>(value: unknown): T {
+  return value as T;
+}

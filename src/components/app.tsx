@@ -152,18 +152,18 @@ export function AppView(props: IProps): JSX.Element | null {
         ImportExporter.handleUniversalLink(dispatch, event.data.link, client);
       } else if (event.data?.type === "goBack") {
         dispatch(Thunk.pullScreen());
-      } else if (event.data?.type === "setReferrer") {
-        dispatch(Thunk.postevent("set-referrer"));
-        updateState(
-          dispatch,
-          [
-            lb<IState>()
-              .p("storage")
-              .p("referrer")
-              .record(event.data?.data || undefined),
-          ],
-          "Set Referrer"
-        );
+        // } else if (event.data?.type === "setReferrer") {
+        //   dispatch(Thunk.postevent("set-referrer"));
+        //   updateState(
+        //     dispatch,
+        //     [
+        //       lb<IState>()
+        //         .p("storage")
+        //         .p("referrer")
+        //         .record(event.data?.data || undefined),
+        //     ],
+        //     "Set Referrer"
+        //   );
       } else if (event.data?.type === "requestedReview") {
         dispatch(Thunk.postevent("requested-review"));
         updateState(dispatch, [

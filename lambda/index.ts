@@ -9,7 +9,7 @@ import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import { Utils } from "./utils";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IStorage, STORAGE_VERSION_TYPES } from "../src/types";
+import { IPartialStorage, IProgram, IStorage, STORAGE_VERSION_TYPES } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -21,7 +21,7 @@ import { renderLogsHtml, ILogPayloads } from "../src/components/admin/logsHtml";
 import Rollbar from "rollbar";
 import { IDI } from "./utils/di";
 import { runMigrations } from "../src/migrations/runner";
-import { IEither } from "../src/utils/types";
+import { c, IEither } from "../src/utils/types";
 import { ResponseUtils } from "./utils/response";
 import { ImageCacher } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
@@ -71,7 +71,7 @@ import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { UrlContentFetcher } from "./utils/urlContentFetcher";
 import { LlmPrompt } from "./utils/llms/llmPrompt";
 import { AiLogsDao } from "./dao/aiLogsDao";
-import { VersionTracker } from "../src/models/versionTracker";
+import { ICollectionVersions, VersionTracker } from "../src/models/versionTracker";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -131,6 +131,7 @@ const postVerifyAppleReceiptHandler: RouteHandler<
   const { event, di } = payload;
   const bodyJson = getBodyJson(event);
   const { appleReceipt, userId } = bodyJson;
+  // return ResponseUtils.json(200, event, { result: true });
   if (appleReceipt == null) {
     return ResponseUtils.json(200, event, { result: false });
   }
@@ -138,9 +139,9 @@ const postVerifyAppleReceiptHandler: RouteHandler<
   const appleJson = await subscriptions.getAppleVerificationJson(appleReceipt);
   let verifiedAppleReceipt = undefined;
   if (appleJson) {
-    verifiedAppleReceipt = await subscriptions.verifyAppleReceiptJson(appleReceipt, appleJson);
+    verifiedAppleReceipt = subscriptions.verifyAppleReceiptJson(appleReceipt, appleJson);
     if (verifiedAppleReceipt && userId) {
-      const subscriptionDetails = await subscriptions.getAppleVerificationInfo(userId, appleJson);
+      const subscriptionDetails = subscriptions.getAppleVerificationInfo(userId, appleJson);
       if (subscriptionDetails) {
         await new SubscriptionDetailsDao(di).add(subscriptionDetails);
       }
@@ -223,9 +224,6 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
     const limitedUser = await userDao.getLimitedById(userId);
     if (limitedUser != null) {
       di.log.log(`Server oid: ${limitedUser.storage.originalId}, update oid: ${storageUpdate.originalId}`);
-      if (storageUpdate.storage) {
-        storageUpdate.storage.tempUserId = userId;
-      }
       if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
         di.log.log("Fetch: Safe update");
         di.log.log(JSON.stringify(storageUpdate, null, 2));
@@ -267,6 +265,12 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
           di.log.log("New original id", result.data.originalId);
           const fullUser = (await userDao.getById(userId, { historyLimit: historylimit }))!;
           const storage = fullUser.storage;
+          if (storage.tempUserId !== userId) {
+            storage.tempUserId = userId;
+            if (storage._versions) {
+              storage._versions.tempUserId = Date.now();
+            }
+          }
           const [storageId] = await Promise.all([
             storageDao.store(limitedUser.id, storage),
             userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
@@ -668,11 +672,19 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     const bodyJson = getBodyJson(event);
     const exportedProgram: IExportedProgram = bodyJson.program;
     const userDao = new UserDao(di);
-    user.storage = {
+    const programs = await userDao.getProgramsByUserId(user.id);
+    const oldStorage = { ...user.storage, programs };
+    const newStorage: IPartialStorage = {
       ...user.storage,
+      programs: CollectionUtils.setBy(programs, "id", exportedProgram.program.id, exportedProgram.program),
       settings: Settings.applyExportedProgram(user.storage.settings, exportedProgram),
       originalId: Date.now(),
     };
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const newVersions = versionTracker.updateVersions(oldStorage, newStorage, oldStorage._versions || {}, Date.now());
+    newStorage._versions = newVersions;
+    delete newStorage.programs;
+    user.storage = newStorage;
     await Promise.all([
       userDao.saveProgram(user.id, exportedProgram.program),
       userDao.store(user),
@@ -696,19 +708,23 @@ const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
     if (program == null) {
       return ResponseUtils.json(404, event, { error: "Not Found" });
     }
-    const programs = await userDao.getProgramsByUserId(user.id);
-    const oldStorage = { ...user.storage, programs };
     const newStorage = {
       ...user.storage,
-      programs: CollectionUtils.removeBy(programs || [], "id", params.id),
+      _versions: program.clonedAt
+        ? {
+            ...user.storage._versions,
+            programs: {
+              ...c<ICollectionVersions<IProgram[]>>(user.storage._versions?.programs || {}),
+              deleted: {
+                ...c<ICollectionVersions<IProgram[]>>(user.storage._versions?.programs || {}).deleted,
+                [program.clonedAt]: Date.now(),
+              },
+            },
+          }
+        : user.storage._versions,
       originalId: Date.now(),
     };
-    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
-    const newVersions = versionTracker.updateVersions(oldStorage, newStorage, oldStorage._versions || {}, Date.now());
-    user.storage = {
-      ...newStorage,
-      _versions: newVersions,
-    };
+    user.storage = newStorage;
     await Promise.all([userDao.deleteProgram(user.id, program.id), userDao.store(user)]);
     return ResponseUtils.json(200, event, { data: { id: program.id } });
   }
