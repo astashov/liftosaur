@@ -169,7 +169,11 @@ export namespace Storage {
     const { id: newId, originalId: newOriginalId, _versions: newVersions, ...newCleanedStorage } = newStorage;
     const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
     const timestamp = Date.now();
-    return versionTracker.updateVersions(oldCleanedStorage, newCleanedStorage, oldStorage._versions || {}, timestamp);
+    if (oldCleanedStorage.tempUserId === newCleanedStorage.tempUserId) {
+      return versionTracker.updateVersions(oldCleanedStorage, newCleanedStorage, oldStorage._versions || {}, timestamp);
+    } else {
+      return newVersions || {};
+    }
   }
 
   export function mergeStorage(oldStorage: IStorage, newStorage: IStorage): IStorage {

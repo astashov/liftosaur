@@ -196,8 +196,6 @@ export class Sync {
   }
 }
 
-(window as any).Sync = Sync; // For debugging purposes
-
 function diffArr<T, K extends keyof T>(a: T, b: T, key: K): T[K] extends Array<infer U> ? { [P in K]?: U[] } : never {
   const diffItems = CollectionUtils.diff((a[key] || []) as any, (b[key] || []) as any) as any;
   return { ...(diffItems.length > 0 ? { [key]: diffItems } : {}) } as any;

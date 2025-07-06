@@ -228,7 +228,7 @@ export namespace Thunk {
       }
       return false;
     }
-    if (state.lastSyncedStorage == null) {
+    if (state.lastSyncedStorage == null || state.lastSyncedStorage.tempUserId !== state.storage.tempUserId) {
       const result = await env.service.postSync({
         tempUserId: state.storage.tempUserId,
         storageUpdate: {
