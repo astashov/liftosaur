@@ -1920,6 +1920,22 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250706": {
+    title: <span>Improved syncing mechanism</span>,
+    body: (
+      <ul>
+        <li>
+          Rewrote the syncing mechanism to make it more reliable, and resolve conflicts better. Ideally you shouldn't
+          notice any changes, and hopefully it'll prevent rare cases when the app doesn't data sync properly between the
+          web editor, web app, and phone app.
+        </li>
+        <li>
+          It's a HUGE under the hood change, so if you notice any issues with syncing - please let me know at{" "}
+          <strong>info@liftosaur.com</strong> or via Discord/Reddit.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
