@@ -23,6 +23,8 @@ import { lb } from "lens-shmens";
 import sinon from "sinon";
 import { EditStats } from "../src/models/editStats";
 import { Settings } from "../src/models/settings";
+import { Encoder } from "../src/utils/encoder";
+import { NodeEncoder } from "../lambda/utils/nodeEncoder";
 
 function mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
   let extractedAction: IAction | IThunk | undefined;
@@ -79,25 +81,33 @@ async function initTheAppAndRecordWorkout(): Promise<{
   return { di, log, mockReducer, env };
 }
 
-before(() => {
-  // @ts-ignore
-  global.__API_HOST__ = "https://www.liftosaur.com";
-  // @ts-ignore
-  global.__ENV__ = "prod";
-  // @ts-ignore
-  global.__FULL_COMMIT_HASH__ = "abc123";
-  // @ts-ignore
-  global.Rollbar = {
-    configure: () => undefined,
-  };
-  let ts = 0;
-  sinon.stub(Date, "now").callsFake(() => {
-    ts += 1;
-    return ts;
-  });
-});
-
 describe("sync", () => {
+  let sandbox: sinon.SinonSandbox;
+
+  beforeEach(() => {
+    // @ts-ignore
+    global.__API_HOST__ = "https://www.liftosaur.com";
+    // @ts-ignore
+    global.__ENV__ = "prod";
+    // @ts-ignore
+    global.__FULL_COMMIT_HASH__ = "abc123";
+    // @ts-ignore
+    global.Rollbar = {
+      configure: () => undefined,
+    };
+    let ts = 0;
+    sandbox = sinon.createSandbox();
+    sandbox.stub(Date, "now").callsFake(() => {
+      ts += 1;
+      return ts;
+    });
+    sandbox.stub(Encoder, "encode").callsFake(NodeEncoder.encode);
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
   it("properly runs appendable safe syncs", async () => {
     const { di, mockReducer, log } = await initTheAppAndRecordWorkout();
 

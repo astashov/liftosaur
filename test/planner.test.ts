@@ -1470,11 +1470,11 @@ Squat / 1x10 / 100lb / progress: custom() {~
     const stats: IStats = {
       weight: {
         weight: [
-          { vtype: "stat", type: "weight", value: Weight.build(200, "lb"), timestamp: 10 },
-          { vtype: "stat", type: "weight", value: Weight.build(220, "lb"), timestamp: 30 },
-          { vtype: "stat", type: "weight", value: Weight.build(210, "lb"), timestamp: 20 },
-          { vtype: "stat", type: "weight", value: Weight.build(240, "lb"), timestamp: 50 },
-          { vtype: "stat", type: "weight", value: Weight.build(230, "lb"), timestamp: 40 },
+          { vtype: "stat", value: Weight.build(200, "lb"), timestamp: 10 },
+          { vtype: "stat", value: Weight.build(220, "lb"), timestamp: 30 },
+          { vtype: "stat", value: Weight.build(210, "lb"), timestamp: 20 },
+          { vtype: "stat", value: Weight.build(240, "lb"), timestamp: 50 },
+          { vtype: "stat", value: Weight.build(230, "lb"), timestamp: 40 },
         ],
       },
       length: {},
