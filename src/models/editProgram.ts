@@ -68,7 +68,7 @@ export namespace EditProgram {
             return versions;
           }
           const newVersions = ObjectUtils.clone(versions || {});
-          const programs = c<ICollectionVersions<IProgram[]>>(newVersions.programs);
+          const programs = c<ICollectionVersions<IProgram[]>>(newVersions.programs) || {};
           programs.deleted = {
             ...programs.deleted,
             [program.clonedAt]: Date.now(),
