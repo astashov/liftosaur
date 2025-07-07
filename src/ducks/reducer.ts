@@ -702,16 +702,18 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         storage: {
           ...state.storage,
           history,
-          _versions: {
-            ...state.storage._versions,
-            history: {
-              ...c<ICollectionVersions<IHistoryRecord[]>>(state.storage._versions?.history || {}),
-              deleted: {
-                ...c<ICollectionVersions<IHistoryRecord[]>>(state.storage._versions?.history || {}).deleted,
-                [progress.id]: Date.now(),
-              },
-            },
-          },
+          _versions: !Progress.isCurrent(progress)
+            ? {
+                ...state.storage._versions,
+                history: {
+                  ...c<ICollectionVersions<IHistoryRecord[]>>(state.storage._versions?.history || {}),
+                  deleted: {
+                    ...c<ICollectionVersions<IHistoryRecord[]>>(state.storage._versions?.history || {}).deleted,
+                    [progress.id]: Date.now(),
+                  },
+                },
+              }
+            : state.storage._versions,
         },
         progress: Progress.stop(state.progress, progress.id),
       };
