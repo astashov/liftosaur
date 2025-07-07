@@ -158,6 +158,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
       if (oldValue == null && newValue != null) {
         const updatedVersion = this.updateFieldVersion(
+          oldObj,
+          newObj,
           undefined,
           newValue,
           versions[field],
@@ -170,6 +172,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         }
       } else if (oldValue != null) {
         const updatedVersion = this.updateFieldVersion(
+          oldObj,
+          newObj,
           oldValue,
           newValue,
           versions[field],
@@ -187,6 +191,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   }
 
   private updateFieldVersion(
+    oldFull: unknown,
+    newFull: unknown,
     oldValue: unknown,
     newValue: unknown,
     currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
@@ -228,8 +234,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
             const oldItemId = this.getId(oldItem);
             if (oldItemId && !newValue.some((item) => this.getId(item) === oldItemId)) {
               console.log("Adding deleted key to collection versions:", path, oldItemId);
-              console.log("oldValue:", oldValue);
-              console.log("newValue:", newValue);
+              console.log("oldValue:", JSON.stringify(oldValue));
+              console.log("newValue:", JSON.stringify(newValue));
               collectionVersions.deleted = collectionVersions.deleted || {};
               if (path !== "history" && path !== "programs") {
                 lg(
@@ -238,13 +244,13 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
                   undefined,
                   typeof window !== "undefined" ? window.tempUserId : undefined
                 );
-                collectionVersions.deleted[oldItemId] = timestamp;
-                delete items[oldItemId];
+                // collectionVersions.deleted[oldItemId] = timestamp;
+                // delete items[oldItemId];
               } else {
                 try {
                   lg(
                     "collection-array-deleted",
-                    { path, oldItemId, oldValue: JSON.stringify(oldValue), newValue: JSON.stringify(newValue) },
+                    { path, oldItemId, oldObj: JSON.stringify(oldFull), newObj: JSON.stringify(newFull) },
                     undefined,
                     typeof window !== "undefined" ? window.tempUserId : undefined
                   );
@@ -317,8 +323,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           for (const key of ObjectUtils.keys(oldDict)) {
             if (!(key in newDict)) {
               console.log("Adding deleted key to collection versions:", path, key);
-              console.log("oldDict:", oldDict);
-              console.log("newDict:", newDict);
+              console.log("oldDict:", JSON.stringify(oldDict));
+              console.log("newDict:", JSON.stringify(newDict));
               collectionVersions.deleted = collectionVersions.deleted || {};
               if (path !== "history" && path !== "programs") {
                 lg(
@@ -327,13 +333,13 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
                   undefined,
                   typeof window !== "undefined" ? window.tempUserId : undefined
                 );
-                collectionVersions.deleted[key] = timestamp;
-                delete items[key];
+                // collectionVersions.deleted[key] = timestamp;
+                // delete items[key];
               } else {
                 try {
                   lg(
                     "collection-dict-deleted",
-                    { path, key, oldDict: JSON.stringify(oldDict), newDict: JSON.stringify(newDict) },
+                    { path, key, oldObj: JSON.stringify(oldFull), newObj: JSON.stringify(newFull) },
                     undefined,
                     typeof window !== "undefined" ? window.tempUserId : undefined
                   );
@@ -372,6 +378,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       } else {
         const oldObjValue = typeof oldValue === "object" && oldValue !== null ? oldValue : undefined;
         const nestedVersions = this.updateNestedVersions(
+          oldFull,
+          newFull,
           oldObjValue as Record<string, unknown> | undefined,
           newValue as Record<string, unknown>,
           (currentVersion || {}) as IVersions<Record<string, unknown>>,
@@ -436,6 +444,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   }
 
   private updateNestedVersions<T extends Record<string, unknown>>(
+    oldFull: unknown,
+    newFull: unknown,
     oldObj: T | undefined,
     newObj: T,
     currentVersions: IVersions<T>,
@@ -458,6 +468,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
       if (oldValue == null && newValue != null) {
         const updatedVersion = this.updateFieldVersion(
+          oldFull,
+          newFull,
           undefined,
           newValue,
           versions[key],
@@ -471,6 +483,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         }
       } else if (oldValue != null) {
         const updatedVersion = this.updateFieldVersion(
+          oldFull,
+          newFull,
           oldValue,
           newValue,
           versions[key],
