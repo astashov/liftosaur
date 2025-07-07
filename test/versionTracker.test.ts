@@ -15,7 +15,6 @@ import {
 } from "../src/types";
 import { Weight } from "../src/models/weight";
 import { ObjectUtils } from "../src/utils/object";
-import { exercises } from "../src/models/exercise";
 
 describe("VersionTracker", () => {
   const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);

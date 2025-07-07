@@ -229,6 +229,12 @@ export namespace Thunk {
       return false;
     }
     if (state.lastSyncedStorage == null || state.lastSyncedStorage.tempUserId !== state.storage.tempUserId) {
+      dispatch(
+        Thunk.postevent("fetch-last-synced-storage", {
+          lastUserId: state.lastSyncedStorage?.tempUserId ?? "",
+          newUserId: state.storage.tempUserId ?? "",
+        })
+      );
       const result = await env.service.postSync({
         tempUserId: state.storage.tempUserId,
         storageUpdate: {
@@ -240,6 +246,7 @@ export namespace Thunk {
         await _sync2(dispatch, getState, env, args);
       }
     } else {
+      dispatch(Thunk.postevent("sync-storage-update", { force: args?.force ? "true" : "false" }));
       const storageUpdate = Sync.getStorageUpdate2(state.storage, state.lastSyncedStorage);
       if (args?.force || storageUpdate.storage) {
         const lastSyncedStorage = state.storage;
@@ -937,6 +944,8 @@ export namespace Thunk {
           if (Screen.currentName(getState().screenStack) === "subscription") {
             dispatch(Thunk.pullScreen());
           }
+        } else {
+          dispatch(postevent("apple-subscription-invalid"));
         }
       }
     };

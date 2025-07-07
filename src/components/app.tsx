@@ -138,6 +138,7 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.postevent("loaded"));
         dispatch(Thunk.syncHealthKit());
       } else if (event.data?.type === "wake") {
+        dispatch(Thunk.postevent("wake"));
         dispatch(Thunk.sync2({ force: true }));
         dispatch(Thunk.syncHealthKit());
       } else if (event.data?.type === "syncToAppleHealthError") {
@@ -146,11 +147,13 @@ export function AppView(props: IProps): JSX.Element | null {
       } else if (event.data?.type === "stopSubscriptionLoading") {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
       } else if (event.data?.type === "products") {
+        dispatch(Thunk.postevent("sync-prices"));
         const newPrices = { ...state.prices, ...event.data.data };
         updateState(dispatch, [lb<IState>().p("prices").record(newPrices)]);
       } else if (event.data?.type === "universalLink") {
         ImportExporter.handleUniversalLink(dispatch, event.data.link, client);
       } else if (event.data?.type === "goBack") {
+        dispatch(Thunk.postevent("go-back"));
         dispatch(Thunk.pullScreen());
         // } else if (event.data?.type === "setReferrer") {
         //   dispatch(Thunk.postevent("set-referrer"));
