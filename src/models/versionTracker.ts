@@ -761,14 +761,24 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     }
 
     if (diffVersion !== undefined && fullVersion === undefined) {
+      // Handle collections specially when fullVersion is undefined
+      if (diffVersion && typeof diffVersion === "object" && ("items" in diffVersion || "deleted" in diffVersion)) {
+        // This is a collection diff, use collection merge logic
+        return this.mergeCollectionByVersion(
+          fullValue,
+          undefined, // no full version
+          diffVersion as ICollectionVersions<unknown>,
+          extractedValue
+        );
+      }
+
       // For nested objects, we need to recursively merge
       if (
         typeof fullValue === "object" &&
         fullValue !== null &&
         typeof extractedValue === "object" &&
         extractedValue !== null &&
-        typeof diffVersion === "object" &&
-        !("items" in diffVersion || "deleted" in diffVersion)
+        typeof diffVersion === "object"
       ) {
         // Recursively merge with empty full versions
         return this.mergeByVersions(
@@ -779,7 +789,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         );
       }
       // For primitives or non-matching types, take extracted value
-      return extractedValue;
+      return extractedValue ?? fullValue;
     }
 
     if (diffVersion && typeof diffVersion === "object" && ("items" in diffVersion || "deleted" in diffVersion)) {
@@ -829,7 +839,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           extractedValue as Record<string, unknown>
         );
       } else {
-        return extractedValue;
+        return extractedValue ?? fullValue;
       }
     }
 
@@ -850,6 +860,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       const result: unknown[] = [];
       const processedIds = new Set<string>();
 
+      // First, process items from extractedValue that have version changes
       for (const extractedItem of extractedValue) {
         const itemId = this.getId(extractedItem);
         if (itemId && !deletedKeys.has(itemId)) {
@@ -870,12 +881,11 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         }
       }
 
+      // Then, add all items from fullValue that weren't processed and aren't deleted
       for (const fullItem of fullValue) {
         const itemId = this.getId(fullItem);
-        if (itemId && !processedIds.has(itemId)) {
-          if (!deletedKeys.has(itemId)) {
-            result.push(fullItem);
-          }
+        if (itemId && !processedIds.has(itemId) && !deletedKeys.has(itemId)) {
+          result.push(fullItem);
         }
       }
 

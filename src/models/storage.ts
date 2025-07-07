@@ -245,3 +245,7 @@ export namespace Storage {
     return newStorage;
   }
 }
+
+if (typeof window !== "undefined") {
+  (window as any).Storage = Storage;
+}

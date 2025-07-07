@@ -14,6 +14,8 @@ import {
   IPlannerProgram,
 } from "../src/types";
 import { Weight } from "../src/models/weight";
+import { ObjectUtils } from "../src/utils/object";
+import { exercises } from "../src/models/exercise";
 
 describe("VersionTracker", () => {
   const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
@@ -257,6 +259,78 @@ describe("VersionTracker", () => {
         deleted: { "1": timestamp },
       });
     });
+  });
+
+  it("should handle not enough versions", () => {
+    const storage = ObjectUtils.clone(Storage.getDefault());
+    storage.settings.exercises = {
+      nflszmyn: {
+        types: ["pull", "lower"],
+        isDeleted: false,
+        vtype: "custom_exercise",
+        meta: {
+          synergistMuscles: [],
+          targetMuscles: [],
+          bodyParts: [],
+          sortedEquipment: [],
+        },
+        name: "Deficit deadlift, thick bar",
+        id: "nflszmyn",
+      },
+      uspiaeyg: {
+        name: "Internal Shoulder Rotation, Butterfly",
+        types: ["upper"],
+        id: "uspiaeyg",
+        isDeleted: false,
+        vtype: "custom_exercise",
+        meta: {
+          synergistMuscles: [],
+          targetMuscles: [],
+          bodyParts: [],
+          sortedEquipment: [],
+        },
+      },
+      hpemxfdg: {
+        name: "Farmer's walk",
+        types: [],
+        id: "hpemxfdg",
+        isDeleted: false,
+        vtype: "custom_exercise",
+        meta: {
+          synergistMuscles: [],
+          targetMuscles: [],
+          bodyParts: [],
+          sortedEquipment: [],
+        },
+      },
+    };
+
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const merged = versionTracker.mergeByVersions(
+      storage,
+      {},
+      { settings: { exercises: { boo: 300 } } },
+      {
+        settings: {
+          exercises: {
+            boo: {
+              name: "Farmer's walk",
+              types: [],
+              id: "hpemxfdg",
+              isDeleted: false,
+              vtype: "custom_exercise",
+              meta: {
+                synergistMuscles: [],
+                targetMuscles: [],
+                bodyParts: [],
+                sortedEquipment: [],
+              },
+            },
+          },
+        } as any,
+      }
+    ).settings.exercises;
+    expect(Object.keys(merged)).to.deep.equal(["nflszmyn", "uspiaeyg", "hpemxfdg", "boo"]);
   });
 
   describe("atomic object handling", () => {
