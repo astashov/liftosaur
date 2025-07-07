@@ -223,9 +223,9 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           for (const oldItem of oldValue) {
             const oldItemId = this.getId(oldItem);
             if (oldItemId && !newValue.some((item) => this.getId(item) === oldItemId)) {
-              // console.log("Adding deleted key to collection versions:", path, oldItemId);
-              // console.log("oldValue:", oldValue);
-              // console.log("newValue:", newValue);
+              console.log("Adding deleted key to collection versions:", path, oldItemId);
+              console.log("oldValue:", oldValue);
+              console.log("newValue:", newValue);
               collectionVersions.deleted = collectionVersions.deleted || {};
               lg(
                 "collection-array-deleted",
@@ -233,8 +233,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
                 undefined,
                 typeof window !== "undefined" ? window.tempUserId : undefined
               );
-              // collectionVersions.deleted[oldItemId] = timestamp;
-              // delete items[oldItemId];
+              if (path !== "history" && path !== "programs") {
+                collectionVersions.deleted[oldItemId] = timestamp;
+                delete items[oldItemId];
+              }
             }
           }
         }
@@ -295,18 +297,20 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         if (oldDict) {
           for (const key of ObjectUtils.keys(oldDict)) {
             if (!(key in newDict)) {
-              // console.log("Adding deleted key to collection versions:", path, key);
-              // console.log("oldDict:", oldDict);
-              // console.log("newDict:", newDict);
+              console.log("Adding deleted key to collection versions:", path, key);
+              console.log("oldDict:", oldDict);
+              console.log("newDict:", newDict);
               lg(
-                "collection-array-deleted",
+                "collection-dict-deleted",
                 { path, key },
                 undefined,
                 typeof window !== "undefined" ? window.tempUserId : undefined
               );
               collectionVersions.deleted = collectionVersions.deleted || {};
-              // collectionVersions.deleted[key] = timestamp;
-              // delete items[key];
+              if (path !== "history" && path !== "programs") {
+                collectionVersions.deleted[key] = timestamp;
+                delete items[key];
+              }
             }
           }
         }
