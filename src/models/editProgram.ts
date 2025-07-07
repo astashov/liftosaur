@@ -10,6 +10,8 @@ import { PP } from "./pp";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { ProgramToPlanner } from "./programToPlanner";
 import { Thunk } from "../ducks/thunks";
+import { ICollectionVersions } from "./versionTracker";
+import { c } from "../utils/types";
 
 export namespace EditProgram {
   export function properlyUpdateStateVariableInPlace(
@@ -60,8 +62,19 @@ export namespace EditProgram {
         ),
       lb<IState>()
         .p("storage")
-        .p("deletedPrograms")
-        .recordModify((pgms) => (program.clonedAt ? [...pgms, program.clonedAt] : pgms)),
+        .p("_versions")
+        .recordModify((versions) => {
+          if (program.clonedAt == null) {
+            return versions;
+          }
+          const newVersions = ObjectUtils.clone(versions || {});
+          const programs = c<ICollectionVersions<IProgram[]>>(newVersions.programs);
+          programs.deleted = {
+            ...programs.deleted,
+            [program.clonedAt]: Date.now(),
+          };
+          return newVersions;
+        }),
     ]);
   }
 

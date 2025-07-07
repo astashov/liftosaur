@@ -40,6 +40,8 @@ import { SendMessage } from "../utils/sendMessage";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgramUiHelpers } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
+import { c } from "../utils/types";
+import { ICollectionVersions } from "../models/versionTracker";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
@@ -697,7 +699,20 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return {
         ...state,
         screenStack: pushScreen(state.screenStack, "main", undefined, true),
-        storage: { ...state.storage, history },
+        storage: {
+          ...state.storage,
+          history,
+          _versions: {
+            ...state.storage._versions,
+            history: {
+              ...c<ICollectionVersions<IHistoryRecord[]>>(state.storage._versions?.history || {}),
+              deleted: {
+                ...c<ICollectionVersions<IHistoryRecord[]>>(state.storage._versions?.history || {}).deleted,
+                [progress.id]: Date.now(),
+              },
+            },
+          },
+        },
         progress: Progress.stop(state.progress, progress.id),
       };
     } else {

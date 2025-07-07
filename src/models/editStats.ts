@@ -277,6 +277,28 @@ export namespace EditStats {
           .p("weight")
           .p(key)
           .recordModify((s) => [...(s || [])].filter((_, i) => i !== index)),
+        lb<IState>()
+          .p("storage")
+          .p("_versions")
+          .recordModify((versions) => {
+            const newVersions = ObjectUtils.clone(versions || {});
+            return {
+              ...newVersions,
+              stats: {
+                ...(newVersions as any)?.stats,
+                weight: {
+                  ...(newVersions as any)?.stats?.weight,
+                  [key]: {
+                    ...(newVersions as any)?.stats?.weight?.[key],
+                    deleted: {
+                      ...(newVersions.stats as any)?.weight?.[key]?.deleted,
+                      [ts]: Date.now(),
+                    },
+                  },
+                },
+              },
+            };
+          }),
       ],
     });
   }
@@ -292,6 +314,28 @@ export namespace EditStats {
           .p("length")
           .p(key)
           .recordModify((s) => [...(s || [])].filter((_, i) => i !== index)),
+        lb<IState>()
+          .p("storage")
+          .p("_versions")
+          .recordModify((versions) => {
+            const newVersions = ObjectUtils.clone(versions || {});
+            return {
+              ...newVersions,
+              stats: {
+                ...(newVersions as any)?.stats,
+                length: {
+                  ...(newVersions as any)?.stats?.length,
+                  [key]: {
+                    ...(newVersions as any)?.stats?.length?.[key],
+                    deleted: {
+                      ...(newVersions.stats as any)?.length?.[key]?.deleted,
+                      [ts]: Date.now(),
+                    },
+                  },
+                },
+              },
+            };
+          }),
       ],
     });
   }
@@ -312,6 +356,28 @@ export namespace EditStats {
           .p("percentage")
           .p(key)
           .recordModify((s) => [...(s || [])].filter((_, i) => i !== index)),
+        lb<IState>()
+          .p("storage")
+          .p("_versions")
+          .recordModify((versions) => {
+            const newVersions = ObjectUtils.clone(versions || {});
+            return {
+              ...newVersions,
+              stats: {
+                ...(newVersions as any)?.stats,
+                percentage: {
+                  ...(newVersions as any)?.stats?.percentage,
+                  [key]: {
+                    ...(newVersions as any)?.stats?.percentage?.[key],
+                    deleted: {
+                      ...(newVersions.stats as any)?.percentage?.[key]?.deleted,
+                      [ts]: Date.now(),
+                    },
+                  },
+                },
+              },
+            };
+          }),
       ],
     });
   }

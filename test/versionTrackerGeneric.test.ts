@@ -59,7 +59,7 @@ describe("VersionTracker - Generic Usage", () => {
       tags: ["developer", "typescript", "react"], // Changed
     };
 
-    const versions = genericVersionTracker.updateVersions(oldObj, newObj, {}, 1000);
+    const versions = genericVersionTracker.updateVersions(oldObj, newObj, {}, {}, 1000);
 
     expect(versions).to.deep.equal({
       age: 1000,
@@ -107,7 +107,7 @@ describe("VersionTracker - Generic Usage", () => {
     };
     const genericVersionTracker = new VersionTracker(genericVersionConfig);
 
-    const versions = genericVersionTracker.updateVersions(oldApp, newApp, {}, 2000);
+    const versions = genericVersionTracker.updateVersions(oldApp, newApp, {}, {}, 2000);
 
     // Dictionary fields are versioned as collections
     expect(versions).to.deep.equal({
@@ -158,7 +158,7 @@ describe("VersionTracker - Generic Usage", () => {
       dictionaryFields: [],
     };
     const genericVersionTracker = new VersionTracker(genericVersionConfig);
-    const versions = genericVersionTracker.updateVersions(oldProduct, newProduct, existingVersions, 3000);
+    const versions = genericVersionTracker.updateVersions(oldProduct, newProduct, existingVersions, {}, 3000);
 
     const result: IVersions<IProduct> = versions;
 

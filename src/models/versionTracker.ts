@@ -78,6 +78,7 @@
 import { ObjectUtils } from "../utils/object";
 import { lg } from "../utils/posthog";
 import { SetUtils } from "../utils/setUtils";
+import { c } from "../utils/types";
 
 export interface IVersions<T> {
   [key: string]: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined;
@@ -140,6 +141,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     oldObj: T,
     newObj: T,
     currentVersions: IVersions<T>,
+    newVersions: IVersions<T>,
     timestamp: number
   ): IVersions<T> {
     const versions = ObjectUtils.clone(currentVersions);
@@ -159,6 +161,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           undefined,
           newValue,
           versions[field],
+          newVersions[field],
           timestamp,
           field as string
         );
@@ -166,7 +169,14 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           (versions as any)[field] = updatedVersion;
         }
       } else if (oldValue != null) {
-        const updatedVersion = this.updateFieldVersion(oldValue, newValue, versions[field], timestamp, field as string);
+        const updatedVersion = this.updateFieldVersion(
+          oldValue,
+          newValue,
+          versions[field],
+          newVersions[field],
+          timestamp,
+          field as string
+        );
         if (updatedVersion !== undefined) {
           (versions as any)[field] = updatedVersion;
         }
@@ -180,6 +190,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     oldValue: unknown,
     newValue: unknown,
     currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    newVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
     timestamp: number,
     path: string
   ): IVersions<unknown> | ICollectionVersions<unknown> | number | undefined {
@@ -193,6 +204,19 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         if (!collectionVersions || typeof collectionVersions !== "object" || !("items" in collectionVersions)) {
           collectionVersions = { items: {}, deleted: {} } as ICollectionVersions<unknown>;
         }
+        if (currentVersion && typeof currentVersion === "object" && "deleted" in currentVersion) {
+          collectionVersions.deleted = {
+            ...(collectionVersions.deleted || {}),
+            ...(c<ICollectionVersions<unknown>["deleted"]>(currentVersion.deleted) || {}),
+          };
+        }
+        if (newVersion && typeof newVersion === "object" && "deleted" in newVersion) {
+          collectionVersions.deleted = {
+            ...(collectionVersions.deleted || {}),
+            ...(c<ICollectionVersions<unknown>["deleted"]>(newVersion.deleted) || {}),
+          };
+        }
+
         const items = collectionVersions.items;
 
         if (Array.isArray(oldValue)) {
@@ -255,6 +279,19 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const oldDict = oldValue as Record<string, unknown> | undefined;
         const newDict = newValue as Record<string, unknown>;
 
+        if (currentVersion && typeof currentVersion === "object" && "deleted" in currentVersion) {
+          collectionVersions.deleted = {
+            ...(collectionVersions.deleted || {}),
+            ...(c<ICollectionVersions<unknown>["deleted"]>(currentVersion.deleted) || {}),
+          };
+        }
+        if (newVersion && typeof newVersion === "object" && "deleted" in newVersion) {
+          collectionVersions.deleted = {
+            ...(collectionVersions.deleted || {}),
+            ...(c<ICollectionVersions<unknown>["deleted"]>(newVersion.deleted) || {}),
+          };
+        }
+
         if (oldDict) {
           for (const key of ObjectUtils.keys(oldDict)) {
             if (!(key in newDict)) {
@@ -304,6 +341,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           oldObjValue as Record<string, unknown> | undefined,
           newValue as Record<string, unknown>,
           (currentVersion || {}) as IVersions<Record<string, unknown>>,
+          (newVersion || {}) as IVersions<Record<string, unknown>>,
           timestamp,
           path
         );
@@ -367,6 +405,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     oldObj: T | undefined,
     newObj: T,
     currentVersions: IVersions<T>,
+    newVersions: IVersions<T>,
     timestamp: number,
     parentPath: string
   ): IVersions<T> | undefined {
@@ -388,6 +427,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           undefined,
           newValue,
           versions[key],
+          newVersions[key],
           timestamp,
           String(currentPath)
         );
@@ -400,6 +440,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           oldValue,
           newValue,
           versions[key],
+          newVersions[key],
           timestamp,
           String(currentPath)
         );

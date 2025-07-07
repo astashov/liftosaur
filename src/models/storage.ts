@@ -173,7 +173,13 @@ export namespace Storage {
       oldCleanedStorage.tempUserId === newCleanedStorage.tempUserId &&
       oldCleanedStorage.version === newCleanedStorage.version
     ) {
-      return versionTracker.updateVersions(oldCleanedStorage, newCleanedStorage, oldStorage._versions || {}, timestamp);
+      return versionTracker.updateVersions(
+        oldCleanedStorage,
+        newCleanedStorage,
+        oldStorage._versions || {},
+        newStorage._versions || {},
+        timestamp
+      );
     } else {
       return newVersions || {};
     }
