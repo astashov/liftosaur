@@ -16,6 +16,7 @@ export interface IDynamoUtil {
   scan<T>(args: {
     tableName: string;
     filterExpression?: string;
+    names?: Record<string, DynamoDB.DocumentClient.AttributeName>;
     values?: Partial<Record<string, number | string | string[]>>;
   }): Promise<T[]>;
   get<T>(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<T | undefined>;
@@ -93,6 +94,7 @@ export class DynamoUtil implements IDynamoUtil {
   public async scan<T>(args: {
     tableName: string;
     filterExpression?: string;
+    names?: Record<string, DynamoDB.DocumentClient.AttributeName>;
     values?: Partial<Record<string, number | string | string[]>>;
   }): Promise<T[]> {
     const startTime = Date.now();
@@ -102,6 +104,7 @@ export class DynamoUtil implements IDynamoUtil {
           TableName: args.tableName,
           ExclusiveStartKey: key,
           FilterExpression: args.filterExpression,
+          ExpressionAttributeNames: args.names,
           ExpressionAttributeValues: args.values,
         });
       });

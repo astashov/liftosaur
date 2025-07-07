@@ -60,4 +60,14 @@ export class EventDao {
       values: { ":userid": userid },
     });
   }
+
+  public scanByName(name: string): Promise<IEventPayload[]> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.scan<IEventPayload>({
+      tableName: eventsTableNames[env].events,
+      filterExpression: "#name = :name",
+      names: { "#name": "name" },
+      values: { ":name": name },
+    });
+  }
 }

@@ -169,7 +169,10 @@ export namespace Storage {
     const { id: newId, originalId: newOriginalId, _versions: newVersions, ...newCleanedStorage } = newStorage;
     const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
     const timestamp = Date.now();
-    if (oldCleanedStorage.tempUserId === newCleanedStorage.tempUserId) {
+    if (
+      oldCleanedStorage.tempUserId === newCleanedStorage.tempUserId &&
+      oldCleanedStorage.version === newCleanedStorage.version
+    ) {
       return versionTracker.updateVersions(oldCleanedStorage, newCleanedStorage, oldStorage._versions || {}, timestamp);
     } else {
       return newVersions || {};
