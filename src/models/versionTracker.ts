@@ -259,6 +259,9 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
                     {
                       path,
                       oldItemId,
+                      reducerLastActions: JSON.stringify(
+                        typeof window !== "undefined" ? window.reducerLastActions || {} : {}
+                      ),
                       oldObj: JSON.stringify(oldFull),
                       newObj: JSON.stringify(newFull),
                       oldVersion: JSON.stringify(oldFullVersion),
