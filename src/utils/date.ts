@@ -85,7 +85,7 @@ export namespace DateUtils {
     return undefined;
   }
 
-  export function formatYYYYMMDDHHMM(date: Date | string | number): string {
+  export function formatYYYYMMDDHHMM(date: Date | string | number, separator: string = ""): string {
     const d = new Date(date);
     let seconds = `${d.getSeconds()}`;
     let minutes = `${d.getMinutes()}`;
@@ -110,7 +110,7 @@ export namespace DateUtils {
       day = `0${day}`;
     }
 
-    return [year, month, day, hours, minutes, seconds].join("");
+    return [year, month, day, hours, minutes, seconds].join(separator);
   }
 
   export function firstDayOfWeekTimestamp(date: Date | number, startWeekFromMonday?: boolean): number {

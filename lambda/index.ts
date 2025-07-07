@@ -675,6 +675,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     const bodyJson = getBodyJson(event);
     const exportedProgram: IExportedProgram = bodyJson.program;
     const userDao = new UserDao(di);
+    const eventDao = new EventDao(di);
     const programs = await userDao.getProgramsByUserId(user.id);
     const oldStorage = { ...user.storage, programs };
     const newStorage: IPartialStorage = {
@@ -687,10 +688,19 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     newStorage._versions = newVersions;
     delete newStorage.programs;
     user.storage = newStorage;
+    const eventPost = eventDao.post({
+      type: "event",
+      name: "save-program-www",
+      userId: user.id,
+      timestamp: Date.now(),
+      isMobile: false,
+      extra: { programId: exportedProgram.program.id, clonedAt: exportedProgram.program.clonedAt || "none" },
+    });
     await Promise.all([
       userDao.saveProgram(user.id, exportedProgram.program),
       userDao.store(user),
       userDao.saveProgramRevision(user.id, exportedProgram.program),
+      eventPost,
     ]);
     return ResponseUtils.json(200, event, { data: { id: exportedProgram.program.id } });
   }
@@ -706,10 +716,19 @@ const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   const user = await getCurrentLimitedUser(event, di);
   if (user != null) {
     const userDao = new UserDao(di);
+    const eventDao = new EventDao(di);
     const program = await userDao.getProgram(user.id, params.id);
     if (program == null) {
       return ResponseUtils.json(404, event, { error: "Not Found" });
     }
+    const eventPost = eventDao.post({
+      type: "event",
+      name: "delete-program-www",
+      userId: user.id,
+      timestamp: Date.now(),
+      isMobile: false,
+      extra: { programId: program.id, clonedAt: program.clonedAt || "none" },
+    });
     const newStorage = {
       ...user.storage,
       _versions: program.clonedAt
@@ -727,7 +746,7 @@ const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
       originalId: Date.now(),
     };
     user.storage = newStorage;
-    await Promise.all([userDao.deleteProgram(user.id, program.id), userDao.store(user)]);
+    await Promise.all([userDao.deleteProgram(user.id, program.id), userDao.store(user), eventPost]);
     return ResponseUtils.json(200, event, { data: { id: program.id } });
   }
   return ResponseUtils.json(400, event, { error: "Not Authorized" });
