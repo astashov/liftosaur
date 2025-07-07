@@ -128,7 +128,7 @@ describe("VersionTracker", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
-      expect(programVersions.items["2"]).to.deep.equal({
+      expect(programVersions.items!["2"]).to.deep.equal({
         name: timestamp,
         nextDay: timestamp,
       });
@@ -171,7 +171,7 @@ describe("VersionTracker", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
-      expect(programVersions.items["1"]).to.deep.equal({
+      expect(programVersions.items!["1"]).to.deep.equal({
         name: timestamp,
       });
     });
@@ -288,7 +288,7 @@ describe("VersionTracker", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const historyVersions = versions.history as ICollectionVersions<IHistoryRecord>;
-      expect(historyVersions.items["1"]).to.equal(timestamp);
+      expect(historyVersions.items!["1"]).to.equal(timestamp);
     });
 
     it("should track atomic object field changes", () => {
@@ -331,7 +331,7 @@ describe("VersionTracker", () => {
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
       const exerciseVersions = settingsVersions.exercises as ICollectionVersions<ICustomExercise>;
-      expect(exerciseVersions.items.custom1).to.equal(timestamp);
+      expect(exerciseVersions.items!.custom1).to.equal(timestamp);
     });
   });
 
@@ -374,7 +374,7 @@ describe("VersionTracker", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
-      const itemVersion = programVersions.items["1"] as IVersions<IProgram>;
+      const itemVersion = programVersions!.items!["1"] as IVersions<IProgram>;
 
       expect(itemVersion).to.deep.equal({
         name: timestamp,
@@ -426,7 +426,7 @@ describe("VersionTracker", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const programVersions = versions.programs as ICollectionVersions<IProgram>;
-      const itemVersion = programVersions.items["1"] as IVersions<IProgram>;
+      const itemVersion = programVersions!.items!["1"] as IVersions<IProgram>;
 
       expect(itemVersion).to.deep.equal({
         name: timestamp,
@@ -472,7 +472,7 @@ describe("VersionTracker", () => {
 
       const settings = versions.settings as IVersions<typeof oldStorage.settings>;
       const gymVersions = settings.gyms as ICollectionVersions<IGym>;
-      expect(gymVersions.items.gym2).to.deep.equal({
+      expect(gymVersions.items!.gym2).to.deep.equal({
         name: timestamp,
         equipment: timestamp,
       });
@@ -672,7 +672,7 @@ describe("VersionTracker", () => {
 
       const settings = versions.settings as IVersions<typeof oldStorage.settings>;
       const gymVersions = settings?.gyms as ICollectionVersions<IGym>;
-      expect(gymVersions.items.gym1).to.deep.equal({
+      expect(gymVersions.items!.gym1).to.deep.equal({
         equipment: timestamp,
       });
     });
@@ -742,7 +742,7 @@ describe("VersionTracker", () => {
       const settings = versions.settings as IVersions<typeof oldStorage.settings>;
       const gymVersions = settings?.gyms as ICollectionVersions<IGym>;
 
-      expect(gymVersions.items.gym1).to.deep.equal({
+      expect(gymVersions.items!.gym1).to.deep.equal({
         name: timestamp,
         equipment: timestamp,
       });
@@ -1105,7 +1105,7 @@ describe("VersionTracker", () => {
 
         const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
         const exerciseVersions = settingsVersions.exercises as unknown as ICollectionVersions<ICustomExercise>;
-        expect(exerciseVersions.items.ex1).to.equal(timestamp);
+        expect(exerciseVersions.items!.ex1).to.equal(timestamp);
       });
     });
   });

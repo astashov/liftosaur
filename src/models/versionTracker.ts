@@ -85,7 +85,7 @@ export interface IVersions<T> {
 }
 
 export interface ICollectionVersions<T> {
-  items: Record<string, IVersions<T> | number>;
+  items?: Record<string, IVersions<T> | number>;
   deleted?: Record<string, number>;
 }
 
@@ -201,7 +201,11 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
       if (hasTrackableItems || oldHasTrackableItems) {
         let collectionVersions = currentVersion as ICollectionVersions<unknown> | undefined;
-        if (!collectionVersions || typeof collectionVersions !== "object" || !("items" in collectionVersions)) {
+        if (
+          !collectionVersions ||
+          typeof collectionVersions !== "object" ||
+          !("items" in collectionVersions || "deleted" in collectionVersions)
+        ) {
           collectionVersions = { items: {}, deleted: {} } as ICollectionVersions<unknown>;
         }
         if (currentVersion && typeof currentVersion === "object" && "deleted" in currentVersion) {
@@ -217,7 +221,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           };
         }
 
-        const items = collectionVersions.items;
+        const items = collectionVersions.items || {};
 
         if (Array.isArray(oldValue)) {
           for (const oldItem of oldValue) {
@@ -273,10 +277,14 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     } else if (typeof newValue === "object" && newValue !== null) {
       if (this.versionTypes.dictionaryFields.includes(path)) {
         let collectionVersions = currentVersion as ICollectionVersions<unknown> | undefined;
-        if (!collectionVersions || typeof collectionVersions !== "object" || !("items" in collectionVersions)) {
+        if (
+          !collectionVersions ||
+          typeof collectionVersions !== "object" ||
+          !("items" in collectionVersions || "deleted" in collectionVersions)
+        ) {
           collectionVersions = { items: {}, deleted: {} } as ICollectionVersions<unknown>;
         }
-        const items = collectionVersions.items as ICollectionVersions<unknown>["items"];
+        const items = (collectionVersions.items as ICollectionVersions<unknown>["items"]) || {};
 
         const oldDict = oldValue as Record<string, unknown> | undefined;
         const newDict = newValue as Record<string, unknown>;
@@ -496,7 +504,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       return oldVersion !== newVersion ? newVersion : undefined;
     }
 
-    if (newVersion && typeof newVersion === "object" && "items" in newVersion) {
+    if (newVersion && typeof newVersion === "object" && ("items" in newVersion || "deleted" in newVersion)) {
       const oldCollection = oldVersion as ICollectionVersions<unknown> | undefined;
       const diffCollection: ICollectionVersions<unknown> = { items: {} };
       let hasChanges = false;
@@ -517,6 +525,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
         const itemDiff = this.diffFieldVersion(oldItemVersion, newItemVersion);
         if (itemDiff !== undefined) {
+          diffCollection.items = diffCollection.items || {};
           diffCollection.items[id] = itemDiff as IVersions<unknown> | number;
           hasChanges = true;
         }
@@ -581,7 +590,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       return value;
     }
 
-    if (version && typeof version === "object" && "items" in version) {
+    if (version && typeof version === "object" && ("items" in version || "deleted" in version)) {
       return this.extractCollectionByVersion(value, version as ICollectionVersions<unknown>);
     }
 
@@ -607,12 +616,13 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   private extractCollectionByVersion(value: unknown, collectionVersion: ICollectionVersions<unknown>): unknown {
     if (Array.isArray(value)) {
       const hasChanges =
-        Object.keys(collectionVersion.items).length > 0 || Object.keys(collectionVersion.deleted || {}).length > 0;
+        Object.keys(collectionVersion.items || {}).length > 0 ||
+        Object.keys(collectionVersion.deleted || {}).length > 0;
 
       if (hasChanges) {
         const result = value.filter((item) => {
           const itemId = this.getId(item);
-          return itemId && itemId in collectionVersion.items;
+          return itemId && itemId in (collectionVersion.items || {});
         });
 
         return result.length > 0 ? result : undefined;
@@ -698,7 +708,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         typeof extractedValue === "object" &&
         extractedValue !== null &&
         typeof diffVersion === "object" &&
-        !("items" in diffVersion)
+        !("items" in diffVersion || "deleted" in diffVersion)
       ) {
         // Recursively merge with empty full versions
         return this.mergeByVersions(
@@ -712,7 +722,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       return extractedValue;
     }
 
-    if (diffVersion && typeof diffVersion === "object" && "items" in diffVersion) {
+    if (diffVersion && typeof diffVersion === "object" && ("items" in diffVersion || "deleted" in diffVersion)) {
       return this.mergeCollectionByVersion(
         fullValue,
         fullVersion as ICollectionVersions<unknown> | undefined,
@@ -784,8 +794,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const itemId = this.getId(extractedItem);
         if (itemId && !deletedKeys.has(itemId)) {
           processedIds.add(itemId);
-          const diffItemVersion = diffVersion.items[itemId];
-          const fullItemVersion = fullVersion?.items[itemId];
+          const diffItemVersion = diffVersion?.items?.[itemId];
+          const fullItemVersion = fullVersion?.items?.[itemId];
 
           if (this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)) {
             result.push(extractedItem);
@@ -827,8 +837,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       }
 
       for (const [key, value] of Object.entries(extractedDict)) {
-        const diffItemVersion = diffVersion.items[key];
-        const fullItemVersion = fullVersion?.items[key];
+        const diffItemVersion = diffVersion?.items?.[key];
+        const fullItemVersion = fullVersion?.items?.[key];
 
         if (!deletedKeys.has(key) && this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)) {
           result[key] = value;
@@ -906,7 +916,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       return diffVersion;
     }
 
-    if (diffVersion && typeof diffVersion === "object" && "items" in diffVersion) {
+    if (diffVersion && typeof diffVersion === "object" && ("items" in diffVersion || "deleted" in diffVersion)) {
       return this.mergeCollectionVersions(
         fullVersion as ICollectionVersions<unknown> | undefined,
         diffVersion as ICollectionVersions<unknown>,
@@ -919,7 +929,11 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       const result: any = { ...fullObj };
 
       for (const key in diffVersion) {
-        const mergedField = this.mergeVersionField(fullObj[key], diffVersion[key], path ? `${path}.${key}` : key);
+        const mergedField = this.mergeVersionField(
+          fullObj[key],
+          (diffVersion as any)[key],
+          path ? `${path}.${key}` : key
+        );
         if (mergedField !== undefined) {
           result[key] = mergedField;
         }
@@ -942,11 +956,12 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     };
 
     for (const id in diffCollection.items) {
-      const fullItemVersion = result.items[id];
+      const fullItemVersion = result.items?.[id];
       const diffItemVersion = diffCollection.items[id];
 
       const mergedItemVersion = this.mergeVersionField(fullItemVersion, diffItemVersion);
       if (mergedItemVersion !== undefined) {
+        result.items = result.items || {};
         result.items[id] = mergedItemVersion as IVersions<unknown> | number;
       }
     }
@@ -956,7 +971,9 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     const currentTimestamp = Date.now();
 
     for (const key of ObjectUtils.keys(result.deleted || {})) {
-      delete result.items[key];
+      if (result.items) {
+        delete result.items[key];
+      }
       const fullDeletedTime = fullCollection?.deleted?.[key];
       const diffDeletedTime = diffCollection?.deleted?.[key];
       const max = (diffDeletedTime ?? 0) > (fullDeletedTime ?? 0) ? diffDeletedTime : fullDeletedTime;
