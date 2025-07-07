@@ -160,6 +160,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const updatedVersion = this.updateFieldVersion(
           oldObj,
           newObj,
+          currentVersions,
+          newVersions,
           undefined,
           newValue,
           versions[field],
@@ -174,6 +176,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const updatedVersion = this.updateFieldVersion(
           oldObj,
           newObj,
+          currentVersions,
+          newVersions,
           oldValue,
           newValue,
           versions[field],
@@ -193,6 +197,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   private updateFieldVersion(
     oldFull: unknown,
     newFull: unknown,
+    oldFullVersion: unknown,
+    newFullVersion: unknown,
     oldValue: unknown,
     newValue: unknown,
     currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
@@ -250,7 +256,14 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
                 try {
                   lg(
                     "collection-array-deleted",
-                    { path, oldItemId, oldObj: JSON.stringify(oldFull), newObj: JSON.stringify(newFull) },
+                    {
+                      path,
+                      oldItemId,
+                      oldObj: JSON.stringify(oldFull),
+                      newObj: JSON.stringify(newFull),
+                      oldVersion: JSON.stringify(oldFullVersion),
+                      newVersion: JSON.stringify(newFullVersion),
+                    },
                     undefined,
                     typeof window !== "undefined" ? window.tempUserId : undefined
                   );
@@ -380,6 +393,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const nestedVersions = this.updateNestedVersions(
           oldFull,
           newFull,
+          oldFullVersion,
+          newFullVersion,
           oldObjValue as Record<string, unknown> | undefined,
           newValue as Record<string, unknown>,
           (currentVersion || {}) as IVersions<Record<string, unknown>>,
@@ -446,6 +461,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   private updateNestedVersions<T extends Record<string, unknown>>(
     oldFull: unknown,
     newFull: unknown,
+    oldFullVersion: unknown,
+    newFullVersion: unknown,
     oldObj: T | undefined,
     newObj: T,
     currentVersions: IVersions<T>,
@@ -470,6 +487,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const updatedVersion = this.updateFieldVersion(
           oldFull,
           newFull,
+          oldFullVersion,
+          newFullVersion,
           undefined,
           newValue,
           versions[key],
@@ -485,6 +504,8 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const updatedVersion = this.updateFieldVersion(
           oldFull,
           newFull,
+          oldFullVersion,
+          newFullVersion,
           oldValue,
           newValue,
           versions[key],
