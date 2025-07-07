@@ -70,7 +70,7 @@ export namespace Storage {
       let finalStorage = await runMigrations(client, maybeStorage as IStorage);
       const firstValidateResult = validate(finalStorage, TStorage, "storage");
       if (!firstValidateResult.success) {
-        maybeStorage.version = "20250305183455";
+        maybeStorage.version = "20250429083937";
         finalStorage = await runMigrations(client, maybeStorage as IStorage);
       }
       const result = shouldReportError
