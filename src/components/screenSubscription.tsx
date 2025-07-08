@@ -329,6 +329,19 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 </InternalLink>
               </div>
             </div>
+            <div className="flex flex-row">
+              <div className="flex-1 pt-2 text-center">
+                <LinkButton
+                  name="restore-subscriptions"
+                  onClick={() => {
+                    SendMessage.toIos({ type: "restoreSubscriptions" });
+                    SendMessage.toAndroid({ type: "restoreSubscriptions" });
+                  }}
+                >
+                  Restore Subscription
+                </LinkButton>
+              </div>
+            </div>
           </div>
         </div>
       </section>

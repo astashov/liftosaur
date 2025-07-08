@@ -156,23 +156,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         continue;
       }
 
-      if (oldValue == null && newValue != null) {
-        const updatedVersion = this.updateFieldVersion(
-          oldObj,
-          newObj,
-          currentVersions,
-          newVersions,
-          undefined,
-          newValue,
-          versions[field],
-          newVersions[field],
-          timestamp,
-          field as string
-        );
-        if (updatedVersion !== undefined) {
-          (versions as any)[field] = updatedVersion;
-        }
-      } else if (oldValue != null) {
+      if (oldValue != null || (oldValue == null && newValue != null)) {
         const updatedVersion = this.updateFieldVersion(
           oldObj,
           newObj,

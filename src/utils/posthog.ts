@@ -6,8 +6,8 @@ export function lg(
   service?: Service,
   tempUserId?: string
 ): void {
-  service = service || typeof window !== "undefined" ? new Service(window.fetch.bind(window)) : undefined;
-  tempUserId = tempUserId || typeof window !== "undefined" ? window.tempUserId : undefined;
+  service = service ?? (typeof window !== "undefined" ? new Service(window.fetch.bind(window)) : undefined);
+  tempUserId = tempUserId ?? (typeof window !== "undefined" ? window.tempUserId : undefined);
   if (service == null || tempUserId == null) {
     return;
   }

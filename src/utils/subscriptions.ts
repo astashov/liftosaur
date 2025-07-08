@@ -5,6 +5,7 @@ import { lb } from "lens-shmens";
 import { ISubscription } from "../types";
 import { UidFactory } from "./generator";
 import { CollectionUtils } from "./collection";
+import { Thunk } from "../ducks/thunks";
 
 export namespace Subscriptions {
   export function hasSubscription(subscription: ISubscription): boolean {
@@ -48,8 +49,10 @@ export namespace Subscriptions {
         .p("apple")
         .recordModify((v) => {
           if (v.some((s) => s.value === receipt)) {
+            dispatch(Thunk.postevent("same-apple-receipt"));
             return v;
           } else {
+            dispatch(Thunk.postevent("new-apple-receipt"));
             return [
               ...v,
               {

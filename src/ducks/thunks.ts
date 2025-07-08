@@ -892,7 +892,24 @@ export namespace Thunk {
         WhatsNew.updateStorage(dispatch);
       }
       dispatch(Thunk.fetchPrograms());
-      SendMessage.toIos({ type: "restoreSubscriptions" });
+      if (getState().storage.subscription.apple.length > 0) {
+        dispatch(postevent("check-apple-subscription"));
+        const receipt = getState().storage.subscription.apple[0]?.value;
+        const userId = getState().user?.id || getState().storage.tempUserId;
+        const isVerified = await Subscriptions.verifyAppleReceipt(userId, env.service, receipt);
+        if (!isVerified) {
+          dispatch(postevent("apple-subscription-invalid-restore"));
+          await Subscriptions.cleanupOutdatedAppleReceipts(
+            dispatch,
+            userId,
+            env.service,
+            getState().storage.subscription
+          );
+          SendMessage.toIos({ type: "restoreSubscriptions" });
+        } else {
+          dispatch(postevent("apple-subscription-verified"));
+        }
+      }
       SendMessage.toAndroid({ type: "restoreSubscriptions" });
     };
   }

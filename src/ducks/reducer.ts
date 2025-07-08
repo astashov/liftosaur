@@ -381,12 +381,6 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      if (!ObjectUtils.isEqual(oldState.storage.subscription.apple, newState.storage.subscription.apple)) {
-        const userId = newState.user?.id || newState.storage.tempUserId;
-        Subscriptions.cleanupOutdatedAppleReceipts(dispatch, userId, env.service, newState.storage.subscription);
-      }
-    },
-    (dispatch, action, oldState, newState) => {
       if (!ObjectUtils.isEqual(oldState.storage.subscription.google, newState.storage.subscription.google)) {
         const userId = newState.user?.id || newState.storage.tempUserId;
         Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, env.service, newState.storage.subscription);
