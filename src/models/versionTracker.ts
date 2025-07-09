@@ -76,7 +76,6 @@
  * ```
  */
 import { ObjectUtils } from "../utils/object";
-import { lg } from "../utils/posthog";
 import { SetUtils } from "../utils/setUtils";
 import { c } from "../utils/types";
 
@@ -223,41 +222,9 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           for (const oldItem of oldValue) {
             const oldItemId = this.getId(oldItem);
             if (oldItemId && !newValue.some((item) => this.getId(item) === oldItemId)) {
-              console.log("Adding deleted key to collection versions:", path, oldItemId);
-              console.log("oldValue:", JSON.stringify(oldValue));
-              console.log("newValue:", JSON.stringify(newValue));
               collectionVersions.deleted = collectionVersions.deleted || {};
-              if (path !== "history" && path !== "programs") {
-                lg(
-                  "collection-array-deleted",
-                  { path, oldItemId },
-                  undefined,
-                  typeof window !== "undefined" ? window.tempUserId : undefined
-                );
-                // collectionVersions.deleted[oldItemId] = timestamp;
-                // delete items[oldItemId];
-              } else {
-                try {
-                  lg(
-                    "collection-array-deleted",
-                    {
-                      path,
-                      oldItemId,
-                      reducerLastActions: JSON.stringify(
-                        typeof window !== "undefined" ? window.reducerLastActions || {} : {}
-                      ),
-                      oldObj: JSON.stringify(oldFull),
-                      newObj: JSON.stringify(newFull),
-                      oldVersion: JSON.stringify(oldFullVersion),
-                      newVersion: JSON.stringify(newFullVersion),
-                    },
-                    undefined,
-                    typeof window !== "undefined" ? window.tempUserId : undefined
-                  );
-                } catch (e) {
-                  console.error(e);
-                }
-              }
+              collectionVersions.deleted[oldItemId] = timestamp;
+              delete items[oldItemId];
             }
           }
         }
@@ -322,31 +289,9 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         if (oldDict) {
           for (const key of ObjectUtils.keys(oldDict)) {
             if (!(key in newDict)) {
-              console.log("Adding deleted key to collection versions:", path, key);
-              console.log("oldDict:", JSON.stringify(oldDict));
-              console.log("newDict:", JSON.stringify(newDict));
               collectionVersions.deleted = collectionVersions.deleted || {};
-              if (path !== "history" && path !== "programs") {
-                lg(
-                  "collection-dict-deleted",
-                  { path, key },
-                  undefined,
-                  typeof window !== "undefined" ? window.tempUserId : undefined
-                );
-                // collectionVersions.deleted[key] = timestamp;
-                // delete items[key];
-              } else {
-                try {
-                  lg(
-                    "collection-dict-deleted",
-                    { path, key, oldObj: JSON.stringify(oldFull), newObj: JSON.stringify(newFull) },
-                    undefined,
-                    typeof window !== "undefined" ? window.tempUserId : undefined
-                  );
-                } catch (e) {
-                  console.error(e);
-                }
-              }
+              collectionVersions.deleted[key] = timestamp;
+              delete items[key];
             }
           }
         }

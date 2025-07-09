@@ -376,15 +376,15 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
                 if (weightValue == null) {
                   valueRef.current = "";
                   setValue("");
-                  if (props.onInput) {
-                    props.onInput(undefined);
+                  if (props.onBlur) {
+                    props.onBlur(undefined);
                   }
                 } else {
                   const newValue = clamp(weightValue, props.min, props.max);
                   valueRef.current = newValue?.toString() ?? "";
                   setValue(newValue?.toString() ?? "");
-                  if (props.onInput) {
-                    props.onInput(newValue);
+                  if (props.onBlur) {
+                    props.onBlur(newValue);
                   }
                 }
                 setIsCalculatorOpen(false);

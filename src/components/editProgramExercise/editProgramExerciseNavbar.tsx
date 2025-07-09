@@ -15,6 +15,8 @@ import { equipmentName, Exercise } from "../../models/exercise";
 import { ISettings } from "../../types";
 import { PlannerKey } from "../../pages/planner/plannerKey";
 import { IconSwap } from "../icons/iconSwap";
+import { delayfn } from "../../utils/throttler";
+import { ReactUtils } from "../../utils/react";
 
 interface IEditProgramExerciseNavbarProps {
   state: IPlannerExerciseState;
@@ -28,6 +30,8 @@ interface IEditProgramExerciseNavbarProps {
 export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps): JSX.Element {
   const exerciseType = props.plannerExercise.exerciseType;
   const exercise = exerciseType ? Exercise.get(exerciseType, props.settings.exercises) : undefined;
+  const stateRef = ReactUtils.usePropToRef(props.state);
+  const editProgramStateRef = ReactUtils.usePropToRef(props.editProgramState);
 
   return (
     <div
@@ -112,9 +116,10 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           name="save-program-exercise"
           kind="purple"
           buttonSize="md"
+          className="keyboard-close"
           data-cy="save-program-exercise"
-          onClick={() => {
-            if (props.editProgramState) {
+          onClick={delayfn(() => {
+            if (editProgramStateRef.current) {
               const plannerDispatch = buildPlannerDispatch(
                 props.dispatch,
                 (
@@ -124,9 +129,9 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                     {}
                   >
                 ).pi("plannerState"),
-                props.editProgramState
+                editProgramStateRef.current
               );
-              plannerDispatch([lb<IPlannerState>().p("current").p("program").record(props.state.current.program)]);
+              plannerDispatch([lb<IPlannerState>().p("current").p("program").record(stateRef.current.current.program)]);
             } else {
               updateState(props.dispatch, [
                 lb<IState>()
@@ -136,14 +141,14 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                     return CollectionUtils.setBy(
                       programs,
                       "id",
-                      props.state.current.program.id,
-                      props.state.current.program
+                      stateRef.current.current.program.id,
+                      stateRef.current.current.program
                     );
                   }),
               ]);
             }
             props.dispatch(Thunk.pullScreen());
-          }}
+          }, 50)}
         >
           Save
         </Button>

@@ -16,4 +16,12 @@ export namespace ReactUtils {
     }, [state]);
     return [state, setState];
   }
+
+  export function usePropToRef<T>(prop: T): { current: T } {
+    const ref = useRef<T>(prop);
+    useEffect(() => {
+      ref.current = prop;
+    }, [prop]);
+    return ref;
+  }
 }

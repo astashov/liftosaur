@@ -19,10 +19,27 @@ export function throttle<T extends (...args: any[]) => any>(func: T, limit: numb
       if (lastTs) {
         window.clearTimeout(lastTs);
       }
-      lastTs = window.setTimeout(() => {
-        func.apply(context, args);
-        lastRan = Date.now();
-      }, limit - (now - (lastRan || 0)));
+      lastTs = window.setTimeout(
+        () => {
+          func.apply(context, args);
+          lastRan = Date.now();
+        },
+        limit - (now - (lastRan || 0))
+      );
     }
+  };
+}
+
+export function delayfn(fn: () => void, ms: number): () => void {
+  let timeoutId: number | undefined;
+
+  return function () {
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+    timeoutId = window.setTimeout(() => {
+      fn();
+      timeoutId = undefined;
+    }, ms);
   };
 }
