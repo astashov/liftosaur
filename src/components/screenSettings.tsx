@@ -420,6 +420,14 @@ export function ScreenSettings(props: IProps): JSX.Element {
             <button className="py-3 nm-export-history-to-csv-file">Export history to CSV file</button>
           </MenuItemWrapper>
         </div>
+        <div className="ls-export-programs-to-text">
+          <MenuItemWrapper
+            name="Export all programs to text file"
+            onClick={() => props.dispatch(Thunk.exportProgramsToText())}
+          >
+            <button className="py-3 nm-export-programs-to-text-file">Export all programs to text file</button>
+          </MenuItemWrapper>
+        </div>
         <div className="ls-import-csv-data">
           <ImporterLiftosaurCsv dispatch={props.dispatch} />
         </div>

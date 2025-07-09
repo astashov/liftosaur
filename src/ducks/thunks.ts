@@ -664,6 +664,22 @@ export namespace Thunk {
     };
   }
 
+  export function exportProgramsToText(): IThunk {
+    return async (dispatch, getState, env) => {
+      dispatch(postevent("export-programs-to-text"));
+      let text = "";
+      for (const program of getState().storage.programs) {
+        if (!program.planner) {
+          continue;
+        }
+        text += `======= ${program.name} =======\n\n`;
+        text += PlannerProgram.generateFullText(program.planner.weeks);
+        text += `\n\n\n`;
+      }
+      Exporter.toFile(`liftosaur_all_programs_${DateUtils.formatYYYYMMDD(Date.now())}.txt`, text);
+    };
+  }
+
   export function importStorage(maybeStorage: string): IThunk {
     return async (dispatch, getState, env) => {
       dispatch(postevent("import-json-storage"));
