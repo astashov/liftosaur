@@ -77,7 +77,6 @@
  */
 import { ObjectUtils } from "../utils/object";
 import { SetUtils } from "../utils/setUtils";
-import { c } from "../utils/types";
 
 export interface IVersions<T> {
   [key: string]: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined;
@@ -86,6 +85,7 @@ export interface IVersions<T> {
 export interface ICollectionVersions<T> {
   items?: Record<string, IVersions<T> | number>;
   deleted?: Record<string, number>;
+  nukedeleted?: boolean;
 }
 
 export interface IVersionTypes<TAtomicType extends string, TControlledType extends string> {
@@ -203,19 +203,6 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         ) {
           collectionVersions = { items: {}, deleted: {} } as ICollectionVersions<unknown>;
         }
-        if (currentVersion && typeof currentVersion === "object" && "deleted" in currentVersion) {
-          collectionVersions.deleted = {
-            ...(collectionVersions.deleted || {}),
-            ...(c<ICollectionVersions<unknown>["deleted"]>(currentVersion.deleted) || {}),
-          };
-        }
-        if (newVersion && typeof newVersion === "object" && "deleted" in newVersion) {
-          collectionVersions.deleted = {
-            ...(collectionVersions.deleted || {}),
-            ...(c<ICollectionVersions<unknown>["deleted"]>(newVersion.deleted) || {}),
-          };
-        }
-
         const items = collectionVersions.items || {};
 
         if (Array.isArray(oldValue)) {
@@ -272,19 +259,6 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
         const oldDict = oldValue as Record<string, unknown> | undefined;
         const newDict = newValue as Record<string, unknown>;
-
-        if (currentVersion && typeof currentVersion === "object" && "deleted" in currentVersion) {
-          collectionVersions.deleted = {
-            ...(collectionVersions.deleted || {}),
-            ...(c<ICollectionVersions<unknown>["deleted"]>(currentVersion.deleted) || {}),
-          };
-        }
-        if (newVersion && typeof newVersion === "object" && "deleted" in newVersion) {
-          collectionVersions.deleted = {
-            ...(collectionVersions.deleted || {}),
-            ...(c<ICollectionVersions<unknown>["deleted"]>(newVersion.deleted) || {}),
-          };
-        }
 
         if (oldDict) {
           for (const key of ObjectUtils.keys(oldDict)) {
@@ -949,9 +923,11 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     diffCollection: ICollectionVersions<unknown>,
     path?: string
   ): ICollectionVersions<unknown> {
+    const nukedeleted = diffCollection.nukedeleted || fullCollection?.nukedeleted;
     const result: ICollectionVersions<unknown> = {
       items: { ...(fullCollection?.items || {}) },
-      deleted: { ...(fullCollection?.deleted || {}), ...(diffCollection?.deleted || {}) },
+      deleted: nukedeleted ? {} : { ...(fullCollection?.deleted || {}), ...(diffCollection?.deleted || {}) },
+      ...(fullCollection?.nukedeleted ? { nukedeleted: true } : {}),
     };
 
     for (const id in diffCollection.items) {
