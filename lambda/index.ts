@@ -677,7 +677,17 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     const userDao = new UserDao(di);
     const eventDao = new EventDao(di);
     const programs = await userDao.getProgramsByUserId(user.id);
-    const oldStorage = { ...user.storage, programs };
+    const oldStorageResult = await Storage.get(di.fetch, { ...user.storage, programs });
+    console.log("Old storage result", oldStorageResult);
+    if (!oldStorageResult.success) {
+      di.log.log("Program Save: Error loading old storage", oldStorageResult.error);
+      return ResponseUtils.json(500, event, { error: "Corrupted storage!" });
+    }
+    const oldStorage = oldStorageResult.data;
+    if (oldStorage.version !== exportedProgram.version) {
+      di.log.log(`Program Save: Version mismatch! Old: ${oldStorage.version}, New: ${exportedProgram.version}.`);
+      return ResponseUtils.json(400, event, { error: "Version mismatch! Please refresh the page." });
+    }
     const newStorage: IPartialStorage = {
       ...user.storage,
       programs: CollectionUtils.setBy(programs, "id", exportedProgram.program.id, exportedProgram.program),
