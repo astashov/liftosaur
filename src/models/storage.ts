@@ -15,6 +15,7 @@ import { IStorageUpdate } from "../utils/sync";
 import { IStorage, TStorage, IPartialStorage, STORAGE_VERSION_TYPES } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { IVersions, VersionTracker } from "./versionTracker";
+import { lg } from "../utils/posthog";
 
 declare let Rollbar: RB;
 
@@ -51,6 +52,7 @@ export namespace Storage {
     const result = validate(data, type, name);
     if (!result.success) {
       const error = result.error;
+      lg("ls-corrupted-storage", { lastActions: JSON.stringify(window.reducerLastActions || []) });
       if (Rollbar != null) {
         Rollbar.error(error.join("\n"), { state: JSON.stringify(data), type: name });
       }
