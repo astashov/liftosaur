@@ -29,6 +29,7 @@ import { BottomSheetEditTarget } from "./bottomSheetEditTarget";
 import { SendMessage } from "../utils/sendMessage";
 import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
 import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
+import { Thunk } from "../ducks/thunks";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
@@ -109,6 +110,9 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   ) {
                     SendMessage.toIosAndAndroid({ type: "pauseWorkout" });
                     props.dispatch({ type: "FinishProgramDayAction" });
+                    if (Progress.isCurrent(props.progress)) {
+                      props.dispatch(Thunk.postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
+                    }
                   }
                 }}
               >
