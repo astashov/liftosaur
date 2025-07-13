@@ -86,7 +86,7 @@ export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Ele
               <ul>
                 {sortedEvents.map((event) => (
                   <li key={event.timestamp} className="mb-2">
-                    <div className="text-sm text-grayv2-main">
+                    <div className="text-sm">
                       <EventView event={event} adminKey={props.adminKey} userId={userId} />
                     </div>
                   </li>
@@ -112,6 +112,7 @@ function EventView(props: IEventViewProps): JSX.Element | null {
     return (
       <div>
         {event.isMobile ? <span className="text-grayv2-main">M </span> : <span className="text-greenv2-main">W </span>}
+        <span className="text-xs text-grayv3-main">{event.commithash?.slice(0, 4)} </span>
         <span className="text-grayv2-main">{time}</span>: <span className="">{event.name}</span>
         {event.extra && <span className="ml-2">{JSON.stringify(event.extra)}</span>}
       </div>
@@ -125,6 +126,7 @@ function EventView(props: IEventViewProps): JSX.Element | null {
           ) : (
             <span className="text-greenv2-main">W </span>
           )}
+          <span className="text-xs text-grayv3-main">{event.commithash?.slice(0, 4)} </span>
           <span className="text-grayv2-main">{time}</span>:{" "}
           {event.rollbar_id && (
             <a
@@ -144,6 +146,7 @@ function EventView(props: IEventViewProps): JSX.Element | null {
     return (
       <div>
         {event.isMobile ? <span className="text-grayv2-main">M </span> : <span className="text-greenv2-main">W </span>}
+        <span className="text-xs text-grayv3-main">{event.commithash?.slice(0, 4)} </span>
         <span className="text-grayv2-main">{time}: </span>
         <span className="">{event.type}: </span>
         <a

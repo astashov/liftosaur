@@ -197,6 +197,8 @@ const streamingServer = https.createServer(
 // eslint-disable-next-line prefer-const
 (global as any).__COMMIT_HASH__ = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
 (global as any).__FULL_COMMIT_HASH__ = childProcess.execSync("git rev-parse HEAD").toString().trim();
+process.env.COMMIT_HASH = (global as any).__COMMIT_HASH__;
+process.env.FULL_COMMIT_HASH = (global as any).__FULL_COMMIT_HASH__;
 
 server.listen(3000, "0.0.0.0", () => {
   console.log(`--------- API Server is running on port 3000 ----------`);

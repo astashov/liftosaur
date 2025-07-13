@@ -55,6 +55,7 @@ import { ScreenEditProgramExercise } from "./editProgramExercise/screenEditProgr
 import { FallbackScreen } from "./fallbackScreen";
 
 declare let Rollbar: RB;
+declare let __COMMIT_HASH__: string;
 
 interface IProps {
   client: Window["fetch"];
@@ -193,6 +194,7 @@ export function AppView(props: IProps): JSX.Element | null {
           if (exceptionIgnores.every((ignore) => !message.includes(ignore))) {
             service.postEvent({
               type: "error",
+              commithash: __COMMIT_HASH__,
               userId: userId,
               timestamp: Date.now(),
               message: typeof error === "string" ? error : error?.error?.message || "",
@@ -215,6 +217,7 @@ export function AppView(props: IProps): JSX.Element | null {
               type: "error",
               userId: userId,
               timestamp: Date.now(),
+              commithash: __COMMIT_HASH__,
               message: message || "",
               stack: reason.stack || "",
               rollbar_id: uuid || "",

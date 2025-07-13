@@ -242,6 +242,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
               type: "safesnapshot",
               userId: limitedUser.id,
               timestamp,
+              commithash: process.env.COMMIT_HASH || "",
               storage_id: storageId,
               update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
               isMobile: Mobile.isMobile(
@@ -287,6 +288,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
               userId: limitedUser.id,
               timestamp,
               storage_id: storageId,
+              commithash: process.env.COMMIT_HASH || "",
               isMobile: Mobile.isMobile(
                 payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""
               ),
@@ -359,6 +361,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
               type: "safesnapshot",
               userId: limitedUser.id,
               timestamp,
+              commithash: process.env.COMMIT_HASH || "",
               storage_id: storageId,
               update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
               isMobile: Mobile.isMobile(
@@ -396,6 +399,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
             await eventDao.post({
               type: "mergesnapshot",
               userId: limitedUser.id,
+              commithash: process.env.COMMIT_HASH || "",
               timestamp,
               storage_id: storageId,
               isMobile: Mobile.isMobile(
@@ -702,6 +706,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       type: "event",
       name: "save-program-www",
       userId: user.id,
+      commithash: process.env.COMMIT_HASH ?? "",
       timestamp: Date.now(),
       isMobile: false,
       extra: { programId: exportedProgram.program.id, clonedAt: exportedProgram.program.clonedAt || "none" },
@@ -734,6 +739,7 @@ const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
     const eventPost = eventDao.post({
       type: "event",
       name: "delete-program-www",
+      commithash: process.env.COMMIT_HASH ?? "",
       userId: user.id,
       timestamp: Date.now(),
       isMobile: false,

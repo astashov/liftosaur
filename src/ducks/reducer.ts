@@ -43,6 +43,8 @@ import { EditProgramUiHelpers } from "../components/editProgram/editProgramUi/ed
 import { c } from "../utils/types";
 import { ICollectionVersions } from "../models/versionTracker";
 
+declare let __COMMIT_HASH__: string;
+
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
     ? !!UrlUtils.build(window.location.href).searchParams.get("log")

@@ -1,5 +1,7 @@
 import { Service } from "../api/service";
 
+declare let __COMMIT_HASH__: string;
+
 export function lg(
   name: string,
   extra?: Record<string, string | number>,
@@ -16,6 +18,7 @@ export function lg(
     .postEvent({
       type: "event",
       timestamp: Date.now(),
+      commithash: __COMMIT_HASH__,
       name,
       extra,
       userId: tempUserId,
