@@ -18,7 +18,7 @@ export function lg(
     .postEvent({
       type: "event",
       timestamp: Date.now(),
-      commithash: __COMMIT_HASH__,
+      commithash: typeof __COMMIT_HASH__ !== "undefined" ? __COMMIT_HASH__ : "unknown",
       name,
       extra,
       userId: tempUserId,

@@ -329,18 +329,24 @@ export namespace Thunk {
     };
   }
 
-  export function sync2(args?: { force: boolean; cb?: () => void }): IThunk {
+  export function sync2(args?: { force?: boolean; cb?: () => void; log?: boolean }): IThunk {
     return async (dispatch, getState, env) => {
+      if (args?.log) {
+        dispatch(postevent("sync2-enter"));
+      }
       try {
         const state = getState();
         if (state.errors.corruptedstorage == null && !state.nosync && (state.user != null || args?.force)) {
           await env.queue.enqueue(
             async (args2) => {
               await load(dispatch, "Sync", async () => {
+                if (args2?.log) {
+                  dispatch(postevent("sync2-start"));
+                }
                 await _sync2(dispatch, getState, env, args2);
               });
             },
-            { force: !!args?.force }
+            { force: !!args?.force, log: !!args?.log }
           );
         }
       } finally {

@@ -3,8 +3,7 @@ import { IAction, reducerWrapper } from "../../src/ducks/reducer";
 import { Storage } from "../../src/models/storage";
 import { Thunk } from "../../src/ducks/thunks";
 import { IGThunk, IReducerOnIGAction } from "../../src/ducks/types";
-import { IEnv, IState, updateState } from "../../src/models/state";
-import { lb } from "lens-shmens";
+import { IEnv, IState } from "../../src/models/state";
 
 export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> {
   public state: TState;
@@ -23,8 +22,6 @@ export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> 
     return new MockReducer(reducerWrapper(true), state, env, [
       async (dispatch, action, oldState, newState) => {
         if (Storage.isChanged(oldState.storage, newState.storage)) {
-          const versions = Storage.updateVersions(oldState.storage, newState.storage);
-          updateState(dispatch, [lb<IState>().p("storage").p("_versions").record(versions)], "versions");
           await dispatch(Thunk.sync2());
         }
       },

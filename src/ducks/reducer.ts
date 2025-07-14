@@ -42,6 +42,7 @@ import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgramUiHelpers } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
 import { c } from "../utils/types";
 import { ICollectionVersions } from "../models/versionTracker";
+import { lg } from "../utils/posthog";
 
 declare let __COMMIT_HASH__: string;
 
@@ -298,10 +299,15 @@ let timerId: number | undefined = undefined;
 export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   return [
     (dispatch, action, oldState, newState) => {
+      const isFinishDayAction = "type" in action && action.type === "FinishProgramDayAction";
+      if (isFinishDayAction) {
+        lg("run-default-on-action-finish-day");
+      }
       if (Storage.isChanged(oldState.storage, newState.storage)) {
-        const versions = Storage.updateVersions(oldState.storage, newState.storage);
-        updateState(dispatch, [lb<IState>().p("storage").p("_versions").record(versions)], "versions");
-        dispatch(Thunk.sync2());
+        if (isFinishDayAction) {
+          lg("run-storage-updated-going-to-sync");
+        }
+        dispatch(Thunk.sync2({ log: isFinishDayAction }));
       }
     },
     (dispatch, action, oldState, newState) => {
@@ -408,7 +414,12 @@ export const reducerWrapper =
         ...(window.reducerLastActions || []).slice(0, 30),
       ];
     }
-    const newState = reducer(state, action);
+    let newState = reducer(state, action);
+    if (Storage.isChanged(state.storage, newState.storage)) {
+      const versions = Storage.updateVersions(state.storage, newState.storage);
+      newState = { ...newState, storage: { ...newState.storage, _versions: versions } };
+    }
+
     if (!newState.reportedCorruptedStorage && newState.storage !== state.storage) {
       const validateResult = Storage.validateAndReportStorage(newState.storage);
       if (!validateResult.success) {
@@ -632,6 +643,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
     };
   } else if (action.type === "FinishProgramDayAction") {
+    lg("run-finish-program-day-action");
     const settings = state.storage.settings;
     const progress = Progress.getProgress(state);
     if (progress == null) {
