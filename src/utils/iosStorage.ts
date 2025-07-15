@@ -1,5 +1,5 @@
 import { UidFactory } from "./generator";
-import { iosAppVersion, SendMessage } from "./sendMessage";
+import { SendMessage } from "./sendMessage";
 
 interface PendingRequest<T = any> {
   resolve: (value: T) => void;
