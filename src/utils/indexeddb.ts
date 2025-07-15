@@ -1,6 +1,15 @@
+import { IOSStorage } from "./iosStorage";
+import { ObjectUtils } from "./object";
+import { lg } from "./posthog";
+
+export let iosStorage: IOSStorage | undefined;
+
 export namespace IndexedDBUtils {
   export function initializeForSafari(): Promise<void> {
     return new Promise((resolve) => {
+      if (iosStorage == null && IOSStorage.isAvailable()) {
+        iosStorage = new IOSStorage();
+      }
       const connection = window.indexedDB.open("keyval-store");
       const handler = (): void => {
         if (connection.result != null) {
@@ -22,6 +31,10 @@ export namespace IndexedDBUtils {
 
   export function initialize(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
+      if (iosStorage == null && IOSStorage.isAvailable()) {
+        iosStorage = new IOSStorage();
+      }
+
       const connection = window.indexedDB.open("keyval-store");
       connection.addEventListener("success", (event) => {
         const request = event.target as IDBOpenDBRequest;
@@ -58,8 +71,8 @@ export namespace IndexedDBUtils {
     });
   }
 
-  export function get(key: string): Promise<unknown> {
-    return new Promise(async (resolve, reject) => {
+  export async function get(key: string): Promise<unknown> {
+    const result = await new Promise(async (resolve, reject) => {
       const db = await initialize();
       const transaction = db.transaction("keyval", "readonly");
       const objectStore = transaction.objectStore("keyval");
@@ -74,39 +87,59 @@ export namespace IndexedDBUtils {
         reject(e);
       });
     });
+    let iosStorageData: unknown = undefined;
+    if (iosStorage != null) {
+      try {
+        iosStorageData = await iosStorage.get(key);
+      } catch (e) {
+        lg("ls-ios-storage-get-error", { error: `${e}` });
+      }
+    }
+    if (iosStorageData != null) {
+      let isEqual = false;
+      if (typeof iosStorageData === "string" && typeof result === "string") {
+        isEqual = iosStorageData === result;
+      } else if (typeof result === "object" && typeof iosStorageData === "string") {
+        isEqual = ObjectUtils.isEqual(result, JSON.parse(iosStorageData));
+      }
+      lg("ls-ios-storage-get", { isEqual: isEqual ? "true" : "false" });
+    }
+    return result;
   }
 
-  export function remove(key: string): Promise<void> {
-    return new Promise(async (resolve, reject) => {
+  export async function remove(key: string): Promise<void> {
+    await new Promise(async (resolve, reject) => {
       const db = await initialize();
       const transaction = db.transaction("keyval", "readwrite");
       const objectStore = transaction.objectStore("keyval");
       const request = objectStore.delete(key);
       request.addEventListener("success", (e) => {
         db.close();
-        resolve();
+        resolve(void 0);
       });
       request.addEventListener("error", (e) => {
         db.close();
         reject(e);
       });
     });
+    await iosStorage?.delete(key);
   }
 
-  export function set(key: string, value?: string): Promise<void> {
-    return new Promise(async (resolve, reject) => {
+  export async function set(key: string, value?: string): Promise<void> {
+    await new Promise(async (resolve, reject) => {
       const db = await initialize();
       const transaction = db.transaction("keyval", "readwrite");
       const objectStore = transaction.objectStore("keyval");
       const request = objectStore.put(value, key);
       request.addEventListener("success", (e) => {
         db.close();
-        resolve();
+        resolve(void 0);
       });
       request.addEventListener("error", (e) => {
         db.close();
         reject(e);
       });
     });
+    await iosStorage?.set(key, value);
   }
 }
