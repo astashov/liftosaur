@@ -1,4 +1,5 @@
 import { UidFactory } from "./generator";
+import { iosAppVersion, SendMessage } from "./sendMessage";
 
 interface PendingRequest<T = any> {
   resolve: (value: T) => void;
@@ -150,7 +151,7 @@ export class IOSStorage {
   }
 
   public static isAvailable(): boolean {
-    return !!window.webkit?.messageHandlers?.liftosaurMessage;
+    return SendMessage.isIos() && SendMessage.iosAppVersion() >= 12;
   }
 
   private generateRequestId(): string {
