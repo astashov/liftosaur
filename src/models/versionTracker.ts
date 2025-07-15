@@ -206,7 +206,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const items = collectionVersions.items || {};
         if (collectionVersions.nukedeleted != null) {
           collectionVersions = { ...collectionVersions, nukedeleted: collectionVersions.nukedeleted + 1 };
-          if ((collectionVersions.nukedeleted ?? 0) < 3) {
+          if ((collectionVersions.nukedeleted ?? 0) > 3) {
             delete collectionVersions.nukedeleted;
           }
         }
@@ -264,7 +264,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const items = (collectionVersions.items as ICollectionVersions<unknown>["items"]) || {};
         if (collectionVersions.nukedeleted != null) {
           collectionVersions = { ...collectionVersions, nukedeleted: collectionVersions.nukedeleted + 1 };
-          if ((collectionVersions.nukedeleted ?? 0) < 3) {
+          if ((collectionVersions.nukedeleted ?? 0) > 3) {
             delete collectionVersions.nukedeleted;
           }
         }
@@ -767,10 +767,13 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     diffVersion: ICollectionVersions<unknown>,
     extractedValue: unknown
   ): unknown {
-    const deletedKeys = new Set<string>([
-      ...(fullVersion?.deleted ? Object.keys(fullVersion.deleted) : []),
-      ...(diffVersion.deleted ? Object.keys(diffVersion.deleted) : []),
-    ]);
+    const isNukeDeleted = diffVersion.nukedeleted != null || fullVersion?.nukedeleted != null;
+    const deletedKeys = isNukeDeleted
+      ? new Set()
+      : new Set<string>([
+          ...(fullVersion?.deleted ? Object.keys(fullVersion.deleted) : []),
+          ...(diffVersion.deleted ? Object.keys(diffVersion.deleted) : []),
+        ]);
     if (Array.isArray(fullValue) && Array.isArray(extractedValue)) {
       const result: unknown[] = [];
       const processedIds = new Set<string>();
