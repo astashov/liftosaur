@@ -37,7 +37,9 @@
     "onetest": "TS_NODE_TRANSPILE_ONLY=1 mocha -r ts-node/register",
     "sitemap": "TS_NODE_TRANSPILE_ONLY=1 ts-node ./src/sitemap.ts",
     "testgen": "playwright codegen --test-id-attribute data-cy 'https://local.liftosaur.com:8080/app/?skipintro=1'",
-    "knip": "knip"
+    "knip": "knip",
+    "r": "TS_NODE_TRANSPILE_ONLY=1 npx ts-node ",
+    "rd": "IS_DEV=true TS_NODE_TRANSPILE_ONLY=1 npx ts-node "
   },
   "author": "Anton Astashov",
   "license": "AGPL-3.0",

@@ -85,7 +85,7 @@ export interface IVersions<T> {
 export interface ICollectionVersions<T> {
   items?: Record<string, IVersions<T> | number>;
   deleted?: Record<string, number>;
-  nukedeleted?: boolean;
+  nukedeleted?: number;
 }
 
 export interface IVersionTypes<TAtomicType extends string, TControlledType extends string> {
@@ -204,6 +204,12 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           collectionVersions = { items: {}, deleted: {} } as ICollectionVersions<unknown>;
         }
         const items = collectionVersions.items || {};
+        if (collectionVersions.nukedeleted != null) {
+          collectionVersions = { ...collectionVersions, nukedeleted: collectionVersions.nukedeleted + 1 };
+          if ((collectionVersions.nukedeleted ?? 0) < 3) {
+            delete collectionVersions.nukedeleted;
+          }
+        }
 
         if (Array.isArray(oldValue)) {
           for (const oldItem of oldValue) {
@@ -256,6 +262,12 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           collectionVersions = { items: {}, deleted: {} } as ICollectionVersions<unknown>;
         }
         const items = (collectionVersions.items as ICollectionVersions<unknown>["items"]) || {};
+        if (collectionVersions.nukedeleted != null) {
+          collectionVersions = { ...collectionVersions, nukedeleted: collectionVersions.nukedeleted + 1 };
+          if ((collectionVersions.nukedeleted ?? 0) < 3) {
+            delete collectionVersions.nukedeleted;
+          }
+        }
 
         const oldDict = oldValue as Record<string, unknown> | undefined;
         const newDict = newValue as Record<string, unknown>;
@@ -923,11 +935,14 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     diffCollection: ICollectionVersions<unknown>,
     path?: string
   ): ICollectionVersions<unknown> {
-    const nukedeleted = diffCollection.nukedeleted || fullCollection?.nukedeleted;
+    const nukedeleted =
+      diffCollection.nukedeleted != null || fullCollection?.nukedeleted != null
+        ? Math.max(diffCollection.nukedeleted || 0, fullCollection?.nukedeleted || 0)
+        : undefined;
     const result: ICollectionVersions<unknown> = {
       items: { ...(fullCollection?.items || {}) },
-      deleted: nukedeleted ? {} : { ...(fullCollection?.deleted || {}), ...(diffCollection?.deleted || {}) },
-      ...(fullCollection?.nukedeleted ? { nukedeleted: true } : {}),
+      deleted: nukedeleted != null ? {} : { ...(fullCollection?.deleted || {}), ...(diffCollection?.deleted || {}) },
+      ...(nukedeleted != null && nukedeleted < 3 ? { nukedeleted: nukedeleted + 1 } : {}),
     };
 
     for (const id in diffCollection.items) {

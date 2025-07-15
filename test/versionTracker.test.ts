@@ -2056,7 +2056,7 @@ describe("VersionTracker", () => {
             prog3: 3000,
             prog8: 6000,
           },
-          nukedeleted: true,
+          nukedeleted: 0,
         },
       };
 
@@ -2083,7 +2083,7 @@ describe("VersionTracker", () => {
             prog4: 4000,
           },
           deleted: {},
-          nukedeleted: true,
+          nukedeleted: 1,
         },
       });
 
@@ -2108,6 +2108,7 @@ describe("VersionTracker", () => {
             prog8: 3000,
           },
           deleted: {},
+          nukedeleted: 2,
         },
       });
     });
