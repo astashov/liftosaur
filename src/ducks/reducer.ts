@@ -27,7 +27,7 @@ import { LogUtils } from "../utils/log";
 import { ProgramExercise } from "../models/programExercise";
 import { Service } from "../api/service";
 import { unrunMigrations } from "../migrations/runner";
-import { ObjectUtils, diffPaths } from "../utils/object";
+import { ObjectUtils } from "../utils/object";
 import { UrlUtils } from "../utils/url";
 import { DateUtils } from "../utils/date";
 import { IReducerOnAction } from "./types";
