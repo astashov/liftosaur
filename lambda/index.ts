@@ -698,6 +698,18 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       originalId: Date.now(),
     };
     const newVersions = Storage.updateVersions(oldStorage, newStorage);
+    const saveVersions = eventDao.post({
+      type: "event",
+      name: "save-program-www-versions",
+      userId: user.id,
+      commithash: process.env.COMMIT_HASH ?? "",
+      timestamp: Date.now(),
+      isMobile: false,
+      extra: {
+        versions: JSON.stringify(newVersions.programs),
+        suspciousDeletion: `${(global as any).suspiciousDeletion}`,
+      },
+    });
     if ((global as any).suspiciousDeletion) {
       await eventDao.post({
         type: "event",
@@ -726,6 +738,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       userDao.store(user),
       userDao.saveProgramRevision(user.id, exportedProgram.program),
       eventPost,
+      saveVersions,
     ]);
     return ResponseUtils.json(200, event, { data: { id: exportedProgram.program.id } });
   }
