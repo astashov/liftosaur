@@ -75,7 +75,9 @@
  * // Result: { age: 1234567890, settings: { theme: 1234567890 } }
  * ```
  */
+import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
+import { lg } from "../utils/posthog";
 import { SetUtils } from "../utils/setUtils";
 
 export interface IVersions<T> {
@@ -157,6 +159,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
       if (oldValue != null || (oldValue == null && newValue != null)) {
         const updatedVersion = this.updateFieldVersion(
+          oldObj,
+          newObj,
+          currentVersions,
+          newVersions,
           oldValue,
           newValue,
           versions[field],
@@ -174,6 +180,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   }
 
   private updateFieldVersion(
+    oldFull: unknown,
+    newFull: unknown,
+    oldFullVersion: unknown,
+    newFullVersion: unknown,
     oldValue: unknown,
     newValue: unknown,
     currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
@@ -232,6 +242,48 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
               delete collectionVersions.deleted[itemId];
             }
           }
+        }
+
+        try {
+          const grouped = CollectionUtils.groupByExpr(
+            ObjectUtils.entries(collectionVersions.deleted || {}),
+            ([, v]) => `${v}`
+          );
+          const keys = ObjectUtils.keys(grouped).filter((group) => {
+            const values = grouped[group];
+            return values != null && values.length > 1;
+          });
+          if (keys.length > 0) {
+            for (const key of keys) {
+              for (const k of grouped[key] || []) {
+                const deletekey = k[0];
+                if (deletekey != null) {
+                  delete (collectionVersions.deleted || {})[deletekey];
+                }
+              }
+            }
+            try {
+              if (typeof global !== "undefined") {
+                (global as any).suspiciousDeletion = true;
+              }
+              if (typeof window !== "undefined") {
+                (window as any).suspiciousDeletion = true;
+              }
+              lg("ls-suspicious-deletion", {
+                trace: new Error().stack ?? "",
+                path: path,
+                oldFull: JSON.stringify(oldFull),
+                newFull: JSON.stringify(newFull),
+                oldFullVersion: JSON.stringify(oldFullVersion),
+                newFullVersion: JSON.stringify(newFullVersion),
+              });
+            } catch (e) {
+              console.error(e);
+              lg("ls-suspicious-deletion-error");
+            }
+          }
+        } catch (e) {
+          lg("ls-deletion-escape-error", { error: `${e}` });
         }
 
         const hasChanges =
@@ -301,6 +353,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       } else {
         const oldObjValue = typeof oldValue === "object" && oldValue !== null ? oldValue : undefined;
         const nestedVersions = this.updateNestedVersions(
+          oldFull,
+          newFull,
+          oldFullVersion,
+          newFullVersion,
           oldObjValue as Record<string, unknown> | undefined,
           newValue as Record<string, unknown>,
           (currentVersion || {}) as IVersions<Record<string, unknown>>,
@@ -365,6 +421,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   }
 
   private updateNestedVersions<T extends Record<string, unknown>>(
+    oldFull: unknown,
+    newFull: unknown,
+    oldFullVersion: unknown,
+    newFullVersion: unknown,
     oldObj: T | undefined,
     newObj: T,
     currentVersions: IVersions<T>,
@@ -387,6 +447,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
       if (oldValue == null && newValue != null) {
         const updatedVersion = this.updateFieldVersion(
+          oldFull,
+          newFull,
+          oldFullVersion,
+          newFullVersion,
           undefined,
           newValue,
           versions[key],
@@ -400,6 +464,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         }
       } else if (oldValue != null) {
         const updatedVersion = this.updateFieldVersion(
+          oldFull,
+          newFull,
+          oldFullVersion,
+          newFullVersion,
           oldValue,
           newValue,
           versions[key],

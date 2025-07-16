@@ -698,6 +698,17 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       originalId: Date.now(),
     };
     const newVersions = Storage.updateVersions(oldStorage, newStorage);
+    if ((global as any).suspiciousDeletion) {
+      await eventDao.post({
+        type: "event",
+        name: "ls-suspicious-deletion-www",
+        userId: user.id,
+        commithash: process.env.COMMIT_HASH ?? "",
+        timestamp: Date.now(),
+        isMobile: false,
+        extra: { programId: exportedProgram.program.id, clonedAt: exportedProgram.program.clonedAt || "none" },
+      });
+    }
     newStorage._versions = newVersions;
     delete newStorage.programs;
     user.storage = newStorage;
