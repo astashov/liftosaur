@@ -1,14 +1,14 @@
-import { IOSStorage } from "./iosStorage";
+import { NativeStorage } from "./nativeStorage";
 import { ObjectUtils } from "./object";
 import { lg } from "./posthog";
 
-export let iosStorage: IOSStorage | undefined;
+export let nativeStorage: NativeStorage | undefined;
 
 export namespace IndexedDBUtils {
   export function initializeForSafari(): Promise<void> {
     return new Promise((resolve) => {
-      if (iosStorage == null && IOSStorage.isAvailable()) {
-        iosStorage = new IOSStorage();
+      if (nativeStorage == null && NativeStorage.isAvailable()) {
+        nativeStorage = new NativeStorage();
       }
       const connection = window.indexedDB.open("keyval-store");
       const handler = (): void => {
@@ -31,8 +31,8 @@ export namespace IndexedDBUtils {
 
   export function initialize(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      if (iosStorage == null && IOSStorage.isAvailable()) {
-        iosStorage = new IOSStorage();
+      if (nativeStorage == null && NativeStorage.isAvailable()) {
+        nativeStorage = new NativeStorage();
       }
 
       const connection = window.indexedDB.open("keyval-store");
@@ -87,22 +87,22 @@ export namespace IndexedDBUtils {
         reject(e);
       });
     });
-    let iosStorageData: unknown = undefined;
-    if (iosStorage != null) {
+    let nativeStorageData: unknown = undefined;
+    if (nativeStorage != null) {
       try {
-        iosStorageData = await iosStorage.get(key);
+        nativeStorageData = await nativeStorage.get(key);
       } catch (e) {
-        lg("ls-ios-storage-get-error", { error: `${e}` });
+        lg("ls-native-storage-get-error", { error: `${e}` });
       }
     }
-    if (iosStorageData != null) {
+    if (nativeStorageData != null) {
       let isEqual = false;
-      if (typeof iosStorageData === "string" && typeof result === "string") {
-        isEqual = iosStorageData === result;
-      } else if (typeof result === "object" && typeof iosStorageData === "string") {
-        isEqual = ObjectUtils.isEqual(result, JSON.parse(iosStorageData));
+      if (typeof nativeStorageData === "string" && typeof result === "string") {
+        isEqual = nativeStorageData === result;
+      } else if (typeof result === "object" && typeof nativeStorageData === "string") {
+        isEqual = ObjectUtils.isEqual(result, JSON.parse(nativeStorageData));
       }
-      lg("ls-ios-storage-get", { isEqual: isEqual ? "true" : "false" });
+      lg("ls-native-storage-get", { isEqual: isEqual ? "true" : "false" });
     }
     return result;
   }
@@ -122,7 +122,7 @@ export namespace IndexedDBUtils {
         reject(e);
       });
     });
-    await iosStorage?.delete(key);
+    await nativeStorage?.delete(key);
   }
 
   export async function set(key: string, value?: string): Promise<void> {
@@ -140,6 +140,6 @@ export namespace IndexedDBUtils {
         reject(e);
       });
     });
-    await iosStorage?.set(key, value);
+    await nativeStorage?.set(key, value);
   }
 }

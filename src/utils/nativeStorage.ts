@@ -48,26 +48,21 @@ type IStorageResponse =
   | IStorageResponseHasResult
   | IStorageResponseGetAllKeysResult;
 
-export class IOSStorage {
+export class NativeStorage {
   private pendingRequests: Map<string, PendingRequest>;
 
   constructor() {
     this.pendingRequests = new Map();
-    // Listen for responses from iOS
     window.addEventListener("message", (event) => {
       this.handleResponse(event.data);
     });
   }
 
   public async set<T = any>(key: string, value: T): Promise<boolean> {
-    if (!window.webkit?.messageHandlers?.liftosaurMessage) {
-      throw new Error("iOS storage not available");
-    }
-
     const requestId = this.generateRequestId();
     const promise = this.createPromise<boolean>(requestId);
 
-    window.webkit.messageHandlers.liftosaurMessage.postMessage({
+    SendMessage.toIosAndAndroid({
       type: "storageSet",
       key: key,
       value: typeof value === "string" ? value : JSON.stringify(value),
@@ -78,14 +73,10 @@ export class IOSStorage {
   }
 
   public async get<T = any>(key: string): Promise<T | undefined> {
-    if (!window.webkit?.messageHandlers?.liftosaurMessage) {
-      throw new Error("iOS storage not available");
-    }
-
     const requestId = this.generateRequestId();
     const promise = this.createPromise<T | undefined>(requestId);
 
-    window.webkit.messageHandlers.liftosaurMessage.postMessage({
+    SendMessage.toIosAndAndroid({
       type: "storageGet",
       key: key,
       requestId: requestId,
@@ -95,14 +86,10 @@ export class IOSStorage {
   }
 
   public async delete(key: string): Promise<boolean> {
-    if (!window.webkit?.messageHandlers?.liftosaurMessage) {
-      throw new Error("iOS storage not available");
-    }
-
     const requestId = this.generateRequestId();
     const promise = this.createPromise<boolean>(requestId);
 
-    window.webkit.messageHandlers.liftosaurMessage.postMessage({
+    SendMessage.toIosAndAndroid({
       type: "storageDelete",
       key: key,
       requestId: requestId,
@@ -112,14 +99,10 @@ export class IOSStorage {
   }
 
   public async has(key: string): Promise<boolean> {
-    if (!window.webkit?.messageHandlers?.liftosaurMessage) {
-      throw new Error("iOS storage not available");
-    }
-
     const requestId = this.generateRequestId();
     const promise = this.createPromise<boolean>(requestId);
 
-    window.webkit.messageHandlers.liftosaurMessage.postMessage({
+    SendMessage.toIosAndAndroid({
       type: "storageHas",
       key: key,
       requestId: requestId,
@@ -129,14 +112,10 @@ export class IOSStorage {
   }
 
   public async getAllKeys(): Promise<string[]> {
-    if (!window.webkit?.messageHandlers?.liftosaurMessage) {
-      throw new Error("iOS storage not available");
-    }
-
     const requestId = this.generateRequestId();
     const promise = this.createPromise<string[]>(requestId);
 
-    window.webkit.messageHandlers.liftosaurMessage.postMessage({
+    SendMessage.toIosAndAndroid({
       type: "storageGetAllKeys",
       requestId: requestId,
     });
@@ -151,7 +130,10 @@ export class IOSStorage {
   }
 
   public static isAvailable(): boolean {
-    return SendMessage.isIos() && SendMessage.iosAppVersion() >= 12;
+    return (
+      (SendMessage.isIos() && SendMessage.iosAppVersion() >= 12) ||
+      (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 21)
+    );
   }
 
   private generateRequestId(): string {
@@ -168,7 +150,6 @@ export class IOSStorage {
       return;
     }
 
-    // Clear the timeout
     clearTimeout(pendingRequest.timeout);
     this.pendingRequests.delete(data.requestId);
 
@@ -191,7 +172,7 @@ export class IOSStorage {
       const timeout = setTimeout(() => {
         if (this.pendingRequests.has(requestId)) {
           this.pendingRequests.delete(requestId);
-          reject(new Error(`iOS storage operation timed out (requestId: ${requestId})`));
+          reject(new Error(`Native storage operation timed out (requestId: ${requestId})`));
         }
       }, timeoutMs);
 
