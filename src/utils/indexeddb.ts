@@ -1,6 +1,7 @@
 import { NativeStorage } from "./nativeStorage";
 import { ObjectUtils } from "./object";
 import { lg } from "./posthog";
+import { SendMessage } from "./sendMessage";
 
 export let nativeStorage: NativeStorage | undefined;
 
@@ -88,11 +89,12 @@ export namespace IndexedDBUtils {
       });
     });
     let nativeStorageData: unknown = undefined;
+    const prefix = SendMessage.isIos() ? "ios" : "android";
     if (nativeStorage != null) {
       try {
         nativeStorageData = await nativeStorage.get(key);
       } catch (e) {
-        lg("ls-native-storage-get-error", { error: `${e}` });
+        lg(`ls-${prefix}-storage-get-error`, { error: `${e}` });
       }
     }
     if (nativeStorageData != null) {
@@ -102,7 +104,7 @@ export namespace IndexedDBUtils {
       } else if (typeof result === "object" && typeof nativeStorageData === "string") {
         isEqual = ObjectUtils.isEqual(result, JSON.parse(nativeStorageData));
       }
-      lg("ls-native-storage-get", { isEqual: isEqual ? "true" : "false" });
+      lg(`ls-${prefix}-storage-get`, { isEqual: isEqual ? "true" : "false" });
     }
     return result;
   }
