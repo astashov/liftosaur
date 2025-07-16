@@ -43,6 +43,16 @@ export namespace Storage {
     return validateAndReport(data, TStorage, "storage");
   }
 
+  export function fillVersions(storage: IStorage): IStorage {
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const timestamp = Date.now();
+    const filledVersions = versionTracker.fillVersions(storage, storage._versions || {}, timestamp);
+    return {
+      ...storage,
+      _versions: filledVersions,
+    };
+  }
+
   export function validateAndReport(
     data: Record<string, unknown>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
