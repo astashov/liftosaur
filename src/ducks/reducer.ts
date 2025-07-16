@@ -27,7 +27,7 @@ import { LogUtils } from "../utils/log";
 import { ProgramExercise } from "../models/programExercise";
 import { Service } from "../api/service";
 import { unrunMigrations } from "../migrations/runner";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils, diffPaths } from "../utils/object";
 import { UrlUtils } from "../utils/url";
 import { DateUtils } from "../utils/date";
 import { IReducerOnAction } from "./types";
@@ -301,7 +301,16 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
     (dispatch, action, oldState, newState) => {
       const isFinishDayAction = "type" in action && action.type === "FinishProgramDayAction";
       if (isFinishDayAction) {
-        lg("run-default-on-action-finish-day");
+        let diffPaths: string[] = [];
+        try {
+          diffPaths = ObjectUtils.diffPaths(oldState.storage, newState.storage);
+        } catch (e) {
+          diffPaths = ["unknown"];
+        }
+        lg("run-default-on-action-finish-day", {
+          diffPaths: JSON.stringify(diffPaths),
+          isChanged: `${Storage.isChanged(oldState.storage, newState.storage)}`,
+        });
       }
       if (Storage.isChanged(oldState.storage, newState.storage)) {
         if (isFinishDayAction) {
@@ -647,6 +656,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const settings = state.storage.settings;
     const progress = Progress.getProgress(state);
     if (progress == null) {
+      lg("run-finish-program-day-action-no-progress");
       throw new StateError("FinishProgramDayAction: no progress");
     } else {
       const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
@@ -669,6 +679,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const newPrograms =
         newProgram != null ? lf(state.storage.programs).i(programIndex).set(newProgram) : state.storage.programs;
       const newSettingsExerciseData = deepmerge(state.storage.settings.exerciseData, newExerciseData);
+      lg("run-finish-program-day-action-add-record");
       return {
         ...state,
         storage: {
