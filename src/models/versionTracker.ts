@@ -254,20 +254,22 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
             return values != null && values.length > 1;
           });
           if (keys.length > 0) {
+            let suspiciousKeys = [];
             for (const key of keys) {
               for (const k of grouped[key] || []) {
                 const deletekey = k[0];
                 if (deletekey != null) {
+                  suspiciousKeys.push(deletekey);
                   delete (collectionVersions.deleted || {})[deletekey];
                 }
               }
             }
             try {
               if (typeof global !== "undefined") {
-                (global as any).suspiciousDeletion = true;
+                (global as any).suspiciousDeletion = suspiciousKeys;
               }
               if (typeof window !== "undefined") {
-                (window as any).suspiciousDeletion = true;
+                (window as any).suspiciousDeletion = suspiciousKeys;
               }
               lg("ls-suspicious-deletion", {
                 trace: new Error().stack ?? "",

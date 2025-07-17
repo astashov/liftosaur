@@ -707,7 +707,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       isMobile: false,
       extra: {
         versions: JSON.stringify(newVersions.programs),
-        suspciousDeletion: `${(global as any).suspiciousDeletion}`,
+        suspciousDeletion: JSON.stringify((global as any).suspiciousDeletion),
       },
     });
     if ((global as any).suspiciousDeletion) {

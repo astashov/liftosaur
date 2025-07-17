@@ -70,4 +70,20 @@ export class EventDao {
       values: { ":name": name },
     });
   }
+
+  public scanByNames(names: string[]): Promise<IEventPayload[]> {
+    const env = Utils.getEnv();
+    const placeholders = names.map((_, index) => `:name${index}`).join(", ");
+    const values = names.reduce((acc, name, index) => {
+      acc[`:name${index}`] = name;
+      return acc;
+    }, {} as Record<string, string>);
+    
+    return this.di.dynamo.scan<IEventPayload>({
+      tableName: eventsTableNames[env].events,
+      filterExpression: `#name IN (${placeholders})`,
+      names: { "#name": "name" },
+      values,
+    });
+  }
 }
