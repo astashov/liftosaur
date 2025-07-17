@@ -692,8 +692,8 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       return ResponseUtils.json(400, event, { error: "Version mismatch! Please refresh the page." });
     }
     const newStorage: IPartialStorage = {
-      ...user.storage,
-      programs: CollectionUtils.setBy(programs, "id", exportedProgram.program.id, exportedProgram.program),
+      ...oldStorage,
+      programs: CollectionUtils.setBy(oldStorage.programs, "id", exportedProgram.program.id, exportedProgram.program),
       settings: Settings.applyExportedProgram(user.storage.settings, exportedProgram),
       originalId: Date.now(),
     };
@@ -707,6 +707,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       isMobile: false,
       extra: {
         versions: JSON.stringify(newVersions.programs),
+        name: exportedProgram.program.name,
         suspciousDeletion: JSON.stringify((global as any).suspiciousDeletion),
       },
     });
@@ -718,7 +719,18 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
         commithash: process.env.COMMIT_HASH ?? "",
         timestamp: Date.now(),
         isMobile: false,
-        extra: { programId: exportedProgram.program.id, clonedAt: exportedProgram.program.clonedAt || "none" },
+        extra: {
+          programId: exportedProgram.program.id,
+          name: exportedProgram.program.name,
+          clonedAt: exportedProgram.program.clonedAt || "none",
+          suspciousDeletion: JSON.stringify((global as any).suspiciousDeletion),
+          programs: JSON.stringify(
+            newStorage.programs?.map((p) => {
+              const { planner, ...cleanedProgram } = p;
+              return cleanedProgram;
+            })
+          ),
+        },
       });
     }
     newStorage._versions = newVersions;

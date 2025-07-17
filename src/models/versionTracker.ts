@@ -254,7 +254,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
             return values != null && values.length > 1;
           });
           if (keys.length > 0) {
-            let suspiciousKeys = [];
+            const suspiciousKeys = [];
             for (const key of keys) {
               for (const k of grouped[key] || []) {
                 const deletekey = k[0];
