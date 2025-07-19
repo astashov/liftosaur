@@ -240,4 +240,14 @@ export const migrations = {
 
     return storage;
   },
+  "20250719104230_add_cloned_at_to_programs": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs) {
+      program.clonedAt = program.clonedAt ?? Date.now() - Math.round(Math.random() * 1000000);
+    }
+    return storage;
+  },
 };

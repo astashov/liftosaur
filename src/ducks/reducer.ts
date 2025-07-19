@@ -301,16 +301,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
     (dispatch, action, oldState, newState) => {
       const isFinishDayAction = "type" in action && action.type === "FinishProgramDayAction";
       if (isFinishDayAction) {
-        let diffPaths: string[] = [];
-        try {
-          diffPaths = ObjectUtils.diffPaths(oldState.storage, newState.storage);
-        } catch (e) {
-          diffPaths = ["unknown"];
-        }
-        lg("run-default-on-action-finish-day", {
-          diffPaths: JSON.stringify(diffPaths),
-          isChanged: `${Storage.isChanged(oldState.storage, newState.storage)}`,
-        });
+        lg("run-default-on-action-finish-day");
       }
       if (Storage.isChanged(oldState.storage, newState.storage)) {
         if (isFinishDayAction) {
@@ -680,6 +671,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         newProgram != null ? lf(state.storage.programs).i(programIndex).set(newProgram) : state.storage.programs;
       const newSettingsExerciseData = deepmerge(state.storage.settings.exerciseData, newExerciseData);
       lg("run-finish-program-day-action-add-record");
+      window.lastHistoryRecord = historyRecord;
       return {
         ...state,
         storage: {

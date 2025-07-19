@@ -43,7 +43,7 @@ export namespace Storage {
     return validateAndReport(data, TStorage, "storage");
   }
 
-  export function fillVersions(storage: IStorage): IStorage {
+  export function fillVersions<T extends IPartialStorage | IStorage>(storage: T): T {
     const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
     const timestamp = Date.now();
     const filledVersions = versionTracker.fillVersions(storage, storage._versions || {}, timestamp);

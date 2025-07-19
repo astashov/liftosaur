@@ -2632,6 +2632,52 @@ describe("VersionTracker", () => {
         nextDay: timestamp,
       });
     });
+
+    it("should preserve old items in versions", () => {
+      const program: IProgram = {
+        vtype: "program",
+        id: "prog1",
+        clonedAt: 1,
+        name: "Program 1",
+        description: "",
+        url: "",
+        author: "",
+        nextDay: 1,
+        days: [],
+        weeks: [],
+        exercises: [],
+        isMultiweek: false,
+        tags: [],
+      };
+
+      const fullObj = {
+        programs: [program],
+      };
+
+      const existingVersions: IVersions<typeof fullObj> = {
+        programs: {
+          items: {
+            2: { name: 2000 },
+            3: 3000,
+          },
+          deleted: { 4: 1500 },
+        },
+      };
+      const timestamp = 2000;
+
+      const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+      const programVersions = filled.programs as ICollectionVersions<IProgram>;
+
+      expect(programVersions.deleted).to.deep.equal({ 4: 1500 });
+      expect(programVersions.items).to.deep.equal({
+        1: {
+          name: 2000,
+          nextDay: 2000,
+        },
+        2: { name: 2000 },
+        3: 3000,
+      });
+    });
   });
 
   describe("tombstone compaction", () => {

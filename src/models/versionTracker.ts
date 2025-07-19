@@ -664,7 +664,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
     for (const controlledField of controlledFields) {
       const fieldValue = (value as Record<string, unknown>)[controlledField];
-      if (fieldValue !== undefined && fieldValue !== null && !(controlledField in result)) {
+      if (fieldValue != null && !(controlledField in result)) {
         result[controlledField] = timestamp;
       }
     }
@@ -686,7 +686,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       const value = obj[key];
       const currentPath = parentPath ? `${parentPath}.${String(key)}` : String(key);
 
-      if (value !== undefined && value !== null) {
+      if (value != null) {
         const filledVersion = this.fillFieldVersion(value, versions[key], timestamp, currentPath);
         if (filledVersion !== undefined) {
           (versions as any)[key] = filledVersion;

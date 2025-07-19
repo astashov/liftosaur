@@ -49,10 +49,12 @@ export class Sync {
     const versionsDiff = versionTracker.diffVersions(lastStorage._versions, currentStorage._versions || {});
     if (versionsDiff) {
       const storageDiff = versionTracker.extractByVersions(currentStorage, versionsDiff);
+      const filledVersionsDiff = versionTracker.fillVersions(storageDiff, versionsDiff, Date.now());
+
       return {
         version: currentStorage.version,
         originalId: currentStorage.originalId,
-        versions: versionsDiff,
+        versions: filledVersionsDiff,
         storage: storageDiff,
       };
     } else {

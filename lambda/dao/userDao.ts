@@ -139,6 +139,16 @@ export class UserDao {
     storageUpdate: IStorageUpdate2
   ): Promise<IEither<{ originalId: number; newStorage?: IPartialStorage }, string>> {
     const env = Utils.getEnv();
+    if (limitedUser.storage.version !== getLatestMigrationVersion()) {
+      const fullUser = await this.getById(limitedUser.id);
+      const storage = await Storage.get(fetch, fullUser!.storage);
+      if (storage.success) {
+        await this.saveStorage(fullUser!, storage.data);
+      } else {
+        return { success: false, error: "corrupted_server_storage" };
+      }
+      limitedUser = (await this.getLimitedById(limitedUser.id))!;
+    }
     const result = await Storage.get(fetch, limitedUser.storage);
     if (!result.success) {
       return { success: false, error: "corrupted_server_storage" };
@@ -162,11 +172,12 @@ export class UserDao {
       storageUpdate.versions || {},
       storageUpdate.storage || {}
     );
-    const newStorage: IPartialStorage = {
+    const preNewStorage: IPartialStorage = {
       ...mergedStorage,
       originalId,
       _versions: newVersions,
     };
+    const newStorage = Storage.fillVersions(preNewStorage);
 
     const versionsHistory = storageUpdate.versions?.history as ICollectionVersions<IHistoryRecord[]> | undefined;
     const deletedVersionsHistory = ObjectUtils.keys(versionsHistory?.deleted || {}).map((v) => Number(v));
@@ -438,7 +449,11 @@ export class UserDao {
 
   public async store(user: ILimitedUserDao): Promise<void> {
     const env = Utils.getEnv();
-    const item = { ...user, nickname: user.storage.settings.nickname?.toLowerCase() };
+    const storage = ObjectUtils.clone(user.storage);
+    delete storage.programs;
+    delete storage.history;
+    delete storage.stats;
+    const item = { ...user, storage, nickname: storage.settings.nickname?.toLowerCase() };
     await this.di.dynamo.put({ tableName: userTableNames[env].users, item });
   }
 
@@ -752,7 +767,8 @@ export class UserDao {
     return JSON.parse(programRevision.toString());
   }
 
-  public async saveStorage(user: ILimitedUserDao, storage: IPartialStorage): Promise<void> {
+  public async saveStorage(user: ILimitedUserDao, aStorage: IPartialStorage): Promise<void> {
+    const storage = Storage.fillVersions(aStorage);
     const { history, programs, stats, ...userStorage } = storage;
     const statsObj = stats || { length: {}, weight: {}, percentage: {} };
     const env = Utils.getEnv();
