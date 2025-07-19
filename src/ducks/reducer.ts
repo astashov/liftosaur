@@ -413,6 +413,18 @@ export const reducerWrapper =
         { ...action, time: DateUtils.formatHHMMSS(Date.now(), true) },
         ...(window.reducerLastActions || []).slice(0, 30),
       ];
+      const lastHistoryRecordStr = window.localStorage.getItem("lastHistoryRecord");
+      if (lastHistoryRecordStr) {
+        const { time, historyRecord } = JSON.parse(lastHistoryRecordStr);
+        const diffTime = Date.now() - time;
+        if (diffTime > 1000 * 60) {
+          window.localStorage.removeItem("lastHistoryRecord");
+          const fromHistory = state.storage.history.find((hr) => hr.id === historyRecord.id);
+          if (!fromHistory) {
+            lg("history-record-lost");
+          }
+        }
+      }
     }
     let newState = reducer(state, action);
     if (Storage.isChanged(state.storage, newState.storage)) {
@@ -671,7 +683,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         newProgram != null ? lf(state.storage.programs).i(programIndex).set(newProgram) : state.storage.programs;
       const newSettingsExerciseData = deepmerge(state.storage.settings.exerciseData, newExerciseData);
       lg("run-finish-program-day-action-add-record");
-      window.lastHistoryRecord = historyRecord;
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem("lastHistoryRecord", JSON.stringify({ time: Date.now(), historyRecord }));
+      }
       return {
         ...state,
         storage: {
