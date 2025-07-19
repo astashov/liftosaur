@@ -413,15 +413,17 @@ export const reducerWrapper =
         { ...action, time: DateUtils.formatHHMMSS(Date.now(), true) },
         ...(window.reducerLastActions || []).slice(0, 30),
       ];
-      const lastHistoryRecordStr = window.localStorage.getItem("lastHistoryRecord");
-      if (lastHistoryRecordStr) {
-        const { time, historyRecord } = JSON.parse(lastHistoryRecordStr);
-        const diffTime = Date.now() - time;
-        if (diffTime > 1000 * 60) {
-          window.localStorage.removeItem("lastHistoryRecord");
-          const fromHistory = state.storage.history.find((hr) => hr.id === historyRecord.id);
-          if (!fromHistory) {
-            lg("history-record-lost");
+      if (window.localStorage) {
+        const lastHistoryRecordStr = window.localStorage.getItem("lastHistoryRecord");
+        if (lastHistoryRecordStr) {
+          const { time, historyRecord } = JSON.parse(lastHistoryRecordStr);
+          const diffTime = Date.now() - time;
+          if (diffTime > 1000 * 60) {
+            window.localStorage.removeItem("lastHistoryRecord");
+            const fromHistory = state.storage.history.find((hr) => hr.id === historyRecord.id);
+            if (!fromHistory) {
+              lg("history-record-lost");
+            }
           }
         }
       }
