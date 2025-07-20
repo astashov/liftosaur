@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
-import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
-import { useState } from "preact/hooks";
-import { IDispatch } from "../ducks/types";
+import { IExercisePickerState, IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
+import { useEffect, useState } from "preact/hooks";
+import { buildCustomDispatch, IDispatch } from "../ducks/types";
 import { Program } from "../models/program";
 import { History } from "../models/history";
 import { Progress } from "../models/progress";
@@ -30,11 +30,14 @@ import { SendMessage } from "../utils/sendMessage";
 import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
 import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
 import { Thunk } from "../ducks/thunks";
+import { BottomSheetExercisePicker } from "./exercisePicker/bottomSheetExercisePicker";
+import { ILensDispatch } from "../utils/useLensReducer";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
   history: IHistoryRecord[];
   program?: IProgram;
+  currentProgram?: IProgram;
   allPrograms: IProgram[];
   settings: ISettings;
   userId?: string;
@@ -44,14 +47,42 @@ interface IScreenWorkoutProps {
   navCommon: INavCommon;
 }
 
+function buildExercisePickerDispatch(
+  originalDispatch: IDispatch,
+  progressId: number
+): ILensDispatch<IExercisePickerState> {
+  const prefix = lb<IState>().pi("progress").pi(progressId).pi("ui").pi("exercisePicker").pi("state");
+  return buildCustomDispatch(originalDispatch, prefix);
+}
+
 export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const progress = props.progress;
   const evaluatedProgram = props.program ? Program.evaluate(props.program, props.settings) : undefined;
+  const evaluatedCurrentProgram = props.currentProgram
+    ? Program.evaluate(props.currentProgram, props.settings)
+    : undefined;
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const dateModal = progress.ui?.dateModal;
   const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, progress.day) : undefined;
   const [forceUpdateEntryIndex, setForceUpdateEntryIndex] = useState(false);
+
+  useEffect(() => {
+    updateState(
+      props.dispatch,
+      [
+        lb<IState>()
+          .p("progress")
+          .pi(progress.id)
+          .pi("ui")
+          .p("exercisePicker")
+          .record({
+            state: { screenStack: ["exercisePicker"] },
+          }),
+      ],
+      "Open exercise picker"
+    );
+  }, []);
 
   if (progress != null) {
     return (
@@ -144,6 +175,28 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 time={dateModal.time ?? 0}
               />
             )}
+            {progress.ui?.exercisePicker?.state && (
+              <BottomSheetExercisePicker
+                settings={props.settings}
+                isHidden={progress.ui.exercisePicker == null}
+                exercisePicker={progress.ui.exercisePicker.state}
+                evaluatedProgram={
+                  evaluatedProgram
+                    ? Program.isEmpty(evaluatedProgram)
+                      ? evaluatedCurrentProgram
+                      : evaluatedProgram
+                    : undefined
+                }
+                dispatch={buildExercisePickerDispatch(props.dispatch, progress.id)}
+                onClose={() => {
+                  updateState(
+                    props.dispatch,
+                    [lb<IState>().p("progress").pi(progress.id).pi("ui").p("exercisePicker").record(undefined)],
+                    "Close exercise picker"
+                  );
+                }}
+              />
+            )}
             {progress.ui?.exerciseModal != null && (
               <ModalExercise
                 isHidden={progress.ui?.exerciseModal == null}
@@ -212,13 +265,17 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                             props.settings
                           );
                           if (newEvaluatedProgram.success) {
-                            updateState(props.dispatch, [
-                              lb<IState>()
-                                .p("storage")
-                                .p("programs")
-                                .findBy("id", program.id)
-                                .record(newEvaluatedProgram.data),
-                            ], "Replace exercise in program");
+                            updateState(
+                              props.dispatch,
+                              [
+                                lb<IState>()
+                                  .p("storage")
+                                  .p("programs")
+                                  .findBy("id", program.id)
+                                  .record(newEvaluatedProgram.data),
+                              ],
+                              "Replace exercise in program"
+                            );
                           } else {
                             alert(newEvaluatedProgram.error);
                           }
@@ -229,9 +286,11 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                     }
                   }
                   if (shouldClose) {
-                    updateState(props.dispatch, [
-                      lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("exerciseModal").record(undefined),
-                    ], "Close exercise modal");
+                    updateState(
+                      props.dispatch,
+                      [lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("exerciseModal").record(undefined)],
+                      "Close exercise modal"
+                    );
                   }
                 }}
               />

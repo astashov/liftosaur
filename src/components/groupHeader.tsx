@@ -10,10 +10,12 @@ interface IProps {
   help?: JSX.Element;
   size?: "small" | "large";
   children?: ComponentChildren;
+  headerClassName?: string;
   nameAddOn?: JSX.Element;
   rightAddOn?: JSX.Element;
   leftExpandIcon?: boolean;
   isExpanded?: boolean;
+  expandOnIconClick?: boolean;
   topPadding?: boolean;
   highlighted?: boolean;
 }
@@ -25,21 +27,30 @@ export function GroupHeader(props: IProps): JSX.Element {
   const size = props.size || "small";
   const testId = `group-header-${StringUtils.dashcase(name)}`;
 
+  function onClick() {
+    if (props.children) {
+      setIsExpanded(!isExpanded);
+    }
+  }
+
   return (
     <Fragment>
       <div
         data-cy={testId}
-        onClick={props.children ? () => setIsExpanded(!isExpanded) : undefined}
-        className={`flex items-center pb-1 text-sm text-grayv2-700 ${props.children ? "cursor-pointer" : ""} ${
+        onClick={!props.expandOnIconClick ? onClick : undefined}
+        className={`flex items-center pb-1 text-sm text-grayv2-700 ${props.children && !props.expandOnIconClick ? "cursor-pointer" : ""} ${
           props.topPadding ? "mt-6 pt-4" : ""
-        }`}
+        } ${props.headerClassName || ""}`}
       >
         {props.children && props.leftExpandIcon && (
-          <div className="flex items-center justify-center mr-2 text-left">
+          <button
+            className={`flex items-center justify-center mr-2 text-left ${props.expandOnIconClick ? "cursor-pointer" : ""}`}
+            onClick={props.expandOnIconClick ? onClick : undefined}
+          >
             {isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}
-          </div>
+          </button>
         )}
-        <div className="flex items-center flex-1">
+        <div className={`flex items-center flex-1`}>
           <div
             className={`${size === "small" ? "text-xs" : "text-base font-bold"} ${
               props.highlighted ? "text-purplev2-main" : "text-grayv2-700"

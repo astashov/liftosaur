@@ -71,7 +71,7 @@ export function BottomSheet(props: IProps): JSX.Element {
           </button>
         )}
         <div className="flex flex-col w-full safe-area-inset-bottom" style={{ maxHeight: "90vh" }}>
-          <div className="flex items-center justify-center pt-2">
+          <div className="z-10 flex items-center justify-center pt-2 bg-white">
             <div className="w-8 rounded-sm bg-grayv3-400" style={{ height: "3px" }} />
           </div>
           {props.children}
