@@ -30,10 +30,11 @@ interface IProps<T> {
 }
 
 function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
-  return (lensRecording: ILensRecordingPayload<IState>[] | ILensRecordingPayload<IState>) => {
+  return (lensRecording: ILensRecordingPayload<IState>[] | ILensRecordingPayload<IState>, desc: string) => {
     originalDispatch({
       type: "UpdateState",
       lensRecording: Array.isArray(lensRecording) ? lensRecording : [lensRecording],
+      desc,
     });
   };
 }

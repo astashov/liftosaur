@@ -140,7 +140,7 @@ export function updateSettings(dispatch: IDispatch, lensRecording: ILensRecordin
 export function updateProgress(
   dispatch: IDispatch,
   lensRecordings: ILensRecordingPayload<IHistoryRecord>[] | ILensRecordingPayload<IHistoryRecord>,
-  desc?: string
+  desc: string
 ): void {
   const recordings = Array.isArray(lensRecordings) ? lensRecordings : [lensRecordings];
   dispatch({ type: "UpdateProgress", lensRecordings: recordings, desc });

@@ -73,6 +73,7 @@ export namespace EditStats {
             );
           }),
       ],
+      desc: "Add weight stats",
     });
   }
 
@@ -98,6 +99,7 @@ export namespace EditStats {
             );
           }),
       ],
+      desc: "Add length stats",
     });
   }
 
@@ -131,6 +133,7 @@ export namespace EditStats {
             );
           }),
       ],
+      desc: "Add percentage stats",
     });
   }
 
@@ -151,6 +154,7 @@ export namespace EditStats {
           .i(index)
           .recordModify((v) => ({ ...v, value, updatedAt: Date.now() })),
       ],
+      desc: `Change weight stat ${key} at index ${index} to ${value?.value}`,
     });
   }
 
@@ -171,6 +175,7 @@ export namespace EditStats {
           .i(index)
           .recordModify((v) => ({ ...v, value, updatedAt: Date.now() })),
       ],
+      desc: `Change length stat ${key} at index ${index} to ${value?.value}`,
     });
   }
 
@@ -191,6 +196,7 @@ export namespace EditStats {
           .i(index)
           .recordModify((v) => ({ ...v, value, updatedAt: Date.now() })),
       ],
+      desc: `Change percentage stat ${key} at index ${index} to ${value?.value}`,
     });
   }
 
@@ -215,6 +221,7 @@ export namespace EditStats {
             );
           }),
       ],
+      desc: `Change weight stat ${key} timestamp at index ${index} to ${timestamp}`,
     });
   }
 
@@ -239,6 +246,7 @@ export namespace EditStats {
             );
           }),
       ],
+      desc: `Change length stat ${key} timestamp at index ${index} to ${timestamp}`,
     });
   }
 
@@ -263,6 +271,7 @@ export namespace EditStats {
             );
           }),
       ],
+      desc: `Change percentage stat ${key} timestamp at index ${index} to ${timestamp}`,
     });
   }
 
@@ -393,6 +402,7 @@ export namespace EditStats {
           ? lb<IState>().p("storage").p("settings").p("appleHealthAnchor").record(data.anchor)
           : lb<IState>().p("storage").p("settings").p("googleHealthAnchor").record(data.anchor),
       ],
+      desc: `Upload health stats from ${platform}`,
     });
   }
 }

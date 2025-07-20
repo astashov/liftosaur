@@ -234,7 +234,7 @@ export type IUpdateSettingsAction = {
 export type IUpdateStateAction = {
   type: "UpdateState";
   lensRecording: ILensRecordingPayload<IState>[];
-  desc?: string;
+  desc: string;
 };
 
 export type IReplaceStateAction = {
@@ -269,7 +269,7 @@ export type IApplyProgramChangesToProgress = {
 export type IUpdateProgressAction = {
   type: "UpdateProgress";
   lensRecordings: ILensRecordingPayload<IHistoryRecord>[];
-  desc?: string;
+  desc: string;
 };
 
 export type ICardsAction = ICompleteSetAction | IChangeAMRAPAction | IUpdateProgressAction;

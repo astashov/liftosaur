@@ -247,6 +247,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 dispatch({
                   type: "UpdateProgress",
                   lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
+                  desc: "Close edit set modal",
                 });
               }}
             />

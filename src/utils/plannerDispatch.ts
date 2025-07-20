@@ -9,7 +9,7 @@ export function buildPlannerDispatch<T, S extends IUndoRedoState<T>>(
   lensBuilder: LensBuilder<IState, S, {}>,
   plannerState: S
 ): ILensDispatch<S> {
-  const plannerDispatch = (lensRecording: ILensRecordingPayload<S> | ILensRecordingPayload<S>[], desc?: string) => {
+  const plannerDispatch = (lensRecording: ILensRecordingPayload<S> | ILensRecordingPayload<S>[], desc: string) => {
     const lensRecordings = Array.isArray(lensRecording) ? lensRecording : [lensRecording];
     updateState(
       dispatch,

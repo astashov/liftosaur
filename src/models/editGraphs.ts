@@ -17,6 +17,7 @@ export namespace EditGraphs {
             return exs.filter((ex) => ex.id !== graph.id);
           }),
       ],
+      desc: `Remove graph ${graph.id}`,
     });
   }
 
@@ -35,6 +36,7 @@ export namespace EditGraphs {
             return newExercises;
           }),
       ],
+      desc: `Reorder graphs from index ${startIndex} to ${endIndex}`,
     });
   }
 
@@ -50,6 +52,7 @@ export namespace EditGraphs {
             return Array.from(new Set([...ex, { vtype: "graph", type: "exercise", id: Exercise.toKey(exercise) }]));
           }),
       ],
+      desc: `Add graph for exercise ${Exercise.toKey(exercise)}`,
     });
   }
 
@@ -69,6 +72,7 @@ export namespace EditGraphs {
             }
           }),
       ],
+      desc: `Add graph for muscle group ${muscleGroup}`,
     });
   }
 

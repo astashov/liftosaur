@@ -40,9 +40,11 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
     <Modal
       isHidden={false}
       onClose={() => {
-        updateState(props.dispatch, [
-          lb<IState>().p("progress").pi(props.progressId).pi("ui").p("equipmentModal").record(undefined),
-        ], "Close equipment modal");
+        updateState(
+          props.dispatch,
+          [lb<IState>().p("progress").pi(props.progressId).pi("ui").p("equipmentModal").record(undefined)],
+          "Close equipment modal"
+        );
       }}
       shouldShowClose={true}
       isFullWidth
@@ -109,10 +111,11 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
 }
 
 function buildDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
-  return (lensRecording: ILensRecordingPayload<IState>[] | ILensRecordingPayload<IState>) => {
+  return (lensRecording: ILensRecordingPayload<IState>[] | ILensRecordingPayload<IState>, desc: string) => {
     originalDispatch({
       type: "UpdateState",
       lensRecording: Array.isArray(lensRecording) ? lensRecording : [lensRecording],
+      desc,
     });
   };
 }

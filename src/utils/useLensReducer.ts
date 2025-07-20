@@ -7,10 +7,10 @@ import { UrlUtils } from "./url";
 type IAction<TState> = {
   type: "Update";
   lensRecording: ILensRecordingPayload<TState>[];
-  desc?: string;
+  desc: string;
 };
 
-export type ILensDispatchSimple<TState> = (lensRecording: ILensRecordingPayload<TState>, desc?: string) => void;
+export type ILensDispatchSimple<TState> = (lensRecording: ILensRecordingPayload<TState>, desc: string) => void;
 
 export type ILensDispatch<TState> = (
   lensRecording: ILensRecordingPayload<TState> | ILensRecordingPayload<TState>[],
@@ -67,7 +67,7 @@ export function useLensReducer<TState, TEnv>(
   const dispatch = useCallback(
     (
       lensRecording: ILensRecordingPayload<TState>[] | ILensRecordingPayload<TState>,
-      desc?: string
+      desc: string
     ): void | Promise<void> => {
       if (!Array.isArray(lensRecording)) {
         lensRecording = [lensRecording];
