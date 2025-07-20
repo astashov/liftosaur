@@ -109,10 +109,11 @@ export const migrations = {
   "20250306192146_fix_empty_graphs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const customExerciseKey of ObjectUtils.keys(storage.settings.exercises)) {
-      // @ts-ignore
-      for (const graph of storage.settings.graphs) {
-        if (graph.type === "exercise" && graph.id.includes(customExerciseKey) && graph.id !== customExerciseKey) {
-          graph.id = customExerciseKey;
+      if (Array.isArray(storage.settings.graphs)) {
+        for (const graph of storage.settings.graphs) {
+          if (graph.type === "exercise" && graph.id.includes(customExerciseKey) && graph.id !== customExerciseKey) {
+            graph.id = customExerciseKey;
+          }
         }
       }
     }
@@ -236,11 +237,12 @@ export const migrations = {
         exercise.vtype = exercise.vtype ?? "custom_exercise";
       }
     }
-    // @ts-ignore
-    for (const graph of storage.settings.graphs) {
-      graph.vtype = graph.vtype ?? "graph";
+    if (Array.isArray(storage.settings.graphs)) {
+      // @ts-ignore
+      for (const graph of storage.settings.graphs) {
+        graph.vtype = graph.vtype ?? "graph";
+      }
     }
-
     return storage;
   },
   "20250719104230_add_cloned_at_to_programs": async (
