@@ -2245,6 +2245,9 @@ export const getRawHandler = (di: IDI): IHandler => {
       console.error(e);
       di.log.log(e);
       errorStatus = 500;
+      try {
+        rollbar.error(e as any);
+      } catch (_e) {}
       resp = { success: false, error: "Internal Server Error" };
     }
     di.log.log(
