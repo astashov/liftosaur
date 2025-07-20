@@ -30,7 +30,7 @@ export function EditProgramExerciseSets(props: IEditProgramExerciseSetsProps): J
         nonSticky={true}
         defaultIndex={props.ui.modeTabIndex}
         onChange={(index: number) => {
-          props.plannerDispatch(lb<IPlannerExerciseState>().p("ui").p("modeTabIndex").record(index));
+          props.plannerDispatch(lb<IPlannerExerciseState>().p("ui").p("modeTabIndex").record(index), "Change sets tab");
         }}
         color="purple"
         tabs={[

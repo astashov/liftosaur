@@ -95,7 +95,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
                 [id]: Equipment.build(name),
               };
             });
-            lensDispatch(lensRecording);
+            lensDispatch(lensRecording, "Add new equipment");
           }
           setModalNewEquipment(false);
         }}
@@ -129,7 +129,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
                 const lensRecording = props.lensPrefix
                   .then(lb<IAllEquipment>().pi(props.equipment).p("name").get())
                   .record(newValue || undefined);
-                props.lensDispatch(lensRecording);
+                props.lensDispatch(lensRecording, "Change equipment name");
               }
             }}
           />
@@ -152,7 +152,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
                   const lensRecording = props.lensPrefix
                     .then(lb<IAllEquipment>().pi(props.equipment).p("isDeleted").get())
                     .record(true);
-                  props.lensDispatch(lensRecording);
+                  props.lensDispatch(lensRecording, "Delete equipment");
                 }
               }}
             >
@@ -190,7 +190,7 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
           const lensRecording = props.lensPrefix
             .then(lb<IAllEquipment>().pi(props.equipment).p("isFixed").get())
             .record(newValue === "true");
-          props.lensDispatch(lensRecording);
+          props.lensDispatch(lensRecording, "Toggle fixed equipment");
         }}
       />
       <MenuItemEditable
@@ -209,7 +209,8 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
           props.lensDispatch(
             props.lensPrefix
               .then(lb<IAllEquipment>().pi(props.equipment).p("unit").get())
-              .record(newValue as IUnit | undefined)
+              .record(newValue as IUnit | undefined),
+            "Change equipment unit"
           );
           props.dispatch({
             type: "ApplyProgramChangesToProgress",
@@ -252,7 +253,7 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
                 const lensRecording = props.lensPrefix
                   .then(lb<IAllEquipment>().pi(modalNewPlateEquipmentToShow).p("plates").get())
                   .recordModify((p) => [...p, { weight: newWeight, num: 2 }]);
-                props.lensDispatch(lensRecording);
+                props.lensDispatch(lensRecording, "Add plate");
               }
             }
           }}
@@ -275,7 +276,7 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
                 const lensRecording = props.lensPrefix
                   .then(lb<IAllEquipment>().pi(modalNewFixedWeightEquipmentToShow).p("fixed").get())
                   .recordModify((p) => [...p, newWeight]);
-                props.lensDispatch(lensRecording);
+                props.lensDispatch(lensRecording, "Add fixed weight");
               }
             }
           }}
@@ -321,7 +322,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
                   const lensRecording = props.lensPrefix
                     .then(lb<IAllEquipment>().pi(props.name).p("fixed").get())
                     .record(newFixedWeights);
-                  props.dispatch(lensRecording);
+                  props.dispatch(lensRecording, "Update fixed weights");
                 }}
               >
                 <IconTrash />
@@ -368,7 +369,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
             const lensRecording = props.lensPrefix
               .then(lb<IAllEquipment>().pi(props.name).p("bar").p(units).get())
               .record(Weight.build(v, units));
-            props.dispatch(lensRecording);
+            props.dispatch(lensRecording, "Change bar weight");
           }
         }}
       />
@@ -392,7 +393,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
                 return newPlates;
               }),
             ];
-            props.dispatch(lensRecording);
+            props.dispatch(lensRecording, "Update multiplier");
           }
         }}
       />
@@ -421,7 +422,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
                   }
                   return newPlates;
                 });
-              props.dispatch(lensRecording);
+              props.dispatch(lensRecording, "Update plate");
             }}
           />
         );

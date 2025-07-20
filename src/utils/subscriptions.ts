@@ -64,7 +64,7 @@ export namespace Subscriptions {
             ];
           }
         }),
-    ]);
+    ], "Set Apple receipt");
   }
 
   export function setGooglePurchaseToken(dispatch: IDispatch, purchaseToken: string): void {
@@ -88,7 +88,7 @@ export namespace Subscriptions {
             ];
           }
         }),
-    ]);
+    ], "Set Google purchase token");
   }
 
   export function cleanupOutdatedAppleReceipts(
@@ -161,7 +161,7 @@ export namespace Subscriptions {
               .recordModify((r) => {
                 return CollectionUtils.removeBy([...r], "id", id);
               }),
-          ]);
+          ], "Cleanup outdated Google receipt");
         }
       }
     });

@@ -42,7 +42,7 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
       onClose={() => {
         updateState(props.dispatch, [
           lb<IState>().p("progress").pi(props.progressId).pi("ui").p("equipmentModal").record(undefined),
-        ]);
+        ], "Close equipment modal");
       }}
       shouldShowClose={true}
       isFullWidth

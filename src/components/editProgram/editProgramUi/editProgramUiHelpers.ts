@@ -94,7 +94,8 @@ export class EditProgramUiHelpers {
     dispatch(
       lbProgram.recordModify((program) => {
         return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, settings, true, cb);
-      })
+      }),
+      "Change current exercise instance"
     );
   }
 
@@ -125,7 +126,7 @@ export class EditProgramUiHelpers {
           }
           return newCollapsed;
         }),
-    ]);
+    ], "Toggle week collapse state");
   }
 
   public static changeSets(

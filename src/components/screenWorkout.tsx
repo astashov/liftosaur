@@ -218,7 +218,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                                 .p("programs")
                                 .findBy("id", program.id)
                                 .record(newEvaluatedProgram.data),
-                            ]);
+                            ], "Replace exercise in program");
                           } else {
                             alert(newEvaluatedProgram.error);
                           }
@@ -231,7 +231,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   if (shouldClose) {
                     updateState(props.dispatch, [
                       lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("exerciseModal").record(undefined),
-                    ]);
+                    ], "Close exercise modal");
                   }
                 }}
               />

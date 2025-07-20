@@ -160,7 +160,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                                 .p("storage")
                                 .p("programs")
                                 .recordModify((programs) => CollectionUtils.removeBy(programs, "id", program.id)),
-                            ]);
+                            ], "Delete program from list");
                           } finally {
                             setIsDeleting(undefined);
                           }

@@ -34,7 +34,7 @@ export function ScreenProgramPreview(props: IProps): JSX.Element {
             values={props.programs.map((p) => [p.id, p.name])}
             onChange={(value) => {
               if (value != null) {
-                updateState(props.dispatch, [lb<IState>().pi("previewProgram").p("id").record(value)]);
+                updateState(props.dispatch, [lb<IState>().pi("previewProgram").p("id").record(value)], "Select preview program");
               }
             }}
           />

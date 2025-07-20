@@ -71,18 +71,22 @@ export class EventDao {
     });
   }
 
-  public scanByNames(names: string[]): Promise<IEventPayload[]> {
+  public scanByNames(names: string[], timestamp: number): Promise<IEventPayload[]> {
     const env = Utils.getEnv();
     const placeholders = names.map((_, index) => `:name${index}`).join(", ");
-    const values = names.reduce((acc, name, index) => {
-      acc[`:name${index}`] = name;
-      return acc;
-    }, {} as Record<string, string>);
-    
+    const values = names.reduce<Record<string, string | number>>(
+      (acc, name, index) => {
+        acc[`:name${index}`] = name;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+    values[":timestamp"] = timestamp;
+
     return this.di.dynamo.scan<IEventPayload>({
       tableName: eventsTableNames[env].events,
-      filterExpression: `#name IN (${placeholders})`,
-      names: { "#name": "name" },
+      filterExpression: `#name IN (${placeholders}) AND #timestamp > :timestamp`,
+      names: { "#name": "name", "#timestamp": "timestamp" },
       values,
     });
   }

@@ -36,7 +36,8 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
         return EditProgramUiHelpers.changeSets(program, props.plannerExercise.key, setData, props.settings, (set) => {
           changeFn(set);
         });
-      })
+      }),
+      "Update sets"
     );
   }
 
@@ -133,7 +134,7 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
         topPadding="1rem"
         defaultIndex={props.ui.acrossWeeksTabIndex}
         onChange={(index: number) => {
-          props.plannerDispatch(lb<IPlannerExerciseState>().p("ui").p("acrossWeeksTabIndex").record(index));
+          props.plannerDispatch(lb<IPlannerExerciseState>().p("ui").p("acrossWeeksTabIndex").record(index), "Change across weeks tab");
         }}
         shouldNotExpand={true}
         nonSticky={true}

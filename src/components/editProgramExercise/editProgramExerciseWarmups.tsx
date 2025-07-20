@@ -106,7 +106,8 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                       }
                     );
                   }
-                })
+                }),
+                "Customize warmups"
               );
             }}
           >
@@ -183,7 +184,8 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                                   props.plannerDispatch(
                                     lbProgram.recordModify((program) => {
                                       return changeReps(program, props.settings, plannerExercise, setIndex, value);
-                                    })
+                                    }),
+                                    "Change warmup reps"
                                   );
                                 }
                               }}
@@ -192,7 +194,8 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                                   props.plannerDispatch(
                                     lbProgram.recordModify((program) => {
                                       return changeReps(program, props.settings, plannerExercise, setIndex, value);
-                                    })
+                                    }),
+                                    "Change warmup reps"
                                   );
                                 }
                               }}
@@ -221,7 +224,8 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                                   props.plannerDispatch(
                                     lbProgram.recordModify((program) => {
                                       return changeWeight(program, props.settings, plannerExercise, setIndex, value);
-                                    })
+                                    }),
+                                    "Change warmup weight"
                                   );
                                 }
                               }}
@@ -230,7 +234,8 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                                   props.plannerDispatch(
                                     lbProgram.recordModify((program) => {
                                       return changeWeight(program, props.settings, plannerExercise, setIndex, value);
-                                    })
+                                    }),
+                                    "Change warmup weight"
                                   );
                                 }
                               }}
@@ -267,7 +272,8 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                                         e.warmupSets = CollectionUtils.removeAt(e.warmupSets, setIndex);
                                       }
                                     );
-                                  })
+                                  }),
+                                  "Delete warmup set"
                                 );
                               }}
                               className="flex-1 h-full text-white bg-redv3-600 nm-workout-exercise-set-delete"
@@ -314,7 +320,8 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                         ];
                       }
                     );
-                  })
+                  }),
+                  "Add warmup set"
                 );
               }}
             >

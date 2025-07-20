@@ -287,7 +287,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   .p("storage")
                   .p("helps")
                   .recordModify((helps) => Array.from(new Set([...helps, "swipeable-set"]))),
-              ]);
+              ], "Stop showing swipe hint");
             }
           }}
           isCurrentProgress={Progress.isCurrent(props.progress)}

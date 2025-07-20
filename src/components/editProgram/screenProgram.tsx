@@ -178,10 +178,15 @@ export function ScreenProgram(props: IProps): JSX.Element {
               stats={props.navCommon.stats}
               initialCurrentProgramId={program.id}
               onSelect={(_, day) => {
-                updateState(props.dispatch, [
-                  lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(day),
-                ]);
-                plannerDispatch([lb<IPlannerState>().p("current").p("program").p("nextDay").record(day)]);
+                updateState(
+                  props.dispatch,
+                  [lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(day)],
+                  `Select program day ${program.name} - ${day}`
+                );
+                plannerDispatch(
+                  [lb<IPlannerState>().p("current").p("program").p("nextDay").record(day)],
+                  `Select program day ${program.name} - ${day}`
+                );
               }}
               allPrograms={[program]}
               settings={props.settings}
@@ -215,10 +220,10 @@ export function ScreenProgram(props: IProps): JSX.Element {
               planner={plannerState.current.program.planner!}
               modalExerciseUi={props.plannerState.ui.modalExercise}
               onProgramChange={(program) => {
-                plannerDispatch(lbProgram.record(program));
+                plannerDispatch(lbProgram.record(program), "Update program");
               }}
               onUiChange={(modalExerciseUi) => {
-                plannerDispatch(lbUi.p("modalExercise").record(modalExerciseUi));
+                plannerDispatch(lbUi.p("modalExercise").record(modalExerciseUi), "Update modal exercise UI");
               }}
               onStopIsUndoing={() => {
                 plannerDispatch(
@@ -252,13 +257,13 @@ export function ScreenProgram(props: IProps): JSX.Element {
               shouldShowClose={true}
               isFullWidth={true}
               onClose={() => {
-                plannerDispatch(lbUi.p("showWeekStats").record(undefined));
+                plannerDispatch(lbUi.p("showWeekStats").record(undefined), "Close week stats");
               }}
             >
               <PlannerWeekStats
                 dispatch={plannerDispatch}
                 onEditSettings={() => {
-                  plannerDispatch(lbUi.p("showSettingsModal").record(true));
+                  plannerDispatch(lbUi.p("showSettingsModal").record(true), "Show settings modal");
                 }}
                 evaluatedDays={evaluatedWeeks[ui.showWeekStats]}
                 settings={props.settings}
@@ -269,7 +274,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
             <Modal
               shouldShowClose={true}
               isFullWidth={true}
-              onClose={() => plannerDispatch(lbUi.p("showDayStats").record(undefined))}
+              onClose={() => plannerDispatch(lbUi.p("showDayStats").record(undefined), "Close day stats")}
             >
               <PlannerDayStats
                 dispatch={plannerDispatch}
@@ -282,17 +287,17 @@ export function ScreenProgram(props: IProps): JSX.Element {
             <ModalPlannerSettings
               inApp={true}
               onNewSettings={(newSettings) =>
-                updateState(props.dispatch, [lb<IState>().p("storage").p("settings").record(newSettings)])
+                updateState(props.dispatch, [lb<IState>().p("storage").p("settings").record(newSettings)], "Update planner settings")
               }
               settings={props.settings}
-              onClose={() => plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false))}
+              onClose={() => plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false), "Close settings modal")}
             />
           )}
           {ui.showExerciseStats && ui.focusedExercise && (
             <Modal
               shouldShowClose={true}
               isFullWidth={true}
-              onClose={() => plannerDispatch(lbUi.p("showExerciseStats").record(undefined))}
+              onClose={() => plannerDispatch(lbUi.p("showExerciseStats").record(undefined), "Close exercise stats")}
             >
               <PlannerExerciseStats
                 dispatch={plannerDispatch}
@@ -307,7 +312,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
           {editExerciseModal && (
             <Modal
               shouldShowClose={true}
-              onClose={() => plannerDispatch(lbUi.p("editExerciseModal").record(undefined))}
+              onClose={() => plannerDispatch(lbUi.p("editExerciseModal").record(undefined), "Close edit exercise modal")}
             >
               <h3 className="mb-2 text-lg font-semibold text-center">Change Exercise</h3>
               <div className="flex gap-4">
@@ -328,7 +333,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
                           exerciseType: editExerciseModal.exerciseType,
                           change: "one",
                         }),
-                      ]);
+                      ], "Change exercise for one instance");
                     }}
                   >
                     Change only for this week/day
@@ -351,7 +356,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
                           exerciseType: editExerciseModal.exerciseType,
                           change: "all",
                         }),
-                      ]);
+                      ], "Change exercise for all instances");
                     }}
                   >
                     Change across whole program
@@ -378,7 +383,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
             plannerDispatch([
               lb<IPlannerState>().p("current").p("program").p("name").record(newValue),
               lb<IPlannerState>().p("current").p("program").pi("planner").p("name").record(newValue),
-            ]);
+            ], "Update program name");
           }}
         />
         <ScrollableTabs
@@ -386,7 +391,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
           shouldNotExpand={true}
           nonSticky={true}
           onChange={(newTabIndex) => {
-            plannerDispatch(lb<IPlannerState>().p("ui").p("tabIndex").record(newTabIndex));
+            plannerDispatch(lb<IPlannerState>().p("ui").p("tabIndex").record(newTabIndex), "Change tab");
           }}
           defaultIndex={plannerState.ui.tabIndex}
           color="purple"

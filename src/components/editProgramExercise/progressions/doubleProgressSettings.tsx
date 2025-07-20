@@ -49,7 +49,8 @@ export function DoubleProgressSettings(props: IDoubleProgressSettingsProps): JSX
                       }
                     }
                   );
-                })
+                }),
+                "Update weight increase"
               );
             }}
           />
@@ -81,7 +82,8 @@ export function DoubleProgressSettings(props: IDoubleProgressSettingsProps): JSX
                         }
                       }
                     );
-                  })
+                  }),
+                  "Update min reps"
                 );
               }}
             />
@@ -110,7 +112,8 @@ export function DoubleProgressSettings(props: IDoubleProgressSettingsProps): JSX
                         }
                       }
                     );
-                  })
+                  }),
+                  "Update max reps"
                 );
               }}
             />

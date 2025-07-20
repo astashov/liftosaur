@@ -144,7 +144,7 @@ export namespace Storage {
           .p("storage")
           .p("affiliates")
           .recordModify((affiliates) => ({ [source]: Date.now(), ...affiliates })),
-      ]);
+      ], "Set affiliate");
     }
   }
 

@@ -51,7 +51,8 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                       }
                     }
                   );
-                })
+                }),
+                "Update weight increase"
               );
             }}
           />
@@ -80,7 +81,8 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                       }
                     }
                   );
-                })
+                }),
+                "Update success attempts"
               );
             }}
           />
@@ -112,7 +114,8 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                           }
                         }
                       );
-                    })
+                    }),
+                    "Update success counter"
                   );
                 }}
               />
@@ -148,7 +151,8 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                           }
                         }
                       );
-                    })
+                    }),
+                    "Update weight decrease"
                   );
                 }}
               />
@@ -177,7 +181,8 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                           }
                         }
                       );
-                    })
+                    }),
+                    "Update failure attempts"
                   );
                 }}
               />
@@ -209,7 +214,8 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                               }
                             }
                           );
-                        })
+                        }),
+                        "Update failure counter"
                       );
                     }}
                   />
@@ -236,7 +242,8 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                     );
                   }
                 });
-              })
+              }),
+              "Toggle decrease weight"
             );
           }}
         >

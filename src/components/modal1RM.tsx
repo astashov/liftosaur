@@ -23,7 +23,7 @@ export function Modal1RM(props: IModal1RMProps): JSX.Element {
       onClose={() => {
         updateState(props.dispatch, [
           lb<IState>().p("progress").pi(props.progressId).pi("ui").p("rm1Modal").record(undefined),
-        ]);
+        ], "Close 1RM modal");
       }}
       shouldShowClose={true}
       isFullWidth
@@ -43,7 +43,7 @@ export function Modal1RM(props: IModal1RMProps): JSX.Element {
                 const k = Exercise.toKey(exercise);
                 return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
               }),
-          ]);
+          ], "Update 1RM from modal");
         }}
       />
     </Modal>

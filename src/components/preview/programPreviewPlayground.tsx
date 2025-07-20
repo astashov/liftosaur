@@ -108,7 +108,8 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                               .p("days")
                               .pi(i)
                               .p("progress")
-                              .record(newProgress)
+                              .record(newProgress),
+                            "Update progress"
                           );
                         }}
                         onProgramChange={(newEvaluatedProgram) => {
@@ -148,7 +149,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                                 });
                               }),
                             lb<IProgramPreviewPlaygroundState>().p("program").record(newProgram),
-                          ]);
+                          ], "Update program");
                         }}
                         onSettingsChange={(newSettings) => {
                           dispatch([
@@ -182,7 +183,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                                 });
                               }),
                             lb<IProgramPreviewPlaygroundState>().p("settings").record(newSettings),
-                          ]);
+                          ], "Update settings");
                         }}
                         onFinish={() => {
                           const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(
@@ -219,7 +220,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                               }),
                             lb<IProgramPreviewPlaygroundState>().p("program").record(newProgram),
                             lb<IProgramPreviewPlaygroundState>().p("settings").record(newSettings),
-                          ]);
+                          ], "Finish day");
                         }}
                       />
                     </div>

@@ -32,7 +32,8 @@ export function PlannerEditorCustomCta(props: IPlannerEditorCustomCtaProps): JSX
                 types: [],
                 muscleGroups: [],
                 customExerciseName,
-              })
+              }),
+            "Open custom exercise modal"
           );
         }}
       >

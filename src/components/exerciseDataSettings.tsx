@@ -92,7 +92,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
                   const k = Exercise.toKey(fullExercise);
                   return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
                 }),
-            ]);
+            ], "Update 1RM for exercise");
           }}
         />
       )}

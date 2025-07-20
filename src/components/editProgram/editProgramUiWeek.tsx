@@ -57,7 +57,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
             value={currentWeek.name}
             onInput={(newValue) => {
               if (newValue) {
-                props.plannerDispatch(lbPlannerWeek.p("name").record(newValue));
+                props.plannerDispatch(lbPlannerWeek.p("name").record(newValue), "Update week name");
               }
             }}
           />
@@ -68,7 +68,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
               data-cy="editor-v2-week-muscles"
               className="px-2"
               onClick={() => {
-                props.plannerDispatch(lb<IPlannerState>().pi("ui").p("showWeekStats").record(currentWeekIndex));
+                props.plannerDispatch(lb<IPlannerState>().pi("ui").p("showWeekStats").record(currentWeekIndex), "Show week stats");
               }}
             >
               <IconMusclesW size={20} />
@@ -86,7 +86,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
                     lbUi.p("weekIndex").recordModify((wi) => {
                       return wi > 0 ? wi - 1 : 0;
                     }),
-                  ]);
+                  ], "Delete week");
                 }}
               >
                 <IconTrash />
@@ -100,7 +100,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
           value={currentWeek.description}
           placeholder={`Week description in Markdown...`}
           onChange={(v) => {
-            props.plannerDispatch(lbPlanner.p("weeks").i(currentWeekIndex).p("description").record(v));
+            props.plannerDispatch(lbPlanner.p("weeks").i(currentWeekIndex).p("description").record(v), "Update week description");
           }}
         />
       </div>
@@ -133,7 +133,8 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
                       }
                     }
                     return newCollapsed;
-                  })
+                  }),
+                "Toggle all days collapse"
               );
             }}
           >
@@ -163,7 +164,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
                       newDays.splice(endIndex, 0, daysToMove);
                       return newDays;
                     }),
-                ]);
+                ], "Reorder days");
                 const [daysToMove] = order.splice(startIndex, 1);
                 order.splice(endIndex, 0, daysToMove);
               }
@@ -218,7 +219,8 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
                     name: `Day ${days.length + 1}`,
                     exerciseText: "",
                   },
-                ])
+                ]),
+              "Add new day"
             );
           }}
         >

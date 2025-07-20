@@ -49,7 +49,8 @@ export function SumRepsProgressSettings(props: ISumRepsProgressSettingsProps): J
                       }
                     }
                   );
-                })
+                }),
+                "Update weight increase"
               );
             }}
           />
@@ -78,7 +79,8 @@ export function SumRepsProgressSettings(props: ISumRepsProgressSettingsProps): J
                       }
                     }
                   );
-                })
+                }),
+                "Update sum reps target"
               );
             }}
           />

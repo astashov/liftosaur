@@ -48,7 +48,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                     const id = `gym-${UidFactory.generateUid(8)}`;
                     return [...oldGyms, { vtype: "gym", id, name, equipment: Settings.defaultEquipment() }];
                   }),
-              ]);
+              ], "Add new gym");
             }
             setModalNewGym(false);
           }}
@@ -73,7 +73,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                     data-cy="edit-gym"
                     className="px-2 align-middle ls-gyms-list-edit-gym button"
                     onClick={() => {
-                      updateState(props.dispatch, [lb<IState>().p("selectedGymId").record(gym.id)]);
+                      updateState(props.dispatch, [lb<IState>().p("selectedGymId").record(gym.id)], "Select gym to edit");
                       props.dispatch(Thunk.pushScreen("plates"));
                     }}
                   >
@@ -96,7 +96,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                             };
                             return [...g, newGym];
                           }),
-                      ]);
+                      ], "Duplicate gym");
                     }}
                   >
                     <IconDuplicate2 />
@@ -126,7 +126,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                               .recordModify((dg) => {
                                 return Array.from(new Set([...dg, gym.id]));
                               }),
-                          ]);
+                          ], "Delete gym");
                         }
                       }}
                     >

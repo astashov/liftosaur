@@ -134,7 +134,7 @@ export namespace Thunk {
           state.storage.affiliates,
           Subscriptions.listOfSubscriptions(state.storage.subscription),
           () => {
-            updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(undefined)]);
+            updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(undefined)], "Clear subscription key");
           },
           state.storage.subscription.key,
           state.storage.referrer
@@ -149,7 +149,7 @@ export namespace Thunk {
       if (getState().user?.id) {
         await env.service.signout();
         dispatch({ type: "Logout" });
-        updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(undefined)]);
+        updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(undefined)], "Clear last sync on logout");
       }
       if (cb) {
         cb();
@@ -188,7 +188,7 @@ export namespace Thunk {
           lb<IState>().pi("lastSyncedStorage").p("originalId").record(result.new_original_id),
           lb<IState>().p("storage").p("originalId").record(result.new_original_id),
           lb<IState>().p("storage").p("subscription").p("key").record(result.key),
-        ]);
+        ], "Update sync metadata");
         if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
           dispatch({ type: "Login", email: result.email, userId: result.user_id });
         }
@@ -196,14 +196,14 @@ export namespace Thunk {
       } else if (result.type === "dirty") {
         result.storage.tempUserId = result.user_id;
         if (requestedLastStorage) {
-          updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(result.storage)]);
+          updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(result.storage)], "Update last synced storage");
         } else {
           const newStorage = Storage.mergeStorage(getState().storage, result.storage);
           updateState(dispatch, [
             lb<IState>().p("lastSyncedStorage").record(newStorage),
             lb<IState>().p("storage").record(newStorage),
             lb<IState>().p("storage").p("subscription").p("key").record(result.key),
-          ]);
+          ], "Merge synced storage");
           if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
             dispatch({ type: "Login", email: result.email, userId: result.user_id });
           }
@@ -213,7 +213,7 @@ export namespace Thunk {
         updateState(dispatch, [
           lb<IState>().p("storage").p("subscription").p("key").record(result.key),
           lb<IState>().p("lastSyncedStorage").record(undefined),
-        ]);
+        ], "Update subscription no storage");
         return false;
       } else if (result.type === "error") {
         if (result.error === "outdated_client_storage") {
@@ -364,7 +364,7 @@ export namespace Thunk {
         Program.cloneProgram(dispatch, program, getState().storage.settings);
         const clonedProgram = CollectionUtils.findBy(getState().storage.programs, "id", id);
         if (clonedProgram) {
-          updateState(dispatch, [lb<IState>().p("screenStack").record([])]);
+          updateState(dispatch, [lb<IState>().p("screenStack").record([])], "Clear screen stack");
           Program.selectProgram(dispatch, clonedProgram.id);
           dispatch(Thunk.startProgramDay());
         }
@@ -424,7 +424,7 @@ export namespace Thunk {
               .recordModify((progresses) => {
                 return { ...progresses, [newProgress.id]: newProgress };
               }),
-          ]);
+          ], "Create new progress");
           dispatch(Thunk.pushScreen("progress", { id: newProgress.id }, true));
         } else {
           alert("No currently selected program");
@@ -500,7 +500,7 @@ export namespace Thunk {
           .recordModify((stack) => {
             return Screen.updateParams(stack, params);
           }),
-      ]);
+      ], "Update screen params");
     };
   }
 
@@ -543,7 +543,7 @@ export namespace Thunk {
           (!lastsignupRequest || now - lastsignupRequest > 1000 * 60 * 60 * 24 * 14)
         ) {
           dispatch(postevent("request-signup"));
-          updateState(dispatch, [lb<IState>().p("showSignupRequest").record(true)]);
+          updateState(dispatch, [lb<IState>().p("showSignupRequest").record(true)], "Show signup request");
         }
       } catch (error) {
         const e = error as Error;
@@ -559,7 +559,7 @@ export namespace Thunk {
         lb<IState>()
           .p("progress")
           .recordModify((progresses) => Progress.stop(progresses, progress.id)),
-      ]);
+      ], "Stop workout progress");
     }
   }
 
@@ -731,7 +731,7 @@ export namespace Thunk {
             .recordModify((oldExercises) => {
               return { ...oldExercises, ...customExercises };
             }),
-        ]);
+        ], "Import Strong CSV data");
       } catch (e) {
         console.error(e);
         alert("Couldn't parse the provided file");
@@ -901,7 +901,7 @@ export namespace Thunk {
   }
 
   function finishFreeAccess(dispatch: IDispatch, key: string, expires: number): void {
-    updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(key)]);
+    updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(key)], "Set subscription key");
     const date = DateUtils.format(expires);
     alert(`Successfully claimed the free access until ${date}`);
     dispatch(log("ls-claim-free-user-success"));
@@ -992,7 +992,7 @@ export namespace Thunk {
 
   export function pushExerciseStatsScreen(exerciseType: IExerciseType): IThunk {
     return async (dispatch, getState, env) => {
-      updateState(dispatch, [lb<IState>().p("viewExerciseType").record(exerciseType)]);
+      updateState(dispatch, [lb<IState>().p("viewExerciseType").record(exerciseType)], "Set exercise type to view");
       dispatch(Thunk.pushScreen("exerciseStats"));
     };
   }
@@ -1109,10 +1109,10 @@ async function handleLogin(
       storage.email = result.email;
       if (oldUserId === result.user_id) {
         dispatch(Thunk.postevent("login-same-user"));
-        updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(storage)]);
+        updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(storage)], "Set last synced on login");
         dispatch({ type: "Login", email: result.email, userId: result.user_id });
         if (storage.subscription.key !== result.key) {
-          updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)]);
+          updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)], "Set subscription from login");
         }
       } else {
         dispatch(Thunk.postevent("login-different-user"));
@@ -1124,7 +1124,7 @@ async function handleLogin(
       }
       dispatch(Thunk.fetchInitial());
     } else if (result.key) {
-      updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)]);
+      updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)], "Set subscription from Apple");
     }
   } catch (error) {
     console.error(error);

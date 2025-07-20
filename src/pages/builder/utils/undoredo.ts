@@ -24,7 +24,7 @@ export function undoRedoMiddleware<T, S extends IUndoRedoState<T>>(dispatch: ILe
           return { ...history, past: [...history.past, oldState.current], future: [], lastHistoryTs: Date.now() };
         }
       }),
-  ]);
+  ], "Record history");
 }
 
 export function canUndo<T, S extends IUndoRedoState<T>>(state: S): T | undefined {

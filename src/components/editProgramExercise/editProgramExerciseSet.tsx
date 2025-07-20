@@ -78,7 +78,8 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
           const set = setVariation.sets[setIndex];
           cb(set);
         });
-      })
+      }),
+      "Update set"
     );
   }
 
@@ -101,7 +102,8 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                     setVariationIndex: props.setVariationIndex,
                     setIndex: props.setIndex,
                     dayInWeekIndex: props.plannerExercise.dayData.dayInWeek - 1,
-                  })
+                  }),
+                  "Open edit set bottom sheet"
                 );
               }}
               className="flex-1 h-full text-white bg-grayv3-main nm-workout-exercise-set-edit"
@@ -126,7 +128,8 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                         setVariation.sets = CollectionUtils.removeAt(sets, setIndex);
                       }
                     );
-                  })
+                  }),
+                  "Delete set"
                 );
                 props.setSetIds((prev) => CollectionUtils.removeAt(prev, setIndex));
               }}

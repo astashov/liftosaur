@@ -209,7 +209,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
                     lb<IState>()
                       .p("muscleView")
                       .record({ type: "day", programId: program.id, day: props.progress.day }),
-                  ]);
+                  ], "Show muscle view");
                   props.dispatch(Thunk.pushScreen("muscles"));
                 }}
                 name="workout-day-muscles"

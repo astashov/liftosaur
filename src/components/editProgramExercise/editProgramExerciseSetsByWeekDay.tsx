@@ -28,7 +28,7 @@ export function EditProgramExerciseSetsByWeekDay(props: IEditProgramExerciseSets
         shouldNotExpand={true}
         type="squares"
         defaultIndex={props.ui.weekIndex}
-        onChange={(weekIndex) => props.plannerDispatch(lbUi.p("weekIndex").record(weekIndex))}
+        onChange={(weekIndex) => props.plannerDispatch(lbUi.p("weekIndex").record(weekIndex), "Change week index")}
         tabs={props.evaluatedProgram.weeks.map((week, weekIndex) => {
           return {
             label: week.name,

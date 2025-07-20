@@ -236,7 +236,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                           SendMessage.toAndroid({ type: "subscribeMontly" });
                           updateState(props.dispatch, [
                             lb<IState>().p("subscriptionLoading").record({ monthly: true }),
-                          ]);
+                          ], "Start monthly subscription");
                         } else {
                           webAlert();
                         }
@@ -261,7 +261,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                           lg("start-subscription-yearly");
                           SendMessage.toIos({ type: "subscribeYearly" });
                           SendMessage.toAndroid({ type: "subscribeYearly" });
-                          updateState(props.dispatch, [lb<IState>().p("subscriptionLoading").record({ yearly: true })]);
+                          updateState(props.dispatch, [lb<IState>().p("subscriptionLoading").record({ yearly: true })], "Start yearly subscription");
                         } else {
                           webAlert();
                         }
@@ -290,7 +290,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                           SendMessage.toAndroid({ type: "subscribeLifetime" });
                           updateState(props.dispatch, [
                             lb<IState>().p("subscriptionLoading").record({ lifetime: true }),
-                          ]);
+                          ], "Start lifetime subscription");
                         } else {
                           webAlert();
                         }

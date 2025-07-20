@@ -40,7 +40,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
           <LinkInlineInput
             value={props.week.name}
             onInputString={(v) => {
-              props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("name").record(v));
+              props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("name").record(v), "Update week name");
             }}
           />
         </h3>
@@ -52,7 +52,8 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
                 onClick={() => {
                   if (confirm("Are you sure you want to delete this week?")) {
                     props.dispatch(
-                      lbProgram.p("weeks").recordModify((weeks) => CollectionUtils.removeAt(weeks, props.weekIndex))
+                      lbProgram.p("weeks").recordModify((weeks) => CollectionUtils.removeAt(weeks, props.weekIndex)),
+                      "Delete week"
                     );
                   }
                 }}
@@ -72,7 +73,8 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
                       ...ObjectUtils.clone(props.initialWeek),
                       name: `Week ${weeks.length + 1}`,
                     },
-                  ])
+                  ]),
+                  "Add new week"
                 );
               }}
             >
@@ -90,7 +92,8 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
                       ...ObjectUtils.clone(props.week),
                       name: `Week ${weeks.length + 1}`,
                     },
-                  ])
+                  ]),
+                  "Duplicate week"
                 );
               }}
             >
@@ -102,7 +105,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
               <LinkButton
                 name="planner-add-week-description"
                 onClick={() => {
-                  props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("description").record(""));
+                  props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("description").record(""), "Add week description");
                 }}
               >
                 Add Week Description
@@ -119,7 +122,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
             <MarkdownEditor
               value={props.week.description ?? ""}
               onChange={(v) => {
-                props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("description").record(v));
+                props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("description").record(v), "Update week description");
               }}
             />
             <div>
@@ -127,7 +130,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
                 className="text-xs"
                 name="planner-delete-week-description"
                 onClick={() => {
-                  props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("description").record(undefined));
+                  props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("description").record(undefined), "Delete week description");
                 }}
               >
                 Delete Week Description
@@ -170,7 +173,8 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
                       ...ObjectUtils.clone(props.initialDay),
                       name: `Day ${days.length + 1}`,
                     },
-                  ])
+                  ]),
+                "Add day"
               );
             }}
           >

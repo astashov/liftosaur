@@ -67,7 +67,12 @@ export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
           shouldNotExpand={true}
           defaultIndex={ui.weekIndex ?? 0}
           type="squares"
-          onChange={(weekIndex) => props.plannerDispatch(lb<IPlannerState>().p("ui").p("weekIndex").record(weekIndex))}
+          onChange={(weekIndex) =>
+            props.plannerDispatch(
+              lb<IPlannerState>().p("ui").p("weekIndex").record(weekIndex),
+              `Change week index to ${weekIndex}`
+            )
+          }
           tabs={planner.weeks.map((week, weekIndex) => {
             return {
               label: week.name,
@@ -145,7 +150,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
           disabled={!isValid}
           name="editor-v2-reorder-program"
           onClick={() => {
-            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("reorder")]);
+            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("reorder")], "Switch to reorder mode");
           }}
         >
           {(color) => <IconReorder color={color} />}
@@ -155,7 +160,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
           name="editor-v2-ui-program"
           disabled={!isValid}
           onClick={() => {
-            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("ui")]);
+            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("ui")], "Switch to UI mode");
           }}
         >
           {(color) => <IconUiMode color={color} />}
@@ -164,7 +169,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
           isSelected={props.state.ui.mode === "perday"}
           name="editor-v2-perday-program"
           onClick={() => {
-            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("perday")]);
+            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("perday")], "Switch to per-day mode");
           }}
         >
           {(color) => <IconDayTextMode color={color} />}
@@ -173,7 +178,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
           isSelected={props.state.ui.mode === "full"}
           name="editor-v2-full-program"
           onClick={() => {
-            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("full")]);
+            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("full")], "Switch to full text mode");
           }}
         >
           {(color) => <IconFullTextMode color={color} />}
@@ -188,14 +193,18 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
           data-cy="save-program"
           onClick={() => {
             const newProgram: IProgram = Program.cleanPlannerProgram({ ...props.originalProgram, planner });
-            updateState(props.dispatch, [
-              lb<IState>()
-                .p("storage")
-                .p("programs")
-                .recordModify((programs) => {
-                  return CollectionUtils.setBy(programs, "id", props.originalProgram.id, newProgram);
-                }),
-            ]);
+            updateState(
+              props.dispatch,
+              [
+                lb<IState>()
+                  .p("storage")
+                  .p("programs")
+                  .recordModify((programs) => {
+                    return CollectionUtils.setBy(programs, "id", props.originalProgram.id, newProgram);
+                  }),
+              ],
+              `Save program '${newProgram.name}'`
+            );
             props.dispatch(Thunk.pushScreen("main", undefined, true));
           }}
         >

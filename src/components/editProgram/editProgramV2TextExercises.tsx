@@ -50,7 +50,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
           <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.plannerDispatch} err={err} />
         )}
         onChange={(e) => {
-          plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e));
+          plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e), "Update exercise text");
         }}
         onBlur={(e, text) => {}}
         onLineChange={(line) => {
@@ -70,7 +70,8 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
               lb<IPlannerState>()
                 .p("ui")
                 .p("focusedExercise")
-                .record({ weekIndex, dayIndex, exerciseLine: exercise?.line ?? 0 })
+                .record({ weekIndex, dayIndex, exerciseLine: exercise?.line ?? 0 }),
+              "Focus on exercise"
             );
           }
         }}

@@ -158,7 +158,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
             props.plannerDispatch([
               lb<IPlannerExerciseState>().p("ui").p("isProgressEnabled").record(isProgressEnabled),
               lb<IPlannerExerciseState>().p("ui").p("isUpdateEnabled").record(isUpdateEnabled),
-            ]);
+            ], "Update progress/update UI flags");
           }}
         />
       </div>
@@ -248,7 +248,8 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                           props.setIsOverriding(true);
                         }
                       );
-                    })
+                    }),
+                    "Override reused sets"
                   );
                 }}
               >

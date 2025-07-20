@@ -127,7 +127,8 @@ export function labelSet(
               focusedExercise,
               types,
               muscleGroups,
-            })
+            }),
+            "Open exercise modal"
           );
         }}
       >

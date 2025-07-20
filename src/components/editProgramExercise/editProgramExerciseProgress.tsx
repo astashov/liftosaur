@@ -69,7 +69,7 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
                 data-cy="edit-exercise-progress-edit-script"
                 name="edit-exercise-progress-edit-script"
                 onClick={() => {
-                  props.plannerDispatch(lbUi.p("showEditProgressScriptModal").record(true));
+                  props.plannerDispatch(lbUi.p("showEditProgressScriptModal").record(true), "Show edit progress script modal");
                 }}
               >
                 Edit Script
@@ -108,7 +108,7 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
         <ModalEditProgressScript
           settings={props.settings}
           onClose={() => {
-            props.plannerDispatch(lbUi.p("showEditProgressScriptModal").record(false));
+            props.plannerDispatch(lbUi.p("showEditProgressScriptModal").record(false), "Close edit progress script modal");
           }}
           plannerExercise={plannerExercise}
           onChange={(script) => {
@@ -123,7 +123,8 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
                     script: script,
                   };
                 });
-              })
+              }),
+              "Update progress script"
             );
           }}
         />
@@ -252,7 +253,8 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                         });
                       }
                       return newPlanner;
-                    })
+                    }),
+                    "Change progress type"
                   );
                 }}
               />
@@ -296,7 +298,8 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                               };
                             }
                           );
-                        })
+                        }),
+                        "Update progress reuse"
                       );
                     }}
                   />

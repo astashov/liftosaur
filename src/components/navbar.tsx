@@ -135,7 +135,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
                       .recordModify((l) => {
                         return { ...l, items: ObjectUtils.filter(l.items, (k, v) => v?.error == null) };
                       }),
-                  ])
+                  ], "Clear error messages")
                 }
               >
                 <IconClose size={16} color="#E53E3E" />

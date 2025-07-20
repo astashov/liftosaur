@@ -102,7 +102,8 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                       types: [],
                       muscleGroups: [],
                       change: "all",
-                    })
+                    }),
+                  "Open exercise modal"
                 );
               }}
             >
@@ -131,7 +132,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                 ).pi("plannerState"),
                 editProgramStateRef.current
               );
-              plannerDispatch([lb<IPlannerState>().p("current").p("program").record(stateRef.current.current.program)]);
+              plannerDispatch([lb<IPlannerState>().p("current").p("program").record(stateRef.current.current.program)], "Update program from edit exercise");
             } else {
               updateState(props.dispatch, [
                 lb<IState>()
@@ -145,7 +146,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                       stateRef.current.current.program
                     );
                   }),
-              ]);
+              ], "Save program changes");
             }
             props.dispatch(Thunk.pullScreen());
           }, 50)}

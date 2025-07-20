@@ -144,7 +144,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                               }
                             );
                           }),
-                        ]);
+                        ], "Toggle progress");
                       }}
                     >
                       <div className="flex items-center gap-2">
@@ -175,7 +175,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                               }
                             );
                           }),
-                        ]);
+                        ], "Toggle update");
                       }}
                     >
                       <div className="flex items-center gap-2">
@@ -199,7 +199,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                               }
                             );
                           }),
-                        ]);
+                        ], "Toggle used status");
                       }}
                     >
                       <div className="flex items-center gap-2">
@@ -235,7 +235,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                   props.settings
                 );
                 const newKey = changedKeys[plannerExercise.key];
-                plannerDispatch(lbProgram.record(newPlanner));
+                plannerDispatch(lbProgram.record(newPlanner), "Update planner program");
                 if (newKey) {
                   updateState(props.dispatch, [
                     (
@@ -247,11 +247,11 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                     )
                       .pi("key")
                       .record(newKey),
-                  ]);
+                  ], "Update exercise key in screen params");
                 }
               }}
               onUiChange={(modalExerciseUi) => {
-                plannerDispatch(lbUi.p("modalExercise").record(modalExerciseUi));
+                plannerDispatch(lbUi.p("modalExercise").record(modalExerciseUi), "Update modal exercise UI");
               }}
               onStopIsUndoing={() => {
                 plannerDispatch(

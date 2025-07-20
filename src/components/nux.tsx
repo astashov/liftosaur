@@ -37,7 +37,7 @@ export function Nux(props: IProps): JSX.Element | null {
                 .p("storage")
                 .p("helps")
                 .recordModify((helps) => [...helps, props.id]),
-            ]);
+            ], "Dismiss help tip");
           }}
         >
           <IconClose2 size={12} />

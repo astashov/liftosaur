@@ -34,7 +34,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
       props.ui.fullTextError?.line !== newError?.line ||
       props.ui.fullTextError?.offset !== newError?.offset
     ) {
-      props.plannerDispatch(lbUi.p("fullTextError").record(newError));
+      props.plannerDispatch(lbUi.p("fullTextError").record(newError), "Update full text error");
     }
   }, [props.settings]);
 
@@ -63,7 +63,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
               props.plannerDispatch([
                 lbUi.p("fullTextError").record(evaluatedWeeks.success ? undefined : evaluatedWeeks.error),
                 lbProgram.p("weeks").record(weeks),
-              ]);
+              ], "Update full program text");
             }}
             lineNumbers={true}
             onBlur={(e, text) => {}}

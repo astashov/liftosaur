@@ -77,7 +77,8 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                                   }
                                 }
                               );
-                            })
+                            }),
+                            "Update state variable"
                           );
                         }}
                       />
@@ -104,7 +105,8 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                                   }
                                 }
                               );
-                            })
+                            }),
+                            "Update state variable"
                           );
                         }}
                       />
@@ -133,7 +135,8 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                                   }
                                 }
                               );
-                            })
+                            }),
+                            "Delete state variable"
                           );
                         }
                       }}
@@ -155,7 +158,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
             kind="lightpurple"
             name="add-state-variable"
             className="w-full text-sm"
-            onClick={() => props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(true))}
+            onClick={() => props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(true), "Show add state variable modal")}
           >
             + Add State Variable
           </Button>
@@ -163,7 +166,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
       </div>
       {props.ui.showAddStateVariableModal && (
         <ModalCreateStateVariable
-          onClose={() => props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(false))}
+          onClose={() => props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(false), "Close add state variable modal")}
           onCreate={(name, type, isUserPrompted) => {
             props.plannerDispatch(
               lbProgram.recordModify((program) => {
@@ -177,7 +180,8 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                     stateMetadata[name] = { userPrompted: true };
                   }
                 });
-              })
+              }),
+              "Add state variable"
             );
           }}
         />

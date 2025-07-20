@@ -23,7 +23,7 @@ interface IBottomSheetEditProgramExerciseSetProps {
 export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgramExerciseSetProps): JSX.Element {
   const lbUi = lb<IPlannerExerciseState>().pi("ui");
   function onClose(): void {
-    props.plannerDispatch(lbUi.p("editSetBottomSheet").record(undefined));
+    props.plannerDispatch(lbUi.p("editSetBottomSheet").record(undefined), "Close edit set sheet");
   }
   const editSetBottomSheet = props.ui.editSetBottomSheet;
   const weekIndex = props.ui.weekIndex;
@@ -50,7 +50,8 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
           const set = setVariation.sets[setIndex];
           cb(set);
         });
-      })
+      }),
+      "Update set"
     );
   }
 

@@ -129,7 +129,7 @@ export function buildState(args: {
   };
 }
 
-export function updateState(dispatch: IDispatch, lensRecording: ILensRecordingPayload<IState>[], desc?: string): void {
+export function updateState(dispatch: IDispatch, lensRecording: ILensRecordingPayload<IState>[], desc: string): void {
   dispatch({ type: "UpdateState", lensRecording, desc });
 }
 

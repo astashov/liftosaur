@@ -562,7 +562,7 @@ export namespace Program {
         id: programId,
         showCustomPrograms,
       }),
-    ]);
+    ], "Preview program");
     dispatch(Thunk.pushScreen("programPreview"));
   }
 
@@ -613,11 +613,11 @@ export namespace Program {
           }
         }),
       lb<IState>().p("storage").p("currentProgramId").record(program.id),
-    ]);
+    ], "Clone program");
   }
 
   export function selectProgram(dispatch: IDispatch, programId: string): void {
-    updateState(dispatch, [lb<IState>().p("storage").p("currentProgramId").record(programId)]);
+    updateState(dispatch, [lb<IState>().p("storage").p("currentProgramId").record(programId)], "Select program");
     dispatch(Thunk.pushScreen("main", undefined, true));
   }
 

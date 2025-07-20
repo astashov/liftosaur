@@ -29,7 +29,7 @@ function updateTimer(dispatch: IDispatch, progress: IHistoryRecord, newTimer: nu
   } else {
     SendMessage.toIos({ type: "stopTimer" });
     SendMessage.toAndroid({ type: "stopTimer" });
-    updateState(dispatch, [lb<IState>().p("progress").pi(progress.id).p("timer").record(Math.max(0, newTimer))]);
+    updateState(dispatch, [lb<IState>().p("progress").pi(progress.id).p("timer").record(Math.max(0, newTimer))], "Update timer");
   }
 }
 

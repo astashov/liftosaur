@@ -101,7 +101,8 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
                       exerciseKey: PlannerKey.fromPlannerExercise(props.plannerExercise, props.settings),
                       fullName: props.plannerExercise.fullName,
                       exerciseType,
-                    })
+                    }),
+                  "Open edit exercise modal"
                 );
               } else {
                 props.plannerDispatch(
@@ -120,7 +121,8 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
                       fullName: props.plannerExercise.fullName,
                       exerciseType,
                       change: "one",
-                    })
+                    }),
+                  "Open exercise picker modal"
                 );
               }
             }}
@@ -140,7 +142,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
                   exerciseLine: props.plannerExercise.line,
                 }),
                 lb<IPlannerState>().p("ui").p("showExerciseStats").record(true),
-              ]);
+              ], "Show exercise stats");
             }}
           >
             <IconGraphsE width={16} height={19} />
@@ -164,7 +166,8 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
                       newCollapsed.add(exKey);
                     }
                     return newCollapsed;
-                  })
+                  }),
+                "Toggle exercise collapse"
               );
             }}
           >
@@ -281,7 +284,8 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                     .record({
                       ...props.plannerExercise.dayData,
                       key: props.plannerExercise.key,
-                    })
+                    }),
+                  "Focus on exercise day"
                 );
                 props.dispatch(
                   Thunk.pushToEditProgramExercise(props.plannerExercise.key, props.plannerExercise.dayData)
@@ -311,7 +315,8 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                       fullName: plannerExercise.fullName,
                       exerciseType,
                       change: "duplicate",
-                    })
+                    }),
+                  "Open duplicate exercise modal"
                 );
               }}
             >
@@ -332,7 +337,8 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                       false,
                       true
                     );
-                  })
+                  }),
+                  "Delete exercise instance"
                 );
               }}
             >

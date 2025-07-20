@@ -47,11 +47,11 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
           return PlannerProgram.evaluateText(text);
         }),
       lb<IPlannerState>().p("fulltext").record(undefined),
-    ]);
+    ], "Save full program");
   }
 
   function cancel(): void {
-    props.dispatch([lb<IPlannerState>().p("fulltext").record(undefined)]);
+    props.dispatch([lb<IPlannerState>().p("fulltext").record(undefined)], "Cancel fulltext edit");
   }
 
   const currentLine = props.fullText.currentLine;
@@ -160,7 +160,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
               className="p-2 align-middle"
               onClick={() => {
                 if (evaluatedWeeks.success) {
-                  props.dispatch(lb<IPlannerState>().p("ui").p("showPreview").record(true));
+                  props.dispatch(lb<IPlannerState>().p("ui").p("showPreview").record(true), "Show preview");
                 }
               }}
             >
@@ -213,11 +213,11 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
             onCustomErrorCta={(err) => (
               <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.dispatch} err={err} />
             )}
-            onChange={(e) => props.dispatch(lb<IPlannerState>().pi("fulltext").p("text").record(e))}
+            onChange={(e) => props.dispatch(lb<IPlannerState>().pi("fulltext").p("text").record(e), "Update fulltext")}
             lineNumbers={true}
             onBlur={(e, text) => {}}
             onLineChange={(line) => {
-              props.dispatch(lb<IPlannerState>().pi("fulltext").p("currentLine").record(line));
+              props.dispatch(lb<IPlannerState>().pi("fulltext").p("currentLine").record(line), "Update current line");
             }}
           />
           <div className="fixed bottom-0 hidden sm:block" style={{ width: editorWidth }}>

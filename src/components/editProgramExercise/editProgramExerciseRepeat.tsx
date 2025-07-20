@@ -57,7 +57,8 @@ export function EditProgramExerciseRepeat(props: IEditProgramExerciseRepeatProps
                   props.settings,
                   true
                 );
-              })
+              }),
+              "Change repeat week"
             );
           }
         }}

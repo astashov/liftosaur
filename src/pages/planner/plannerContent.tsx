@@ -162,7 +162,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program) {
         const exportProgram = Program.exportProgram(newState.current.program, settings);
-        dispatch(lb<IPlannerState>().p("encodedProgram").record(JSON.stringify(exportProgram)));
+        dispatch(lb<IPlannerState>().p("encodedProgram").record(JSON.stringify(exportProgram)), "Update encoded program");
       }
     },
     async (action, oldState, newState) => {
@@ -192,7 +192,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     if (props.initialProgram) {
       const exportProgram = Program.exportProgram(state.current.program, settings);
       Encoder.encodeIntoUrl(JSON.stringify(exportProgram), window.location.href).then(() => {
-        dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(JSON.stringify(exportProgram)));
+        dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(JSON.stringify(exportProgram)), "Set initial encoded program");
       });
     }
   }, []);
@@ -359,8 +359,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             <LinkInlineInput
               value={state.current.program.name}
               onInputString={(v) => {
-                dispatch(lbProgram.p("name").record(v));
-                dispatch(lb<IPlannerState>().p("current").p("program").p("name").record(v));
+                dispatch(lbProgram.p("name").record(v), "Update program name");
+                dispatch(lb<IPlannerState>().p("current").p("program").p("name").record(v), "Update current program name");
                 document.title = `Liftosaur: Weight Lifting Tracking App | ${HtmlUtils.escapeHtml(v)}`;
               }}
             />
@@ -381,7 +381,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 dispatch([
                   lb<IPlannerState>().p("id").record(id),
                   lb<IPlannerState>().p("current").p("program").p("id").record(id),
-                ]);
+                ], "Generate new ID");
               }}
             >
               id: {state.id}
@@ -402,7 +402,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   try {
                     const exportProgram = Program.exportProgram(state.current.program, settings);
                     await saveProgram(props.client, exportProgram);
-                    dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram));
+                    dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram), "Save program");
                   } finally {
                     setIsLoading(false);
                   }
@@ -418,7 +418,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               className="p-2"
               onClick={() => {
                 if (!isInvalid) {
-                  dispatch(lb<IPlannerState>().p("ui").p("showPictureExport").record(true));
+                  dispatch(lb<IPlannerState>().p("ui").p("showPictureExport").record(true), "Show picture export");
                 }
               }}
             >
@@ -431,7 +431,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               className="p-2"
               onClick={() => {
                 if (!isInvalid) {
-                  dispatch(lb<IPlannerState>().p("ui").p("showPreview").record(true));
+                  dispatch(lb<IPlannerState>().p("ui").p("showPreview").record(true), "Show preview");
                 }
               }}
             >
@@ -450,7 +450,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                     dispatch(
                       lb<IPlannerState>()
                         .p("fulltext")
-                        .record({ text: PlannerProgram.generateFullText(planner.weeks) })
+                        .record({ text: PlannerProgram.generateFullText(planner.weeks) }),
+                      "Edit full program"
                     )
                   }
                   className={`p-2 nm-edit-full-program ${isInvalid ? "cursor-not-allowed" : ""}`}
@@ -474,7 +475,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               <div>
                 <button
                   title="Settings"
-                  onClick={() => dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(true))}
+                  onClick={() => dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(true), "Show settings")}
                   className="p-2 nm-planner-settings"
                 >
                   <IconCog2 />
@@ -524,7 +525,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           inApp={false}
           onNewSettings={(newSettings) => setSettings(newSettings)}
           settings={settings}
-          onClose={() => dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false))}
+          onClose={() => dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false), "Close settings modal")}
         />
       )}
       {state.ui.showPreview && (
@@ -532,7 +533,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           isFullWidth={true}
           name="program-preview"
           shouldShowClose={true}
-          onClose={() => dispatch(lb<IPlannerState>().pi("ui").p("showPreview").record(false))}
+          onClose={() => dispatch(lb<IPlannerState>().pi("ui").p("showPreview").record(false), "Close preview")}
         >
           <GroupHeader size="large" name="Program Preview" />
           <ProgramPreviewOrPlayground
@@ -558,7 +559,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               dispatch([
                 lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
                 lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
-              ]);
+              ], "Close modal and clear focus");
             }
             if (modalExerciseUi.exerciseType && modalExerciseUi.exerciseKey) {
               if (!exerciseType) {
@@ -579,7 +580,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 );
                 if (newProgramResult.success && newProgramResult.data.planner) {
                   const newText = PlannerProgram.generateFullText(newProgramResult.data.planner.weeks);
-                  dispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)]);
+                  dispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)], "Update fulltext");
                 } else if (!newProgramResult.success) {
                   alert(newProgramResult.error);
                 }
@@ -593,7 +594,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 if (newProgramResult.success && newProgramResult.data.planner) {
                   dispatch([
                     lb<IPlannerState>().p("current").p("program").pi("planner").record(newProgramResult.data.planner),
-                  ]);
+                  ], "Replace exercise");
                 } else if (!newProgramResult.success) {
                   alert(newProgramResult.error);
                 }
@@ -630,7 +631,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                         const exercise = Exercise.getById(exerciseType.id, settings.exercises);
                         return exerciseText + `\n${exercise.name}`;
                       }),
-              ]);
+              ], "Add exercise");
             }
             dispatch(
               [
@@ -668,11 +669,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 exercises,
               });
               window.isUndoing = true;
-              dispatch(lbProgram.record(newProgram.planner!));
+              dispatch(lbProgram.record(newProgram.planner!), "Update program");
               dispatch(lbProgram.record(newProgram.planner!), "stop-is-undoing");
             }
             if (shouldClose) {
-              dispatch(lb<IPlannerState>().p("ui").p("modalExercise").record(undefined));
+              dispatch(lb<IPlannerState>().p("ui").p("modalExercise").record(undefined), "Close exercise modal");
             }
           }}
           onDelete={(id) => {
@@ -695,7 +696,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           url={showClipboardInfo ?? getCurrentUrl()}
           settings={settings}
           program={program}
-          onClose={() => dispatch(lb<IPlannerState>().p("ui").p("showPictureExport").record(false))}
+          onClose={() => dispatch(lb<IPlannerState>().p("ui").p("showPictureExport").record(false), "Close picture export")}
         />
       )}
       {showRevisions && props.revisions.length > 0 && (
@@ -706,7 +707,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           onClose={() => setShowRevisions(false)}
           onRestore={(text) => {
             window.isUndoing = true;
-            dispatch([lbProgram.p("weeks").record(PlannerProgram.evaluateText(text))]);
+            dispatch([lbProgram.p("weeks").record(PlannerProgram.evaluateText(text))], "Restore program");
             setShowRevisions(false);
             dispatch([lb<IPlannerState>().p("fulltext").record(undefined)], "stop-is-undoing");
           }}

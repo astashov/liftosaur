@@ -118,7 +118,7 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
                       exerciseKey,
                     }),
                   lb<IPlannerState>().pi("ui").p("showExerciseStats").record(undefined),
-                ]);
+                ], "Swap exercise");
               }}
             >
               Swap Exercise

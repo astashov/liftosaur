@@ -670,7 +670,7 @@ Bench Press / 3x8 100lb / progress: dp(5lb, 8, 12)`,
           error={evaluatedDay.success ? undefined : evaluatedDay.error}
           value={text}
           onChange={(e) => {
-            dispatch(lbDay.p("exerciseText").record(e));
+            dispatch(lbDay.p("exerciseText").record(e), "Update exercise text");
           }}
           onBlur={() => {}}
           onLineChange={() => {}}

@@ -55,7 +55,7 @@ export function ModalImportFromOtherApps(props: IProps): JSX.Element {
             .recordModify((oldExercises) => {
               return { ...oldExercises, ...customExercises };
             }),
-        ]);
+        ], "Import Hevy workouts");
       }
     }
     props.onClose();

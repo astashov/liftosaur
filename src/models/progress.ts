@@ -911,7 +911,7 @@ export namespace Progress {
   }
 
   export function showAddExerciseModal(dispatch: IDispatch, progressId: number): void {
-    updateState(dispatch, [lb<IState>().p("progress").pi(progressId).pi("ui").p("exerciseModal").record({})]);
+    updateState(dispatch, [lb<IState>().p("progress").pi(progressId).pi("ui").p("exerciseModal").record({})], "Show add exercise modal");
   }
 
   export function addExercise(dispatch: IDispatch, exerciseType: IExerciseType, numberOfEntries: number): void {
@@ -943,7 +943,7 @@ export namespace Progress {
         .recordModify((entry) => {
           return { ...entry, exercise: exerciseType, changed: true };
         }),
-    ]);
+    ], "Change exercise");
   }
 
   export function changeEquipment(
@@ -961,11 +961,11 @@ export namespace Progress {
         .p("exercise")
         .p("equipment")
         .record(equipment),
-    ]);
+    ], "Change equipment");
   }
 
   export function editNotes(dispatch: IDispatch, progressId: number, notes: string): void {
-    updateState(dispatch, [lb<IState>().p("progress").pi(progressId).p("notes").record(notes)]);
+    updateState(dispatch, [lb<IState>().p("progress").pi(progressId).p("notes").record(notes)], "Edit workout notes");
   }
 
   export function getDayData(progress: IHistoryRecord): IDayData {

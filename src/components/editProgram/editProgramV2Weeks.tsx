@@ -55,7 +55,7 @@ function onWeeksChange(
         }
         return newCollapsed;
       }),
-  ]);
+  ], "Update week collapse state");
 }
 
 export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Element {
@@ -95,7 +95,8 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                       }
                       return newCollapsed;
                     }
-                  })
+                  }),
+                "Toggle all weeks collapse"
               );
             }}
           >
@@ -114,7 +115,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                   newWeeks.splice(endIndex, 0, weekToMove);
                   return newWeeks;
                 }),
-              ]);
+              ], "Reorder weeks");
               const [weekToMove] = order.splice(startIndex, 1);
               order.splice(endIndex, 0, weekToMove);
             });
@@ -152,7 +153,8 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                   newCollapsed.add(exKey);
                                 }
                                 return newCollapsed;
-                              })
+                              }),
+                            "Toggle week collapse"
                           );
                         }}
                         className="w-8 p-2 mr-1 text-center nm-web-editor-expand-collapse-day"
@@ -169,7 +171,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                         value={week.name}
                         onInput={(weekName) => {
                           if (weekName) {
-                            props.plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("name").record(weekName));
+                            props.plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("name").record(weekName), "Update week name");
                           }
                         }}
                       />
@@ -189,7 +191,8 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                               props.plannerDispatch(
                                 lbProgram.p("weeks").recordModify((weeks) => {
                                   return [...weeks.slice(0, weekIndex + 1), newWeek, ...weeks.slice(weekIndex + 1)];
-                                })
+                                }),
+                                "Duplicate week"
                               );
                               order.splice(weekIndex + 1, 0, order[weekIndex]);
                             }
@@ -211,7 +214,8 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                 props.plannerDispatch(
                                   lbProgram.p("weeks").recordModify((weeks) => {
                                     return CollectionUtils.removeAt(weeks, weekIndex);
-                                  })
+                                  }),
+                                  "Delete week"
                                 );
                                 order.splice(weekIndex, 1);
                               }
@@ -246,7 +250,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                     newDays.splice(endIndex, 0, daysToMove);
                                     return newDays;
                                   }),
-                              ]);
+                              ], "Reorder days");
                               const [daysToMove] = order.splice(startIndex, 1);
                               order.splice(endIndex, 0, daysToMove);
                             }
@@ -279,7 +283,8 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                             .p("days")
                                             .i(dayIndex)
                                             .p("name")
-                                            .record(dayName)
+                                            .record(dayName),
+                                          "Update day name"
                                         );
                                       }
                                     }}
@@ -323,7 +328,8 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                         .p("days")
                                         .recordModify((days) => {
                                           return [...days.slice(0, dayIndex + 1), newDay, ...days.slice(dayIndex + 1)];
-                                        })
+                                        }),
+                                      "Duplicate day"
                                     );
                                   }}
                                 >
@@ -341,7 +347,8 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                           .p("days")
                                           .recordModify((days) => {
                                             return CollectionUtils.removeAt(days, dayIndex);
-                                          })
+                                          }),
+                                        "Delete day"
                                       );
                                     }}
                                   >
@@ -371,7 +378,8 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                     name: `Day ${days.length + 1}`,
                                     exerciseText: "",
                                   },
-                                ])
+                                ]),
+                              "Add new day"
                             );
                           }}
                         >
@@ -400,7 +408,8 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                     name: `Week ${weeks.length + 1}`,
                     days: [],
                   },
-                ])
+                ]),
+                "Add new week"
               );
             }}
           >

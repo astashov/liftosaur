@@ -71,7 +71,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
             value={props.day.name}
             onInput={(newValue) => {
               if (newValue) {
-                props.plannerDispatch(lbPlannerDay.p("name").record(newValue));
+                props.plannerDispatch(lbPlannerDay.p("name").record(newValue), "Update day name");
               }
             }}
           />
@@ -82,7 +82,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
               data-cy="edit-day-muscles-d"
               className="px-2 align-middle ls-edit-day button nm-day-muscles-d"
               onClick={() => {
-                props.plannerDispatch(lb<IPlannerState>().p("ui").p("showDayStats").record(props.dayInWeekIndex));
+                props.plannerDispatch(lb<IPlannerState>().p("ui").p("showDayStats").record(props.dayInWeekIndex), "Show day stats");
               }}
             >
               <IconMusclesD size={20} />
@@ -114,7 +114,8 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                               ...days.slice(props.dayInWeekIndex + 1),
                             ];
                             return newDays;
-                          })
+                          }),
+                        "Clone day"
                       );
                       order.splice(props.dayInWeekIndex + 1, 0, order[props.dayInWeekIndex]);
                     }
@@ -145,7 +146,8 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                             .p("days")
                             .recordModify((days) => {
                               return CollectionUtils.removeAt(days, props.dayInWeekIndex);
-                            })
+                            }),
+                          "Delete day"
                         );
                         order.splice(props.dayInWeekIndex, 1);
                       }
@@ -175,7 +177,8 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                         newCollapsed.add(key);
                       }
                       return newCollapsed;
-                    })
+                    }),
+                  "Toggle day collapse"
                 );
               }}
             >
@@ -240,7 +243,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
           value={props.day.description}
           placeholder={`Day description in Markdown...`}
           onChange={(v) => {
-            props.plannerDispatch(props.lbPlannerDay.p("description").record(v));
+            props.plannerDispatch(props.lbPlannerDay.p("description").record(v), "Update day description");
           }}
         />
       </div>
@@ -281,7 +284,8 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                         }
                       }
                       return newCollapsed;
-                    })
+                    }),
+                  "Toggle all exercises"
                 );
               }}
             >
@@ -308,7 +312,8 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                       endIndex,
                       props.settings
                     );
-                  })
+                  }),
+                  "Reorder exercise"
                 );
               }}
               element={(exercise, exerciseIndex, handleTouchStart) => {
@@ -348,7 +353,8 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                         },
                         types: [],
                         muscleGroups: [],
-                      })
+                      }),
+                    "Open add exercise modal"
                   );
                 }}
               >

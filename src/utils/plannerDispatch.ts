@@ -14,7 +14,7 @@ export function buildPlannerDispatch<T, S extends IUndoRedoState<T>>(
     updateState(
       dispatch,
       lensRecordings.map((recording) => recording.prepend(lensBuilder)),
-      desc
+      desc || "Update state"
     );
     const changesCurrent = lensRecordings.some((recording) => recording.lens.from.some((f) => f === "current"));
     if (!(desc === "undo") && changesCurrent && plannerState != null) {

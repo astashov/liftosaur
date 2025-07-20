@@ -784,7 +784,7 @@ export namespace History {
         .pi(0)
         .p("intervals")
         .recordModify((intervals, getters) => pauseWorkout(getters.progress.intervals)),
-    ]);
+    ], "Pause workout");
   }
 
   export function pauseWorkout(intervals?: IIntervals): IIntervals | undefined {
@@ -811,7 +811,7 @@ export namespace History {
           const intervals = resumeWorkout(progress, settings.timers.reminder);
           return { ...progress, intervals };
         }),
-    ]);
+    ], "Resume workout");
   }
 
   export function isPaused(intervals?: IIntervals): boolean {

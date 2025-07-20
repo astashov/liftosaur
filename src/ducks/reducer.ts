@@ -338,17 +338,21 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
           );
           const newKey = changedKeys[oldExerciseKey];
           if (newKey) {
-            updateState(dispatch, [
-              (
-                lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
-                  IState,
-                  { key: string },
-                  {}
-                >
-              )
-                .pi("key")
-                .record(newKey),
-            ]);
+            updateState(
+              dispatch,
+              [
+                (
+                  lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
+                    IState,
+                    { key: string },
+                    {}
+                  >
+                )
+                  .pi("key")
+                  .record(newKey),
+              ],
+              "Update exercise key"
+            );
           }
         }
       }
@@ -418,11 +422,18 @@ export const reducerWrapper =
         if (lastHistoryRecordStr) {
           const { time, historyRecord } = JSON.parse(lastHistoryRecordStr);
           const diffTime = Date.now() - time;
-          if (diffTime > 1000 * 60) {
+          if (diffTime > 1000 * 10) {
             window.localStorage.removeItem("lastHistoryRecord");
             const fromHistory = state.storage.history.find((hr) => hr.id === historyRecord.id);
             if (!fromHistory) {
-              lg("history-record-lost");
+              console.log("History record lost");
+              lg("history-record-lost", {
+                lastActions: JSON.stringify(
+                  window.reducerLastActions.map((a) => [a.type, "desc" in a ? a.desc : undefined])
+                ),
+              });
+            } else {
+              console.log("It' ok");
             }
           }
         }

@@ -1971,10 +1971,10 @@ export namespace WhatsNew {
     updateState(dispatch, [
       lb<IState>().p("storage").p("whatsNew").record(DateUtils.formatYYYYMMDD(Date.now(), "")),
       lb<IState>().p("showWhatsNew").record(false),
-    ]);
+    ], "Mark what's new as read");
   }
 
   export function showWhatsNew(dispatch: IDispatch): void {
-    updateState(dispatch, [lb<IState>().p("showWhatsNew").record(true)]);
+    updateState(dispatch, [lb<IState>().p("showWhatsNew").record(true)], "Show what's new");
   }
 }

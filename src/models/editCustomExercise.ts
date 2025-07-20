@@ -26,10 +26,10 @@ export namespace EditCustomExercise {
         largeImageUrl,
         exercise
       ),
-    ]);
+    ], "Update custom exercise");
   }
 
   export function markDeleted(dispatch: IDispatch, id: string): void {
-    updateState(dispatch, [EditCustomExerciseLenses.markDeleted(lb<IState>().p("storage").p("settings"), id)]);
+    updateState(dispatch, [EditCustomExerciseLenses.markDeleted(lb<IState>().p("storage").p("settings"), id)], "Delete custom exercise");
   }
 }

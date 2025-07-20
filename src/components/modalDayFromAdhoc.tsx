@@ -79,7 +79,7 @@ export function ModalDayFromAdhoc(props: IModalChangeNextDayProps): JSX.Element 
                 .p("storage")
                 .p("programs")
                 .recordModify((pgms) => [...pgms, program]),
-            ]);
+            ], "Create program from adhoc");
             alert(`Created new program '${program.name}' with this workout`);
             props.onClose();
           }}

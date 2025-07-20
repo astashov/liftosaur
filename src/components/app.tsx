@@ -146,11 +146,11 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.postevent("apple-health-error"));
         alert(event.data.error);
       } else if (event.data?.type === "stopSubscriptionLoading") {
-        updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
+        updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)], "Stop subscription loading");
       } else if (event.data?.type === "products") {
         dispatch(Thunk.postevent("sync-prices"));
         const newPrices = { ...state.prices, ...event.data.data };
-        updateState(dispatch, [lb<IState>().p("prices").record(newPrices)]);
+        updateState(dispatch, [lb<IState>().p("prices").record(newPrices)], "Update prices for products");
       } else if (event.data?.type === "universalLink") {
         ImportExporter.handleUniversalLink(dispatch, event.data.link, client);
       } else if (event.data?.type === "goBack") {
@@ -170,12 +170,16 @@ export function AppView(props: IProps): JSX.Element | null {
         //   );
       } else if (event.data?.type === "requestedReview") {
         dispatch(Thunk.postevent("requested-review"));
-        updateState(dispatch, [
-          lb<IState>()
-            .p("storage")
-            .p("reviewRequests")
-            .recordModify((r) => [...r, Date.now()]),
-        ]);
+        updateState(
+          dispatch,
+          [
+            lb<IState>()
+              .p("storage")
+              .p("reviewRequests")
+              .recordModify((r) => [...r, Date.now()]),
+          ],
+          "Add review request"
+        );
       }
     });
     const userId = state.user?.id || state.storage.tempUserId;
@@ -229,12 +233,16 @@ export function AppView(props: IProps): JSX.Element | null {
     if (typeof window !== "undefined") {
       const source = url?.searchParams.get("s");
       if (source) {
-        updateState(dispatch, [
-          lb<IState>()
-            .p("storage")
-            .p("affiliates")
-            .recordModify((affiliates) => ({ [source]: Date.now(), ...affiliates })),
-        ]);
+        updateState(
+          dispatch,
+          [
+            lb<IState>()
+              .p("storage")
+              .p("affiliates")
+              .recordModify((affiliates) => ({ [source]: Date.now(), ...affiliates })),
+          ],
+          `Set affiliate source to ${source}`
+        );
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       window.replaceState = (newState: any) => {
@@ -595,7 +603,13 @@ export function AppView(props: IProps): JSX.Element | null {
           userId={state.errors.corruptedstorage?.userid}
           backup={state.errors.corruptedstorage?.backup || false}
           local={state.errors.corruptedstorage?.local}
-          onReset={() => updateState(dispatch, [lb<IState>().p("errors").p("corruptedstorage").record(undefined)])}
+          onReset={() =>
+            updateState(
+              dispatch,
+              [lb<IState>().p("errors").p("corruptedstorage").record(undefined)],
+              "Reset corrupted storage"
+            )
+          }
         />
       )}
       {state.showSignupRequest && (

@@ -233,7 +233,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
             <ModalPlannerSettings
               inApp={true}
               onNewSettings={(newSettings) =>
-                updateState(props.dispatch, [lb<IState>().p("storage").p("settings").record(newSettings)])
+                updateState(props.dispatch, [lb<IState>().p("storage").p("settings").record(newSettings)], "Update planner settings")
               }
               settings={props.settings}
               onClose={() => setShowPlannerSettings(false)}

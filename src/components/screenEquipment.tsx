@@ -28,7 +28,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
         const offsetY = el.getBoundingClientRect().top + document.documentElement.scrollTop;
         window.scrollTo(0, offsetY - 70);
       }
-      updateState(props.dispatch, [lb<IState>().p("defaultEquipmentExpanded").record(undefined)]);
+      updateState(props.dispatch, [lb<IState>().p("defaultEquipmentExpanded").record(undefined)], "Clear expanded equipment");
     }
   }, []);
   const selectedGym = props.settings.gyms.find((g) => g.id === props.selectedGymId) ?? props.settings.gyms[0];
@@ -62,7 +62,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
                       .findBy("id", selectedGym.id)
                       .p("name")
                       .record(name.trim()),
-                  ]);
+                  ], "Update gym name");
                 }
               }}
             />

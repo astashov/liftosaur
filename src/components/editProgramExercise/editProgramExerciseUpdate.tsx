@@ -58,7 +58,7 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
                 data-cy="edit-exercise-update-edit-script"
                 name="edit-exercise-update-edit-script"
                 onClick={() => {
-                  props.plannerDispatch(lbUi.p("showEditUpdateScriptModal").record(true));
+                  props.plannerDispatch(lbUi.p("showEditUpdateScriptModal").record(true), "Show edit update script modal");
                 }}
               >
                 Edit Script
@@ -97,7 +97,7 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
         <ModalEditUpdateScript
           settings={props.settings}
           onClose={() => {
-            props.plannerDispatch(lbUi.p("showEditUpdateScriptModal").record(false));
+            props.plannerDispatch(lbUi.p("showEditUpdateScriptModal").record(false), "Close edit update script modal");
           }}
           plannerExercise={plannerExercise}
           onChange={(script) => {
@@ -110,7 +110,8 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
                     script: script,
                   };
                 });
-              })
+              }),
+              "Update script"
             );
           }}
         />
@@ -214,7 +215,8 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
                               }
                             }
                           );
-                        })
+                        }),
+                        "Change update reuse"
                       );
                     }}
                   />

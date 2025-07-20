@@ -14,7 +14,7 @@ export type ILensDispatchSimple<TState> = (lensRecording: ILensRecordingPayload<
 
 export type ILensDispatch<TState> = (
   lensRecording: ILensRecordingPayload<TState> | ILensRecordingPayload<TState>[],
-  desc?: string
+  desc: string
 ) => void | Promise<void>;
 
 const isLoggingEnabled =

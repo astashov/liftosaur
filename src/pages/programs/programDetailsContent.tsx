@@ -136,7 +136,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
             name="selected_program_id"
             id="selected_program_id"
             onChange={() => {
-              dispatch(lb<IProgramDetailsState>().p("selectedProgramId").record(ref.current.value));
+              dispatch(lb<IProgramDetailsState>().p("selectedProgramId").record(ref.current.value), "Select program");
               window.history.replaceState(
                 {},
                 `Liftosaur: Program Details - ${program.name}`,

@@ -32,7 +32,7 @@ export class EditEquipment {
             },
           };
         }),
-    ]);
+    ], "Update equipment");
     const currentUnit =
       (oldEquipment ? Equipment.getEquipmentData(settings, oldEquipment)?.unit : undefined) ?? settings.units;
     const newUnit = (equipment ? Equipment.getEquipmentData(settings, equipment)?.unit : undefined) ?? settings.units;
@@ -59,6 +59,6 @@ export class EditEquipment {
           const k = Exercise.toKey(exercise);
           return { ...data, [k]: { ...data[k], rounding: Math.max(value, 0.1) } };
         }),
-    ]);
+    ], "Update rounding");
   }
 }

@@ -75,20 +75,20 @@ export namespace EditProgram {
           };
           return newVersions;
         }),
-    ]);
+    ], "Delete program");
   }
 
   export function setName(dispatch: IDispatch, program: IProgram, name: string): void {
     updateState(dispatch, [
       lb<IState>().p("storage").p("programs").findBy("id", program.id).p("name").record(name),
       lb<IState>().p("storage").p("programs").findBy("id", program.id).pi("planner").p("name").record(name),
-    ]);
+    ], "Update program name");
   }
 
   export function setNextDay(dispatch: IDispatch, programId: string, nextDay: number): void {
     updateState(dispatch, [
       lb<IState>().p("storage").p("programs").findBy("id", programId).p("nextDay").record(nextDay),
-    ]);
+    ], "Set next day");
   }
 
   export function initPlannerState(id: string, program: IProgram, focusedDay?: IDayData, key?: string): IPlannerState {
@@ -145,12 +145,12 @@ export namespace EditProgram {
         .p("programs")
         .recordModify((pgms) => [...pgms, newProgram]),
       lb<IState>().p("storage").p("currentProgramId").record(newProgram.id),
-    ]);
+    ], "Create program");
     dispatch(Thunk.pushToEditProgram());
   }
 
   export function updateProgram(dispatch: IDispatch, program: IProgram): void {
-    updateState(dispatch, [lb<IState>().p("storage").p("programs").findBy("id", program.id).record(program)]);
+    updateState(dispatch, [lb<IState>().p("storage").p("programs").findBy("id", program.id).record(program)], "Update program");
   }
 
   export function regenerateProgram(

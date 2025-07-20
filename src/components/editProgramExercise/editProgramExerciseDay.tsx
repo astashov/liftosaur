@@ -117,7 +117,8 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                           true,
                           false
                         );
-                      })
+                      }),
+                      "Delete exercise from day"
                     );
                   }}
                 >
@@ -141,7 +142,8 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                               props.settings,
                               true
                             );
-                          })
+                          }),
+                          "Disable repeating"
                         );
                       }
                       setShowRepeat(!showRepeat);
@@ -207,7 +209,8 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                     props.exerciseType,
                     props.settings
                   );
-                })
+                }),
+                "Add exercise to day"
               );
             }}
           >
