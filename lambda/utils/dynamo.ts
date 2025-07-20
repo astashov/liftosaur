@@ -19,6 +19,22 @@ export interface IDynamoUtil {
     names?: Record<string, DynamoDB.DocumentClient.AttributeName>;
     values?: Partial<Record<string, number | string | string[]>>;
   }): Promise<T[]>;
+  streamingQuery<T>(args: {
+    tableName: string;
+    expression: string;
+    filterExpression?: string;
+    indexName?: string;
+    scanIndexForward?: boolean;
+    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    values?: Partial<Record<string, string | string[] | number | number[]>>;
+    limit?: number;
+  }): AsyncGenerator<T[], void, unknown>;
+  streamingScan<T>(args: {
+    tableName: string;
+    filterExpression?: string;
+    names?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    values?: Partial<Record<string, number | string | string[]>>;
+  }): AsyncGenerator<T[], void, unknown>;
   get<T>(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<T | undefined>;
   put(args: { tableName: string; item: DynamoDB.DocumentClient.PutItemInputAttributeMap }): Promise<void>;
   update(args: {
@@ -112,6 +128,86 @@ export class DynamoUtil implements IDynamoUtil {
       return result;
     } catch (e) {
       this.log.log(`FAILED Dynamo scan: ${args.tableName} - `, args.tableName, ` - ${Date.now() - startTime}ms`);
+      throw e;
+    }
+  }
+
+  public async *streamingQuery<T>(args: {
+    tableName: string;
+    expression: string;
+    filterExpression?: string;
+    indexName?: string;
+    scanIndexForward?: boolean;
+    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    values?: Partial<Record<string, string | string[] | number>>;
+    limit?: number;
+  }): AsyncGenerator<T[], void, unknown> {
+    const startTime = Date.now();
+    let totalItems = 0;
+    
+    try {
+      for await (const batch of streamingQuery<T>((key) => {
+        return this.dynamo.query({
+          TableName: args.tableName,
+          IndexName: args.indexName,
+          ExclusiveStartKey: key,
+          ScanIndexForward: args.scanIndexForward,
+          KeyConditionExpression: args.expression,
+          FilterExpression: args.filterExpression,
+          ExpressionAttributeNames: args.attrs,
+          ExpressionAttributeValues: args.values,
+          Limit: args.limit,
+        });
+      }, args.limit)) {
+        yield batch;
+        totalItems += batch.length;
+      }
+      
+      this.log.log(
+        `Dynamo streaming query completed: ${args.tableName}${args.indexName ? ` (${args.indexName})` : ""} - `,
+        args.expression,
+        args.attrs,
+        args.values,
+        ` - ${totalItems} items - ${Date.now() - startTime}ms`
+      );
+    } catch (e) {
+      this.log.log(
+        `FAILED Dynamo streaming query: ${args.tableName}${args.indexName ? ` (${args.indexName})` : ""} - `,
+        args.expression,
+        args.attrs,
+        args.values,
+        ` - ${Date.now() - startTime}ms`
+      );
+      throw e;
+    }
+  }
+
+  public async *streamingScan<T>(args: {
+    tableName: string;
+    filterExpression?: string;
+    names?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    values?: Partial<Record<string, number | string | string[]>>;
+  }): AsyncGenerator<T[], void, unknown> {
+    const startTime = Date.now();
+    let totalItems = 0;
+    
+    try {
+      for await (const batch of streamingQuery<T>((key) => {
+        return this.dynamo.scan({
+          TableName: args.tableName,
+          ExclusiveStartKey: key,
+          FilterExpression: args.filterExpression,
+          ExpressionAttributeNames: args.names,
+          ExpressionAttributeValues: args.values,
+        });
+      })) {
+        yield batch;
+        totalItems += batch.length;
+      }
+      
+      this.log.log(`Dynamo streaming scan completed: ${args.tableName} - ${totalItems} items - ${Date.now() - startTime}ms`);
+    } catch (e) {
+      this.log.log(`FAILED Dynamo streaming scan: ${args.tableName} - ${Date.now() - startTime}ms`);
       throw e;
     }
   }
@@ -326,4 +422,28 @@ async function query<T>(
     key = result.LastEvaluatedKey;
   } while (key);
   return items as T[];
+}
+
+async function* streamingQuery<T>(
+  cb: (key?: DynamoDB.DocumentClient.Key) => Request<DynamoDB.DocumentClient.QueryOutput, AWSError>,
+  limit?: number
+): AsyncGenerator<T[], void, unknown> {
+  let key: DynamoDB.DocumentClient.Key | undefined;
+  let totalItems = 0;
+  
+  do {
+    const result = await cb(key).promise();
+    const items = result.Items || [];
+    
+    if (items.length > 0) {
+      yield items as T[];
+      totalItems += items.length;
+    }
+    
+    if (limit != null && totalItems >= limit) {
+      break;
+    }
+    
+    key = result.LastEvaluatedKey;
+  } while (key);
 }

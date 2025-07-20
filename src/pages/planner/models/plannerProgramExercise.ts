@@ -259,6 +259,30 @@ export class PlannerProgramExercise {
     return `${set.minrep}-${set.maxrep}-${set.isAmrap}-${set.weight?.value}${set.weight?.unit}${set.askWeight}-${set.rpe}${set.logRpe}-${set.timer}`;
   }
 
+  public static evaluatedSetsToDisplaySets(
+    sets: IPlannerProgramExerciseEvaluatedSet[],
+    settings: ISettings
+  ): IDisplaySet[][] {
+    const displaySets: IDisplaySet[] = [];
+    for (const set of sets) {
+      const weight = set.weight ? Weight.display(set.weight, false) : undefined;
+      const unit = set.weight?.unit || settings.units;
+      displaySets.push({
+        dimReps: false,
+        dimRpe: !set.logRpe,
+        dimWeight: !set.weight,
+        dimTimer: set.timer == null,
+        reps: `${set.minrep != null ? `${set.minrep}-${set.maxrep}` : `${set.maxrep}`}${set.isAmrap ? "+" : ""}`,
+        rpe: set.rpe?.toString(),
+        weight,
+        unit,
+        askWeight: set.askWeight,
+        timer: set.timer,
+      });
+    }
+    return groupDisplaySets(displaySets);
+  }
+
   public static setsToDisplaySets(
     sets: IPlannerProgramExerciseSet[],
     hasCurrentSets: boolean,

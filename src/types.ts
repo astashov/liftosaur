@@ -37,6 +37,17 @@ export const equipments = [
   "ezbar",
   "trapbar",
 ] as const;
+export const TBuiltinEquipment = t.keyof(
+  equipments.reduce<Record<IArrayElement<typeof equipments>, null>>(
+    (memo, muscle) => {
+      memo[muscle] = null;
+      return memo;
+    },
+    {} as Record<IArrayElement<typeof equipments>, null>
+  ),
+  "TBuiltinEquipment"
+);
+export type IBuiltinEquipment = t.TypeOf<typeof TBuiltinEquipment>;
 
 export const exerciseTypes = [
   "abWheel",
@@ -591,6 +602,49 @@ export const TProgramExercise = t.intersection(
 );
 export type IProgramExercise = t.TypeOf<typeof TProgramExercise>;
 
+const exercisePickerScreens = ["exercisePicker", "customExercise", "filter"] as const;
+export const TExercisePickerScreen = t.keyof(
+  exercisePickerScreens.reduce<Record<IArrayElement<typeof exercisePickerScreens>, null>>(
+    (memo, muscle) => {
+      memo[muscle] = null;
+      return memo;
+    },
+    {} as Record<IArrayElement<typeof exercisePickerScreens>, null>
+  ),
+  "TExercisePickerScreen"
+);
+export type IExercisePickerScreen = t.TypeOf<typeof TExercisePickerScreen>;
+
+export const exercisePickerSorts = ["name_asc", "similar_muscles"] as const;
+export const TExercisePickerSort = t.keyof(
+  exercisePickerSorts.reduce<Record<IArrayElement<typeof exercisePickerSorts>, null>>(
+    (memo, muscle) => {
+      memo[muscle] = null;
+      return memo;
+    },
+    {} as Record<IArrayElement<typeof exercisePickerSorts>, null>
+  ),
+  "TExercisePickerSort"
+);
+export type IExercisePickerSort = t.TypeOf<typeof TExercisePickerSort>;
+
+export const TExercisePickerState = t.intersection([
+  t.interface({
+    screenStack: t.array(TExercisePickerScreen),
+    sort: TExercisePickerSort,
+    filters: t.partial({
+      equipment: t.array(TBuiltinEquipment),
+      type: t.array(TExerciseKind),
+      muscles: t.array(TMuscle),
+    }),
+  }),
+  t.partial({
+    selectedTab: t.number,
+    search: t.string,
+  }),
+]);
+export type IExercisePickerState = t.TypeOf<typeof TExercisePickerState>;
+
 export const TProgressUi = t.partial(
   {
     amrapModal: t.intersection([
@@ -612,6 +666,11 @@ export const TProgressUi = t.partial(
     dateModal: t.type({
       date: t.string,
       time: t.number,
+    }),
+    exercisePicker: t.partial({
+      exerciseType: TExerciseType,
+      state: TExercisePickerState,
+      entryIndex: t.number,
     }),
     exerciseModal: t.partial({
       exerciseType: TExerciseType,
