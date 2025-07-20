@@ -55,7 +55,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
     return memo;
   }, new Set());
   const settings = props.settings;
-  const hasBodyweight = settings.graphs.some((g) => g.id === "weight");
+  const hasBodyweight = settings.graphs.graphs.some((g) => g.id === "weight");
   const statsWeightKeys = ObjectUtils.keys(props.stats.weight).filter(
     (k) => !usedStats.has(k) && (props.stats.weight[k] || []).length > 0
   );

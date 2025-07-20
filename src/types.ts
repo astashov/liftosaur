@@ -1103,13 +1103,18 @@ export const TWorkoutSettings = t.intersection(
 
 export type IWorkoutSettings = t.TypeOf<typeof TWorkoutSettings>;
 
+export const TGraphs = t.type({
+  vtype: t.literal("graphs"),
+  graphs: t.array(TGraph),
+});
+
 export const TSettings = t.intersection(
   [
     t.interface({
       timers: TSettingsTimers,
       gyms: t.array(TGym),
       deletedGyms: t.array(t.string),
-      graphs: t.array(TGraph),
+      graphs: TGraphs,
       graphOptions: dictionary(t.string, TGraphOptions),
       graphsSettings: t.partial({
         isSameXAxis: t.boolean,
@@ -1246,6 +1251,7 @@ export const ATOMIC_TYPES = [
   "planner",
   "stat",
   "graph",
+  "graphs",
   "subscription_receipt",
 ] as const;
 
@@ -1273,6 +1279,7 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   planner: "name",
   subscription_receipt: "id",
   graph: "id",
+  graphs: "id",
 };
 
 // Dictionary fields - these are free-form key-value mappings that should use collection versioning

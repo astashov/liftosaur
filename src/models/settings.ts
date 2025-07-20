@@ -259,7 +259,7 @@ export namespace Settings {
       },
       statsEnabled: { weight: { weight: true }, length: {}, percentage: {} },
       exercises: {},
-      graphs: [],
+      graphs: { graphs: [], vtype: "graphs" },
       planner: buildPlannerSettings(),
     };
   }

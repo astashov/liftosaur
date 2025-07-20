@@ -32,7 +32,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const maxSets = History.findAllMaxSetsPerId(props.history);
   const exerciseTypes = ObjectUtils.keys(maxSets).map(Exercise.fromKey);
-  const hasBodyweight = props.settings.graphs.some((g) => g.id === "weight");
+  const hasBodyweight = props.settings.graphs.graphs.some((g) => g.id === "weight");
   let bodyweightData: [number, number][] = [];
 
   const sortedHistory = CollectionUtils.sort(props.history, (a, b) => {
@@ -105,19 +105,19 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           isHidden={!isModalOpen}
           exerciseTypes={exerciseTypes}
           stats={props.stats}
-          graphs={props.settings.graphs}
+          graphs={props.settings.graphs.graphs}
           onClose={() => setIsModalOpen(false)}
           dispatch={props.dispatch}
         />
       }
     >
-      {props.settings.graphs.length === 0 ? (
+      {props.settings.graphs.graphs.length === 0 ? (
         <div className="p-8 text-2xl font-bold text-center text-gray-600">
           Select graphs you want to display by tapping <IconFilter /> icon at right top corner.
         </div>
       ) : (
         <section className="pb-4">
-          {props.settings.graphs.map((graph) => {
+          {props.settings.graphs.graphs.map((graph) => {
             if (graph.type === "exercise") {
               return (
                 <div className="mb-2">

@@ -13,6 +13,7 @@ export namespace EditGraphs {
           .p("storage")
           .p("settings")
           .p("graphs")
+          .p("graphs")
           .recordModify((exs) => {
             return exs.filter((ex) => ex.id !== graph.id);
           }),
@@ -28,6 +29,7 @@ export namespace EditGraphs {
         lb<IState>()
           .p("storage")
           .p("settings")
+          .p("graphs")
           .p("graphs")
           .recordModify((exs) => {
             const newExercises = [...exs];
@@ -48,6 +50,7 @@ export namespace EditGraphs {
           .p("storage")
           .p("settings")
           .p("graphs")
+          .p("graphs")
           .recordModify((ex) => {
             return Array.from(new Set([...ex, { vtype: "graph", type: "exercise", id: Exercise.toKey(exercise) }]));
           }),
@@ -63,6 +66,7 @@ export namespace EditGraphs {
         lb<IState>()
           .p("storage")
           .p("settings")
+          .p("graphs")
           .p("graphs")
           .recordModify((ex) => {
             if (!ex.some((e) => e.type === "muscleGroup" && e.id === muscleGroup)) {
@@ -81,6 +85,7 @@ export namespace EditGraphs {
       type: "UpdateSettings",
       lensRecording: lb<ISettings>()
         .p("graphs")
+        .p("graphs")
         .recordModify((ex) => {
           return Array.from(new Set([...ex, { vtype: "graph", type: "statsWeight", id: statsKey }]));
         }),
@@ -92,6 +97,7 @@ export namespace EditGraphs {
       type: "UpdateSettings",
       lensRecording: lb<ISettings>()
         .p("graphs")
+        .p("graphs")
         .recordModify((ex) => {
           return Array.from(new Set([...ex, { vtype: "graph", type: "statsLength", id: statsKey }]));
         }),
@@ -102,6 +108,7 @@ export namespace EditGraphs {
     dispatch({
       type: "UpdateSettings",
       lensRecording: lb<ISettings>()
+        .p("graphs")
         .p("graphs")
         .recordModify((ex) => {
           return Array.from(new Set([...ex, { vtype: "graph", type: "statsPercentage", id: statsKey }]));

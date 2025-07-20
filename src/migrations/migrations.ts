@@ -3,10 +3,11 @@
 import { CollectionUtils } from "../utils/collection";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
-import { IStorage } from "../types";
+import { IGraph, ISettings, IStorage } from "../types";
 import { Weight } from "../models/weight";
 import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
+import { IVersions } from "../models/versionTracker";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -108,6 +109,7 @@ export const migrations = {
   "20250306192146_fix_empty_graphs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const customExerciseKey of ObjectUtils.keys(storage.settings.exercises)) {
+      // @ts-ignore
       for (const graph of storage.settings.graphs) {
         if (graph.type === "exercise" && graph.id.includes(customExerciseKey) && graph.id !== customExerciseKey) {
           graph.id = customExerciseKey;
@@ -234,6 +236,7 @@ export const migrations = {
         exercise.vtype = exercise.vtype ?? "custom_exercise";
       }
     }
+    // @ts-ignore
     for (const graph of storage.settings.graphs) {
       graph.vtype = graph.vtype ?? "graph";
     }
@@ -247,6 +250,23 @@ export const migrations = {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const program of storage.programs) {
       program.clonedAt = program.clonedAt ?? Date.now() - Math.round(Math.random() * 1000000);
+    }
+    return storage;
+  },
+  "20250720120545_make_graphs_atomic_object": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    if (!storage.settings.graphs.vtype) {
+      storage.settings.graphs = {
+        vtype: "graphs",
+        graphs: storage.settings.graphs as unknown as IGraph[],
+      };
+      if ((storage._versions?.settings as IVersions<ISettings>)?.graphs) {
+        // @ts-ignore
+        storage._versions.settings.graphs = Date.now();
+      }
     }
     return storage;
   },
