@@ -251,7 +251,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           );
           const keys = ObjectUtils.keys(grouped).filter((group) => {
             const values = grouped[group];
-            return values != null && values.length > 1;
+            return values != null && values.length > 2;
           });
           if (keys.length > 0) {
             const suspiciousKeys = [];
