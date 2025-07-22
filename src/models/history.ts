@@ -78,13 +78,14 @@ export namespace History {
     progress: IHistoryRecord,
     settings: ISettings,
     day: number,
-    program?: IEvaluatedProgram
+    program?: IEvaluatedProgram,
+    forceEndTime: number = Date.now()
   ): IHistoryRecord {
     const { deletedProgramExercises, ui, ...historyRecord } = progress;
     const programDay = program ? Program.getProgramDay(program, day) : undefined;
     const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
-    const updatedAt = Date.now();
-    const endTime = Progress.isCurrent(progress) ? Date.now() : (progress.endTime ?? Date.now());
+    const updatedAt = forceEndTime;
+    const endTime = Progress.isCurrent(progress) ? forceEndTime : (progress.endTime ?? forceEndTime);
     return {
       ...historyRecord,
       entries: historyRecord.entries.map((entry) => {
@@ -778,13 +779,17 @@ export namespace History {
   export function pauseWorkoutAction(dispatch: IDispatch): void {
     const lensGetters = { progress: lb<IState>().p("progress").pi(0).get() };
     SendMessage.toIosAndAndroid({ type: "pauseWorkout" });
-    updateState(dispatch, [
-      lbu<IState, typeof lensGetters>(lensGetters)
-        .p("progress")
-        .pi(0)
-        .p("intervals")
-        .recordModify((intervals, getters) => pauseWorkout(getters.progress.intervals)),
-    ], "Pause workout");
+    updateState(
+      dispatch,
+      [
+        lbu<IState, typeof lensGetters>(lensGetters)
+          .p("progress")
+          .pi(0)
+          .p("intervals")
+          .recordModify((intervals, getters) => pauseWorkout(getters.progress.intervals)),
+      ],
+      "Pause workout"
+    );
   }
 
   export function pauseWorkout(intervals?: IIntervals): IIntervals | undefined {
@@ -803,15 +808,19 @@ export namespace History {
   }
 
   export function resumeWorkoutAction(dispatch: IDispatch, settings: ISettings): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("progress")
-        .pi(0)
-        .recordModify((progress) => {
-          const intervals = resumeWorkout(progress, settings.timers.reminder);
-          return { ...progress, intervals };
-        }),
-    ], "Resume workout");
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("progress")
+          .pi(0)
+          .recordModify((progress) => {
+            const intervals = resumeWorkout(progress, settings.timers.reminder);
+            return { ...progress, intervals };
+          }),
+      ],
+      "Resume workout"
+    );
   }
 
   export function isPaused(intervals?: IIntervals): boolean {

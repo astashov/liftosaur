@@ -134,7 +134,11 @@ export namespace Thunk {
           state.storage.affiliates,
           Subscriptions.listOfSubscriptions(state.storage.subscription),
           () => {
-            updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(undefined)], "Clear subscription key");
+            updateState(
+              dispatch,
+              [lb<IState>().p("storage").p("subscription").p("key").record(undefined)],
+              "Clear subscription key"
+            );
           },
           state.storage.subscription.key,
           state.storage.referrer
@@ -181,14 +185,19 @@ export namespace Thunk {
     ): boolean {
       const { lastSyncedStorage, requestedLastStorage } = handleResponseArgs;
       if (result.type === "clean") {
-        updateState(dispatch, [
-          lb<IState>()
-            .p("lastSyncedStorage")
-            .record(lastSyncedStorage || getState().lastSyncedStorage),
-          lb<IState>().pi("lastSyncedStorage").p("originalId").record(result.new_original_id),
-          lb<IState>().p("storage").p("originalId").record(result.new_original_id),
-          lb<IState>().p("storage").p("subscription").p("key").record(result.key),
-        ], "Update sync metadata");
+        dispatch(Thunk.postevent("handle-response-clean"));
+        updateState(
+          dispatch,
+          [
+            lb<IState>()
+              .p("lastSyncedStorage")
+              .record(lastSyncedStorage || getState().lastSyncedStorage),
+            lb<IState>().pi("lastSyncedStorage").p("originalId").record(result.new_original_id),
+            lb<IState>().p("storage").p("originalId").record(result.new_original_id),
+            lb<IState>().p("storage").p("subscription").p("key").record(result.key),
+          ],
+          "Update sync metadata"
+        );
         if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
           dispatch({ type: "Login", email: result.email, userId: result.user_id });
         }
@@ -196,24 +205,38 @@ export namespace Thunk {
       } else if (result.type === "dirty") {
         result.storage.tempUserId = result.user_id;
         if (requestedLastStorage) {
-          updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(result.storage)], "Update last synced storage");
+          dispatch(Thunk.postevent("handle-response-dirty-requested-last-storage"));
+          updateState(
+            dispatch,
+            [lb<IState>().p("lastSyncedStorage").record(result.storage)],
+            "Update last synced storage"
+          );
         } else {
+          dispatch(Thunk.postevent("handle-response-dirty"));
           const newStorage = Storage.mergeStorage(getState().storage, result.storage);
-          updateState(dispatch, [
-            lb<IState>().p("lastSyncedStorage").record(newStorage),
-            lb<IState>().p("storage").record(newStorage),
-            lb<IState>().p("storage").p("subscription").p("key").record(result.key),
-          ], "Merge synced storage");
+          updateState(
+            dispatch,
+            [
+              lb<IState>().p("lastSyncedStorage").record(newStorage),
+              lb<IState>().p("storage").record(newStorage),
+              lb<IState>().p("storage").p("subscription").p("key").record(result.key),
+            ],
+            "Merge synced storage"
+          );
           if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
             dispatch({ type: "Login", email: result.email, userId: result.user_id });
           }
         }
         return true;
       } else if (result.type === "error" && result.error === "not_authorized") {
-        updateState(dispatch, [
-          lb<IState>().p("storage").p("subscription").p("key").record(result.key),
-          lb<IState>().p("lastSyncedStorage").record(undefined),
-        ], "Update subscription no storage");
+        updateState(
+          dispatch,
+          [
+            lb<IState>().p("storage").p("subscription").p("key").record(result.key),
+            lb<IState>().p("lastSyncedStorage").record(undefined),
+          ],
+          "Update subscription no storage"
+        );
         return false;
       } else if (result.type === "error") {
         if (result.error === "outdated_client_storage") {
@@ -418,13 +441,17 @@ export namespace Thunk {
         const program = Program.getProgram(state, programId ?? state.storage.currentProgramId);
         if (program != null) {
           const newProgress = Program.nextHistoryRecord(program, state.storage.settings, state.storage.stats);
-          updateState(dispatch, [
-            lb<IState>()
-              .p("progress")
-              .recordModify((progresses) => {
-                return { ...progresses, [newProgress.id]: newProgress };
-              }),
-          ], "Create new progress");
+          updateState(
+            dispatch,
+            [
+              lb<IState>()
+                .p("progress")
+                .recordModify((progresses) => {
+                  return { ...progresses, [newProgress.id]: newProgress };
+                }),
+            ],
+            "Create new progress"
+          );
           dispatch(Thunk.pushScreen("progress", { id: newProgress.id }, true));
         } else {
           alert("No currently selected program");
@@ -494,13 +521,17 @@ export namespace Thunk {
 
   export function updateScreenParams<T extends IScreen>(params?: IScreenParams<T>): IThunk {
     return async (dispatch, getState) => {
-      updateState(dispatch, [
-        lb<IState>()
-          .p("screenStack")
-          .recordModify((stack) => {
-            return Screen.updateParams(stack, params);
-          }),
-      ], "Update screen params");
+      updateState(
+        dispatch,
+        [
+          lb<IState>()
+            .p("screenStack")
+            .recordModify((stack) => {
+              return Screen.updateParams(stack, params);
+            }),
+        ],
+        "Update screen params"
+      );
     };
   }
 
@@ -555,11 +586,15 @@ export namespace Thunk {
   function cleanup(dispatch: IDispatch, state: IState): void {
     const progress = Progress.getProgress(state);
     if (progress && !Progress.isCurrent(progress)) {
-      updateState(dispatch, [
-        lb<IState>()
-          .p("progress")
-          .recordModify((progresses) => Progress.stop(progresses, progress.id)),
-      ], "Stop workout progress");
+      updateState(
+        dispatch,
+        [
+          lb<IState>()
+            .p("progress")
+            .recordModify((progresses) => Progress.stop(progresses, progress.id)),
+        ],
+        "Stop workout progress"
+      );
     }
   }
 
@@ -714,24 +749,28 @@ export namespace Thunk {
           rawCsv,
           getState().storage.settings
         );
-        updateState(dispatch, [
-          lb<IState>()
-            .p("storage")
-            .p("history")
-            .recordModify((oldHistoryRecords) => {
-              return CollectionUtils.sortBy(
-                CollectionUtils.uniqBy(oldHistoryRecords.concat(historyRecords), "id"),
-                "id"
-              );
-            }),
-          lb<IState>()
-            .p("storage")
-            .p("settings")
-            .p("exercises")
-            .recordModify((oldExercises) => {
-              return { ...oldExercises, ...customExercises };
-            }),
-        ], "Import Strong CSV data");
+        updateState(
+          dispatch,
+          [
+            lb<IState>()
+              .p("storage")
+              .p("history")
+              .recordModify((oldHistoryRecords) => {
+                return CollectionUtils.sortBy(
+                  CollectionUtils.uniqBy(oldHistoryRecords.concat(historyRecords), "id"),
+                  "id"
+                );
+              }),
+            lb<IState>()
+              .p("storage")
+              .p("settings")
+              .p("exercises")
+              .recordModify((oldExercises) => {
+                return { ...oldExercises, ...customExercises };
+              }),
+          ],
+          "Import Strong CSV data"
+        );
       } catch (e) {
         console.error(e);
         alert("Couldn't parse the provided file");
@@ -1112,7 +1151,11 @@ async function handleLogin(
         updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(storage)], "Set last synced on login");
         dispatch({ type: "Login", email: result.email, userId: result.user_id });
         if (storage.subscription.key !== result.key) {
-          updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)], "Set subscription from login");
+          updateState(
+            dispatch,
+            [lb<IState>().p("storage").p("subscription").p("key").record(result.key)],
+            "Set subscription from login"
+          );
         }
       } else {
         dispatch(Thunk.postevent("login-different-user"));
@@ -1124,7 +1167,11 @@ async function handleLogin(
       }
       dispatch(Thunk.fetchInitial());
     } else if (result.key) {
-      updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)], "Set subscription from Apple");
+      updateState(
+        dispatch,
+        [lb<IState>().p("storage").p("subscription").p("key").record(result.key)],
+        "Set subscription from Apple"
+      );
     }
   } catch (error) {
     console.error(error);

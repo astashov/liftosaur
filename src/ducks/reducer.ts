@@ -426,14 +426,13 @@ export const reducerWrapper =
             window.localStorage.removeItem("lastHistoryRecord");
             const fromHistory = state.storage.history.find((hr) => hr.id === historyRecord.id);
             if (!fromHistory) {
-              console.log("History record lost");
               lg("history-record-lost", {
                 lastActions: JSON.stringify(
                   window.reducerLastActions.map((a) => [a.type, "desc" in a ? a.desc : undefined])
                 ),
               });
             } else {
-              console.log("It' ok");
+              lg("history-record-ok");
             }
           }
         }
@@ -697,6 +696,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const newSettingsExerciseData = deepmerge(state.storage.settings.exerciseData, newExerciseData);
       lg("run-finish-program-day-action-add-record");
       if (typeof window !== "undefined" && window.localStorage) {
+        lg("saved-last-history-record");
         window.localStorage.setItem("lastHistoryRecord", JSON.stringify({ time: Date.now(), historyRecord }));
       }
       return {

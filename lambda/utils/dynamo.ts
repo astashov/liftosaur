@@ -275,6 +275,16 @@ export class DynamoUtil implements IDynamoUtil {
             `${group.length} items`,
             ` - ${Date.now() - startTime}ms`
           );
+          if (e instanceof Error && e.message.includes("Provided list of item keys contains duplicates")) {
+            this.log.log(
+              "Duplicated ids: ",
+              group.map((item) => ("id" in item ? item.id : ""))
+            );
+            this.log.log(
+              "Duplicated items: ",
+              group.map((item) => JSON.stringify(item))
+            );
+          }
           if (e instanceof Error && e.message.includes("Item size has exceeded the maximum allowed size")) {
             try {
               const json = JSON.stringify(group);
