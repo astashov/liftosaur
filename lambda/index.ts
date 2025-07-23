@@ -2163,6 +2163,11 @@ export const getRawHandler = (di: IDI): IHandler => {
     }
     const time = Date.now();
     const userid = await getCurrentUserId(event, di);
+    // @ts-ignore
+    if (rollbar?.client?.telemeter?.queue) {
+      // @ts-ignore
+      rollbar.client.telemeter.queue = [];
+    }
     di.log.setRollbar(rollbar);
     if (userid) {
       di.log.setUser(userid);
