@@ -237,9 +237,9 @@ export const migrations = {
         exercise.vtype = exercise.vtype ?? "custom_exercise";
       }
     }
-    if (Array.isArray(storage.settings.graphs)) {
+    if (Array.isArray(storage.settings.graphs || [])) {
       // @ts-ignore
-      for (const graph of storage.settings.graphs) {
+      for (const graph of storage.settings.graphs || []) {
         graph.vtype = graph.vtype ?? "graph";
       }
     }
