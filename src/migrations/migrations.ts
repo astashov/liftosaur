@@ -224,7 +224,7 @@ export const migrations = {
         record.vtype = record.vtype ?? "stat";
       }
     }
-    for (const gym of storage.settings.gyms) {
+    for (const gym of storage.settings.gyms || []) {
       gym.vtype = gym.vtype ?? "gym";
       for (const equipment of ObjectUtils.values(gym.equipment)) {
         if (equipment) {
