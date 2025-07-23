@@ -3,9 +3,58 @@ import { ObjectUtils } from "./object";
 import { lg } from "./posthog";
 import { SendMessage } from "./sendMessage";
 
+type ITransactionMode = "readonly" | "readwrite";
+
 export let nativeStorage: NativeStorage | undefined;
 
 export namespace IndexedDBUtils {
+  async function withTransaction<T>(
+    mode: ITransactionMode,
+    operation: (objectStore: IDBObjectStore) => IDBRequest<T>
+  ): Promise<T> {
+    return new Promise(async (resolve, reject) => {
+      const db = await initialize();
+      const transaction = db.transaction("keyval", mode);
+      const objectStore = transaction.objectStore("keyval");
+
+      let result: T;
+
+      try {
+        const request = operation(objectStore);
+
+        request.addEventListener("success", () => {
+          result = request.result;
+        });
+
+        request.addEventListener("error", (e) => {
+          const error = (e.target as IDBRequest)?.error;
+          reject(error || new Error("IndexedDB request failed"));
+        });
+      } catch (e) {
+        db.close();
+        reject(e);
+        return;
+      }
+
+      transaction.addEventListener("complete", () => {
+        db.close();
+        resolve(result);
+      });
+
+      transaction.addEventListener("error", (e) => {
+        db.close();
+        const error = (e.target as IDBTransaction)?.error;
+        reject(error || new Error("IndexedDB transaction failed"));
+      });
+
+      transaction.addEventListener("abort", (e) => {
+        db.close();
+        const error = (e.target as IDBTransaction)?.error;
+        reject(error || new Error("IndexedDB transaction aborted"));
+      });
+    });
+  }
+
   export function initializeForSafari(): Promise<void> {
     return new Promise((resolve) => {
       if (nativeStorage == null && NativeStorage.isAvailable()) {
@@ -55,39 +104,15 @@ export namespace IndexedDBUtils {
   }
 
   export function getAllKeys(): Promise<IDBValidKey[]> {
-    return new Promise(async (resolve, reject) => {
-      const db = await initialize();
-      const transaction = db.transaction("keyval", "readonly");
-      const objectStore = transaction.objectStore("keyval");
-      const request = objectStore.getAllKeys();
-      request.addEventListener("success", (e) => {
-        const keys = request.result;
-        db.close();
-        resolve(keys);
-      });
-      request.addEventListener("error", (e) => {
-        db.close();
-        reject(e);
-      });
-    });
+    return withTransaction("readonly", (objectStore) => objectStore.getAllKeys());
   }
 
   export async function get(key: string): Promise<unknown> {
-    const result = await new Promise(async (resolve, reject) => {
-      const db = await initialize();
-      const transaction = db.transaction("keyval", "readonly");
-      const objectStore = transaction.objectStore("keyval");
-      const request = objectStore.getAll(key);
-      request.addEventListener("success", (e) => {
-        const result = request.result[0];
-        db.close();
-        resolve(result);
-      });
-      request.addEventListener("error", (e) => {
-        db.close();
-        reject(e);
-      });
-    });
+    const result = await withTransaction("readonly", (objectStore) => objectStore.getAll(key)).then(
+      (results: unknown[]) => {
+        return results[0];
+      }
+    );
     let nativeStorageData: unknown = undefined;
     const prefix = SendMessage.isIos() ? "ios" : "android";
     if (nativeStorage != null) {
@@ -110,37 +135,13 @@ export namespace IndexedDBUtils {
   }
 
   export async function remove(key: string): Promise<void> {
-    await new Promise(async (resolve, reject) => {
-      const db = await initialize();
-      const transaction = db.transaction("keyval", "readwrite");
-      const objectStore = transaction.objectStore("keyval");
-      const request = objectStore.delete(key);
-      request.addEventListener("success", (e) => {
-        db.close();
-        resolve(void 0);
-      });
-      request.addEventListener("error", (e) => {
-        db.close();
-        reject(e);
-      });
-    });
+    await withTransaction("readwrite", (objectStore) => objectStore.delete(key));
     await nativeStorage?.delete(key);
   }
 
   export async function set(key: string, value?: string): Promise<void> {
-    await new Promise(async (resolve, reject) => {
-      const db = await initialize();
-      const transaction = db.transaction("keyval", "readwrite");
-      const objectStore = transaction.objectStore("keyval");
-      const request = objectStore.put(value, key);
-      request.addEventListener("success", (e) => {
-        db.close();
-        resolve(void 0);
-      });
-      request.addEventListener("error", (e) => {
-        db.close();
-        reject(e);
-      });
+    await withTransaction("readwrite", (objectStore) => {
+      return objectStore.put(value, key);
     });
     await nativeStorage?.set(key, value);
   }
