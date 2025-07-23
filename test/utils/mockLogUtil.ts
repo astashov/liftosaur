@@ -1,7 +1,8 @@
 import { ILogUtil } from "../../lambda/utils/log";
+import Rollbar from "rollbar";
 
 export class MockLogUtil implements ILogUtil {
-  public readonly logs: string[] = [];
+  public logs: string[] = [];
   public userid?: string;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -12,4 +13,6 @@ export class MockLogUtil implements ILogUtil {
   public setUser(userid: string): void {
     this.userid = userid;
   }
+
+  setRollbar(rollbar: Rollbar): void {}
 }

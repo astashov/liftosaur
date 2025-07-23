@@ -1,15 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import Rollbar from "rollbar";
 import { UidFactory } from "./generator";
 import { Utils } from "../utils";
 
 export interface ILogUtil {
   log(...str: any[]): void;
   setUser(userid: string): void;
+  setRollbar(rollbar: Rollbar): void;
 }
 
 export class LogUtil implements ILogUtil {
   private readonly id: string;
   private userid: string | undefined;
+  private rollbar?: Rollbar;
 
   constructor() {
     this.id = UidFactory.generateUid(4);
@@ -28,6 +31,7 @@ export class LogUtil implements ILogUtil {
             time.getSeconds()
           )}.${time.getMilliseconds().toString().padStart(3, "0")}`
         : "";
+
     if (env === "dev") {
       console.log(
         this.colorize(timeStr, 36),
@@ -37,6 +41,14 @@ export class LogUtil implements ILogUtil {
     } else {
       console.log(`[${this.colorize(this.id, 33)}]${this.userid ? `[${this.colorize(this.userid, 32)}]` : ""}`, ...str);
     }
+    if (this.rollbar) {
+      const message = str.map((s) => (typeof s === "object" ? JSON.stringify(s) : String(s))).join(" ");
+      this.rollbar.captureEvent({ msg: message }, "info");
+    }
+  }
+
+  public setRollbar(rollbar: Rollbar): void {
+    this.rollbar = rollbar;
   }
 
   private prefixTime(time: number): string {
