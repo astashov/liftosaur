@@ -474,6 +474,7 @@ export const reducerWrapper =
             await IndexedDBUtils.set("current_account", userId);
             await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
           } catch (e) {
+            lg("ls-indexeddb-error", { error: JSON.stringify(e) });
             console.error(e);
           }
         }, 100);
