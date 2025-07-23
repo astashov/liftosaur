@@ -311,6 +311,25 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
+      if (oldState.storage.programs !== newState.storage.programs) {
+        const newProgramIds = newState.storage.programs.map((p) => p.id);
+        if (Array.from(new Set(newProgramIds)).length !== newProgramIds.length) {
+          lg("program-duplicate-ids", {
+            programIds: JSON.stringify(newProgramIds),
+            lastReducerActions: JSON.stringify(
+              (window.reducerLastActions || []).map((a) => [a.type, "desc" in a ? a.desc : undefined])
+            ),
+          });
+          const newPrograms = CollectionUtils.uniqBy(newState.storage.programs, "id");
+          updateState(
+            dispatch,
+            [lb<IState>().p("storage").pi("programs").record(newPrograms)],
+            "Remove duplicate programs"
+          );
+        }
+      }
+    },
+    (dispatch, action, oldState, newState) => {
       const progress = newState.progress[0];
       if (progress != null) {
         const oldProgram = Program.getProgram(oldState, progress.programId);

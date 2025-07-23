@@ -214,6 +214,16 @@ export namespace Thunk {
         } else {
           dispatch(Thunk.postevent("handle-response-dirty"));
           const newStorage = Storage.mergeStorage(getState().storage, result.storage);
+          const newProgramIds = newStorage.programs.map((p) => p.id);
+          if (Array.from(new Set(newProgramIds)).length !== newProgramIds.length) {
+            lg("program-duplicate-ids-after-merge", {
+              programIds: JSON.stringify(newProgramIds),
+              oldPrograms: JSON.stringify(getState().storage.programs),
+              newPrograms: JSON.stringify(result.storage.programs),
+              oldVersions: JSON.stringify(getState().storage._versions?.programs),
+              newVersions: JSON.stringify(result.storage._versions?.programs),
+            });
+          }
           updateState(
             dispatch,
             [
