@@ -145,12 +145,14 @@ export namespace IndexedDBUtils {
     let result: unknown = undefined;
     if (nativeStorage != null) {
       result = await withNative(() => nativeStorage?.get(key));
+      lg("ls-native-get", { key });
     } else {
       result = await withTransaction("readonly", (objectStore) => objectStore.getAll(key)).then(
         (results: unknown[] | undefined) => {
           return results?.[0];
         }
       );
+      lg("ls-indexeddb-get", { key });
     }
     return result;
   }
