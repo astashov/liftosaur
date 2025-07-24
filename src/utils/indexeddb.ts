@@ -145,7 +145,17 @@ export namespace IndexedDBUtils {
     let result: unknown = undefined;
     if (nativeStorage != null) {
       result = await withNative(() => nativeStorage?.get(key));
-      lg("ls-native-get", { key });
+      if (result == null) {
+        lg("ls-native-fallback-get", { key });
+        result = await withTransaction("readonly", (objectStore) => objectStore.getAll(key)).then(
+          (results: unknown[] | undefined) => {
+            return results?.[0];
+          }
+        );
+      } else {
+        lg("ls-native-get", { key });
+      }
+      return result;
     } else {
       result = await withTransaction("readonly", (objectStore) => objectStore.getAll(key)).then(
         (results: unknown[] | undefined) => {
