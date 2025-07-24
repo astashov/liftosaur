@@ -1,7 +1,5 @@
 import { NativeStorage } from "./nativeStorage";
-import { ObjectUtils } from "./object";
 import { lg } from "./posthog";
-import { SendMessage } from "./sendMessage";
 
 type ITransactionMode = "readonly" | "readwrite";
 
@@ -11,8 +9,8 @@ export namespace IndexedDBUtils {
   async function withTransaction<T>(
     mode: ITransactionMode,
     operation: (objectStore: IDBObjectStore) => IDBRequest<T>
-  ): Promise<T> {
-    return new Promise(async (resolve, reject) => {
+  ): Promise<T | undefined> {
+    const promise = new Promise<T>(async (resolve, reject) => {
       const db = await initialize();
       const transaction = db.transaction("keyval", mode);
       const objectStore = transaction.objectStore("keyval");
@@ -53,6 +51,29 @@ export namespace IndexedDBUtils {
         reject(error || new Error("IndexedDB transaction aborted"));
       });
     });
+    try {
+      const result = await promise;
+      return result;
+    } catch (e: any) {
+      const errorDetails = {
+        name: e?.name,
+        message: e?.message,
+        stack: e?.stack,
+      };
+      lg("ls-indexeddb-error", { json: JSON.stringify(e), details: JSON.stringify(errorDetails) });
+      console.error("IndexedDB error:", e);
+      return undefined;
+    }
+  }
+
+  async function withNative<T>(operation: () => T): Promise<T | undefined> {
+    try {
+      return await operation();
+    } catch (e: any) {
+      lg("ls-native-storage-error", { json: JSON.stringify(e) });
+      console.error("Native Storage error:", e);
+      return undefined;
+    }
   }
 
   export function initializeForSafari(): Promise<void> {
@@ -103,46 +124,50 @@ export namespace IndexedDBUtils {
     });
   }
 
-  export function getAllKeys(): Promise<IDBValidKey[]> {
-    return withTransaction("readonly", (objectStore) => objectStore.getAllKeys());
+  export async function getAllKeys(): Promise<string[]> {
+    let result: string[] | undefined = undefined;
+    if (nativeStorage != null) {
+      result = await nativeStorage.getAllKeys();
+    } else {
+      result = await withTransaction("readonly", (objectStore) => {
+        const keys = objectStore.getAllKeys();
+        return keys as IDBRequest<string[]>;
+      });
+    }
+    if (result != null) {
+      return result;
+    } else {
+      return Promise.resolve([]);
+    }
   }
 
   export async function get(key: string): Promise<unknown> {
-    const result = await withTransaction("readonly", (objectStore) => objectStore.getAll(key)).then(
-      (results: unknown[]) => {
-        return results[0];
-      }
-    );
-    let nativeStorageData: unknown = undefined;
-    const prefix = SendMessage.isIos() ? "ios" : "android";
+    let result: unknown = undefined;
     if (nativeStorage != null) {
-      try {
-        nativeStorageData = await nativeStorage.get(key);
-      } catch (e) {
-        lg(`ls-${prefix}-storage-get-error`, { error: `${e}` });
-      }
-    }
-    if (nativeStorageData != null) {
-      let isEqual = false;
-      if (typeof nativeStorageData === "string" && typeof result === "string") {
-        isEqual = nativeStorageData === result;
-      } else if (typeof result === "object" && typeof nativeStorageData === "string") {
-        isEqual = ObjectUtils.isEqual(result, JSON.parse(nativeStorageData));
-      }
-      lg(`ls-${prefix}-storage-get`, { isEqual: isEqual ? "true" : "false" });
+      result = await withNative(() => nativeStorage?.get(key));
+    } else {
+      result = await withTransaction("readonly", (objectStore) => objectStore.getAll(key)).then(
+        (results: unknown[] | undefined) => {
+          return results?.[0];
+        }
+      );
     }
     return result;
   }
 
   export async function remove(key: string): Promise<void> {
-    await withTransaction("readwrite", (objectStore) => objectStore.delete(key));
-    await nativeStorage?.delete(key);
+    await Promise.all([
+      withTransaction("readwrite", (objectStore) => objectStore.delete(key)),
+      withNative(() => nativeStorage?.delete(key)),
+    ]);
   }
 
   export async function set(key: string, value?: string): Promise<void> {
-    await withTransaction("readwrite", (objectStore) => {
-      return objectStore.put(value, key);
-    });
-    await nativeStorage?.set(key, value);
+    await Promise.all([
+      withTransaction("readwrite", (objectStore) => {
+        return objectStore.put(value, key);
+      }),
+      withNative(() => nativeStorage?.set(key, value)),
+    ]);
   }
 }

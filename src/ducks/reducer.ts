@@ -489,27 +489,8 @@ export const reducerWrapper =
             lastSyncedStorage: newState2.lastSyncedStorage,
             progress: newState2.progress[0],
           };
-          try {
-            await IndexedDBUtils.set("current_account", userId);
-            await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
-          } catch (e: any) {
-            // Extract actual error details instead of stringifying the event
-            const errorDetails = {
-              name: e?.name,
-              message: e?.message,
-              stack: e?.stack,
-              code: e?.code,
-              // If it's an event, extract the target error
-              targetError: e?.target?.error
-                ? {
-                    name: e.target.error.name,
-                    message: e.target.error.message,
-                  }
-                : undefined,
-            };
-            lg("ls-indexeddb-error", { json: JSON.stringify(e), details: JSON.stringify(errorDetails) });
-            console.error("IndexedDB error:", e);
-          }
+          await IndexedDBUtils.set("current_account", userId);
+          await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
         }, 100);
       }
     }
