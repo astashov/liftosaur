@@ -212,7 +212,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
       </div>
       {isExpanded && (
         <ScrollableTabs
-          topPadding="0rem"
+          topPadding="0.5rem"
           nonSticky={true}
           color="purple"
           tabs={[
@@ -233,8 +233,13 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                     {ObjectUtils.entries(muscleGroups).map(([key, value]) => {
                       return (
                         <button
-                          className={`py-2 rounded-lg border text-center ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
-                          style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
+                          className={`bg-grayv3-50 bg-no-repeat flex h-12 items-center rounded-lg border text-left ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
+                          style={{
+                            paddingLeft: "4.5rem",
+                            borderWidth: value.isSelected ? "2px" : "1px",
+                            backgroundImage: `url(/images/svgs/musclegroups/${key}.svg)`,
+                            backgroundPosition: "0 0",
+                          }}
                           onClick={() => {
                             props.dispatch(
                               lb<IExercisePickerState>()
@@ -253,7 +258,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                             );
                           }}
                         >
-                          {value.label}
+                          <span>{value.label}</span>
                         </button>
                       );
                     })}
@@ -264,39 +269,62 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
             {
               label: "Muscles",
               children: () => {
-                const muscles = availableMuscles.reduce<Record<IMuscle, IFilterValue>>(
+                const groupedMuscles = availableMuscles.reduce(
                   (memo, muscle) => {
-                    const isSelected = selectedValues.includes(muscle);
-                    memo[muscle] = { label: muscle, isSelected };
+                    const group = Muscle.getScreenMusclesFromMuscle(muscle)?.[0];
+                    if (group != null) {
+                      memo[group] = memo[group] || {};
+                      const isSelected = selectedValues.includes(muscle);
+                      memo[group][muscle] = { label: muscle, isSelected };
+                    }
                     return memo;
                   },
-                  {} as Record<IMuscle, IFilterValue>
+                  {} as Record<IScreenMuscle, Record<IMuscle, IFilterValue>>
                 );
+                const sortedGroupedMuscles = ObjectUtils.keys(groupedMuscles).sort(([a], [b]) => a.localeCompare(b));
+
                 return (
-                  <div className="grid grid-cols-2 gap-4 mt-2">
-                    {ObjectUtils.entries(muscles).map(([key, value]) => {
+                  <div>
+                    {sortedGroupedMuscles.map((group) => {
+                      const muscles = groupedMuscles[group];
+                      const sortedMuscles = ObjectUtils.keys(muscles).sort(([a], [b]) => a.localeCompare(b));
                       return (
-                        <button
-                          className={`py-2 rounded-lg border text-center ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
-                          style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
-                          onClick={() => {
-                            props.dispatch(
-                              lb<IExercisePickerState>()
-                                .p("filters")
-                                .p("muscles")
-                                .recordModify((muscles) => {
-                                  if (muscles?.includes(key)) {
-                                    return CollectionUtils.remove(muscles, key);
-                                  } else {
-                                    return [...(muscles || []), key];
-                                  }
-                                }),
-                              `Set muscle filter in exercise picker to ${key}`
-                            );
-                          }}
-                        >
-                          {value.label}
-                        </button>
+                        <div className="mb-4">
+                          <h3 className="mb-2 font-semibold">{StringUtils.capitalize(group)}</h3>
+                          <div className="grid grid-cols-2 gap-4 mt-2">
+                            {sortedMuscles.map((key) => {
+                              const value = muscles[key];
+                              return (
+                                <button
+                                  className={`bg-grayv3-50 overflow-hidden bg-no-repeat flex h-12 items-center rounded-lg border text-left ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
+                                  style={{
+                                    paddingLeft: "4.5rem",
+                                    borderWidth: value.isSelected ? "2px" : "1px",
+                                    backgroundImage: `url(/images/svgs/musclegroups/${key}.svg)`,
+                                    backgroundPosition: "0 0",
+                                  }}
+                                  onClick={() => {
+                                    props.dispatch(
+                                      lb<IExercisePickerState>()
+                                        .p("filters")
+                                        .p("muscles")
+                                        .recordModify((muscles) => {
+                                          if (muscles?.includes(key)) {
+                                            return CollectionUtils.remove(muscles, key);
+                                          } else {
+                                            return [...(muscles || []), key];
+                                          }
+                                        }),
+                                      `Set muscle filter in exercise picker to ${key}`
+                                    );
+                                  }}
+                                >
+                                  {value.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
