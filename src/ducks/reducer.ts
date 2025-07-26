@@ -229,6 +229,7 @@ export type IChangeAMRAPAction = {
 export type IUpdateSettingsAction = {
   type: "UpdateSettings";
   lensRecording: ILensRecordingPayload<ISettings>;
+  desc: string;
 };
 
 export type IUpdateStateAction = {
@@ -836,6 +837,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return state;
     }
   } else if (action.type === "UpdateSettings") {
+    if (isLoggingEnabled) {
+      console.log(`%c-------${action.desc ? ` ${action.desc}` : ""}`, "font-weight:bold");
+    }
     return {
       ...state,
       storage: {

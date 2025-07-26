@@ -15,6 +15,7 @@ interface IProps {
   isHidden: boolean;
   settings: ISettings;
   dispatch: ILensDispatch<IExercisePickerState>;
+  onStar: (key: string) => void;
   state: IExercisePickerState;
   evaluatedProgram?: IEvaluatedProgram;
   onClose: () => void;
@@ -22,6 +23,7 @@ interface IProps {
 
 export function ExercisePickerMain(props: IProps): JSX.Element {
   const { evaluatedProgram } = props;
+  const isStarred = !!props.state.filters.isStarred;
   return (
     <div className="flex flex-col h-full" style={{ marginTop: "-0.75rem" }}>
       <div className="relative py-4 mt-2">
@@ -33,8 +35,16 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
             </button>
           </div>
           <div>
-            <button className="px-2">
-              <IconStar color={Tailwind.colors().purplev3.main} />
+            <button
+              className="px-2"
+              onClick={() => {
+                props.dispatch(
+                  lb<IExercisePickerState>().p("filters").p("isStarred").record(!props.state.filters.isStarred),
+                  `Toggle starred exercises to ${!props.state.filters.isStarred}`
+                );
+              }}
+            >
+              <IconStar isSelected={isStarred} color={Tailwind.colors().purplev3.main} />
             </button>
           </div>
         </div>
@@ -64,6 +74,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                 label: "Ad-hoc Exercise",
                 children: () => (
                   <ExercisePickerAdhocExercises
+                    onStar={props.onStar}
                     state={props.state}
                     settings={props.settings}
                     dispatch={props.dispatch}
@@ -73,7 +84,12 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
             ]}
           />
         ) : (
-          <ExercisePickerAdhocExercises state={props.state} settings={props.settings} dispatch={props.dispatch} />
+          <ExercisePickerAdhocExercises
+            onStar={props.onStar}
+            state={props.state}
+            settings={props.settings}
+            dispatch={props.dispatch}
+          />
         )}
       </div>
       <div className="w-full px-4 pt-2 pb-2" style={{ boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" }}>

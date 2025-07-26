@@ -32,6 +32,7 @@ import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
 import { Thunk } from "../ducks/thunks";
 import { BottomSheetExercisePicker } from "./exercisePicker/bottomSheetExercisePicker";
 import { ILensDispatch } from "../utils/useLensReducer";
+import { Settings } from "../models/settings";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
@@ -187,6 +188,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                       : evaluatedProgram
                     : undefined
                 }
+                onStar={(key) => Settings.toggleStarredExercise(props.dispatch, key)}
                 dispatch={buildExercisePickerDispatch(props.dispatch, progress.id)}
                 onClose={() => {
                   updateState(

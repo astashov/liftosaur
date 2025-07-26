@@ -10,6 +10,7 @@ interface IProps {
   isHidden: boolean;
   settings: ISettings;
   exercisePicker: IExercisePickerState;
+  onStar: (key: string) => void;
   dispatch: ILensDispatch<IExercisePickerState>;
   evaluatedProgram?: IEvaluatedProgram;
   onClose: () => void;
@@ -24,6 +25,7 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
     content = (
       <ExercisePickerMain
         dispatch={props.dispatch}
+        onStar={props.onStar}
         isHidden={props.isHidden}
         state={state}
         settings={props.settings}
