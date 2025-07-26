@@ -628,15 +628,21 @@ export const TExercisePickerSort = t.keyof(
 );
 export type IExercisePickerSort = t.TypeOf<typeof TExercisePickerSort>;
 
+export const TExercisePickerFilters = t.partial(
+  {
+    equipment: t.array(TBuiltinEquipment),
+    type: t.array(TExerciseKind),
+    muscles: t.array(TMuscle),
+  },
+  "TExercisePickerFilters"
+);
+export type IExercisePickerFilters = t.TypeOf<typeof TExercisePickerFilters>;
+
 export const TExercisePickerState = t.intersection([
   t.interface({
     screenStack: t.array(TExercisePickerScreen),
     sort: TExercisePickerSort,
-    filters: t.partial({
-      equipment: t.array(TBuiltinEquipment),
-      type: t.array(TExerciseKind),
-      muscles: t.array(TMuscle),
-    }),
+    filters: TExercisePickerFilters,
   }),
   t.partial({
     selectedTab: t.number,

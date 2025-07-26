@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { Tailwind } from "../../utils/tailwindConfig";
@@ -13,53 +13,96 @@ import { CollectionUtils } from "../../utils/collection";
 import { LinkButton } from "../linkButton";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
+import { exercisePickerSortNames } from "./exercisePickerFilter";
+import { ExercisePickerUtils } from "./exercisePickerUtils";
 
 interface IProps {
   settings: ISettings;
+  state: IExercisePickerState;
   dispatch: ILensDispatch<IExercisePickerState>;
 }
 
 export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
   return (
     <div className="relative">
-      <SearchAndFilter dispatch={props.dispatch} />
-      <CustomExercises settings={props.settings} showMuscles={true} />
-      <BuiltinExercises shouldAddExternalLinks={true} showMuscles={true} settings={props.settings} />
+      <SearchAndFilter dispatch={props.dispatch} state={props.state} />
+      <CustomExercises settings={props.settings} state={props.state} showMuscles={true} />
+      <BuiltinExercises
+        shouldAddExternalLinks={true}
+        state={props.state}
+        showMuscles={true}
+        settings={props.settings}
+      />
     </div>
   );
 }
 
 interface ISearchAndFilterProps {
   dispatch: ILensDispatch<IExercisePickerState>;
+  state: IExercisePickerState;
 }
 
 function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
+  const filterNames = ExercisePickerUtils.getAllFilterNames(props.state.filters);
+  const isFiltered = filterNames.length > 0;
   return (
-    <div className="flex items-center gap-2 mx-4">
-      <label className="flex items-center flex-1 gap-2 p-2 rounded-lg bg-grayv3-50">
-        <div>
-          <IconMagnifyingGlass size={18} color={Tailwind.colors().grayv3.main} />
+    <div className="my-1">
+      <div className="flex items-center gap-2 mx-4">
+        <label className="flex items-center flex-1 gap-2 p-2 rounded-lg bg-grayv3-50">
+          <div>
+            <IconMagnifyingGlass size={18} color={Tailwind.colors().grayv3.main} />
+          </div>
+          <input
+            type="text"
+            placeholder="Search by name"
+            className="flex-1 block text-sm bg-transparent border-none outline-none bg-none text-grayv3-main placeholder-grayv3-500"
+          />
+        </label>
+        <div className="flex items-center justify-center">
+          <button
+            className={`flex items-center gap-1 py-1 text-center border rounded-lg ${isFiltered ? "border-purplev3-main px-2" : "px-4 border-grayv3-300"}`}
+            onClick={() =>
+              props.dispatch(
+                lb<IExercisePickerState>()
+                  .p("screenStack")
+                  .recordModify((stack) => [...stack, "filter"]),
+                "Navigate to filter picker screen"
+              )
+            }
+          >
+            {isFiltered && (
+              <span className="flex items-center justify-center w-5 h-5 text-xs font-semibold leading-none text-white rounded-full bg-purplev3-main">
+                {filterNames.length}
+              </span>
+            )}
+            <IconFilter2 color={isFiltered ? Tailwind.colors().purplev3.main : Tailwind.colors().blackv2} />
+          </button>
         </div>
-        <input
-          type="text"
-          placeholder="Search by name"
-          className="flex-1 block text-sm bg-transparent border-none outline-none bg-none text-grayv3-main placeholder-grayv3-500"
-        />
-      </label>
-      <div className="flex items-center justify-center">
-        <button
-          className="px-4 py-1 text-center border rounded-lg border-grayv3-300"
-          onClick={() =>
-            props.dispatch(
-              lb<IExercisePickerState>()
-                .p("screenStack")
-                .recordModify((stack) => [...stack, "filter"]),
-              "Navigate to filter picker screen"
-            )
-          }
-        >
-          <IconFilter2 color={Tailwind.colors().blackv2} />
-        </button>
+      </div>
+      <div className="mx-4 text-xs text-grayv3-main">
+        <span>
+          Sorted by: <strong>{exercisePickerSortNames[props.state.sort]}</strong>
+        </span>
+        {filterNames.length > 0 && (
+          <>
+            <span>
+              , Filters:{" "}
+              {filterNames.map((f, i) => (
+                <>
+                  {i > 0 ? ", " : ""}
+                  <strong>{f}</strong>
+                </>
+              ))}
+            </span>
+            <LinkButton
+              name="clear-filters"
+              className="ml-1 text-xs"
+              onClick={() => props.dispatch(lb<IExercisePickerState>().p("filters").record({}), "Clear filters")}
+            >
+              Clear
+            </LinkButton>
+          </>
+        )}
       </div>
     </div>
   );
@@ -68,11 +111,19 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
 interface ICustomExercisesProps {
   settings: ISettings;
   exerciseType?: IExerciseType;
+  state: IExercisePickerState;
   showMuscles?: boolean;
 }
 
 function CustomExercises(props: ICustomExercisesProps): JSX.Element {
-  let exercises = CollectionUtils.compact(ObjectUtils.values(props.settings.exercises));
+  let exercises = props.settings.exercises;
+
+  if (props.state.search) {
+    exercises = Exercise.filterCustomExercises(exercises, props.state.search);
+  }
+  exercises = ExercisePickerUtils.filterCustomExercises(exercises, props.state.filters);
+  const exercisesList = CollectionUtils.compact(ObjectUtils.values(props.settings.exercises));
+
   return (
     <div className="py-2">
       <GroupHeader
@@ -87,7 +138,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
           </LinkButton>
         }
       >
-        {exercises.map((e) => {
+        {exercisesList.map((e) => {
           const ex = Exercise.get({ id: e.id }, props.settings.exercises);
           return (
             <section
@@ -115,12 +166,17 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
 interface IBuiltinExercisesProps {
   shouldAddExternalLinks?: boolean;
   showMuscles?: boolean;
+  state: IExercisePickerState;
   settings: ISettings;
   exerciseType?: IExerciseType;
 }
 
 function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
   let exercises = Exercise.allExpanded({});
+  if (props.state.search) {
+    exercises = Exercise.filterExercises(exercises, props.state.search);
+  }
+  exercises = ExercisePickerUtils.filterExercises(exercises, props.state.filters);
   return (
     <div className="py-2">
       <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4">
