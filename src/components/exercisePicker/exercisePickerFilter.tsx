@@ -24,6 +24,7 @@ import { CollectionUtils } from "../../utils/collection";
 import { StringUtils } from "../../utils/string";
 import { ScrollableTabs } from "../scrollableTabs";
 import { Muscle } from "../../models/muscle";
+import { ExercisePickerUtils } from "./exercisePickerUtils";
 
 interface IProps {
   settings: ISettings;
@@ -31,12 +32,20 @@ interface IProps {
   dispatch: ILensDispatch<IExercisePickerState>;
 }
 
+export const exercisePickerSortNames = {
+  name_asc: "Name, A to Z",
+  similar_muscles: "Similar Muscles",
+};
+
 type IFilterValue = { label: string; isSelected: boolean };
 
 export function ExercisePickerFilter(props: IProps): JSX.Element {
   const sortValues: Record<IExercisePickerSort, IFilterValue> = {
-    name_asc: { label: "Name, A to Z", isSelected: props.state.sort === "name_asc" },
-    similar_muscles: { label: "Similar Muscles", isSelected: props.state.sort === "similar_muscles" },
+    name_asc: { label: exercisePickerSortNames.name_asc, isSelected: props.state.sort === "name_asc" },
+    similar_muscles: {
+      label: exercisePickerSortNames.similar_muscles,
+      isSelected: props.state.sort === "similar_muscles",
+    },
   };
 
   const equipmentValues = equipments.reduce<Record<IBuiltinEquipment, IFilterValue>>(
@@ -62,7 +71,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
   );
 
   return (
-    <div className="flex flex-col h-full" style={{ marginTop: "-0.75rem" }}>
+    <div className="flex flex-col h-full pb-4" style={{ marginTop: "-0.75rem" }}>
       <div className="relative py-4 mt-2">
         <div className="absolute flex top-2 left-4">
           <div>
@@ -190,16 +199,8 @@ interface IFilterMusclesProps<T extends string> {
 
 function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Element {
   const selectedValues = props.state.filters?.muscles || [];
-  const currentGroups = screenMuscles.filter((muscleGroup) => {
-    const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup);
-    return muscles.every((muscle) => selectedValues.includes(muscle));
-  });
-  const currentMuscles = selectedValues.filter((muscle) => {
-    const group = Muscle.getScreenMusclesFromMuscle(muscle)?.[0];
-    return group && !currentGroups.includes(group);
-  });
-  const selectedMuscleGroups = [...currentGroups.map((g) => StringUtils.capitalize(g)), ...currentMuscles];
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
+  const selectedMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroups(selectedValues);
   return (
     <div className="px-4 py-2 border-b border-grayv3-100">
       <div className="flex items-center pb-1" onClick={() => setIsExpanded(!isExpanded)}>
@@ -300,7 +301,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                                   style={{
                                     paddingLeft: "4.5rem",
                                     borderWidth: value.isSelected ? "2px" : "1px",
-                                    backgroundImage: `url(/images/svgs/musclegroups/${key}.svg)`,
+                                    backgroundImage: `url(/images/svgs/muscles/${key.toLowerCase().replace(/ /g, "")}.svg)`,
                                     backgroundPosition: "0 0",
                                   }}
                                   onClick={() => {

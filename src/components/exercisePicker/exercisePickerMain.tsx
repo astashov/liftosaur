@@ -62,12 +62,18 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
               },
               {
                 label: "Ad-hoc Exercise",
-                children: () => <ExercisePickerAdhocExercises settings={props.settings} dispatch={props.dispatch} />,
+                children: () => (
+                  <ExercisePickerAdhocExercises
+                    state={props.state}
+                    settings={props.settings}
+                    dispatch={props.dispatch}
+                  />
+                ),
               },
             ]}
           />
         ) : (
-          <ExercisePickerAdhocExercises settings={props.settings} dispatch={props.dispatch} />
+          <ExercisePickerAdhocExercises state={props.state} settings={props.settings} dispatch={props.dispatch} />
         )}
       </div>
       <div className="w-full px-4 pt-2 pb-2" style={{ boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" }}>
