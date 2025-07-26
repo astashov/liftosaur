@@ -22,4 +22,13 @@ export class SetUtils {
     }
     return true;
   }
+
+  public static containsAnyValues<T>(within: Set<T>, from: Set<T>): boolean {
+    for (const item of from) {
+      if (within.has(item)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

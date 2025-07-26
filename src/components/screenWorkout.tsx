@@ -181,6 +181,9 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 settings={props.settings}
                 isHidden={progress.ui.exercisePicker == null}
                 exercisePicker={progress.ui.exercisePicker.state}
+                onChangeCustomExercise={(action, exercise) => {
+                  Exercise.handleCustomExerciseChange(props.dispatch, action, exercise, props.settings, props.program);
+                }}
                 evaluatedProgram={
                   evaluatedProgram
                     ? Program.isEmpty(evaluatedProgram)
@@ -224,7 +227,11 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                     largeImageUrl,
                     exercise
                   );
-                  updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises), "Create custom exercise");
+                  updateSettings(
+                    props.dispatch,
+                    lb<ISettings>().p("exercises").record(exercises),
+                    "Create custom exercise"
+                  );
                   if (props.program && exercise) {
                     const newProgram = Program.changeExerciseName(exercise.name, name, props.program, {
                       ...props.settings,

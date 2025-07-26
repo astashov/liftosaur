@@ -1,16 +1,18 @@
 import { h, JSX } from "preact";
 import { BottomSheet } from "../bottomSheet";
 import { IEvaluatedProgram } from "../../models/program";
-import { IExercisePickerState, ISettings } from "../../types";
+import { ICustomExercise, IExercisePickerState, ISettings } from "../../types";
 import { ExercisePickerMain } from "./exercisePickerMain";
 import { ExercisePickerFilter } from "./exercisePickerFilter";
 import { ILensDispatch } from "../../utils/useLensReducer";
+import { ExercisePickerCustomExercise } from "./exercisePickerCustomExercise";
 
 interface IProps {
   isHidden: boolean;
   settings: ISettings;
   exercisePicker: IExercisePickerState;
   onStar: (key: string) => void;
+  onChangeCustomExercise: (action: "upsert" | "delete", exercise: ICustomExercise) => void;
   dispatch: ILensDispatch<IExercisePickerState>;
   evaluatedProgram?: IEvaluatedProgram;
   onClose: () => void;
@@ -35,6 +37,17 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
     );
   } else if (currentScreen === "filter") {
     content = <ExercisePickerFilter state={state} settings={props.settings} dispatch={props.dispatch} />;
+  } else if (currentScreen === "customExercise") {
+    content = (
+      <ExercisePickerCustomExercise
+        settings={props.settings}
+        dispatch={props.dispatch}
+        exercise={state.editCustomExercise}
+        onChange={(exercise, action) => {
+          props.onChangeCustomExercise(exercise, action);
+        }}
+      />
+    );
   }
   return (
     <BottomSheet isHidden={props.isHidden} onClose={props.onClose}>

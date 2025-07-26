@@ -30,7 +30,15 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         <h3 className="px-4 font-bold text-center">Exercises</h3>
         <div className="absolute flex top-4 right-4">
           <div>
-            <button className="px-2">
+            <button
+              className="px-2"
+              onClick={() => {
+                props.dispatch(
+                  lb<IExercisePickerState>().p("showMuscles").record(!props.state.showMuscles),
+                  `Toggle show muscles to ${!props.state.showMuscles}`
+                );
+              }}
+            >
               <IconMuscles2 color={Tailwind.colors().purplev3.main} />
             </button>
           </div>

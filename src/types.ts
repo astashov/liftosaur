@@ -646,7 +646,9 @@ export const TExercisePickerState = t.intersection([
     filters: TExercisePickerFilters,
   }),
   t.partial({
+    showMuscles: t.boolean,
     selectedTab: t.number,
+    editCustomExercise: TCustomExercise,
     search: t.string,
   }),
 ]);

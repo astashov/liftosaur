@@ -2,6 +2,7 @@ import { equipmentName, Exercise, IExercise } from "../../models/exercise";
 import { Muscle } from "../../models/muscle";
 import { IAllCustomExercises, IExercisePickerFilters, IMuscle, screenMuscles } from "../../types";
 import { ObjectUtils } from "../../utils/object";
+import { SetUtils } from "../../utils/setUtils";
 import { StringUtils } from "../../utils/string";
 
 export class ExercisePickerUtils {
@@ -29,6 +30,10 @@ export class ExercisePickerUtils {
     return [...(filters.equipment || []), ...(filters.type || []), ...(filters.muscles || [])];
   }
 
+  public static getCustomFilters(filters: IExercisePickerFilters): string[] {
+    return [...(filters.type || []), ...(filters.muscles || [])];
+  }
+
   public static filterExercises(exercises: IExercise[], filters: IExercisePickerFilters): IExercise[] {
     const allFilters = ExercisePickerUtils.getAllFilters(filters);
     if (allFilters.length === 0) {
@@ -38,11 +43,14 @@ export class ExercisePickerUtils {
       if (!exercise) {
         return false;
       }
-      if (new Set(exercise.types).intersection(new Set(filters.type || [])).size !== 0) {
+      if (SetUtils.containsAnyValues(new Set(exercise.types), new Set(filters.type || []))) {
+        return true;
+      }
+      if (SetUtils.containsAnyValues(new Set([exercise.equipment]), new Set(filters.equipment || []))) {
         return true;
       }
       const muscles = new Set(Exercise.targetMuscles(exercise, {}).concat(Exercise.synergistMuscles(exercise, {})));
-      if (muscles.intersection(new Set(filters.muscles || [])).size !== 0) {
+      if (SetUtils.containsAnyValues(muscles, new Set(filters.muscles || []))) {
         return true;
       }
       return false;
@@ -53,7 +61,7 @@ export class ExercisePickerUtils {
     customExercises: IAllCustomExercises,
     filters: IExercisePickerFilters
   ): IAllCustomExercises {
-    const allFilters = ExercisePickerUtils.getAllFilters(filters);
+    const allFilters = ExercisePickerUtils.getCustomFilters(filters);
     if (allFilters.length === 0) {
       return customExercises;
     }
@@ -61,11 +69,11 @@ export class ExercisePickerUtils {
       if (!exercise) {
         return false;
       }
-      if (new Set(exercise.types).intersection(new Set(filters.type || [])).size !== 0) {
+      if (SetUtils.containsAnyValues(new Set(exercise.types), new Set(filters.type || []))) {
         return true;
       }
       const muscles = new Set(exercise.meta.targetMuscles.concat(exercise.meta.synergistMuscles));
-      if (muscles.intersection(new Set(filters.muscles || [])).size !== 0) {
+      if (SetUtils.containsAnyValues(muscles, new Set(filters.muscles || []))) {
         return true;
       }
       return false;
