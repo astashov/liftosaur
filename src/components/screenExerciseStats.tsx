@@ -113,7 +113,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                   largeImageUrl,
                   exercise
                 );
-                updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));
+                updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises), "Update custom exercise");
                 if (props.currentProgram && exercise) {
                   const newProgram = Program.changeExerciseName(exercise.name, name, props.currentProgram, {
                     ...props.settings,
@@ -161,7 +161,8 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                           return exercise != null
                             ? { ...exercises, [fullExercise.id]: { ...exercise, isDeleted: true } }
                             : exercises;
-                        })
+                        }),
+                      "Delete custom exercise"
                     );
                     props.dispatch(Thunk.pullScreen());
                   }

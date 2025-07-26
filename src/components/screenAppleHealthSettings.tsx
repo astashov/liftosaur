@@ -31,6 +31,7 @@ export function ScreenAppleHealthSettings(props: IProps): JSX.Element {
               lensRecording: lb<ISettings>()
                 .p("appleHealthSyncWorkout")
                 .record(newValue === "true"),
+              desc: "Toggle Apple Health workouts",
             });
           }}
         />
@@ -44,6 +45,7 @@ export function ScreenAppleHealthSettings(props: IProps): JSX.Element {
               lensRecording: lb<ISettings>()
                 .p("appleHealthSyncMeasurements")
                 .record(newValue === "true"),
+              desc: "Toggle Apple Health measurements",
             });
           }}
         />

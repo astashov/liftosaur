@@ -91,7 +91,8 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
                 lb<ISettings>()
                   .p("workoutSettings")
                   .p("shouldHideGraphs")
-                  .record(!props.settings.workoutSettings.shouldHideGraphs)
+                  .record(!props.settings.workoutSettings.shouldHideGraphs),
+                "Toggle graphs visibility"
               );
             }}
           >

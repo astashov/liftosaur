@@ -130,7 +130,7 @@ describe("sync", () => {
       [5, 5, 5],
     ]);
     await mockReducer.run([
-      { type: "UpdateSettings", lensRecording: lb<ISettings>().p("isPublicProfile").record(true) },
+      { type: "UpdateSettings", lensRecording: lb<ISettings>().p("isPublicProfile").record(true), desc: "Update public profile" },
     ]);
     expect(mockReducer.state.storage.settings.isPublicProfile).to.equal(true);
     expect(mockReducer.state.storage.history.length).to.equal(2);

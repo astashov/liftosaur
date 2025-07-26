@@ -309,7 +309,8 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     type,
                     !Subscriptions.hasSubscription(props.subscription) || !currentEquipmentName
                   );
-                })
+                }),
+              "Change target type"
             );
           }}
           otherStates={props.otherStates}

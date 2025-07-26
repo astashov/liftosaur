@@ -224,7 +224,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                     largeImageUrl,
                     exercise
                   );
-                  updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));
+                  updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises), "Create custom exercise");
                   if (props.program && exercise) {
                     const newProgram = Program.changeExerciseName(exercise.name, name, props.program, {
                       ...props.settings,

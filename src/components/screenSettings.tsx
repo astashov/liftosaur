@@ -113,6 +113,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
               lensRecording: lb<ISettings>()
                 .p("nickname")
                 .record(newValue ? newValue : undefined),
+              desc: "Update nickname",
             });
           }}
         />
@@ -156,6 +157,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                   lensRecording: lb<ISettings>()
                     .p("isPublicProfile")
                     .record(newValue === "true"),
+                  desc: "Toggle public profile",
                 });
               } else {
                 alert("You should be logged in to enable public profile");
@@ -209,6 +211,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                 props.dispatch({
                   type: "UpdateSettings",
                   lensRecording: lb<ISettings>().p("currentGymId").record(newValue),
+                  desc: "Change current gym",
                 });
               }
             }}
@@ -239,6 +242,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
               lensRecording: lb<ISettings>()
                 .p("units")
                 .record(newValue as IUnit),
+              desc: "Change weight units",
             });
           }}
         />
@@ -256,6 +260,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
               lensRecording: lb<ISettings>()
                 .p("lengthUnits")
                 .record(newValue as ILengthUnit),
+              desc: "Change length units",
             });
           }}
         />
@@ -273,6 +278,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
               lensRecording: lb<ISettings>()
                 .p("startWeekFromMonday")
                 .record(newValue === "true"),
+              desc: "Toggle week start day",
             });
           }}
         />
@@ -288,6 +294,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                 lensRecording: lb<ISettings>()
                   .p("alwaysOnDisplay")
                   .record(newValue === "true"),
+                desc: "Toggle always-on display",
               });
             }}
           />
@@ -306,6 +313,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                   lensRecording: lb<ISettings>()
                     .p("vibration")
                     .record(newValue === "true"),
+                  desc: "Toggle vibration",
                 });
               }}
             />
@@ -329,6 +337,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                         props.dispatch({
                           type: "UpdateSettings",
                           lensRecording: lb<ISettings>().p("volume").record(value),
+                          desc: "Change volume",
                         });
                       }
                     }}
@@ -354,6 +363,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                       lensRecording: lb<ISettings>()
                         .p("ignoreDoNotDisturb")
                         .record(newValue === "true"),
+                      desc: "Toggle ignore DND",
                     });
                   }}
                 />
@@ -401,6 +411,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                     props.dispatch({
                       type: "UpdateSettings",
                       lensRecording: lb<ISettings>().p("textSize").record(value),
+                      desc: "Change text size",
                     });
                   }
                 }}

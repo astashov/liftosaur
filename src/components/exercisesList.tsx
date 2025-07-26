@@ -204,7 +204,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
               largeImageUrl,
               exercise
             );
-            updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));
+            updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises), "Create custom exercise");
             if (exercise) {
               const newProgram = Program.changeExerciseName(exercise.name, name, props.program, {
                 ...props.settings,
