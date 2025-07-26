@@ -18,6 +18,7 @@ import { ExercisePickerUtils } from "./exercisePickerUtils";
 
 interface IProps {
   settings: ISettings;
+  onStar: (key: string) => void;
   state: IExercisePickerState;
   dispatch: ILensDispatch<IExercisePickerState>;
 }
@@ -26,8 +27,9 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
   return (
     <div className="relative">
       <SearchAndFilter dispatch={props.dispatch} state={props.state} />
-      <CustomExercises settings={props.settings} state={props.state} showMuscles={true} />
+      <CustomExercises onStar={props.onStar} settings={props.settings} state={props.state} showMuscles={true} />
       <BuiltinExercises
+        onStar={props.onStar}
         shouldAddExternalLinks={true}
         state={props.state}
         showMuscles={true}
@@ -113,6 +115,7 @@ interface ICustomExercisesProps {
   exerciseType?: IExerciseType;
   state: IExercisePickerState;
   showMuscles?: boolean;
+  onStar: (key: string) => void;
 }
 
 function CustomExercises(props: ICustomExercisesProps): JSX.Element {
@@ -122,7 +125,10 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
     exercises = Exercise.filterCustomExercises(exercises, props.state.search);
   }
   exercises = ExercisePickerUtils.filterCustomExercises(exercises, props.state.filters);
-  const exercisesList = CollectionUtils.compact(ObjectUtils.values(props.settings.exercises));
+  let exercisesList = CollectionUtils.compact(ObjectUtils.values(props.settings.exercises));
+  if (props.state.filters.isStarred) {
+    exercisesList = exercisesList.filter((e) => props.settings.starredExercises?.[Exercise.toKey(e)]);
+  }
 
   return (
     <div className="py-2">
@@ -148,6 +154,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
               onClick={() => {}}
             >
               <ExerciseItem
+                onStar={props.onStar}
                 isMultiselect={false}
                 showMuscles={props.showMuscles}
                 settings={props.settings}
@@ -168,6 +175,7 @@ interface IBuiltinExercisesProps {
   showMuscles?: boolean;
   state: IExercisePickerState;
   settings: ISettings;
+  onStar: (key: string) => void;
   exerciseType?: IExerciseType;
 }
 
@@ -177,6 +185,9 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
     exercises = Exercise.filterExercises(exercises, props.state.search);
   }
   exercises = ExercisePickerUtils.filterExercises(exercises, props.state.filters);
+  if (props.state.filters.isStarred) {
+    exercises = exercises.filter((e) => props.settings.starredExercises?.[Exercise.toKey(e)]);
+  }
   return (
     <div className="py-2">
       <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4">
@@ -191,6 +202,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
               onClick={() => {}}
             >
               <ExerciseItem
+                onStar={props.onStar}
                 isMultiselect={false}
                 showMuscles={props.showMuscles}
                 settings={props.settings}
@@ -210,6 +222,7 @@ interface IExerciseItemProps {
   exercise: IExercise;
   equipment?: string;
   settings: ISettings;
+  onStar: (key: string) => void;
   currentExerciseType?: { id: string; equipment?: string };
   showMuscles?: boolean;
   isMultiselect?: boolean;
@@ -218,6 +231,8 @@ interface IExerciseItemProps {
 export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
   const { exercise: e } = props;
   const exerciseType = { id: e.id, equipment: props.equipment || e.defaultEquipment };
+  const key = Exercise.toKey(e);
+  const isStarred = !!props.settings.starredExercises?.[key];
 
   return (
     <section className="flex gap-2">
@@ -225,15 +240,24 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
         <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
       </div>
       <div className="flex-1 py-2 text-sm text-left">
-        <div className="flex items-center">
-          <button className="px-1" style={{ marginLeft: "-0.25rem" }}>
-            <IconStar size={20} color={Tailwind.colors().grayv3.main} />
-          </button>
+        <button
+          className="flex items-center gap-1"
+          onClick={() => {
+            props.onStar(key);
+          }}
+        >
+          <div>
+            <IconStar
+              size={20}
+              isSelected={isStarred}
+              color={isStarred ? Tailwind.colors().purplev3.main : Tailwind.colors().grayv3.main}
+            />
+          </div>
           <div>
             <span className="font-semibold">{e.name}</span>,{" "}
             <span className="text-grayv2-main">{equipmentName(exerciseType.equipment)}</span>
           </div>
-        </div>
+        </button>
         {props.showMuscles ? (
           <MuscleView currentExerciseType={props.currentExerciseType} exercise={e} settings={props.settings} />
         ) : (

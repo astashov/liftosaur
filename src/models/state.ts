@@ -133,8 +133,12 @@ export function updateState(dispatch: IDispatch, lensRecording: ILensRecordingPa
   dispatch({ type: "UpdateState", lensRecording, desc });
 }
 
-export function updateSettings(dispatch: IDispatch, lensRecording: ILensRecordingPayload<ISettings>): void {
-  dispatch({ type: "UpdateSettings", lensRecording });
+export function updateSettings(
+  dispatch: IDispatch,
+  lensRecording: ILensRecordingPayload<ISettings>,
+  desc: string
+): void {
+  dispatch({ type: "UpdateSettings", lensRecording, desc });
 }
 
 export function updateProgress(

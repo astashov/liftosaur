@@ -633,6 +633,7 @@ export const TExercisePickerFilters = t.partial(
     equipment: t.array(TBuiltinEquipment),
     type: t.array(TExerciseKind),
     muscles: t.array(TMuscle),
+    isStarred: t.boolean,
   },
   "TExercisePickerFilters"
 );
@@ -1218,6 +1219,7 @@ export const TSettings = t.intersection(
       vibration: t.boolean,
       startWeekFromMonday: t.boolean,
       textSize: t.number,
+      starredExercises: dictionary(TExerciseId, t.boolean),
     }),
   ],
   "TSettings"
