@@ -31,6 +31,7 @@ export function ScreenGoogleHealthSettings(props: IProps): JSX.Element {
               lensRecording: lb<ISettings>()
                 .p("googleHealthSyncWorkout")
                 .record(newValue === "true"),
+              desc: "Toggle Google Health workouts",
             });
           }}
         />
@@ -44,6 +45,7 @@ export function ScreenGoogleHealthSettings(props: IProps): JSX.Element {
               lensRecording: lb<ISettings>()
                 .p("googleHealthSyncMeasurements")
                 .record(newValue === "true"),
+              desc: "Toggle Google Health measurements",
             });
           }}
         />

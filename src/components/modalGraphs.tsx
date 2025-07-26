@@ -85,7 +85,8 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                 lb<ISettings>()
                   .p("graphsSettings")
                   .p("defaultType")
-                  .record(v as IGraphExerciseSelectedType)
+                  .record(v as IGraphExerciseSelectedType),
+                "Set default graph type"
               );
             }
           }}
@@ -102,7 +103,8 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                 lb<ISettings>()
                   .p("graphsSettings")
                   .p("defaultMuscleGroupType")
-                  .record(v as IGraphMuscleGroupSelectedType)
+                  .record(v as IGraphMuscleGroupSelectedType),
+                "Set muscle group graph type"
               );
             }
           }}
@@ -117,7 +119,8 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
               lb<ISettings>()
                 .p("graphsSettings")
                 .p("isSameXAxis")
-                .record(v === "true")
+                .record(v === "true"),
+              "Toggle same X axis"
             )
           }
         />
@@ -132,7 +135,8 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                 lb<ISettings>()
                   .p("graphsSettings")
                   .p("isWithBodyweight")
-                  .record(v === "true")
+                  .record(v === "true"),
+                "Toggle bodyweight"
               )
             }
           />
@@ -147,7 +151,8 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
               lb<ISettings>()
                 .p("graphsSettings")
                 .p("isWithOneRm")
-                .record(v === "true")
+                .record(v === "true"),
+              "Toggle 1RM display"
             )
           }
         />
@@ -161,7 +166,8 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
               lb<ISettings>()
                 .p("graphsSettings")
                 .p("isWithProgramLines")
-                .record(v === "true")
+                .record(v === "true"),
+              "Toggle program lines"
             )
           }
         />

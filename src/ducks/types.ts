@@ -1,4 +1,4 @@
-import { LensBuilder, ILensRecordingPayload, lb } from "lens-shmens";
+import { LensBuilder, ILensRecordingPayload } from "lens-shmens";
 import { IEnv, IState } from "../models/state";
 import { ILensDispatch } from "../utils/useLensReducer";
 import { IAction } from "./reducer";

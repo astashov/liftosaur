@@ -78,7 +78,8 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                 lb<ISettings>()
                   .p("exerciseStatsSettings")
                   .p("ascendingSort")
-                  .record(!props.settings.exerciseStatsSettings.ascendingSort)
+                  .record(!props.settings.exerciseStatsSettings.ascendingSort),
+                "Toggle sort order"
               );
             }}
           />
@@ -92,7 +93,8 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                 lb<ISettings>()
                   .p("exerciseStatsSettings")
                   .p("hideWithoutExerciseNotes")
-                  .record(!props.settings.exerciseStatsSettings.hideWithoutExerciseNotes)
+                  .record(!props.settings.exerciseStatsSettings.hideWithoutExerciseNotes),
+                "Toggle exercise notes filter"
               );
             }}
           />
@@ -106,7 +108,8 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                 lb<ISettings>()
                   .p("exerciseStatsSettings")
                   .p("hideWithoutWorkoutNotes")
-                  .record(!props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes)
+                  .record(!props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes),
+                "Toggle workout notes filter"
               );
             }}
           />

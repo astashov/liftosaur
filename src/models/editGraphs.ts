@@ -89,6 +89,7 @@ export namespace EditGraphs {
         .recordModify((ex) => {
           return Array.from(new Set([...ex, { vtype: "graph", type: "statsWeight", id: statsKey }]));
         }),
+      desc: `Add weight stat graph`,
     });
   }
 
@@ -101,6 +102,7 @@ export namespace EditGraphs {
         .recordModify((ex) => {
           return Array.from(new Set([...ex, { vtype: "graph", type: "statsLength", id: statsKey }]));
         }),
+      desc: `Add length stat graph`,
     });
   }
 
@@ -113,6 +115,7 @@ export namespace EditGraphs {
         .recordModify((ex) => {
           return Array.from(new Set([...ex, { vtype: "graph", type: "statsPercentage", id: statsKey }]));
         }),
+      desc: `Add percentage stat graph`,
     });
   }
 }

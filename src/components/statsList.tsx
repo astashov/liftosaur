@@ -144,7 +144,8 @@ export function StatsList(props: IProps): JSX.Element {
                 .recordModify((opts) => ({
                   ...opts,
                   movingAverageWindowSize: value ? parseInt(value, 10) : undefined,
-                }))
+                })),
+              "Update moving average"
             );
           }}
         />

@@ -140,7 +140,7 @@ export function EditProgramModalExercise(props: IEditProgramModalExerciseProps):
           largeImageUrl,
           exercise
         );
-        updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));
+        updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises), "Create custom exercise");
         if (exercise) {
           const program = ObjectUtils.clone({ ...Program.create("Temp"), planner });
           const newProgram = Program.changeExerciseName(exercise.name, name, program, {
@@ -163,7 +163,8 @@ export function EditProgramModalExercise(props: IEditProgramModalExerciseProps):
             .recordModify((exercises) => {
               const exercise = exercises[id];
               return exercise != null ? { ...exercises, [id]: { ...exercise, isDeleted: true } } : exercises;
-            })
+            }),
+          "Delete custom exercise"
         );
       }}
       settings={props.settings}
