@@ -1,6 +1,5 @@
 import { JSX, h } from "preact";
 import { Exercise } from "../models/exercise";
-import { ExerciseImageUtils } from "../models/exerciseImage";
 import { Reps } from "../models/set";
 import { IHistoryEntry, IHistoryRecord, ISettings } from "../types";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
@@ -49,19 +48,13 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
         }}
         data-cy={`workout-tab-${StringUtils.dashcase(exercise.name)}`}
       >
-        {ExerciseImageUtils.exists(entry.exercise, "small") ||
-        ExerciseImageUtils.existsCustom(entry.exercise, "small", props.settings) ? (
-          <ExerciseImage className="h-10" exerciseType={entry.exercise} size="small" settings={props.settings} />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-start text-xs text-left bg-white text-grayv3-500">
-            <div
-              className="flex items-stretch justify-start w-full h-full p-1 leading-3 fade-mask"
-              style={{ fontSize: "0.7rem" }}
-            >
-              {Exercise.nameWithEquipment(exercise, props.settings)}
-            </div>
-          </div>
-        )}
+        <ExerciseImage
+          useTextForCustomExercise={true}
+          className="h-10"
+          exerciseType={entry.exercise}
+          size="small"
+          settings={props.settings}
+        />
         {setsStatus === "not-finished" ? (
           props.shouldShowProgress && (
             <div

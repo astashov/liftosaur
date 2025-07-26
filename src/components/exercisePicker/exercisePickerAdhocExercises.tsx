@@ -15,6 +15,7 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { exercisePickerSortNames } from "./exercisePickerFilter";
 import { ExercisePickerUtils } from "./exercisePickerUtils";
+import { IconEdit2 } from "../icons/iconEdit2";
 
 interface IProps {
   settings: ISettings;
@@ -27,12 +28,11 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
   return (
     <div className="relative">
       <SearchAndFilter dispatch={props.dispatch} state={props.state} />
-      <CustomExercises onStar={props.onStar} settings={props.settings} state={props.state} showMuscles={true} />
+      <CustomExercises dispatch={props.dispatch} onStar={props.onStar} settings={props.settings} state={props.state} />
       <BuiltinExercises
         onStar={props.onStar}
         shouldAddExternalLinks={true}
         state={props.state}
-        showMuscles={true}
         settings={props.settings}
       />
     </div>
@@ -113,8 +113,8 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
 interface ICustomExercisesProps {
   settings: ISettings;
   exerciseType?: IExerciseType;
+  dispatch: ILensDispatch<IExercisePickerState>;
   state: IExercisePickerState;
-  showMuscles?: boolean;
   onStar: (key: string) => void;
 }
 
@@ -125,10 +125,11 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
     exercises = Exercise.filterCustomExercises(exercises, props.state.search);
   }
   exercises = ExercisePickerUtils.filterCustomExercises(exercises, props.state.filters);
-  let exercisesList = CollectionUtils.compact(ObjectUtils.values(props.settings.exercises));
+  let exercisesList = CollectionUtils.compact(ObjectUtils.values(exercises));
   if (props.state.filters.isStarred) {
     exercisesList = exercisesList.filter((e) => props.settings.starredExercises?.[Exercise.toKey(e)]);
   }
+  exercisesList = exercisesList.filter((e) => !e.isDeleted);
 
   return (
     <div className="py-2">
@@ -139,7 +140,18 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
         name="Custom Exercises"
         headerClassName="mx-4"
         rightAddOn={
-          <LinkButton className="text-xs" name="create-custom-exercise">
+          <LinkButton
+            className="text-xs"
+            name="create-custom-exercise"
+            onClick={() => {
+              props.dispatch(
+                lb<IExercisePickerState>()
+                  .p("screenStack")
+                  .recordModify((stack) => [...stack, "customExercise"]),
+                "Navigate to create custom exercise screen"
+              );
+            }}
+          >
             Create
           </LinkButton>
         }
@@ -156,11 +168,22 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
               <ExerciseItem
                 onStar={props.onStar}
                 isMultiselect={false}
-                showMuscles={props.showMuscles}
+                showMuscles={props.state.showMuscles}
                 settings={props.settings}
                 currentExerciseType={props.exerciseType}
                 exercise={ex}
                 equipment={ex.equipment}
+                onEdit={() => {
+                  props.dispatch(
+                    [
+                      lb<IExercisePickerState>()
+                        .p("screenStack")
+                        .recordModify((stack) => [...stack, "customExercise"]),
+                      lb<IExercisePickerState>().p("editCustomExercise").record(e),
+                    ],
+                    `Navigate to edit custom exercise screen for ${e.name}`
+                  );
+                }}
               />
             </section>
           );
@@ -172,7 +195,6 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
 
 interface IBuiltinExercisesProps {
   shouldAddExternalLinks?: boolean;
-  showMuscles?: boolean;
   state: IExercisePickerState;
   settings: ISettings;
   onStar: (key: string) => void;
@@ -204,7 +226,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
               <ExerciseItem
                 onStar={props.onStar}
                 isMultiselect={false}
-                showMuscles={props.showMuscles}
+                showMuscles={props.state.showMuscles}
                 settings={props.settings}
                 currentExerciseType={props.exerciseType}
                 exercise={e}
@@ -223,6 +245,7 @@ interface IExerciseItemProps {
   equipment?: string;
   settings: ISettings;
   onStar: (key: string) => void;
+  onEdit?: () => void;
   currentExerciseType?: { id: string; equipment?: string };
   showMuscles?: boolean;
   isMultiselect?: boolean;
@@ -233,11 +256,19 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
   const exerciseType = { id: e.id, equipment: props.equipment || e.defaultEquipment };
   const key = Exercise.toKey(e);
   const isStarred = !!props.settings.starredExercises?.[key];
+  const onEdit = props.onEdit;
 
   return (
     <section className="flex gap-2">
       <div className="self-center w-12" style={{ minHeight: "2.5rem" }}>
-        <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
+        <ExerciseImage
+          useTextForCustomExercise={true}
+          customClassName="border border-grayv3-200 rounded-lg overflow-hidden"
+          settings={props.settings}
+          className="w-full"
+          exerciseType={exerciseType}
+          size="small"
+        />
       </div>
       <div className="flex-1 py-2 text-sm text-left">
         <button
@@ -264,7 +295,14 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
           <MuscleGroupsView exercise={e} settings={props.settings} />
         )}
       </div>
-      <div>
+      <div className="flex items-center">
+        {onEdit && (
+          <div>
+            <button onClick={onEdit} className="px-2 pb-2">
+              <IconEdit2 />
+            </button>
+          </div>
+        )}
         {props.isMultiselect ? (
           <span className="px-2 pb-2 radio">
             <input type="radio" name="picker-exercise" value={Exercise.toKey(e)} />

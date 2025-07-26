@@ -9,9 +9,12 @@ import { Exercise } from "../models/exercise";
 interface IProps {
   exerciseType: IExerciseType;
   size: "large" | "small";
+  useTextForCustomExercise?: boolean;
+  useBorderForCustomExercise?: boolean;
   suppressCustom?: boolean;
   settings?: ISettings;
   className?: string;
+  customClassName?: string;
 }
 
 export function ExerciseImage(props: IProps): JSX.Element | null {
@@ -53,16 +56,28 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
       <>
         {!isError && doesExist && <img data-cy="exercise-image-small" ref={imgRef} className={className} src={src} />}
         {isError ||
-          (!doesExist && (
-            <div className={`h-0 inline-block ${props.className}`}>
-              <div
-                className="relative inline-block w-full h-full overflow-hidden align-middle"
-                style={{ paddingBottom: "100%" }}
-              >
-                <IconDefaultExercise className={`absolute top-0 left-0 w-full h-full`} />
+          (!doesExist &&
+            (props.useTextForCustomExercise ? (
+              <div className={`relative ${props.className} ${props.customClassName}`} style={{ paddingBottom: "100%" }}>
+                <div className="absolute inset-0 flex items-center justify-start text-xs text-left bg-white text-grayv3-500">
+                  <div
+                    className="flex items-stretch justify-start w-full h-full p-1 leading-3 fade-mask"
+                    style={{ fontSize: "0.7rem" }}
+                  >
+                    {Exercise.nameWithEquipment(exercise, props.settings)}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ) : (
+              <div className={`h-0 inline-block ${props.className}`}>
+                <div
+                  className="relative inline-block w-full h-full overflow-hidden align-middle"
+                  style={{ paddingBottom: "100%" }}
+                >
+                  <IconDefaultExercise className={`absolute top-0 left-0 w-full h-full`} />
+                </div>
+              </div>
+            )))}
       </>
     );
   } else {
