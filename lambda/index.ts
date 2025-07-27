@@ -267,7 +267,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
         const result = await userDao.applySafeSync2(limitedUser, storageUpdate);
         if (result.success) {
           di.log.log("New original id", result.data.originalId);
-          const fullUser = (await userDao.getById(userId, { historyLimit: historylimit }))!;
+          const fullUser = (await userDao.getById(userId))!;
           const storage = fullUser.storage;
           if (storage.tempUserId !== userId) {
             storage.tempUserId = userId;
@@ -294,6 +294,9 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
               ),
               update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
             });
+          }
+          if (historylimit != null) {
+            storage.history = storage.history.slice(0, historylimit);
           }
           return response(200, { type: "dirty", storage, email: limitedUser.email, user_id: limitedUser.id, key });
         } else {

@@ -75,9 +75,7 @@
  * // Result: { age: 1234567890, settings: { theme: 1234567890 } }
  * ```
  */
-import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
-import { lg } from "../utils/posthog";
 import { SetUtils } from "../utils/setUtils";
 
 export interface IVersions<T> {
@@ -242,50 +240,6 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
               delete collectionVersions.deleted[itemId];
             }
           }
-        }
-
-        try {
-          const grouped = CollectionUtils.groupByExpr(
-            ObjectUtils.entries(collectionVersions.deleted || {}),
-            ([, v]) => `${v}`
-          );
-          const keys = ObjectUtils.keys(grouped).filter((group) => {
-            const values = grouped[group];
-            return values != null && values.length > 2;
-          });
-          if (keys.length > 0) {
-            const suspiciousKeys = [];
-            for (const key of keys) {
-              for (const k of grouped[key] || []) {
-                const deletekey = k[0];
-                if (deletekey != null) {
-                  suspiciousKeys.push(deletekey);
-                  delete (collectionVersions.deleted || {})[deletekey];
-                }
-              }
-            }
-            try {
-              if (typeof global !== "undefined") {
-                (global as any).suspiciousDeletion = suspiciousKeys;
-              }
-              if (typeof window !== "undefined") {
-                (window as any).suspiciousDeletion = suspiciousKeys;
-              }
-              lg("ls-suspicious-deletion", {
-                trace: new Error().stack ?? "",
-                path: path,
-                oldFull: JSON.stringify(oldFull),
-                newFull: JSON.stringify(newFull),
-                oldFullVersion: JSON.stringify(oldFullVersion),
-                newFullVersion: JSON.stringify(newFullVersion),
-              });
-            } catch (e) {
-              console.error(e);
-              lg("ls-suspicious-deletion-error");
-            }
-          }
-        } catch (e) {
-          lg("ls-deletion-escape-error", { error: `${e}` });
         }
 
         const hasChanges =
