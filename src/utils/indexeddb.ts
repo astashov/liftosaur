@@ -143,17 +143,21 @@ export namespace IndexedDBUtils {
 
   export async function get(key: string): Promise<unknown> {
     let result: unknown = undefined;
+    const userid =
+      typeof window !== "undefined"
+        ? (window.tempUserId ?? (key.startsWith("liftosaur_") ? key.replace("liftosaur_", "") : undefined))
+        : undefined;
     if (nativeStorage != null) {
       result = await withNative(() => nativeStorage?.get(key));
       if (result == null) {
-        lg("ls-native-fallback-get", { key });
+        lg("ls-native-fallback-get", { key }, undefined, userid);
         result = await withTransaction("readonly", (objectStore) => objectStore.getAll(key)).then(
           (results: unknown[] | undefined) => {
             return results?.[0];
           }
         );
       } else {
-        lg("ls-native-get", { key });
+        lg("ls-native-get", { key }, undefined, userid);
       }
       return result;
     } else {
@@ -162,7 +166,7 @@ export namespace IndexedDBUtils {
           return results?.[0];
         }
       );
-      lg("ls-indexeddb-get", { key });
+      lg("ls-indexeddb-get", { key }, undefined, userid);
     }
     return result;
   }
