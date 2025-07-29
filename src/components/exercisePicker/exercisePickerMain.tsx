@@ -1,22 +1,27 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IconMuscles2 } from "../icons/iconMuscles2";
 import { IconStar } from "../icons/iconStar";
 import { Tailwind } from "../../utils/tailwindConfig";
 import { ScrollableTabs } from "../scrollableTabs";
 import { ExercisePickerFromProgram } from "./exercisePickerFromProgram";
 import { IEvaluatedProgram } from "../../models/program";
-import { IExercisePickerState, ISettings } from "../../types";
+import { IExercisePickerSelectedExercise, IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { ExercisePickerAdhocExercises } from "./exercisePickerAdhocExercises";
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
+import { Exercise } from "../../models/exercise";
+import { ExercisePickerUtils } from "./exercisePickerUtils";
+import { CollectionUtils } from "../../utils/collection";
 
 interface IProps {
   isHidden: boolean;
   settings: ISettings;
   dispatch: ILensDispatch<IExercisePickerState>;
   onStar: (key: string) => void;
+  onChoose: (selectedExercises: IExercisePickerSelectedExercise[]) => void;
   state: IExercisePickerState;
+  exerciseType?: IExerciseType;
   evaluatedProgram?: IEvaluatedProgram;
   onClose: () => void;
 }
@@ -24,6 +29,19 @@ interface IProps {
 export function ExercisePickerMain(props: IProps): JSX.Element {
   const { evaluatedProgram } = props;
   const isStarred = !!props.state.filters.isStarred;
+  const selectedExercises = CollectionUtils.compact(
+    props.state.selectedExercises.map((e) => {
+      if (e.type === "adhoc") {
+        const ex = Exercise.get(e.exerciseType, props.settings.exercises);
+        return Exercise.fullName(ex, props.settings);
+      } else {
+        return evaluatedProgram
+          ? ExercisePickerUtils.getProgramExercisefullName(e, evaluatedProgram, props.settings)
+          : undefined;
+      }
+    })
+  );
+
   return (
     <div className="flex flex-col h-full" style={{ marginTop: "-0.75rem" }}>
       <div className="relative py-4 mt-2">
@@ -75,7 +93,13 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
               {
                 label: "From Program",
                 children: () => (
-                  <ExercisePickerFromProgram settings={props.settings} evaluatedProgram={evaluatedProgram} />
+                  <ExercisePickerFromProgram
+                    state={props.state}
+                    dispatch={props.dispatch}
+                    exerciseType={props.exerciseType}
+                    settings={props.settings}
+                    evaluatedProgram={evaluatedProgram}
+                  />
                 ),
               },
               {
@@ -84,6 +108,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                   <ExercisePickerAdhocExercises
                     onStar={props.onStar}
                     state={props.state}
+                    exerciseType={props.exerciseType}
                     settings={props.settings}
                     dispatch={props.dispatch}
                   />
@@ -101,9 +126,27 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         )}
       </div>
       <div className="w-full px-4 pt-2 pb-2" style={{ boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" }}>
-        <Button className="w-full" name="pick-exercises" kind="purple" buttonSize="lg">
-          Add to this workout
-        </Button>
+        <div>
+          <Button
+            className="w-full"
+            name="pick-exercises"
+            kind="purple"
+            buttonSize="lg"
+            onClick={() => {
+              props.onChoose(props.state.selectedExercises);
+            }}
+          >
+            Add to this workout{selectedExercises.length > 0 ? ` (${selectedExercises.length})` : ""}
+          </Button>
+        </div>
+        <div className="text-xs text-grayv3-main">
+          {selectedExercises.map((e, i) => (
+            <>
+              {i > 0 ? ", " : ""}
+              <strong>{e}</strong>
+            </>
+          ))}
+        </div>
       </div>
     </div>
   );

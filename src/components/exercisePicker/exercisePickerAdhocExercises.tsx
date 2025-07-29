@@ -21,6 +21,7 @@ interface IProps {
   settings: ISettings;
   onStar: (key: string) => void;
   state: IExercisePickerState;
+  exerciseType?: IExerciseType;
   dispatch: ILensDispatch<IExercisePickerState>;
 }
 
@@ -28,8 +29,16 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
   return (
     <div className="relative">
       <SearchAndFilter dispatch={props.dispatch} state={props.state} />
-      <CustomExercises dispatch={props.dispatch} onStar={props.onStar} settings={props.settings} state={props.state} />
+      <CustomExercises
+        exerciseType={props.exerciseType}
+        dispatch={props.dispatch}
+        onStar={props.onStar}
+        settings={props.settings}
+        state={props.state}
+      />
       <BuiltinExercises
+        exerciseType={props.exerciseType}
+        dispatch={props.dispatch}
         onStar={props.onStar}
         shouldAddExternalLinks={true}
         state={props.state}
@@ -158,6 +167,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
       >
         {exercisesList.map((e) => {
           const ex = Exercise.get({ id: e.id }, props.settings.exercises);
+          const isSelectedAlready = props.state.selectedExercises.some((ex) => Exercise.eq(ex.exerciseType, e));
           return (
             <section
               key={Exercise.toKey(e)}
@@ -167,12 +177,19 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
             >
               <ExerciseItem
                 onStar={props.onStar}
-                isMultiselect={false}
+                isMultiselect={props.state.mode === "workout" && !props.exerciseType}
+                isEnabled={!isSelectedAlready}
                 showMuscles={props.state.showMuscles}
                 settings={props.settings}
                 currentExerciseType={props.exerciseType}
                 exercise={ex}
                 equipment={ex.equipment}
+                isSelected={props.state.selectedExercises.some(
+                  (ex) => ex.type === "adhoc" && Exercise.eq(ex.exerciseType, e)
+                )}
+                onChoose={(key) => {
+                  ExercisePickerUtils.chooseAdhocExercise(props.dispatch, key, props.state.selectedExercises);
+                }}
                 onEdit={() => {
                   props.dispatch(
                     [
@@ -198,6 +215,7 @@ interface IBuiltinExercisesProps {
   state: IExercisePickerState;
   settings: ISettings;
   onStar: (key: string) => void;
+  dispatch: ILensDispatch<IExercisePickerState>;
   exerciseType?: IExerciseType;
 }
 
@@ -214,6 +232,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
     <div className="py-2">
       <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4">
         {exercises.map((e) => {
+          const isSelectedAlready = props.state.selectedExercises.some((ex) => Exercise.eq(ex.exerciseType, e));
           return (
             <section
               key={Exercise.toKey(e)}
@@ -225,7 +244,14 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
             >
               <ExerciseItem
                 onStar={props.onStar}
-                isMultiselect={false}
+                isMultiselect={props.state.mode === "workout" && !props.exerciseType}
+                isEnabled={!isSelectedAlready}
+                isSelected={props.state.selectedExercises.some(
+                  (ex) => ex.type === "adhoc" && Exercise.eq(ex.exerciseType, e)
+                )}
+                onChoose={(key) => {
+                  ExercisePickerUtils.chooseAdhocExercise(props.dispatch, key, props.state.selectedExercises);
+                }}
                 showMuscles={props.state.showMuscles}
                 settings={props.settings}
                 currentExerciseType={props.exerciseType}
@@ -248,6 +274,9 @@ interface IExerciseItemProps {
   onEdit?: () => void;
   currentExerciseType?: { id: string; equipment?: string };
   showMuscles?: boolean;
+  isEnabled: boolean;
+  isSelected?: boolean;
+  onChoose: (key: string) => void;
   isMultiselect?: boolean;
 }
 
@@ -303,13 +332,26 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
             </button>
           </div>
         )}
-        {props.isMultiselect ? (
+        {!props.isMultiselect ? (
           <span className="px-2 pb-2 radio">
-            <input type="radio" name="picker-exercise" value={Exercise.toKey(e)} />
+            <input
+              type="radio"
+              disabled={!props.isEnabled && !props.isSelected}
+              name="picker-exercise"
+              value={Exercise.toKey(e)}
+              onChange={() => props.onChoose(Exercise.toKey(e))}
+              checked={props.isSelected}
+            />
           </span>
         ) : (
           <label className="block p-2">
-            <input checked={false} className="checkbox checkbox-purple text-purplev3-main" type="checkbox" />
+            <input
+              checked={props.isSelected}
+              disabled={!props.isEnabled && !props.isSelected}
+              className="checkbox checkbox-purple text-purplev3-main"
+              type="checkbox"
+              onChange={() => props.onChoose(Exercise.toKey(e))}
+            />
           </label>
         )}
       </div>

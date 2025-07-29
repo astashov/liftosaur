@@ -639,11 +639,30 @@ export const TExercisePickerFilters = t.partial(
 );
 export type IExercisePickerFilters = t.TypeOf<typeof TExercisePickerFilters>;
 
+export const TExercisePickerProgramExercise = t.type({
+  type: t.literal("program"),
+  exerciseType: TExerciseType,
+  week: t.number,
+  dayInWeek: t.number,
+});
+export type IExercisePickerProgramExercise = t.TypeOf<typeof TExercisePickerProgramExercise>;
+
+export const TExercisePickerAdhocExercise = t.type({
+  type: t.literal("adhoc"),
+  exerciseType: TExerciseType,
+});
+export type IExercisePickerAdhocExercise = t.TypeOf<typeof TExercisePickerAdhocExercise>;
+
+export const TExercisePickerSelectedExercise = t.union([TExercisePickerProgramExercise, TExercisePickerAdhocExercise]);
+export type IExercisePickerSelectedExercise = t.TypeOf<typeof TExercisePickerSelectedExercise>;
+
 export const TExercisePickerState = t.intersection([
   t.interface({
     screenStack: t.array(TExercisePickerScreen),
     sort: TExercisePickerSort,
     filters: TExercisePickerFilters,
+    selectedExercises: t.array(TExercisePickerSelectedExercise),
+    mode: t.union([t.literal("workout"), t.literal("program")]),
   }),
   t.partial({
     showMuscles: t.boolean,
