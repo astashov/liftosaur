@@ -346,6 +346,7 @@ export function AppView(props: IProps): JSX.Element | null {
     content = (
       <ScreenWorkout
         navCommon={navCommon}
+        stats={state.storage.stats}
         helps={state.storage.helps}
         history={state.storage.history}
         subscription={state.storage.subscription}

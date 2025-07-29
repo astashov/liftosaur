@@ -316,7 +316,7 @@ input[type="checkbox"].checkbox:focus {
 }
 
 input[type="checkbox"].checkbox:disabled {
-  color: #8b9bab;
+  color: var(--color-grayv3-200);
   cursor: not-allowed;
 }
 

@@ -557,12 +557,16 @@ export namespace Program {
   }
 
   export function previewProgram(dispatch: IDispatch, programId: string, showCustomPrograms: boolean): void {
-    updateState(dispatch, [
-      lb<IState>().p("previewProgram").record({
-        id: programId,
-        showCustomPrograms,
-      }),
-    ], "Preview program");
+    updateState(
+      dispatch,
+      [
+        lb<IState>().p("previewProgram").record({
+          id: programId,
+          showCustomPrograms,
+        }),
+      ],
+      "Preview program"
+    );
     dispatch(Thunk.pushScreen("programPreview"));
   }
 
@@ -589,31 +593,35 @@ export namespace Program {
   }
 
   export function cloneProgram(dispatch: IDispatch, program: IProgram, settings: ISettings): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .recordModify((programs) => {
-          const newProgram = { ...program, clonedAt: Date.now() };
-          if (newProgram.planner) {
-            newProgram.planner = PlannerProgram.switchToUnit(newProgram.planner, settings);
-          }
-          if (programs.some((p) => p.id === program.id)) {
-            if (
-              confirm(
-                "You already have this program cloned. Do you want to override? All your modifications of this program will be lost."
-              )
-            ) {
-              return programs.map((p) => (p.id === newProgram.id ? newProgram : p));
-            } else {
-              return programs;
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("programs")
+          .recordModify((programs) => {
+            const newProgram = { ...program, clonedAt: Date.now() };
+            if (newProgram.planner) {
+              newProgram.planner = PlannerProgram.switchToUnit(newProgram.planner, settings);
             }
-          } else {
-            return [...programs, newProgram];
-          }
-        }),
-      lb<IState>().p("storage").p("currentProgramId").record(program.id),
-    ], "Clone program");
+            if (programs.some((p) => p.id === program.id)) {
+              if (
+                confirm(
+                  "You already have this program cloned. Do you want to override? All your modifications of this program will be lost."
+                )
+              ) {
+                return programs.map((p) => (p.id === newProgram.id ? newProgram : p));
+              } else {
+                return programs;
+              }
+            } else {
+              return [...programs, newProgram];
+            }
+          }),
+        lb<IState>().p("storage").p("currentProgramId").record(program.id),
+      ],
+      "Clone program"
+    );
   }
 
   export function selectProgram(dispatch: IDispatch, programId: string): void {
@@ -628,6 +636,28 @@ export namespace Program {
   export function getAllUsedProgramExercises(evaluatedProgram: IEvaluatedProgram): IPlannerProgramExerciseUsed[] {
     const used = getAllProgramExercises(evaluatedProgram).filter((e) => !e.notused && e.exerciseType != null);
     return used as IPlannerProgramExerciseUsed[];
+  }
+
+  export function getProgramExerciseByTypeWeekAndDay(
+    evaluatedProgram: IEvaluatedProgram,
+    exerciseType: IExerciseType,
+    week: number,
+    dayInWeek: number
+  ): IPlannerProgramExercise | undefined {
+    let exercise: IPlannerProgramExercise | undefined;
+    PP.iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex) => {
+      if (
+        weekIndex + 1 === week &&
+        dayInWeekIndex + 1 === dayInWeek &&
+        e.exerciseType &&
+        Exercise.eq(e.exerciseType, exerciseType)
+      ) {
+        exercise = e;
+        return true;
+      }
+      return false;
+    });
+    return exercise;
   }
 
   export const evaluate = memoize(

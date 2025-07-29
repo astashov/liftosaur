@@ -2,9 +2,13 @@ import { h, JSX } from "preact";
 import { IEvaluatedProgram } from "../../models/program";
 import { ScrollableTabs } from "../scrollableTabs";
 import { ExercisePickerAllProgramExercises } from "./exercisePickerAllProgramExercises";
-import { ISettings } from "../../types";
+import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
+import { ILensDispatch } from "../../utils/useLensReducer";
 
 interface IProps {
+  state: IExercisePickerState;
+  dispatch: ILensDispatch<IExercisePickerState>;
+  exerciseType?: IExerciseType;
   evaluatedProgram: IEvaluatedProgram;
   settings: ISettings;
 }
@@ -25,9 +29,11 @@ export function ExercisePickerFromProgram(props: IProps): JSX.Element {
             children: () => {
               return (
                 <ExercisePickerAllProgramExercises
+                  dispatch={props.dispatch}
+                  state={props.state}
+                  exerciseType={props.exerciseType}
                   settings={props.settings}
                   evaluatedProgram={props.evaluatedProgram}
-                  weekIndex={weekIndex}
                   week={week}
                 />
               );
@@ -39,9 +45,11 @@ export function ExercisePickerFromProgram(props: IProps): JSX.Element {
   } else if (weeks.length === 1) {
     return (
       <ExercisePickerAllProgramExercises
+        dispatch={props.dispatch}
+        state={props.state}
+        exerciseType={props.exerciseType}
         settings={props.settings}
         evaluatedProgram={props.evaluatedProgram}
-        weekIndex={0}
         week={props.evaluatedProgram.weeks[0]}
       />
     );
