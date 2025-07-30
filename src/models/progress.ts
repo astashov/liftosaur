@@ -556,6 +556,19 @@ export namespace Progress {
     return entry.sets.filter((s) => !s.isCompleted).length === 1;
   }
 
+  export function isChanged(aProgress?: IHistoryRecord, bProgress?: IHistoryRecord): boolean {
+    if (aProgress != null && bProgress == null) {
+      return true;
+    } else if (aProgress == null && bProgress != null) {
+      return true;
+    } else if (aProgress == null && bProgress == null) {
+      return false;
+    } else {
+      const changed = !ObjectUtils.isEqual(aProgress!, bProgress!);
+      return changed;
+    }
+  }
+
   export function showUpdateDate(progress: IHistoryRecord, date: string, time: number): IHistoryRecord {
     return {
       ...progress,
@@ -911,7 +924,11 @@ export namespace Progress {
   }
 
   export function showAddExerciseModal(dispatch: IDispatch, progressId: number): void {
-    updateState(dispatch, [lb<IState>().p("progress").pi(progressId).pi("ui").p("exerciseModal").record({})], "Show add exercise modal");
+    updateState(
+      dispatch,
+      [lb<IState>().p("progress").pi(progressId).pi("ui").p("exerciseModal").record({})],
+      "Show add exercise modal"
+    );
   }
 
   export function addExercise(dispatch: IDispatch, exerciseType: IExerciseType, numberOfEntries: number): void {
@@ -934,16 +951,20 @@ export namespace Progress {
     exerciseType: IExerciseType,
     entryIndex: number
   ): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("progress")
-        .pi(progressId)
-        .p("entries")
-        .i(entryIndex)
-        .recordModify((entry) => {
-          return { ...entry, exercise: exerciseType, changed: true };
-        }),
-    ], "Change exercise");
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("progress")
+          .pi(progressId)
+          .p("entries")
+          .i(entryIndex)
+          .recordModify((entry) => {
+            return { ...entry, exercise: exerciseType, changed: true };
+          }),
+      ],
+      "Change exercise"
+    );
   }
 
   export function changeEquipment(
@@ -952,16 +973,20 @@ export namespace Progress {
     entryIndex: number,
     equipment: IEquipment
   ): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("progress")
-        .pi(progressId)
-        .p("entries")
-        .i(entryIndex)
-        .p("exercise")
-        .p("equipment")
-        .record(equipment),
-    ], "Change equipment");
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("progress")
+          .pi(progressId)
+          .p("entries")
+          .i(entryIndex)
+          .p("exercise")
+          .p("equipment")
+          .record(equipment),
+      ],
+      "Change equipment"
+    );
   }
 
   export function editNotes(dispatch: IDispatch, progressId: number, notes: string): void {

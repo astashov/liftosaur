@@ -1,20 +1,23 @@
+import { SendMessage } from "./sendMessage";
 import { StringUtils } from "./string";
 
 export interface IFeature {
   name: string;
   rollout: number;
   userids: string[];
+  platform?: "ios" | "android";
 }
 
-const nativestorage: IFeature = {
-  name: "nativestorage",
+const newstorage: IFeature = {
+  name: "newstorage",
   rollout: 0.05,
-  userids: ["tiolnbjbleke"],
+  userids: ["tiolnbjbleke", "udvlvsutjj", "gwwxznaz"],
+  platform: "ios",
 };
 
 export class Features {
   private static features = {
-    nativestorage,
+    newstorage,
   } as const;
 
   static isEnabled(name: keyof typeof this.features, userid?: string): boolean {
@@ -26,8 +29,15 @@ export class Features {
     if (userid == null) {
       return false;
     }
-    const hash = StringUtils.hashCode(userid);
-    const isRolloutEnabled = feature.rollout > 0 && feature.rollout >= hash;
+    if (
+      feature.platform &&
+      ((feature.platform === "ios" && !SendMessage.isIos()) ||
+        (feature.platform === "android" && !SendMessage.isAndroid()))
+    ) {
+      return false;
+    }
+    const hash = StringUtils.hashCode0To1(userid);
+    const isRolloutEnabled = feature.rollout > 0 && hash <= feature.rollout;
     if (isRolloutEnabled) {
       return true;
     }

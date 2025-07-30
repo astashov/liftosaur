@@ -43,6 +43,7 @@ import { EditProgramUiHelpers } from "../components/editProgram/editProgramUi/ed
 import { c } from "../utils/types";
 import { ICollectionVersions } from "../models/versionTracker";
 import { lg } from "../utils/posthog";
+import { Features } from "../utils/features";
 
 declare let __COMMIT_HASH__: string;
 
@@ -458,7 +459,8 @@ export const reducerWrapper =
       }
     }
     let newState = reducer(state, action);
-    if (Storage.isChanged(state.storage, newState.storage)) {
+    const isStorageChanged = Storage.isChanged(state.storage, newState.storage);
+    if (isStorageChanged) {
       const versions = Storage.updateVersions(state.storage, newState.storage);
       newState = { ...newState, storage: { ...newState.storage, _versions: versions } };
     }
@@ -470,32 +472,63 @@ export const reducerWrapper =
       }
     }
 
-    if (typeof window !== "undefined" && window.setTimeout && window.clearTimeout) {
-      window.tempUserId = newState.storage.tempUserId;
-      if (timerId != null) {
-        window.clearTimeout(timerId);
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).state = newState;
-      if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
-        timerId = window.setTimeout(async () => {
-          clearTimeout(timerId);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const newState2: IState = (window as any).state;
-          timerId = undefined;
-          const userId = newState2.user?.id || newState2.storage.tempUserId;
-          const localStorage: ILocalStorage = {
-            storage: newState2.storage,
-            lastSyncedStorage: newState2.lastSyncedStorage,
-            progress: newState2.progress[0],
-          };
-          await IndexedDBUtils.set("current_account", userId);
-          await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
-        }, 100);
+    if (Features.isEnabled("newstorage", newState.user?.id || newState.storage.tempUserId)) {
+      newStorageApproach(state, newState, isStorageChanged);
+    } else {
+      if (typeof window !== "undefined" && window.setTimeout && window.clearTimeout) {
+        window.tempUserId = newState.storage.tempUserId;
+        if (timerId != null) {
+          window.clearTimeout(timerId);
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).state = newState;
+        if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
+          timerId = window.setTimeout(async () => {
+            clearTimeout(timerId);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const newState2: IState = (window as any).state;
+            timerId = undefined;
+            const userId = newState2.user?.id || newState2.storage.tempUserId;
+            const localStorage: ILocalStorage = {
+              storage: newState2.storage,
+              lastSyncedStorage: newState2.lastSyncedStorage,
+              progress: newState2.progress[0],
+            };
+            await IndexedDBUtils.set("current_account", userId);
+            await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
+          }, 100);
+        }
       }
     }
     return newState;
   };
+
+function newStorageApproach(oldState: IState, newState: IState, isStorageChanged: boolean): IState {
+  if (typeof window !== "undefined") {
+    window.tempUserId = newState.storage.tempUserId;
+    (window as any).state = newState;
+    const isLocalStorageChanged =
+      isStorageChanged ||
+      Storage.isChanged(oldState.lastSyncedStorage, newState.lastSyncedStorage) ||
+      Progress.isChanged(oldState.progress[0], newState.progress[0]);
+    if (isLocalStorageChanged && newState.errors.corruptedstorage == null) {
+      const userId = newState.user?.id || newState.storage.tempUserId;
+      const localStorage: ILocalStorage = {
+        storage: newState.storage,
+        lastSyncedStorage: newState.lastSyncedStorage,
+        progress: newState.progress[0],
+      };
+      Promise.all([
+        IndexedDBUtils.set("current_account", userId),
+        IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage)),
+      ]).then(() => {
+        lg("saved-to-storage", undefined, undefined, userId);
+        console.log("Saved to storage");
+      });
+    }
+  }
+  return newState;
+}
 
 export function buildCardsReducer(
   settings: ISettings,

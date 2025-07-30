@@ -139,18 +139,28 @@ export namespace Storage {
 
   export function setAffiliate(dispatch: IDispatch, source?: string): void {
     if (source) {
-      updateState(dispatch, [
-        lb<IState>()
-          .p("storage")
-          .p("affiliates")
-          .recordModify((affiliates) => ({ [source]: Date.now(), ...affiliates })),
-      ], "Set affiliate");
+      updateState(
+        dispatch,
+        [
+          lb<IState>()
+            .p("storage")
+            .p("affiliates")
+            .recordModify((affiliates) => ({ [source]: Date.now(), ...affiliates })),
+        ],
+        "Set affiliate"
+      );
     }
   }
 
-  export function isChanged(aStorage: IStorage, bStorage: IStorage): boolean {
-    const { originalId: _aOriginalId, id: _aId, _versions: _aVersions, ...cleanedAStorage } = aStorage;
-    const { originalId: _bOriginalId, id: _bId, _versions: _bVersions, ...cleanedBStorage } = bStorage;
+  export function isChanged(aStorage?: IStorage, bStorage?: IStorage): boolean {
+    if ((!aStorage && bStorage) || (!bStorage && aStorage)) {
+      return true;
+    }
+    if (!aStorage && !bStorage) {
+      return false;
+    }
+    const { originalId: _aOriginalId, id: _aId, _versions: _aVersions, ...cleanedAStorage } = aStorage!;
+    const { originalId: _bOriginalId, id: _bId, _versions: _bVersions, ...cleanedBStorage } = bStorage!;
     const changed = !ObjectUtils.isEqual(cleanedAStorage, cleanedBStorage, ["version"]);
     return changed;
   }

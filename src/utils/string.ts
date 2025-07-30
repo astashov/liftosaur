@@ -113,4 +113,9 @@ export namespace StringUtils {
   export function hashString(str: string): string {
     return new Uint32Array([hashCode(str)])[0].toString(16);
   }
+
+  export function hashCode0To1(str: string): number {
+    const hash = Math.abs(hashCode(str));
+    return (hash % 10000) / 10000;
+  }
 }
