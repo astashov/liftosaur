@@ -13,6 +13,7 @@ import { lb } from "lens-shmens";
 import { Exercise } from "../../models/exercise";
 import { ExercisePickerUtils } from "./exercisePickerUtils";
 import { CollectionUtils } from "../../utils/collection";
+import { ExercisePickerCurrentExercise } from "./exercisePickerCurrentExercise";
 
 interface IProps {
   isHidden: boolean;
@@ -76,6 +77,13 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         </div>
       </div>
       <div className="flex-1 overflow-y-auto">
+        {props.exerciseType && (
+          <ExercisePickerCurrentExercise
+            state={props.state}
+            exerciseType={props.exerciseType}
+            settings={props.settings}
+          />
+        )}
         {evaluatedProgram ? (
           <ScrollableTabs
             topPadding="0rem"

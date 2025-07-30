@@ -6,9 +6,11 @@ import {
   IExercisePickerFilters,
   IExercisePickerProgramExercise,
   IExercisePickerSelectedExercise,
+  IExercisePickerSort,
   IExercisePickerState,
   IExerciseType,
   IMuscle,
+  IScreenMuscle,
   ISettings,
   screenMuscles,
 } from "../../types";
@@ -18,9 +20,10 @@ import { StringUtils } from "../../utils/string";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IEvaluatedProgram } from "../../models/program";
 import { PP } from "../../models/pp";
+import { CollectionUtils } from "../../utils/collection";
 
 export class ExercisePickerUtils {
-  public static getSelectedMuscleGroups(selectedValues: IMuscle[]): string[] {
+  public static getSelectedMuscleGroupNames(selectedValues: IMuscle[]): string[] {
     const currentGroups = screenMuscles.filter((muscleGroup) => {
       const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup);
       return muscles.every((muscle) => selectedValues.includes(muscle));
@@ -36,7 +39,7 @@ export class ExercisePickerUtils {
     return [
       ...(filters.equipment || []).map((f) => equipmentName(f)),
       ...(filters.type || []).map((m) => StringUtils.capitalize(m)),
-      ...ExercisePickerUtils.getSelectedMuscleGroups(filters.muscles || []),
+      ...ExercisePickerUtils.getSelectedMuscleGroupNames(filters.muscles || []),
     ];
   }
 
@@ -68,6 +71,49 @@ export class ExercisePickerUtils {
         return true;
       }
       return false;
+    });
+  }
+
+  public static getSelectedMuscleGroups(selectedValues: IMuscle[]): IScreenMuscle[] {
+    return screenMuscles.filter((muscleGroup) => {
+      const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup);
+      return muscles.every((muscle) => selectedValues.includes(muscle));
+    });
+  }
+
+  public static sortExercises(
+    exercises: IExercise[],
+    sort: IExercisePickerSort,
+    filters: IExercisePickerFilters,
+    allCustomExercises: IAllCustomExercises,
+    currentExerciseType?: IExerciseType
+  ): IExercise[] {
+    return CollectionUtils.sort(exercises, (a, b) => {
+      const exerciseType = currentExerciseType;
+      if (sort === "similar_muscles" && exerciseType) {
+        const aRating = Exercise.similarRating(exerciseType, a, allCustomExercises);
+        const bRating = Exercise.similarRating(exerciseType, b, allCustomExercises);
+        return bRating - aRating;
+      } else if ((filters.muscles || []).length > 0) {
+        const filterMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroups(filters.muscles || []);
+        const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, allCustomExercises);
+        const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, allCustomExercises);
+        if (
+          aTargetMuscleGroups.some((m) => filterMuscleGroups.indexOf(m) !== -1) &&
+          bTargetMuscleGroups.every((m) => filterMuscleGroups.indexOf(m) === -1)
+        ) {
+          return -1;
+        } else if (
+          bTargetMuscleGroups.some((m) => filterMuscleGroups.indexOf(m) !== -1) &&
+          aTargetMuscleGroups.every((m) => filterMuscleGroups.indexOf(m) === -1)
+        ) {
+          return 1;
+        } else {
+          return a.name.localeCompare(b.name);
+        }
+      } else {
+        return a.name.localeCompare(b.name);
+      }
     });
   }
 

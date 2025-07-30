@@ -200,7 +200,7 @@ interface IFilterMusclesProps<T extends string> {
 function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Element {
   const selectedValues = props.state.filters?.muscles || [];
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
-  const selectedMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroups(selectedValues);
+  const selectedMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroupNames(selectedValues);
   return (
     <div className="px-4 py-2 border-b border-grayv3-100">
       <div className="flex items-center pb-1" onClick={() => setIsExpanded(!isExpanded)}>

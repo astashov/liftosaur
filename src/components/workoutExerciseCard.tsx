@@ -178,8 +178,18 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                       [
                         lb<IHistoryRecord>()
                           .pi("ui")
-                          .p("exerciseModal")
-                          .record({ exerciseType: props.entry.exercise, entryIndex: props.entryIndex }),
+                          .p("exercisePicker")
+                          .record({
+                            entryIndex: props.entryIndex,
+                            exerciseType: props.entry.exercise,
+                            state: {
+                              mode: "workout",
+                              screenStack: ["exercisePicker"],
+                              sort: "name_asc",
+                              filters: {},
+                              selectedExercises: [],
+                            },
+                          }),
                       ],
                       "kebab-swap-exercise"
                     );
@@ -282,12 +292,16 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
           helps={props.helps}
           onStopShowingHint={() => {
             if (!props.helps.includes("swipeable-set")) {
-              updateState(props.dispatch, [
-                lb<IState>()
-                  .p("storage")
-                  .p("helps")
-                  .recordModify((helps) => Array.from(new Set([...helps, "swipeable-set"]))),
-              ], "Stop showing swipe hint");
+              updateState(
+                props.dispatch,
+                [
+                  lb<IState>()
+                    .p("storage")
+                    .p("helps")
+                    .recordModify((helps) => Array.from(new Set([...helps, "swipeable-set"]))),
+                ],
+                "Stop showing swipe hint"
+              );
             }
           }}
           isCurrentProgress={Progress.isCurrent(props.progress)}
