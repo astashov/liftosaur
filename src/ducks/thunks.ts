@@ -365,7 +365,12 @@ export namespace Thunk {
   export function sync2(args?: { force?: boolean; cb?: () => void; log?: boolean }): IThunk {
     return async (dispatch, getState, env) => {
       if (args?.log) {
-        dispatch(postevent("sync2-enter"));
+        dispatch(
+          postevent("sync2-enter", {
+            isProcessing: `${env.queue.getIsProcessing()}`,
+            queueLength: env.queue.length().toString(),
+          })
+        );
       }
       try {
         const state = getState();

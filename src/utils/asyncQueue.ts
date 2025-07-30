@@ -44,4 +44,12 @@ export class AsyncQueue {
   public clear(): void {
     this.queue = [];
   }
+
+  public length(): number {
+    return this.queue.length;
+  }
+
+  public getIsProcessing(): boolean {
+    return this.isProcessing;
+  }
 }
