@@ -5,10 +5,11 @@ import {
   IAllCustomExercises,
   IExercisePickerFilters,
   IExercisePickerProgramExercise,
-  IExercisePickerSelectedExercise,
+  IExercisePickerSort,
   IExercisePickerState,
   IExerciseType,
   IMuscle,
+  IScreenMuscle,
   ISettings,
   screenMuscles,
 } from "../../types";
@@ -18,9 +19,10 @@ import { StringUtils } from "../../utils/string";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IEvaluatedProgram } from "../../models/program";
 import { PP } from "../../models/pp";
+import { CollectionUtils } from "../../utils/collection";
 
 export class ExercisePickerUtils {
-  public static getSelectedMuscleGroups(selectedValues: IMuscle[]): string[] {
+  public static getSelectedMuscleGroupNames(selectedValues: IMuscle[]): string[] {
     const currentGroups = screenMuscles.filter((muscleGroup) => {
       const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup);
       return muscles.every((muscle) => selectedValues.includes(muscle));
@@ -36,7 +38,7 @@ export class ExercisePickerUtils {
     return [
       ...(filters.equipment || []).map((f) => equipmentName(f)),
       ...(filters.type || []).map((m) => StringUtils.capitalize(m)),
-      ...ExercisePickerUtils.getSelectedMuscleGroups(filters.muscles || []),
+      ...ExercisePickerUtils.getSelectedMuscleGroupNames(filters.muscles || []),
     ];
   }
 
@@ -71,6 +73,49 @@ export class ExercisePickerUtils {
     });
   }
 
+  public static getSelectedMuscleGroups(selectedValues: IMuscle[]): IScreenMuscle[] {
+    return screenMuscles.filter((muscleGroup) => {
+      const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup);
+      return muscles.every((muscle) => selectedValues.includes(muscle));
+    });
+  }
+
+  public static sortExercises(
+    exercises: IExercise[],
+    sort: IExercisePickerSort,
+    filters: IExercisePickerFilters,
+    allCustomExercises: IAllCustomExercises,
+    currentExerciseType?: IExerciseType
+  ): IExercise[] {
+    return CollectionUtils.sort(exercises, (a, b) => {
+      const exerciseType = currentExerciseType;
+      if (sort === "similar_muscles" && exerciseType) {
+        const aRating = Exercise.similarRating(exerciseType, a, allCustomExercises);
+        const bRating = Exercise.similarRating(exerciseType, b, allCustomExercises);
+        return bRating - aRating;
+      } else if ((filters.muscles || []).length > 0) {
+        const filterMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroups(filters.muscles || []);
+        const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, allCustomExercises);
+        const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, allCustomExercises);
+        if (
+          aTargetMuscleGroups.some((m) => filterMuscleGroups.indexOf(m) !== -1) &&
+          bTargetMuscleGroups.every((m) => filterMuscleGroups.indexOf(m) === -1)
+        ) {
+          return -1;
+        } else if (
+          bTargetMuscleGroups.some((m) => filterMuscleGroups.indexOf(m) !== -1) &&
+          aTargetMuscleGroups.every((m) => filterMuscleGroups.indexOf(m) === -1)
+        ) {
+          return 1;
+        } else {
+          return a.name.localeCompare(b.name);
+        }
+      } else {
+        return a.name.localeCompare(b.name);
+      }
+    });
+  }
+
   public static filterCustomExercises(
     customExercises: IAllCustomExercises,
     filters: IExercisePickerFilters
@@ -99,51 +144,74 @@ export class ExercisePickerUtils {
     exerciseType: IExerciseType,
     week: number,
     dayInWeek: number,
-    selectedExercises: IExercisePickerSelectedExercise[]
+    state: IExercisePickerState
   ): void {
-    const isInExercises = selectedExercises.some((e) => {
+    const isMultiselect = ExercisePickerUtils.getIsMultiselect(state);
+    const isInExercises = state.selectedExercises.some((e) => {
       return (
         Exercise.eq(e.exerciseType, exerciseType) &&
         (e.type === "adhoc" || e.week !== week || e.dayInWeek !== dayInWeek)
       );
     });
-    if (isInExercises) {
+    if (isMultiselect && isInExercises) {
       return;
     }
     dispatch(
       lb<IExercisePickerState>()
         .p("selectedExercises")
         .recordModify((exercises) => {
-          if (exercises.some((e) => Exercise.eq(e.exerciseType, exerciseType))) {
+          if (
+            exercises.some(
+              (e) =>
+                Exercise.eq(e.exerciseType, exerciseType) &&
+                e.type === "program" &&
+                e.week === week &&
+                e.dayInWeek === dayInWeek
+            )
+          ) {
             return exercises.filter((e) => !Exercise.eq(e.exerciseType, exerciseType));
           } else {
-            return [...exercises, { type: "program", exerciseType, week, dayInWeek }];
+            if (isMultiselect) {
+              return [...exercises, { type: "program", exerciseType, week, dayInWeek }];
+            } else {
+              return [{ type: "program", exerciseType, week, dayInWeek }];
+            }
           }
         }),
       `Toggle selection of program exercise ${Exercise.toKey(exerciseType)}[${week}:${dayInWeek}]`
     );
   }
 
+  public static getIsMultiselect(state: IExercisePickerState): boolean {
+    return state.mode === "workout" && !state.exerciseType;
+  }
+
   public static chooseAdhocExercise(
     dispatch: ILensDispatch<IExercisePickerState>,
     key: string,
-    selectedExercises: IExercisePickerSelectedExercise[]
+    state: IExercisePickerState
   ): void {
+    const selectedExercises = state.selectedExercises;
+    const isMultiselect = ExercisePickerUtils.getIsMultiselect(state);
     const exerciseType = Exercise.fromKey(key);
     const isInProgramExercises = selectedExercises.some(
       (e) => e.type === "program" && Exercise.eq(e.exerciseType, exerciseType)
     );
-    if (isInProgramExercises) {
+    if (isMultiselect && isInProgramExercises) {
       return;
     }
     dispatch(
       lb<IExercisePickerState>()
         .p("selectedExercises")
         .recordModify((exercises) => {
-          if (exercises.some((e) => Exercise.eq(e.exerciseType, exerciseType))) {
+          if (exercises.some((e) => Exercise.eq(e.exerciseType, exerciseType) && e.type === "adhoc")) {
             return exercises.filter((e) => !Exercise.eq(e.exerciseType, exerciseType));
           } else {
-            return [...exercises, { type: "adhoc", exerciseType }];
+            if (isMultiselect) {
+              return [...exercises, { type: "adhoc", exerciseType }];
+            } else {
+              return [{ type: "adhoc", exerciseType }];
+            }
           }
         }),
       `Toggle selection of ${key}`

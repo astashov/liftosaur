@@ -3,7 +3,7 @@ import { IEvaluatedProgram, IEvaluatedProgramWeek } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { ObjectUtils } from "../../utils/object";
 import { ExerciseImage } from "../exerciseImage";
-import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
+import { IExercisePickerState, ISettings } from "../../types";
 import { HistoryRecordSet } from "../historyRecordSets";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -14,13 +14,12 @@ interface IProps {
   evaluatedProgram: IEvaluatedProgram;
   state: IExercisePickerState;
   dispatch: ILensDispatch<IExercisePickerState>;
-  exerciseType?: IExerciseType;
   settings: ISettings;
   week: IEvaluatedProgramWeek;
 }
 
 export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
-  const isMultiselect = props.state.mode === "workout" && !props.exerciseType;
+  const isMultiselect = ExercisePickerUtils.getIsMultiselect(props.state);
   const exercisesToDays = props.week.days.reduce<Record<string, IPlannerProgramExercise[]>>((acc, day) => {
     day.exercises.forEach((exercise) => {
       if (!acc[exercise.key]) {
@@ -86,14 +85,21 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                               <input
                                 type="radio"
                                 name={`picker-program-exercise-${exercise.dayData.week}`}
-                                disabled={isDisabled && !isSelected}
                                 value={JSON.stringify({
                                   key: exercise.key,
                                   week: exercise.dayData.week,
                                   dayInWeek: exercise.dayData.dayInWeek,
                                 })}
                                 checked={isSelected}
-                                onChange={() => {}}
+                                onChange={() => {
+                                  ExercisePickerUtils.chooseProgramExercise(
+                                    props.dispatch,
+                                    exerciseType,
+                                    exercise.dayData.week,
+                                    exercise.dayData.dayInWeek,
+                                    props.state
+                                  );
+                                }}
                               />
                             </span>
                           ) : (
@@ -109,7 +115,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                                     exerciseType,
                                     exercise.dayData.week,
                                     exercise.dayData.dayInWeek,
-                                    props.state.selectedExercises
+                                    props.state
                                   );
                                 }}
                               />

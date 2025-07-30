@@ -5,7 +5,7 @@ import { Tailwind } from "../../utils/tailwindConfig";
 import { ScrollableTabs } from "../scrollableTabs";
 import { ExercisePickerFromProgram } from "./exercisePickerFromProgram";
 import { IEvaluatedProgram } from "../../models/program";
-import { IExercisePickerSelectedExercise, IExercisePickerState, IExerciseType, ISettings } from "../../types";
+import { IExercisePickerSelectedExercise, IExercisePickerState, ISettings } from "../../types";
 import { ExercisePickerAdhocExercises } from "./exercisePickerAdhocExercises";
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -13,6 +13,7 @@ import { lb } from "lens-shmens";
 import { Exercise } from "../../models/exercise";
 import { ExercisePickerUtils } from "./exercisePickerUtils";
 import { CollectionUtils } from "../../utils/collection";
+import { ExercisePickerCurrentExercise } from "./exercisePickerCurrentExercise";
 
 interface IProps {
   isHidden: boolean;
@@ -21,7 +22,6 @@ interface IProps {
   onStar: (key: string) => void;
   onChoose: (selectedExercises: IExercisePickerSelectedExercise[]) => void;
   state: IExercisePickerState;
-  exerciseType?: IExerciseType;
   evaluatedProgram?: IEvaluatedProgram;
   onClose: () => void;
 }
@@ -76,6 +76,13 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         </div>
       </div>
       <div className="flex-1 overflow-y-auto">
+        {props.state.exerciseType && (
+          <ExercisePickerCurrentExercise
+            state={props.state}
+            exerciseType={props.state.exerciseType}
+            settings={props.settings}
+          />
+        )}
         {evaluatedProgram ? (
           <ScrollableTabs
             topPadding="0rem"
@@ -96,7 +103,6 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                   <ExercisePickerFromProgram
                     state={props.state}
                     dispatch={props.dispatch}
-                    exerciseType={props.exerciseType}
                     settings={props.settings}
                     evaluatedProgram={evaluatedProgram}
                   />
@@ -108,7 +114,6 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                   <ExercisePickerAdhocExercises
                     onStar={props.onStar}
                     state={props.state}
-                    exerciseType={props.exerciseType}
                     settings={props.settings}
                     dispatch={props.dispatch}
                   />
@@ -136,7 +141,17 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
               props.onChoose(props.state.selectedExercises);
             }}
           >
-            Add to this workout{selectedExercises.length > 0 ? ` (${selectedExercises.length})` : ""}
+            {props.state.mode === "workout" ? (
+              props.state.exerciseType ? (
+                <>Swap Exercise</>
+              ) : (
+                <>Add to this workout{selectedExercises.length > 0 ? ` (${selectedExercises.length})` : ""}</>
+              )
+            ) : props.state.exerciseType ? (
+              <>Edit Exercise</>
+            ) : (
+              <>Add Exercise</>
+            )}
           </Button>
         </div>
         <div className="text-xs text-grayv3-main">

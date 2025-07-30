@@ -2,13 +2,12 @@ import { h, JSX } from "preact";
 import { IEvaluatedProgram } from "../../models/program";
 import { ScrollableTabs } from "../scrollableTabs";
 import { ExercisePickerAllProgramExercises } from "./exercisePickerAllProgramExercises";
-import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
+import { IExercisePickerState, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 
 interface IProps {
   state: IExercisePickerState;
   dispatch: ILensDispatch<IExercisePickerState>;
-  exerciseType?: IExerciseType;
   evaluatedProgram: IEvaluatedProgram;
   settings: ISettings;
 }
@@ -31,7 +30,6 @@ export function ExercisePickerFromProgram(props: IProps): JSX.Element {
                 <ExercisePickerAllProgramExercises
                   dispatch={props.dispatch}
                   state={props.state}
-                  exerciseType={props.exerciseType}
                   settings={props.settings}
                   evaluatedProgram={props.evaluatedProgram}
                   week={week}
@@ -47,7 +45,6 @@ export function ExercisePickerFromProgram(props: IProps): JSX.Element {
       <ExercisePickerAllProgramExercises
         dispatch={props.dispatch}
         state={props.state}
-        exerciseType={props.exerciseType}
         settings={props.settings}
         evaluatedProgram={props.evaluatedProgram}
         week={props.evaluatedProgram.weeks[0]}

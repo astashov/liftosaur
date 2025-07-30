@@ -669,6 +669,8 @@ export const TExercisePickerState = t.intersection([
     selectedTab: t.number,
     editCustomExercise: TCustomExercise,
     search: t.string,
+    exerciseType: TExerciseType,
+    entryIndex: t.number,
   }),
 ]);
 export type IExercisePickerState = t.TypeOf<typeof TExercisePickerState>;
@@ -696,9 +698,7 @@ export const TProgressUi = t.partial(
       time: t.number,
     }),
     exercisePicker: t.partial({
-      exerciseType: TExerciseType,
       state: TExercisePickerState,
-      entryIndex: t.number,
     }),
     exerciseModal: t.partial({
       exerciseType: TExerciseType,

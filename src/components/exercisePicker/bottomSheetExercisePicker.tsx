@@ -1,13 +1,7 @@
 import { h, JSX } from "preact";
 import { BottomSheet } from "../bottomSheet";
 import { IEvaluatedProgram } from "../../models/program";
-import {
-  ICustomExercise,
-  IExercisePickerSelectedExercise,
-  IExercisePickerState,
-  IExerciseType,
-  ISettings,
-} from "../../types";
+import { ICustomExercise, IExercisePickerSelectedExercise, IExercisePickerState, ISettings } from "../../types";
 import { ExercisePickerMain } from "./exercisePickerMain";
 import { ExercisePickerFilter } from "./exercisePickerFilter";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -22,7 +16,6 @@ interface IProps {
   onChoose: (selectedExercises: IExercisePickerSelectedExercise[]) => void;
   dispatch: ILensDispatch<IExercisePickerState>;
   evaluatedProgram?: IEvaluatedProgram;
-  exerciseType?: IExerciseType;
   onClose: () => void;
 }
 
@@ -38,7 +31,6 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
         onStar={props.onStar}
         isHidden={props.isHidden}
         onChoose={props.onChoose}
-        exerciseType={props.exerciseType}
         state={state}
         settings={props.settings}
         evaluatedProgram={evaluatedProgram}

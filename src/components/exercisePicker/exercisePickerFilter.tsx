@@ -7,6 +7,7 @@ import {
   IExerciseKind,
   IExercisePickerSort,
   IExercisePickerState,
+  IExerciseType,
   IMuscle,
   IScreenMuscle,
   ISettings,
@@ -29,6 +30,7 @@ import { ExercisePickerUtils } from "./exercisePickerUtils";
 interface IProps {
   settings: ISettings;
   state: IExercisePickerState;
+  exerciseType?: IExerciseType;
   dispatch: ILensDispatch<IExercisePickerState>;
 }
 
@@ -37,7 +39,7 @@ export const exercisePickerSortNames = {
   similar_muscles: "Similar Muscles",
 };
 
-type IFilterValue = { label: string; isSelected: boolean };
+type IFilterValue = { label: string; isSelected: boolean; disabledReason?: string };
 
 export function ExercisePickerFilter(props: IProps): JSX.Element {
   const sortValues: Record<IExercisePickerSort, IFilterValue> = {
@@ -45,6 +47,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
     similar_muscles: {
       label: exercisePickerSortNames.similar_muscles,
       isSelected: props.state.sort === "similar_muscles",
+      disabledReason: props.exerciseType != null ? undefined : "Enabled only for swap/edit",
     },
   };
 
@@ -154,7 +157,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
 interface IFilterProps<T extends string> {
   name: string;
   title: string;
-  values: Record<T, { label: string; isSelected: boolean }>;
+  values: Record<T, IFilterValue>;
   onChange: (value: T) => void;
 }
 
@@ -175,15 +178,21 @@ function Filter<T extends string>(props: IFilterProps<T>): JSX.Element {
         <div className="grid grid-cols-2 gap-4 mt-2">
           {ObjectUtils.entries(props.values).map(([key, value]) => {
             return (
-              <button
-                className={`py-2 rounded-lg border text-center ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
-                style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
-                onClick={() => {
-                  props.onChange(key);
-                }}
-              >
-                {value.label}
-              </button>
+              <div>
+                <div>
+                  <button
+                    className={`py-2 px-2 w-full ${value.disabledReason ? "text-grayv3-300" : "text-blackv2"} rounded-lg border text-center ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
+                    disabled={!!value.disabledReason}
+                    style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
+                    onClick={() => {
+                      props.onChange(key);
+                    }}
+                  >
+                    {value.label}
+                  </button>
+                </div>
+                {value.disabledReason && <div className="text-xs text-grayv3-main">{value.disabledReason}</div>}
+              </div>
             );
           })}
         </div>
@@ -200,7 +209,7 @@ interface IFilterMusclesProps<T extends string> {
 function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Element {
   const selectedValues = props.state.filters?.muscles || [];
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
-  const selectedMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroups(selectedValues);
+  const selectedMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroupNames(selectedValues);
   return (
     <div className="px-4 py-2 border-b border-grayv3-100">
       <div className="flex items-center pb-1" onClick={() => setIsExpanded(!isExpanded)}>

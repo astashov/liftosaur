@@ -60,9 +60,10 @@ function buildExercisePickerDispatch(
 export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const progress = props.progress;
   const evaluatedProgram = props.program ? Program.evaluate(props.program, props.settings) : undefined;
-  const evaluatedCurrentProgram = props.currentProgram
-    ? Program.evaluate(props.currentProgram, props.settings)
-    : undefined;
+  const evaluatedCurrentProgram =
+    Program.isEmpty(evaluatedProgram) && props.currentProgram
+      ? Program.evaluate(props.currentProgram, props.settings)
+      : evaluatedProgram;
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const dateModal = progress.ui?.dateModal;
@@ -70,27 +71,30 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const [forceUpdateEntryIndex, setForceUpdateEntryIndex] = useState(false);
 
   useEffect(() => {
-    updateState(
-      props.dispatch,
-      [
-        lb<IState>()
-          .p("progress")
-          .pi(progress.id)
-          .pi("ui")
-          .p("exercisePicker")
-          .record({
-            state: {
-              mode: "workout",
-              screenStack: ["exercisePicker"],
-              sort: "name_asc",
-              filters: {},
-              selectedExercises: [],
-            },
-          }),
-      ],
-      "Open exercise picker"
-    );
+    if (progress.entries.length === 0) {
+      updateState(
+        props.dispatch,
+        [
+          lb<IState>()
+            .p("progress")
+            .pi(progress.id)
+            .pi("ui")
+            .p("exercisePicker")
+            .record({
+              state: {
+                mode: "workout",
+                screenStack: ["exercisePicker"],
+                sort: "name_asc",
+                filters: {},
+                selectedExercises: [],
+              },
+            }),
+        ],
+        "Open exercise picker on workout start"
+      );
+    }
   }, []);
+  const exercisePickerState = progress.ui?.exercisePicker?.state;
 
   if (progress != null) {
     return (
@@ -183,26 +187,34 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 time={dateModal.time ?? 0}
               />
             )}
-            {progress.ui?.exercisePicker?.state && (
+            {exercisePickerState && (
               <BottomSheetExercisePicker
                 settings={props.settings}
-                isHidden={progress.ui.exercisePicker == null}
-                exerciseType={progress.ui.exercisePicker.exerciseType}
+                isHidden={exercisePickerState == null}
                 onChoose={(selectedExercises) => {
                   for (const exercise of selectedExercises) {
                     if (exercise.type === "adhoc") {
-                      Progress.addExercise(props.dispatch, exercise.exerciseType, progress.entries.length);
-                    } else if (exercise.type === "program" && evaluatedProgram) {
+                      if (exercisePickerState.entryIndex == null) {
+                        Progress.addExercise(props.dispatch, exercise.exerciseType, progress.entries.length);
+                      } else {
+                        Progress.changeExercise(
+                          props.dispatch,
+                          props.progress.id,
+                          exercise.exerciseType,
+                          exercisePickerState.entryIndex
+                        );
+                      }
+                    } else if (exercise.type === "program" && evaluatedCurrentProgram) {
                       const programExercise = Program.getProgramExerciseByTypeWeekAndDay(
-                        evaluatedProgram,
+                        evaluatedCurrentProgram,
                         exercise.exerciseType,
                         exercise.week,
                         exercise.dayInWeek
                       );
                       if (programExercise && programExercise.exerciseType) {
                         const nextHistoryEntry = Program.nextHistoryEntry(
-                          evaluatedProgram,
-                          Program.getDayData(evaluatedProgram, evaluatedProgram.nextDay),
+                          evaluatedCurrentProgram,
+                          Program.getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
                           { ...programExercise, exerciseType: exercise.exerciseType },
                           props.stats,
                           props.settings
@@ -238,13 +250,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 onChangeCustomExercise={(action, exercise) => {
                   Exercise.handleCustomExerciseChange(props.dispatch, action, exercise, props.settings, props.program);
                 }}
-                evaluatedProgram={
-                  evaluatedProgram
-                    ? Program.isEmpty(evaluatedProgram)
-                      ? evaluatedCurrentProgram
-                      : evaluatedProgram
-                    : undefined
-                }
+                evaluatedProgram={evaluatedCurrentProgram}
                 onStar={(key) => Settings.toggleStarredExercise(props.dispatch, key)}
                 dispatch={buildExercisePickerDispatch(props.dispatch, progress.id)}
                 onClose={() => {
