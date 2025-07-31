@@ -43,3 +43,12 @@ export function delayfn(fn: () => void, ms: number): () => void {
     }, ms);
   };
 }
+
+export function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    const timeoutId = window.setTimeout(() => {
+      resolve();
+      window.clearTimeout(timeoutId);
+    }, ms);
+  });
+}
