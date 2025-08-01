@@ -1025,7 +1025,7 @@ const postBatchEventsHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       eventsToPost.push(event);
     }
     try {
-      await eventDao.batchPost(eventsToPost);
+      await eventDao.batchPost(CollectionUtils.uniqBy(eventsToPost, "timestamp"));
       successfulIds = successfulIds.concat(group);
     } catch (error) {
       di.log.log("Error posting batch events", error);
