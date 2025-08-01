@@ -301,13 +301,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   return [
     (dispatch, action, oldState, newState) => {
       const isFinishDayAction = "type" in action && action.type === "FinishProgramDayAction";
-      if (isFinishDayAction) {
-        lg("run-default-on-action-finish-day");
-      }
       if (Storage.isChanged(oldState.storage, newState.storage)) {
-        if (isFinishDayAction) {
-          lg("run-storage-updated-going-to-sync");
-        }
         dispatch(Thunk.sync2({ log: isFinishDayAction }));
       }
     },
@@ -715,11 +709,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
     };
   } else if (action.type === "FinishProgramDayAction") {
-    lg("run-finish-program-day-action");
     const settings = state.storage.settings;
     const progress = Progress.getProgress(state);
     if (progress == null) {
-      lg("run-finish-program-day-action-no-progress");
       throw new StateError("FinishProgramDayAction: no progress");
     } else {
       const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
@@ -742,7 +734,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const newPrograms =
         newProgram != null ? lf(state.storage.programs).i(programIndex).set(newProgram) : state.storage.programs;
       const newSettingsExerciseData = deepmerge(state.storage.settings.exerciseData, newExerciseData);
-      lg("run-finish-program-day-action-add-record");
       if (typeof window !== "undefined" && window.localStorage) {
         lg("saved-last-history-record");
         window.localStorage.setItem("lastHistoryRecord", JSON.stringify({ time: Date.now(), historyRecord }));

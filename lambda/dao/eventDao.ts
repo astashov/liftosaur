@@ -51,6 +51,14 @@ export class EventDao {
     }
   }
 
+  public async batchPost(events: IEventPayload[]): Promise<void> {
+    const env = Utils.getEnv();
+    await this.di.dynamo.batchPut({
+      tableName: eventsTableNames[env].events,
+      items: events,
+    });
+  }
+
   public getByUserId(userid: string): Promise<IEventPayload[]> {
     const env = Utils.getEnv();
     return this.di.dynamo.query<IEventPayload>({

@@ -73,6 +73,7 @@ import { UrlContentFetcher } from "./utils/urlContentFetcher";
 import { LlmPrompt } from "./utils/llms/llmPrompt";
 import { AiLogsDao } from "./dao/aiLogsDao";
 import { ICollectionVersions } from "../src/models/versionTracker";
+import { ObjectUtils } from "../src/utils/object";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -991,6 +992,46 @@ const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoi
     data = { result: "error" };
   }
   return ResponseUtils.json(200, event, { data });
+};
+
+const postBatchEventsEndpoint = Endpoint.build("/api/batchevents");
+const postBatchEventsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postBatchEventsEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const eventDao = new EventDao(di);
+  const { events: eventsRaw } = getBodyJson(event) as { events: { id: string; data: string }[] };
+  const events = eventsRaw.reduce<Record<string, IEventPayload>>((memo, e) => {
+    memo[e.id] = JSON.parse(e.data) as IEventPayload;
+    return memo;
+  }, {});
+  let successfulIds: string[] = [];
+  di.log.log(
+    "Storing events: ",
+    ObjectUtils.values(events)
+      .map((e) => (e.type === "event" ? e.name : e.type))
+      .join(", ")
+  );
+  const idGroups = CollectionUtils.inGroupsOf(25, ObjectUtils.keys(events));
+  for (const group of idGroups) {
+    const eventsToPost: IEventPayload[] = [];
+    for (const id of group) {
+      const event = events[id];
+      let attempts = 0;
+      while (attempts < 5 && eventsToPost.some((e) => e.timestamp === event.timestamp)) {
+        event.timestamp += 1;
+        attempts += 1;
+      }
+      eventsToPost.push(event);
+    }
+    try {
+      await eventDao.batchPost(eventsToPost);
+      successfulIds = successfulIds.concat(group);
+    } catch (error) {
+      di.log.log("Error posting batch events", error);
+    }
+  }
+  return ResponseUtils.json(200, event, { acknowledged: successfulIds });
 };
 
 const getProfileEndpoint = Endpoint.build("/profile", { user: "string" });
@@ -2236,8 +2277,8 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getRepMaxEndpoint, getRepMaxHandler)
       .post(postReceiveAdAttrEndpoint, postReceiveAdAttrHandler)
       .post(postEventEndpoint, postEventHandler)
-      .get(getDashboardsUserEndpoint, getDashboardsUserHandler);
-
+      .get(getDashboardsUserEndpoint, getDashboardsUserHandler)
+      .post(postBatchEventsEndpoint, postBatchEventsHandler);
     r = repmaxpairswords.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
     r = repmaxpairnums.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
 
