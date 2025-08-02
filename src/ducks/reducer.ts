@@ -466,7 +466,7 @@ export const reducerWrapper =
       }
     }
 
-    if (Features.isEnabled("newstorage", newState.user?.id || newState.storage.tempUserId)) {
+    if (SendMessage.isIos()) {
       newStorageApproach(state, newState, isStorageChanged);
     } else {
       if (typeof window !== "undefined" && window.setTimeout && window.clearTimeout) {
@@ -517,7 +517,6 @@ function newStorageApproach(oldState: IState, newState: IState, isStorageChanged
         IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage)),
       ]).then(() => {
         lg("saved-to-storage", undefined, undefined, userId);
-        console.log("Saved to storage");
       });
     }
   }

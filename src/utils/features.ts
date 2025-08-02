@@ -10,8 +10,8 @@ export interface IFeature {
 
 const newstorage: IFeature = {
   name: "newstorage",
-  rollout: 0.2,
-  userids: ["tiolnbjbleke", "udvlvsutjj", "gwwxznaz"],
+  rollout: 1.0,
+  userids: ["tiolnbjbleke", "udvlvsutjj", "gwwxznaz", "mcgezrzzvo"],
   platform: "ios",
 };
 
