@@ -345,7 +345,26 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
               data-cy="add-exercise-button"
               className="p-2 nm-add-exercise-to-workout"
               onClick={() => {
-                Progress.showAddExerciseModal(props.dispatch, props.progress.id);
+                updateState(
+                  props.dispatch,
+                  [
+                    lb<IState>()
+                      .p("progress")
+                      .pi(props.progress.id)
+                      .pi("ui")
+                      .p("exercisePicker")
+                      .record({
+                        state: {
+                          mode: "workout",
+                          screenStack: ["exercisePicker"],
+                          sort: "name_asc",
+                          filters: {},
+                          selectedExercises: [],
+                        },
+                      }),
+                  ],
+                  "Open exercise picker"
+                );
               }}
             >
               <IconPlus2 size={15} color={Tailwind.colors().grayv3.main} />

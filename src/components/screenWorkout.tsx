@@ -191,6 +191,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
               <BottomSheetExercisePicker
                 settings={props.settings}
                 isHidden={exercisePickerState == null}
+                usedExerciseTypes={progress.entries.map((e) => e.exercise)}
                 onChoose={(selectedExercises) => {
                   for (const exercise of selectedExercises) {
                     if (exercise.type === "adhoc") {
@@ -219,15 +220,28 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                           props.stats,
                           props.settings
                         );
-                        updateProgress(
-                          dispatch,
-                          [
-                            lb<IHistoryRecord>()
-                              .p("entries")
-                              .recordModify((entries) => [...entries, nextHistoryEntry]),
-                          ],
-                          "add-exercise"
-                        );
+                        if (exercisePickerState.entryIndex == null) {
+                          updateProgress(
+                            dispatch,
+                            [
+                              lb<IHistoryRecord>()
+                                .p("entries")
+                                .recordModify((entries) => [...entries, nextHistoryEntry]),
+                            ],
+                            "add-exercise"
+                          );
+                        } else {
+                          updateProgress(
+                            dispatch,
+                            [
+                              lb<IHistoryRecord>()
+                                .p("entries")
+                                .i(exercisePickerState.entryIndex)
+                                .record(nextHistoryEntry),
+                            ],
+                            "change-program-exercise"
+                          );
+                        }
                       }
                     }
                     updateState(
@@ -246,7 +260,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                     }, 0);
                   }
                 }}
-                exercisePicker={progress.ui.exercisePicker.state}
+                exercisePicker={exercisePickerState}
                 onChangeCustomExercise={(action, exercise) => {
                   Exercise.handleCustomExerciseChange(props.dispatch, action, exercise, props.settings, props.program);
                 }}

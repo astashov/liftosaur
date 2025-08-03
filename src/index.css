@@ -244,13 +244,18 @@ input[type="checkbox"].checkbox {
   margin: 0;
   border-radius: 50%;
   background: var(--color-white);
-  border: 1px solid var(--color-grayv3-300);
+  border: 1px solid var(--color-grayv3-500);
   display: inline-block;
   width: 20px;
   height: 20px;
   position: relative;
   outline: none;
   cursor: pointer;
+}
+
+.radio input[type="radio"]:disabled {
+  cursor: not-allowed;
+  border: 1px solid var(--color-grayv3-100);
 }
 
 .radio input[type="radio"]:checked::before {

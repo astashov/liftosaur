@@ -457,6 +457,24 @@ export namespace Program {
     }, 0);
   }
 
+  export function getProgramExerciseForKey(
+    program: IEvaluatedProgram,
+    day: number,
+    key: string
+  ): IPlannerProgramExerciseUsed | undefined {
+    const programDay = program ? Program.getProgramDay(program, day) : undefined;
+    const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
+    let programExercise = dayExercises.find((pe) => pe.key === key);
+    if (programExercise == null) {
+      const allExercises = program ? Program.getAllUsedProgramExercises(program) : [];
+      programExercise = allExercises.find((pe) => pe.key === key);
+      if (programExercise != null) {
+        programExercise = { ...programExercise, dayData: getDayData(program, day) };
+      }
+    }
+    return programExercise;
+  }
+
   export function runAllFinishDayScripts(
     program: IProgram,
     progress: IHistoryRecord,
@@ -472,8 +490,10 @@ export namespace Program {
     }
     for (const entry of progress.entries) {
       if (entry != null && !entry.isSuppressed && entry.sets.some((s) => s.isCompleted)) {
-        const dayExercises = Program.getProgramDayExercises(programDay);
-        const programExercise = dayExercises.find((e) => e.key === entry.programExerciseId);
+        const programExercise =
+          program && entry.programExerciseId
+            ? Program.getProgramExerciseForKey(newEvaluatedProgram, dayData.day, entry.programExerciseId)
+            : undefined;
         if (programExercise) {
           const newStateResult = Program.runFinishDayScript(
             programExercise,

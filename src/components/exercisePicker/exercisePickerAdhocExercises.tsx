@@ -19,6 +19,7 @@ interface IProps {
   settings: ISettings;
   onStar: (key: string) => void;
   state: IExercisePickerState;
+  usedExerciseTypes: IExerciseType[];
   dispatch: ILensDispatch<IExercisePickerState>;
 }
 
@@ -26,9 +27,16 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
   return (
     <div className="relative">
       <SearchAndFilter dispatch={props.dispatch} state={props.state} />
-      <CustomExercises dispatch={props.dispatch} onStar={props.onStar} settings={props.settings} state={props.state} />
+      <CustomExercises
+        usedExerciseTypes={props.usedExerciseTypes}
+        dispatch={props.dispatch}
+        onStar={props.onStar}
+        settings={props.settings}
+        state={props.state}
+      />
       <BuiltinExercises
         dispatch={props.dispatch}
+        usedExerciseTypes={props.usedExerciseTypes}
         onStar={props.onStar}
         shouldAddExternalLinks={true}
         state={props.state}
@@ -119,6 +127,7 @@ interface ICustomExercisesProps {
   settings: ISettings;
   dispatch: ILensDispatch<IExercisePickerState>;
   state: IExercisePickerState;
+  usedExerciseTypes: IExerciseType[];
   onStar: (key: string) => void;
 }
 
@@ -163,6 +172,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
         {exercisesList.map((e) => {
           const ex = Exercise.get({ id: e.id }, props.settings.exercises);
           const isSelectedAlready = props.state.selectedExercises.some((ex) => Exercise.eq(ex.exerciseType, e));
+          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, e));
           const isMultiselect = ExercisePickerUtils.getIsMultiselect(props.state);
           return (
             <section
@@ -174,7 +184,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
               <ExercisePickerExerciseItem
                 onStar={props.onStar}
                 isMultiselect={isMultiselect}
-                isEnabled={!isMultiselect || !isSelectedAlready}
+                isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
                 showMuscles={props.state.showMuscles}
                 settings={props.settings}
                 currentExerciseType={props.state.exerciseType}
@@ -210,6 +220,7 @@ interface IBuiltinExercisesProps {
   shouldAddExternalLinks?: boolean;
   state: IExercisePickerState;
   settings: ISettings;
+  usedExerciseTypes: IExerciseType[];
   onStar: (key: string) => void;
   dispatch: ILensDispatch<IExercisePickerState>;
   exerciseType?: IExerciseType;
@@ -235,6 +246,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
       <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4">
         {exercises.map((e) => {
           const isMultiselect = ExercisePickerUtils.getIsMultiselect(props.state);
+          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, e));
           const isSelectedAlready = props.state.selectedExercises.some((ex) => Exercise.eq(ex.exerciseType, e));
           return (
             <section
@@ -248,7 +260,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
               <ExercisePickerExerciseItem
                 onStar={props.onStar}
                 isMultiselect={isMultiselect}
-                isEnabled={!isMultiselect || !isSelectedAlready}
+                isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
                 isSelected={props.state.selectedExercises.some(
                   (ex) => ex.type === "adhoc" && Exercise.eq(ex.exerciseType, e)
                 )}

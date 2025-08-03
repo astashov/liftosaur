@@ -54,9 +54,10 @@ interface IWorkoutExerciseCardProps {
 }
 
 export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Element {
-  const programExercise = props.programDay
-    ? Program.getProgramExerciseFromDay(props.programDay, props.entry.programExerciseId)
-    : undefined;
+  const programExercise =
+    props.program && props.entry.programExerciseId
+      ? Program.getProgramExerciseForKey(props.program, props.day, props.entry.programExerciseId)
+      : undefined;
   const exerciseType = props.entry.exercise;
   const exercise = Exercise.get(exerciseType, props.settings.exercises);
   const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);

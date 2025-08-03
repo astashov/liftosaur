@@ -3,7 +3,7 @@ import { IEvaluatedProgram, IEvaluatedProgramWeek } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { ObjectUtils } from "../../utils/object";
 import { ExerciseImage } from "../exerciseImage";
-import { IExercisePickerState, ISettings } from "../../types";
+import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { HistoryRecordSet } from "../historyRecordSets";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -13,6 +13,7 @@ import { ExercisePickerUtils } from "./exercisePickerUtils";
 interface IProps {
   evaluatedProgram: IEvaluatedProgram;
   state: IExercisePickerState;
+  usedExerciseTypes: IExerciseType[];
   dispatch: ILensDispatch<IExercisePickerState>;
   settings: ISettings;
   week: IEvaluatedProgramWeek;
@@ -64,6 +65,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                 const isDisabled = props.state.selectedExercises.some((ex) =>
                   Exercise.eq(ex.exerciseType, exerciseType)
                 );
+                const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, exerciseType));
                 const currentSetVariation = PlannerProgramExercise.currentEvaluatedSetVariation(exercise);
                 const displayGroups = PlannerProgramExercise.evaluatedSetsToDisplaySets(
                   currentSetVariation.sets,
@@ -84,6 +86,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                             <span className="px-2 pb-2 radio">
                               <input
                                 type="radio"
+                                disabled={isUsedForDay}
                                 name={`picker-program-exercise-${exercise.dayData.week}`}
                                 value={JSON.stringify({
                                   key: exercise.key,
@@ -106,7 +109,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                             <label className="block p-2">
                               <input
                                 checked={isSelected}
-                                disabled={isDisabled && !isSelected}
+                                disabled={isUsedForDay || (isDisabled && !isSelected)}
                                 className="checkbox checkbox-purple text-purplev3-main"
                                 type="checkbox"
                                 onChange={() => {

@@ -5,7 +5,7 @@ import { Tailwind } from "../../utils/tailwindConfig";
 import { ScrollableTabs } from "../scrollableTabs";
 import { ExercisePickerFromProgram } from "./exercisePickerFromProgram";
 import { IEvaluatedProgram } from "../../models/program";
-import { IExercisePickerSelectedExercise, IExercisePickerState, ISettings } from "../../types";
+import { IExercisePickerSelectedExercise, IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { ExercisePickerAdhocExercises } from "./exercisePickerAdhocExercises";
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -21,6 +21,7 @@ interface IProps {
   dispatch: ILensDispatch<IExercisePickerState>;
   onStar: (key: string) => void;
   onChoose: (selectedExercises: IExercisePickerSelectedExercise[]) => void;
+  usedExerciseTypes: IExerciseType[];
   state: IExercisePickerState;
   evaluatedProgram?: IEvaluatedProgram;
   onClose: () => void;
@@ -98,24 +99,26 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
             color="purple"
             tabs={[
               {
-                label: "From Program",
-                children: () => (
-                  <ExercisePickerFromProgram
-                    state={props.state}
-                    dispatch={props.dispatch}
-                    settings={props.settings}
-                    evaluatedProgram={evaluatedProgram}
-                  />
-                ),
-              },
-              {
                 label: "Ad-hoc Exercise",
                 children: () => (
                   <ExercisePickerAdhocExercises
                     onStar={props.onStar}
+                    usedExerciseTypes={props.usedExerciseTypes}
                     state={props.state}
                     settings={props.settings}
                     dispatch={props.dispatch}
+                  />
+                ),
+              },
+              {
+                label: "From Program",
+                children: () => (
+                  <ExercisePickerFromProgram
+                    usedExerciseTypes={props.usedExerciseTypes}
+                    state={props.state}
+                    dispatch={props.dispatch}
+                    settings={props.settings}
+                    evaluatedProgram={evaluatedProgram}
                   />
                 ),
               },
@@ -125,6 +128,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
           <ExercisePickerAdhocExercises
             onStar={props.onStar}
             state={props.state}
+            usedExerciseTypes={props.usedExerciseTypes}
             settings={props.settings}
             dispatch={props.dispatch}
           />

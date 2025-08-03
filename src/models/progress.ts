@@ -960,7 +960,7 @@ export namespace Progress {
           .p("entries")
           .i(entryIndex)
           .recordModify((entry) => {
-            return { ...entry, exercise: exerciseType, changed: true };
+            return { ...entry, exercise: exerciseType, programExerciseId: undefined, changed: true };
           }),
       ],
       "Change exercise"
