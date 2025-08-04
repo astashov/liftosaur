@@ -43,7 +43,6 @@ import { EditProgramUiHelpers } from "../components/editProgram/editProgramUi/ed
 import { c } from "../utils/types";
 import { ICollectionVersions } from "../models/versionTracker";
 import { lg } from "../utils/posthog";
-import { Features } from "../utils/features";
 
 declare let __COMMIT_HASH__: string;
 

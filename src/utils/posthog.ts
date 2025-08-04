@@ -15,7 +15,10 @@ export function lg(
     return;
   }
 
-  if (SendMessage.isIos() && SendMessage.iosAppVersion() >= 13) {
+  if (
+    (SendMessage.isIos() && SendMessage.iosAppVersion() >= 13) ||
+    (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 22)
+  ) {
     const event: IEventPayload = {
       type: "event",
       timestamp: Date.now(),
@@ -25,7 +28,7 @@ export function lg(
       extra,
       userId: tempUserId,
     };
-    SendMessage.toIos({ type: "event", data: JSON.stringify(event) });
+    SendMessage.toIosAndAndroid({ type: "event", data: JSON.stringify(event) });
     return;
   }
 
