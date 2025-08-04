@@ -221,7 +221,7 @@ export namespace Storage {
     const updatedStorage: IStorage = {
       ...updatedCleanedStorage,
       id: Math.max(newId || Date.now(), oldId || Date.now()),
-      originalId: oldOriginalId && newOriginalId ? Math.max(newOriginalId, oldOriginalId) : undefined,
+      originalId: Math.max(newOriginalId ?? 0, oldOriginalId ?? 0),
       _versions: updatedVersions,
     };
     return updatedStorage;
