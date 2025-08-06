@@ -409,12 +409,13 @@ export namespace History {
       for (const e of r.entries) {
         const entryMaxSet = getMaxWeightSetFromEntry(e);
         const key = Exercise.toKey(e.exercise);
-        if (
-          entryMaxSet != null &&
-          (entryMaxSet.completedReps || 0) > 0 &&
-          Weight.lt(maxSets[key]?.weight || 0, entryMaxSet.weight ?? Weight.build(0, "lb"))
-        ) {
-          maxSets[key] = entryMaxSet;
+        if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
+          if (
+            maxSets[key] == null ||
+            Weight.lt(maxSets[key].weight || 0, entryMaxSet.weight ?? Weight.build(0, "lb"))
+          ) {
+            maxSets[key] = entryMaxSet;
+          }
         }
       }
     }
