@@ -6,6 +6,7 @@ import { Tailwind } from "../../utils/tailwindConfig";
 import { ExerciseImage } from "../exerciseImage";
 import { IconEdit2 } from "../icons/iconEdit2";
 import { IconStar } from "../icons/iconStar";
+import { Muscle } from "../../models/muscle";
 
 interface IExerciseItemProps {
   exercise: IExercise;
@@ -67,7 +68,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
         {props.showMuscles ? (
           <MuscleView currentExerciseType={props.currentExerciseType} exercise={e} settings={props.settings} />
         ) : (
-          <MuscleGroupsView exercise={e} settings={props.settings} />
+          <MuscleGroupsView currentExerciseType={props.currentExerciseType} exercise={e} settings={props.settings} />
         )}
       </div>
       <div className="flex items-center">
@@ -171,14 +172,22 @@ function MuscleView(props: {
   );
 }
 
-export function MuscleGroupsView(props: { exercise: IExercise; settings: ISettings }): JSX.Element {
+export function MuscleGroupsView(props: {
+  currentExerciseType?: IExerciseType;
+  exercise: IExercise;
+  settings: ISettings;
+}): JSX.Element {
   const { exercise, settings } = props;
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings.exercises).map((m) =>
-    StringUtils.capitalize(m)
+  const tms: string[] = props.currentExerciseType
+    ? Exercise.targetMuscles(props.currentExerciseType, settings.exercises)
+    : [];
+  const sms: string[] = props.currentExerciseType
+    ? Exercise.synergistMuscles(props.currentExerciseType, settings.exercises)
+    : [];
+  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings.exercises);
+  const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings.exercises).filter(
+    (m) => targetMuscleGroups.indexOf(m) === -1
   );
-  const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings.exercises)
-    .map((m) => StringUtils.capitalize(m))
-    .filter((m) => targetMuscleGroups.indexOf(m) === -1);
 
   const types = exercise.types.map((t) => StringUtils.capitalize(t));
 
@@ -193,13 +202,43 @@ export function MuscleGroupsView(props: { exercise: IExercise; settings: ISettin
       {targetMuscleGroups.length > 0 && (
         <div>
           <span className="text-grayv2-main">Target: </span>
-          <span className="font-semibold">{targetMuscleGroups.join(", ")}</span>
+          <span className="font-semibold">
+            {targetMuscleGroups.map((m, i) => {
+              const muscles = Muscle.getMusclesFromScreenMuscle(m);
+              const doesContain = muscles.some((muscle) => tms.includes(muscle));
+              return (
+                <span>
+                  <span
+                    className={!props.currentExerciseType ? "" : doesContain ? "text-greenv2-main" : "text-redv2-main"}
+                  >
+                    {StringUtils.capitalize(m)}
+                  </span>
+                  {i !== targetMuscleGroups.length - 1 ? ", " : ""}
+                </span>
+              );
+            })}
+          </span>
         </div>
       )}
       {synergistMuscleGroups.length > 0 && (
         <div>
           <span className="text-grayv2-main">Synergist: </span>
-          <span className="font-semibold">{synergistMuscleGroups.join(", ")}</span>
+          <span className="font-semibold">
+            {synergistMuscleGroups.map((m, i) => {
+              const muscles = Muscle.getMusclesFromScreenMuscle(m);
+              const doesContain = props.currentExerciseType && muscles.some((muscle) => sms.includes(muscle));
+              return (
+                <span>
+                  <span
+                    className={!props.currentExerciseType ? "" : doesContain ? "text-greenv2-main" : "text-redv2-main"}
+                  >
+                    {StringUtils.capitalize(m)}
+                  </span>
+                  {i !== synergistMuscleGroups.length - 1 ? ", " : ""}
+                </span>
+              );
+            })}
+          </span>
         </div>
       )}
     </div>

@@ -26,7 +26,7 @@ export interface IPlannerProgramExerciseGlobals {
   askWeight?: boolean;
 }
 
-export type IPlannerProgramExerciseUsed = IPlannerProgramExercise &
+export type IPlannerProgramExerciseWithType = IPlannerProgramExercise &
   Required<Pick<IPlannerProgramExercise, "exerciseType">>;
 
 export type IPlannerProgramExercise = {

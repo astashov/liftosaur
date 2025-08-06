@@ -3,7 +3,7 @@ import { Exercise } from "./exercise";
 import { ObjectUtils } from "../utils/object";
 import { ISettings, IMuscle, IDayData, IScreenMuscle, IStats } from "../types";
 import { StringUtils } from "../utils/string";
-import { IPlannerProgramExerciseUsed } from "../pages/planner/models/types";
+import { IPlannerProgramExerciseWithType } from "../pages/planner/models/types";
 
 export type IScreenMusclePointsColl = Partial<Record<IScreenMuscle, number>>;
 
@@ -191,7 +191,7 @@ export namespace Muscle {
       hypertrophy: {},
     };
 
-    const dayExercises = Program.getProgramDayExercises(programDay);
+    const dayExercises = Program.getProgramDayUsedExercises(programDay);
     return dayExercises.reduce(
       (memo, exercise) => {
         return mergePoints(memo, getPointsForExercise(program, exercise, programDay.dayData, settings, stats));
@@ -209,7 +209,7 @@ export namespace Muscle {
     const screenMusclePoints: IScreenMusclePointsColl = {};
     const exercisePoints: IExercisePointsColl = {};
 
-    const dayExercises = Program.getProgramDayExercises(programDay);
+    const dayExercises = Program.getProgramDayUsedExercises(programDay);
     return dayExercises.reduce(
       (memo, exercise) => {
         return mergeUnifiedPoints(
@@ -223,7 +223,7 @@ export namespace Muscle {
 
   export function getUnifiedPointsForExercise(
     program: IEvaluatedProgram,
-    programExercise: IPlannerProgramExerciseUsed,
+    programExercise: IPlannerProgramExerciseWithType,
     dayData: IDayData,
     settings: ISettings,
     stats: IStats
@@ -260,7 +260,7 @@ export namespace Muscle {
 
   export function getPointsForExercise(
     program: IEvaluatedProgram,
-    programExercise: IPlannerProgramExerciseUsed,
+    programExercise: IPlannerProgramExerciseWithType,
     dayData: IDayData,
     settings: ISettings,
     stats: IStats

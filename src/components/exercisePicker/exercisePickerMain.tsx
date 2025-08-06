@@ -42,11 +42,19 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
       }
     })
   );
+  const title =
+    props.state.mode === "workout"
+      ? props.state.exerciseType
+        ? "Swap Exercise"
+        : "Add Exercises"
+      : props.state.exerciseType
+        ? "Replace Exercise"
+        : "Add Exercise";
 
   return (
     <div className="flex flex-col h-full" style={{ marginTop: "-0.75rem" }}>
       <div className="relative py-4 mt-2">
-        <h3 className="px-4 font-bold text-center">Exercises</h3>
+        <h3 className="px-4 font-bold text-center">{title}</h3>
         <div className="absolute flex top-4 right-4">
           <div>
             <button

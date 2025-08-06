@@ -54,7 +54,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
           dayNumber += 1;
           const progress = Program.nextHistoryRecord(props.program, props.settings, props.stats, dayNumber);
           const programDay = Program.getProgramDay(initialEvaluatedProgram, dayNumber);
-          const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
+          const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
           const exerciseTags = new Set(dayExercises.map((e) => e.tags).flat());
           const states = ObjectUtils.filter(initialEvaluatedProgram.states, (key, state) => {
             return exerciseTags.has(key);
@@ -118,72 +118,78 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                             state.settings
                           ).convertToPlanner();
                           const newProgram = { ...state.program, planner: newPlanner };
-                          dispatch([
-                            lb<IProgramPreviewPlaygroundState>()
-                              .p("progresses")
-                              .recordModify((progresses) => {
-                                return progresses.map((wk) => {
-                                  return {
-                                    ...wk,
-                                    days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
-                                      let newProgress = Progress.applyProgramDay(
-                                        day.progress,
-                                        newEvaluatedProgram,
-                                        day.day,
-                                        state.settings
-                                      );
-                                      newProgress = Progress.runInitialUpdateScripts(
-                                        newProgress,
-                                        undefined,
-                                        day.day,
-                                        newEvaluatedProgram,
-                                        state.settings,
-                                        props.stats
-                                      );
-                                      return {
-                                        ...day,
-                                        progress: newProgress,
-                                      };
-                                    }),
-                                  };
-                                });
-                              }),
-                            lb<IProgramPreviewPlaygroundState>().p("program").record(newProgram),
-                          ], "Update program");
+                          dispatch(
+                            [
+                              lb<IProgramPreviewPlaygroundState>()
+                                .p("progresses")
+                                .recordModify((progresses) => {
+                                  return progresses.map((wk) => {
+                                    return {
+                                      ...wk,
+                                      days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
+                                        let newProgress = Progress.applyProgramDay(
+                                          day.progress,
+                                          newEvaluatedProgram,
+                                          day.day,
+                                          state.settings
+                                        );
+                                        newProgress = Progress.runInitialUpdateScripts(
+                                          newProgress,
+                                          undefined,
+                                          day.day,
+                                          newEvaluatedProgram,
+                                          state.settings,
+                                          props.stats
+                                        );
+                                        return {
+                                          ...day,
+                                          progress: newProgress,
+                                        };
+                                      }),
+                                    };
+                                  });
+                                }),
+                              lb<IProgramPreviewPlaygroundState>().p("program").record(newProgram),
+                            ],
+                            "Update program"
+                          );
                         }}
                         onSettingsChange={(newSettings) => {
-                          dispatch([
-                            lb<IProgramPreviewPlaygroundState>()
-                              .p("progresses")
-                              .recordModify((progresses) => {
-                                return progresses.map((wk) => {
-                                  return {
-                                    ...wk,
-                                    days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
-                                      let newProgress = Progress.applyProgramDay(
-                                        day.progress,
-                                        evaluatedProgram,
-                                        day.day,
-                                        newSettings
-                                      );
-                                      newProgress = Progress.runInitialUpdateScripts(
-                                        newProgress,
-                                        undefined,
-                                        day.day,
-                                        evaluatedProgram,
-                                        newSettings,
-                                        props.stats
-                                      );
-                                      return {
-                                        ...day,
-                                        progress: newProgress,
-                                      };
-                                    }),
-                                  };
-                                });
-                              }),
-                            lb<IProgramPreviewPlaygroundState>().p("settings").record(newSettings),
-                          ], "Update settings");
+                          dispatch(
+                            [
+                              lb<IProgramPreviewPlaygroundState>()
+                                .p("progresses")
+                                .recordModify((progresses) => {
+                                  return progresses.map((wk) => {
+                                    return {
+                                      ...wk,
+                                      days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
+                                        let newProgress = Progress.applyProgramDay(
+                                          day.progress,
+                                          evaluatedProgram,
+                                          day.day,
+                                          newSettings
+                                        );
+                                        newProgress = Progress.runInitialUpdateScripts(
+                                          newProgress,
+                                          undefined,
+                                          day.day,
+                                          evaluatedProgram,
+                                          newSettings,
+                                          props.stats
+                                        );
+                                        return {
+                                          ...day,
+                                          progress: newProgress,
+                                        };
+                                      }),
+                                    };
+                                  });
+                                }),
+                              lb<IProgramPreviewPlaygroundState>().p("settings").record(newSettings),
+                            ],
+                            "Update settings"
+                          );
                         }}
                         onFinish={() => {
                           const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(
@@ -196,31 +202,34 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                             ...state.settings,
                             exerciseData: deepmerge(state.settings.exerciseData, exerciseData),
                           };
-                          dispatch([
-                            lb<IProgramPreviewPlaygroundState>()
-                              .p("progresses")
-                              .recordModify((progresses) => {
-                                return progresses.map((wk) => {
-                                  return {
-                                    ...wk,
-                                    days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
-                                      const newProgress = Program.nextHistoryRecord(
-                                        newProgram,
-                                        newSettings,
-                                        props.stats,
-                                        day.day
-                                      );
-                                      return {
-                                        ...day,
-                                        progress: newProgress,
-                                      };
-                                    }),
-                                  };
-                                });
-                              }),
-                            lb<IProgramPreviewPlaygroundState>().p("program").record(newProgram),
-                            lb<IProgramPreviewPlaygroundState>().p("settings").record(newSettings),
-                          ], "Finish day");
+                          dispatch(
+                            [
+                              lb<IProgramPreviewPlaygroundState>()
+                                .p("progresses")
+                                .recordModify((progresses) => {
+                                  return progresses.map((wk) => {
+                                    return {
+                                      ...wk,
+                                      days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
+                                        const newProgress = Program.nextHistoryRecord(
+                                          newProgram,
+                                          newSettings,
+                                          props.stats,
+                                          day.day
+                                        );
+                                        return {
+                                          ...day,
+                                          progress: newProgress,
+                                        };
+                                      }),
+                                    };
+                                  });
+                                }),
+                              lb<IProgramPreviewPlaygroundState>().p("program").record(newProgram),
+                              lb<IProgramPreviewPlaygroundState>().p("settings").record(newSettings),
+                            ],
+                            "Finish day"
+                          );
                         }}
                       />
                     </div>

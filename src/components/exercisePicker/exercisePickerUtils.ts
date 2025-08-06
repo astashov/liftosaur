@@ -3,9 +3,9 @@ import { equipmentName, Exercise, IExercise } from "../../models/exercise";
 import { Muscle } from "../../models/muscle";
 import {
   IAllCustomExercises,
+  ICustomExercise,
   IExercisePickerFilters,
   IExercisePickerProgramExercise,
-  IExercisePickerSort,
   IExercisePickerState,
   IExerciseType,
   IMuscle,
@@ -82,38 +82,60 @@ export class ExercisePickerUtils {
 
   public static sortExercises(
     exercises: IExercise[],
-    sort: IExercisePickerSort,
-    filters: IExercisePickerFilters,
     allCustomExercises: IAllCustomExercises,
-    currentExerciseType?: IExerciseType
+    state: IExercisePickerState
   ): IExercise[] {
     return CollectionUtils.sort(exercises, (a, b) => {
-      const exerciseType = currentExerciseType;
-      if (sort === "similar_muscles" && exerciseType) {
-        const aRating = Exercise.similarRating(exerciseType, a, allCustomExercises);
-        const bRating = Exercise.similarRating(exerciseType, b, allCustomExercises);
-        return bRating - aRating;
-      } else if ((filters.muscles || []).length > 0) {
-        const filterMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroups(filters.muscles || []);
-        const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, allCustomExercises);
-        const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, allCustomExercises);
-        if (
-          aTargetMuscleGroups.some((m) => filterMuscleGroups.indexOf(m) !== -1) &&
-          bTargetMuscleGroups.every((m) => filterMuscleGroups.indexOf(m) === -1)
-        ) {
-          return -1;
-        } else if (
-          bTargetMuscleGroups.some((m) => filterMuscleGroups.indexOf(m) !== -1) &&
-          aTargetMuscleGroups.every((m) => filterMuscleGroups.indexOf(m) === -1)
-        ) {
-          return 1;
-        } else {
-          return a.name.localeCompare(b.name);
-        }
+      return ExercisePickerUtils.getSortRating(a, b, allCustomExercises, state);
+    });
+  }
+
+  public static sortCustomExercises(
+    customExercises: ICustomExercise[],
+    allCustomExercises: IAllCustomExercises,
+    state: IExercisePickerState
+  ): ICustomExercise[] {
+    return CollectionUtils.sort(customExercises, (aE, bE) => {
+      const a = Exercise.get(aE, allCustomExercises);
+      const b = Exercise.get(bE, allCustomExercises);
+      return ExercisePickerUtils.getSortRating(a, b, allCustomExercises, state);
+    });
+  }
+
+  private static getSortRating(
+    a: IExercise,
+    b: IExercise,
+    allCustomExercises: IAllCustomExercises,
+    state: IExercisePickerState
+  ): number {
+    const filters = state.filters;
+    const sort = state.sort;
+    const currentExerciseType = state.exerciseType;
+    const exerciseType = currentExerciseType;
+    if (sort === "similar_muscles" && exerciseType) {
+      const aRating = Exercise.similarRating(exerciseType, a, allCustomExercises);
+      const bRating = Exercise.similarRating(exerciseType, b, allCustomExercises);
+      return bRating - aRating;
+    } else if ((filters.muscles || []).length > 0) {
+      const filterMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroups(filters.muscles || []);
+      const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, allCustomExercises);
+      const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, allCustomExercises);
+      if (
+        aTargetMuscleGroups.some((m) => filterMuscleGroups.indexOf(m) !== -1) &&
+        bTargetMuscleGroups.every((m) => filterMuscleGroups.indexOf(m) === -1)
+      ) {
+        return -1;
+      } else if (
+        bTargetMuscleGroups.some((m) => filterMuscleGroups.indexOf(m) !== -1) &&
+        aTargetMuscleGroups.every((m) => filterMuscleGroups.indexOf(m) === -1)
+      ) {
+        return 1;
       } else {
         return a.name.localeCompare(b.name);
       }
-    });
+    } else {
+      return a.name.localeCompare(b.name);
+    }
   }
 
   public static filterCustomExercises(

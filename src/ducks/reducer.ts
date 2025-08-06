@@ -264,7 +264,6 @@ export type IStopTimer = {
 export type IApplyProgramChangesToProgress = {
   type: "ApplyProgramChangesToProgress";
   programExerciseIds?: string[];
-  checkReused?: boolean;
 };
 
 export type IUpdateProgressAction = {
@@ -392,7 +391,6 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
               dispatch({
                 type: "ApplyProgramChangesToProgress",
                 programExerciseIds: CollectionUtils.compact(affectedEntries.map((e) => e.programExerciseId)),
-                checkReused: false,
               });
             }
           }
@@ -867,13 +865,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const progress = state.progress[0];
     if (progress != null) {
       const program = Program.evaluate(Program.getProgram(state, progress.programId)!, state.storage.settings);
-      let newProgress = Progress.applyProgramDay(
-        progress,
-        program,
-        progress.day,
-        state.storage.settings,
-        action.programExerciseIds
-      );
+      let newProgress = Progress.applyProgramDay(progress, program, progress.day, state.storage.settings);
       newProgress = Progress.runInitialUpdateScripts(
         newProgress,
         action.programExerciseIds,

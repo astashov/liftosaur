@@ -5,7 +5,7 @@ import { Exercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";
 import { ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { IPlannerProgramExerciseUsed, IPlannerState } from "../models/types";
+import { IPlannerProgramExerciseWithType, IPlannerState } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
 import { PlannerKey } from "../plannerKey";
@@ -56,23 +56,26 @@ export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps):
           data-cy="planner-swap-exercise"
           onClick={() => {
             const exerciseKey = PlannerKey.fromPlannerExercise(evaluatedExercise, props.settings);
-            props.dispatch([
-              lb<IPlannerState>()
-                .pi("ui")
-                .p("modalExercise")
-                .record({
-                  focusedExercise: {
-                    weekIndex: 0,
-                    dayIndex: 0,
-                    exerciseLine: 0,
-                  },
-                  types: [],
-                  muscleGroups: [],
-                  exerciseType: exercise,
-                  exerciseKey,
-                }),
-              lb<IPlannerState>().pi("ui").p("showExerciseStats").record(undefined),
-            ], "Swap exercise");
+            props.dispatch(
+              [
+                lb<IPlannerState>()
+                  .pi("ui")
+                  .p("modalExercise")
+                  .record({
+                    focusedExercise: {
+                      weekIndex: 0,
+                      dayIndex: 0,
+                      exerciseLine: 0,
+                    },
+                    types: [],
+                    muscleGroups: [],
+                    exerciseType: exercise,
+                    exerciseKey,
+                  }),
+                lb<IPlannerState>().pi("ui").p("showExerciseStats").record(undefined),
+              ],
+              "Swap exercise"
+            );
           }}
         >
           Swap Exercise
@@ -117,7 +120,7 @@ function getIntensityPerWeeks(
   const data: [number[], number[]] = [[], []];
   for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex++) {
     const evaluatedWeek = evaluatedWeeks[weekIndex];
-    let exercise: IPlannerProgramExerciseUsed | undefined;
+    let exercise: IPlannerProgramExerciseWithType | undefined;
     const evaluatedDay = evaluatedWeek[dayIndex] as IPlannerEvalResult | undefined;
     if (evaluatedDay?.success) {
       exercise = PlannerProgramExercise.toUsed(
@@ -151,7 +154,7 @@ function getVolumePerWeeks(
   const data: [number[], number[]] = [[], []];
   for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex++) {
     const evaluatedWeek = evaluatedWeeks[weekIndex];
-    let exercise: IPlannerProgramExerciseUsed | undefined;
+    let exercise: IPlannerProgramExerciseWithType | undefined;
     const evaluatedDay = evaluatedWeek[dayIndex] as IPlannerEvalResult | undefined;
     if (evaluatedDay?.success) {
       exercise = PlannerProgramExercise.toUsed(

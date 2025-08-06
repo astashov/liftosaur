@@ -143,6 +143,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
     exercisesList = exercisesList.filter((e) => props.settings.starredExercises?.[Exercise.toKey(e)]);
   }
   exercisesList = exercisesList.filter((e) => !e.isDeleted);
+  exercisesList = ExercisePickerUtils.sortCustomExercises(exercisesList, props.settings.exercises, props.state);
 
   return (
     <div className="py-2">
@@ -223,7 +224,6 @@ interface IBuiltinExercisesProps {
   usedExerciseTypes: IExerciseType[];
   onStar: (key: string) => void;
   dispatch: ILensDispatch<IExercisePickerState>;
-  exerciseType?: IExerciseType;
 }
 
 function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
@@ -235,12 +235,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
   if (props.state.filters.isStarred) {
     exercises = exercises.filter((e) => props.settings.starredExercises?.[Exercise.toKey(e)]);
   }
-  exercises = ExercisePickerUtils.sortExercises(
-    exercises,
-    props.state.sort,
-    props.state.filters,
-    props.settings.exercises
-  );
+  exercises = ExercisePickerUtils.sortExercises(exercises, props.settings.exercises, props.state);
   return (
     <div className="py-2">
       <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4">
@@ -269,7 +264,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
                 }}
                 showMuscles={props.state.showMuscles}
                 settings={props.settings}
-                currentExerciseType={props.exerciseType}
+                currentExerciseType={props.state.exerciseType}
                 exercise={e}
                 equipment={e.equipment}
               />

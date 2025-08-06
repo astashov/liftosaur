@@ -38,7 +38,7 @@ import { ProgramToPlanner } from "./programToPlanner";
 import {
   IExportedPlannerProgram,
   IPlannerProgramExercise,
-  IPlannerProgramExerciseUsed,
+  IPlannerProgramExerciseWithType,
 } from "../pages/planner/models/types";
 import memoize from "micro-memoize";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
@@ -197,7 +197,7 @@ export namespace Program {
   export function nextHistoryEntry(
     program: IEvaluatedProgram,
     dayData: IDayData,
-    programExercise: IPlannerProgramExerciseUsed,
+    programExercise: IPlannerProgramExerciseWithType,
     stats: IStats,
     settings: ISettings
   ): IHistoryEntry {
@@ -281,7 +281,7 @@ export namespace Program {
     const fullDayName = getDayName(program, day);
     const now = Date.now();
     const programDay = Program.getProgramDay(program, day);
-    const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
+    const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
     return {
       vtype: "history_record",
       id: 0,
@@ -452,7 +452,7 @@ export namespace Program {
   }
 
   export function dayApproxTimeMs(programDay: IEvaluatedProgramDay, settings: ISettings): number {
-    return Program.getProgramDayExercises(programDay).reduce((acc, e) => {
+    return Program.getProgramDayUsedExercises(programDay).reduce((acc, e) => {
       return acc + ProgramExercise.approxTimeMs(e, settings);
     }, 0);
   }
@@ -461,12 +461,12 @@ export namespace Program {
     program: IEvaluatedProgram,
     day: number,
     key: string
-  ): IPlannerProgramExerciseUsed | undefined {
+  ): IPlannerProgramExerciseWithType | undefined {
     const programDay = program ? Program.getProgramDay(program, day) : undefined;
-    const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
+    const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
     let programExercise = dayExercises.find((pe) => pe.key === key);
     if (programExercise == null) {
-      const allExercises = program ? Program.getAllUsedProgramExercises(program) : [];
+      const allExercises = program ? Program.getAllProgramExercisesWithType(program) : [];
       programExercise = allExercises.find((pe) => pe.key === key);
       if (programExercise != null) {
         programExercise = { ...programExercise, dayData: getDayData(program, day) };
@@ -653,9 +653,16 @@ export namespace Program {
     return evaluatedProgram.weeks.flatMap((w) => w.days.flatMap((d) => d.exercises));
   }
 
-  export function getAllUsedProgramExercises(evaluatedProgram: IEvaluatedProgram): IPlannerProgramExerciseUsed[] {
+  export function getAllUsedProgramExercises(evaluatedProgram: IEvaluatedProgram): IPlannerProgramExerciseWithType[] {
     const used = getAllProgramExercises(evaluatedProgram).filter((e) => !e.notused && e.exerciseType != null);
-    return used as IPlannerProgramExerciseUsed[];
+    return used as IPlannerProgramExerciseWithType[];
+  }
+
+  export function getAllProgramExercisesWithType(
+    evaluatedProgram: IEvaluatedProgram
+  ): IPlannerProgramExerciseWithType[] {
+    const used = getAllProgramExercises(evaluatedProgram).filter((e) => e.exerciseType != null);
+    return used as IPlannerProgramExerciseWithType[];
   }
 
   export function getProgramExerciseByTypeWeekAndDay(
@@ -816,8 +823,8 @@ export namespace Program {
 
   export function exerciseRange(program: IEvaluatedProgram): string {
     const days = program.weeks.flatMap((w) => w.days);
-    const minExs = Math.min(...days.map((d) => Program.getProgramDayExercises(d).length));
-    const maxExs = Math.max(...days.map((d) => Program.getProgramDayExercises(d).length));
+    const minExs = Math.min(...days.map((d) => Program.getProgramDayUsedExercises(d).length));
+    const maxExs = Math.max(...days.map((d) => Program.getProgramDayUsedExercises(d).length));
     return exerciseRangeFormat(minExs, maxExs);
   }
 
@@ -911,9 +918,14 @@ export namespace Program {
     return undefined;
   }
 
-  export function getProgramDayExercises(programDay: IEvaluatedProgramDay): IPlannerProgramExerciseUsed[] {
+  export function getProgramDayExercises(programDay: IEvaluatedProgramDay): IPlannerProgramExerciseWithType[] {
+    const list = programDay.exercises.filter((e) => e.exerciseType != null);
+    return list as IPlannerProgramExerciseWithType[];
+  }
+
+  export function getProgramDayUsedExercises(programDay: IEvaluatedProgramDay): IPlannerProgramExerciseWithType[] {
     const list = programDay.exercises.filter((e) => !e.notused && e.exerciseType != null);
-    return list as IPlannerProgramExerciseUsed[];
+    return list as IPlannerProgramExerciseWithType[];
   }
 
   export function applyEvaluatedProgram(

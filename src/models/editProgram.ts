@@ -10,8 +10,6 @@ import { PP } from "./pp";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { ProgramToPlanner } from "./programToPlanner";
 import { Thunk } from "../ducks/thunks";
-import { ICollectionVersions } from "./versionTracker";
-import { c } from "../utils/types";
 
 export namespace EditProgram {
   export function properlyUpdateStateVariableInPlace(
@@ -49,46 +47,41 @@ export namespace EditProgram {
   }
 
   export function deleteProgram(dispatch: IDispatch, program: IProgram, customPrograms: IProgram[]): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .recordModify((pgms) => pgms.filter((p) => p.id !== program.id)),
-      lb<IState>()
-        .p("storage")
-        .p("currentProgramId")
-        .recordModify((id) =>
-          id === program.id ? (customPrograms.filter((p) => p.id !== program.id)[0]?.id ?? emptyProgramId) : id
-        ),
-      lb<IState>()
-        .p("storage")
-        .p("_versions")
-        .recordModify((versions) => {
-          if (program.clonedAt == null) {
-            return versions;
-          }
-          const newVersions = ObjectUtils.clone(versions || {});
-          const programs = c<ICollectionVersions<IProgram[]>>(newVersions.programs) || {};
-          programs.deleted = {
-            ...programs.deleted,
-            [program.clonedAt]: Date.now(),
-          };
-          return newVersions;
-        }),
-    ], "Delete program");
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("programs")
+          .recordModify((pgms) => pgms.filter((p) => p.id !== program.id)),
+        lb<IState>()
+          .p("storage")
+          .p("currentProgramId")
+          .recordModify((id) =>
+            id === program.id ? (customPrograms.filter((p) => p.id !== program.id)[0]?.id ?? emptyProgramId) : id
+          ),
+      ],
+      "Delete program"
+    );
   }
 
   export function setName(dispatch: IDispatch, program: IProgram, name: string): void {
-    updateState(dispatch, [
-      lb<IState>().p("storage").p("programs").findBy("id", program.id).p("name").record(name),
-      lb<IState>().p("storage").p("programs").findBy("id", program.id).pi("planner").p("name").record(name),
-    ], "Update program name");
+    updateState(
+      dispatch,
+      [
+        lb<IState>().p("storage").p("programs").findBy("id", program.id).p("name").record(name),
+        lb<IState>().p("storage").p("programs").findBy("id", program.id).pi("planner").p("name").record(name),
+      ],
+      "Update program name"
+    );
   }
 
   export function setNextDay(dispatch: IDispatch, programId: string, nextDay: number): void {
-    updateState(dispatch, [
-      lb<IState>().p("storage").p("programs").findBy("id", programId).p("nextDay").record(nextDay),
-    ], "Set next day");
+    updateState(
+      dispatch,
+      [lb<IState>().p("storage").p("programs").findBy("id", programId).p("nextDay").record(nextDay)],
+      "Set next day"
+    );
   }
 
   export function initPlannerState(id: string, program: IProgram, focusedDay?: IDayData, key?: string): IPlannerState {
@@ -139,18 +132,26 @@ export namespace EditProgram {
       },
     };
 
-    updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .recordModify((pgms) => [...pgms, newProgram]),
-      lb<IState>().p("storage").p("currentProgramId").record(newProgram.id),
-    ], "Create program");
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("programs")
+          .recordModify((pgms) => [...pgms, newProgram]),
+        lb<IState>().p("storage").p("currentProgramId").record(newProgram.id),
+      ],
+      "Create program"
+    );
     dispatch(Thunk.pushToEditProgram());
   }
 
   export function updateProgram(dispatch: IDispatch, program: IProgram): void {
-    updateState(dispatch, [lb<IState>().p("storage").p("programs").findBy("id", program.id).record(program)], "Update program");
+    updateState(
+      dispatch,
+      [lb<IState>().p("storage").p("programs").findBy("id", program.id).record(program)],
+      "Update program"
+    );
   }
 
   export function regenerateProgram(

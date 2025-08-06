@@ -5,7 +5,7 @@ import {
   IPlannerProgramExerciseGlobals,
   IPlannerProgramExerciseSet,
   IPlannerProgramExerciseSetVariation,
-  IPlannerProgramExerciseUsed,
+  IPlannerProgramExerciseWithType,
   IPlannerProgramExerciseWarmupSet,
   IProgramExerciseProgress,
   IProgramExerciseProgressType,
@@ -116,9 +116,9 @@ export class PlannerProgramExercise {
     return sets;
   }
 
-  public static toUsed(exercise?: IPlannerProgramExercise): IPlannerProgramExerciseUsed | undefined {
+  public static toUsed(exercise?: IPlannerProgramExercise): IPlannerProgramExerciseWithType | undefined {
     if (exercise?.exerciseType != null) {
-      return exercise as IPlannerProgramExerciseUsed;
+      return exercise as IPlannerProgramExerciseWithType;
     } else {
       return undefined;
     }

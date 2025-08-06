@@ -55,7 +55,7 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
             return null;
           }
           const exerciseTypes = CollectionUtils.compact(
-            Program.getProgramDayExercises(day).map((exercise) => {
+            Program.getProgramDayUsedExercises(day).map((exercise) => {
               return Exercise.find(exercise.exerciseType, props.settings.exercises);
             })
           );

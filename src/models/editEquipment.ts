@@ -18,21 +18,25 @@ export class EditEquipment {
     const oldEquipment = Equipment.getEquipmentIdForExerciseType(settings, exerciseType);
     gymId = gymId ?? settings.currentGymId ?? settings.gyms[0].id;
 
-    updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("settings")
-        .p("exerciseData")
-        .recordModify((data) => {
-          return {
-            ...data,
-            [exerciseKey]: {
-              ...data[exerciseKey],
-              equipment: { ...data[exerciseKey]?.equipment, [gymId]: equipment ? equipment : undefined },
-            },
-          };
-        }),
-    ], "Update equipment");
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("settings")
+          .p("exerciseData")
+          .recordModify((data) => {
+            return {
+              ...data,
+              [exerciseKey]: {
+                ...data[exerciseKey],
+                equipment: { ...data[exerciseKey]?.equipment, [gymId]: equipment ? equipment : undefined },
+              },
+            };
+          }),
+      ],
+      "Update equipment"
+    );
     const currentUnit =
       (oldEquipment ? Equipment.getEquipmentData(settings, oldEquipment)?.unit : undefined) ?? settings.units;
     const newUnit = (equipment ? Equipment.getEquipmentData(settings, equipment)?.unit : undefined) ?? settings.units;
@@ -40,7 +44,6 @@ export class EditEquipment {
       dispatch({
         type: "ApplyProgramChangesToProgress",
         programExerciseIds: programExerciseIds,
-        checkReused: false,
       });
     }
   }
@@ -50,15 +53,19 @@ export class EditEquipment {
       return;
     }
 
-    updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("settings")
-        .p("exerciseData")
-        .recordModify((data) => {
-          const k = Exercise.toKey(exercise);
-          return { ...data, [k]: { ...data[k], rounding: Math.max(value, 0.1) } };
-        }),
-    ], "Update rounding");
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("settings")
+          .p("exerciseData")
+          .recordModify((data) => {
+            const k = Exercise.toKey(exercise);
+            return { ...data, [k]: { ...data[k], rounding: Math.max(value, 0.1) } };
+          }),
+      ],
+      "Update rounding"
+    );
   }
 }

@@ -7,7 +7,6 @@ import {
   IExerciseKind,
   IExercisePickerSort,
   IExercisePickerState,
-  IExerciseType,
   IMuscle,
   IScreenMuscle,
   ISettings,
@@ -30,7 +29,6 @@ import { ExercisePickerUtils } from "./exercisePickerUtils";
 interface IProps {
   settings: ISettings;
   state: IExercisePickerState;
-  exerciseType?: IExerciseType;
   dispatch: ILensDispatch<IExercisePickerState>;
 }
 
@@ -47,7 +45,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
     similar_muscles: {
       label: exercisePickerSortNames.similar_muscles,
       isSelected: props.state.sort === "similar_muscles",
-      disabledReason: props.exerciseType != null ? undefined : "Enabled only for swap/edit",
+      disabledReason: props.state.exerciseType != null ? undefined : "Enabled only for swap/edit",
     },
   };
 
