@@ -37,6 +37,17 @@ export const equipments = [
   "ezbar",
   "trapbar",
 ] as const;
+export const TBuiltinEquipment = t.keyof(
+  equipments.reduce<Record<IArrayElement<typeof equipments>, null>>(
+    (memo, muscle) => {
+      memo[muscle] = null;
+      return memo;
+    },
+    {} as Record<IArrayElement<typeof equipments>, null>
+  ),
+  "TBuiltinEquipment"
+);
+export type IBuiltinEquipment = t.TypeOf<typeof TBuiltinEquipment>;
 
 export const exerciseTypes = [
   "abWheel",
@@ -591,6 +602,111 @@ export const TProgramExercise = t.intersection(
 );
 export type IProgramExercise = t.TypeOf<typeof TProgramExercise>;
 
+const exercisePickerScreens = ["exercisePicker", "customExercise", "filter"] as const;
+export const TExercisePickerScreen = t.keyof(
+  exercisePickerScreens.reduce<Record<IArrayElement<typeof exercisePickerScreens>, null>>(
+    (memo, muscle) => {
+      memo[muscle] = null;
+      return memo;
+    },
+    {} as Record<IArrayElement<typeof exercisePickerScreens>, null>
+  ),
+  "TExercisePickerScreen"
+);
+export type IExercisePickerScreen = t.TypeOf<typeof TExercisePickerScreen>;
+
+export const exercisePickerSorts = ["name_asc", "similar_muscles"] as const;
+export const TExercisePickerSort = t.keyof(
+  exercisePickerSorts.reduce<Record<IArrayElement<typeof exercisePickerSorts>, null>>(
+    (memo, muscle) => {
+      memo[muscle] = null;
+      return memo;
+    },
+    {} as Record<IArrayElement<typeof exercisePickerSorts>, null>
+  ),
+  "TExercisePickerSort"
+);
+export type IExercisePickerSort = t.TypeOf<typeof TExercisePickerSort>;
+
+export const TExercisePickerFilters = t.partial(
+  {
+    equipment: t.array(TBuiltinEquipment),
+    type: t.array(TExerciseKind),
+    muscles: t.array(TMuscle),
+    isStarred: t.boolean,
+  },
+  "TExercisePickerFilters"
+);
+export type IExercisePickerFilters = t.TypeOf<typeof TExercisePickerFilters>;
+
+export const TExercisePickerProgramExercise = t.type(
+  {
+    type: t.literal("program"),
+    exerciseType: TExerciseType,
+    week: t.number,
+    dayInWeek: t.number,
+  },
+  "TExercisePickerProgramExercise"
+);
+export type IExercisePickerProgramExercise = t.TypeOf<typeof TExercisePickerProgramExercise>;
+
+export const TExercisePickerAdhocExercise = t.intersection(
+  [
+    t.interface({
+      type: t.literal("adhoc"),
+      exerciseType: TExerciseType,
+    }),
+    t.partial({
+      label: t.string,
+    }),
+  ],
+  "ExercisePickerAdhocExercise"
+);
+export type IExercisePickerAdhocExercise = t.TypeOf<typeof TExercisePickerAdhocExercise>;
+
+export const TExercisePickerTemplate = t.intersection(
+  [
+    t.interface({
+      type: t.literal("template"),
+      name: t.string,
+    }),
+    t.partial({
+      label: t.string,
+    }),
+  ],
+  "ExercisePickerTemplate"
+);
+export type IExercisePickerTemplate = t.TypeOf<typeof TExercisePickerTemplate>;
+
+export const TExercisePickerSelectedExercise = t.union([
+  TExercisePickerProgramExercise,
+  TExercisePickerAdhocExercise,
+  TExercisePickerTemplate,
+]);
+export type IExercisePickerSelectedExercise = t.TypeOf<typeof TExercisePickerSelectedExercise>;
+
+export const TExercisePickerState = t.intersection([
+  t.interface({
+    screenStack: t.array(TExercisePickerScreen),
+    sort: TExercisePickerSort,
+    filters: TExercisePickerFilters,
+    selectedExercises: t.array(TExercisePickerSelectedExercise),
+    mode: t.union([t.literal("workout"), t.literal("program")]),
+  }),
+  t.partial({
+    showMuscles: t.boolean,
+    customExerciseName: t.string,
+    label: t.string,
+    templateName: t.string,
+    selectedTab: t.number,
+    editCustomExercise: TCustomExercise,
+    search: t.string,
+    exerciseType: TExerciseType,
+    entryIndex: t.number,
+  }),
+]);
+export type IExercisePickerState = t.TypeOf<typeof TExercisePickerState>;
+
 export const TProgressUi = t.partial(
   {
     amrapModal: t.intersection([
@@ -613,9 +729,8 @@ export const TProgressUi = t.partial(
       date: t.string,
       time: t.number,
     }),
-    exerciseModal: t.partial({
-      exerciseType: TExerciseType,
-      entryIndex: t.number,
+    exercisePicker: t.partial({
+      state: TExercisePickerState,
     }),
     equipmentModal: t.partial({
       exerciseType: TExerciseType,
@@ -1153,6 +1268,7 @@ export const TSettings = t.intersection(
       vibration: t.boolean,
       startWeekFromMonday: t.boolean,
       textSize: t.number,
+      starredExercises: dictionary(TExerciseId, t.boolean),
     }),
   ],
   "TSettings"
@@ -1234,6 +1350,11 @@ export type IDayData = {
   week?: number;
   day: number;
   dayInWeek?: number;
+};
+
+export type IShortDayData = {
+  week: number;
+  dayInWeek: number;
 };
 
 export type IDaySetData = {

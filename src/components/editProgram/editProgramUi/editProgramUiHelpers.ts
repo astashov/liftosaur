@@ -10,7 +10,15 @@ import {
 } from "../../../pages/planner/models/types";
 import { PlannerEvaluator } from "../../../pages/planner/plannerEvaluator";
 import { PlannerKey } from "../../../pages/planner/plannerKey";
-import { IPlannerProgram, ISettings, IDayData, IExerciseType, IDaySetData, IPlannerProgramDay } from "../../../types";
+import {
+  IPlannerProgram,
+  ISettings,
+  IDayData,
+  IExerciseType,
+  IDaySetData,
+  IPlannerProgramDay,
+  IShortDayData,
+} from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { PlannerExerciseEvaluator } from "../../../pages/planner/plannerExerciseEvaluator";
 import { Exercise, IExercise } from "../../../models/exercise";
@@ -111,22 +119,25 @@ export class EditProgramUiHelpers {
       return ui.dayUi.collapsed.has(`${weekIndex}-${i}`);
     });
     cb(collapsedOrder);
-    plannerDispatch([
-      lbUi
-        .p("dayUi")
-        .p("collapsed")
-        .recordModify((collapsed) => {
-          const newCollapsed = new Set<string>(collapsed);
-          for (let i = 0; i < collapsedOrder.length; i++) {
-            if (collapsedOrder[i]) {
-              newCollapsed.add(`${weekIndex}-${i}`);
-            } else {
-              newCollapsed.delete(`${weekIndex}-${i}`);
+    plannerDispatch(
+      [
+        lbUi
+          .p("dayUi")
+          .p("collapsed")
+          .recordModify((collapsed) => {
+            const newCollapsed = new Set<string>(collapsed);
+            for (let i = 0; i < collapsedOrder.length; i++) {
+              if (collapsedOrder[i]) {
+                newCollapsed.add(`${weekIndex}-${i}`);
+              } else {
+                newCollapsed.delete(`${weekIndex}-${i}`);
+              }
             }
-          }
-          return newCollapsed;
-        }),
-    ], "Toggle week collapse state");
+            return newCollapsed;
+          }),
+      ],
+      "Toggle week collapse state"
+    );
   }
 
   public static changeSets(
@@ -177,7 +188,7 @@ export class EditProgramUiHelpers {
   public static changeCurrentInstance3(
     planner: IPlannerProgram,
     fullName: string,
-    dayData: Required<IDayData>,
+    dayData: IShortDayData,
     isRepeat: boolean,
     settings: ISettings,
     shouldValidate: boolean,
@@ -227,7 +238,7 @@ export class EditProgramUiHelpers {
 
   private static getWeeks2(
     evaluatedProgram: IEvaluatedProgram,
-    dayData: Required<IDayData>,
+    dayData: IShortDayData,
     fullName: string,
     ignoreRepeats: boolean = false
   ): number[] {

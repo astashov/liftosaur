@@ -13,10 +13,10 @@ import { CollectionUtils } from "../../utils/collection";
 import { ExerciseImage } from "../exerciseImage";
 import { equipmentName, Exercise } from "../../models/exercise";
 import { ISettings } from "../../types";
-import { PlannerKey } from "../../pages/planner/plannerKey";
 import { IconSwap } from "../icons/iconSwap";
 import { delayfn } from "../../utils/throttler";
 import { ReactUtils } from "../../utils/react";
+import { pickerStateFromPlannerExercise } from "../editProgram/editProgramUtils";
 
 interface IEditProgramExerciseNavbarProps {
   state: IPlannerExerciseState;
@@ -89,20 +89,8 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                 props.plannerDispatch(
                   lb<IPlannerExerciseState>()
                     .p("ui")
-                    .p("modalExercise")
-                    .record({
-                      focusedExercise: {
-                        weekIndex: props.plannerExercise.dayData.week - 1,
-                        dayIndex: props.plannerExercise.dayData.dayInWeek - 1,
-                        exerciseLine: props.plannerExercise.line,
-                      },
-                      exerciseKey: PlannerKey.fromPlannerExercise(props.plannerExercise, props.settings),
-                      fullName: props.plannerExercise.fullName,
-                      exerciseType,
-                      types: [],
-                      muscleGroups: [],
-                      change: "all",
-                    }),
+                    .p("exercisePickerState")
+                    .record(pickerStateFromPlannerExercise(props.plannerExercise)),
                   "Open exercise modal"
                 );
               }}
@@ -132,21 +120,28 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                 ).pi("plannerState"),
                 editProgramStateRef.current
               );
-              plannerDispatch([lb<IPlannerState>().p("current").p("program").record(stateRef.current.current.program)], "Update program from edit exercise");
+              plannerDispatch(
+                [lb<IPlannerState>().p("current").p("program").record(stateRef.current.current.program)],
+                "Update program from edit exercise"
+              );
             } else {
-              updateState(props.dispatch, [
-                lb<IState>()
-                  .p("storage")
-                  .p("programs")
-                  .recordModify((programs) => {
-                    return CollectionUtils.setBy(
-                      programs,
-                      "id",
-                      stateRef.current.current.program.id,
-                      stateRef.current.current.program
-                    );
-                  }),
-              ], "Save program changes");
+              updateState(
+                props.dispatch,
+                [
+                  lb<IState>()
+                    .p("storage")
+                    .p("programs")
+                    .recordModify((programs) => {
+                      return CollectionUtils.setBy(
+                        programs,
+                        "id",
+                        stateRef.current.current.program.id,
+                        stateRef.current.current.program
+                      );
+                    }),
+                ],
+                "Save program changes"
+              );
             }
             props.dispatch(Thunk.pullScreen());
           }, 50)}

@@ -1,5 +1,31 @@
+import { LensBuilder, ILensRecordingPayload } from "lens-shmens";
 import { IEnv, IState } from "../models/state";
+import { ILensDispatch } from "../utils/useLensReducer";
 import { IAction } from "./reducer";
+
+export function buildCustomDispatch<T>(
+  originalDispatch: IDispatch,
+  builder: LensBuilder<IState, T, {}>
+): ILensDispatch<T> {
+  return (lensRecording: ILensRecordingPayload<T>[] | ILensRecordingPayload<T>, desc: string) => {
+    const recordings = (Array.isArray(lensRecording) ? lensRecording : [lensRecording]).map((recording) => {
+      return recording.prepend(builder);
+    });
+    originalDispatch({ type: "UpdateState", lensRecording: recordings, desc });
+  };
+}
+
+export function buildCustomLensDispatch<T, U>(
+  originalDispatch: ILensDispatch<T>,
+  builder: LensBuilder<T, U, {}>
+): ILensDispatch<U> {
+  return (lensRecording: ILensRecordingPayload<U>[] | ILensRecordingPayload<U>, desc: string) => {
+    const recordings = (Array.isArray(lensRecording) ? lensRecording : [lensRecording]).map((recording) => {
+      return recording.prepend(builder);
+    });
+    originalDispatch(recordings, desc);
+  };
+}
 
 export type IGThunk<TState, TAction, TEnv> = (
   dispatch: IGDispatch<TState, TAction, TEnv>,

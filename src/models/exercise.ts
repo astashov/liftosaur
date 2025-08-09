@@ -18,6 +18,7 @@ import {
   IScreenMuscle,
   IAllEquipment,
   screenMuscles,
+  IProgram,
 } from "../types";
 import { Muscle } from "./muscle";
 import { StringUtils } from "../utils/string";
@@ -25,6 +26,11 @@ import { UidFactory } from "../utils/generator";
 import { CollectionUtils } from "../utils/collection";
 import { ExerciseImageUtils } from "./exerciseImage";
 import { Equipment } from "./equipment";
+import { IDispatch } from "../ducks/types";
+import { Program } from "./program";
+import { EditProgram } from "./editProgram";
+import { lb } from "lens-shmens";
+import { updateSettings } from "./state";
 
 export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
@@ -4039,7 +4045,114 @@ export namespace Exercise {
     return rated.filter(([, r]) => r > 0);
   }
 
-  export function createOrUpdateCustomExercise<T>(
+  export function createCustomExercise(
+    name: string,
+    tMuscles: IMuscle[],
+    sMuscles: IMuscle[],
+    types: IExerciseKind[],
+    smallImageUrl?: string,
+    largeImageUrl?: string
+  ): ICustomExercise {
+    const id = UidFactory.generateUid(8);
+    const newExercise: ICustomExercise = {
+      vtype: "custom_exercise",
+      id,
+      name,
+      isDeleted: false,
+      types,
+      smallImageUrl,
+      largeImageUrl,
+      meta: {
+        targetMuscles: tMuscles,
+        synergistMuscles: sMuscles,
+        bodyParts: [],
+        sortedEquipment: [],
+      },
+    };
+    return newExercise;
+  }
+
+  export function editCustomExercise(
+    exercise: ICustomExercise,
+    name: string,
+    tMuscles: IMuscle[],
+    sMuscles: IMuscle[],
+    types: IExerciseKind[],
+    smallImageUrl?: string,
+    largeImageUrl?: string
+  ): ICustomExercise {
+    const newExercise: ICustomExercise = {
+      ...exercise,
+      name,
+      types,
+      smallImageUrl,
+      largeImageUrl,
+      meta: { ...exercise.meta, targetMuscles: tMuscles, synergistMuscles: sMuscles },
+    };
+    return newExercise;
+  }
+
+  export function deleteCustomExercise(
+    allExercises: IAllCustomExercises,
+    exerciseId: IExerciseId
+  ): IAllCustomExercises {
+    const existingExercise = allExercises[exerciseId];
+    if (existingExercise) {
+      return { ...allExercises, [exerciseId]: { ...existingExercise, isDeleted: true } };
+    }
+    return allExercises;
+  }
+
+  export function upsertCustomExercise(
+    allExercises: IAllCustomExercises,
+    exercise: ICustomExercise
+  ): IAllCustomExercises {
+    const existingExercise = allExercises[exercise.id];
+    if (existingExercise) {
+      return { ...allExercises, [exercise.id]: { ...existingExercise, ...exercise, isDeleted: false } };
+    } else {
+      const sameNameDeletedExercise = ObjectUtils.values(allExercises).find(
+        (e) => e?.name === exercise.name && e.isDeleted
+      );
+      if (sameNameDeletedExercise) {
+        return {
+          ...allExercises,
+          [sameNameDeletedExercise.id]: {
+            ...sameNameDeletedExercise,
+            ...exercise,
+            id: sameNameDeletedExercise.id,
+            isDeleted: false,
+          },
+        };
+      } else {
+        return { ...allExercises, [exercise.id]: exercise };
+      }
+    }
+  }
+
+  export function handleCustomExerciseChange(
+    dispatch: IDispatch,
+    action: "upsert" | "delete",
+    exercise: ICustomExercise,
+    settings: ISettings,
+    program?: IProgram
+  ): void {
+    const oldExercise = settings.exercises[exercise.id];
+    const exercises =
+      action === "upsert"
+        ? Exercise.upsertCustomExercise(settings.exercises, exercise)
+        : Exercise.deleteCustomExercise(settings.exercises, exercise.id);
+    updateSettings(dispatch, lb<ISettings>().p("exercises").record(exercises), "Create custom exercise");
+    if (program && oldExercise && oldExercise.name !== exercise.name) {
+      const newProgram = Program.changeExerciseName(oldExercise.name, exercise.name, program, {
+        ...settings,
+        exercises,
+      });
+      EditProgram.updateProgram(dispatch, newProgram);
+    }
+  }
+
+  export function createOrUpdateCustomExercise(
     allExercises: IAllCustomExercises,
     name: string,
     tMuscles: IMuscle[],
@@ -4050,19 +4163,12 @@ export namespace Exercise {
     exercise?: ICustomExercise
   ): IAllCustomExercises {
     if (exercise != null) {
-      const newExercise: ICustomExercise = {
-        ...exercise,
-        name,
-        types,
-        smallImageUrl,
-        largeImageUrl,
-        meta: { ...exercise.meta, targetMuscles: tMuscles, synergistMuscles: sMuscles },
-      };
+      const newExercise = editCustomExercise(exercise, name, tMuscles, sMuscles, types, smallImageUrl, largeImageUrl);
       return { ...allExercises, [newExercise.id]: newExercise };
     } else {
-      const deletedExerciseKey = ObjectUtils.keys(allExercises).filter(
+      const deletedExerciseKey = ObjectUtils.keys(allExercises).find(
         (k) => allExercises[k]?.isDeleted && allExercises[k]?.name === name
-      )[0];
+      );
       const deletedExercise = deletedExerciseKey != null ? allExercises[deletedExerciseKey] : undefined;
       if (deletedExercise) {
         return {
@@ -4082,23 +4188,8 @@ export namespace Exercise {
           },
         };
       } else {
-        const id = UidFactory.generateUid(8);
-        const newExercise: ICustomExercise = {
-          vtype: "custom_exercise",
-          id,
-          name,
-          isDeleted: false,
-          types,
-          smallImageUrl,
-          largeImageUrl,
-          meta: {
-            targetMuscles: tMuscles,
-            synergistMuscles: sMuscles,
-            bodyParts: [],
-            sortedEquipment: [],
-          },
-        };
-        return { ...allExercises, [id]: newExercise };
+        const newExercise = createCustomExercise(name, tMuscles, sMuscles, types, smallImageUrl, largeImageUrl);
+        return { ...allExercises, [newExercise.id]: newExercise };
       }
     }
   }

@@ -27,7 +27,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
             <button
               className={`flex-1 px-2 py-3 font-semibold text-center border rounded-tl-lg rounded-bl-lg text-sm ${props.settings.units === "lb" ? selectedButtonCls : unselectedButtonCls}`}
               onClick={() => {
-                updateSettings(props.dispatch, lb<ISettings>().p("units").record("lb"));
+                updateSettings(props.dispatch, lb<ISettings>().p("units").record("lb"), "Set units to pounds");
               }}
             >
               Pounds (lb)
@@ -35,7 +35,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
             <button
               className={`flex-1 px-2 py-3 font-semibold text-center border rounded-tr-lg rounded-br-lg text-sm ${props.settings.units === "kg" ? selectedButtonCls : unselectedButtonCls}`}
               onClick={() => {
-                updateSettings(props.dispatch, lb<ISettings>().p("units").record("kg"));
+                updateSettings(props.dispatch, lb<ISettings>().p("units").record("kg"), "Set units to kilograms");
               }}
             >
               Kilograms (kg)

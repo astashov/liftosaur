@@ -23,6 +23,7 @@ import {
   IDayData,
   IExerciseData,
   IStats,
+  IShortDayData,
 } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
@@ -38,7 +39,7 @@ import { ProgramToPlanner } from "./programToPlanner";
 import {
   IExportedPlannerProgram,
   IPlannerProgramExercise,
-  IPlannerProgramExerciseUsed,
+  IPlannerProgramExerciseWithType,
 } from "../pages/planner/models/types";
 import memoize from "micro-memoize";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
@@ -197,7 +198,7 @@ export namespace Program {
   export function nextHistoryEntry(
     program: IEvaluatedProgram,
     dayData: IDayData,
-    programExercise: IPlannerProgramExerciseUsed,
+    programExercise: IPlannerProgramExerciseWithType,
     stats: IStats,
     settings: ISettings
   ): IHistoryEntry {
@@ -281,7 +282,7 @@ export namespace Program {
     const fullDayName = getDayName(program, day);
     const now = Date.now();
     const programDay = Program.getProgramDay(program, day);
-    const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
+    const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
     return {
       vtype: "history_record",
       id: 0,
@@ -452,9 +453,36 @@ export namespace Program {
   }
 
   export function dayApproxTimeMs(programDay: IEvaluatedProgramDay, settings: ISettings): number {
-    return Program.getProgramDayExercises(programDay).reduce((acc, e) => {
+    return Program.getProgramDayUsedExercises(programDay).reduce((acc, e) => {
       return acc + ProgramExercise.approxTimeMs(e, settings);
     }, 0);
+  }
+
+  export function getProgramExerciseForKeyAndShortDayData(
+    program: IEvaluatedProgram,
+    dayData: IShortDayData,
+    key: string
+  ): IPlannerProgramExerciseWithType | undefined {
+    const day = Program.getDayNumber(program, dayData.week, dayData.dayInWeek);
+    return getProgramExerciseForKeyAndDay(program, day, key);
+  }
+
+  export function getProgramExerciseForKeyAndDay(
+    program: IEvaluatedProgram,
+    day: number,
+    key: string
+  ): IPlannerProgramExerciseWithType | undefined {
+    const programDay = program ? Program.getProgramDay(program, day) : undefined;
+    const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
+    let programExercise = dayExercises.find((pe) => pe.key === key);
+    if (programExercise == null) {
+      const allExercises = program ? Program.getAllProgramExercisesWithType(program) : [];
+      programExercise = allExercises.find((pe) => pe.key === key);
+      if (programExercise != null) {
+        programExercise = { ...programExercise, dayData: getDayData(program, day) };
+      }
+    }
+    return programExercise;
   }
 
   export function runAllFinishDayScripts(
@@ -472,8 +500,10 @@ export namespace Program {
     }
     for (const entry of progress.entries) {
       if (entry != null && !entry.isSuppressed && entry.sets.some((s) => s.isCompleted)) {
-        const dayExercises = Program.getProgramDayExercises(programDay);
-        const programExercise = dayExercises.find((e) => e.key === entry.programExerciseId);
+        const programExercise =
+          program && entry.programExerciseId
+            ? Program.getProgramExerciseForKeyAndDay(newEvaluatedProgram, dayData.day, entry.programExerciseId)
+            : undefined;
         if (programExercise) {
           const newStateResult = Program.runFinishDayScript(
             programExercise,
@@ -557,12 +587,16 @@ export namespace Program {
   }
 
   export function previewProgram(dispatch: IDispatch, programId: string, showCustomPrograms: boolean): void {
-    updateState(dispatch, [
-      lb<IState>().p("previewProgram").record({
-        id: programId,
-        showCustomPrograms,
-      }),
-    ], "Preview program");
+    updateState(
+      dispatch,
+      [
+        lb<IState>().p("previewProgram").record({
+          id: programId,
+          showCustomPrograms,
+        }),
+      ],
+      "Preview program"
+    );
     dispatch(Thunk.pushScreen("programPreview"));
   }
 
@@ -589,31 +623,35 @@ export namespace Program {
   }
 
   export function cloneProgram(dispatch: IDispatch, program: IProgram, settings: ISettings): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .recordModify((programs) => {
-          const newProgram = { ...program, clonedAt: Date.now() };
-          if (newProgram.planner) {
-            newProgram.planner = PlannerProgram.switchToUnit(newProgram.planner, settings);
-          }
-          if (programs.some((p) => p.id === program.id)) {
-            if (
-              confirm(
-                "You already have this program cloned. Do you want to override? All your modifications of this program will be lost."
-              )
-            ) {
-              return programs.map((p) => (p.id === newProgram.id ? newProgram : p));
-            } else {
-              return programs;
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("programs")
+          .recordModify((programs) => {
+            const newProgram = { ...program, clonedAt: Date.now() };
+            if (newProgram.planner) {
+              newProgram.planner = PlannerProgram.switchToUnit(newProgram.planner, settings);
             }
-          } else {
-            return [...programs, newProgram];
-          }
-        }),
-      lb<IState>().p("storage").p("currentProgramId").record(program.id),
-    ], "Clone program");
+            if (programs.some((p) => p.id === program.id)) {
+              if (
+                confirm(
+                  "You already have this program cloned. Do you want to override? All your modifications of this program will be lost."
+                )
+              ) {
+                return programs.map((p) => (p.id === newProgram.id ? newProgram : p));
+              } else {
+                return programs;
+              }
+            } else {
+              return [...programs, newProgram];
+            }
+          }),
+        lb<IState>().p("storage").p("currentProgramId").record(program.id),
+      ],
+      "Clone program"
+    );
   }
 
   export function selectProgram(dispatch: IDispatch, programId: string): void {
@@ -625,9 +663,38 @@ export namespace Program {
     return evaluatedProgram.weeks.flatMap((w) => w.days.flatMap((d) => d.exercises));
   }
 
-  export function getAllUsedProgramExercises(evaluatedProgram: IEvaluatedProgram): IPlannerProgramExerciseUsed[] {
+  export function getAllUsedProgramExercises(evaluatedProgram: IEvaluatedProgram): IPlannerProgramExerciseWithType[] {
     const used = getAllProgramExercises(evaluatedProgram).filter((e) => !e.notused && e.exerciseType != null);
-    return used as IPlannerProgramExerciseUsed[];
+    return used as IPlannerProgramExerciseWithType[];
+  }
+
+  export function getAllProgramExercisesWithType(
+    evaluatedProgram: IEvaluatedProgram
+  ): IPlannerProgramExerciseWithType[] {
+    const used = getAllProgramExercises(evaluatedProgram).filter((e) => e.exerciseType != null);
+    return used as IPlannerProgramExerciseWithType[];
+  }
+
+  export function getProgramExerciseByTypeWeekAndDay(
+    evaluatedProgram: IEvaluatedProgram,
+    exerciseType: IExerciseType,
+    week: number,
+    dayInWeek: number
+  ): IPlannerProgramExercise | undefined {
+    let exercise: IPlannerProgramExercise | undefined;
+    PP.iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex) => {
+      if (
+        weekIndex + 1 === week &&
+        dayInWeekIndex + 1 === dayInWeek &&
+        e.exerciseType &&
+        Exercise.eq(e.exerciseType, exerciseType)
+      ) {
+        exercise = e;
+        return true;
+      }
+      return false;
+    });
+    return exercise;
   }
 
   export const evaluate = memoize(
@@ -766,8 +833,8 @@ export namespace Program {
 
   export function exerciseRange(program: IEvaluatedProgram): string {
     const days = program.weeks.flatMap((w) => w.days);
-    const minExs = Math.min(...days.map((d) => Program.getProgramDayExercises(d).length));
-    const maxExs = Math.max(...days.map((d) => Program.getProgramDayExercises(d).length));
+    const minExs = Math.min(...days.map((d) => Program.getProgramDayUsedExercises(d).length));
+    const maxExs = Math.max(...days.map((d) => Program.getProgramDayUsedExercises(d).length));
     return exerciseRangeFormat(minExs, maxExs);
   }
 
@@ -802,6 +869,19 @@ export namespace Program {
       }
     }
     return -1;
+  }
+
+  export function getExerciseTypesForWeekDay(program: IEvaluatedProgram, week: number, day: number): IExerciseType[] {
+    const exerciseTypes: IExerciseType[] = [];
+    PP.iterate2(program.weeks, (exercise, weekIndex, dayInWeekIndex) => {
+      if (weekIndex + 1 === week && dayInWeekIndex + 1 === day) {
+        const exType = exercise.exerciseType;
+        if (exType && !exerciseTypes.some((et) => Exercise.eq(et, exType))) {
+          exerciseTypes.push(exType);
+        }
+      }
+    });
+    return exerciseTypes;
   }
 
   export function getDayData(program: IEvaluatedProgram, day: number): Required<IDayData> {
@@ -861,9 +941,14 @@ export namespace Program {
     return undefined;
   }
 
-  export function getProgramDayExercises(programDay: IEvaluatedProgramDay): IPlannerProgramExerciseUsed[] {
+  export function getProgramDayExercises(programDay: IEvaluatedProgramDay): IPlannerProgramExerciseWithType[] {
+    const list = programDay.exercises.filter((e) => e.exerciseType != null);
+    return list as IPlannerProgramExerciseWithType[];
+  }
+
+  export function getProgramDayUsedExercises(programDay: IEvaluatedProgramDay): IPlannerProgramExerciseWithType[] {
     const list = programDay.exercises.filter((e) => !e.notused && e.exerciseType != null);
-    return list as IPlannerProgramExerciseUsed[];
+    return list as IPlannerProgramExerciseWithType[];
   }
 
   export function applyEvaluatedProgram(

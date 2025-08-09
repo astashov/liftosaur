@@ -34,6 +34,7 @@ export namespace EditStats {
     dispatch({
       type: "UpdateSettings",
       lensRecording: lb<ISettings>().p("statsEnabled").p("weight").p(name).record(value),
+      desc: `Toggle ${name} weight stat`,
     });
   }
 
@@ -41,6 +42,7 @@ export namespace EditStats {
     dispatch({
       type: "UpdateSettings",
       lensRecording: lb<ISettings>().p("statsEnabled").p("length").p(name).record(value),
+      desc: `Toggle ${name} length stat`,
     });
   }
 
@@ -48,6 +50,7 @@ export namespace EditStats {
     dispatch({
       type: "UpdateSettings",
       lensRecording: lb<ISettings>().p("statsEnabled").p("percentage").p(name).record(value),
+      desc: `Toggle ${name} percentage stat`,
     });
   }
 

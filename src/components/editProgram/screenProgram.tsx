@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { IDispatch } from "../../ducks/types";
+import { IDispatch, buildCustomLensDispatch } from "../../ducks/types";
 import { INavCommon, IState, updateState } from "../../models/state";
 import { useCallback, useEffect, useLayoutEffect, useState } from "preact/hooks";
 import { IProgram, ISettings } from "../../types";
@@ -32,7 +32,6 @@ import { ModalPublishProgram } from "../modalPublishProgram";
 import { BottomSheetEditProgramV2 } from "../bottomSheetEditProgramV2";
 import { IconKebab } from "../icons/iconKebab";
 import { ModalPlannerPictureExport } from "../../pages/planner/components/modalPlannerPictureExport";
-import { EditProgramModalExercise } from "./editProgramModalExercise";
 import { ModalPlannerProgramRevisions } from "../../pages/planner/modalPlannerProgramRevisions";
 import { PlannerWeekStats } from "../../pages/planner/components/plannerWeekStats";
 import { Modal } from "../modal";
@@ -43,6 +42,8 @@ import { UidFactory } from "../../utils/generator";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { UrlUtils } from "../../utils/url";
 import { ClipboardUtils } from "../../utils/clipboard";
+import { EditProgramBottomSheetPicker } from "./editProgramBottomSheetPicker";
+import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 
 interface IProps {
   originalProgram: IProgram;
@@ -83,7 +84,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const [shouldShowGenerateImageModal, setShouldShowGenerateImageModal] = useState<boolean>(false);
   const [isLoadingRevisions, setIsLoadingRevisions] = useState<boolean>(false);
   const [showRevisions, setShowRevisions] = useState<boolean>(false);
-  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
+  const lbPlanner = lb<IPlannerState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerState>().p("ui");
 
   useLayoutEffect(() => {
@@ -115,6 +116,14 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const ui = plannerState.ui;
 
   const editExerciseModal = ui.editExerciseModal;
+  const exercisePickerUi = props.plannerState.ui.exercisePicker;
+  const exercisePickerPlannerExercise = exercisePickerUi?.exerciseKey
+    ? Program.getProgramExerciseForKeyAndShortDayData(
+        evaluatedProgram,
+        exercisePickerUi.dayData,
+        exercisePickerUi.exerciseKey
+      )
+    : undefined;
 
   return (
     <Surface
@@ -213,28 +222,35 @@ export function ScreenProgram(props: IProps): JSX.Element {
               }}
             />
           )}
-          {props.plannerState.ui.modalExercise && (
-            <EditProgramModalExercise
-              evaluatedProgram={evaluatedProgram}
+          {exercisePickerUi && (
+            <EditProgramBottomSheetPicker
+              program={program}
+              dayData={exercisePickerUi.dayData}
+              plannerExercise={exercisePickerPlannerExercise}
+              exercisePickerState={exercisePickerUi.state}
+              change={exercisePickerUi.change}
               settings={props.settings}
-              planner={plannerState.current.program.planner!}
-              modalExerciseUi={props.plannerState.ui.modalExercise}
-              onProgramChange={(program) => {
-                plannerDispatch(lbProgram.record(program), "Update program");
+              evaluatedProgram={evaluatedProgram}
+              plannerDispatch={buildCustomLensDispatch(plannerDispatch, lbPlanner)}
+              onClose={() => {
+                plannerDispatch(lbUi.p("exercisePicker").record(undefined), "Close exercise picker");
               }}
-              onUiChange={(modalExerciseUi) => {
-                plannerDispatch(lbUi.p("modalExercise").record(modalExerciseUi), "Update modal exercise UI");
-              }}
-              onStopIsUndoing={() => {
+              stopIsUndoing={() => {
                 plannerDispatch(
                   [
                     lb<IPlannerState>()
                       .p("ui")
-                      .recordModify((ui) => ui),
+                      .recordModify((ui) => {
+                        return { ...ui, isUndoing: false };
+                      }),
                   ],
                   "stop-is-undoing"
                 );
               }}
+              pickerDispatch={buildCustomLensDispatch(
+                plannerDispatch,
+                lb<IPlannerState>().p("ui").pi("exercisePicker").p("state")
+              )}
               dispatch={props.dispatch}
             />
           )}
@@ -247,7 +263,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
               onRestore={(text) => {
                 window.isUndoing = true;
                 const weeks = PlannerProgram.evaluateText(text);
-                plannerDispatch(lbProgram.p("weeks").record(weeks), "stop-is-undoing");
+                plannerDispatch(lbPlanner.p("weeks").record(weeks), "stop-is-undoing");
                 setShowRevisions(false);
               }}
             />
@@ -287,10 +303,19 @@ export function ScreenProgram(props: IProps): JSX.Element {
             <ModalPlannerSettings
               inApp={true}
               onNewSettings={(newSettings) =>
-                updateState(props.dispatch, [lb<IState>().p("storage").p("settings").record(newSettings)], "Update planner settings")
+                updateState(
+                  props.dispatch,
+                  [lb<IState>().p("storage").p("settings").record(newSettings)],
+                  "Update planner settings"
+                )
               }
               settings={props.settings}
-              onClose={() => plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false), "Close settings modal")}
+              onClose={() =>
+                plannerDispatch(
+                  lb<IPlannerState>().p("ui").p("showSettingsModal").record(false),
+                  "Close settings modal"
+                )
+              }
             />
           )}
           {ui.showExerciseStats && ui.focusedExercise && (
@@ -306,13 +331,16 @@ export function ScreenProgram(props: IProps): JSX.Element {
                 weekIndex={ui.focusedExercise.weekIndex}
                 dayIndex={ui.focusedExercise.dayIndex}
                 exerciseLine={ui.focusedExercise.exerciseLine}
+                hideSwap={true}
               />
             </Modal>
           )}
           {editExerciseModal && (
             <Modal
               shouldShowClose={true}
-              onClose={() => plannerDispatch(lbUi.p("editExerciseModal").record(undefined), "Close edit exercise modal")}
+              onClose={() =>
+                plannerDispatch(lbUi.p("editExerciseModal").record(undefined), "Close edit exercise modal")
+              }
             >
               <h3 className="mb-2 text-lg font-semibold text-center">Change Exercise</h3>
               <div className="flex gap-4">
@@ -322,18 +350,18 @@ export function ScreenProgram(props: IProps): JSX.Element {
                     data-cy="edit-exercise-change-one"
                     kind="orange"
                     onClick={() => {
-                      plannerDispatch([
-                        lbUi.p("editExerciseModal").record(undefined),
-                        lbUi.p("modalExercise").record({
-                          focusedExercise: editExerciseModal.focusedExercise,
-                          types: [],
-                          muscleGroups: [],
-                          exerciseKey: editExerciseModal.exerciseKey,
-                          fullName: editExerciseModal.fullName,
-                          exerciseType: editExerciseModal.exerciseType,
-                          change: "one",
-                        }),
-                      ], "Change exercise for one instance");
+                      plannerDispatch(
+                        [
+                          lbUi.p("editExerciseModal").record(undefined),
+                          lbUi.p("exercisePicker").record({
+                            state: pickerStateFromPlannerExercise(editExerciseModal.plannerExercise),
+                            exerciseKey: editExerciseModal.plannerExercise.key,
+                            dayData: editExerciseModal.plannerExercise.dayData,
+                            change: "one",
+                          }),
+                        ],
+                        "Change exercise for one instance"
+                      );
                     }}
                   >
                     Change only for this week/day
@@ -345,18 +373,18 @@ export function ScreenProgram(props: IProps): JSX.Element {
                     data-cy="edit-exercise-change-all"
                     kind="purple"
                     onClick={() => {
-                      plannerDispatch([
-                        lbUi.p("editExerciseModal").record(undefined),
-                        lbUi.p("modalExercise").record({
-                          focusedExercise: editExerciseModal.focusedExercise,
-                          types: [],
-                          muscleGroups: [],
-                          exerciseKey: editExerciseModal.exerciseKey,
-                          fullName: editExerciseModal.fullName,
-                          exerciseType: editExerciseModal.exerciseType,
-                          change: "all",
-                        }),
-                      ], "Change exercise for all instances");
+                      plannerDispatch(
+                        [
+                          lbUi.p("editExerciseModal").record(undefined),
+                          lbUi.p("exercisePicker").record({
+                            state: pickerStateFromPlannerExercise(editExerciseModal.plannerExercise),
+                            exerciseKey: editExerciseModal.plannerExercise.key,
+                            dayData: editExerciseModal.plannerExercise.dayData,
+                            change: "all",
+                          }),
+                        ],
+                        "Change exercise for all instances"
+                      );
                     }}
                   >
                     Change across whole program
@@ -380,10 +408,13 @@ export function ScreenProgram(props: IProps): JSX.Element {
           }}
           onChangeName={(newValue) => {
             EditProgram.setName(props.dispatch, props.originalProgram, newValue);
-            plannerDispatch([
-              lb<IPlannerState>().p("current").p("program").p("name").record(newValue),
-              lb<IPlannerState>().p("current").p("program").pi("planner").p("name").record(newValue),
-            ], "Update program name");
+            plannerDispatch(
+              [
+                lb<IPlannerState>().p("current").p("program").p("name").record(newValue),
+                lb<IPlannerState>().p("current").p("program").pi("planner").p("name").record(newValue),
+              ],
+              "Update program name"
+            );
           }}
         />
         <ScrollableTabs

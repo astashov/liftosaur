@@ -10,9 +10,9 @@ test("Empty Workout", async ({ page }) => {
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-empty-workout").click();
-  await page.getByTestId("add-exercise-button").click();
   await page.getByTestId("exercise-filter-by-name").fill("Bench Press");
   await page.getByTestId("menu-item-bench-press-barbell").click();
+  await page.getByTestId("exercise-picker-confirm").click();
 
   await page.getByTestId("add-workout-set").click();
 
@@ -34,6 +34,7 @@ test("Empty Workout", async ({ page }) => {
   await page.getByTestId("add-exercise-button").click();
   await page.getByTestId("exercise-filter-by-name").fill("Squat");
   await page.getByTestId("menu-item-squat-barbell").click();
+  await page.getByTestId("exercise-picker-confirm").click();
 
   await page.getByTestId("add-exercise-button").scrollIntoViewIfNeeded();
   await page.getByTestId("entry-squat").getByTestId("add-workout-set").click();

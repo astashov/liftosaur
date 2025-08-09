@@ -13,15 +13,16 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
-  await page.getByTestId("custom-exercise-create").click({ force: true });
+  await page.getByTestId("custom-exercise-create").click();
   await page.getByTestId("custom-exercise-name-input").fill("My Exercise");
-  await page.getByTestId("custom-exercise-create").click({ force: true });
+  await page.getByTestId("custom-exercise-create").click();
 
-  await page.getByTestId("custom-exercise-edit-my-exercise").click({ force: true });
+  await page.getByTestId("custom-exercise-edit-my-exercise").click();
   await page.getByTestId("custom-exercise-name-input").fill("My Exercise 2");
-  await page.getByTestId("custom-exercise-create").click({ force: true });
+  await page.getByTestId("custom-exercise-create").click();
 
-  await page.getByTestId("menu-item-my-exercise-2").click({ force: true });
+  await page.getByTestId("menu-item-my-exercise-2").click();
+  await page.getByTestId("exercise-picker-confirm").click();
 
   await page.getByTestId("edit-exercise").click();
   await page.getByTestId("edit-exercise-warmups-customize").click();
@@ -50,13 +51,15 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("edit-exercise").click();
   await page.getByTestId("add-set").click();
   await page.getByTestId("edit-program-exercise-change").click();
-  await page.getByTestId("custom-exercise-delete-my-exercise-2").click({ force: true });
+  await page.getByTestId("custom-exercise-edit-my-exercise-2").click();
+  await page.getByTestId("custom-exercise-delete").click();
 
-  await page.getByTestId("custom-exercise-create").click({ force: true });
+  await page.getByTestId("custom-exercise-create").click();
   await page.getByTestId("custom-exercise-name-input").fill("Blah One");
-  await page.getByTestId("custom-exercise-create").click({ force: true });
+  await page.getByTestId("custom-exercise-create").click();
 
-  await page.getByTestId("menu-item-blah-one").click({ force: true });
+  await page.getByTestId("menu-item-blah-one").click();
+  await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("save-program-exercise").click();
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-home").click();
@@ -73,12 +76,12 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("edit-exercise").click();
   await page.getByTestId("edit-program-exercise-change").click();
-  await page.getByTestId("custom-exercise-create").click({ force: true });
+  await page.getByTestId("custom-exercise-create").click();
 
   await page.getByTestId("custom-exercise-name-input").fill("My Exercise 2");
-  await page.getByTestId("custom-exercise-create").click({ force: true });
+  await page.getByTestId("custom-exercise-create").click();
 
-  await page.getByTestId("custom-exercise-edit-my-exercise-2").click({ force: true });
+  await page.getByTestId("custom-exercise-edit-my-exercise-2").click();
   await page.getByTestId("custom-exercise-name-input").fill("My Exercise 3");
   await page.getByTestId("multiselect-target_muscles").fill("Adductor Magnus");
   await page.getByTestId("multiselect-option-adductor-magnus").click({ force: true });
@@ -86,9 +89,10 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("multiselect-option-deltoid-posterior").click({ force: true });
   await page.getByTestId("multiselect-synergist_muscles").fill("Obliques");
   await page.getByTestId("multiselect-option-obliques").click({ force: true });
-  await page.getByTestId("custom-exercise-create").click({ force: true });
+  await page.getByTestId("custom-exercise-create").click();
 
-  await page.getByTestId("menu-item-my-exercise-3").click({ force: true });
+  await page.getByTestId("menu-item-my-exercise-3").click();
+  await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("save-program-exercise").click();
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-home").click();

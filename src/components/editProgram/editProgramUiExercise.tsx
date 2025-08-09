@@ -14,7 +14,6 @@ import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgra
 import { HistoryRecordSet } from "../historyRecordSets";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
 import { IconTrash } from "../icons/iconTrash";
-import { PlannerKey } from "../../pages/planner/plannerKey";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { IconGraphsE } from "../icons/iconGraphsE";
 import { IconSwap } from "../icons/iconSwap";
@@ -25,6 +24,7 @@ import { IEvaluatedProgram, Program } from "../../models/program";
 import { EditProgramUiUpdate } from "./editProgramUiUpdate";
 import { EditProgramUiExerciseSetVariations } from "./editProgramUiExerciseSetVariations";
 import { EditProgramUiExerciseDescriptions } from "./editProgramUiExerciseDescriptions";
+import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 
 interface IEditProgramUiExerciseViewProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -45,7 +45,6 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
     `${props.plannerExercise.key}-${props.plannerExercise.dayData.week - 1}-${props.plannerExercise.dayData.dayInWeek - 1}`
   );
   const exercise = Exercise.findByName(props.plannerExercise.name, props.settings.exercises);
-  const exerciseType = exercise != null ? { id: exercise.id, equipment: exercise.equipment } : undefined;
 
   const repeatStr = PlannerProgramExercise.repeatToRangeStr(props.plannerExercise);
   const order = props.plannerExercise.order !== 0 ? props.plannerExercise.order : undefined;
@@ -89,37 +88,23 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
               );
               if (numberOfExerciseInstances > 1) {
                 props.plannerDispatch(
-                  lb<IPlannerState>()
-                    .p("ui")
-                    .p("editExerciseModal")
-                    .record({
-                      focusedExercise: {
-                        weekIndex,
-                        dayIndex,
-                        exerciseLine: props.plannerExercise.line,
-                      },
-                      exerciseKey: PlannerKey.fromPlannerExercise(props.plannerExercise, props.settings),
-                      fullName: props.plannerExercise.fullName,
-                      exerciseType,
-                    }),
+                  lb<IPlannerState>().p("ui").p("editExerciseModal").record({
+                    plannerExercise: props.plannerExercise,
+                  }),
                   "Open edit exercise modal"
                 );
               } else {
                 props.plannerDispatch(
                   lb<IPlannerState>()
                     .p("ui")
-                    .p("modalExercise")
+                    .p("exercisePicker")
                     .record({
-                      focusedExercise: {
-                        weekIndex,
-                        dayIndex,
-                        exerciseLine: props.plannerExercise.line,
+                      dayData: {
+                        week: props.plannerExercise.dayData.week,
+                        dayInWeek: props.plannerExercise.dayData.dayInWeek,
                       },
-                      types: [],
-                      muscleGroups: [],
-                      exerciseKey: PlannerKey.fromPlannerExercise(props.plannerExercise, props.settings),
-                      fullName: props.plannerExercise.fullName,
-                      exerciseType,
+                      state: pickerStateFromPlannerExercise(props.plannerExercise),
+                      exerciseKey: props.plannerExercise.key,
                       change: "one",
                     }),
                   "Open exercise picker modal"
@@ -135,14 +120,17 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
             className="p-2"
             data-cy="show-exercise-stats"
             onClick={() => {
-              props.plannerDispatch([
-                lb<IPlannerState>().p("ui").p("focusedExercise").record({
-                  weekIndex,
-                  dayIndex,
-                  exerciseLine: props.plannerExercise.line,
-                }),
-                lb<IPlannerState>().p("ui").p("showExerciseStats").record(true),
-              ], "Show exercise stats");
+              props.plannerDispatch(
+                [
+                  lb<IPlannerState>().p("ui").p("focusedExercise").record({
+                    weekIndex,
+                    dayIndex,
+                    exerciseLine: props.plannerExercise.line,
+                  }),
+                  lb<IPlannerState>().p("ui").p("showExerciseStats").record(true),
+                ],
+                "Show exercise stats"
+              );
             }}
           >
             <IconGraphsE width={16} height={19} />
@@ -205,7 +193,6 @@ interface IEditProgramUiExerciseContentViewProps {
 }
 
 export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseContentViewProps): JSX.Element {
-  const { weekIndex, dayIndex, exerciseIndex } = props;
   const plannerExercise = props.plannerExercise;
   const exercise = props.exercise;
   const exerciseType = exercise != null ? { id: exercise.id, equipment: props.plannerExercise.equipment } : undefined;
@@ -302,18 +289,11 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                 props.plannerDispatch(
                   lb<IPlannerState>()
                     .p("ui")
-                    .p("modalExercise")
+                    .p("exercisePicker")
                     .record({
-                      focusedExercise: {
-                        weekIndex,
-                        dayIndex,
-                        exerciseLine: exerciseIndex,
-                      },
-                      types: [],
-                      muscleGroups: [],
-                      exerciseKey: PlannerKey.fromFullName(plannerExercise.fullName, props.settings.exercises),
-                      fullName: plannerExercise.fullName,
-                      exerciseType,
+                      state: pickerStateFromPlannerExercise(props.plannerExercise),
+                      dayData: props.plannerExercise.dayData,
+                      exerciseKey: props.plannerExercise.key,
                       change: "duplicate",
                     }),
                   "Open duplicate exercise modal"

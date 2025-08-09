@@ -7,7 +7,7 @@ import { lb, LensBuilder } from "lens-shmens";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
-import { PlannerEditorCustomCta } from "../../pages/planner/components/plannerEditorCustomCta";
+import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
 
 export interface IEditProgramV2FullProps {
   plannerProgram: IPlannerProgram;
@@ -55,15 +55,22 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
             }
             value={fulltext}
             onCustomErrorCta={(err) => (
-              <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.plannerDispatch} err={err} />
+              <EditProgramCustomErrorCta
+                dayData={{ week: 1, dayInWeek: 1 }}
+                dispatch={props.plannerDispatch}
+                err={err}
+              />
             )}
             onChange={(text) => {
               const weeks = PlannerProgram.evaluateText(text);
               const { evaluatedWeeks } = PlannerProgram.evaluateFull(text, settingsRef.current);
-              props.plannerDispatch([
-                lbUi.p("fullTextError").record(evaluatedWeeks.success ? undefined : evaluatedWeeks.error),
-                lbProgram.p("weeks").record(weeks),
-              ], "Update full program text");
+              props.plannerDispatch(
+                [
+                  lbUi.p("fullTextError").record(evaluatedWeeks.success ? undefined : evaluatedWeeks.error),
+                  lbProgram.p("weeks").record(weeks),
+                ],
+                "Update full program text"
+              );
             }}
             lineNumbers={true}
             onBlur={(e, text) => {}}

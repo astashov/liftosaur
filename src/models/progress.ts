@@ -35,7 +35,7 @@ import { CollectionUtils } from "../utils/collection";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { Equipment } from "./equipment";
 import { IByTag } from "../pages/planner/plannerEvaluator";
-import { IPlannerProgramExercise, IPlannerProgramExerciseUsed } from "../pages/planner/models/types";
+import { IPlannerProgramExercise, IPlannerProgramExerciseWithType } from "../pages/planner/models/types";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { IScreenStack, Screen } from "./screen";
 import { UidFactory } from "../utils/generator";
@@ -705,7 +705,7 @@ export namespace Progress {
     if (!programDay) {
       return aProgress;
     }
-    const dayExercises = Program.getProgramDayExercises(programDay);
+    const dayExercises = Program.getProgramDayUsedExercises(programDay);
     const programExercises = programExerciseIds
       ? CollectionUtils.compact(programExerciseIds.map((id) => dayExercises.find((e) => e.key === id)))
       : dayExercises;
@@ -923,14 +923,6 @@ export namespace Progress {
     updateProgress(dispatch, [lb<IHistoryRecord>().p("entries").i(entryIndex).p("notes").record(notes)], "edit-notes");
   }
 
-  export function showAddExerciseModal(dispatch: IDispatch, progressId: number): void {
-    updateState(
-      dispatch,
-      [lb<IState>().p("progress").pi(progressId).pi("ui").p("exerciseModal").record({})],
-      "Show add exercise modal"
-    );
-  }
-
   export function addExercise(dispatch: IDispatch, exerciseType: IExerciseType, numberOfEntries: number): void {
     updateProgress(
       dispatch,
@@ -960,7 +952,7 @@ export namespace Progress {
           .p("entries")
           .i(entryIndex)
           .recordModify((entry) => {
-            return { ...entry, exercise: exerciseType, changed: true };
+            return { ...entry, exercise: exerciseType, programExerciseId: undefined, changed: true };
           }),
       ],
       "Change exercise"
@@ -1003,7 +995,7 @@ export namespace Progress {
 
   export function applyProgramExercise(
     progressEntry: IHistoryEntry | undefined,
-    programExercise: IPlannerProgramExerciseUsed,
+    programExercise: IPlannerProgramExerciseWithType,
     settings: ISettings,
     forceWarmupSets?: boolean
   ): IHistoryEntry {
@@ -1084,64 +1076,23 @@ export namespace Progress {
     progress: IHistoryRecord,
     program: IEvaluatedProgram,
     day: number,
-    settings: ISettings,
-    programExerciseIds?: string[]
+    settings: ISettings
   ): IHistoryRecord {
     const programDay = Program.getProgramDay(program, day);
     if (!programDay) {
       return progress;
     }
-    const dayExercises = Program.getProgramDayExercises(programDay);
-    const wasResorted = !!progress.changes?.includes("order");
-    const newEntries = progress.entries
-      .filter(
-        (e) =>
-          !e.programExerciseId ||
-          (dayExercises.some((ex) => ex.key === e.programExerciseId) &&
-            !(progress.deletedProgramExercises || {})[e.programExerciseId])
-      )
-      .map((progressEntry) => {
-        const programExerciseId = progressEntry.programExerciseId;
-        if (programExerciseId == null) {
-          return progressEntry;
-        }
-        if (programExerciseIds && programExerciseIds.indexOf(programExerciseId) === -1) {
-          return progressEntry;
-        }
-        const programExercise = dayExercises.find((e) => e.key === programExerciseId);
-        if (programExercise == null) {
-          return progressEntry;
-        }
-        return applyProgramExercise(progressEntry, programExercise, settings, false);
-      });
+    const newEntries = progress.entries.map((entry) => {
+      if (entry.programExerciseId == null) {
+        return entry;
+      }
+      const programExercise = Program.getProgramExerciseForKeyAndDay(program, day, entry.programExerciseId);
+      if (!programExercise) {
+        return entry;
+      }
+      return applyProgramExercise(entry, programExercise, settings, false);
+    });
 
-    const sortedNewEntries = wasResorted
-      ? newEntries
-      : CollectionUtils.sortInOrder(
-          newEntries,
-          "programExerciseId",
-          dayExercises.map((e) => e.key)
-        );
-
-    const newProgramExercises = dayExercises.filter(
-      (e) => !progress.entries.some((ent) => ent.programExerciseId === e.key)
-    );
-    const additionalEntries =
-      programExerciseIds == null
-        ? CollectionUtils.compact(
-            newProgramExercises.map((programDayExercise) => {
-              const programExercise = dayExercises.find((e) => e.key === programDayExercise.key);
-              if (!programExercise) {
-                return undefined;
-              }
-              return applyProgramExercise(undefined, programExercise, settings, false);
-            })
-          )
-        : [];
-
-    return {
-      ...progress,
-      entries: [...sortedNewEntries, ...additionalEntries],
-    };
+    return { ...progress, entries: newEntries };
   }
 }

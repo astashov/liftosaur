@@ -26,7 +26,7 @@ export class MockDynamoUtil implements IDynamoUtil {
   private buildCondition<T>(args: {
     filterExpression: string;
     attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
-    values?: Partial<Record<string, string | string[] | number>>;
+    values?: Partial<Record<string, string | string[] | number | number[]>>;
   }): (item: T) => boolean {
     let expression = args.filterExpression;
     for (const [k, v] of ObjectUtils.entries(args.attrs || {})) {
@@ -58,7 +58,7 @@ export class MockDynamoUtil implements IDynamoUtil {
     attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
     values?: Partial<Record<string, string | string[] | number>>;
   }): Promise<T[]> {
-    let values = (ObjectUtils.values(this.data[args.tableName] || {}) as unknown) as T[];
+    let values = ObjectUtils.values(this.data[args.tableName] || {}) as unknown as T[];
     values = values.filter(
       this.buildCondition({ filterExpression: args.expression, attrs: args.attrs, values: args.values })
     );
@@ -109,9 +109,7 @@ export class MockDynamoUtil implements IDynamoUtil {
 
   public async batchGet<T>(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<T[]> {
     return CollectionUtils.compact(
-      await Promise.all(
-        args.keys.map((key) => this.get<T>({ tableName: args.tableName, key }))
-      )
+      await Promise.all(args.keys.map((key) => this.get<T>({ tableName: args.tableName, key })))
     );
   }
   public async batchDelete(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<void> {
@@ -125,6 +123,44 @@ export class MockDynamoUtil implements IDynamoUtil {
   }): Promise<void> {
     for (const item of args.items) {
       await this.put({ tableName: args.tableName, item });
+    }
+  }
+
+  public async *streamingQuery<T>(args: {
+    tableName: string;
+    expression: string;
+    filterExpression?: string;
+    indexName?: string;
+    scanIndexForward?: boolean;
+    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    values?: Partial<Record<string, string | string[] | number | number[]>>;
+    limit?: number;
+  }): AsyncGenerator<T[], void, unknown> {
+    const values = ObjectUtils.values(this.data[args.tableName] || {}) as unknown as T[];
+    const filteredValues = values.filter(
+      this.buildCondition({ filterExpression: args.expression, attrs: args.attrs, values: args.values })
+    );
+    if (args.limit) {
+      yield Promise.resolve(filteredValues.slice(0, args.limit));
+    } else {
+      yield Promise.resolve(filteredValues);
+    }
+  }
+
+  public async *streamingScan<T>(args: {
+    tableName: string;
+    filterExpression?: string;
+    values?: Partial<Record<string, number | string | string[]>>;
+    limit?: number;
+  }): AsyncGenerator<T[], void, unknown> {
+    let values = ObjectUtils.values(this.data[args.tableName] || {}) as T[];
+    if (args.filterExpression) {
+      values = values.filter(this.buildCondition({ filterExpression: args.filterExpression, values: args.values }));
+    }
+    if (args.limit) {
+      yield Promise.resolve(values.slice(0, args.limit));
+    } else {
+      yield Promise.resolve(values);
     }
   }
 }

@@ -42,53 +42,61 @@ export namespace Subscriptions {
   }
 
   export function setAppleReceipt(dispatch: IDispatch, receipt: string): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("subscription")
-        .p("apple")
-        .recordModify((v) => {
-          if (v.some((s) => s.value === receipt)) {
-            dispatch(Thunk.postevent("same-apple-receipt"));
-            return v;
-          } else {
-            dispatch(Thunk.postevent("new-apple-receipt"));
-            return [
-              ...v,
-              {
-                vtype: "subscription_receipt",
-                value: receipt,
-                id: UidFactory.generateUid(6),
-                createdAt: Date.now(),
-              },
-            ];
-          }
-        }),
-    ], "Set Apple receipt");
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("subscription")
+          .p("apple")
+          .recordModify((v) => {
+            if (v.some((s) => s.value === receipt)) {
+              dispatch(Thunk.postevent("same-apple-receipt"));
+              return v;
+            } else {
+              dispatch(Thunk.postevent("new-apple-receipt"));
+              return [
+                ...v,
+                {
+                  vtype: "subscription_receipt",
+                  value: receipt,
+                  id: UidFactory.generateUid(6),
+                  createdAt: Date.now(),
+                },
+              ];
+            }
+          }),
+      ],
+      "Set Apple receipt"
+    );
   }
 
   export function setGooglePurchaseToken(dispatch: IDispatch, purchaseToken: string): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("subscription")
-        .p("google")
-        .recordModify((v) => {
-          if (v.some((s) => s.value === purchaseToken)) {
-            return v;
-          } else {
-            return [
-              ...v,
-              {
-                vtype: "subscription_receipt",
-                value: purchaseToken,
-                id: UidFactory.generateUid(6),
-                createdAt: Date.now(),
-              },
-            ];
-          }
-        }),
-    ], "Set Google purchase token");
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("subscription")
+          .p("google")
+          .recordModify((v) => {
+            if (v.some((s) => s.value === purchaseToken)) {
+              return v;
+            } else {
+              return [
+                ...v,
+                {
+                  vtype: "subscription_receipt",
+                  value: purchaseToken,
+                  id: UidFactory.generateUid(6),
+                  createdAt: Date.now(),
+                },
+              ];
+            }
+          }),
+      ],
+      "Set Google purchase token"
+    );
   }
 
   export function cleanupOutdatedAppleReceipts(
@@ -153,15 +161,19 @@ export namespace Subscriptions {
     ).then((results) => {
       for (const [id, result] of results) {
         if (!result) {
-          updateState(dispatch, [
-            lb<IState>()
-              .p("storage")
-              .p("subscription")
-              .p("google")
-              .recordModify((r) => {
-                return CollectionUtils.removeBy([...r], "id", id);
-              }),
-          ], "Cleanup outdated Google receipt");
+          updateState(
+            dispatch,
+            [
+              lb<IState>()
+                .p("storage")
+                .p("subscription")
+                .p("google")
+                .recordModify((r) => {
+                  return CollectionUtils.removeBy([...r], "id", id);
+                }),
+            ],
+            "Cleanup outdated Google receipt"
+          );
         }
       }
     });

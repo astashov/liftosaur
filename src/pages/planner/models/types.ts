@@ -1,6 +1,14 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IExerciseType, IPercentage, IProgram, IProgramState, IProgramStateMetadata } from "../../../types";
+import {
+  IExercisePickerState,
+  IExerciseType,
+  IPercentage,
+  IProgram,
+  IProgramState,
+  IProgramStateMetadata,
+  IShortDayData,
+} from "../../../types";
 import { IPlannerSyntaxPointer, PlannerSyntaxError } from "../plannerExerciseEvaluator";
 import { SyntaxNode } from "@lezer/common";
 import {
@@ -26,7 +34,7 @@ export interface IPlannerProgramExerciseGlobals {
   askWeight?: boolean;
 }
 
-export type IPlannerProgramExerciseUsed = IPlannerProgramExercise &
+export type IPlannerProgramExerciseWithType = IPlannerProgramExercise &
   Required<Pick<IPlannerProgramExercise, "exerciseType">>;
 
 export type IPlannerProgramExercise = {
@@ -193,9 +201,17 @@ export interface IModalExerciseUi {
   change?: "all" | "one" | "duplicate";
 }
 
+export interface IExercisePickerUi {
+  state: IExercisePickerState;
+  dayData: IShortDayData;
+  exerciseKey?: string;
+  change: "all" | "one" | "duplicate";
+}
+
 export interface IPlannerUi {
   focusedExercise?: IPlannerUiFocusedExercise;
   modalExercise?: IModalExerciseUi;
+  exercisePicker?: IExercisePickerUi;
   exerciseUi: {
     edit: Set<string>;
     collapsed: Set<string>;
@@ -207,10 +223,7 @@ export interface IPlannerUi {
     collapsed: Set<string>;
   };
   editExerciseModal?: {
-    focusedExercise: IPlannerUiFocusedExercise;
-    exerciseType?: IExerciseType;
-    exerciseKey?: string;
-    fullName?: string;
+    plannerExercise: IPlannerProgramExercise;
   };
   weekIndex: number;
   showPictureExport?: boolean;
@@ -234,6 +247,7 @@ export interface IPlannerExerciseUiEditSetBottomSheet {
 
 export interface IPlannerExerciseUi {
   modalExercise?: IModalExerciseUi;
+  exercisePickerState?: IExercisePickerState;
   isProgressEnabled?: boolean;
   isUpdateEnabled?: boolean;
   showAddStateVariableModal?: boolean;

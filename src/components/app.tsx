@@ -346,6 +346,7 @@ export function AppView(props: IProps): JSX.Element | null {
     content = (
       <ScreenWorkout
         navCommon={navCommon}
+        stats={state.storage.stats}
         helps={state.storage.helps}
         history={state.storage.history}
         subscription={state.storage.subscription}
@@ -353,6 +354,7 @@ export function AppView(props: IProps): JSX.Element | null {
         progress={progress}
         allPrograms={state.storage.programs}
         program={program}
+        currentProgram={currentProgram}
         dispatch={dispatch}
         settings={state.storage.settings}
       />

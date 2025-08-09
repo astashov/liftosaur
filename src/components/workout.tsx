@@ -49,6 +49,13 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
 
   useEffect(() => {
     ImagePreloader.preload(ImagePreloader.dynohappy);
+    if (props.program && Program.isEmpty(props.program) && props.progress.entries.length === 0) {
+      updateState(
+        props.dispatch,
+        [lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("exercisePicker").record({})],
+        "Open exercise picker on empty program"
+      );
+    }
   }, []);
 
   useEffect(() => {
@@ -205,11 +212,15 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
             <div>
               <ButtonIcon
                 onClick={() => {
-                  updateState(props.dispatch, [
-                    lb<IState>()
-                      .p("muscleView")
-                      .record({ type: "day", programId: program.id, day: props.progress.day }),
-                  ], "Show muscle view");
+                  updateState(
+                    props.dispatch,
+                    [
+                      lb<IState>()
+                        .p("muscleView")
+                        .record({ type: "day", programId: program.id, day: props.progress.day }),
+                    ],
+                    "Show muscle view"
+                  );
                   props.dispatch(Thunk.pushScreen("muscles"));
                 }}
                 name="workout-day-muscles"
@@ -334,7 +345,26 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
               data-cy="add-exercise-button"
               className="p-2 nm-add-exercise-to-workout"
               onClick={() => {
-                Progress.showAddExerciseModal(props.dispatch, props.progress.id);
+                updateState(
+                  props.dispatch,
+                  [
+                    lb<IState>()
+                      .p("progress")
+                      .pi(props.progress.id)
+                      .pi("ui")
+                      .p("exercisePicker")
+                      .record({
+                        state: {
+                          mode: "workout",
+                          screenStack: ["exercisePicker"],
+                          sort: "name_asc",
+                          filters: {},
+                          selectedExercises: [],
+                        },
+                      }),
+                  ],
+                  "Open exercise picker"
+                );
               }}
             >
               <IconPlus2 size={15} color={Tailwind.colors().grayv3.main} />

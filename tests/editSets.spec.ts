@@ -81,6 +81,7 @@ test("edits sets properly", async ({ page }) => {
 
   await page.getByTestId("add-exercise-button").click();
   await page.getByTestId("menu-item-arnold-press-kettlebell").click();
+  await page.getByTestId("exercise-picker-confirm").click();
 
   await page.getByTestId("entry-arnold-press").getByTestId("add-workout-set").click();
   await PlaywrightUtils.typeKeyboard(

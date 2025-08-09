@@ -14,6 +14,7 @@ export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLT
   identifier?: string;
   multiline?: number;
   changeType?: "onblur" | "oninput";
+  isLabelOutside?: boolean;
   defaultValue?: number | string;
   inputSize?: "md" | "sm";
   labelSize?: "xs" | "sm";
@@ -98,16 +99,23 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
   const labelSize = props.labelSize || "sm";
   return (
     <div className={containerClassName}>
+      {props.label && props.isLabelOutside && (
+        <div className={`leading-none ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700 pb-1`}>
+          {props.label}
+        </div>
+      )}
       <label
         data-cy={`${identifier}-label`}
         className={className}
-        style={{ minHeight: size === "md" ? "48px" : "40px" }}
+        style={{
+          minHeight: size === "md" ? (props.isLabelOutside ? "40px" : "48px") : props.isLabelOutside ? "32px" : "40px",
+        }}
       >
         <div
-          className={`relative mx-4 ${size === "md" ? "my-1" : ""}`}
+          className={`relative ${props.isLabelOutside ? "mx-2" : "mx-4"} ${size === "md" ? "my-1" : ""}`}
           style={size !== "md" ? { marginTop: "1px", marginBottom: "1px" } : {}}
         >
-          {props.label && (
+          {props.label && !props.isLabelOutside && (
             <div
               className={`leading-none relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
               style={{ top: "2px", left: "0" }}

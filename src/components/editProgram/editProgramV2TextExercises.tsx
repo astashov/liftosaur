@@ -3,7 +3,6 @@
 import { LensBuilder, lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
-import { PlannerEditorCustomCta } from "../../pages/planner/components/plannerEditorCustomCta";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { PlannerStatsUtils } from "../../pages/planner/models/plannerStatsUtils";
 import { IPlannerUi, IPlannerState, IPlannerProgramExercise } from "../../pages/planner/models/types";
@@ -13,6 +12,7 @@ import { CollectionUtils } from "../../utils/collection";
 import { TimeUtils } from "../../utils/time";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconWatch } from "../icons/iconWatch";
+import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
 
 interface IEditProgramV2TextExercisesProps {
   exerciseFullNames: string[];
@@ -47,10 +47,17 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
         error={evaluatedDay.success ? undefined : evaluatedDay.error}
         value={plannerDay.exerciseText}
         onCustomErrorCta={(err) => (
-          <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.plannerDispatch} err={err} />
+          <EditProgramCustomErrorCta
+            dayData={{ week: weekIndex + 1, dayInWeek: dayIndex + 1 }}
+            dispatch={props.plannerDispatch}
+            err={err}
+          />
         )}
         onChange={(e) => {
-          plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e), "Update exercise text");
+          plannerDispatch(
+            lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e),
+            "Update exercise text"
+          );
         }}
         onBlur={(e, text) => {}}
         onLineChange={(line) => {

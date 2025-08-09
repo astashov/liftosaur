@@ -79,6 +79,7 @@ export class PlannerProgram {
   public static replaceExercise(
     planner: IPlannerProgram,
     key: string,
+    newLabel: string | undefined,
     toExerciseType: IExerciseType | string,
     settings: ISettings,
     dayData?: Required<IDayData>
@@ -89,7 +90,9 @@ export class PlannerProgram {
     let noConflicts = false;
 
     function getLabel(label?: string): string | undefined {
-      return label || labelSuffix ? CollectionUtils.compact([label, labelSuffix]).join("-") : undefined;
+      return (newLabel ?? label) || labelSuffix
+        ? CollectionUtils.compact([newLabel ?? label, labelSuffix]).join("-")
+        : undefined;
     }
 
     if (dayData) {
@@ -145,7 +148,14 @@ export class PlannerProgram {
     settings: ISettings,
     dayData?: Required<IDayData>
   ): IEither<IProgram, string> {
-    const newPlanner = PlannerProgram.replaceExercise(program.planner!, key, toExerciseType, settings, dayData);
+    const newPlanner = PlannerProgram.replaceExercise(
+      program.planner!,
+      key,
+      undefined,
+      toExerciseType,
+      settings,
+      dayData
+    );
     const { evaluatedWeeks } = PlannerEvaluator.evaluate(newPlanner, settings);
     let error: PlannerSyntaxError | undefined;
     for (const week of evaluatedWeeks) {

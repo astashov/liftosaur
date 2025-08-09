@@ -55,7 +55,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
   const programDay = Program.getProgramDay(props.program, props.day)!;
   const index = props.progress.ui?.currentEntryIndex ?? 0;
   const entry = props.progress.entries[index];
-  const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
+  const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
   const programExercises = props.isPlayground
     ? dayExercises.filter((e) => e.key === entry.programExerciseId)
     : dayExercises;

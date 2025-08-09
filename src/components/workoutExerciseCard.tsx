@@ -54,9 +54,10 @@ interface IWorkoutExerciseCardProps {
 }
 
 export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Element {
-  const programExercise = props.programDay
-    ? Program.getProgramExerciseFromDay(props.programDay, props.entry.programExerciseId)
-    : undefined;
+  const programExercise =
+    props.program && props.entry.programExerciseId
+      ? Program.getProgramExerciseForKeyAndDay(props.program, props.day, props.entry.programExerciseId)
+      : undefined;
   const exerciseType = props.entry.exercise;
   const exercise = Exercise.get(exerciseType, props.settings.exercises);
   const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
@@ -178,8 +179,18 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                       [
                         lb<IHistoryRecord>()
                           .pi("ui")
-                          .p("exerciseModal")
-                          .record({ exerciseType: props.entry.exercise, entryIndex: props.entryIndex }),
+                          .p("exercisePicker")
+                          .record({
+                            state: {
+                              mode: "workout",
+                              screenStack: ["exercisePicker"],
+                              sort: "name_asc",
+                              filters: {},
+                              selectedExercises: [],
+                              entryIndex: props.entryIndex,
+                              exerciseType: props.entry.exercise,
+                            },
+                          }),
                       ],
                       "kebab-swap-exercise"
                     );
@@ -282,12 +293,16 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
           helps={props.helps}
           onStopShowingHint={() => {
             if (!props.helps.includes("swipeable-set")) {
-              updateState(props.dispatch, [
-                lb<IState>()
-                  .p("storage")
-                  .p("helps")
-                  .recordModify((helps) => Array.from(new Set([...helps, "swipeable-set"]))),
-              ], "Stop showing swipe hint");
+              updateState(
+                props.dispatch,
+                [
+                  lb<IState>()
+                    .p("storage")
+                    .p("helps")
+                    .recordModify((helps) => Array.from(new Set([...helps, "swipeable-set"]))),
+                ],
+                "Stop showing swipe hint"
+              );
             }
           }}
           isCurrentProgress={Progress.isCurrent(props.progress)}
@@ -309,7 +324,8 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     type,
                     !Subscriptions.hasSubscription(props.subscription) || !currentEquipmentName
                   );
-                })
+                }),
+              "Change target type"
             );
           }}
           otherStates={props.otherStates}

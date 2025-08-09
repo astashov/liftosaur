@@ -16,7 +16,7 @@ import { TimeUtils } from "../../utils/time";
 import { PlannerStatsUtils } from "../../pages/planner/models/plannerStatsUtils";
 import { DraggableList } from "../draggableList";
 import { EditProgramUiExerciseView } from "./editProgramUiExercise";
-import { applyChangesInEditor } from "./editProgramUtils";
+import { applyChangesInEditor, pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { CollectionUtils } from "../../utils/collection";
 import { LinkButton } from "../linkButton";
 import { UidFactory } from "../../utils/generator";
@@ -82,7 +82,10 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
               data-cy="edit-day-muscles-d"
               className="px-2 align-middle ls-edit-day button nm-day-muscles-d"
               onClick={() => {
-                props.plannerDispatch(lb<IPlannerState>().p("ui").p("showDayStats").record(props.dayInWeekIndex), "Show day stats");
+                props.plannerDispatch(
+                  lb<IPlannerState>().p("ui").p("showDayStats").record(props.dayInWeekIndex),
+                  "Show day stats"
+                );
               }}
             >
               <IconMusclesD size={20} />
@@ -344,17 +347,16 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                   props.plannerDispatch(
                     lb<IPlannerState>()
                       .p("ui")
-                      .p("modalExercise")
+                      .p("exercisePicker")
                       .record({
-                        focusedExercise: {
-                          weekIndex: weekIndex,
-                          dayIndex: dayIndex,
-                          exerciseLine: evaluatedDay.data.length,
+                        dayData: {
+                          week: weekIndex + 1,
+                          dayInWeek: dayIndex + 1,
                         },
-                        types: [],
-                        muscleGroups: [],
+                        change: "all",
+                        state: pickerStateFromPlannerExercise(),
                       }),
-                    "Open add exercise modal"
+                    "Open add exercise picker"
                   );
                 }}
               >

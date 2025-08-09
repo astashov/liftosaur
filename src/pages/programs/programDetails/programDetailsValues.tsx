@@ -2,12 +2,12 @@ import { JSX, h } from "preact";
 import { memo } from "preact/compat";
 import { IDayData, ISet, ISettings } from "../../../types";
 import { HistoryRecordSetsView } from "../../../components/historyRecordSets";
-import { IPlannerProgramExerciseEvaluatedSet, IPlannerProgramExerciseUsed } from "../../planner/models/types";
+import { IPlannerProgramExerciseEvaluatedSet, IPlannerProgramExerciseWithType } from "../../planner/models/types";
 import { ProgramSet } from "../../../models/programSet";
 
 interface IRepsWeightsProps {
   sets: IPlannerProgramExerciseEvaluatedSet[];
-  programExercise: IPlannerProgramExerciseUsed;
+  programExercise: IPlannerProgramExerciseWithType;
   dayData: IDayData;
   settings: ISettings;
   shouldShowAllFormulas: boolean;

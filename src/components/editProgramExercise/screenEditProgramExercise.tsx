@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { IPlannerExerciseState } from "../../pages/planner/models/types";
-import { IDispatch } from "../../ducks/types";
+import { IDispatch, buildCustomLensDispatch } from "../../ducks/types";
 import { IDayData, ISettings } from "../../types";
 import { INavCommon, IState, updateState } from "../../models/state";
 import { lb, LensBuilder } from "lens-shmens";
@@ -23,7 +23,7 @@ import { EditProgramExerciseSets } from "./editProgramExerciseSets";
 import { BottomSheetEditProgramExerciseSet } from "./bottomSheetEditProgramExerciseSet";
 import { EditProgramExerciseNavbar } from "./editProgramExerciseNavbar";
 import { Tailwind } from "../../utils/tailwindConfig";
-import { EditProgramModalExercise } from "../editProgram/editProgramModalExercise";
+import { EditProgramBottomSheetPicker } from "../editProgram/editProgramBottomSheetPicker";
 
 interface IProps {
   plannerState: IPlannerExerciseState;
@@ -68,6 +68,8 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerExerciseState>().p("ui");
+
+  const exercisePickerState = props.plannerState.ui.exercisePickerState;
 
   if (!plannerExercise) {
     return (
@@ -116,35 +118,38 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                       data-cy="program-exercise-toggle-progress"
                       onClick={() => {
                         setIsKebabMenuOpen(false);
-                        plannerDispatch([
-                          lb<IPlannerExerciseState>()
-                            .p("ui")
-                            .p("isProgressEnabled")
-                            .record(!plannerState.ui.isProgressEnabled),
-                          lbProgram.recordModify((program) => {
-                            return EditProgramUiHelpers.changeFirstInstance(
-                              program,
-                              plannerExercise,
-                              props.settings,
-                              true,
-                              (e) => {
-                                if (plannerState.ui.isProgressEnabled) {
-                                  e.progress = undefined;
-                                } else {
-                                  const result = PlannerProgramExercise.buildProgress(
-                                    "lp",
-                                    PlannerProgramExercise.getProgressDefaultArgs("lp")
-                                  );
-                                  if (result.success) {
-                                    e.progress = result.data;
+                        plannerDispatch(
+                          [
+                            lb<IPlannerExerciseState>()
+                              .p("ui")
+                              .p("isProgressEnabled")
+                              .record(!plannerState.ui.isProgressEnabled),
+                            lbProgram.recordModify((program) => {
+                              return EditProgramUiHelpers.changeFirstInstance(
+                                program,
+                                plannerExercise,
+                                props.settings,
+                                true,
+                                (e) => {
+                                  if (plannerState.ui.isProgressEnabled) {
+                                    e.progress = undefined;
                                   } else {
-                                    alert(result.error);
+                                    const result = PlannerProgramExercise.buildProgress(
+                                      "lp",
+                                      PlannerProgramExercise.getProgressDefaultArgs("lp")
+                                    );
+                                    if (result.success) {
+                                      e.progress = result.data;
+                                    } else {
+                                      alert(result.error);
+                                    }
                                   }
                                 }
-                              }
-                            );
-                          }),
-                        ], "Toggle progress");
+                              );
+                            }),
+                          ],
+                          "Toggle progress"
+                        );
                       }}
                     >
                       <div className="flex items-center gap-2">
@@ -155,27 +160,30 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                       data-cy="program-exercise-toggle-update"
                       onClick={() => {
                         setIsKebabMenuOpen(false);
-                        plannerDispatch([
-                          lb<IPlannerExerciseState>()
-                            .p("ui")
-                            .p("isUpdateEnabled")
-                            .record(!plannerState.ui.isUpdateEnabled),
-                          lbProgram.recordModify((program) => {
-                            return EditProgramUiHelpers.changeFirstInstance(
-                              program,
-                              plannerExercise,
-                              props.settings,
-                              true,
-                              (e) => {
-                                if (plannerState.ui.isUpdateEnabled) {
-                                  e.update = undefined;
-                                } else {
-                                  e.update = { type: "custom", script: `{~~}` };
+                        plannerDispatch(
+                          [
+                            lb<IPlannerExerciseState>()
+                              .p("ui")
+                              .p("isUpdateEnabled")
+                              .record(!plannerState.ui.isUpdateEnabled),
+                            lbProgram.recordModify((program) => {
+                              return EditProgramUiHelpers.changeFirstInstance(
+                                program,
+                                plannerExercise,
+                                props.settings,
+                                true,
+                                (e) => {
+                                  if (plannerState.ui.isUpdateEnabled) {
+                                    e.update = undefined;
+                                  } else {
+                                    e.update = { type: "custom", script: `{~~}` };
+                                  }
                                 }
-                              }
-                            );
-                          }),
-                        ], "Toggle update");
+                              );
+                            }),
+                          ],
+                          "Toggle update"
+                        );
                       }}
                     >
                       <div className="flex items-center gap-2">
@@ -186,20 +194,23 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                       data-cy="program-exercise-toggle-used"
                       onClick={() => {
                         setIsKebabMenuOpen(false);
-                        plannerDispatch([
-                          lbProgram.recordModify((program) => {
-                            const notused = plannerExercise.notused;
-                            return EditProgramUiHelpers.changeAllInstances(
-                              program,
-                              plannerExercise.fullName,
-                              props.settings,
-                              true,
-                              (e) => {
-                                e.notused = !notused;
-                              }
-                            );
-                          }),
-                        ], "Toggle used status");
+                        plannerDispatch(
+                          [
+                            lbProgram.recordModify((program) => {
+                              const notused = plannerExercise.notused;
+                              return EditProgramUiHelpers.changeAllInstances(
+                                program,
+                                plannerExercise.fullName,
+                                props.settings,
+                                true,
+                                (e) => {
+                                  e.notused = !notused;
+                                }
+                              );
+                            }),
+                          ],
+                          "Toggle used status"
+                        );
                       }}
                     >
                       <div className="flex items-center gap-2">
@@ -222,22 +233,37 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
             plannerDispatch={plannerDispatch}
             settings={props.settings}
           />
-          {props.plannerState.ui.modalExercise && (
-            <EditProgramModalExercise
-              evaluatedProgram={evaluatedProgram}
+          {exercisePickerState && (
+            <EditProgramBottomSheetPicker
+              program={plannerState.current.program}
+              exercisePickerState={exercisePickerState}
               settings={props.settings}
-              planner={plannerState.current.program.planner!}
-              modalExerciseUi={props.plannerState.ui.modalExercise}
-              onProgramChange={(newPlanner) => {
-                const changedKeys = EditProgramUiHelpers.getChangedKeys(
-                  plannerState.current.program.planner!,
-                  newPlanner,
-                  props.settings
+              evaluatedProgram={evaluatedProgram}
+              plannerExercise={plannerExercise}
+              dayData={props.dayData}
+              change="all"
+              stopIsUndoing={() => {
+                plannerDispatch(
+                  [
+                    lb<IPlannerExerciseState>()
+                      .p("ui")
+                      .recordModify((ui) => {
+                        return { ...ui, isUndoing: false };
+                      }),
+                  ],
+                  "stop-is-undoing"
                 );
-                const newKey = changedKeys[plannerExercise.key];
-                plannerDispatch(lbProgram.record(newPlanner), "Update planner program");
-                if (newKey) {
-                  updateState(props.dispatch, [
+              }}
+              onClose={() => {
+                plannerDispatch(lbUi.p("exercisePickerState").record(undefined), "Close exercise picker");
+              }}
+              plannerDispatch={buildCustomLensDispatch(plannerDispatch, lbProgram)}
+              pickerDispatch={buildCustomLensDispatch(plannerDispatch, lbUi.pi("exercisePickerState"))}
+              dispatch={props.dispatch}
+              onNewKey={(newKey) => {
+                updateState(
+                  props.dispatch,
+                  [
                     (
                       lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
                         IState,
@@ -247,23 +273,10 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                     )
                       .pi("key")
                       .record(newKey),
-                  ], "Update exercise key in screen params");
-                }
-              }}
-              onUiChange={(modalExerciseUi) => {
-                plannerDispatch(lbUi.p("modalExercise").record(modalExerciseUi), "Update modal exercise UI");
-              }}
-              onStopIsUndoing={() => {
-                plannerDispatch(
-                  [
-                    lb<IPlannerExerciseState>()
-                      .p("ui")
-                      .recordModify((ui) => ui),
                   ],
-                  "stop-is-undoing"
+                  "Update exercise key in screen params"
                 );
               }}
-              dispatch={props.dispatch}
             />
           )}
         </>

@@ -82,14 +82,15 @@ export namespace History {
     forceEndTime: number = Date.now()
   ): IHistoryRecord {
     const { deletedProgramExercises, ui, ...historyRecord } = progress;
-    const programDay = program ? Program.getProgramDay(program, day) : undefined;
-    const dayExercises = programDay ? Program.getProgramDayExercises(programDay) : [];
     const updatedAt = forceEndTime;
     const endTime = Progress.isCurrent(progress) ? forceEndTime : (progress.endTime ?? forceEndTime);
     return {
       ...historyRecord,
       entries: historyRecord.entries.map((entry) => {
-        const programExercise = dayExercises.find((pe) => pe.key === entry.programExerciseId);
+        const programExercise =
+          program && entry.programExerciseId
+            ? Program.getProgramExerciseForKeyAndDay(program, day, entry.programExerciseId)
+            : undefined;
         if (Progress.isCurrent(progress)) {
           entry = {
             ...entry,

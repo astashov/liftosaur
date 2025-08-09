@@ -12,7 +12,7 @@ import { MathUtils } from "../utils/math";
 import {
   IPlannerProgramExercise,
   IPlannerProgramExerciseEvaluatedSet,
-  IPlannerProgramExerciseUsed,
+  IPlannerProgramExerciseWithType,
 } from "../pages/planner/models/types";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { PP } from "./pp";
@@ -136,8 +136,10 @@ export namespace ProgramExercise {
         for (let dayInWeekIndex = 0; dayInWeekIndex < programWeek.days.length; dayInWeekIndex += 1) {
           const programDay = programWeek.days[dayInWeekIndex];
           const dayExercises = Program.getProgramDayExercises(programDay);
-          const exercises = dayExercises.filter((e) => e.key === programExerciseKey);
-          for (const exercise of exercises) {
+          for (const exercise of dayExercises) {
+            if (exercise.key !== programExerciseKey) {
+              continue;
+            }
             for (let variationIndex = 0; variationIndex < exercise.evaluatedSetVariations.length; variationIndex += 1) {
               const setVariation = exercise.evaluatedSetVariations[variationIndex];
               const sets = setVariation.sets;
@@ -233,7 +235,7 @@ export namespace ProgramExercise {
   }
 
   function operation(
-    programExercise: IPlannerProgramExerciseUsed,
+    programExercise: IPlannerProgramExerciseWithType,
     set: IPlannerProgramExerciseEvaluatedSet,
     settings: ISettings,
     key: "maxrep" | "minrep" | "weight" | "rpe" | "timer",

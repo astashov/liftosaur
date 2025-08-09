@@ -2,6 +2,9 @@ import { ISettings, IPlannerSettings, IAllEquipment, IAllCustomExercises, ITarge
 import { Weight } from "./weight";
 import { IExportedProgram } from "./program";
 import { ObjectUtils } from "../utils/object";
+import { lb } from "lens-shmens";
+import { updateSettings } from "./state";
+import { IDispatch } from "../ducks/types";
 
 export namespace Settings {
   export function programContentBuild(): Pick<ISettings, "timers" | "units" | "planner"> {
@@ -333,5 +336,23 @@ export namespace Settings {
       nextTargetType = getNextTargetType("platescalculator", skipPlatesCalculator);
     }
     return nextTargetType;
+  }
+
+  export function toggleStarredExercise(dispatch: IDispatch, key: string): void {
+    updateSettings(
+      dispatch,
+      lb<ISettings>()
+        .p("starredExercises")
+        .recordModify((starred) => {
+          if (starred?.[key]) {
+            delete starred[key];
+          } else {
+            starred = starred || {};
+            starred[key] = true;
+          }
+          return starred;
+        }),
+      `Toggle starred exercise ${key}`
+    );
   }
 }

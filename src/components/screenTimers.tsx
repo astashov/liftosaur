@@ -22,7 +22,7 @@ export function ScreenTimers(props: IProps): JSX.Element {
     return (newValue?: string) => {
       const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : undefined;
       const lensRecording = Lens.buildLensRecording(lb<ISettings>().p("timers").p(key), v);
-      props.dispatch({ type: "UpdateSettings", lensRecording });
+      props.dispatch({ type: "UpdateSettings", lensRecording, desc: `Update ${key} timer` });
     };
   };
 
