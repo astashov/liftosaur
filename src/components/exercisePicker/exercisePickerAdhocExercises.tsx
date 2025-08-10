@@ -61,18 +61,20 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
           <div>
             <IconMagnifyingGlass size={18} color={Tailwind.colors().grayv3.main} />
           </div>
-          <input
-            type="text"
-            placeholder="Search by name"
-            className="flex-1 block text-sm bg-transparent border-none outline-none bg-none text-grayv3-main placeholder-grayv3-500"
-            data-cy="exercise-filter-by-name"
-            value={props.state.search}
-            onInput={(event) => {
-              const target = event.target as HTMLInputElement;
-              const value = target.value;
-              props.dispatch(lb<IExercisePickerState>().p("search").record(value), "Update search input");
-            }}
-          />
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search by name"
+              className="block w-full text-sm bg-transparent border-none outline-none bg-none text-grayv3-main placeholder-grayv3-500"
+              data-cy="exercise-filter-by-name"
+              value={props.state.search}
+              onInput={(event) => {
+                const target = event.target as HTMLInputElement;
+                const value = target.value;
+                props.dispatch(lb<IExercisePickerState>().p("search").record(value), "Update search input");
+              }}
+            />
+          </div>
         </label>
         <div className="flex items-center justify-center">
           <button
@@ -179,11 +181,14 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
           );
           const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, e));
           const isMultiselect = ExercisePickerUtils.getIsMultiselect(props.state);
+          const isSelected = props.state.selectedExercises.some(
+            (ex) => ex.type === "adhoc" && Exercise.eq(ex.exerciseType, e)
+          );
           return (
             <section
               key={Exercise.toKey(e)}
               data-cy={`menu-item-${e.id}`}
-              className="w-full py-1 pl-4 pr-2 text-left border-b border-grayv3-200"
+              className={`w-full py-1 pl-4 pr-2 text-left border-b border-grayv3-200 ${isSelected ? "bg-purplev3-100" : ""}`}
               onClick={() => {}}
             >
               <ExercisePickerExerciseItem
@@ -195,9 +200,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
                 currentExerciseType={props.state.exerciseType}
                 exercise={ex}
                 equipment={ex.equipment}
-                isSelected={props.state.selectedExercises.some(
-                  (ex) => ex.type === "adhoc" && Exercise.eq(ex.exerciseType, e)
-                )}
+                isSelected={isSelected}
                 onChoose={(key) => {
                   ExercisePickerUtils.chooseAdhocExercise(props.dispatch, key, props.state);
                 }}
@@ -249,22 +252,23 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
           const isSelectedAlready = props.state.selectedExercises.some(
             (ex) => "exerciseType" in ex && Exercise.eq(ex.exerciseType, e)
           );
+          const isSelected = props.state.selectedExercises.some(
+            (ex) => ex.type === "adhoc" && Exercise.eq(ex.exerciseType, e)
+          );
           return (
             <section
               key={Exercise.toKey(e)}
               data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
                 e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
               }`}
-              className="w-full py-1 pl-4 pr-2 text-left border-b border-grayv3-200"
+              className={`w-full py-1 pl-4 pr-2 text-left border-b border-grayv3-200 ${isSelected ? "bg-purplev3-100" : ""}`}
               onClick={() => {}}
             >
               <ExercisePickerExerciseItem
                 onStar={props.onStar}
                 isMultiselect={isMultiselect}
                 isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
-                isSelected={props.state.selectedExercises.some(
-                  (ex) => ex.type === "adhoc" && Exercise.eq(ex.exerciseType, e)
-                )}
+                isSelected={isSelected}
                 onChoose={(key) => {
                   ExercisePickerUtils.chooseAdhocExercise(props.dispatch, key, props.state);
                 }}

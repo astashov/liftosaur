@@ -40,8 +40,31 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
         if (exerciseType == null) {
           return null;
         }
+        const isAllDisabled = exercises.every((exercise) => {
+          const exerciseType = exercise.exerciseType;
+          if (exerciseType == null) {
+            return true;
+          }
+          const isSelected = props.state.selectedExercises.some((ex) => {
+            return (
+              ex.type === "program" &&
+              exerciseType &&
+              Exercise.eq(ex.exerciseType, exerciseType) &&
+              ex.week === exercise.dayData.week &&
+              ex.dayInWeek === exercise.dayData.dayInWeek
+            );
+          });
+          const isDisabled = props.state.selectedExercises.some(
+            (ex) => "exerciseType" in ex && Exercise.eq(ex.exerciseType, exerciseType)
+          );
+          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, exerciseType));
+          return isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
+        });
         return (
-          <div key={exerciseKey} className="flex gap-2 px-2 pb-2 mb-4 border-b border-grayv3-100">
+          <div
+            key={exerciseKey}
+            className={`flex gap-2 px-2 pb-2 mb-4 border-b border-grayv3-100 ${isAllDisabled ? "opacity-40" : ""}`}
+          >
             <div className="pl-2">
               <ExerciseImage settings={props.settings} exerciseType={exerciseType} size="small" className="w-10" />
             </div>
@@ -72,8 +95,9 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                   currentSetVariation.sets,
                   props.settings
                 );
+                const isItemDisabled = isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
                 return (
-                  <li key={exercise.id} className="pb-1">
+                  <li key={exercise.id} className={`pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`}>
                     <label className="flex w-full text-right tap-2">
                       <div>
                         <div className="px-1 pb-1 text-xs text-grayv3-main">Day {exercise.dayData.dayInWeek}</div>

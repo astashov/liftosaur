@@ -29,9 +29,10 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
   const isStarred = !!props.settings.starredExercises?.[key];
   const onEdit = props.onEdit;
   const onChoose = props.onChoose;
+  const isDisabled = !props.isEnabled && !props.isSelected;
 
   return (
-    <section className="flex gap-2">
+    <section className={`flex gap-2 ${isDisabled ? "opacity-40" : ""}`}>
       <div className="self-center w-12" style={{ minHeight: "2.5rem" }}>
         <ExerciseImage
           useTextForCustomExercise={true}
@@ -72,7 +73,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
         <div
           data-cy={`custom-exercise-${StringUtils.dashcase(e.name)}`}
           onClick={() => {
-            if (props.onChoose) {
+            if (!isDisabled && props.onChoose) {
               props.onChoose(key);
             }
           }}
@@ -102,7 +103,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
               <input
                 data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
                 type="radio"
-                disabled={!props.isEnabled && !props.isSelected}
+                disabled={isDisabled}
                 name="picker-exercise"
                 value={Exercise.toKey(e)}
                 onChange={() => onChoose(Exercise.toKey(e))}
@@ -114,7 +115,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
               <input
                 data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
                 checked={props.isSelected}
-                disabled={!props.isEnabled && !props.isSelected}
+                disabled={isDisabled}
                 className="checkbox checkbox-purple text-purplev3-main"
                 type="checkbox"
                 onChange={() => onChoose(Exercise.toKey(e))}

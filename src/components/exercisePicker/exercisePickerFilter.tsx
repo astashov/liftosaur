@@ -179,7 +179,7 @@ function Filter<T extends string>(props: IFilterProps<T>): JSX.Element {
               <div>
                 <div>
                   <button
-                    className={`bg-grayv3-50 h-12 py-2 px-2 w-full ${value.disabledReason ? "text-grayv3-300" : "text-blackv2"} rounded-lg border text-center ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
+                    className={`bg-grayv3-50 h-12 leading-none px-2 w-full ${value.disabledReason ? "text-grayv3-300" : "text-blackv2"} rounded-lg border text-center ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
                     disabled={!!value.disabledReason}
                     style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
                     onClick={() => {
@@ -241,12 +241,13 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                     {ObjectUtils.entries(muscleGroups).map(([key, value]) => {
                       return (
                         <button
-                          className={`bg-grayv3-50 bg-no-repeat flex h-12 items-center rounded-lg border text-left ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
+                          className={`bg-grayv3-50 h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
                           style={{
-                            paddingLeft: "4.5rem",
+                            paddingLeft: "70px",
                             borderWidth: value.isSelected ? "2px" : "1px",
                             backgroundImage: `url(/images/svgs/musclegroups/${key}.svg)`,
-                            backgroundPosition: "0 0",
+                            backgroundSize: "contain",
+                            backgroundPosition: "0 50%",
                           }}
                           onClick={() => {
                             props.dispatch(
@@ -302,14 +303,24 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                           <div className="grid grid-cols-2 gap-4 mt-2">
                             {sortedMuscles.map((key) => {
                               const value = muscles[key];
+                              const words = value.label.split(" ");
+                              const wordCount = words.length;
+                              const longestWord = Math.max(...words.map((w) => w.length));
+                              const fontSize =
+                                wordCount > 3 || longestWord > 11
+                                  ? "text-xs"
+                                  : wordCount > 2 || longestWord > 9
+                                    ? "text-sm"
+                                    : "text-base";
                               return (
                                 <button
-                                  className={`bg-grayv3-50 overflow-hidden bg-no-repeat flex h-12 items-center rounded-lg border text-left ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
+                                  className={`bg-grayv3-50 ${fontSize} h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
                                   style={{
-                                    paddingLeft: "4.5rem",
+                                    paddingLeft: "70px",
                                     borderWidth: value.isSelected ? "2px" : "1px",
                                     backgroundImage: `url(/images/svgs/muscles/${key.toLowerCase().replace(/ /g, "")}.svg)`,
-                                    backgroundPosition: "0 0",
+                                    backgroundSize: "contain",
+                                    backgroundPosition: "0 50%",
                                   }}
                                   onClick={() => {
                                     props.dispatch(
