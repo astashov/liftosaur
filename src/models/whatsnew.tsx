@@ -1936,6 +1936,36 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250810": {
+    title: <span>Redesign of the exercise picker</span>,
+    body: (
+      <ul>
+        <li>
+          Redesigned the exercise picker. The biggest change is that now you can add/edit not only ad-hoc, but also{" "}
+          <strong>program exercises from the current program</strong>, both used and unused. They'll be added with all
+          their sets, and will run the progression logic on workout completion.
+        </li>
+        <li>
+          So, now you can define a bunch of unused exercises you may want to switch to (e.g. if some machines are often
+          busy in your gym - you can define alternatives), and quickly add / replace them during the workout.
+        </li>
+        <li>
+          There's also ability to "star" exercises, so you can quickly find them in the future. There're redesigned
+          filters, with images for each muscle and muscle group. <strong>Substitute</strong> tab is gone, and replaced
+          by sorting by similar muscles (which is exactly the same) in the filters section.
+        </li>
+        <li>
+          When you add exercises to a workout, you can pick multiple exercises now. And when you start an ad-hoc
+          workout, the picker will be open automatically, so you can add exercises right away.
+        </li>
+        <li>
+          Hopefully the whole experience now makes more sense, and it's more logical - you can either add an ad-hoc
+          exercise (and then you set up the sets yourself), or you add program exercise, and it behaves like you defined
+          it in the program.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
@@ -1968,10 +1998,14 @@ export namespace WhatsNew {
   }
 
   export function updateStorage(dispatch: IDispatch): void {
-    updateState(dispatch, [
-      lb<IState>().p("storage").p("whatsNew").record(DateUtils.formatYYYYMMDD(Date.now(), "")),
-      lb<IState>().p("showWhatsNew").record(false),
-    ], "Mark what's new as read");
+    updateState(
+      dispatch,
+      [
+        lb<IState>().p("storage").p("whatsNew").record(DateUtils.formatYYYYMMDD(Date.now(), "")),
+        lb<IState>().p("showWhatsNew").record(false),
+      ],
+      "Mark what's new as read"
+    );
   }
 
   export function showWhatsNew(dispatch: IDispatch): void {
