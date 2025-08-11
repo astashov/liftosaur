@@ -199,7 +199,6 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
                 settings={props.settings}
                 currentExerciseType={props.state.exerciseType}
                 exercise={ex}
-                equipment={ex.equipment}
                 isSelected={isSelected}
                 onChoose={(key) => {
                   ExercisePickerUtils.chooseAdhocExercise(props.dispatch, key, props.state);
@@ -276,7 +275,6 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
                 settings={props.settings}
                 currentExerciseType={props.state.exerciseType}
                 exercise={e}
-                equipment={e.equipment}
               />
             </section>
           );

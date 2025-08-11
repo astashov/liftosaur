@@ -10,7 +10,6 @@ import { Muscle } from "../../models/muscle";
 
 interface IExerciseItemProps {
   exercise: IExercise;
-  equipment?: string;
   settings: ISettings;
   onStar?: (key: string) => void;
   onEdit?: () => void;
@@ -24,7 +23,7 @@ interface IExerciseItemProps {
 
 export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Element {
   const { exercise: e } = props;
-  const exerciseType = { id: e.id, equipment: props.equipment || e.defaultEquipment };
+  const exerciseType = { id: e.id, equipment: e.equipment || e.defaultEquipment };
   const key = Exercise.toKey(e);
   const isStarred = !!props.settings.starredExercises?.[key];
   const onEdit = props.onEdit;

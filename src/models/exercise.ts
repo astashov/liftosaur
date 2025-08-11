@@ -4306,7 +4306,7 @@ export namespace Exercise {
 
   export function filterCustomExercises(customExercises: IAllCustomExercises, filter: string): IAllCustomExercises {
     return ObjectUtils.filter(customExercises, (e, v) =>
-      v ? StringUtils.fuzzySearch(filter, v.name.toLowerCase()) : true
+      v ? StringUtils.fuzzySearch(filter.toLowerCase(), v.name.toLowerCase()) : true
     );
   }
 
