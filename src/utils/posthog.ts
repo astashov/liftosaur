@@ -28,7 +28,12 @@ export function lg(
       extra,
       userId: tempUserId,
     };
-    SendMessage.toIosAndAndroid({ type: "event", data: JSON.stringify(event) });
+    SendMessage.toIosAndAndroid({
+      type: "event",
+      data: JSON.stringify(event),
+      commithash: event.commithash,
+      userId: event.userId,
+    });
     return;
   }
 
