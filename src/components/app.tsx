@@ -53,6 +53,7 @@ import { Account } from "../models/account";
 import { ImagePreloader } from "../utils/imagePreloader";
 import { ScreenEditProgramExercise } from "./editProgramExercise/screenEditProgramExercise";
 import { FallbackScreen } from "./fallbackScreen";
+import { Screen1RM } from "./screen1RM";
 
 declare let Rollbar: RB;
 declare let __COMMIT_HASH__: string;
@@ -389,6 +390,13 @@ export function AppView(props: IProps): JSX.Element | null {
         />
       );
     }
+  } else if (Screen.currentName(state.screenStack) === "onerms") {
+    if (currentProgram == null) {
+      throw new Error("Opened 'exercises' screen, but 'currentProgram' is null");
+    }
+    content = (
+      <Screen1RM navCommon={navCommon} dispatch={dispatch} program={currentProgram} settings={state.storage.settings} />
+    );
   } else if (Screen.currentName(state.screenStack) === "stats") {
     content = (
       <ScreenStats

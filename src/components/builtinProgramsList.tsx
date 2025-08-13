@@ -30,6 +30,7 @@ import { ModalProgramInfo } from "./modalProgramInfo";
 import { Thunk } from "../ducks/thunks";
 import { equipmentName } from "../models/exercise";
 import { Equipment } from "../models/equipment";
+import { Settings } from "../models/settings";
 
 interface IProps {
   programs: IProgram[];
@@ -164,7 +165,11 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
           onPreview={() => Program.previewProgram(props.dispatch, selectedProgram.id, false)}
           onSelect={() => {
             Program.cloneProgram(props.dispatch, selectedProgram, props.settings);
-            props.dispatch(Thunk.pushScreen("main", undefined, true));
+            if (Settings.doesProgramHaveUnset1RMs(selectedProgram, props.settings)) {
+              props.dispatch(Thunk.pushScreen("onerms", undefined, true));
+            } else {
+              props.dispatch(Thunk.pushScreen("main", undefined, true));
+            }
           }}
         />
       )}

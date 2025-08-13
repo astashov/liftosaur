@@ -1,10 +1,23 @@
-import { ISettings, IPlannerSettings, IAllEquipment, IAllCustomExercises, ITargetType, targetTypes } from "../types";
+import {
+  ISettings,
+  IPlannerSettings,
+  IAllEquipment,
+  IAllCustomExercises,
+  ITargetType,
+  targetTypes,
+  IProgram,
+  IExerciseType,
+  IWeight,
+} from "../types";
 import { Weight } from "./weight";
-import { IExportedProgram } from "./program";
+import { IExportedProgram, Program } from "./program";
 import { ObjectUtils } from "../utils/object";
 import { lb } from "lens-shmens";
 import { updateSettings } from "./state";
 import { IDispatch } from "../ducks/types";
+import { Exercise, IExercise } from "./exercise";
+import { CollectionUtils } from "../utils/collection";
+import { ProgramExercise } from "./programExercise";
 
 export namespace Settings {
   export function programContentBuild(): Pick<ISettings, "timers" | "units" | "planner"> {
@@ -353,6 +366,46 @@ export namespace Settings {
           return starred;
         }),
       `Toggle starred exercise ${key}`
+    );
+  }
+  export function doesProgramHaveUnset1RMs(program: IProgram, settings: ISettings): boolean {
+    return getExercisesWithUnset1RMs(program, settings).length > 0;
+  }
+
+  export function getExercisesWithUnset1RMs(program: IProgram, settings: ISettings): IExercise[] {
+    const evalutedProgram = Program.evaluate(program, settings);
+    const plannerExercises = Program.getAllUsedProgramExercises(evalutedProgram).filter((exercise) => {
+      return ProgramExercise.doesUse1RM(exercise);
+    });
+    const exerciseTypes = CollectionUtils.uniqByExpr(
+      plannerExercises
+        .filter((exercise) => {
+          return settings.exerciseData[Exercise.toKey(exercise.exerciseType)]?.rm1 == null;
+        })
+        .map((exercise) => exercise.exerciseType),
+      (e) => Exercise.toKey(e)
+    );
+    const exercises = exerciseTypes.map((e) => Exercise.get(e, settings.exercises));
+    return CollectionUtils.sort(exercises, (a, b) => {
+      return Exercise.nameWithEquipment(a, settings).localeCompare(Exercise.nameWithEquipment(b, settings));
+    });
+  }
+
+  export function setOneRM(
+    dispatch: IDispatch,
+    exerciseType: IExerciseType,
+    value: IWeight,
+    settings: ISettings
+  ): void {
+    updateSettings(
+      dispatch,
+      lb<ISettings>()
+        .p("exerciseData")
+        .recordModify((data) => {
+          const key = Exercise.toKey(exerciseType);
+          return { ...data, [key]: { ...data[key], rm1: value } };
+        }),
+      `Set 1RM for ${Exercise.nameWithEquipment(Exercise.get(exerciseType, settings.exercises), settings)} to ${Weight.print(value)}`
     );
   }
 }
