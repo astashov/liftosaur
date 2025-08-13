@@ -47,57 +47,68 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
         <p className="px-4 pb-4 text-sm font-bold text-grayv3-main">
           You can skip it - and do it later during your first workout!
         </p>
-        <ul className="pb-6">
-          {exerciseTypes.map((exerciseType) => {
-            const exercise = Exercise.get(exerciseType, props.settings.exercises);
-            const onerm = Exercise.onerm(exerciseType, props.settings);
-            return (
-              <li
-                key={Exercise.toKey(exerciseType)}
-                className="flex items-center gap-4 px-4 py-2 border-b border-grayv3-200"
-              >
-                <div className="w-12">
-                  <ExerciseImage
-                    settings={props.settings}
-                    className="w-full"
-                    exerciseType={exerciseType}
-                    size="small"
-                  />
+        <div className="table w-full">
+          <div className="table-row-group">
+            <div className="table-row text-xs border-b text-grayv2-main border-grayv3-100">
+              <div className="table-cell pb-1 pl-4 font-normal text-left border-b border-grayv3-100">Exercise</div>
+              <div className="table-cell pb-1 pr-4 font-normal text-center border-b border-grayv3-100">1 Rep Max</div>
+            </div>
+          </div>
+          <div className="table-row-group">
+            {exerciseTypes.map((exerciseType) => {
+              const exercise = Exercise.get(exerciseType, props.settings.exercises);
+              const onerm = Exercise.onerm(exerciseType, props.settings);
+              return (
+                <div className="table-row">
+                  <div className="table-cell py-1 pl-4 align-middle border-b border-grayv3-100">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12">
+                        <ExerciseImage
+                          settings={props.settings}
+                          className="w-full"
+                          exerciseType={exerciseType}
+                          size="small"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-base font-semibold">
+                          {Exercise.nameWithEquipment(exercise, props.settings)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="table-cell py-1 pr-4 text-sm align-middle border-b border-grayv3-100">
+                    <div className="flex justify-center">
+                      <InputWeight2
+                        name="onerm-weight"
+                        width={4}
+                        exerciseType={exerciseType}
+                        data-cy="onerm-weight"
+                        units={["lb", "kg"] as const}
+                        onInput={(v) => {
+                          if (v != null && !Weight.isPct(v)) {
+                            Settings.setOneRM(props.dispatch, exerciseType, v, props.settings);
+                          }
+                        }}
+                        onBlur={(v) => {
+                          if (v != null && !Weight.isPct(v)) {
+                            Settings.setOneRM(props.dispatch, exerciseType, v, props.settings);
+                          }
+                        }}
+                        showUnitInside={true}
+                        subscription={undefined}
+                        value={onerm}
+                        max={9999}
+                        min={-9999}
+                        settings={props.settings}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <span className="text-base font-semibold">
-                    {Exercise.nameWithEquipment(exercise, props.settings)}
-                  </span>
-                </div>
-                <div>
-                  <InputWeight2
-                    name="onerm-weight"
-                    width={4}
-                    exerciseType={exerciseType}
-                    data-cy="onerm-weight"
-                    units={["lb", "kg"] as const}
-                    onInput={(v) => {
-                      if (v != null && !Weight.isPct(v)) {
-                        Settings.setOneRM(props.dispatch, exerciseType, v, props.settings);
-                      }
-                    }}
-                    onBlur={(v) => {
-                      if (v != null && !Weight.isPct(v)) {
-                        Settings.setOneRM(props.dispatch, exerciseType, v, props.settings);
-                      }
-                    }}
-                    showUnitInside={true}
-                    subscription={undefined}
-                    value={onerm}
-                    max={9999}
-                    min={-9999}
-                    settings={props.settings}
-                  />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+              );
+            })}
+          </div>
+        </div>
       </section>
     </Surface>
   );
