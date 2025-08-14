@@ -50,7 +50,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
               className="w-full"
               name="see-how-it-works"
               kind="purple"
-              onClick={() => props.dispatch(Thunk.pushScreen("programs"))}
+              onClick={() => props.dispatch(Thunk.pushScreen("setupequipment"))}
             >
               Continue
             </Button>

@@ -525,7 +525,14 @@ export namespace Thunk {
         shouldResetStack = false;
         screen = "subscription" as T;
       }
-      const screensWithoutCurrentProgram = ["first", "onboarding", "units", "programs", "programPreview"];
+      const screensWithoutCurrentProgram = [
+        "first",
+        "onboarding",
+        "units",
+        "programs",
+        "programPreview",
+        "setupequipment",
+      ];
       if (getState().storage.currentProgramId == null && screensWithoutCurrentProgram.indexOf(screen) === -1) {
         screen = "programs" as T;
       }

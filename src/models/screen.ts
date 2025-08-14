@@ -37,6 +37,7 @@ export type IScreenData =
   | { name: "exerciseStats"; params?: Record<string, never> }
   | { name: "exercises"; params?: Record<string, never> }
   | { name: "onerms"; params?: Record<string, never> }
+  | { name: "setupequipment"; params?: Record<string, never> }
   | { name: "programPreview"; params?: Record<string, never> };
 
 export type IScreen = IScreenData["name"];
@@ -214,6 +215,9 @@ export namespace Screen {
         return "program";
       }
       case "onerms": {
+        return "program";
+      }
+      case "setupequipment": {
         return "program";
       }
       case "units": {

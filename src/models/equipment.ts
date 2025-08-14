@@ -51,7 +51,11 @@ export namespace Equipment {
       return undefined;
     }
 
-    const exerciseData = settings.exerciseData[Exercise.toKey(exerciseType)];
+    const key = Exercise.toKey(exerciseType);
+    if (!(settings.exerciseData[key] && "equipment" in settings.exerciseData[key])) {
+      return exerciseType.equipment;
+    }
+    const exerciseData = settings.exerciseData[key];
     const exerciseEquipment = exerciseData?.equipment;
     if (exerciseEquipment == null) {
       return undefined;

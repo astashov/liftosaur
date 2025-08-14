@@ -66,7 +66,7 @@ Bicep Curl / 1x5 20lb / warmup: none`
   await page.getByTestId("group-header-boom").click();
 
   page.on("dialog", (dialog) => dialog.accept());
-  await page.getByRole("button", { name: "Delete Boom" }).click();
+  await page.getByTestId("delete-equipment-boom").click();
 
   await expect(page.getByTestId("group-header-boom")).toHaveCount(0);
 

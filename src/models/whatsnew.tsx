@@ -1966,6 +1966,27 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250813": {
+    title: <span>Hiding equipment, and changes in default exercise equipment</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can hide the built-in equipment you don't have / not going to use on the "Available Equipment" screen.
+        </li>
+        <li>
+          Also <strong>POTENTIALLY BREAKING CHANGE</strong> - if you never ever set the equipment for some exercises, it
+          will be automatically set to matching equipment now. E.g. the exercise is{" "}
+          <strong>Bench Press, Barbell</strong> - it will have
+          <strong>Barbell</strong> equipment set by default - only if you never set it before (and it was{" "}
+          <strong>None</strong>).
+        </li>
+        <li>
+          Did that because there was a lot of confusion for new users - like why they set up Barbell equipment, but it's
+          not applied to barbell exercises by default.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

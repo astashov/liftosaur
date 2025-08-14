@@ -10,6 +10,8 @@ import { Footer2View } from "./footer2";
 import { HelpPlates } from "./help/helpPlates";
 import { useEffect } from "preact/hooks";
 import { MenuItemEditable } from "./menuItemEditable";
+import { LinkButton } from "./linkButton";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   dispatch: IDispatch;
@@ -28,7 +30,11 @@ export function ScreenEquipment(props: IProps): JSX.Element {
         const offsetY = el.getBoundingClientRect().top + document.documentElement.scrollTop;
         window.scrollTo(0, offsetY - 70);
       }
-      updateState(props.dispatch, [lb<IState>().p("defaultEquipmentExpanded").record(undefined)], "Clear expanded equipment");
+      updateState(
+        props.dispatch,
+        [lb<IState>().p("defaultEquipmentExpanded").record(undefined)],
+        "Clear expanded equipment"
+      );
     }
   }, []);
   const selectedGym = props.settings.gyms.find((g) => g.id === props.selectedGymId) ?? props.settings.gyms[0];
@@ -45,8 +51,8 @@ export function ScreenEquipment(props: IProps): JSX.Element {
       }
       footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
     >
-      <section className="px-2">
-        <div className="px-2 pb-2">
+      <section>
+        <div className="px-4 pb-2">
           {props.settings.gyms.length > 1 && (
             <MenuItemEditable
               type="text"
@@ -54,20 +60,31 @@ export function ScreenEquipment(props: IProps): JSX.Element {
               value={selectedGym.name}
               onChange={(name) => {
                 if (name?.trim()) {
-                  updateState(props.dispatch, [
-                    lb<IState>()
-                      .p("storage")
-                      .p("settings")
-                      .p("gyms")
-                      .findBy("id", selectedGym.id)
-                      .p("name")
-                      .record(name.trim()),
-                  ], "Update gym name");
+                  updateState(
+                    props.dispatch,
+                    [
+                      lb<IState>()
+                        .p("storage")
+                        .p("settings")
+                        .p("gyms")
+                        .findBy("id", selectedGym.id)
+                        .p("name")
+                        .record(name.trim()),
+                    ],
+                    "Update gym name"
+                  );
                 }
               }}
             />
           )}
         </div>
+        {props.settings.gyms.length === 1 && (
+          <div className="px-2 mb-2 text-right">
+            <LinkButton className="text-sm" name="add-new-gym" onClick={() => props.dispatch(Thunk.pushScreen("gyms"))}>
+              Manage Gyms
+            </LinkButton>
+          </div>
+        )}
         <EquipmentSettings
           expandedEquipment={props.expandedEquipment}
           lensPrefix={lb<IState>()

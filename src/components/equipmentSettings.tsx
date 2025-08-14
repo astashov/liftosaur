@@ -17,9 +17,12 @@ import { equipmentName } from "../models/exercise";
 import { ModalNewEquipment } from "./modalNewEquipment";
 import { UidFactory } from "../utils/generator";
 import { Equipment } from "../models/equipment";
-import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { IState } from "../models/state";
+import { IconArrowUp } from "./icons/iconArrowUp";
+import { IconArrowDown2 } from "./icons/iconArrowDown2";
+import { IconEyeClosed } from "./icons/iconEyeClosed";
+import { StringUtils } from "../utils/string";
 
 interface IProps<T> {
   dispatch: IDispatch;
@@ -42,27 +45,19 @@ function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
 export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
   const [modalNewEquipment, setModalNewEquipment] = useState(false);
   const lensDispatch = buildLensDispatch(props.dispatch);
+  const hiddenEquipment = ObjectUtils.keys(props.allEquipment).filter((e) => {
+    const eq = props.allEquipment[e];
+    return !eq?.name && eq?.isDeleted;
+  });
   return (
-    <>
-      {props.settings.gyms.length === 1 && (
-        <div className="mb-2 text-right">
-          <LinkButton name="add-new-gym" onClick={() => props.dispatch(Thunk.pushScreen("gyms"))}>
-            Manage Gyms
-          </LinkButton>
-        </div>
-      )}
+    <div>
       {ObjectUtils.keys(props.allEquipment)
         .filter((e) => !props.allEquipment[e]?.isDeleted)
         .map((bar, i) => {
           const equipmentData = props.allEquipment[bar];
           if (equipmentData) {
             return (
-              <div
-                id={bar}
-                className={`${i !== 0 ? "mt-6" : ""} px-4 pt-3 pb-2 ${
-                  equipmentData.name ? "border-grayv2-200 border" : "bg-purplev2-100"
-                } rounded-2xl`}
-              >
+              <div id={bar} className={`${i !== 0 ? "mt-6" : ""}`}>
                 <EquipmentSettingsContent
                   key={bar}
                   lensPrefix={props.lensPrefix}
@@ -80,8 +75,30 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
             return undefined;
           }
         })}
+      {hiddenEquipment.length > 0 && (
+        <div className="mx-4 my-2 leading-4">
+          <span className="text-xs">Hidden Equipment: </span>
+          {hiddenEquipment.map((e, i) => (
+            <>
+              {i !== 0 && <span>, </span>}
+              <LinkButton
+                className="text-xs"
+                name={`show-equipment-${e}`}
+                onClick={() => {
+                  const lensRecording = props.lensPrefix
+                    .then(lb<IAllEquipment>().pi(e).p("isDeleted").get())
+                    .record(false);
+                  lensDispatch(lensRecording, `Show equipment ${e}`);
+                }}
+              >
+                {equipmentName(e, props.allEquipment)}
+              </LinkButton>
+            </>
+          ))}
+        </div>
+      )}
       <div className="m-4">
-        <LinkButton name="add-new-equipment" onClick={() => setModalNewEquipment(true)}>
+        <LinkButton className="text-sm" name="add-new-equipment" onClick={() => setModalNewEquipment(true)}>
           Add New Equipment Type
         </LinkButton>
       </div>
@@ -101,7 +118,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
           setModalNewEquipment(false);
         }}
       />
-    </>
+    </div>
   );
 }
 
@@ -117,39 +134,41 @@ interface IEquipmentSettingsContentProps<T> {
 }
 
 export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProps<T>): JSX.Element {
+  const [isExpanded, setIsExpanded] = useState<boolean>(props.isExpanded ?? false);
+  const name = equipmentName(props.equipment, props.allEquipment);
+
   return (
     <div>
-      <GroupHeader size="large" name={equipmentName(props.equipment, props.allEquipment)} isExpanded={props.isExpanded}>
-        {props.equipmentData.name && (
-          <MenuItemEditable
-            name="Name"
-            type="text"
-            value={props.equipmentData.name}
-            onChange={(newValue?: string) => {
-              if (newValue) {
-                const lensRecording = props.lensPrefix
-                  .then(lb<IAllEquipment>().pi(props.equipment).p("name").get())
-                  .record(newValue || undefined);
-                props.lensDispatch(lensRecording, "Change equipment name");
-              }
-            }}
-          />
-        )}
-        <EquipmentSettingsValues
-          lensPrefix={props.lensPrefix}
-          equipment={props.equipment}
-          allEquipment={props.allEquipment}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          lensDispatch={props.lensDispatch}
-          equipmentData={props.equipmentData}
-        />
-        {props.equipmentData.name && (
-          <div className="mt-2 text-right">
-            <LinkButton
-              name="delete-equipment"
+      <div className="px-2 my-1 bg-white border rounded-xl border-grayv3-300">
+        <div
+          className="sticky left-0 z-10 flex items-center gap-1 py-2 bg-white border-b border-grayv3-50 rounded-t-2xl rounded-w-2xl"
+          style={{ top: "3.7rem" }}
+        >
+          <div className="flex items-center">
+            <button
+              className="px-2"
+              data-cy={`group-header-${StringUtils.dashcase(name)}`}
               onClick={() => {
-                if (confirm("Are you sure?")) {
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              {isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}
+            </button>
+          </div>
+          <div
+            className="flex-1 font-semibold"
+            onClick={() => {
+              setIsExpanded(!isExpanded);
+            }}
+          >
+            {equipmentName(props.equipment, props.allEquipment)}
+          </div>
+          <div className="flex items-center">
+            <button
+              className="p-2"
+              data-cy={`delete-equipment-${StringUtils.dashcase(name)}`}
+              onClick={() => {
+                if (!props.equipmentData.name || confirm("Are you sure?")) {
                   const lensRecording = props.lensPrefix
                     .then(lb<IAllEquipment>().pi(props.equipment).p("isDeleted").get())
                     .record(true);
@@ -157,11 +176,39 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
                 }
               }}
             >
-              Delete {props.equipmentData.name}
-            </LinkButton>
+              {props.equipmentData.name ? <IconTrash /> : <IconEyeClosed />}
+            </button>
+          </div>
+        </div>
+        {isExpanded && (
+          <div className="px-2">
+            {props.equipmentData.name && (
+              <MenuItemEditable
+                name="Name"
+                type="text"
+                value={props.equipmentData.name}
+                onChange={(newValue?: string) => {
+                  if (newValue) {
+                    const lensRecording = props.lensPrefix
+                      .then(lb<IAllEquipment>().pi(props.equipment).p("name").get())
+                      .record(newValue || undefined);
+                    props.lensDispatch(lensRecording, "Change equipment name");
+                  }
+                }}
+              />
+            )}
+            <EquipmentSettingsValues
+              lensPrefix={props.lensPrefix}
+              equipment={props.equipment}
+              allEquipment={props.allEquipment}
+              settings={props.settings}
+              dispatch={props.dispatch}
+              lensDispatch={props.lensDispatch}
+              equipmentData={props.equipmentData}
+            />
           </div>
         )}
-      </GroupHeader>
+      </div>
     </div>
   );
 }
@@ -428,7 +475,11 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
           />
         );
       })}
-      <LinkButton name="add-new-plate-weight" onClick={() => props.setModalNewPlateEquipmentToShow(props.name)}>
+      <LinkButton
+        className="text-sm"
+        name="add-new-plate-weight"
+        onClick={() => props.setModalNewPlateEquipmentToShow(props.name)}
+      >
         Add New Plate Weight
       </LinkButton>
     </div>
