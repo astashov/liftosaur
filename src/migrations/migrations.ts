@@ -8,6 +8,7 @@ import { Weight } from "../models/weight";
 import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { IVersions } from "../models/versionTracker";
+import { Settings } from "../models/settings";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -269,6 +270,15 @@ export const migrations = {
         // @ts-ignore
         storage._versions.settings.graphs = Date.now();
       }
+    }
+    return storage;
+  },
+  "20250815161850_add_gyms_if_empty": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    if (storage.settings.gyms && storage.settings.gyms.length === 0) {
+      storage.settings.gyms.push({
+        ...Settings.build().gyms[0],
+      });
     }
     return storage;
   },
