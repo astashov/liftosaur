@@ -366,14 +366,22 @@ export class PlannerEvaluator {
           exercise.points.reuseSetPoint
         );
       }
-      if (originalExercise.exercise.progress?.reuse != null && exercise.progress == null) {
+      if (
+        originalExercise.exercise.progress?.reuse != null &&
+        exercise.progress == null &&
+        !originalExercise.exercise.notused
+      ) {
         throw PlannerSyntaxError.fromPoint(
           exercise.fullName,
-          `This exercise doesn't specify progress - so the original exercise's progress cannot reuse another exercise's progress`,
+          `This exercise doesn't specify progress - so the original USED exercise's progress cannot reuse another exercise's progress`,
           exercise.points.reuseSetPoint
         );
       }
-      if (originalExercise.exercise.update?.reuse != null && exercise.update == null) {
+      if (
+        originalExercise.exercise.update?.reuse != null &&
+        exercise.update == null &&
+        !originalExercise.exercise.notused
+      ) {
         throw PlannerSyntaxError.fromPoint(
           exercise.fullName,
           `This exercise doesn't specify 'update' - so the original exercise's 'update' cannot reuse another exercise's 'update'`,
@@ -490,7 +498,7 @@ export class PlannerEvaluator {
         if (!originalProgress || !dayData) {
           throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify progress", point);
         }
-        if (originalProgress.reuse?.fullName != null) {
+        if (originalProgress.reuse?.fullName != null && !originalProgress.reuse?.exercise?.notused) {
           throw PlannerSyntaxError.fromPoint(
             exercise.fullName,
             `Original exercise cannot reuse another progress`,
@@ -594,7 +602,7 @@ export class PlannerEvaluator {
         if (!originalUpdate || !dayData) {
           throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify update", point);
         }
-        if (originalUpdate.reuse?.fullName != null) {
+        if (originalUpdate.reuse?.fullName != null && !originalUpdate.reuse?.exercise?.notused) {
           throw PlannerSyntaxError.fromPoint(exercise.fullName, `Original exercise cannot reuse another update`, point);
         }
         if (originalUpdate.type !== "custom") {

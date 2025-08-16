@@ -1272,7 +1272,7 @@ export namespace Program {
   ): IPlannerProgramExercise[] {
     const exercises: IPlannerProgramExercise[] = [];
     PP.iterate2(evaluatedProgram.weeks, (e) => {
-      if (e.progress?.reuse?.fullName === programExercise.fullName) {
+      if (e.progress?.type === "custom" && e.progress?.reuse?.fullName === programExercise.fullName) {
         exercises.push(e);
       }
     });

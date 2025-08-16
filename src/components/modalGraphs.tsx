@@ -48,7 +48,6 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
       .map((et) => Exercise.get(et, props.settings.exercises)),
     (a, b) => a.name.localeCompare(b.name)
   );
-  console.log("Exercises", exercises);
   const usedStats = graphs.reduce<Set<IStatsKey>>((memo, g) => {
     if (g.type === "statsWeight" || g.type === "statsLength" || g.type === "statsPercentage") {
       memo.add(g.id);

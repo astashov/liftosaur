@@ -1499,4 +1499,28 @@ Squat / 1x10 / 230lb / progress: custom() {~
 
 `);
   });
+
+  it("template reuses progress of another template", () => {
+    const programText = `# Week 1
+## Day 1
+t1 / used: none / 3x5 100lb / progress: custom() {~
+  weights += 5lb
+~}
+t2 / used: none / 2x5 120lb / progress: custom() { ...t1 }
+Squat / ...t2
+
+`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+t1 / used: none / 3x5 / 100lb / progress: custom() {~
+  weights += 5lb
+~}
+t2 / used: none / 2x5 / 120lb / progress: custom() { ...t1 }
+Squat / ...t2 / 125lb
+
+
+`);
+  });
 });

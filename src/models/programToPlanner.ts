@@ -443,7 +443,12 @@ export class ProgramToPlanner {
                 }
 
                 const update = evalExercise.update;
-                if (!addedUpdateMap[key] && update && (!evalExercise.reuse || dereuseDecisions.includes("update"))) {
+                if (
+                  !addedUpdateMap[key] &&
+                  update &&
+                  (update.reuse || update.script) &&
+                  (!evalExercise.reuse || dereuseDecisions.includes("update"))
+                ) {
                   const updateStr = ProgramToPlanner.getUpdate(evalExercise, this.settings);
                   if (updateStr) {
                     plannerExercise += ` / ${updateStr}`;
@@ -457,6 +462,7 @@ export class ProgramToPlanner {
                 } else if (
                   !addedProgressMap[key] &&
                   progress &&
+                  (progress.reuse || progress.script) &&
                   (!evalExercise.reuse || dereuseDecisions.includes("progress"))
                 ) {
                   const progressStr = ProgramToPlanner.getProgress(evalExercise, this.settings, false);

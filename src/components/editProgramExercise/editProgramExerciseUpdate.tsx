@@ -23,14 +23,18 @@ interface IEditProgramExerciseUpdateProps {
   settings: ISettings;
 }
 
-function getUpdateReuseCandidates(key: string, evaluatedProgram: IEvaluatedProgram): [string, string][] {
+function getUpdateReuseCandidates(
+  key: string,
+  notused: boolean,
+  evaluatedProgram: IEvaluatedProgram
+): [string, string][] {
   const result: Record<string, string> = { "": "None" };
   PP.iterate2(evaluatedProgram.weeks, (exercise) => {
     if (exercise.key === key) {
       return;
     }
     const update = exercise.update;
-    if (!update || update.type !== "custom" || update.reuse) {
+    if (!update || update.type !== "custom" || (!(!notused && exercise.notused) && update.reuse)) {
       return;
     }
     result[exercise.key] = exercise.fullName;
@@ -58,7 +62,10 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
                 data-cy="edit-exercise-update-edit-script"
                 name="edit-exercise-update-edit-script"
                 onClick={() => {
-                  props.plannerDispatch(lbUi.p("showEditUpdateScriptModal").record(true), "Show edit update script modal");
+                  props.plannerDispatch(
+                    lbUi.p("showEditUpdateScriptModal").record(true),
+                    "Show edit update script modal"
+                  );
                 }}
               >
                 Edit Script
@@ -145,13 +152,16 @@ interface IUpdateContentProps {
 function UpdateContent(props: IUpdateContentProps): JSX.Element {
   const { plannerExercise, evaluatedProgram } = props;
   const ownUpdate = plannerExercise.update;
-  const reuseCandidates = getUpdateReuseCandidates(plannerExercise.key, evaluatedProgram);
+  const reuseCandidates = getUpdateReuseCandidates(plannerExercise.key, !!plannerExercise.notused, evaluatedProgram);
   const reuseKey = ownUpdate?.reuse?.exercise?.key;
   const reusingUpdateExercises = CollectionUtils.uniqBy(
     Program.getReusingUpdateExercises(evaluatedProgram, plannerExercise),
     "fullName"
   );
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
+  const cannotReuseOtherUpdates = plannerExercise.notused
+    ? reusingUpdateExercises.filter((e) => e.notused).length > 0
+    : reusingUpdateExercises.length > 0;
   return (
     <>
       {reusingUpdateExercises.length > 0 && (
@@ -177,8 +187,8 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
               isBorderless
               name="program-exercise-update-reuse"
               onClick={() => {
-                if (reusingUpdateExercises.length > 0) {
-                  alert("You cannot reuse update if this custom update is reused by other exercises.");
+                if (cannotReuseOtherUpdates) {
+                  alert("You cannot reuse update if this custom update is reused by other USED exercises.");
                 }
               }}
             >
@@ -190,7 +200,7 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
                     name="program-exercise-update-reuse-select"
                     values={reuseCandidates}
                     value={reuseKey}
-                    disabled={reusingUpdateExercises.length > 0}
+                    disabled={cannotReuseOtherUpdates}
                     placeholder="None"
                     onChange={(fullName) => {
                       props.plannerDispatch(

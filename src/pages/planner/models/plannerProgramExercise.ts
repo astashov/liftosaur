@@ -415,7 +415,9 @@ export class PlannerProgramExercise {
     return (
       exercise.progress?.script ??
       exercise.progress?.reuse?.exercise?.progress?.script ??
-      exercise.reuse?.exercise?.progress?.script
+      exercise.progress?.reuse?.exercise?.progress?.reuse?.exercise?.progress?.script ??
+      exercise.reuse?.exercise?.progress?.script ??
+      exercise.reuse?.exercise?.progress?.reuse?.exercise?.progress?.script
     );
   }
 
@@ -485,7 +487,9 @@ export class PlannerProgramExercise {
     return (
       exercise.update?.script ??
       exercise.update?.reuse?.exercise?.update?.script ??
-      exercise.reuse?.exercise?.update?.script
+      exercise.update?.reuse?.exercise?.update?.reuse?.exercise?.update?.script ??
+      exercise.reuse?.exercise?.update?.script ??
+      exercise.reuse?.exercise?.update?.reuse?.exercise?.update?.script
     );
   }
 

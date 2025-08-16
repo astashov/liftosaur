@@ -34,14 +34,18 @@ interface IEditProgramExerciseProgressProps {
   settings: ISettings;
 }
 
-function getProgressReuseCandidates(key: string, evaluatedProgram: IEvaluatedProgram): [string, string][] {
+function getProgressReuseCandidates(
+  key: string,
+  notused: boolean,
+  evaluatedProgram: IEvaluatedProgram
+): [string, string][] {
   const result: Record<string, string> = {};
   PP.iterate2(evaluatedProgram.weeks, (exercise) => {
     if (exercise.key === key) {
       return;
     }
     const progress = exercise.progress;
-    if (!progress || progress.type !== "custom" || progress.reuse) {
+    if (!progress || progress.type !== "custom" || (!(!notused && exercise.notused) && progress.reuse)) {
       return;
     }
     result[exercise.fullName] = exercise.fullName;
@@ -69,7 +73,10 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
                 data-cy="edit-exercise-progress-edit-script"
                 name="edit-exercise-progress-edit-script"
                 onClick={() => {
-                  props.plannerDispatch(lbUi.p("showEditProgressScriptModal").record(true), "Show edit progress script modal");
+                  props.plannerDispatch(
+                    lbUi.p("showEditProgressScriptModal").record(true),
+                    "Show edit progress script modal"
+                  );
                 }}
               >
                 Edit Script
@@ -108,7 +115,10 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
         <ModalEditProgressScript
           settings={props.settings}
           onClose={() => {
-            props.plannerDispatch(lbUi.p("showEditProgressScriptModal").record(false), "Close edit progress script modal");
+            props.plannerDispatch(
+              lbUi.p("showEditProgressScriptModal").record(false),
+              "Close edit progress script modal"
+            );
           }}
           plannerExercise={plannerExercise}
           onChange={(script) => {
@@ -160,7 +170,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
   const ownProgress = plannerExercise.progress;
   const reuseCandidates: [string, string][] = [
     ["", "None"],
-    ...getProgressReuseCandidates(plannerExercise.key, evaluatedProgram),
+    ...getProgressReuseCandidates(plannerExercise.key, !!plannerExercise.notused, evaluatedProgram),
   ];
   const reuseFullName = ownProgress?.reuse?.exercise?.fullName;
   const reusingCustomProgressExercises = Program.getReusingCustomProgressExercises(evaluatedProgram, plannerExercise);
@@ -170,6 +180,10 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
       CollectionUtils.uniqByExpr([...reusingCustomProgressExercises, ...reusingSetProgressExercises], (e) => e.fullName)
     )
   );
+  const cannotReuseOtherProgress = plannerExercise.notused
+    ? reusingCustomProgressExercises.filter((e) => e.notused).length > 0
+    : reusingCustomProgressExercises.length > 0;
+
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const progressTypes: [IProgramExerciseProgressType, string][] = [
     ["lp", "Linear Progression"],
@@ -213,7 +227,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
               <InputSelect
                 name="program-exercise-progress-type-select"
                 values={progressTypes}
-                disabled={reusingProgressExercises.length > 0}
+                disabled={reusingCustomProgressExercises.length > 0}
                 value={plannerExercise.progress?.type}
                 onChange={(value) => {
                   props.plannerDispatch(
@@ -236,9 +250,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                                 value === "custom" ? { script: "{~~}" } : undefined
                               );
                               if (result.success) {
-                                if (e.progress) {
-                                  e.progress = result.data;
-                                }
+                                e.progress = result.data;
                               } else {
                                 alert(result.error);
                               }
@@ -266,8 +278,8 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
             <MenuItemWrapper
               name="program-exercise-progress-reuse"
               onClick={() => {
-                if (reusingProgressExercises.length > 0) {
-                  alert("You cannot reuse progress if this custom progress is reused by other exercises.");
+                if (cannotReuseOtherProgress) {
+                  alert("You cannot reuse progress if this custom progress is reused by other USED exercises.");
                 }
               }}
             >
@@ -279,7 +291,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                     name="program-exercise-progress-reuse-select"
                     values={reuseCandidates}
                     value={reuseFullName}
-                    disabled={reusingProgressExercises.length > 0}
+                    disabled={cannotReuseOtherProgress}
                     placeholder="None"
                     onChange={(fullName) => {
                       props.plannerDispatch(
