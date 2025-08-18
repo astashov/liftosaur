@@ -23,7 +23,7 @@ import { SendMessage } from "../utils/sendMessage";
 import { UidFactory } from "../utils/generator";
 import { ClipboardUtils } from "../utils/clipboard";
 import { Progress } from "../models/progress";
-import { ImportFromLink } from "../utils/importFromLink";
+import { ImportFromLink, IImportLinkData } from "../utils/importFromLink";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils } from "../utils/log";
 import { lg } from "../utils/posthog";
@@ -806,7 +806,7 @@ export namespace Thunk {
       const data = await ImportFromLink.importFromLink(link, env.service.client);
       if (data.success) {
         Storage.setAffiliate(dispatch, data.data.source);
-        dispatch(Thunk.importProgram(data.data.decoded));
+        dispatch(Thunk.importProgram(data.data));
       } else {
         alert(data.error.join("\n"));
       }
@@ -831,13 +831,16 @@ export namespace Thunk {
     };
   }
 
-  export function importProgram(maybeProgram: string): IThunk {
+  export function importProgram(importLinkData: IImportLinkData): IThunk {
     return async (dispatch, getState, env) => {
       dispatch(postevent("import-program-from-link"));
+      const { decoded: maybeProgram, source, userid } = importLinkData;
       const state = getState();
       const result = await ImportExporter.getExportedProgram(env.service.client, maybeProgram, state.storage.settings);
       if (result.success) {
         const { program, customExercises } = result.data;
+        program.source = source;
+        program.authorid = userid;
         const newProgram: IProgram = { ...ObjectUtils.clone(program), clonedAt: Date.now() };
         if (!confirm(`Do you want to import program ${newProgram.name}?`)) {
           return;

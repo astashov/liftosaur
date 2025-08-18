@@ -448,12 +448,12 @@ export class Service {
     return json.data === "ok";
   }
 
-  public async postShortUrl(urlToShorten: string, type: string): Promise<string> {
+  public async postShortUrl(urlToShorten: string, type: string, src?: string): Promise<string> {
     const url = UrlUtils.build(`${__API_HOST__}/shorturl/${type}`);
     const result = await this.client(url.toString(), {
       method: "POST",
       credentials: "include",
-      body: JSON.stringify({ url: urlToShorten }),
+      body: JSON.stringify({ url: urlToShorten, src }),
     });
     if (result.ok) {
       const json: { url: string } = await result.json();
@@ -463,11 +463,11 @@ export class Service {
     }
   }
 
-  public async getDataFromShortUrl(type: "p" | "n", id: string): Promise<{ data: string; s?: string }> {
+  public async getDataFromShortUrl(type: "p" | "n", id: string): Promise<{ data: string; s?: string; u?: string }> {
     const url = UrlUtils.build(`${__API_HOST__}/api/${type}/${id}`);
     const result = await this.client(url.toString(), { credentials: "include" });
     if (result.ok) {
-      const json: { data: string; s?: string } = await result.json();
+      const json: { data: string; s?: string; u?: string } = await result.json();
       return json;
     } else {
       throw new Error(`Couldn't parse short url: ${url.toString()}`);

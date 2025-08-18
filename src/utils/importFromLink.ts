@@ -3,11 +3,17 @@ import { Encoder } from "./encoder";
 import { Service } from "../api/service";
 import { UrlUtils } from "./url";
 
+export interface IImportLinkData {
+  decoded: string;
+  source?: string;
+  userid?: string;
+}
+
 export namespace ImportFromLink {
   export async function importFromLink(
     link: string,
     client: Window["fetch"]
-  ): Promise<IEither<{ decoded: string; source?: string }, string[]>> {
+  ): Promise<IEither<{ decoded: string; source?: string; userid?: string }, string[]>> {
     let url: URL;
     try {
       url = UrlUtils.build(link);
@@ -16,6 +22,7 @@ export namespace ImportFromLink {
     }
     let base64 = url.searchParams.get("data") || undefined;
     let source = url.searchParams.get("s") || undefined;
+    let userid = url.searchParams.get("u") || undefined;
     let decoded;
     if (base64) {
       decoded = await getDecodedData(base64);
@@ -26,6 +33,7 @@ export namespace ImportFromLink {
         const result = await service.getDataFromShortUrl(type, id);
         base64 = result.data;
         source = source || result.s;
+        userid = userid || result.u;
         if (base64) {
           decoded = await getDecodedData(base64);
         }
@@ -33,7 +41,7 @@ export namespace ImportFromLink {
     }
     if (decoded) {
       if (decoded.success) {
-        return { success: true, data: { decoded: decoded.data, source } };
+        return { success: true, data: { decoded: decoded.data, source, userid } };
       } else {
         return decoded;
       }

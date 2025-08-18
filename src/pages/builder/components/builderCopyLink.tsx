@@ -14,6 +14,7 @@ interface IBuilderCopyLinkProps<T> {
   type: "p" | "b" | "n";
   program: T;
   client: Window["fetch"];
+  source?: string;
   title?: string | JSX.Element;
 }
 
@@ -41,7 +42,7 @@ export function BuilderCopyLink<T>(props: IBuilderCopyLinkProps<T>): JSX.Element
         onClick={async () => {
           const service = new Service(props.client);
           const encodedProgram = props.encodedProgram ? await props.encodedProgram() : window.location.href;
-          const url = await service.postShortUrl(encodedProgram, props.type);
+          const url = await service.postShortUrl(encodedProgram, props.type, props.source);
           ClipboardUtils.copy(url);
           if (props.onShowInfo) {
             props.onShowInfo(url);

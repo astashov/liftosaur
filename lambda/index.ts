@@ -1861,8 +1861,9 @@ async function _getProgramShorturlResponseHandler(
     const url = UrlUtils.build(urlString, "https://www.liftosaur.com");
     const data = url.searchParams.get("data");
     const s = url.searchParams.get("s");
+    const u = url.searchParams.get("u");
     if (data) {
-      return ResponseUtils.json(200, event, { data, s });
+      return ResponseUtils.json(200, event, { data, s, u });
     } else {
       return ResponseUtils.json(401, event, {});
     }
@@ -1994,9 +1995,23 @@ const postShortUrlHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
 }) => {
   const { event, di } = payload;
   const { type } = params;
-  const { url } = getBodyJson(event);
+  let { url, src } = getBodyJson(event);
+  const userid = await getCurrentUserId(event, di);
   if (url == null || typeof url !== "string") {
     return ResponseUtils.json(400, event, {});
+  }
+  if (userid || src) {
+    const uriResult = UrlUtils.buildSafe(url, "https://www.liftosaur.com");
+    if (uriResult.success) {
+      const uri = uriResult.data;
+      if (userid) {
+        uri.searchParams.set("u", userid || "anonymous");
+      }
+      if (src) {
+        uri.searchParams.set("s", src);
+      }
+      url = uri.toString();
+    }
   }
   const id = await new UrlDao(di).put(url);
   const newUrl = `/${type}/${id}`;

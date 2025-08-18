@@ -75,7 +75,7 @@ export namespace ImportExporter {
       const data = await ImportFromLink.importFromLink(link, client);
       if (data.success) {
         Storage.setAffiliate(dispatch, data.data.source);
-        dispatch(Thunk.importProgram(data.data.decoded));
+        dispatch(Thunk.importProgram(data.data));
       } else {
         alert(data.error.join("\n"));
       }

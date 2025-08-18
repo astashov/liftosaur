@@ -15,7 +15,7 @@ export function ImporterProgram(props: IImporterProgramProps): JSX.Element {
       const warningLabel =
         "Importing new program will overwrite an existing one if a program with the same id exists, or create a new one otherwise.";
       if (confirm(warningLabel)) {
-        props.dispatch(Thunk.importProgram(contents));
+        props.dispatch(Thunk.importProgram({ decoded: contents }));
       }
     },
     [props.dispatch]

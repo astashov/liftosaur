@@ -94,6 +94,17 @@ function getCurrentUrl(): string | undefined {
   return undefined;
 }
 
+function getCurrentSource(): string | undefined {
+  if (typeof window !== "undefined") {
+    const urlResult = UrlUtils.buildSafe(window.location.href);
+    if (urlResult.success) {
+      const url = urlResult.data;
+      return url.searchParams.get("s") || undefined;
+    }
+  }
+  return undefined;
+}
+
 export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const service = new Service(props.client);
   const initialDay: IPlannerProgramDay = {
@@ -162,7 +173,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program) {
         const exportProgram = Program.exportProgram(newState.current.program, settings);
-        dispatch(lb<IPlannerState>().p("encodedProgram").record(JSON.stringify(exportProgram)), "Update encoded program");
+        dispatch(
+          lb<IPlannerState>().p("encodedProgram").record(JSON.stringify(exportProgram)),
+          "Update encoded program"
+        );
       }
     },
     async (action, oldState, newState) => {
@@ -192,7 +206,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     if (props.initialProgram) {
       const exportProgram = Program.exportProgram(state.current.program, settings);
       Encoder.encodeIntoUrl(JSON.stringify(exportProgram), window.location.href).then(() => {
-        dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(JSON.stringify(exportProgram)), "Set initial encoded program");
+        dispatch(
+          lb<IPlannerState>().p("initialEncodedProgram").record(JSON.stringify(exportProgram)),
+          "Set initial encoded program"
+        );
       });
     }
   }, []);
@@ -360,7 +377,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               value={state.current.program.name}
               onInputString={(v) => {
                 dispatch(lbProgram.p("name").record(v), "Update program name");
-                dispatch(lb<IPlannerState>().p("current").p("program").p("name").record(v), "Update current program name");
+                dispatch(
+                  lb<IPlannerState>().p("current").p("program").p("name").record(v),
+                  "Update current program name"
+                );
                 document.title = `Liftosaur: Weight Lifting Tracking App | ${HtmlUtils.escapeHtml(v)}`;
               }}
             />
@@ -378,10 +398,13 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               style={{ marginTop: "-0.5rem" }}
               onClick={() => {
                 const id = UidFactory.generateUid(8);
-                dispatch([
-                  lb<IPlannerState>().p("id").record(id),
-                  lb<IPlannerState>().p("current").p("program").p("id").record(id),
-                ], "Generate new ID");
+                dispatch(
+                  [
+                    lb<IPlannerState>().p("id").record(id),
+                    lb<IPlannerState>().p("current").p("program").p("id").record(id),
+                  ],
+                  "Generate new ID"
+                );
               }}
             >
               id: {state.id}
@@ -402,7 +425,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   try {
                     const exportProgram = Program.exportProgram(state.current.program, settings);
                     await saveProgram(props.client, exportProgram);
-                    dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram), "Save program");
+                    dispatch(
+                      lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram),
+                      "Save program"
+                    );
                   } finally {
                     setIsLoading(false);
                   }
@@ -464,6 +490,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 onShowInfo={setShowClipboardInfo}
                 type="p"
                 program={program}
+                source={getCurrentSource()}
                 client={props.client}
                 encodedProgram={async () => {
                   const exportProgram = Program.exportProgram(program, settings);
@@ -475,7 +502,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               <div>
                 <button
                   title="Settings"
-                  onClick={() => dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(true), "Show settings")}
+                  onClick={() =>
+                    dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(true), "Show settings")
+                  }
                   className="p-2 nm-planner-settings"
                 >
                   <IconCog2 />
@@ -525,7 +554,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           inApp={false}
           onNewSettings={(newSettings) => setSettings(newSettings)}
           settings={settings}
-          onClose={() => dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false), "Close settings modal")}
+          onClose={() =>
+            dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false), "Close settings modal")
+          }
         />
       )}
       {state.ui.showPreview && (
@@ -556,10 +587,13 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           onChange={(exerciseType, label, shouldClose) => {
             window.isUndoing = true;
             if (shouldClose) {
-              dispatch([
-                lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
-                lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
-              ], "Close modal and clear focus");
+              dispatch(
+                [
+                  lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
+                  lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
+                ],
+                "Close modal and clear focus"
+              );
             }
             if (modalExerciseUi.exerciseType && modalExerciseUi.exerciseKey) {
               if (!exerciseType) {
@@ -592,46 +626,50 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   settings
                 );
                 if (newProgramResult.success && newProgramResult.data.planner) {
-                  dispatch([
-                    lb<IPlannerState>().p("current").p("program").pi("planner").record(newProgramResult.data.planner),
-                  ], "Replace exercise");
+                  dispatch(
+                    [lb<IPlannerState>().p("current").p("program").pi("planner").record(newProgramResult.data.planner)],
+                    "Replace exercise"
+                  );
                 } else if (!newProgramResult.success) {
                   alert(newProgramResult.error);
                 }
               }
             } else {
-              dispatch([
-                state.fulltext
-                  ? lb<IPlannerState>()
-                      .pi("fulltext")
-                      .p("text")
-                      .recordModify((text) => {
-                        if (!exerciseType) {
-                          return text;
-                        }
-                        const line = state.fulltext?.currentLine;
-                        if (line == null) {
-                          return text;
-                        }
-                        const exercise = Exercise.getById(exerciseType.id, settings.exercises);
-                        const lines = text.split("\n");
-                        lines.splice(line, 0, exercise.name);
-                        return lines.join("\n");
-                      })
-                  : lbProgram
-                      .p("weeks")
-                      .i(modalExerciseUi.focusedExercise.weekIndex)
-                      .p("days")
-                      .i(modalExerciseUi.focusedExercise.dayIndex)
-                      .p("exerciseText")
-                      .recordModify((exerciseText) => {
-                        if (!exerciseType) {
-                          return exerciseText;
-                        }
-                        const exercise = Exercise.getById(exerciseType.id, settings.exercises);
-                        return exerciseText + `\n${exercise.name}`;
-                      }),
-              ], "Add exercise");
+              dispatch(
+                [
+                  state.fulltext
+                    ? lb<IPlannerState>()
+                        .pi("fulltext")
+                        .p("text")
+                        .recordModify((text) => {
+                          if (!exerciseType) {
+                            return text;
+                          }
+                          const line = state.fulltext?.currentLine;
+                          if (line == null) {
+                            return text;
+                          }
+                          const exercise = Exercise.getById(exerciseType.id, settings.exercises);
+                          const lines = text.split("\n");
+                          lines.splice(line, 0, exercise.name);
+                          return lines.join("\n");
+                        })
+                    : lbProgram
+                        .p("weeks")
+                        .i(modalExerciseUi.focusedExercise.weekIndex)
+                        .p("days")
+                        .i(modalExerciseUi.focusedExercise.dayIndex)
+                        .p("exerciseText")
+                        .recordModify((exerciseText) => {
+                          if (!exerciseType) {
+                            return exerciseText;
+                          }
+                          const exercise = Exercise.getById(exerciseType.id, settings.exercises);
+                          return exerciseText + `\n${exercise.name}`;
+                        }),
+                ],
+                "Add exercise"
+              );
             }
             dispatch(
               [
@@ -696,7 +734,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           url={showClipboardInfo ?? getCurrentUrl()}
           settings={settings}
           program={program}
-          onClose={() => dispatch(lb<IPlannerState>().p("ui").p("showPictureExport").record(false), "Close picture export")}
+          onClose={() =>
+            dispatch(lb<IPlannerState>().p("ui").p("showPictureExport").record(false), "Close picture export")
+          }
         />
       )}
       {showRevisions && props.revisions.length > 0 && (
