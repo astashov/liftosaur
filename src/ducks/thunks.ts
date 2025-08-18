@@ -839,8 +839,8 @@ export namespace Thunk {
       const result = await ImportExporter.getExportedProgram(env.service.client, maybeProgram, state.storage.settings);
       if (result.success) {
         const { program, customExercises } = result.data;
-        program.source = source;
-        program.authorid = userid;
+        program.source = source || undefined;
+        program.authorid = userid || undefined;
         const newProgram: IProgram = { ...ObjectUtils.clone(program), clonedAt: Date.now() };
         if (!confirm(`Do you want to import program ${newProgram.name}?`)) {
           return;
