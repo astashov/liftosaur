@@ -112,8 +112,8 @@ function EventView(props: IEventViewProps): JSX.Element | null {
     return (
       <div>
         {event.isMobile ? <span className="text-grayv2-main">M </span> : <span className="text-greenv2-main">W </span>}
-        {event.iOSVersion && <span className="text-grayv2-main">A{event.iOSVersion}</span>}
-        {event.androidVersion && <span className="text-grayv2-main">G{event.androidVersion}</span>}
+        {event.iOSVersion && <span className="text-grayv2-main">A{event.iOSVersion} </span>}
+        {event.androidVersion && <span className="text-grayv2-main">G{event.androidVersion} </span>}
         <span className="text-xs text-grayv3-main">{event.commithash?.slice(0, 4)} </span>
         <span className="text-grayv2-main">{time}</span>: <span className="">{event.name}</span>
         {event.extra && <span className="ml-2">{JSON.stringify(event.extra)}</span>}
