@@ -159,6 +159,7 @@ export function EditProgramBottomSheetPicker(props: IEditProgramBottomSheetPicke
       }}
       onClose={props.onClose}
       onStar={(key) => Settings.toggleStarredExercise(props.dispatch, key)}
+      onChangeSettings={(pickerSettings) => Settings.changePickerSettings(props.dispatch, pickerSettings)}
       dispatch={props.pickerDispatch}
     />
   );

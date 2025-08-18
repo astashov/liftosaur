@@ -198,7 +198,8 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                           props.dispatch,
                           props.progress.id,
                           exercise.exerciseType,
-                          exercisePickerState.entryIndex
+                          exercisePickerState.entryIndex,
+                          !!props.settings.workoutSettings.shouldKeepProgramExerciseId
                         );
                       }
                     } else if (exercise.type === "program" && evaluatedCurrentProgram) {
@@ -262,6 +263,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 }}
                 evaluatedProgram={evaluatedCurrentProgram}
                 onStar={(key) => Settings.toggleStarredExercise(props.dispatch, key)}
+                onChangeSettings={(pickerSettings) => Settings.changePickerSettings(props.dispatch, pickerSettings)}
                 dispatch={buildExercisePickerDispatch(props.dispatch, progress.id)}
                 onClose={() => {
                   updateState(

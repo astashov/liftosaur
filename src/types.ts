@@ -602,7 +602,7 @@ export const TProgramExercise = t.intersection(
 );
 export type IProgramExercise = t.TypeOf<typeof TProgramExercise>;
 
-const exercisePickerScreens = ["exercisePicker", "customExercise", "filter"] as const;
+const exercisePickerScreens = ["exercisePicker", "customExercise", "filter", "settings"] as const;
 export const TExercisePickerScreen = t.keyof(
   exercisePickerScreens.reduce<Record<IArrayElement<typeof exercisePickerScreens>, null>>(
     (memo, muscle) => {
@@ -1213,6 +1213,7 @@ export const TWorkoutSettings = t.intersection(
     }),
     t.partial({
       shouldHideGraphs: t.boolean,
+      shouldKeepProgramExerciseId: t.boolean,
     }),
   ],
   "TWorkoutSettings"

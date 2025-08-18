@@ -941,7 +941,8 @@ export namespace Progress {
     dispatch: IDispatch,
     progressId: number,
     exerciseType: IExerciseType,
-    entryIndex: number
+    entryIndex: number,
+    shouldKeepProgramExerciseId: boolean
   ): void {
     updateState(
       dispatch,
@@ -952,7 +953,12 @@ export namespace Progress {
           .p("entries")
           .i(entryIndex)
           .recordModify((entry) => {
-            return { ...entry, exercise: exerciseType, programExerciseId: undefined, changed: true };
+            return {
+              ...entry,
+              exercise: exerciseType,
+              ...(shouldKeepProgramExerciseId ? {} : { programExerciseId: undefined }),
+              changed: true,
+            };
           }),
       ],
       "Change exercise"

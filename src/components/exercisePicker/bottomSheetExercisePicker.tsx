@@ -12,6 +12,7 @@ import { ExercisePickerMain } from "./exercisePickerMain";
 import { ExercisePickerFilter } from "./exercisePickerFilter";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { ExercisePickerCustomExercise } from "./exercisePickerCustomExercise";
+import { ExercisePickerSettings, IExercisePickerSettings } from "./exercisePickerSettings";
 
 interface IProps {
   isHidden: boolean;
@@ -19,6 +20,7 @@ interface IProps {
   exercisePicker: IExercisePickerState;
   usedExerciseTypes: IExerciseType[];
   onStar: (key: string) => void;
+  onChangeSettings: (settings: IExercisePickerSettings) => void;
   onChangeCustomExercise: (action: "upsert" | "delete", exercise: ICustomExercise) => void;
   onChoose: (selectedExercises: IExercisePickerSelectedExercise[]) => void;
   dispatch: ILensDispatch<IExercisePickerState>;
@@ -44,6 +46,10 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
         evaluatedProgram={evaluatedProgram}
         onClose={props.onClose}
       />
+    );
+  } else if (currentScreen === "settings") {
+    content = (
+      <ExercisePickerSettings onChange={props.onChangeSettings} settings={props.settings} dispatch={props.dispatch} />
     );
   } else if (currentScreen === "filter") {
     content = <ExercisePickerFilter state={state} settings={props.settings} dispatch={props.dispatch} />;

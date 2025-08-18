@@ -18,6 +18,7 @@ import { Input, IValidationError } from "../input";
 import { useRef } from "preact/hooks";
 import { IEither } from "../../utils/types";
 import { ExercisePickerTemplate } from "./exercisePickerTemplate";
+import { IconFilter } from "../icons/iconFilter";
 
 interface IProps {
   isHidden: boolean;
@@ -82,6 +83,21 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
   return (
     <div className="flex flex-col h-full" style={{ marginTop: "-0.75rem" }}>
       <div className="relative py-4 mt-2">
+        <div className="absolute flex top-4 left-4">
+          <button
+            className="px-2"
+            onClick={() => {
+              props.dispatch(
+                lb<IExercisePickerState>()
+                  .p("screenStack")
+                  .recordModify((stack) => [...stack, "settings"]),
+                "Navigate to settings picker screen"
+              );
+            }}
+          >
+            <IconFilter color={Tailwind.colors().grayv3.main} />
+          </button>
+        </div>
         <h3 className="px-4 font-bold text-center">{title}</h3>
         <div className="absolute flex top-4 right-4">
           <div>

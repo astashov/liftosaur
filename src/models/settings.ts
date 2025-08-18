@@ -18,6 +18,7 @@ import { IDispatch } from "../ducks/types";
 import { Exercise, IExercise } from "./exercise";
 import { CollectionUtils } from "../utils/collection";
 import { ProgramExercise } from "./programExercise";
+import { IExercisePickerSettings } from "../components/exercisePicker/exercisePickerSettings";
 
 export namespace Settings {
   export function programContentBuild(): Pick<ISettings, "timers" | "units" | "planner"> {
@@ -368,6 +369,19 @@ export namespace Settings {
       `Toggle starred exercise ${key}`
     );
   }
+
+  export function changePickerSettings(dispatch: IDispatch, settings: IExercisePickerSettings): void {
+    updateSettings(
+      dispatch,
+      lb<ISettings>()
+        .p("workoutSettings")
+        .recordModify((workoutSettings) => {
+          return { ...workoutSettings, shouldKeepProgramExerciseId: !!settings.shouldKeepProgramExerciseId };
+        }),
+      `Change picker settings`
+    );
+  }
+
   export function doesProgramHaveUnset1RMs(program: IProgram, settings: ISettings): boolean {
     return getExercisesWithUnset1RMs(program, settings).length > 0;
   }
