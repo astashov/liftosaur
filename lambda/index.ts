@@ -2251,7 +2251,6 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(postSaveProgramEndpoint, postSaveProgramHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
-      // .get(getAiEndpoint, getAiHandler)
       .get(getAiPromptEndpoint, getAiPromptHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)

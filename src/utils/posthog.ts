@@ -15,19 +15,24 @@ export function lg(
     return;
   }
 
+  const isMobile = SendMessage.isIos() || SendMessage.isAndroid();
+
+  const event: IEventPayload = {
+    type: "event",
+    timestamp: Date.now(),
+    commithash: typeof __COMMIT_HASH__ !== "undefined" ? __COMMIT_HASH__ : "unknown",
+    isMobile,
+    iOSVersion: SendMessage.isIos() ? SendMessage.iosAppVersion() : undefined,
+    androidVersion: SendMessage.isAndroid() ? SendMessage.androidAppVersion() : undefined,
+    name,
+    extra,
+    userId: tempUserId,
+  };
+
   if (
     (SendMessage.isIos() && SendMessage.iosAppVersion() >= 13) ||
     (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 22)
   ) {
-    const event: IEventPayload = {
-      type: "event",
-      timestamp: Date.now(),
-      commithash: typeof __COMMIT_HASH__ !== "undefined" ? __COMMIT_HASH__ : "unknown",
-      isMobile: true,
-      name,
-      extra,
-      userId: tempUserId,
-    };
     SendMessage.toIosAndAndroid({
       type: "event",
       data: JSON.stringify(event),
@@ -37,16 +42,7 @@ export function lg(
     return;
   }
 
-  service
-    .postEvent({
-      type: "event",
-      timestamp: Date.now(),
-      commithash: typeof __COMMIT_HASH__ !== "undefined" ? __COMMIT_HASH__ : "unknown",
-      name,
-      extra,
-      userId: tempUserId,
-    })
-    .catch((e) => {
-      // do nothing;
-    });
+  service.postEvent(event).catch((e) => {
+    // do nothing;
+  });
 }

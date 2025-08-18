@@ -61,6 +61,8 @@ export type IEventPayload =
       timestamp: number;
       name: string;
       isMobile?: boolean;
+      iOSVersion?: number;
+      androidVersion?: number;
       commithash: string;
       extra?: Record<string, string | number>;
     }
