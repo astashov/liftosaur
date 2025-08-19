@@ -952,7 +952,7 @@ export const TProgram = t.intersection(
       planner: TPlannerProgram,
       updatedAt: t.number,
       authorid: t.union([t.string, t.null]),
-      source: t.string,
+      source: t.union([t.string, t.null]),
     }),
   ],
   "TProgram"
