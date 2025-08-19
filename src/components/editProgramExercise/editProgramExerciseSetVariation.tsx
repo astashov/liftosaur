@@ -53,7 +53,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
                 <span className="mr-2 text-xs">Is Current?</span>
                 <input
                   checked={currentIndex === props.setVariationIndex}
-                  className="block align-middle checkbox text-bluev2"
+                  className="block align-middle checkbox text-text-link"
                   type="checkbox"
                   onChange={(e) => {
                     EditProgramUiHelpers.changeCurrentInstanceExercise(

@@ -29,7 +29,7 @@ export function ModalNewFixedWeight(props: IProps): JSX.Element {
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 text-base leading-normal bg-background-default border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 text-base leading-normal border border-gray-300 rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"
           type={SendMessage.isIos() ? "number" : "tel"}
           min="0"
           placeholder={`${name} weight in ${props.units}`}
@@ -45,7 +45,7 @@ export function ModalNewFixedWeight(props: IProps): JSX.Element {
             Cancel
           </Button>
           <Button
-            kind="orange"
+            kind="purple"
             type="submit"
             className="ls-add-plate"
             name="modal-new-fixed-weight-submit"

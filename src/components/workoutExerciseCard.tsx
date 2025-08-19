@@ -420,7 +420,7 @@ function WorkoutPlatesCalculator(props: IWorkoutPlatesCalculatorProps): JSX.Elem
               <span>Plates: </span>
               <span className="font-semibold break-all">
                 <span
-                  className={Weight.eq(weight, props.weight) ? "text-text-primary" : "text-redv2-600"}
+                  className={Weight.eq(weight, props.weight) ? "text-text-primary" : "text-text-error"}
                   data-cy="plates-list"
                 >
                   {plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.entry.exercise) : "None"}

@@ -530,7 +530,7 @@ export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element
         <div class="flex-1 text-right">
           <Button
             name="custom-exercise-create"
-            kind="orange"
+            kind="purple"
             data-cy="custom-exercise-create"
             onClick={(e) => {
               e.preventDefault();
@@ -630,7 +630,7 @@ function MuscleView(props: {
               return (
                 <span>
                   <span
-                    className={tms.length === 0 ? "" : tms.indexOf(m) !== -1 ? "text-greenv2-main" : "text-redv2-main"}
+                    className={tms.length === 0 ? "" : tms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"}
                   >
                     {m}
                   </span>
@@ -649,7 +649,7 @@ function MuscleView(props: {
               return (
                 <span>
                   <span
-                    className={sms.length === 0 ? "" : sms.indexOf(m) !== -1 ? "text-greenv2-main" : "text-redv2-main"}
+                    className={sms.length === 0 ? "" : sms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"}
                   >
                     {m}
                   </span>
@@ -750,7 +750,7 @@ function ExerciseTemplate(props: IExerciseTemplateProps): JSX.Element {
         <div className="flex-1 text-right">
           <Button
             name="exercise-template-create"
-            kind="orange"
+            kind="purple"
             disabled={!!nameError}
             data-cy="exercise-template-create"
             onClick={() => {

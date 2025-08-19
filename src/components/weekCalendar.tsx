@@ -108,11 +108,13 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
               {getWeekDays(firstDayOfWeek, dateToHistory, props.startWeekFromMonday).map((day, idx) => {
                 return (
                   <div key={day.dayName} className="flex flex-col items-center justify-center rounded-full">
-                    <div className="text-xs text-gray-500">{day.dayName}</div>
+                    <div className="text-xs text-text-secondary">{day.dayName}</div>
                     <div
                       className={`flex items-center justify-center text-sm w-8 h-8 rounded-full ${
-                        day.record && !Progress.isCurrent(day.record) ? "text-text-alwayswhite bg-redv3-500" : "text-gray-800"
-                      } ${day.isToday ? "border border-purplev3-500 font-bold" : ""}`}
+                        day.record && !Progress.isCurrent(day.record)
+                          ? "text-text-alwayswhite bg-background-error"
+                          : "text-text-primary"
+                      } ${day.isToday ? "border border-button-primarybackground font-bold" : ""}`}
                     >
                       {day.dayNumber}
                     </div>

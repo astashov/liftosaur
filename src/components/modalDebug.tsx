@@ -31,9 +31,9 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
           const attempt = item.attempt || 0;
           let color;
           if (item.error) {
-            color = "text-redv2-main";
+            color = "text-text-error";
           } else if (item.endTime) {
-            color = "text-greenv2-main";
+            color = "text-text-success";
           } else {
             color = "text-gray2-main";
           }
@@ -49,7 +49,7 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
         })}
       </ul>
       <div className="mt-4 text-center">
-        <Button name="send-debug-info" kind="orange" onClick={() => props.dispatch(Thunk.postDebug())}>
+        <Button name="send-debug-info" kind="purple" onClick={() => props.dispatch(Thunk.postDebug())}>
           Send Debug Info
         </Button>
       </div>
@@ -57,7 +57,7 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
         <div className="mt-4 text-center">
           <Button
             name="send-debug-info"
-            kind="orange"
+            kind="purple"
             onClick={async () => {
               const key = await getIdbKey();
               const indexeddbdata = await IndexedDBUtils.get(key);

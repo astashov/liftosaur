@@ -408,7 +408,7 @@ export function InputNumberAddOn(props: IInputNumberAddOnProps): JSX.Element {
         <input
           checked={props.value}
           data-cy={props["data-cy"]}
-          className="block align-middle checkbox text-bluev2"
+          className="block align-middle checkbox text-text-link"
           type="checkbox"
           onChange={(e) => {
             props.onChange(e.currentTarget.checked);

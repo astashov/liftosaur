@@ -1272,6 +1272,7 @@ export const TSettings = t.intersection(
       startWeekFromMonday: t.boolean,
       textSize: t.number,
       starredExercises: dictionary(TExerciseId, t.boolean),
+      theme: t.union([t.literal("dark"), t.literal("light")]),
     }),
   ],
   "TSettings"

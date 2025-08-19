@@ -188,7 +188,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
             <section
               key={Exercise.toKey(e)}
               data-cy={`menu-item-${e.id}`}
-              className={`w-full py-1 pl-4 pr-2 text-left border-b border-grayv3-200 ${isSelected ? "bg-background-purpledark" : ""}`}
+              className={`w-full py-1 pl-4 pr-2 text-left border-b border-border-neutral ${isSelected ? "bg-background-purpledark" : ""}`}
               onClick={() => {}}
             >
               <ExercisePickerExerciseItem
@@ -260,7 +260,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
               data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
                 e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
               }`}
-              className={`w-full py-1 pl-4 pr-2 text-left border-b border-grayv3-200 ${isSelected ? "bg-background-purpledark" : ""}`}
+              className={`w-full py-1 pl-4 pr-2 text-left border-b border-border-neutral ${isSelected ? "bg-background-purpledark" : ""}`}
               onClick={() => {}}
             >
               <ExercisePickerExerciseItem

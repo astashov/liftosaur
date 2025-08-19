@@ -113,7 +113,7 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
               <div className="p-4 text-center border-t bg-background-subtle border-border-neutral">
                 <Button
                   name="restore-program-revision"
-                  kind="orange"
+                  kind="purple"
                   onClick={() => {
                     if (
                       programRevision.result.success &&

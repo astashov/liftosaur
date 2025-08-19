@@ -149,7 +149,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
             <div>
               <LinkButton
                 name="edit-custom-exercise-stats"
-                className="text-redv2-main"
+                className="text-text-error"
                 onClick={() => {
                   if (confirm("Are you sure you want to delete this exercise?")) {
                     updateSettings(

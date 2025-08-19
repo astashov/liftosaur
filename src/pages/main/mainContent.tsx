@@ -52,7 +52,7 @@ export function MainContent(props: IMainContentProps): JSX.Element {
         <div className="mt-8 text-center">
           <StoresLinks />
         </div>
-        <div className="pt-8 mt-16 border-t border-grayv2-100">
+        <div className="pt-8 mt-16 border-t border-border-neutral">
           <FooterPage maxWidth={1200} withoutBg={true} account={props.account} />
         </div>
       </div>
@@ -67,7 +67,7 @@ function Hero(): JSX.Element {
         <div className="mx-auto" style={{ maxWidth: "30rem" }}>
           <h1 className="hidden mt-12 mb-4 text-6xl font-bold leading-none md:block">Liftosaur</h1>
           <h2 className="mb-4 text-xl">
-            The most powerful weightlifting <span className="font-bold text-purplev2-main">planner</span> and{" "}
+            The most powerful weightlifting <span className="font-bold text-text-purple">planner</span> and{" "}
             <span className="font-bold text-icon-yellow">tracker</span> app
           </h2>
           <p className="mb-4 text-xl">
@@ -75,11 +75,11 @@ function Hero(): JSX.Element {
           </p>
           <p className="mb-4">
             Create your own programs, or choose one of the existing programs, like{" "}
-            <a className="font-bold underline text-bluev2" href="/programs/gzclp/" target="_blank">
+            <a className="font-bold underline text-text-link" href="/programs/gzclp/" target="_blank">
               GZCLP
             </a>{" "}
             or{" "}
-            <a className="font-bold underline text-bluev2" href="https://thefitness.wiki/5-3-1-primer/" target="_blank">
+            <a className="font-bold underline text-text-link" href="https://thefitness.wiki/5-3-1-primer/" target="_blank">
               5/3/1
             </a>
             , that have helped thousands of lifters get bigger and stronger.
@@ -125,8 +125,8 @@ function HowItWorks(): JSX.Element {
         scripting language to define non-trivial progression schemes!
       </p>
       <p className="mb-2">
-        This syntax is called <span className="font-bold text-purplev2-main">Liftoscript</span> (check the{" "}
-        <a href="/docs" target="_blank" className="font-bold underline text-bluev2">
+        This syntax is called <span className="font-bold text-text-purple">Liftoscript</span> (check the{" "}
+        <a href="/docs" target="_blank" className="font-bold underline text-text-link">
           docs
         </a>
         !), and it looks like this:
@@ -194,91 +194,91 @@ function BuiltinPrograms(): JSX.Element {
       </p>
       <ul className="ml-8 list-disc">
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/the5314b">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/the5314b">
             5/3/1 for beginners
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/basicBeginner">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/basicBeginner">
             Fitness Basic Beginner Program
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/dbPpl">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/dbPpl">
             Dumbbell PPL
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/gzclp">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/gzclp">
             GZCLP
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/gzcl-the-rippler">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/gzcl-the-rippler">
             GZCL: The Rippler
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/gzcl-jacked-and-tan-2">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/gzcl-jacked-and-tan-2">
             GZCL: Jacked And Tan 2.0
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/gzcl-uhf-9-weeks">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/gzcl-uhf-9-weeks">
             GZCL: UHF (Ultra High Frequency) 9 weeks
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/gzcl-uhf-5-weeks">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/gzcl-uhf-5-weeks">
             GZCL: UHF (Ultra High Frequency) 5 weeks
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/gzcl-vdip">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/gzcl-vdip">
             GZCL: VDIP (Volume-Dependent Intensity Progression)
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/gzcl-general-gainz">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/gzcl-general-gainz">
             GZCL: General Gainz
           </a>
         </li>
         <li>
           <a
             target="_blank"
-            className="font-bold underline text-bluev2"
+            className="font-bold underline text-text-link"
             href="/programs/gzcl-general-gainz-burrito-but-big"
           >
             GZCL: General Gainz - Burrito But Big
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/lylegenericbulking">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/lylegenericbulking">
             Lyle's Generic Bulking
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/metallicadpappl">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/metallicadpappl">
             Metallicadpa PPL
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/ss1">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/ss1">
             Starting Strength
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/strongcurves1">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/strongcurves1">
             Strong Curves
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/texasmethod">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/texasmethod">
             Texas Method
           </a>
         </li>
         <li>
-          <a target="_blank" className="font-bold underline text-bluev2" href="/programs/arnoldgoldensix">
+          <a target="_blank" className="font-bold underline text-text-link" href="/programs/arnoldgoldensix">
             Arnold Schwarzenegger's Golden Six
           </a>
         </li>
@@ -299,7 +299,7 @@ function Features(): JSX.Element {
         subtitle={
           <span>
             Extremely customizable workout editor. Create your programs using{" "}
-            <a href="/docs" target="_blank" className="font-bold underline text-bluev2">
+            <a href="/docs" target="_blank" className="font-bold underline text-text-link">
               Liftoscript
             </a>{" "}
             - just type the exercises, reps, weights, progressions across days and weeks.
@@ -490,7 +490,7 @@ function Features(): JSX.Element {
         <h3 className="mb-4 text-3xl font-bold leading-none text-center">Web Editor</h3>
         <p className="text-center">
           Typing your program on a phone can indeed be tedious. To ease this process, there is a{" "}
-          <a href="/planner" className="font-bold underline text-bluev2">
+          <a href="/planner" className="font-bold underline text-text-link">
             web editor
           </a>{" "}
           available. You can edit programs from your account, or you can generate a link to a program, and share with
@@ -539,7 +539,7 @@ function StoresLinks(): JSX.Element {
       <div>
         <span class="content-cta-row-or">or</span>
         &nbsp;
-        <a href="/app" target="_blank" className="font-bold underline text-bluev2">
+        <a href="/app" target="_blank" className="font-bold underline text-text-link">
           use as a web app
         </a>
       </div>

@@ -76,7 +76,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
           <Button
             name="add-account-program"
             className="inline-block leading-4"
-            kind="orange"
+            kind="purple"
             onClick={() => {
               setShowCreateProgramModal(true);
             }}
@@ -107,7 +107,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
             <li className="mb-8">
               <div>
                 <a
-                  className={`text-lg font-bold text-bluev2 underline`}
+                  className={`text-lg font-bold text-text-link underline`}
                   target="_blank"
                   href={`/user/p/${encodeURIComponent(program.id)}`}
                 >
@@ -155,12 +155,16 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                           setIsDeleting(program.id);
                           try {
                             await deleteProgram(program.id, props.service);
-                            updateState(dispatch, [
-                              lb<IState>()
-                                .p("storage")
-                                .p("programs")
-                                .recordModify((programs) => CollectionUtils.removeBy(programs, "id", program.id)),
-                            ], "Delete program from list");
+                            updateState(
+                              dispatch,
+                              [
+                                lb<IState>()
+                                  .p("storage")
+                                  .p("programs")
+                                  .recordModify((programs) => CollectionUtils.removeBy(programs, "id", program.id)),
+                              ],
+                              "Delete program from list"
+                            );
                           } finally {
                             setIsDeleting(undefined);
                           }

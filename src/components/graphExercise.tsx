@@ -189,7 +189,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                       text += `, e1RM = <strong>${onerm.toFixed(2)}</strong> ${units}s`;
                     }
                     if (historyRecord != null && dispatch) {
-                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2 nm-graph-exercise-workout">Workout</button>`;
+                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-text-link nm-graph-exercise-workout">Workout</button>`;
                     }
                     text += "</span>";
                   } else {
@@ -197,7 +197,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                       date
                     )}, Volume: <strong>${volume} ${units}s</strong>`;
                     if (historyRecord != null && dispatch) {
-                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2 nm-graph-exercise-workout">Workout</button>`;
+                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-text-link nm-graph-exercise-workout">Workout</button>`;
                     }
                     text += "</span>";
                   }
@@ -212,7 +212,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                   .map((e) => e.notes)
                   .filter((e) => e);
                 if (historyRecord?.notes || entryNotes.length > 0) {
-                  text += "<div class='text-sm text-grayv2-main'>";
+                  text += "<div class='text-sm text-text-secondary'>";
                   if (entryNotes.length > 0) {
                     text += `<ul>${entryNotes.map((e) => `<li>${HtmlUtils.escapeHtml(e || "")}</li>`)}</ul>`;
                   }

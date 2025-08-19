@@ -70,12 +70,12 @@ export function RestTimer(props: IProps): JSX.Element | null {
   if (timer != null && timerSince != null) {
     const timeDifference = Date.now() - timerSince;
     const isTimeOut = timeDifference > timer * 1000;
-    const className = isTimeOut ? "bg-redv2-main" : "bg-grayv2-main";
-    const totalColor = isTimeOut ? "text-redv2-400" : "text-grayv2-300";
+    const className = isTimeOut ? "bg-background-darkred" : "bg-background-darkgray";
+    const totalColor = isTimeOut ? "text-redv2-400" : "text-text-disabled";
     return isExpanded ? (
       <div className="fixed z-30 safe-area-inset-bottom " style={{ left: "1rem", right: "1rem", bottom: "5rem" }}>
         <div
-          className={`flex w-full ${className} text-center rounded-lg shadow-xl text-white`}
+          className={`flex w-full ${className} text-center rounded-lg shadow-xl text-text-alwayswhite`}
           style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%);" }}
         >
           <button

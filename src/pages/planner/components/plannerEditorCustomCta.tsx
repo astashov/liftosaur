@@ -16,7 +16,7 @@ export function PlannerEditorCustomCta(props: IPlannerEditorCustomCtaProps): JSX
     return (
       <button
         className={`${
-          props.isInvertedColors ? "text-text-alwayswhite" : "text-bluev2"
+          props.isInvertedColors ? "text-text-alwayswhite" : "text-text-link"
         } border-none underline nm-planner-add-custom-exercise`}
         onClick={() => {
           props.dispatch(

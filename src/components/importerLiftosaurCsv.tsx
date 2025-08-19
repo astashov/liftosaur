@@ -47,7 +47,7 @@ export function ImporterLiftosaurCsv(props: IImporterLiftosaurCsvProps): JSX.Ele
                   <InternalLink
                     name="download-example-csv"
                     href="https://www.liftosaur.com/liftosaur_example_csv.zip"
-                    className="font-bold underline text-bluev2"
+                    className="font-bold underline text-text-link"
                   >
                     Download an example and instructions
                   </InternalLink>{" "}

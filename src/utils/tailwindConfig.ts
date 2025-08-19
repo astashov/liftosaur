@@ -8,8 +8,9 @@ export class Tailwind {
   public static colors(): BaseColors {
     return baseColors;
   }
-  
-  public static semantic(theme: 'light' | 'dark' = 'light'): SemanticColors['light'] {
+
+  public static semantic(): SemanticColors["light"] {
+    const theme = typeof window !== "undefined" && window.document.body.classList.contains("dark") ? "dark" : "light";
     return semanticColors[theme];
   }
 }

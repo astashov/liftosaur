@@ -105,7 +105,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
         <div className="text-center">
           <Button
             name="finish-day-details-playground"
-            kind="orange"
+            kind="purple"
             onClick={props.onFinish}
             data-cy="finish-day-details-playground"
           >

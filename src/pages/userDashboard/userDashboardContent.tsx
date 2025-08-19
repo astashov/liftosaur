@@ -32,7 +32,7 @@ export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Ele
             <a
               href={`/app/?admin=${props.adminKey}&userid=${userDao.id}&nosync=true`}
               target="_blank"
-              className="underline text-bluev2"
+              className="underline text-text-link"
             >
               {userDao.email}
             </a>
@@ -111,7 +111,7 @@ function EventView(props: IEventViewProps): JSX.Element | null {
   if (event.type === "event") {
     return (
       <div>
-        {event.isMobile ? <span className="text-text-secondary">M </span> : <span className="text-greenv2-main">W </span>}
+        {event.isMobile ? <span className="text-text-secondary">M </span> : <span className="text-text-success">W </span>}
         {event.iOSVersion && <span className="text-text-secondary">A{event.iOSVersion} </span>}
         {event.androidVersion && <span className="text-text-secondary">G{event.androidVersion} </span>}
         <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
@@ -126,7 +126,7 @@ function EventView(props: IEventViewProps): JSX.Element | null {
           {event.isMobile ? (
             <span className="text-text-secondary">M </span>
           ) : (
-            <span className="text-greenv2-main">W </span>
+            <span className="text-text-success">W </span>
           )}
           <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
           <span className="text-text-secondary">{time}</span>:{" "}
@@ -134,7 +134,7 @@ function EventView(props: IEventViewProps): JSX.Element | null {
             <a
               href={`https://rollbar.com/occurrence/uuid/?uuid=${event.rollbar_id}`}
               target="_blank"
-              className="font-bold underline text-bluev2"
+              className="font-bold underline text-text-link"
             >
               RB
             </a>
@@ -147,13 +147,13 @@ function EventView(props: IEventViewProps): JSX.Element | null {
   } else if (event.type === "safesnapshot" || event.type === "mergesnapshot") {
     return (
       <div>
-        {event.isMobile ? <span className="text-text-secondary">M </span> : <span className="text-greenv2-main">W </span>}
+        {event.isMobile ? <span className="text-text-secondary">M </span> : <span className="text-text-success">W </span>}
         <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
         <span className="text-text-secondary">{time}: </span>
         <span className="">{event.type}: </span>
         <a
           target="_blank"
-          className="font-bold underline text-bluev2"
+          className="font-bold underline text-text-link"
           href={`/app/?admin=${props.adminKey}&userid=${props.userId}&storageid=${event.storage_id}&nosync=true`}
         >
           {event.storage_id}

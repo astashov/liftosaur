@@ -28,7 +28,7 @@ export function MenuItemWrapper(props: {
       className="w-full text-base text-left"
       onClick={props.onClick}
     >
-      <div className={!props.isBorderless ? "border-b border-grayv2-100" : ""}>{props.children}</div>
+      <div className={!props.isBorderless ? "border-b border-border-neutral" : ""}>{props.children}</div>
     </section>
   );
 }
@@ -49,7 +49,7 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
           <div className="flex items-center pt-3 pb-1 text-left">{props.name}</div>
           <div className="pb-2">{props.addons}</div>
         </div>
-        <div className={`${props.expandName ? "" : "flex-1"} text-right text-bluev2`}>{props.value}</div>
+        <div className={`${props.expandName ? "" : "flex-1"} text-right text-text-link`}>{props.value}</div>
         {props.shouldShowRightArrow && (
           <div className="flex items-center py-2 pl-2">
             <IconArrowRight style={{ color: "#a0aec0" }} />

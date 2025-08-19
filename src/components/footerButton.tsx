@@ -30,7 +30,7 @@ export function FooterButton(props: IProps): JSX.Element {
       {props.icon(isActive)}
       <div
         style={{ fontSize: "0.625rem" }}
-        className={`pt-1 whitespace-nowrap text-ellipsis ${isActive ? "text-purplev2-main" : ""}`}
+        className={`pt-1 whitespace-nowrap text-ellipsis ${isActive ? "text-text-purple" : ""}`}
       >
         {props.text}
       </div>

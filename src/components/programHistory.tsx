@@ -187,7 +187,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     <Surface
       ref={surfaceRef}
       navbar={
-        <div className="fixed top-0 left-0 z-30 w-full border-b border-grayv3-100">
+        <div className="fixed top-0 left-0 z-30 w-full border-b border-border-neutral">
           <WeekCalendar
             startWeekFromMonday={props.settings.startWeekFromMonday}
             selectedWeekCalendarFirstDayOfWeek={selectedWeekCalendarFirstDayOfWeek}
@@ -233,7 +233,11 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
             <ModalPlannerSettings
               inApp={true}
               onNewSettings={(newSettings) =>
-                updateState(props.dispatch, [lb<IState>().p("storage").p("settings").record(newSettings)], "Update planner settings")
+                updateState(
+                  props.dispatch,
+                  [lb<IState>().p("storage").p("settings").record(newSettings)],
+                  "Update planner settings"
+                )
               }
               settings={props.settings}
               onClose={() => setShowPlannerSettings(false)}

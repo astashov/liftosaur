@@ -27,7 +27,7 @@ export function Locker(props: IProps): JSX.Element {
         Get <span className="font-bold text-icon-yellow">Premium</span> to unlock <strong>{props.topic}</strong>
       </div>
       <div className="pt-1 text-center">
-        <Button name="unlock" kind="orange" onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}>
+        <Button name="unlock" kind="purple" onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}>
           Unlock
         </Button>
       </div>

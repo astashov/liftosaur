@@ -142,7 +142,7 @@ function WeekInsightsProperty(props: IWeekInsightsPropertyProps): JSX.Element {
     <div className="">
       {props.icon}
       <span className="text-base font-semibold">{props.value}</span>
-      {props.unit && <span className={`text-xs text-grayv3-main ${props.hasPadding ? "ml-1" : ""}`}>{props.unit}</span>}
+      {props.unit && <span className={`text-xs text-text-secondary ${props.hasPadding ? "ml-1" : ""}`}>{props.unit}</span>}
       {props.increment && props.increment !== 0 ? (
         <span className={`${props.increment > 0 ? `text-text-success` : `text-text-error`} ml-1 text-xs font-semibold`}>
           {props.increment > 0 ? "+" : ""}

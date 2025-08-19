@@ -54,7 +54,7 @@ function getBgColor100(entry: IHistoryEntry): string {
   } else if (color === "red") {
     return "bg-redv2-100";
   } else {
-    return "bg-purplev2-100";
+    return "bg-background-purpledark";
   }
 }
 
@@ -218,7 +218,7 @@ interface IPlaygroundExerciseTopBarProps {
 function PlaygroundExerciseTopBar(props: IPlaygroundExerciseTopBarProps): JSX.Element {
   return (
     <div
-      className="absolute z-0 px-2 py-1 leading-none rounded-full bg-grayv2-100"
+      className="absolute z-0 px-2 py-1 leading-none rounded-full bg-background-subtle"
       style={{ right: -12 + (props.xOffset ?? 0), top: -18 }}
     >
       <button

@@ -126,7 +126,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
                     setFilter("");
                     props.onChange(newValues);
                   }}
-                  className="relative z-30 block w-full px-4 py-2 text-left border-b cursor-pointer border-grayv2-400 hover:bg-grayv2-100"
+                  className="relative z-30 block w-full px-4 py-2 text-left border-b cursor-pointer border-grayv2-400 hover:bg-background-subtle"
                 >
                   {value}
                 </button>

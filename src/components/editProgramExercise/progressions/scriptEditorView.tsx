@@ -68,7 +68,7 @@ export function ScriptEditorView(props: IProps): JSX.Element {
   const divRef = useRef<HTMLDivElement>();
 
   let className =
-    "block w-full px-2 py-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:shadow-outline";
+    "block w-full px-2 py-2 leading-normal bg-background-default border rounded-lg appearance-none focus:outline-none focus:shadow-outline";
   if (props.error != null) {
     className += " border-red-500";
   } else {
@@ -77,7 +77,7 @@ export function ScriptEditorView(props: IProps): JSX.Element {
 
   return (
     <div className="planner-editor-view" style={{ fontFamily: "Iosevka Web" }}>
-      <div className={props.lineNumbers ? "planner-editor-error bg-redv2-main z-30" : ""}>
+      <div className={props.lineNumbers ? "planner-editor-error bg-background-darkred z-30" : ""}>
         {props.error && (
           <EvalResult redTheme={props.lineNumbers} error={props.error} onCustomErrorCta={props.onCustomErrorCta} />
         )}

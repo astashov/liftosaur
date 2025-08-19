@@ -149,7 +149,7 @@ function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
         <span>Plates: </span>
         <span className="break-all">
           <span
-            className={`font-semibold ${Weight.eq(weight, props.weight) ? "text-text-primary" : "text-redv2-600"}`}
+            className={`font-semibold ${Weight.eq(weight, props.weight) ? "text-text-primary" : "text-text-error"}`}
             data-cy="plates-list"
           >
             {plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.exerciseType) : "None"}

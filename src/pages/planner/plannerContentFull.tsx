@@ -33,21 +33,24 @@ export interface IPlannerContentFullProps {
 export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element {
   function save(): void {
     const lensGetters = { fulltext: lb<IPlannerState>().p("fulltext").get() };
-    props.dispatch([
-      lbu<IPlannerState, typeof lensGetters>(lensGetters)
-        .p("current")
-        .p("program")
-        .pi("planner")
-        .p("weeks")
-        .recordModify((oldWeeks, getters) => {
-          const text = getters.fulltext?.text;
-          if (text == null) {
-            return oldWeeks;
-          }
-          return PlannerProgram.evaluateText(text);
-        }),
-      lb<IPlannerState>().p("fulltext").record(undefined),
-    ], "Save full program");
+    props.dispatch(
+      [
+        lbu<IPlannerState, typeof lensGetters>(lensGetters)
+          .p("current")
+          .p("program")
+          .pi("planner")
+          .p("weeks")
+          .recordModify((oldWeeks, getters) => {
+            const text = getters.fulltext?.text;
+            if (text == null) {
+              return oldWeeks;
+            }
+            return PlannerProgram.evaluateText(text);
+          }),
+        lb<IPlannerState>().p("fulltext").record(undefined),
+      ],
+      "Save full program"
+    );
   }
 
   function cancel(): void {
@@ -124,7 +127,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
 
   return (
     <div className="relative">
-      <div className="sticky top-0 z-30 bg-background-default border-b sm:hidden border-grayv2-100">
+      <div className="sticky top-0 z-30 bg-background-default border-b sm:hidden border-border-neutral">
         <div className="flex items-center justify-end">
           <div className="flex-1 mr-2">
             <Button
@@ -142,7 +145,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
               disabled={!evaluatedWeeks.success}
               title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}
               name="save-full-planner"
-              kind="orange"
+              kind="purple"
               buttonSize="sm"
               className="px-4 ml-2"
               onClick={() => {
@@ -257,7 +260,10 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
               </div>
             )}
           </div>
-          <div className="fixed bottom-0 py-2 text-center bg-background-default shadow-xs" style={{ width: statsWidth }}>
+          <div
+            className="fixed bottom-0 py-2 text-center bg-background-default shadow-xs"
+            style={{ width: statsWidth }}
+          >
             <Button
               disabled={!evaluatedWeeks.success}
               title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}
@@ -277,7 +283,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
               disabled={!evaluatedWeeks.success}
               title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}
               name="save-full-planner"
-              kind="orange"
+              kind="purple"
               buttonSize="sm"
               className="px-4 ml-2"
               onClick={() => {

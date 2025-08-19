@@ -84,7 +84,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 <input
                   checked={set.isAmrap}
                   data-cy="edit-target-amrap"
-                  className="block align-middle checkbox text-bluev2"
+                  className="block align-middle checkbox text-text-link"
                   type="checkbox"
                   onChange={(e) => {
                     updateProgress(props.dispatch, [lbSet.p("isAmrap").record(!set.isAmrap)], "amrap-checkbox");
@@ -134,7 +134,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 <input
                   checked={set.askWeight}
                   data-cy="edit-target-ask-weight"
-                  className="block align-middle checkbox text-bluev2"
+                  className="block align-middle checkbox text-text-link"
                   type="checkbox"
                   onChange={(e) => {
                     updateProgress(
@@ -188,7 +188,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   <input
                     checked={set.logRpe}
                     data-cy="edit-target-log-rpe"
-                    className="block align-middle checkbox text-bluev2"
+                    className="block align-middle checkbox text-text-link"
                     type="checkbox"
                     onChange={(e) => {
                       updateProgress(props.dispatch, [lbSet.p("logRpe").record(!set.logRpe)], "log-rpe-checkbox");

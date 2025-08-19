@@ -163,7 +163,7 @@ function Filter<T extends string>(props: IFilterProps<T>): JSX.Element {
   const selectedValues = ObjectUtils.values(props.values).filter((v) => v.isSelected);
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
   return (
-    <div className="px-4 py-2 border-b border-grayv3-100">
+    <div className="px-4 py-2 border-b border-background-subtle">
       <div className="flex items-center pb-1" onClick={() => setIsExpanded(!isExpanded)}>
         <h4 className="flex-1">
           {props.title}: <span className="font-semibold">{selectedValues.map((v) => v.label).join(", ") || "All"}</span>
@@ -179,7 +179,7 @@ function Filter<T extends string>(props: IFilterProps<T>): JSX.Element {
               <div>
                 <div>
                   <button
-                    className={`bg-grayv3-50 h-12 leading-none px-2 w-full ${value.disabledReason ? "text-grayv3-300" : "text-text-primary"} rounded-lg border text-center ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
+                    className={`bg-background-subtle h-12 leading-none px-2 w-full ${value.disabledReason ? "text-border-neutral" : "text-text-primary"} rounded-lg border text-center ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
                     disabled={!!value.disabledReason}
                     style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
                     onClick={() => {
@@ -209,7 +209,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
   const selectedMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroupNames(selectedValues);
   return (
-    <div className="px-4 py-2 border-b border-grayv3-100">
+    <div className="px-4 py-2 border-b border-background-subtle">
       <div className="flex items-center pb-1" onClick={() => setIsExpanded(!isExpanded)}>
         <h4 className="flex-1">
           Muscles: <span className="font-semibold">{selectedMuscleGroups.join(", ") || "All"}</span>
@@ -241,7 +241,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                     {ObjectUtils.entries(muscleGroups).map(([key, value]) => {
                       return (
                         <button
-                          className={`bg-grayv3-50 h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
+                          className={`bg-background-subtle h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
                           style={{
                             paddingLeft: "70px",
                             borderWidth: value.isSelected ? "2px" : "1px",
@@ -314,7 +314,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                                     : "text-base";
                               return (
                                 <button
-                                  className={`bg-grayv3-50 ${fontSize} h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
+                                  className={`bg-background-subtle ${fontSize} h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
                                   style={{
                                     paddingLeft: "70px",
                                     borderWidth: value.isSelected ? "2px" : "1px",

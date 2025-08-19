@@ -40,7 +40,7 @@ export function ModalNewEquipment(props: IProps): JSX.Element {
             Cancel
           </Button>
           <Button
-            kind="orange"
+            kind="purple"
             type="submit"
             name="add-equipment-submit"
             className="ls-add-equipment"

@@ -54,7 +54,7 @@ export function AllExercisesContent(props: IAllExercisesContentProps): JSX.Eleme
           return (
             <a
               href={buildExerciseUrl(exercise, filterTypes)}
-              className={`block px-2 rounded-lg hover:bg-grayv2-100 border border-transparent`}
+              className={`block px-2 rounded-lg hover:bg-background-subtle border border-transparent`}
               key={key}
             >
               <ExerciseItem

@@ -30,8 +30,8 @@ function getHasErrorsInProgram(navCommon: INavCommon): boolean {
 }
 
 export function Footer2View(props: IFooterProps): JSX.Element {
-  const activeColor = Tailwind.colors().purple[600];
-  const inactiveColor = Tailwind.colors().lightgray[800];
+  const activeColor = Tailwind.semantic().icon.purple;
+  const inactiveColor = Tailwind.semantic().icon.neutral;
   const screen = Screen.currentName(props.navCommon.screenStack);
   const [showNextWorkoutSheet, setShowNextWorkoutSheet] = useState(false);
   const onClose = useCallback(() => setShowNextWorkoutSheet(false), []);
@@ -46,14 +46,13 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         style={{ marginBottom: "-2px" }}
       >
         <div
-          className="box-content absolute flex items-end bg-background-default safe-area-inset-bottom"
+          className="box-content absolute flex items-end footer-shadow bg-background-default safe-area-inset-bottom"
           style={{
             width: "4000px",
             marginLeft: "-2000px",
             left: "50%",
             height: "141px",
             bottom: "-76px",
-            boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)",
           }}
         />
         <div
@@ -146,13 +145,12 @@ export function Footer2View(props: IFooterProps): JSX.Element {
 function CreateButton(props: { isActive: boolean }): JSX.Element {
   return (
     <div
-      className="flex items-center justify-center border-white rounded-full bg-button-primarybackground"
+      className="flex items-center justify-center rounded-full footer-shadow border-background-default bg-button-primarybackground"
       style={{
         width: "53px",
         height: "53px",
         borderWidth: "3px",
         borderStyle: "solid",
-        boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)",
       }}
     >
       <IconBarbell2 isSelected={props.isActive} />

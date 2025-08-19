@@ -10,7 +10,7 @@ interface IProps {
 
 export function IconStar(props: IProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.colors().black;
+  const color = props.color ?? Tailwind.semantic().icon.neutral;
   return (
     <svg
       width={size}

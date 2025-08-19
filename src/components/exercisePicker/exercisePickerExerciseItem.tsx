@@ -35,7 +35,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
       <div className="self-center w-12" style={{ minHeight: "2.5rem" }}>
         <ExerciseImage
           useTextForCustomExercise={true}
-          customClassName="border border-grayv3-200 rounded-lg overflow-hidden"
+          customClassName="border border-border-neutral rounded-lg overflow-hidden"
           settings={props.settings}
           className="w-full"
           exerciseType={exerciseType}
@@ -157,7 +157,7 @@ function MuscleView(props: {
               return (
                 <span>
                   <span
-                    className={tms.length === 0 ? "" : tms.indexOf(m) !== -1 ? "text-greenv2-main" : "text-redv2-main"}
+                    className={tms.length === 0 ? "" : tms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"}
                   >
                     {m}
                   </span>
@@ -176,7 +176,7 @@ function MuscleView(props: {
               return (
                 <span>
                   <span
-                    className={sms.length === 0 ? "" : sms.indexOf(m) !== -1 ? "text-greenv2-main" : "text-redv2-main"}
+                    className={sms.length === 0 ? "" : sms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"}
                   >
                     {m}
                   </span>
@@ -228,7 +228,7 @@ export function MuscleGroupsView(props: {
               return (
                 <span>
                   <span
-                    className={!props.currentExerciseType ? "" : doesContain ? "text-greenv2-main" : "text-redv2-main"}
+                    className={!props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"}
                   >
                     {StringUtils.capitalize(m)}
                   </span>
@@ -249,7 +249,7 @@ export function MuscleGroupsView(props: {
               return (
                 <span>
                   <span
-                    className={!props.currentExerciseType ? "" : doesContain ? "text-greenv2-main" : "text-redv2-main"}
+                    className={!props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"}
                   >
                     {StringUtils.capitalize(m)}
                   </span>

@@ -25,7 +25,7 @@ export function WorkoutShareOutputWithBg(props: IWorkoutShareOutputWithBgProps):
 
   return (
     <div
-      className="relative bg-black"
+      className="relative bg-text-primary"
       style={{
         width: `${width}px`,
         height: `${height}px`,

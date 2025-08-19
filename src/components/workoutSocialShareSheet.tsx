@@ -34,8 +34,8 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
     props.type === "igstory"
       ? "Share workout to IG Story"
       : props.type === "igfeed"
-      ? "Share workout to IG Feed"
-      : "Share workout to Tiktok";
+        ? "Share workout to IG Feed"
+        : "Share workout to Tiktok";
   return (
     <section
       data-cy="workout-share-sheet"
@@ -114,7 +114,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
           <div className="mt-2">
             <Button
               name="share-workout"
-              kind="orange"
+              kind="purple"
               disabled={isLoading}
               className="w-32"
               onClick={async () => {
@@ -155,8 +155,8 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
                 selectedFrameIndex === 1
                   ? backgroundImage
                   : props.type === "igfeed"
-                  ? "/images/workoutsharesquarebg.jpg"
-                  : "/images/workoutsharebg.jpg"
+                    ? "/images/workoutsharesquarebg.jpg"
+                    : "/images/workoutsharebg.jpg"
               }
             />
           ) : null}
@@ -255,8 +255,8 @@ function WorkoutShareImage(props: IWorkoutShareImageProps): JSX.Element {
             ? `url(${backgroundImage})`
             : undefined
           : props.type === "igfeed"
-          ? `url("/images/workoutsharesquarebg.jpg")`
-          : `url("/images/workoutsharebg.jpg")`,
+            ? `url("/images/workoutsharesquarebg.jpg")`
+            : `url("/images/workoutsharebg.jpg")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",

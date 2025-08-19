@@ -12,6 +12,7 @@ import { Modal } from "./modal";
 import { Link } from "./link";
 import { ObjectUtils } from "../utils/object";
 import { ModalDebug } from "./modalDebug";
+import { Tailwind } from "../utils/tailwindConfig";
 
 interface INavbarCenterProps {
   title: ComponentChildren;
@@ -49,7 +50,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
   });
 
   let className =
-    "fixed top-0 left-0 z-30 flex items-center justify-center w-full px-2 text-center bg-white safe-area-inset-top";
+    "fixed top-0 left-0 z-30 flex items-center justify-center w-full px-2 text-center bg-background-default safe-area-inset-top";
   if (isScrolled) {
     className += " has-shadow";
   }
@@ -79,12 +80,12 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
                 }
               }}
             >
-              <IconBack />
+              <IconBack color={Tailwind.semantic().icon.neutral} />
             </button>
           ) : undefined}
           {isLoading ? (
             <span className="pl-2">
-              <IconSpinner width={20} height={20} />
+              <IconSpinner width={20} height={20} color={Tailwind.semantic().icon.neutral} />
             </span>
           ) : null}
         </div>
@@ -110,7 +111,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           {props.rightButtons}
           {props.helpContent && (
             <button className="p-2 nm-navbar-help" onClick={() => setShouldShowModalHelp(true)}>
-              <IconHelp />
+              <IconHelp color={Tailwind.semantic().icon.neutral} />
             </button>
           )}
         </div>
@@ -120,8 +121,8 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
             style={{ bottom: "-1rem" }}
           >
             <div
-              className="flex pl-4 rounded-full pointer-events-auto border-redv2-main text-redv2-main"
-              style={{ background: "#FFECEC", boxShadow: "0 0 4px rgba(255, 27, 27, 0.38)" }}
+              className="flex pl-4 rounded-full pointer-events-auto bg-background-error border-text-error text-text-error"
+              style={{ boxShadow: "0 0 4px rgba(255, 27, 27, 0.38)" }}
             >
               <div className="font-bold" style={{ paddingTop: "1px" }}>
                 {error}
@@ -129,16 +130,20 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
               <button
                 className="px-3 nm-navbar-error-close"
                 onClick={() =>
-                  updateState(props.dispatch, [
-                    lb<IState>()
-                      .p("loading")
-                      .recordModify((l) => {
-                        return { ...l, items: ObjectUtils.filter(l.items, (k, v) => v?.error == null) };
-                      }),
-                  ], "Clear error messages")
+                  updateState(
+                    props.dispatch,
+                    [
+                      lb<IState>()
+                        .p("loading")
+                        .recordModify((l) => {
+                          return { ...l, items: ObjectUtils.filter(l.items, (k, v) => v?.error == null) };
+                        }),
+                    ],
+                    "Clear error messages"
+                  )
                 }
               >
-                <IconClose size={16} color="#E53E3E" />
+                <IconClose size={16} color={Tailwind.semantic().icon.red} />
               </button>
             </div>
           </div>

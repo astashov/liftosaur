@@ -81,7 +81,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
               onChange={onChange}
             />
           </div>
-          {props.value != null && <span className="flex items-center text-grayv2-700">{props.valueUnits}</span>}
+          {props.value != null && <span className="flex items-center text-text-secondary">{props.valueUnits}</span>}
           {props.value != null && props.hasClear && (
             <button
               data-cy={`menu-item-delete-${StringUtils.dashcase(props.name)}`}
@@ -140,7 +140,7 @@ export function MenuItemValue(
     return (
       <div
         data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
-        className="flex-1 py-2 pl-2 text-right text-bluev2"
+        className="flex-1 py-2 pl-2 text-right text-text-link"
         style={{ minHeight: "2.5rem" }}
       >
         {keyValue && keyValue[1]}
@@ -152,7 +152,7 @@ export function MenuItemValue(
         data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
         key={props.value}
         type="text"
-        className="flex-1 w-full py-2 text-right bg-transparent text-bluev2"
+        className="flex-1 w-full py-2 text-right bg-transparent text-text-link"
         value={props.value || undefined}
         title={props.patternMessage}
         maxLength={props.maxLength}
@@ -178,7 +178,7 @@ export function MenuItemValue(
             style={{ marginRight: "-0.5rem" }}
             key={props.value}
             type="checkbox"
-            className="text-right text-bluev2 checkbox"
+            className="text-right text-text-link checkbox"
             checked={props.value === "true"}
             onChange={(e: Event): void => {
               if (props.onChange != null) {
@@ -211,7 +211,7 @@ export function MenuItemValue(
             return undefined;
           }}
           title={props.patternMessage}
-          className="items-center flex-1 w-0 min-w-0 p-2 text-right bg-transparent outline-none text-grayv2-700"
+          className="items-center flex-1 w-0 min-w-0 p-2 text-right bg-transparent outline-none text-text-secondary"
           value={props.value || undefined}
           pattern={props.pattern}
         />

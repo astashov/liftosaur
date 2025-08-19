@@ -35,7 +35,7 @@ export function DropdownMenuItem(props: IDropdownMenuItemProps): JSX.Element {
   return (
     <button
       className={`block w-full px-2 text-right whitespace-nowrap text-base ${
-        !isTop ? "pt-2 pb-1 mt-2 border-t border-grayv2-50" : "py-1"
+        !isTop ? "pt-2 pb-1 mt-2 border-t border-border-neutral" : "py-1"
       } ${className}`}
       {...rest}
     >

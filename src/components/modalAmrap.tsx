@@ -161,7 +161,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
           </Button>
           <Button
             name="modal-amrap-submit"
-            kind="orange"
+            kind="purple"
             type="submit"
             data-cy="modal-amrap-submit"
             className="ls-modal-set-amrap"

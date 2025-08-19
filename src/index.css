@@ -227,7 +227,7 @@ input[type="checkbox"].checkbox {
   border: 2px solid;
   border-radius: 100px;
   transition: 120ms background-color linear;
-  background-color: white;
+  background-color: var(--color-background-default);
   display: inline-block;
   place-content: center;
   position: relative;
@@ -236,6 +236,38 @@ input[type="checkbox"].checkbox {
 
 .radio {
   position: relative;
+}
+
+.footer-shadow {
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+.barrel-bg {
+  background: linear-gradient(
+    0deg,
+    rgb(255, 255, 255) 0px,
+    rgb(255, 255, 255) 5%,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0) 60%,
+    rgb(255, 255, 255) 95%,
+    rgb(255, 255, 255) 100%
+  );
+}
+
+.dark .footer-shadow {
+  box-shadow: 0 0 4px 0 rgba(255, 255, 255, 0.2);
+}
+
+.dark .barrel-bg {
+  background: linear-gradient(
+    0deg,
+    rgb(0, 0, 0) 0px,
+    rgb(0, 0, 0) 5%,
+    rgba(0, 0, 0, 0) 30%,
+    rgba(0, 0, 0, 0) 60%,
+    rgb(0, 0, 0) 95%,
+    rgb(0, 0, 0) 100%
+  );
 }
 
 .radio input[type="radio"] {
@@ -265,7 +297,7 @@ input[type="checkbox"].checkbox {
   left: 50%;
   width: 50%;
   height: 50%;
-  background-color: var(--color-purplev3-main);
+  background-color: var(--color-button-primarybackground);
   border-radius: 50%;
   transform: translate(-50%, -50%);
 }
@@ -289,7 +321,7 @@ input[type="checkbox"].checkbox:checked {
 }
 
 input[type="checkbox"].checkbox.checkbox-purple:checked {
-  background-color: var(--color-purplev3-main);
+  background-color: var(--color-button-primarybackground);
 }
 
 input[type="checkbox"].checkbox::before {

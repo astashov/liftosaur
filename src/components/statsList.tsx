@@ -189,7 +189,7 @@ export function StatsList(props: IProps): JSX.Element {
                 <div className="flex items-center">
                   <div className="flex-1">
                     <input
-                      className="inline-block py-2 text-bluev2"
+                      className="inline-block py-2 text-text-link"
                       data-cy="input-stats-date"
                       type="date"
                       onChange={(e) => {
@@ -211,7 +211,7 @@ export function StatsList(props: IProps): JSX.Element {
                     <input
                       type="number"
                       data-cy="input-stats-value"
-                      className="flex-1 w-full p-2 text-right text-bluev2"
+                      className="flex-1 w-full p-2 text-right text-text-link"
                       step="0.01"
                       value={+convertedValue.value.toFixed(2)}
                       onInput={(e) => {

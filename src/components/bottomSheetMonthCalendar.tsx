@@ -40,7 +40,7 @@ export const BottomSheetMonthCalendar = memo((props: IProps): JSX.Element => {
             This week
           </LinkButton>
         </div>
-        <div className="flex flex-row justify-around py-2 mx-3 border-b border-grayv3-100">
+        <div className="flex flex-row justify-around py-2 mx-3 border-b border-background-subtle">
           {monthNames.map((day) => (
             <div key={day} class="text-gray-500 font-medium p-2 w-10 h-10 text-center">
               {day}

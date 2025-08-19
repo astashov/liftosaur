@@ -39,7 +39,7 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
     <div className="relative">
       {tabs.length > 1 && (
         <div
-          className={`${props.nonSticky ? "" : "sticky"} left-0 z-10 bg-white`}
+          className={`${props.nonSticky ? "" : "sticky"} left-0 z-10 bg-background-default`}
           style={{
             top: props.offsetY || "0",
             marginLeft: props.shouldNotExpand ? undefined : "-1rem",
@@ -56,20 +56,20 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
                 const nameClass = `tab-${StringUtils.dashcase(label.toLowerCase())}`;
 
                 const containerClassName =
-                  props.type === "squares" ? "" : `flex-1 text-center border-b whitespace-nowrap border-grayv2-50`;
+                  props.type === "squares" ? "" : `flex-1 text-center border-b whitespace-nowrap border-border-neutral`;
                 const selectedWeekButtonStyles =
-                  "bg-white border border-purplev3-main text-purplev3-main selected-tab-button";
-                const unselectedWeekButtonStyles = "bg-grayv3-100 border border-white text-grayv3-main";
+                  "bg-background-default border border-button-primarybackground text-text-purple selected-tab-button";
+                const unselectedWeekButtonStyles = "bg-background-subtle border border-background-default text-text-secondary";
                 const buttonClassName =
                   props.type === "squares"
                     ? `whitespace-nowrap px-3 py-2 text-sm rounded ${selectedIndex === index ? selectedWeekButtonStyles : unselectedWeekButtonStyles}`
                     : `ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
                         selectedIndex === index
                           ? color === "orange"
-                            ? "text-icon-yellow border-b border-orangev2 selected-tab-button"
+                            ? "text-icon-yellow border-b border-icon-yellow selected-tab-button"
                             : "text-text-purple border-b border-button-secondarystroke selected-tab-button"
                           : ""
-                      } ${isInvalid ? " text-redv2-main" : ""} nm-tab-${nameClass}`;
+                      } ${isInvalid ? " text-text-error" : ""} nm-tab-${nameClass}`;
 
                 return (
                   <div className={containerClassName}>

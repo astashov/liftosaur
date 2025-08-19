@@ -21,7 +21,7 @@ export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>
   return (
     <>
       <button
-        className={`border-b border-dotted text-purplev3-main border-purplev3-main ${props.className} nm-${props.name}`}
+        className={`border-b border-dotted text-text-purple border-text-purple ${props.className} nm-${props.name}`}
         onClick={() => setShowOptions(!showOptions)}
       >
         {selectedOption ?? props.emptyLabel}

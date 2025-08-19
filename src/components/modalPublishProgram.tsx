@@ -54,7 +54,7 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
           <Button
             name="modal-publish-program"
             type="button"
-            kind="orange"
+            kind="purple"
             className="mr-3"
             onClick={() => {
               props.onClose();

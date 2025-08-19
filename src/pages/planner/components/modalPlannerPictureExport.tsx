@@ -185,7 +185,7 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
         <Button
           disabled={isLoading}
           name="export-program-picture"
-          kind="orange"
+          kind="purple"
           className="w-48"
           onClick={() => save()}
         >

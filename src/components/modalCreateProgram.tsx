@@ -48,7 +48,7 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           name="modal-create-program-submit"
           type="button"
           disabled={props.isLoading}
-          kind="orange"
+          kind="purple"
           className="ls-modal-create-program"
           onClick={() => {
             if (!props.isLoading && textInput.current.value) {

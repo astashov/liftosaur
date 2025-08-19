@@ -38,7 +38,7 @@ export function GroupHeader(props: IProps): JSX.Element {
       <div
         data-cy={testId}
         onClick={!props.expandOnIconClick ? onClick : undefined}
-        className={`flex items-center pb-1 text-sm text-grayv2-700 ${props.children && !props.expandOnIconClick ? "cursor-pointer" : ""} ${
+        className={`flex items-center pb-1 text-sm text-text-secondary ${props.children && !props.expandOnIconClick ? "cursor-pointer" : ""} ${
           props.topPadding ? "mt-6 pt-4" : ""
         } ${props.headerClassName || ""}`}
       >
@@ -53,7 +53,7 @@ export function GroupHeader(props: IProps): JSX.Element {
         <div className={`flex items-center flex-1`}>
           <div
             className={`${size === "small" ? "text-xs" : "text-base font-bold"} ${
-              props.highlighted ? "text-purplev2-main" : "text-grayv2-700"
+              props.highlighted ? "text-text-purple" : "text-text-secondary"
             } align-middle`}
           >
             {name}

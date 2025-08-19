@@ -31,7 +31,7 @@ export function BuilderCopyLink<T>(props: IBuilderCopyLinkProps<T>): JSX.Element
       {showInfo && !props.suppressShowInfo && (
         <div className="mr-2 align-middle">
           <div>{msg} </div>
-          <a className="font-bold underline text-bluev2" href={showInfo}>
+          <a className="font-bold underline text-text-link" href={showInfo}>
             {showInfo}
           </a>
         </div>

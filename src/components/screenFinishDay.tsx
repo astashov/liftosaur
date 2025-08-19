@@ -101,7 +101,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <div className="text-sm text-text-secondary">{record.programName}</div>
           <div className="text-base">{record.dayName}</div>
         </section>
-        <div className="px-4 pt-2 pb-3 rounded-lg bg-purplev2-100">
+        <div className="px-4 pt-2 pb-3 rounded-lg bg-background-purpledark">
           <GroupHeader name="Totals" />
           <div className="flex gap-2">
             <ul className="flex-1">
@@ -126,7 +126,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
 
         {startedEntries.length > 0 ? (
           <>
-            <div className="px-4 py-2 mt-2 rounded-lg bg-purplev2-100">
+            <div className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark">
               <GroupHeader name="Exercises" />
               {startedEntries.map((entry, i) => {
                 return (
@@ -145,7 +145,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <></>
         )}
 
-        <div className="px-4 py-2 mt-2 rounded-lg bg-purplev2-100">
+        <div className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark">
           <GroupHeader name="Sets per muscle group" />
           <div className="flex gap-4">
             {muscleGroupsGrouped.map((group) => {
@@ -224,7 +224,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <div className="flex-1 text-center">
             <Button
               name="finish-day-continue"
-              kind="orange"
+              kind="purple"
               className="w-36"
               data-cy="finish-day-continue"
               onClick={() => {
@@ -370,7 +370,7 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
           </div>
           <div className="text-center">
             <button
-              className="w-10 h-10 rounded-full bg-grayv2-100"
+              className="w-10 h-10 rounded-full bg-background-subtle"
               onClick={() => {
                 if (userId) {
                   const link = Share.generateLink(userId, props.history[0].id);
@@ -386,7 +386,11 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
             {copiedLink ? (
               <div>
                 <span>Copied: </span>
-                <InternalLink name="shared-workout-link" href={copiedLink} className="font-bold underline text-bluev2">
+                <InternalLink
+                  name="shared-workout-link"
+                  href={copiedLink}
+                  className="font-bold underline text-text-link"
+                >
                   Link
                 </InternalLink>
               </div>

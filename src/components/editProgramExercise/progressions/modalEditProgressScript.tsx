@@ -60,7 +60,7 @@ export function ModalEditProgressScript(props: IModalEditProgressScriptProps): J
       />
       <div className="mt-4 text-center">
         <Button
-          kind="orange"
+          kind="purple"
           name="modal-create-state-variable-submit"
           disabled={error != null}
           onClick={() => {

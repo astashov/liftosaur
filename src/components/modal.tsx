@@ -62,12 +62,12 @@ export function Modal(props: IProps): JSX.Element {
       <div
         data-name="overlay"
         onClick={props.shouldShowClose ? props.onClose : undefined}
-        className="absolute inset-0 z-10 overflow-scroll scrolling-touch opacity-50 bg-grayv2-700"
+        className="absolute inset-0 z-10 overflow-scroll scrolling-touch opacity-50 bg-background-darkgray"
       ></div>
       <div
         data-name="modal"
         data-cy={`modal${props.name ? `-${props.name}` : ""}`}
-        className={`relative z-20 flex flex-col ${props.noPaddings ? "" : "py-6"} bg-white rounded-lg shadow-lg`}
+        className={`relative z-20 flex flex-col ${props.noPaddings ? "" : "py-6"} bg-background-default rounded-lg shadow-lg text-text-primary`}
         style={{
           maxWidth: props.maxWidth ?? "92%",
           maxHeight: "90%",

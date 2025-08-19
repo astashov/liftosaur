@@ -5,7 +5,7 @@ import { StringUtils } from "../utils/string";
 import { IEither } from "../utils/types";
 
 export const inputClassName =
-  "inline-block w-full px-4 text-base py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline text-base";
+  "inline-block w-full px-4 text-base py-2 leading-normal bg-background-default border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline text-base";
 
 export type IValidationError = "required" | "pattern-mismatch";
 
@@ -75,9 +75,9 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
 
   let className = "relative block w-full text-left border rounded-lg appearance-none ";
   if (props.errorMessage || validationErrors.size > 0) {
-    className += " border-redv2-main";
+    className += " border-text-error";
   } else {
-    className += " border-border-neutral";
+    className += " border-form-inputstroke";
   }
 
   const errorMessages = [];
@@ -92,7 +92,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
     }
   }
 
-  let containerClassName = "inline-block bg-white rounded-lg";
+  let containerClassName = "inline-block bg-background-default rounded-lg";
   if (className.indexOf("w-full") !== -1) {
     containerClassName += " w-full";
   }
@@ -100,7 +100,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
   return (
     <div className={containerClassName}>
       {props.label && props.isLabelOutside && (
-        <div className={`leading-none ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700 pb-1`}>
+        <div className={`leading-none ${labelSize === "xs" ? "text-xs" : "text-sm"} text-text-secondary pb-1`}>
           {props.label}
         </div>
       )}
@@ -117,7 +117,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
         >
           {props.label && !props.isLabelOutside && (
             <div
-              className={`leading-none relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
+              className={`leading-none relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-text-secondary`}
               style={{ top: "2px", left: "0" }}
             >
               {props.label}
@@ -131,7 +131,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
                 onBlur={changeType === "onblur" ? onInputHandler : undefined}
                 onInput={changeType === "oninput" ? onInputHandler : undefined}
                 onFocus={selectInputOnFocus}
-                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
+                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none bg-form-inputbg"
                 style={{ fontSize: size === "md" ? "16px" : "15px", height: `${props.multiline * 25}px` }}
                 {...otherProps}
               />
@@ -142,7 +142,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
                 onBlur={changeType === "onblur" ? onInputHandler : undefined}
                 onInput={changeType === "oninput" ? onInputHandler : undefined}
                 onFocus={selectInputOnFocus}
-                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
+                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none bg-form-inputbg"
                 style={{ height: "1.25rem", fontSize: size === "md" ? "16px" : "15px" }}
                 {...otherProps}
               />
@@ -151,7 +151,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
         </div>
       </label>
       {errorMessages.map((message) => (
-        <div className="text-xs text-left text-redv2-main" key={message}>
+        <div className="text-xs text-left text-text-error" key={message}>
           {message}
         </div>
       ))}

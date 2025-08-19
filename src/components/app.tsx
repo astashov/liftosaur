@@ -16,7 +16,7 @@ import { ScreenEquipment } from "./screenEquipment";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Progress } from "../models/progress";
-import { IEnv, INavCommon, IState, updateState } from "../models/state";
+import { IEnv, INavCommon, IState, updateSettings, updateState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
@@ -55,6 +55,7 @@ import { ScreenEditProgramExercise } from "./editProgramExercise/screenEditProgr
 import { FallbackScreen } from "./fallbackScreen";
 import { Screen1RM } from "./screen1RM";
 import { ScreenSetupEquipment } from "./screenSetupEquipment";
+import { ISettings } from "../types";
 
 declare let Rollbar: RB;
 declare let __COMMIT_HASH__: string;
@@ -132,6 +133,19 @@ export function AppView(props: IProps): JSX.Element | null {
         }
       }
     });
+    window.addEventListener("keypress", (event) => {
+      if (event.key === "q") {
+        document.body.classList.toggle("dark");
+        updateSettings(
+          dispatch,
+          lb<ISettings>()
+            .p("theme")
+            .record(document.body.classList.contains("dark") ? "dark" : "light"),
+          "Toggle theme"
+        );
+      }
+    });
+
     window.addEventListener("message", (event) => {
       if (event.data?.type === "setAppleReceipt") {
         dispatch(Thunk.setAppleReceipt(event.data.receipt));
