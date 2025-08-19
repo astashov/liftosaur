@@ -300,7 +300,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               <pre className="inline">/</pre>) character, like this:
             </p>
             <div>
-              <div className="inline-block px-4 py-2 my-1 mb-2 bg-white border rounded-md border-grayv2-300">
+              <div className="inline-block px-4 py-2 my-1 mb-2 bg-background-default border rounded-md border-border-neutral">
                 <PlannerCodeBlock script={script} />
               </div>
             </div>
@@ -387,14 +387,14 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           </h2>
           {props.shouldSync ? (
             <span
-              className="text-xs font-normal text-grayv2-main nm-program-content-change-id"
+              className="text-xs font-normal text-text-secondary nm-program-content-change-id"
               style={{ marginTop: "-0.5rem" }}
             >
               id: {state.id}
             </span>
           ) : (
             <button
-              className="text-xs font-normal text-grayv2-main nm-program-content-change-id"
+              className="text-xs font-normal text-text-secondary nm-program-content-change-id"
               style={{ marginTop: "-0.5rem" }}
               onClick={() => {
                 const id = UidFactory.generateUid(8);
@@ -516,7 +516,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       </div>
       {showClipboardInfo && (
         <>
-          <div className="mb-2 text-xs text-left sm:text-right text-grayv2-main">
+          <div className="mb-2 text-xs text-left sm:text-right text-text-secondary">
             Copied to clipboard:{" "}
             <a target="_blank" className="font-bold underline text-bluev2" href={showClipboardInfo}>
               {showClipboardInfo}

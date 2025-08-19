@@ -103,7 +103,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
           name="Nickname"
           value={props.settings.nickname || ""}
           nextLine={
-            <div style={{ marginTop: "-0.5rem" }} className="pb-1 text-xs text-grayv2-main">
+            <div style={{ marginTop: "-0.5rem" }} className="pb-1 text-xs text-text-secondary">
               Used for profile page if you have an account
             </div>
           }
@@ -353,7 +353,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                   name="Ignore Do Not Disturb"
                   value={props.settings.ignoreDoNotDisturb ? "true" : "false"}
                   nextLine={
-                    <div className="mb-2 text-xs text-grayv2-main" style={{ marginTop: "-0.5rem" }}>
+                    <div className="mb-2 text-xs text-text-secondary" style={{ marginTop: "-0.5rem" }}>
                       Push notification will make a sound even in Silent or Do Not Disturb mode
                     </div>
                   }

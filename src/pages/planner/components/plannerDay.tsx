@@ -70,7 +70,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             />
           </h3>
           {approxDayTime && (
-            <div className="text-grayv2-main">
+            <div className="text-text-secondary">
               <IconWatch className="mb-1 align-middle" />
               <span className="pl-1 font-bold align-middle">{approxDayTime}</span>
             </div>

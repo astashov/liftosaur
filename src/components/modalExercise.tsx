@@ -263,7 +263,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
       )}
       <input
         ref={textInput}
-        className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+        className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-background-default border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
         type="text"
         value={filter}
         data-cy="exercise-filter-by-name"
@@ -404,7 +404,7 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
       <div className="flex-1 py-2 text-sm text-left">
         <div>
           <span className="font-bold">{e.name}</span>,{" "}
-          <span className="text-grayv2-main">{equipmentName(exerciseType.equipment)}</span>
+          <span className="text-text-secondary">{equipmentName(exerciseType.equipment)}</span>
         </div>
         {props.showMuscles ? (
           <MuscleView currentExerciseType={props.currentExerciseType} exercise={e} settings={props.settings} />
@@ -579,19 +579,19 @@ export function MuscleGroupsView(props: { exercise: IExercise; settings: ISettin
     <div className="text-xs">
       {types.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Type: </span>
+          <span className="text-text-secondary">Type: </span>
           <span className="font-bold">{types.join(", ")}</span>
         </div>
       )}
       {targetMuscleGroups.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Target: </span>
+          <span className="text-text-secondary">Target: </span>
           <span className="font-bold">{targetMuscleGroups.join(", ")}</span>
         </div>
       )}
       {synergistMuscleGroups.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Synergist: </span>
+          <span className="text-text-secondary">Synergist: </span>
           <span className="font-bold">{synergistMuscleGroups.join(", ")}</span>
         </div>
       )}
@@ -618,13 +618,13 @@ function MuscleView(props: {
     <div className="text-xs">
       {types.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Type: </span>
+          <span className="text-text-secondary">Type: </span>
           <span className="font-bold">{types.join(", ")}</span>
         </div>
       )}
       {targetMuscles.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Target: </span>
+          <span className="text-text-secondary">Target: </span>
           <span className="font-bold">
             {targetMuscles.map((m, i) => {
               return (
@@ -643,7 +643,7 @@ function MuscleView(props: {
       )}
       {synergistMuscles.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Synergist: </span>
+          <span className="text-text-secondary">Synergist: </span>
           <span className="font-bold">
             {synergistMuscles.map((m, i) => {
               return (
@@ -680,19 +680,19 @@ export function CustomMuscleGroupsView(props: { exercise: ICustomExercise }): JS
     <div className="text-xs">
       {types.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Type: </span>
+          <span className="text-text-secondary">Type: </span>
           <span className="font-bold">{types.join(", ")}</span>
         </div>
       )}
       {targetMuscleGroups.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Target: </span>
+          <span className="text-text-secondary">Target: </span>
           <span className="font-bold">{targetMuscleGroups.join(", ")}</span>{" "}
         </div>
       )}
       {synergistMuscleGroups.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Synergist: </span>
+          <span className="text-text-secondary">Synergist: </span>
           <span className="font-bold">{synergistMuscleGroups.join(", ")}</span>
         </div>
       )}

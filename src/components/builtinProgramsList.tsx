@@ -153,7 +153,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
             );
           })
         ) : (
-          <div className="px-6 py-8 text-lg text-center text-grayv2-500">No programs found with selected filters</div>
+          <div className="px-6 py-8 text-lg text-center text-text-secondarysubtle">No programs found with selected filters</div>
         )}
       </div>
       {selectedProgram != null && (
@@ -193,7 +193,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
 
   return (
     <button
-      className="relative flex items-center w-full p-3 mb-4 text-left border rounded-lg bg-purplev3-50 border-purplev3-200 nm-program-list-choose-program"
+      className="relative flex items-center w-full p-3 mb-4 text-left border rounded-lg bg-background-cardpurple border-purplev3-200 nm-program-list-choose-program"
       onClick={props.onClick}
     >
       <div className="flex-1">
@@ -206,7 +206,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
             </div>
           )}
         </div>
-        <h4 className="text-sm text-grayv2-main">{props.program.shortDescription}</h4>
+        <h4 className="text-sm text-text-secondary">{props.program.shortDescription}</h4>
         <div className="py-3">
           {exercises
             .filter((e) => ExerciseImageUtils.exists(e, "small"))
@@ -214,16 +214,16 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
               <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
             ))}
         </div>
-        <div className="flex mb-1 text-grayv2-main">
-          <IconCalendarSmall color={Tailwind.colors().grayv3.main} className="block mr-1" />{" "}
+        <div className="flex mb-1 text-text-secondary">
+          <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
           <div className="text-xs">
             {numberOfWeeks > 1 && `${numberOfWeeks} ${StringUtils.pluralize("week", numberOfWeeks)}, `}
             {properties?.frequency ? `${properties.frequency}x/week, ` : ""}
             {exercisesRange ? Program.exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
           </div>
         </div>
-        <div className="flex text-grayv2-main">
-          <IconKettlebellSmall color={Tailwind.colors().grayv3.main} className="block mr-1" />{" "}
+        <div className="flex text-text-secondary">
+          <IconKettlebellSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
           <div className="text-xs">{equipment.join(", ")}</div>
         </div>
       </div>

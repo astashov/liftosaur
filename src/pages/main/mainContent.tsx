@@ -68,7 +68,7 @@ function Hero(): JSX.Element {
           <h1 className="hidden mt-12 mb-4 text-6xl font-bold leading-none md:block">Liftosaur</h1>
           <h2 className="mb-4 text-xl">
             The most powerful weightlifting <span className="font-bold text-purplev2-main">planner</span> and{" "}
-            <span className="font-bold text-orangev2">tracker</span> app
+            <span className="font-bold text-icon-yellow">tracker</span> app
           </h2>
           <p className="mb-4 text-xl">
             It's like having mobile-friendly <strong>Google Sheets</strong> and <strong>Strong</strong> in the same app!
@@ -135,7 +135,7 @@ function HowItWorks(): JSX.Element {
         <MainEditorAndPlayground />
       </div>
       <p className="mb-2">
-        This is <span className="font-bold text-orangev2">interactive demo</span> - try to{" "}
+        This is <span className="font-bold text-icon-yellow">interactive demo</span> - try to{" "}
         <strong>change the sets</strong>, <strong>reps</strong> or <strong>weight</strong> in Squat or Bench Press, or
         e.g. try to add "
         <strong>

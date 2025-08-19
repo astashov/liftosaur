@@ -123,7 +123,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
       <form data-cy="exercises-list" onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-background-default border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="text"
           value={filter}
           placeholder="Filter by name"
@@ -244,7 +244,7 @@ function ExerciseItem(props: IExerciseItemProps): JSX.Element {
         </div>
         <div className="flex-1 pt-3 pb-1 text-left">
           <div>{props.exercise.name}</div>
-          <div className="flex text-xs text-grayv2-main">
+          <div className="flex text-xs text-text-secondary">
             <div className="mr-2">
               <strong>1RM:</strong> {Weight.print(props.exercise.rm1)},
             </div>

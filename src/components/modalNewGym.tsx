@@ -20,7 +20,7 @@ export function ModalNewGym(props: IProps): JSX.Element {
       onClose={() => props.onInput(undefined)}
     >
       <h2 className="mb-2 text-lg font-bold text-center">New Gym</h2>
-      <div className="mb-2 text-xs text-grayv2-main">
+      <div className="mb-2 text-xs text-text-secondary">
         You can add a new gym with a set of exercises, and when you switch between gyms, the exercises will use the
         equipment from the selected gym.
       </div>

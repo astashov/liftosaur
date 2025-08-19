@@ -45,7 +45,7 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
   }, []);
 
   return (
-    <div className="relative flex items-center justify-center w-full bg-white">
+    <div className="relative flex items-center justify-center w-full bg-background-default">
       {props.isLoading ? (
         <div className="absolute" style={{ left: 8, top: 28 }}>
           <IconSpinner width={12} height={12} />
@@ -111,7 +111,7 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
                     <div className="text-xs text-gray-500">{day.dayName}</div>
                     <div
                       className={`flex items-center justify-center text-sm w-8 h-8 rounded-full ${
-                        day.record && !Progress.isCurrent(day.record) ? "text-white bg-redv3-500" : "text-gray-800"
+                        day.record && !Progress.isCurrent(day.record) ? "text-text-alwayswhite bg-redv3-500" : "text-gray-800"
                       } ${day.isToday ? "border border-purplev3-500 font-bold" : ""}`}
                     >
                       {day.dayNumber}

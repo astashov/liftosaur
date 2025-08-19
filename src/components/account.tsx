@@ -73,8 +73,8 @@ function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
               )}
             </div>
           </div>
-          {account.name && <div className="text-xs text-grayv2-main">id: {account.id}</div>}
-          <div className="text-xs text-grayv2-main">
+          {account.name && <div className="text-xs text-text-secondary">id: {account.id}</div>}
+          <div className="text-xs text-text-secondary">
             {account.email === "noemail@example.com" ? (
               <></>
             ) : (
@@ -167,7 +167,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
           </div>
           <div>
             <button
-              className="flex items-center w-full px-4 py-3 mt-2 text-white rounded-lg bg-blackv2 nm-sign-in-with-apple"
+              className="flex items-center w-full px-4 py-3 mt-2 text-text-alwayswhite rounded-lg bg-text-primary nm-sign-in-with-apple"
               onClick={async () => {
                 setIsLoading(true);
                 if (props.dispatch) {

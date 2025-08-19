@@ -23,7 +23,7 @@ export function ProgramQrCode(props: IProgramQrCodeProps): JSX.Element {
 
   return (
     <div className="mt-1">
-      {props.title && <div className="text-xs text-grayv2-main">{props.title}</div>}
+      {props.title && <div className="text-xs text-text-secondary">{props.title}</div>}
       <canvas ref={ref} className="inline-block" style={{ width: size, height: size }} />
     </div>
   );

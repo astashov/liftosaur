@@ -139,9 +139,9 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
 
   return (
     <div>
-      <div className="px-2 my-1 bg-white border rounded-xl border-grayv3-300">
+      <div className="px-2 my-1 bg-background-default border rounded-xl border-border-neutral">
         <div
-          className="sticky left-0 z-10 flex items-center gap-1 py-2 bg-white border-b border-grayv3-50 rounded-t-2xl rounded-w-2xl"
+          className="sticky left-0 z-10 flex items-center gap-1 py-2 bg-background-default border-b border-grayv3-50 rounded-t-2xl rounded-w-2xl"
           style={{ top: "3.7rem" }}
         >
           <div className="flex items-center">

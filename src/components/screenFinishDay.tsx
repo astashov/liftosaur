@@ -98,7 +98,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           </div>
         </div>
         <section className="px-4 pb-2 text-center">
-          <div className="text-sm text-grayv2-main">{record.programName}</div>
+          <div className="text-sm text-text-secondary">{record.programName}</div>
           <div className="text-base">{record.dayName}</div>
         </section>
         <div className="px-4 pt-2 pb-3 rounded-lg bg-purplev2-100">
@@ -201,7 +201,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         )}
 
         {eligibleForCreateProgramDay && (
-          <div className="mx-2 my-1 text-xs text-grayv3-main">You can create a program day from this workout</div>
+          <div className="mx-2 my-1 text-xs text-text-secondary">You can create a program day from this workout</div>
         )}
 
         <div className="flex w-full gap-4 pt-4">
@@ -267,7 +267,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
     <div>
       <div className="px-4 py-4">
         <GroupHeader name="Share it!" />
-        <div className="flex justify-between gap-4 text-xs text-grayv2-main">
+        <div className="flex justify-between gap-4 text-xs text-text-secondary">
           <div className="text-center">
             <button
               className="nm-finishday-share-igstory"
@@ -358,7 +358,7 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
     <div>
       <div className="px-4 py-4">
         <GroupHeader name="Share it!" />
-        <div className="flex justify-between gap-4 text-xs text-grayv2-main">
+        <div className="flex justify-between gap-4 text-xs text-text-secondary">
           <div className="text-center">
             <WorkoutShareButton
               history={props.history}

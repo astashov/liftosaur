@@ -43,7 +43,7 @@ export function ModalEditProgressScript(props: IModalEditProgressScriptProps): J
   return (
     <Modal name="modal-edit-progress-script" isFullWidth isFullHeight onClose={props.onClose} shouldShowClose={true}>
       <h2 className="mb-1 text-lg font-bold text-center">Progress Script</h2>
-      <p className="mb-2 text-xs text-grayv3-main">
+      <p className="mb-2 text-xs text-text-secondary">
         It's executed when you finish a workout, and it can modify the program text.
       </p>
       <ScriptEditorView

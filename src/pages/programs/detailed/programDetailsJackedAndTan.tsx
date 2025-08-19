@@ -125,7 +125,7 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
             after playing around with the interactive example at the bottom of this page.
           </p>
           <h3>Example of a T1 exercise sets/reps/weight week over week</h3>
-          <p className="text-xs text-grayv2-main">Note that first RM sets are approximate in this example</p>
+          <p className="text-xs text-text-secondary">Note that first RM sets are approximate in this example</p>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
               program={evaluatedProgram}

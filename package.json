@@ -7,6 +7,7 @@
     "build": "npm run build:markdown && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production npm run build:dev && npm run upload-source-maps",
     "build:stage": "npm run build:markdown && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production STAGE=1 npm run build:dev",
     "build:markdown": "node scripts/build-markdown.js",
+    "build:semantic": "node generate-semantic-colors.js",
     "analyze": "open dist/report.html",
     "docs": "generate-md --layout ./src/docs/layout/ --input ./src/docs/content/ --output ./docs",
     "plannerhighlighter": "tsc --skipLibCheck --outDir dist-plannerhighlighter ./src/pages/planner/plannerHighlighter.ts",

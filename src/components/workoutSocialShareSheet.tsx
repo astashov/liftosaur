@@ -39,7 +39,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
   return (
     <section
       data-cy="workout-share-sheet"
-      className="relative flex flex-col overflow-hidden text-blackv2"
+      className="relative flex flex-col overflow-hidden text-text-primary"
       style={{ height: "calc(100vh - 4rem)" }}
     >
       <h2 className="my-4 text-base font-bold text-center">{title}</h2>

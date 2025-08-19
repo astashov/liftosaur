@@ -9,7 +9,7 @@ interface IProps {
 
 export function IconClose2(props: IProps): JSX.Element {
   const size = props.size ?? 12;
-  const color = props.color ?? Tailwind.colors().blackv2;
+  const color = props.color ?? Tailwind.colors().black;
   return (
     <svg
       width={size}

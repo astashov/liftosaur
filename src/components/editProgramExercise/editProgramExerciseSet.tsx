@@ -106,7 +106,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   "Open edit set bottom sheet"
                 );
               }}
-              className="flex-1 h-full text-white bg-grayv3-main nm-workout-exercise-set-edit"
+              className="flex-1 h-full text-text-alwayswhite bg-background-darkgray nm-workout-exercise-set-edit"
             >
               Edit
             </button>
@@ -133,7 +133,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                 );
                 props.setSetIds((prev) => CollectionUtils.removeAt(prev, setIndex));
               }}
-              className="flex-1 h-full text-white bg-redv3-600 nm-workout-exercise-set-delete"
+              className="flex-1 h-full text-text-alwayswhite bg-background-darkred nm-workout-exercise-set-delete"
             >
               Delete
             </button>
@@ -151,11 +151,11 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
             onPointerMove={!shouldUseTouch ? onPointerMove : undefined}
             onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
           >
-            <div className="table-cell w-2 px-2 py-1 text-sm align-middle border-b border-purplev3-150">
+            <div className="table-cell w-2 px-2 py-1 text-sm align-middle border-b border-border-purple">
               <div className={`text-center h-6 flex items-center justify-center rounded-full`}>
                 <div>
                   <div>{setIndex + 1}</div>
-                  {set.label && <div className="text-xs text-grayv3-main">{set.label}</div>}
+                  {set.label && <div className="text-xs text-text-secondary">{set.label}</div>}
                 </div>
               </div>
             </div>
@@ -163,7 +163,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
               <>
                 {set.minrep != null ? (
                   <>
-                    <div className="table-cell py-2 align-middle border-b border-purplev3-150">
+                    <div className="table-cell py-2 align-middle border-b border-border-purple">
                       <div className="flex justify-center text-center" style={{ opacity: reusingSets ? 0.5 : 1 }}>
                         <InputNumber2
                           width={2.5 + widthAdd}
@@ -186,17 +186,17 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                         />
                       </div>
                     </div>
-                    <div className="table-cell px-1 py-2 text-center align-middle border-b border-purplev3-150">-</div>
+                    <div className="table-cell px-1 py-2 text-center align-middle border-b border-border-purple">-</div>
                   </>
                 ) : (
                   <>
-                    <div className="table-cell border-b border-purplev3-150" />
-                    <div className="table-cell border-b border-purplev3-150" />
+                    <div className="table-cell border-b border-border-purple" />
+                    <div className="table-cell border-b border-border-purple" />
                   </>
                 )}
               </>
             )}
-            <div className="table-cell py-2 align-middle border-b border-purplev3-150">
+            <div className="table-cell py-2 align-middle border-b border-border-purple">
               <div className="flex justify-center text-center" style={{ opacity: reusingSets ? 0.3 : 1 }}>
                 <InputNumber2
                   width={2.5 + widthAdd}
@@ -213,7 +213,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                     }
                   }}
                   after={() => {
-                    return set.isAmrap ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+                    return set.isAmrap ? <span className="text-xs text-text-secondary">+</span> : undefined;
                   }}
                   keyboardAddon={
                     <div className="py-2">
@@ -238,12 +238,12 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
               <>
                 <div
                   data-cy="set-x"
-                  className="relative table-cell px-1 py-2 text-center align-middle border-b border-purplev3-150"
+                  className="relative table-cell px-1 py-2 text-center align-middle border-b border-border-purple"
                 >
                   ×
                 </div>
                 {set.weight != null ? (
-                  <div className="relative table-cell py-2 align-middle border-b border-purplev3-150">
+                  <div className="relative table-cell py-2 align-middle border-b border-border-purple">
                     <div
                       className="flex items-center justify-center text-center"
                       style={{
@@ -271,7 +271,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                         subscription={undefined}
                         value={set.weight}
                         after={() => {
-                          return set.askWeight ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+                          return set.askWeight ? <span className="text-xs text-text-secondary">+</span> : undefined;
                         }}
                         max={9999}
                         min={-9999}
@@ -293,7 +293,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                     {lastHasRow === "weight" && buttons}
                   </div>
                 ) : (
-                  <div className="relative table-cell border-b border-purplev3-150">
+                  <div className="relative table-cell border-b border-border-purple">
                     {lastHasRow === "weight" && buttons}
                   </div>
                 )}
@@ -301,7 +301,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
             )}
             {props.opts.hasRpe &&
               (set.rpe != null ? (
-                <div className="relative table-cell py-2 align-middle border-b border-purplev3-150">
+                <div className="relative table-cell py-2 align-middle border-b border-border-purple">
                   <div
                     className="flex justify-center text-center"
                     style={{ paddingRight: rowRightPaddings.rpe, opacity: reusingRpe ? 0.3 : 1 }}
@@ -312,7 +312,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                       allowDot={true}
                       name="set-rpe"
                       after={() => {
-                        return set.logRpe ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+                        return set.logRpe ? <span className="text-xs text-text-secondary">+</span> : undefined;
                       }}
                       keyboardAddon={
                         <div className="py-2">
@@ -345,13 +345,13 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   {lastHasRow === "rpe" && buttons}
                 </div>
               ) : (
-                <div className="relative table-cell border-b border-purplev3-150">
+                <div className="relative table-cell border-b border-border-purple">
                   {lastHasRow === "rpe" && buttons}
                 </div>
               ))}
             {props.opts.hasTimer &&
               (set.timer != null ? (
-                <div className="relative table-cell py-2 align-middle border-b border-purplev3-150">
+                <div className="relative table-cell py-2 align-middle border-b border-border-purple">
                   <div
                     className="flex justify-center text-center"
                     style={{
@@ -382,7 +382,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   {lastHasRow === "timer" && buttons}
                 </div>
               ) : (
-                <div className="relative table-cell border-b border-purplev3-150">
+                <div className="relative table-cell border-b border-border-purple">
                   {lastHasRow === "timer" && buttons}
                 </div>
               ))}

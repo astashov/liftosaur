@@ -77,7 +77,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
   if (props.errorMessage || validationErrors.size > 0) {
     className += " border-redv2-main";
   } else {
-    className += " border-grayv2-200";
+    className += " border-border-neutral";
   }
 
   const errorMessages = [];

@@ -35,7 +35,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
 
   return (
     <div
-      className="sticky left-0 flex flex-row items-center justify-between gap-2 py-1 pl-2 pr-4 bg-white border-b border-grayv3-50"
+      className="sticky left-0 flex flex-row items-center justify-between gap-2 py-1 pl-2 pr-4 bg-background-default border-b border-grayv3-50"
       style={{
         zIndex: 25,
         top: "3.75rem",

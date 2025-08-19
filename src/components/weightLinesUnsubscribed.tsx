@@ -14,7 +14,7 @@ export function WeightLinesUnsubscribed(props: IWeightLinesUnsubscribedProps): J
         .map((w) => {
           return (
             <div>
-              <div className="text-xs text-grayv2-main">
+              <div className="text-xs text-text-secondary">
                 <span className="line-through">
                   {Number(w.original.value?.toFixed(2))} {w.original.unit}
                 </span>

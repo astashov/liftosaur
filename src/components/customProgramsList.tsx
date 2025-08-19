@@ -75,7 +75,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
   return (
     <div className="relative">
       <div
-        className="absolute z-10 flex items-center gap-1 px-2 py-1 leading-none border rounded-full bg-grayv3-50 border-grayv3-200"
+        className="absolute z-10 flex items-center gap-1 px-2 py-1 leading-none border rounded-full bg-background-subtle border-border-neutral"
         style={{ right: "-0.75rem", top: "-1.5rem" }}
       >
         <button
@@ -108,7 +108,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
         </button>
       </div>
       <button
-        className="relative flex items-center w-full p-3 mt-8 mb-4 text-left border rounded-lg bg-yellowv3-50 border-yellowv3-200 nm-program-list-choose-program"
+        className="relative flex items-center w-full p-3 mt-8 mb-4 text-left border rounded-lg bg-background-cardyellow border-background-cardyellowborder nm-program-list-choose-program"
         onClick={() => {
           if (props.program.planner == null) {
             alert("Old-style programs are not supported anymore");
@@ -134,16 +134,16 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
                 <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
               ))}
           </div>
-          <div className="flex mb-1 text-grayv2-main">
-            <IconCalendarSmall color={Tailwind.colors().grayv3.main} className="block mr-1" />{" "}
+          <div className="flex mb-1 text-text-secondary">
+            <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
             <div className="text-xs">
               {evaluatedProgram.weeks.length > 1 &&
                 `${evaluatedProgram.weeks.length} ${StringUtils.pluralize("week", evaluatedProgram.weeks.length)}, `}
               {Program.daysRange(evaluatedProgram)}, {Program.exerciseRange(evaluatedProgram)}
             </div>
           </div>
-          <div className="flex text-grayv2-main">
-            <IconKettlebellSmall color={Tailwind.colors().grayv3.main} className="block mr-1" />{" "}
+          <div className="flex text-text-secondary">
+            <IconKettlebellSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
             <div className="text-xs">{equipment.join(", ")}</div>
           </div>
         </div>

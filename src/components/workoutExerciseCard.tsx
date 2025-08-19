@@ -106,7 +106,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
               </button>
             </div>
-            <div data-cy="exercise-equipment" className="text-sm text-grayv2-600">
+            <div data-cy="exercise-equipment" className="text-sm text-text-secondary">
               Equipment:{" "}
               <LinkButton
                 name="exercise-equipment-picker"
@@ -123,7 +123,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
               </LinkButton>
             </div>
             {programExercise && ProgramExercise.doesUse1RM(programExercise) && (
-              <div data-cy="exercise-rm1" className="text-sm text-grayv2-600">
+              <div data-cy="exercise-rm1" className="text-sm text-text-secondary">
                 1RM:{" "}
                 <LinkButton
                   name="exercise-rm1-picker"
@@ -414,13 +414,13 @@ function WorkoutPlatesCalculator(props: IWorkoutPlatesCalculatorProps): JSX.Elem
           backgroundRepeat: "no-repeat",
         }}
       >
-        <div className="py-1 pl-8 pr-4 text-xs text-grayv2-main">
+        <div className="py-1 pl-8 pr-4 text-xs text-text-secondary">
           {isSubscribed ? (
             <span>
               <span>Plates: </span>
               <span className="font-semibold break-all">
                 <span
-                  className={Weight.eq(weight, props.weight) ? "text-blackv2" : "text-redv2-600"}
+                  className={Weight.eq(weight, props.weight) ? "text-text-primary" : "text-redv2-600"}
                   data-cy="plates-list"
                 >
                   {plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.entry.exercise) : "None"}

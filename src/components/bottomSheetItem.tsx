@@ -24,7 +24,7 @@ export function BottomSheetItem(props: IProps): JSX.Element {
         <div>{props.icon}</div>
         <div className="flex-1 pl-3">{props.title}</div>
       </div>
-      <div className="pt-2 text-xs text-grayv2-main">{props.description}</div>
+      <div className="pt-2 text-xs text-text-secondary">{props.description}</div>
     </button>
   );
 }

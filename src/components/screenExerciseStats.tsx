@@ -133,7 +133,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     >
       <section className="px-4">
         <h1 className="text-xl font-bold">{Exercise.fullName(fullExercise, props.settings)}</h1>
-        <div className="text-xs text-grayv2-main" style={{ marginTop: "-0.25rem" }}>
+        <div className="text-xs text-text-secondary" style={{ marginTop: "-0.25rem" }}>
           {Exercise.isCustom(fullExercise.id, props.settings.exercises) ? "Custom exercise" : "Built-in exercise"}
         </div>
         <div className="py-2">

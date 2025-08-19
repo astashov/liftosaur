@@ -131,29 +131,29 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
             </div>
           )}
           <div>
-            <span className="text-grayv2-main">Sets this day: </span>
+            <span className="text-text-secondary">Sets this day: </span>
             <span>{PlannerProgramExercise.numberOfSets(evaluatedExercise)}</span>
           </div>
           <div>
-            <span className="text-grayv2-main">Sets this week: </span>
+            <span className="text-text-secondary">Sets this week: </span>
             <span>{PlannerProgramExercise.numberOfSetsThisWeek(evaluatedExercise.name, evaluatedWeek)}</span>
           </div>
         </div>
       </div>
       <div className="mt-1">
-        <span className="text-grayv2-main">Target Muscles: </span>
+        <span className="text-text-secondary">Target Muscles: </span>
         <span className="font-bold">{targetMuscles.join(", ")}</span>
       </div>
       <div>
-        <span className="text-grayv2-main">Synergist Muscles: </span>
+        <span className="text-text-secondary">Synergist Muscles: </span>
         <span className="font-bold">{synergeticMuscles.join(", ")}</span>
       </div>
       <div className="mt-1">
-        <span className="text-grayv2-main">Target Muscles Groups: </span>
+        <span className="text-text-secondary">Target Muscles Groups: </span>
         <span className="font-bold">{targetMuscleGroups.join(", ")}</span>
       </div>
       <div>
-        <span className="text-grayv2-main">Synergist Muscle Groups: </span>
+        <span className="text-text-secondary">Synergist Muscle Groups: </span>
         <span className="font-bold">{synergeticMuscleGroups.join(", ")}</span>
       </div>
       {intensityGraphData[0].length > 1 && (

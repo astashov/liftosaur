@@ -43,7 +43,7 @@ export function ImporterLiftosaurCsv(props: IImporterLiftosaurCsvProps): JSX.Ele
                 </div>
               </div>
               {showHelp && (
-                <div className="text-xs text-center text-grayv2-main">
+                <div className="text-xs text-center text-text-secondary">
                   <InternalLink
                     name="download-example-csv"
                     href="https://www.liftosaur.com/liftosaur_example_csv.zip"

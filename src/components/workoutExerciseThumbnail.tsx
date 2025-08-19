@@ -23,7 +23,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
   const { entry, entryIndex } = props;
   const setsStatus = Reps.setsStatus(entry.sets);
   const isCurrent = (props.progress.ui?.currentEntryIndex ?? 0) === entryIndex;
-  const borderColor = isCurrent ? "border-purplev3-main" : WorkoutExerciseUtils.setsStatusToBorderColor(setsStatus);
+  const borderColor = isCurrent ? "border-button-secondarystroke" : WorkoutExerciseUtils.setsStatusToBorderColor(setsStatus);
   const exercise = Exercise.get(entry.exercise, props.settings.exercises);
   const ref = useRef<HTMLButtonElement>(null);
   const totalSetsCount = entry.sets.length;
@@ -36,7 +36,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
       onMouseDown={props.handleTouchStart}
       onClick={props.onClick}
       data-name={`workout-exercise-tab-${entryIndex}`}
-      className="align-middle bg-white"
+      className="align-middle bg-background-default"
       style={{ padding: "0 0.125rem" }}
     >
       <div

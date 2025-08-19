@@ -52,7 +52,7 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
 
   return (
     <>
-      <div className="px-4 pt-2 pb-2 bg-white">
+      <div className="px-4 pt-2 pb-2 bg-background-default">
         <div className="flex gap-4 pb-2">
           <div className="text-base font-bold">Edit Update</div>
           {ownUpdate?.type === "custom" && !ownUpdate.reuse && (

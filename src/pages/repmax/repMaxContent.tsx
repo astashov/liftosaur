@@ -63,10 +63,10 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
       <div className="mb-2">
         <div className="mb-2">
           <h2 className="text-lg font-bold">
-            Enter how many reps <span className="text-orangev2">you can do</span> with some weight
+            Enter how many reps <span className="text-icon-yellow">you can do</span> with some weight
           </h2>
           {rpeEnabled && (
-            <p className="text-xs text-grayv2-main">
+            <p className="text-xs text-text-secondary">
               Also you can specify RPE. If you don't know your RPE, leave it as <strong>10</strong>.
             </p>
           )}
@@ -127,7 +127,7 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
       <div className="mb-2">
         <div className="mb-2">
           <h2 className="text-lg font-bold">
-            This would be your weight for <span className="text-orangev2">{reps}RM</span>
+            This would be your weight for <span className="text-icon-yellow">{reps}RM</span>
           </h2>
         </div>
         <div className="flex items-center justify-center">
@@ -215,7 +215,7 @@ function OtherRepMaxes(props: IOtherRepMaxesProps): JSX.Element {
                   const w = Weight.calculateRepMax(knownReps, knownRpe ?? 10, knownWeight, r, rpe ?? 10);
                   return (
                     <li key={r}>
-                      {r}RM{rpeEnabled ? <span className="text-grayv2-main">@{rpe ?? 10}</span> : ""}:{" "}
+                      {r}RM{rpeEnabled ? <span className="text-text-secondary">@{rpe ?? 10}</span> : ""}:{" "}
                       <strong>{w}</strong>
                     </li>
                   );
@@ -235,7 +235,7 @@ function OtherRepMaxes(props: IOtherRepMaxesProps): JSX.Element {
               const w = (Weight.rpeMultiplier(r, rpe ?? 10) * 100).toFixed(0);
               return (
                 <li key={r}>
-                  {r}RM{rpeEnabled ? <span className="text-grayv2-main">@{rpe ?? 10}</span> : ""}: <strong>{w}%</strong>
+                  {r}RM{rpeEnabled ? <span className="text-text-secondary">@{rpe ?? 10}</span> : ""}: <strong>{w}%</strong>
                 </li>
               );
             })}
@@ -259,7 +259,7 @@ function TMConverter(): JSX.Element {
         <div>
           <div className="mb-2">
             <h2 className="text-lg font-bold">Convert TM percentages into RM percentages</h2>
-            <p className="text-xs text-grayv2-main">Enter what percentage of RM your TM is</p>
+            <p className="text-xs text-text-secondary">Enter what percentage of RM your TM is</p>
           </div>
           <div className="mb-2">
             <InputNumber

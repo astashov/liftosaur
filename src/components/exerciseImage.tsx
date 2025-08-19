@@ -59,7 +59,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
           (!doesExist &&
             (props.useTextForCustomExercise ? (
               <div className={`relative ${props.className} ${props.customClassName}`} style={{ paddingBottom: "100%" }}>
-                <div className="absolute inset-0 flex items-center justify-start text-xs text-left bg-white text-grayv3-500">
+                <div className="absolute inset-0 flex items-center justify-start text-xs text-left bg-background-default text-text-secondarysubtle">
                   <div
                     className="flex items-stretch justify-start w-full h-full p-1 leading-3 fade-mask"
                     style={{ fontSize: "0.7rem" }}

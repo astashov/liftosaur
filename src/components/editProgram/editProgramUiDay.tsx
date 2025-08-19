@@ -57,7 +57,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
   return (
     <div
       key={props.day.id}
-      className="p-1 my-1 bg-white border rounded-2xl border-grayv3-300"
+      className="p-1 my-1 bg-background-default border rounded-2xl border-border-neutral"
       data-cy={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
     >
       <div className="flex items-center">

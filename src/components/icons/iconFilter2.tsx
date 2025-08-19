@@ -9,7 +9,7 @@ interface IProps {
 
 export function IconFilter2(props: IProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.colors().blackv2;
+  const color = props.color ?? Tailwind.colors().black;
   return (
     <svg
       width={size}

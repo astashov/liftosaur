@@ -28,10 +28,10 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
   return (
     <div className="mb-2 text-sm">
       <div>
-        <span className="text-grayv2-main">Total Sets:</span> {setResults.total}
+        <span className="text-text-secondary">Total Sets:</span> {setResults.total}
       </div>
       <div>
-        <span className="text-grayv2-main">Strength Sets: </span>
+        <span className="text-text-secondary">Strength Sets: </span>
         <span
           className={
             props.colorize ? colorPctValue(setResults.total, setResults.strength, settings.planner.strengthSetsPct) : ""
@@ -42,7 +42,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         </span>
       </div>
       <div className="mb-2">
-        <span className="text-grayv2-main">Hypertrophy Sets: </span>
+        <span className="text-text-secondary">Hypertrophy Sets: </span>
         <span
           className={
             props.colorize
@@ -136,7 +136,7 @@ export function labelSet(
       </LinkButton>
     );
   } else {
-    return <span className="text-grayv2-main">{label}:</span>;
+    return <span className="text-text-secondary">{label}:</span>;
   }
 }
 
@@ -253,12 +253,12 @@ function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
   }
 
   return (
-    <div className="absolute z-10 px-3 py-2 text-xs bg-white border border-grayv2-400 rounded-xl text-blackv2 planner-stats-tooltip">
+    <div className="absolute z-10 px-3 py-2 text-xs bg-background-default border border-grayv2-400 rounded-xl text-text-primary planner-stats-tooltip">
       <ul style={{ minWidth: "14rem" }}>
         {exercises.map((exercise) => {
           const totalSets = exercise.strengthSets + exercise.hypertrophySets;
           return (
-            <li className={`font-bold ${exercise.isSynergist ? "text-grayv2-main" : "text-blackv2"}`}>
+            <li className={`font-bold ${exercise.isSynergist ? "text-text-secondary" : "text-text-primary"}`}>
               {exercise.exerciseName}: {n(totalSets)} ({exercise.strengthSets}s, {n(exercise.hypertrophySets)}h)
             </li>
           );

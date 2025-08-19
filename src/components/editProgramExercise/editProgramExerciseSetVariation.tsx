@@ -43,7 +43,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
   const widthAdd = (4 - additionalFields) * 0.5;
 
   return (
-    <div className="border rounded-lg bg-purplev3-50 border-purplev3-150">
+    <div className="border rounded-lg bg-background-cardpurple border-border-purple">
       <div className="flex items-center gap-4 pt-2 pb-1 pl-4 pr-2">
         <div className="flex-1 font-semibold">{props.name}</div>
         {props.areSetVariationsEnabled && (
@@ -93,21 +93,21 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
       </div>
       <div className="table w-full overflow-hidden">
         <div className="table-row-group pt-1">
-          <div className="table-row text-xs border-b text-grayv2-main border-pubplev3-200">
-            <div className="table-cell px-2 py-1 font-normal text-left align-bottom border-b border-purplev3-150">
+          <div className="table-row text-xs border-b text-text-secondary border-pubplev3-200">
+            <div className="table-cell px-2 py-1 font-normal text-left align-bottom border-b border-border-purple">
               Set
             </div>
             {hasMinReps && (
               <>
-                <div className="table-cell py-1 font-normal text-center align-bottom border-b border-purplev3-150">
+                <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-purple">
                   Min
                   <br />
                   Reps
                 </div>
-                <div className="table-cell py-1 text-center border-b border-purplev3-150"></div>
+                <div className="table-cell py-1 text-center border-b border-border-purple"></div>
               </>
             )}
-            <div className="table-cell py-1 font-normal text-center align-bottom border-b border-purplev3-150">
+            <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-purple">
               {hasMinReps ? (
                 <>
                   Max
@@ -120,19 +120,19 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
             </div>
             {hasWeight && (
               <>
-                <div className="table-cell py-1 text-center border-b border-purplev3-150"></div>
-                <div className="table-cell py-1 font-normal text-center align-bottom border-b border-purplev3-150">
+                <div className="table-cell py-1 text-center border-b border-border-purple"></div>
+                <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-purple">
                   Weight
                 </div>
               </>
             )}
             {hasRpe && (
-              <div className="table-cell py-1 font-normal text-center align-bottom border-b border-purplev3-150">
+              <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-purple">
                 RPE
               </div>
             )}
             {hasTimer && (
-              <div className="table-cell py-1 font-normal text-center align-bottom border-b border-purplev3-150">
+              <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-purple">
                 Timer
               </div>
             )}
@@ -166,7 +166,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
       </div>
       <div className="flex">
         <button
-          className="flex-1 py-2 m-2 text-xs font-semibold text-center rounded-md bg-purplev3-100 text-bluev3-main"
+          className="flex-1 py-2 m-2 text-xs font-semibold text-center rounded-md bg-background-purpledark text-text-link"
           data-cy="add-set"
           onClick={() => {
             EditProgramUiHelpers.changeCurrentInstanceExercise(
@@ -181,7 +181,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
           }}
         >
           <span>
-            <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().bluev3.main} />
+            <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().blue[400]} />
           </span>
           <span className="ml-2">Add Set</span>
         </button>

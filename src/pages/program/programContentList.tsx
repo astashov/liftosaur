@@ -85,7 +85,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
           </Button>
           <a
             href="/planner"
-            className="inline-block px-8 py-2 mt-2 text-xs font-semibold leading-6 text-white bg-purple-700 sm:mt-0 sm:ml-4 rounded-2xl nm-add-standalone-program"
+            className="inline-block px-8 py-2 mt-2 text-xs font-semibold leading-6 text-text-alwayswhite bg-purple-700 sm:mt-0 sm:ml-4 rounded-2xl nm-add-standalone-program"
             target="_blank"
           >
             New Standalone Program
@@ -184,7 +184,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                     />
                   ))}
               </div>
-              <div className="pt-1 text-grayv2-main">
+              <div className="pt-1 text-text-secondary">
                 {CollectionUtils.compact([
                   Program.weeksRange(evaluatedProgram),
                   Program.daysRange(evaluatedProgram),

@@ -194,19 +194,19 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             onClick={() => setIsWeekStatsShown(true)}
           />
         </ul>
-        <p className="mb-4 text-xs text-grayv2-main">
+        <p className="mb-4 text-xs text-text-secondary">
           You can get monthly or yearly subscription (and you'll be charged for a month or year every month or year
           after initial 14 days free trial period) or lifetime - one-time payment, that gives access to those features
           without recurring charges in the future.
         </p>
-        <p className="mb-4 text-xs text-grayv2-main">
+        <p className="mb-4 text-xs text-text-secondary">
           You can cancel subscriptions any time via Google Play or App Store subscriptions management.
         </p>
-        <div className="fixed bottom-0 left-0 w-full px-2 py-2 bg-white">
+        <div className="fixed bottom-0 left-0 w-full px-2 py-2 bg-background-default">
           <div className="safe-area-inset-bottom">
             {props.subscription.key === "unclaimed" ? (
               <div className="flex items-center px-2">
-                <div className="text-xs text-grayv2-main">
+                <div className="text-xs text-text-secondary">
                   You were granted the <strong>free access</strong> to Liftosaur!
                 </div>
                 <div>
@@ -226,7 +226,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               <div>
                 <div className="flex flex-row">
                   <div className="flex-1 px-2 text-center">
-                    <div className="text-xs text-grayv2-main">Includes free 14 days trial</div>
+                    <div className="text-xs text-text-secondary">Includes free 14 days trial</div>
                     <Button
                       name="subscription-monthly"
                       onClick={() => {
@@ -253,7 +253,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                     </Button>
                   </div>
                   <div className="flex-1 px-2 text-center">
-                    <div className="text-xs text-grayv2-main">Includes free 14 days trial</div>
+                    <div className="text-xs text-text-secondary">Includes free 14 days trial</div>
                     <Button
                       name="subscription-yearly"
                       onClick={() => {
@@ -370,7 +370,7 @@ function Feature(props: IFeatureProps): JSX.Element {
         <h3 className="text-base font-bold">
           <LinkButton name="subscription-feature">{props.title}</LinkButton>
         </h3>
-        <p className="text-sm text-blackv2">{props.description}</p>
+        <p className="text-sm text-text-primary">{props.description}</p>
       </div>
     </li>
   );

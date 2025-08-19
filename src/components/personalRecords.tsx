@@ -58,7 +58,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
       />
       {ObjectUtils.keys(items.maxWeight).length > 0 && (
         <>
-          <h4 className="my-1 text-xs text-grayv2-main">Max Weight</h4>
+          <h4 className="my-1 text-xs text-text-secondary">Max Weight</h4>
           <ul className="pb-2">
             {ObjectUtils.keys(items.maxWeight).map((exerciseKey) => {
               const exerciseType = Exercise.fromKey(exerciseKey);
@@ -95,7 +95,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
       )}
       {ObjectUtils.keys(items.max1RM).length > 0 && (
         <>
-          <h4 className="my-1 text-xs text-grayv2-main">Max Estimated One Rep Max</h4>
+          <h4 className="my-1 text-xs text-text-secondary">Max Estimated One Rep Max</h4>
           <ul className="pb-2">
             {ObjectUtils.keys(items.max1RM).map((exerciseKey) => {
               const exerciseType = Exercise.fromKey(exerciseKey);

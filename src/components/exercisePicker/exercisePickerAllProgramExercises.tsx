@@ -100,7 +100,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                   <li key={exercise.id} className={`pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`}>
                     <label className="flex w-full text-right tap-2">
                       <div>
-                        <div className="px-1 pb-1 text-xs text-grayv3-main">Day {exercise.dayData.dayInWeek}</div>
+                        <div className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</div>
                         {displayGroups.map((g) => (
                           <HistoryRecordSet sets={g} isNext={true} settings={props.settings} />
                         ))}
@@ -136,7 +136,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                               <input
                                 checked={isSelected}
                                 disabled={isUsedForDay || (isDisabled && !isSelected)}
-                                className="checkbox checkbox-purple text-purplev3-main"
+                                className="checkbox checkbox-purple text-text-purple"
                                 data-cy={`exercise-picker-program-${StringUtils.dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`}
                                 type="checkbox"
                                 onChange={() => {

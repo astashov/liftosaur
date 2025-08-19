@@ -54,7 +54,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
     <div
       id={`edit-program-ui-exercise-${props.plannerExercise.dayData.week}-${props.plannerExercise.dayData.dayInWeek}-${props.plannerExercise.key}`}
       data-cy={`exercise-${props.plannerExercise.key}`}
-      className="my-1 overflow-hidden border bg-purplev3-50 rounded-xl border-purplev3-150"
+      className="my-1 overflow-hidden border bg-background-cardpurple rounded-xl border-border-purple"
     >
       <div className="flex items-center">
         <div className="p-2 cursor-move" style={{ touchAction: "none" }}>
@@ -73,10 +73,10 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
               props.plannerExercise.equipment !== exercise?.defaultEquipment && (
                 <span className="">, {equipmentName(props.plannerExercise.equipment)}</span>
               )}
-            {orderAndRepeat ? <span className="text-sm font-normal text-blackv2"> [{orderAndRepeat}]</span> : ""}
+            {orderAndRepeat ? <span className="text-sm font-normal text-text-primary"> [{orderAndRepeat}]</span> : ""}
           </div>
           {props.plannerExercise.notused && (
-            <div className="px-1 ml-3 text-xs font-bold text-white rounded bg-grayv2-main">UNUSED</div>
+            <div className="px-1 ml-3 text-xs font-bold text-text-alwayswhite rounded bg-grayv2-main">UNUSED</div>
           )}
           <button
             className="p-2"
@@ -136,7 +136,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
             <IconGraphsE width={16} height={19} />
           </button>
         </div>
-        <div className="py-2 bg-white border-l border-purplev3-150">
+        <div className="py-2 bg-background-default border-l border-border-purple">
           <button
             className="w-10 px-2 text-center nm-edit-exercise-expand-collapse"
             onClick={() => {
@@ -205,10 +205,10 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
 
   return (
     <div>
-      <div className="flex border-t border-purplev3-150">
+      <div className="flex border-t border-border-purple">
         <div className="flex-1">
           {plannerExercise.descriptions.values.length > 0 && (
-            <div className="flex border-b border-purplev3-150">
+            <div className="flex border-b border-border-purple">
               <div className="flex-1 px-3 py-1">
                 <EditProgramUiExerciseDescriptions plannerExercise={plannerExercise} settings={props.settings} />
               </div>
@@ -228,7 +228,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                   {displayWarmupSets.flat().length > 0 && (
                     <>
                       <div data-cy="ui-warmups-sets">
-                        <div className="pb-1 text-xs text-left text-grayv2-main">Warmups</div>
+                        <div className="pb-1 text-xs text-left text-text-secondary">Warmups</div>
                         <div>
                           <div>
                             {displayWarmupSets.map((g) => (
@@ -241,8 +241,8 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                     </>
                   )}
                   <div data-cy="ui-workout-sets">
-                    <div className="pb-1 text-xs text-left text-grayv2-main">Workout</div>
-                    {reusingSets && <div className="pb-1 text-xs text-grayv2-main">Reusing {reusingSets}</div>}
+                    <div className="pb-1 text-xs text-left text-text-secondary">Workout</div>
+                    {reusingSets && <div className="pb-1 text-xs text-text-secondary">Reusing {reusingSets}</div>}
                     <EditProgramUiExerciseSetVariations plannerExercise={plannerExercise} settings={props.settings} />
                   </div>
                 </div>
@@ -258,7 +258,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
             </div>
           )}
         </div>
-        <div className="bg-white border-l border-purplev3-150">
+        <div className="bg-background-default border-l border-border-purple">
           <div className="text-center">
             <button
               className="p-2"

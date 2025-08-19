@@ -30,8 +30,8 @@ function getHasErrorsInProgram(navCommon: INavCommon): boolean {
 }
 
 export function Footer2View(props: IFooterProps): JSX.Element {
-  const activeColor = Tailwind.colors().purplev2.main;
-  const inactiveColor = Tailwind.colors().grayv2["800"];
+  const activeColor = Tailwind.colors().purple[600];
+  const inactiveColor = Tailwind.colors().lightgray[800];
   const screen = Screen.currentName(props.navCommon.screenStack);
   const [showNextWorkoutSheet, setShowNextWorkoutSheet] = useState(false);
   const onClose = useCallback(() => setShowNextWorkoutSheet(false), []);
@@ -46,7 +46,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         style={{ marginBottom: "-2px" }}
       >
         <div
-          className="box-content absolute flex items-end bg-white safe-area-inset-bottom"
+          className="box-content absolute flex items-end bg-background-default safe-area-inset-bottom"
           style={{
             width: "4000px",
             marginLeft: "-2000px",
@@ -118,10 +118,10 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                 const color = isActive
                   ? undefined
                   : props.navCommon.userId
-                    ? Tailwind.colors().greenv3[600]
+                    ? Tailwind.colors().green[600]
                     : isUserLoading
-                      ? Tailwind.colors().grayv3.main
-                      : Tailwind.colors().redv3[600];
+                      ? Tailwind.colors().lightgray[600]
+                      : Tailwind.colors().red[600];
                 return <IconMe isSelected={isActive} color={color} />;
               }}
               text="Me"
@@ -146,7 +146,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
 function CreateButton(props: { isActive: boolean }): JSX.Element {
   return (
     <div
-      className="flex items-center justify-center border-white rounded-full bg-purplev3-main"
+      className="flex items-center justify-center border-white rounded-full bg-button-primarybackground"
       style={{
         width: "53px",
         height: "53px",

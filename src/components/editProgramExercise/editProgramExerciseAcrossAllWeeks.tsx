@@ -209,7 +209,7 @@ function Tab(props: ITabProps): JSX.Element {
         }
         const set = exercise.evaluatedSetVariations[first.setVariation - 1].sets[first.set - 1];
         return (
-          <div className="flex items-center gap-4 p-2 mb-4 border rounded-lg bg-purplev3-50 border-purplev3-150">
+          <div className="flex items-center gap-4 p-2 mb-4 border rounded-lg bg-background-cardpurple border-border-purple">
             <div className="text-sm">
               <GroupLabel
                 group={group}
@@ -312,7 +312,7 @@ function RepsValue(props: IValueProps): JSX.Element {
       {set.minrep != null && (
         <>
           <div className="text-center">
-            <div className="text-xs text-grayv3-main">Min Reps</div>
+            <div className="text-xs text-text-secondary">Min Reps</div>
             <div>
               <InputNumber2
                 width={3.5}
@@ -331,13 +331,13 @@ function RepsValue(props: IValueProps): JSX.Element {
             </div>
           </div>
           <div>
-            <div className="text-xs text-grayv3-main">&nbsp;</div>
+            <div className="text-xs text-text-secondary">&nbsp;</div>
             <div>-</div>
           </div>
         </>
       )}
       <div className="text-center">
-        <div className="text-xs text-grayv3-main">{set.minrep != null ? "Max Reps" : "Reps"}</div>
+        <div className="text-xs text-text-secondary">{set.minrep != null ? "Max Reps" : "Reps"}</div>
         <div>
           <InputNumber2
             width={3.5}
@@ -345,7 +345,7 @@ function RepsValue(props: IValueProps): JSX.Element {
             name="set-reps"
             onBlur={(value) => change(group, (set) => (set.maxrep = value))}
             after={() => {
-              return set.isAmrap ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+              return set.isAmrap ? <span className="text-xs text-text-secondary">+</span> : undefined;
             }}
             keyboardAddon={
               <div className="py-2">
@@ -373,7 +373,7 @@ function WeightsValue(props: IValueProps): JSX.Element {
   const { group, set, change } = props;
   return (
     <div className="text-center">
-      <div className="text-xs text-grayv3-main">Weight</div>
+      <div className="text-xs text-text-secondary">Weight</div>
       <div>
         <InputWeight2
           name="set-weight"
@@ -386,7 +386,7 @@ function WeightsValue(props: IValueProps): JSX.Element {
           subscription={undefined}
           value={set.weight}
           after={() => {
-            return set.askWeight ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+            return set.askWeight ? <span className="text-xs text-text-secondary">+</span> : undefined;
           }}
           max={9999}
           min={-9999}
@@ -412,7 +412,7 @@ function RpeValue(props: IValueProps): JSX.Element {
   const { group, set, change } = props;
   return (
     <div className="text-center">
-      <div className="text-xs text-grayv3-main">RPE</div>
+      <div className="text-xs text-text-secondary">RPE</div>
       <div>
         <InputNumber2
           width={3}
@@ -420,7 +420,7 @@ function RpeValue(props: IValueProps): JSX.Element {
           allowDot={true}
           name="set-rpe"
           after={() => {
-            return set.logRpe ? <span className="text-xs text-grayv3-main">+</span> : undefined;
+            return set.logRpe ? <span className="text-xs text-text-secondary">+</span> : undefined;
           }}
           keyboardAddon={
             <div className="py-2">
@@ -448,7 +448,7 @@ function TimerValue(props: IValueProps): JSX.Element {
   const { group, set, change } = props;
   return (
     <div className="text-center">
-      <div className="text-xs text-grayv3-main">Timer</div>
+      <div className="text-xs text-text-secondary">Timer</div>
       <div>
         <InputNumber2
           width={3.5}

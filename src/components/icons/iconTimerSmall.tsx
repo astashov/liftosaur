@@ -9,7 +9,7 @@ interface IProps {
 
 export function IconTimerSmall(props: IProps): JSX.Element {
   const size = props.size ?? 14;
-  const color = props.color ?? Tailwind.colors().blackv2;
+  const color = props.color ?? Tailwind.colors().black;
   return (
     <svg
       width={size}

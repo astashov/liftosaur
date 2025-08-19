@@ -38,7 +38,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
           EditEquipment.setDefaultRoundingForExercise(props.dispatch, fullExercise, value);
         }}
       />
-      <div className="text-xs text-right text-grayv2-main">Used when Equipment is not set</div>
+      <div className="text-xs text-right text-text-secondary">Used when Equipment is not set</div>
       {props.settings.gyms.length > 1 && (
         <div className="mt-2">
           <GroupHeader name="Equipments for each Gym" />
@@ -58,7 +58,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
             name={props.settings.gyms.length > 1 ? gym.name : "Equipment"}
             underName={
               props.settings.gyms.length > 1 && props.settings.currentGymId === gym.id ? (
-                <div className="text-xs leading-none text-grayv2-main">current</div>
+                <div className="text-xs leading-none text-text-secondary">current</div>
               ) : undefined
             }
             value={equipment ?? ""}

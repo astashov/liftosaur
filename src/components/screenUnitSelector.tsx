@@ -15,9 +15,9 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
   const selectedButtonCls = "text-white bg-purplev3-main border-purplev3-main";
   const unselectedButtonCls = "text-purplev3-main bg-white border-grayv3-200";
   return (
-    <section className="flex flex-col h-screen text-blackv2">
+    <section className="flex flex-col h-screen text-text-primary">
       <div className="flex-1 px-4 pt-16 pb-4">
-        <div className="w-full h-full border border-grayv3-200 rounded-2xl bg-grayv3-50">
+        <div className="w-full h-full border border-border-neutral rounded-2xl bg-background-subtle">
           <div className="px-6 pt-16 text-2xl font-semibold text-center">Pick your units</div>
           <div className="px-6 py-4 text-base text-center">
             Your chosen units will be the default, but you can override them or change them in Settings or per equipment

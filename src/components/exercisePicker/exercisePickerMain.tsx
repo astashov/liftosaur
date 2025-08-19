@@ -95,7 +95,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
               );
             }}
           >
-            <IconFilter color={Tailwind.colors().grayv3.main} />
+            <IconFilter color={Tailwind.colors().lightgray[600]} />
           </button>
         </div>
         <h3 className="px-4 font-bold text-center">{title}</h3>
@@ -110,7 +110,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                 );
               }}
             >
-              <IconMuscles2 color={Tailwind.colors().purplev3.main} isSelected={props.state.showMuscles} />
+              <IconMuscles2 color={Tailwind.colors().purple[600]} isSelected={props.state.showMuscles} />
             </button>
           </div>
           <div>
@@ -123,7 +123,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                 );
               }}
             >
-              <IconStar isSelected={isStarred} color={Tailwind.colors().purplev3.main} />
+              <IconStar isSelected={isStarred} color={Tailwind.colors().purple[600]} />
             </button>
           </div>
         </div>
@@ -267,7 +267,7 @@ function BottomButton(props: IBottomButtonProps): JSX.Element {
         </Button>
       </div>
       {!(props.state.mode === "program" && props.state.selectedTab === 1) && (
-        <div className="text-xs text-grayv3-main">
+        <div className="text-xs text-text-secondary">
           {selectedExercises.map((e, i) => (
             <>
               {i > 0 ? "; " : ""}

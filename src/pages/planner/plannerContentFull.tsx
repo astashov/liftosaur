@@ -124,7 +124,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
 
   return (
     <div className="relative">
-      <div className="sticky top-0 z-30 bg-white border-b sm:hidden border-grayv2-100">
+      <div className="sticky top-0 z-30 bg-background-default border-b sm:hidden border-grayv2-100">
         <div className="flex items-center justify-end">
           <div className="flex-1 mr-2">
             <Button
@@ -257,7 +257,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
               </div>
             )}
           </div>
-          <div className="fixed bottom-0 py-2 text-center bg-white shadow-xs" style={{ width: statsWidth }}>
+          <div className="fixed bottom-0 py-2 text-center bg-background-default shadow-xs" style={{ width: statsWidth }}>
             <Button
               disabled={!evaluatedWeeks.success}
               title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}

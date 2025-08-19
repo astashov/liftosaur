@@ -42,7 +42,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
       <div className="flex items-center gap-2">
         <div>
           <button
-            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-minus"
+            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-border-neutral nm-weight-minus"
             data-cy="edit-weight-minus"
             onClick={() => {
               const value = getValue();
@@ -104,7 +104,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
         {unit !== "%" && (
           <div>
             <button
-              className="w-10 h-10 p-2 leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-calc"
+              className="w-10 h-10 p-2 leading-none border rounded-lg bg-purplev2-100 border-border-neutral nm-weight-calc"
               data-cy="edit-weight-calculator"
               onClick={() => {
                 setIsCalculatorOpen(true);
@@ -116,7 +116,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
         )}
         <div>
           <button
-            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-plus"
+            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-border-neutral nm-weight-plus"
             data-cy="edit-weight-plus"
             onClick={() => {
               const value = getValue();

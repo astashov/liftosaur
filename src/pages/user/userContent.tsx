@@ -76,7 +76,7 @@ function Entry(props: IEntryProps): JSX.Element {
   return (
     <section className="p-4 my-2 bg-gray-100 border border-gray-600 rounded-lg">
       <h4 className="text-lg font-bold">{exercise.name}</h4>
-      <h5 className="text-sm text-grayv2-main">{equipmentName(exercise.equipment)}</h5>
+      <h5 className="text-sm text-text-secondary">{equipmentName(exercise.equipment)}</h5>
       <div>
         <p>
           <span dangerouslySetInnerHTML={{ __html: "&#x1F3CB Max lifted reps x weight: " }} />

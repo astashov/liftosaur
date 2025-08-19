@@ -120,7 +120,7 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
                       key={yyyymmdd}
                       data-first-day-of-week={thisFirstDayOfWeek}
                       class="flex items-center justify-center text-gray-800 p-2"
-                      style={{ background: isSelectedWeek ? Tailwind.colors().grayv3[100] : "transparent" }}
+                      style={{ background: isSelectedWeek ? Tailwind.colors().lightgray[100] : "transparent" }}
                       onClick={() => {
                         if (historyRecord != null) {
                           props.onClick(historyRecord);
@@ -130,10 +130,10 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center ${
                           isWorkout
-                            ? "text-white bg-redv3-500 cursor-pointer"
+                            ? "text-text-alwayswhite bg-redv3-500 cursor-pointer"
                             : date > new Date()
-                              ? "text-grayv3-400"
-                              : "text-blackv2 cursor-pointer "
+                              ? "text-text-disabled"
+                              : "text-text-primary cursor-pointer "
                         } ${yyyymmdd === today ? "border border-purplev3-500 font-bold" : ""}`}
                       >
                         {day}

@@ -153,8 +153,8 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
         >
           <div className="text-sm">
             {props.helpContent}
-            <div className="w-full h-0 mt-4 mb-2 border-b border-grayv2-200" />
-            <p className="text-sm text-grayv2-main">
+            <div className="w-full h-0 mt-4 mb-2 border-b border-border-neutral" />
+            <p className="text-sm text-text-secondary">
               If you still have questions, or if you encountered a bug, have a feature idea, or just want to share some
               feedback - don't hesitate to <Link href="mailto:info@liftosaur.com">contact us</Link>! Or join our{" "}
               <Link href="https://discord.com/invite/AAh3cvdBRs">Discord server</Link> and ask your question there.
@@ -172,7 +172,7 @@ export function NavbarCenterView(props: INavbarCenterProps): JSX.Element {
     return (
       <div className="flex-1" onClick={props.onTitleClick}>
         <div className="pt-2 text-sm font-semibold whitespace-nowrap">{props.title}</div>
-        <div className="pb-2 text-sm font-semibold text-orangev2 whitespace-nowrap">{props.subtitle}</div>
+        <div className="pb-2 text-sm font-semibold text-icon-yellow whitespace-nowrap">{props.subtitle}</div>
       </div>
     );
   } else {

@@ -22,13 +22,13 @@ export function EditProgramExerciseDescriptionsList(props: IEditProgramExerciseD
 
   return (
     <div>
-      <div className="flex items-center gap-4 pt-3 mx-4 mt-1 mb-2 border-t border-grayv3-200">
+      <div className="flex items-center gap-4 pt-3 mx-4 mt-1 mb-2 border-t border-border-neutral">
         <div className="flex-1">
           {descriptions.values.length === 1 ? "Description" : `${descriptions.values.length} Descriptions`}
         </div>
         <div className="flex items-center gap-1">
           <button
-            className="p-1 border rounded-full border-grayv3-200"
+            className="p-1 border rounded-full border-border-neutral"
             onClick={() => {
               return EditProgramUiHelpers.changeCurrentInstanceExercise(
                 props.plannerDispatch,
@@ -40,12 +40,12 @@ export function EditProgramExerciseDescriptionsList(props: IEditProgramExerciseD
               );
             }}
           >
-            <IconPlus2 color={Tailwind.colors().grayv3.main} size={14} />
+            <IconPlus2 color={Tailwind.colors().lightgray[600]} size={14} />
           </button>
           {isMultiple && (
             <>
               <button
-                className="p-1 ml-4 border rounded-full border-grayv3-200"
+                className="p-1 ml-4 border rounded-full border-border-neutral"
                 onClick={() => {
                   scrollRef.current.scrollTo({
                     left: scrollRef.current.scrollLeft - scrollRef.current.clientWidth,
@@ -53,10 +53,10 @@ export function EditProgramExerciseDescriptionsList(props: IEditProgramExerciseD
                   });
                 }}
               >
-                <IconArrowDown3 className="rotate-90" color={Tailwind.colors().grayv3.main} size={14} />
+                <IconArrowDown3 className="rotate-90" color={Tailwind.colors().lightgray[600]} size={14} />
               </button>
               <button
-                className="p-1 border rounded-full border-grayv3-200"
+                className="p-1 border rounded-full border-border-neutral"
                 onClick={() => {
                   scrollRef.current.scrollTo({
                     left: scrollRef.current.scrollLeft + scrollRef.current.clientWidth,
@@ -64,7 +64,7 @@ export function EditProgramExerciseDescriptionsList(props: IEditProgramExerciseD
                   });
                 }}
               >
-                <IconArrowDown3 className="-rotate-90" color={Tailwind.colors().grayv3.main} size={14} />
+                <IconArrowDown3 className="-rotate-90" color={Tailwind.colors().lightgray[600]} size={14} />
               </button>
             </>
           )}

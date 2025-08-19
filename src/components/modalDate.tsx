@@ -30,13 +30,13 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
         <h3 className="pb-2 font-bold">Please enter new date</h3>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 leading-normal bg-background-default border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="date"
           placeholder="Date"
           value={formattedDate}
         />
         <h3 className="pt-2 font-bold">Please enter workout length</h3>
-        <div className="pb-2 text-xs text-grayv2-main">(in hh:mm)</div>
+        <div className="pb-2 text-xs text-text-secondary">(in hh:mm)</div>
         <div className="flex text-center">
           <div className="flex-1">
             <Input type="tel" placeholder="00" defaultValue={hoursStr} inputSize="sm" labelSize="xs" ref={hoursInput} />

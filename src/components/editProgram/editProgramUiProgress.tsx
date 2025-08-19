@@ -111,12 +111,12 @@ function Progression(props: IProgressionProps): JSX.Element {
           <strong>Custom Progression</strong>
           {Object.keys(state).length > 0 && (
             <div>
-              <div className="text-xs text-grayv3-main">State variables:</div>
+              <div className="text-xs text-text-secondary">State variables:</div>
               <ul>
                 {Object.entries(state).map(([name, value]) => {
                   return (
                     <li key={name} className="ml-4 text-xs list-disc">
-                      <span className="text-grayv3-main">{name}</span>: <strong>{Weight.print(value)}</strong>
+                      <span className="text-text-secondary">{name}</span>: <strong>{Weight.print(value)}</strong>
                     </li>
                   );
                 })}

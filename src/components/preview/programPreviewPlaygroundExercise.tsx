@@ -117,7 +117,7 @@ function ProgramPreviewHistoryRecordSets(props: IProgramPreviewHistoryRecordSets
           <div className="flex items-center">
             <div className="flex-1 mr-1 font-bold">{exercise.name}</div>
           </div>
-          {equipment && <div className="text-sm text-grayv2-600">{equipmentName(equipment)}</div>}
+          {equipment && <div className="text-sm text-text-secondary">{equipmentName(equipment)}</div>}
         </div>
         <section className="mt-1 ml-1">
           <HistoryRecordSetsView sets={props.entry.sets} settings={props.settings} isNext={true} />
@@ -174,7 +174,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
             <div className="flex items-center">
               <div className="flex-1 mr-1 font-bold">{exercise.name}</div>
             </div>
-            {equipment && <div className="text-sm text-grayv2-600">{equipmentName(equipment)}</div>}
+            {equipment && <div className="text-sm text-text-secondary">{equipmentName(equipment)}</div>}
           </div>
         </div>
         {description && (
