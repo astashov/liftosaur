@@ -52,9 +52,9 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
         className={`rounded-2xl px-4 text-sm ${
           isCurrent
             ? props.isOngoing
-              ? "bg-yellowv3-50 border border-yellowv3-300 nm-continue-workout"
-              : "bg-purplev3-100 border border-purplev3-300 nm-start-workout"
-            : "bg-purplev3-50 border border-purplev3-200 nm-edit-workout"
+              ? "bg-background-cardyellow border border-yellowv3-300 nm-continue-workout"
+              : "bg-background-purpledark border border-purplev3-300 nm-start-workout"
+            : "bg-background-cardpurple border border-purplev3-200 nm-edit-workout"
         }`}
         style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
         onClick={(event) => {
@@ -77,7 +77,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
               <div className="font-semibold">
                 <span>{historyRecord.dayName}</span>
               </div>
-              <div className="text-xs text-grayv2-main">{historyRecord.programName}</div>
+              <div className="text-xs text-text-secondary">{historyRecord.programName}</div>
             </div>
           </div>
           {description && (
@@ -107,7 +107,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
           {historyRecord.notes && (
             <div className="mt-2 text-sm">
               <span>Note: </span>
-              <span className="text-grayv3-main">{historyRecord.notes}</span>
+              <span className="text-text-secondary">{historyRecord.notes}</span>
             </div>
           )}
           {isCurrent && (

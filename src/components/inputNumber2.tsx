@@ -280,7 +280,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   return (
     <div ref={containerRef} className="input-number">
       <div
-        className="flex items-center justify-center h-6 bg-white border rounded border-grayv3-200 input-number-child"
+        className="flex items-center justify-center h-6 bg-background-default border rounded border-border-neutral input-number-child"
         style={
           props.autowidth ? { paddingLeft: "0.5rem", paddingRight: "0.5rem" } : { width: `${props.width ?? 4}rem` }
         }
@@ -320,10 +320,10 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
           )}
         </div>
         {isFocused && (
-          <div className="inline-block h-3 leading-none blinking bg-grayv3-main" style={{ width: "1px" }} />
+          <div className="inline-block h-3 leading-none blinking bg-background-darkgray" style={{ width: "1px" }} />
         )}
         {props.showUnitInside && props.selectedUnit && props.value != null && (
-          <div className="text-xs text-grayv3-main"> {props.selectedUnit}</div>
+          <div className="text-xs text-text-secondary"> {props.selectedUnit}</div>
         )}
         {props.after && props.after()}
       </div>
@@ -426,13 +426,13 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
       style={{ boxShadow: "0 4px 30px 0 rgba(0, 0, 0, 0.25)" }}
     >
       <div className="safe-area-inset-bottom">
-        <div className="flex items-center w-full gap-2 px-4 bg-purplev3-50">
+        <div className="flex items-center w-full gap-2 px-4 bg-background-cardpurple">
           <div className="flex-1">{props.keyboardAddon}</div>
           {props.enableCalculator && (
             <div className="py-2">
               <button
                 data-cy="keyboard-rm-calculator"
-                className="flex items-center justify-center w-24 px-2 py-1 border rounded keyboard-close border-purplev3-200 bg-purplev3-100"
+                className="flex items-center justify-center w-24 px-2 py-1 border rounded keyboard-close border-purplev3-200 bg-background-purpledark"
                 onClick={props.onShowCalculator}
               >
                 <span className="mr-2">RM</span>
@@ -443,7 +443,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
             </div>
           )}
         </div>
-        <div className="flex w-full gap-4 p-4 bg-white">
+        <div className="flex w-full gap-4 p-4 bg-background-default">
           <div className="grid flex-1 grid-cols-3 gap-2">
             {[
               "1",
@@ -464,7 +464,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
                   <button
                     data-cy={`keyboard-button-${key}`}
                     key={key}
-                    className="p-2 text-2xl bg-white active:bg-gray-200 touch-manipulation"
+                    className="p-2 text-2xl bg-background-default active:bg-gray-200 touch-manipulation"
                     onClick={() => props.onInput(key)}
                   >
                     {key}
@@ -478,7 +478,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
           <div className="w-24 mt-2">
             <div className="mb-4">
               <button
-                className="flex items-center justify-center w-full pt-2 pb-1 border rounded touch-manipulation keyboard-close border-purplev3-200 bg-purplev3-100"
+                className="flex items-center justify-center w-full pt-2 pb-1 border rounded touch-manipulation keyboard-close border-purplev3-200 bg-background-purpledark"
                 data-cy="keyboard-close"
                 onClick={props.onBlur}
               >
@@ -488,7 +488,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
             <div className="flex gap-1">
               <div className="flex-1">
                 <button
-                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-e-none border-purplev3-200 bg-purplev3-100"
+                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-e-none border-purplev3-200 bg-background-purpledark"
                   data-cy="keyboard-minus"
                   onClick={props.onMinus}
                 >
@@ -497,7 +497,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
               </div>
               <div className="flex-1">
                 <button
-                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-s-none border-purplev3-200 bg-purplev3-100"
+                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-s-none border-purplev3-200 bg-background-purpledark"
                   data-cy="keyboard-plus"
                   onClick={props.onPlus}
                 >
@@ -509,7 +509,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
               <div className="flex items-center h-10 gap-2 mt-4">
                 {props.enableUnits.map((unit) => (
                   <button
-                    className={`flex touch-manipulation items-center  aspect-square justify-center flex-1 w-full border rounded ${unit === props.selectedUnit ? "border-purplev3-300 bg-purplev3-200" : "border-purplev3-200 bg-purplev3-100"}`}
+                    className={`flex touch-manipulation items-center  aspect-square justify-center flex-1 w-full border rounded ${unit === props.selectedUnit ? "border-purplev3-300 bg-purplev3-200" : "border-purplev3-200 bg-background-purpledark"}`}
                     data-cy={`keyboard-unit-${unit}`}
                     onClick={() => {
                       if (props.onChangeUnits) {
@@ -526,7 +526,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
             )}
             <div className="mt-4">
               <button
-                className="flex items-center justify-center w-full h-10 border rounded touch-manipulation border-purplev3-200 bg-purplev3-100"
+                className="flex items-center justify-center w-full h-10 border rounded touch-manipulation border-purplev3-200 bg-background-purpledark"
                 data-cy={`keyboard-backspace`}
                 onClick={() => props.onInput("⌫")}
               >

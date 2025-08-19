@@ -231,7 +231,7 @@ export function ScreenStats(props: IProps): JSX.Element {
       }
     >
       <section className="px-4">
-        <p className="py-2 text-sm text-grayv2-main">
+        <p className="py-2 text-sm text-text-secondary">
           All fields are optional, input only the fields you want this time. Empty fields won't be added.
         </p>
         {statsEnabled.length.neck && (

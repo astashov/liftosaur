@@ -9,8 +9,8 @@ interface IProps {
 
 export function IconCloseCircleOutline(props: IProps = {}): JSX.Element {
   const size = props.size ?? 20;
-  const color = props.color ?? Tailwind.colors().blackv2;
-  const bgColor = props.color ?? Tailwind.colors().grayv3[50];
+  const color = props.color ?? Tailwind.colors().black;
+  const bgColor = props.color ?? Tailwind.colors().lightgray[50];
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="32" height="32" rx="16" fill={bgColor} />

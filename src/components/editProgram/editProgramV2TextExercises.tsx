@@ -93,7 +93,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
         </ul>
       )}
       {approxDayTime && (
-        <div className="text-xs text-right text-grayv2-main">
+        <div className="text-xs text-right text-text-secondary">
           <IconWatch className="mb-1 align-middle" />
           <span className="pl-1 align-middle">{approxDayTime}</span>
         </div>

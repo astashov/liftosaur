@@ -9,7 +9,7 @@ interface IProps {
 
 export function IconSwapSmall(props: IProps): JSX.Element {
   const size = props.size ?? 12;
-  const color = props.color ?? Tailwind.colors().grayv3.main;
+  const color = props.color ?? Tailwind.colors().lightgray[600];
   return (
     <svg
       className={props.className}

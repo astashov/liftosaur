@@ -10,7 +10,7 @@ interface IProps {
 }
 
 export function IconWatch(props: IProps): JSX.Element {
-  const color = props.color || Tailwind.colors().grayv3.main;
+  const color = props.color || Tailwind.colors().lightgray[600];
   const width = props.width || 17;
   const height = props.height || 22;
   return (

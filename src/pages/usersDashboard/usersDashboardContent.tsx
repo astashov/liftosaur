@@ -162,7 +162,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                           <tr>
                             <td>
                               <div>
-                                <span className={`${isNew ? "text-greenv2-main" : "text-blackv2"}`}>
+                                <span className={`${isNew ? "text-greenv2-main" : "text-text-primary"}`}>
                                   <a
                                     target="_blank"
                                     className="underline"
@@ -178,7 +178,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                   <span className="ml-2 font-bold text-greenv2-main">G</span>
                                 )}
                                 {item.subscriptions.indexOf("unclaimedkey") !== -1 && (
-                                  <span className="ml-2 font-bold text-grayv2-main">F</span>
+                                  <span className="ml-2 font-bold text-text-secondary">F</span>
                                 )}
                                 {item.subscriptions.indexOf("key") !== -1 && (
                                   <span className="ml-2 font-bold text-greenv2-main">F</span>
@@ -201,14 +201,14 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                               {item.userTs && (
                                 <div
                                   className={`text-xs ${
-                                    isNewUser ? "text-greenv2-main font-bold" : "text-grayv2-main"
+                                    isNewUser ? "text-greenv2-main font-bold" : "text-text-secondary"
                                   }`}
                                 >
                                   {DateUtils.format(item.userTs)}
                                 </div>
                               )}
                               {item.subscriptionDetails && (
-                                <div className="text-xs text-grayv2-main">
+                                <div className="text-xs text-text-secondary">
                                   <div>
                                     {CollectionUtils.compact([
                                       item.subscriptionDetails.isActive ? "active" : undefined,
@@ -225,11 +225,11 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                             </td>
                             <td>
                               {new Date(item.lastAction.ts).toLocaleString()}
-                              <div className="text-sm text-grayv2-main">{item.lastAction.name.replace("ls-", "")}</div>
+                              <div className="text-sm text-text-secondary">{item.lastAction.name.replace("ls-", "")}</div>
                             </td>
                             <td>
                               {new Date(item.firstAction.ts).toLocaleString()}
-                              <div className="text-sm text-grayv2-main">{item.firstAction.name.replace("ls-", "")}</div>
+                              <div className="text-sm text-text-secondary">{item.firstAction.name.replace("ls-", "")}</div>
                             </td>
                             <td>{item.workoutsCount}</td>
                             <td>{Math.ceil((item.lastAction.ts - item.firstAction.ts) / (1000 * 60 * 60 * 24))}</td>

@@ -62,7 +62,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
               name={gym.name}
               addons={
                 gym.id === props.settings.currentGymId ? (
-                  <div className="text-xs text-grayv2-main" style={{ marginTop: "-0.5rem" }}>
+                  <div className="text-xs text-text-secondary" style={{ marginTop: "-0.5rem" }}>
                     current
                   </div>
                 ) : undefined

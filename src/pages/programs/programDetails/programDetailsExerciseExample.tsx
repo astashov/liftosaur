@@ -94,7 +94,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
                   <div className="flex-1 mr-1 font-bold">{exercise.name}</div>
                 </div>
                 {exercise.equipment && (
-                  <div className="text-sm text-grayv2-600">{equipmentName(exercise.equipment)}</div>
+                  <div className="text-sm text-text-secondary">{equipmentName(exercise.equipment)}</div>
                 )}
               </div>
             </div>
@@ -103,9 +103,9 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
                 {weekEntries.map((week, i) => {
                   return (
                     <>
-                      {i !== 0 && <div className="h-12 mr-2 border-l border-grayv2-200" />}
+                      {i !== 0 && <div className="h-12 mr-2 border-l border-border-neutral" />}
                       <div>
-                        <div className="px-2 text-xs text-center whitespace-nowrap text-grayv2-main">{week.label}</div>
+                        <div className="px-2 text-xs text-center whitespace-nowrap text-text-secondary">{week.label}</div>
                         <div className="flex flex-no-wrap justify-center">
                           <HistoryRecordSetsView sets={week.entry.sets} isNext={true} settings={props.settings} />
                         </div>

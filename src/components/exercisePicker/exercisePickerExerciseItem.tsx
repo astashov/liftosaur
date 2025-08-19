@@ -56,7 +56,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
               <IconStar
                 size={20}
                 isSelected={isStarred}
-                color={isStarred ? Tailwind.colors().purplev3.main : Tailwind.colors().grayv3.main}
+                color={isStarred ? Tailwind.colors().purple[600] : Tailwind.colors().lightgray[600]}
               />
             </div>
           )}
@@ -64,7 +64,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
             <span className="font-semibold">{e.name}</span>
             {exerciseType.equipment && (
               <>
-                , <span className="text-grayv2-main">{equipmentName(exerciseType.equipment)}</span>
+                , <span className="text-text-secondary">{equipmentName(exerciseType.equipment)}</span>
               </>
             )}
           </div>
@@ -115,7 +115,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
                 data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
                 checked={props.isSelected}
                 disabled={isDisabled}
-                className="checkbox checkbox-purple text-purplev3-main"
+                className="checkbox checkbox-purple text-text-purple"
                 type="checkbox"
                 onChange={() => onChoose(Exercise.toKey(e))}
               />
@@ -145,13 +145,13 @@ function MuscleView(props: {
     <div className="text-xs" style={{ lineHeight: "1.5" }}>
       {types.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Type: </span>
+          <span className="text-text-secondary">Type: </span>
           <span className="font-semibold">{types.join(", ")}</span>
         </div>
       )}
       {targetMuscles.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Target: </span>
+          <span className="text-text-secondary">Target: </span>
           <span className="font-semibold">
             {targetMuscles.map((m, i) => {
               return (
@@ -170,7 +170,7 @@ function MuscleView(props: {
       )}
       {synergistMuscles.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Synergist: </span>
+          <span className="text-text-secondary">Synergist: </span>
           <span className="font-semibold">
             {synergistMuscles.map((m, i) => {
               return (
@@ -214,13 +214,13 @@ export function MuscleGroupsView(props: {
     <div className="text-xs">
       {types.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Type: </span>
+          <span className="text-text-secondary">Type: </span>
           <span className="font-semibold">{types.join(", ")}</span>
         </div>
       )}
       {targetMuscleGroups.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Target: </span>
+          <span className="text-text-secondary">Target: </span>
           <span className="font-semibold">
             {targetMuscleGroups.map((m, i) => {
               const muscles = Muscle.getMusclesFromScreenMuscle(m);
@@ -241,7 +241,7 @@ export function MuscleGroupsView(props: {
       )}
       {synergistMuscleGroups.length > 0 && (
         <div>
-          <span className="text-grayv2-main">Synergist: </span>
+          <span className="text-text-secondary">Synergist: </span>
           <span className="font-semibold">
             {synergistMuscleGroups.map((m, i) => {
               const muscles = Muscle.getMusclesFromScreenMuscle(m);

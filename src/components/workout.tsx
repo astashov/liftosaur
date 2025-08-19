@@ -173,7 +173,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
       <div className="flex gap-4">
         <div className="flex-1 mr-2 align-middle">
           <div className="text-sm font-semibold">{props.progress?.dayName}</div>
-          <div data-cy="day-name" className="text-sm text-grayv2-main">
+          <div data-cy="day-name" className="text-sm text-text-secondary">
             {props.progress?.programName}
           </div>
         </div>
@@ -225,7 +225,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
                 }}
                 name="workout-day-muscles"
               >
-                <IconMuscles2 color={Tailwind.colors().grayv3[900]} />
+                <IconMuscles2 color={Tailwind.colors().lightgray[900]} />
               </ButtonIcon>
             </div>
           )}
@@ -287,7 +287,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
           {enableReorder ? "Finish Reordering" : "Reorder Exercises"}
         </LinkButton>
       </div>
-      <div className="sticky left-0 z-30 py-1 bg-white border-b border-grayv3-100" style={{ top: "56px" }}>
+      <div className="sticky left-0 z-30 py-1 bg-background-default border-b border-grayv3-100" style={{ top: "56px" }}>
         <Scroller>
           <div className="flex items-center gap-1 px-4">
             <DraggableList
@@ -367,7 +367,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
                 );
               }}
             >
-              <IconPlus2 size={15} color={Tailwind.colors().grayv3.main} />
+              <IconPlus2 size={15} color={Tailwind.colors().lightgray[600]} />
             </button>
           </div>
         </Scroller>

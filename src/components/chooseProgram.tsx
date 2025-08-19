@@ -126,7 +126,7 @@ function Footer(props: IFooterProps): JSX.Element {
       style={{ marginBottom: "-2px" }}
     >
       <div
-        className="box-content absolute flex bg-white safe-area-inset-bottom"
+        className="box-content absolute flex bg-background-default safe-area-inset-bottom"
         style={{
           width: "4000px",
           marginLeft: "-2000px",
@@ -141,14 +141,14 @@ function Footer(props: IFooterProps): JSX.Element {
           <div className="flex items-stretch justify-around flex-1 gap-2">
             <button
               data-cy="create-program"
-              className="flex items-center justify-center flex-1 text-sm font-semibold nm-create-program text-bluev3-main"
+              className="flex items-center justify-center flex-1 text-sm font-semibold nm-create-program text-text-link"
               onClick={props.onCreate}
             >
               <div>Create New Program</div>
             </button>
-            <div style={{ width: "1px" }} className="h-full bg-grayv3-100" />
+            <div style={{ width: "1px" }} className="h-full bg-background-subtle" />
             <button className="flex-1 text-sm nm-empty-program" data-cy="empty-program" onClick={props.onEmpty}>
-              <div className="font-semibold text-bluev3-main">Go Without Program</div>
+              <div className="font-semibold text-text-link">Go Without Program</div>
               <div className="text-xs text-gray-500">and build your program along the way</div>
             </button>
           </div>

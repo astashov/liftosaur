@@ -66,13 +66,13 @@ export class WorkoutExerciseUtils {
   public static getIconColor(sets: ISet[], isWarmup: boolean): string {
     const color = this.getColor(sets, isWarmup);
     if (color === "green") {
-      return Tailwind.colors().greenv3[600];
+      return Tailwind.colors().green[600];
     } else if (color === "red") {
-      return Tailwind.colors().redv3[500];
+      return Tailwind.colors().red[500];
     } else if (color === "yellow") {
-      return Tailwind.colors().yellowv3[600];
+      return Tailwind.colors().yellow[600];
     } else {
-      return Tailwind.colors().grayv3[200];
+      return Tailwind.colors().lightgray[200];
     }
   }
 
@@ -131,13 +131,13 @@ export class WorkoutExerciseUtils {
   public static setsStatusToColor(status: ISetsStatus): string {
     switch (status) {
       case "success":
-        return Tailwind.colors().greenv3[600];
+        return Tailwind.colors().green[600];
       case "in-range":
-        return Tailwind.colors().yellowv3[600];
+        return Tailwind.colors().yellow[600];
       case "failed":
-        return Tailwind.colors().redv3[500];
+        return Tailwind.colors().red[500];
       case "not-finished":
-        return Tailwind.colors().grayv3[400];
+        return Tailwind.colors().lightgray[400];
     }
   }
 

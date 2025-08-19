@@ -57,15 +57,15 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
   return (
     <div className="my-1">
       <div className="flex items-center gap-2 mx-4">
-        <label className="flex items-center flex-1 gap-2 p-2 rounded-lg bg-grayv3-50">
+        <label className="flex items-center flex-1 gap-2 p-2 rounded-lg bg-background-subtle">
           <div>
-            <IconMagnifyingGlass size={18} color={Tailwind.colors().grayv3.main} />
+            <IconMagnifyingGlass size={18} color={Tailwind.colors().lightgray[600]} />
           </div>
           <div className="flex-1">
             <input
               type="text"
               placeholder="Search by name"
-              className="block w-full text-sm bg-transparent border-none outline-none bg-none text-grayv3-main placeholder-grayv3-500"
+              className="block w-full text-sm bg-transparent border-none outline-none bg-none text-text-secondary placeholder-grayv3-500"
               data-cy="exercise-filter-by-name"
               value={props.state.search}
               onInput={(event) => {
@@ -78,7 +78,7 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
         </label>
         <div className="flex items-center justify-center">
           <button
-            className={`flex items-center gap-1 py-1 text-center border rounded-lg ${isFiltered ? "border-purplev3-main px-2" : "px-4 border-grayv3-300"}`}
+            className={`flex items-center gap-1 py-1 text-center border rounded-lg ${isFiltered ? "border-button-secondarystroke px-2" : "px-4 border-border-neutral"}`}
             onClick={() =>
               props.dispatch(
                 lb<IExercisePickerState>()
@@ -89,15 +89,15 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
             }
           >
             {isFiltered && (
-              <span className="flex items-center justify-center w-5 h-5 text-xs font-semibold leading-none text-white rounded-full bg-purplev3-main">
+              <span className="flex items-center justify-center w-5 h-5 text-xs font-semibold leading-none text-text-alwayswhite rounded-full bg-button-primarybackground">
                 {filterNames.length}
               </span>
             )}
-            <IconFilter2 color={isFiltered ? Tailwind.colors().purplev3.main : Tailwind.colors().blackv2} />
+            <IconFilter2 color={isFiltered ? Tailwind.colors().purple[600] : Tailwind.colors().black} />
           </button>
         </div>
       </div>
-      <div className="mx-4 text-xs text-grayv3-main">
+      <div className="mx-4 text-xs text-text-secondary">
         <span>
           Sorted by: <strong>{exercisePickerSortNames[props.state.sort]}</strong>
         </span>
@@ -188,7 +188,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
             <section
               key={Exercise.toKey(e)}
               data-cy={`menu-item-${e.id}`}
-              className={`w-full py-1 pl-4 pr-2 text-left border-b border-grayv3-200 ${isSelected ? "bg-purplev3-100" : ""}`}
+              className={`w-full py-1 pl-4 pr-2 text-left border-b border-grayv3-200 ${isSelected ? "bg-background-purpledark" : ""}`}
               onClick={() => {}}
             >
               <ExercisePickerExerciseItem
@@ -260,7 +260,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
               data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
                 e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
               }`}
-              className={`w-full py-1 pl-4 pr-2 text-left border-b border-grayv3-200 ${isSelected ? "bg-purplev3-100" : ""}`}
+              className={`w-full py-1 pl-4 pr-2 text-left border-b border-grayv3-200 ${isSelected ? "bg-background-purpledark" : ""}`}
               onClick={() => {}}
             >
               <ExercisePickerExerciseItem

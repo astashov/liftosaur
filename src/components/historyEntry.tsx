@@ -32,7 +32,7 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
       <div
         className={`flex-1 py-2 ${
           !isLast
-            ? `border-b ${isNext ? (isOngoing ? "border-yellowv3-200" : "border-purplev3-200") : "border-grayv3-200"}`
+            ? `border-b ${isNext ? (isOngoing ? "border-background-cardyellowborder" : "border-purplev3-200") : "border-border-neutral"}`
             : ""
         }`}
       >
@@ -58,7 +58,7 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
             />
           </div>
         </div>
-        {showNotes && entry.notes && <p className="mt-1 text-sm text-grayv2-main">{entry.notes}</p>}
+        {showNotes && entry.notes && <p className="mt-1 text-sm text-text-secondary">{entry.notes}</p>}
       </div>
     </div>
   );

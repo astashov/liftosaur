@@ -45,7 +45,7 @@ export function ModalCreateStateVariable(props: IModalCreateStateVariableProps):
         className="flex flex-col items-center"
       >
         <h2 className="mb-1 text-lg font-bold text-center">Add New State Variable</h2>
-        <p className="mb-2 text-xs text-grayv3-main">
+        <p className="mb-2 text-xs text-text-secondary">
           You can use state variables to store values between workouts, or parameterize your progress scripts. Use them
           via <strong>state.yourVariable</strong> in the script.
         </p>
@@ -87,7 +87,7 @@ export function ModalCreateStateVariable(props: IModalCreateStateVariableProps):
           name="User Prompted?"
           type="boolean"
           nextLine={
-            <div className="pb-2 text-xs text-grayv3-main" style={{ marginTop: "-0.5rem" }}>
+            <div className="pb-2 text-xs text-text-secondary" style={{ marginTop: "-0.5rem" }}>
               Will be asked for value at the end of workout
             </div>
           }

@@ -24,7 +24,7 @@ export function Locker(props: IProps): JSX.Element {
       style={{ backdropFilter: `blur(${props.blur}px)`, WebkitBackdropFilter: `blur(${props.blur}px)` }}
     >
       <div className="mx-auto text-center" style={{ maxWidth: "12rem" }}>
-        Get <span className="font-bold text-orangev2">Premium</span> to unlock <strong>{props.topic}</strong>
+        Get <span className="font-bold text-icon-yellow">Premium</span> to unlock <strong>{props.topic}</strong>
       </div>
       <div className="pt-1 text-center">
         <Button name="unlock" kind="orange" onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}>

@@ -126,7 +126,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
             name={`${historyRecord.startTime}`}
           >
             <div className="py-2">
-              <div className="flex text-xs text-grayv2-main">
+              <div className="flex text-xs text-text-secondary">
                 <div className="mr-2 font-bold">{DateUtils.format(historyRecord.date)}</div>
                 <div className="flex-1 text-right">
                   {historyRecord.programName}, {historyRecord.dayName}
@@ -156,12 +156,12 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                             />
                           </div>
                           {volume.value > 0 && (
-                            <div className="mb-1 text-xs leading-none text-left text-grayv2-main">
+                            <div className="mb-1 text-xs leading-none text-left text-text-secondary">
                               Volume: <strong>{Weight.print(volume)}</strong>
                             </div>
                           )}
                           {Object.keys(state).length > 0 && (
-                            <div className="text-xs text-grayv2-main">
+                            <div className="text-xs text-text-secondary">
                               {ObjectUtils.keys(state).map((stateKey, i) => {
                                 const value = state[stateKey];
                                 const displayValue =
@@ -184,12 +184,12 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                   {exerciseNotes.length > 0 && (
                     <ul>
                       {exerciseNotes.map((n) => (
-                        <li className="text-sm text-grayv2-main">{n}</li>
+                        <li className="text-sm text-text-secondary">{n}</li>
                       ))}
                     </ul>
                   )}
                   {historyRecord.notes && (
-                    <p className="text-sm text-grayv2-main">
+                    <p className="text-sm text-text-secondary">
                       <span className="font-bold">Workout: </span>
                       <span>{historyRecord.notes}</span>
                     </p>

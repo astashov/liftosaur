@@ -26,7 +26,7 @@ export function EditProgramExerciseDescription(props: IEditProgramExerciseDescri
   const currentIndex = PlannerProgramExercise.currentDescriptionIndex(props.plannerExercise);
 
   return (
-    <div className="border rounded-lg bg-purplev3-50 border-purplev3-150">
+    <div className="border rounded-lg bg-background-cardpurple border-border-purple">
       {props.isMultiple && (
         <div className="flex items-center gap-4 pt-2 pb-1 pl-4 pr-2">
           <div className="flex-1 font-semibold">Description {props.descriptionIndex + 1}</div>

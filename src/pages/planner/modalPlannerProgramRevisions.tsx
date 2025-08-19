@@ -67,7 +67,7 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
     >
       <div className="flex flex-col flex-1 min-h-0 sm:flex-row">
         <div
-          className="h-40 p-4 overflow-y-auto border-r min-h-40 bg-grayv2-50 border-grayv2-200 sm:h-auto sm:min-h-max"
+          className="h-40 p-4 overflow-y-auto border-r min-h-40 bg-background-subtle border-border-neutral sm:h-auto sm:min-h-max"
           style={{ borderRadius: "0.5rem 0 0 0.5rem", minWidth: "16rem" }}
         >
           <h3 className="mb-2 text-lg font-bold">Version History</h3>
@@ -110,7 +110,7 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
                   <PlannerCodeBlock script={programRevision.result.data} />
                 </div>
               </div>
-              <div className="p-4 text-center border-t bg-grayv2-50 border-grayv2-200">
+              <div className="p-4 text-center border-t bg-background-subtle border-border-neutral">
                 <Button
                   name="restore-program-revision"
                   kind="orange"

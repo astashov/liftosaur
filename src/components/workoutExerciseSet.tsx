@@ -73,10 +73,10 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
           onPointerMove={!shouldUseTouch ? onPointerMove : undefined}
           onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
         >
-          <div className="table-cell px-2 py-1 text-sm align-middle border-b border-purplev3-150">
+          <div className="table-cell px-2 py-1 text-sm align-middle border-b border-border-purple">
             <div
               className={`w-6 h-6 flex items-center justify-center rounded-full${
-                props.isNext ? " bg-purplev3-main text-white font-bold" : ""
+                props.isNext ? " bg-button-primarybackground text-text-alwayswhite font-bold" : ""
               }`}
             >
               <div>{props.type === "warmup" ? <span className="text-xs">W</span> : props.setIndex + 1}</div>
@@ -208,7 +208,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 settings={props.settings}
               />
               {completedRpeValue != null ? (
-                <div data-cy="rpe-value" className="ml-1 text-xs font-semibold text-greenv3-700">
+                <div data-cy="rpe-value" className="ml-1 text-xs font-semibold text-text-success">
                   @{n(completedRpeValue)}
                 </div>
               ) : null}
@@ -266,7 +266,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                       set
                     );
                   }}
-                  className="flex-1 h-full text-white bg-grayv3-main nm-workout-exercise-set-edit"
+                  className="flex-1 h-full text-text-alwayswhite bg-background-darkgray nm-workout-exercise-set-edit"
                 >
                   Edit
                 </button>
@@ -287,7 +287,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     "delete-set"
                   );
                 }}
-                className="flex-1 h-full text-white bg-redv3-600 nm-workout-exercise-set-delete"
+                className="flex-1 h-full text-text-alwayswhite bg-background-darkred nm-workout-exercise-set-delete"
               >
                 Delete
               </button>
@@ -309,12 +309,12 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
     case "warmup":
       const set = props.set;
       return (
-        <span className="inline-block text-xs break-all text-grayv3-main">
+        <span className="inline-block text-xs break-all text-text-secondary">
           <div className="inline-block text-sm align-middle">
-            <div className="text-xs text-grayv3-main">Warmup</div>
+            <div className="text-xs text-text-secondary">Warmup</div>
             <div>
               {set.reps != null && <span className="font-semibold">{n(Math.max(0, set.reps))}</span>}
-              {set.reps != null && set.weight != null && <span className="text-grayv3-main"> × </span>}
+              {set.reps != null && set.weight != null && <span className="text-text-secondary"> × </span>}
               {set.weight != null && (
                 <span>
                   <span> </span>
@@ -333,8 +333,8 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
       const hasTarget = set.reps != null || set.weight != null;
       return (
         <div className="inline-block text-sm align-middle">
-          {set.label ? <div className="text-xs text-grayv3-main">{set.label}</div> : null}
-          {props.setType === "adhoc" && <div className="text-xs text-grayv3-main">Ad-hoc</div>}
+          {set.label ? <div className="text-xs text-text-secondary">{set.label}</div> : null}
+          {props.setType === "adhoc" && <div className="text-xs text-text-secondary">Ad-hoc</div>}
           {hasTarget ? (
             <div>
               {set.reps != null && (
@@ -344,7 +344,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
                   {set.isAmrap ? "+" : ""}
                 </span>
               )}
-              {set.reps != null && set.weight != null && <span className="text-grayv3-main"> × </span>}
+              {set.reps != null && set.weight != null && <span className="text-text-secondary"> × </span>}
               <span>
                 {set.originalWeight && (
                   <span
@@ -394,17 +394,17 @@ interface IWorkoutExerciseLastSetProps {
 function WorkoutExerciseLastSet(props: IWorkoutExerciseLastSetProps): JSX.Element {
   const set = props.set;
   if (set == null) {
-    return <span className="text-xs text-grayv3-main">No last set</span>;
+    return <span className="text-xs text-text-secondary">No last set</span>;
   }
   const setStatus = Reps.setsStatus([set]);
   return (
     <div className="inline-block text-sm align-middle">
-      {set.label ? <div className="text-xs text-grayv3-main">{set.label}</div> : null}
+      {set.label ? <div className="text-xs text-text-secondary">{set.label}</div> : null}
       <div>
         <span className={`font-semibold ${WorkoutExerciseUtils.setsStatusToTextColor(setStatus)}`}>
           {set.completedReps != null ? n(set.completedReps) : "-"}
         </span>
-        <span className="text-grayv3-main"> × </span>
+        <span className="text-text-secondary"> × </span>
         <span>
           <span className={`font-semibold ${WorkoutExerciseUtils.setsStatusToTextColor(setStatus)}`}>
             {set.completedWeight ? <span>{set.completedWeight.value}</span> : "-"}
@@ -435,7 +435,7 @@ function RpeWeightHint(props: IRpeWeightHintProps): JSX.Element {
   const onerm = Exercise.onerm(props.exerciseType, props.settings);
   const weight = Weight.multiply(onerm, multiplier);
   return (
-    <div className="text-xs text-grayv3-main">
+    <div className="text-xs text-text-secondary">
       <span className="font-bold" style={{ color: "#940" }}>
         {props.reps}
       </span>{" "}
@@ -443,8 +443,8 @@ function RpeWeightHint(props: IRpeWeightHintProps): JSX.Element {
       <span className="font-bold" style={{ color: "#164" }}>
         @{props.rpe}
       </span>{" "}
-      - <span className="font-bold text-blackv2">{n(multiplier * 100, 0)}%</span> of 1RM -{" "}
-      <span className="font-bold text-blackv2">{weight.value}</span>
+      - <span className="font-bold text-text-primary">{n(multiplier * 100, 0)}%</span> of 1RM -{" "}
+      <span className="font-bold text-text-primary">{weight.value}</span>
       <span>{weight.unit}</span>
     </div>
   );
@@ -527,7 +527,7 @@ function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculator
   return (
     <span className="text-sm font-semibold break-all">
       <span
-        className={Weight.eq(weight, props.set.completedWeight ?? setWeight) ? "text-blackv2" : "text-redv2-600"}
+        className={Weight.eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-redv2-600"}
         data-cy="plates-list"
       >
         {formattedPlates}

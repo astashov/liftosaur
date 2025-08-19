@@ -9,7 +9,7 @@ interface IProps {
 }
 
 export function IconMagnifyingGlass(props: IProps): JSX.Element {
-  const color = props.color || Tailwind.colors().blackv2;
+  const color = props.color || Tailwind.colors().black;
   return (
     <svg
       style={props.style}

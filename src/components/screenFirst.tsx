@@ -23,65 +23,65 @@ interface IProps {
 export function ScreenFirst(props: IProps): JSX.Element {
   const [showAccountModal, setShowAccountModal] = useState(false);
   return (
-    <section className="flex flex-col h-screen text-blackv2">
+    <section className="flex flex-col h-screen text-text-primary bg-background-default">
       <div className="flex-1 px-4 pt-16 pb-4">
         <StorySlider
           slides={[
             <FirstSlide />,
             <RestSlide
-              bgColorHexFrom={Tailwind.colors().purplev3[200]}
-              bgColorHexTo={Tailwind.colors().purplev3[100]}
-              bgColor="bg-purplev3-100"
+              bgColorHexFrom={Tailwind.colors().purple[200]}
+              bgColorHexTo={Tailwind.colors().purple[100]}
+              bgColor="bg-background-purpledark"
               borderColor="border-purplev3-200"
               header={
                 <span>
-                  <IconKettlebell color={Tailwind.colors().purplev3.main} className="inline-block mr-1 align-middle" />
-                  <span className="align-middle text-purplev3-main">Weightlifting Programs</span>
+                  <IconKettlebell color={Tailwind.colors().purple[600]} className="inline-block mr-1 align-middle" />
+                  <span className="align-middle text-text-purple">Weightlifting Programs</span>
                 </span>
               }
               bodyText="Start with a pre-built weightlifting program, or create your own."
               image="slide-2-image"
             />,
             <RestSlide
-              bgColorHexFrom={Tailwind.colors().yellowv3[200]}
-              bgColorHexTo={Tailwind.colors().yellowv3[100]}
-              bgColor="bg-yellowv3-100"
-              borderColor="border-yellowv3-200"
+              bgColorHexFrom={Tailwind.colors().yellow[200]}
+              bgColorHexTo={Tailwind.colors().yellow[100]}
+              bgColor="bg-background-cardyellow"
+              borderColor="border-background-cardyellowborder"
               header={
                 <span>
                   <IconWorkoutProgress
-                    color={Tailwind.colors().yellowv3.main}
+                    color={Tailwind.colors().yellow[600]}
                     className="inline-block mr-1 align-middle"
                   />
-                  <span className="align-middle text-yellowv3-main">Workout Tracker</span>
+                  <span className="align-middle text-icon-yellow">Workout Tracker</span>
                 </span>
               }
               bodyText="Log sets with one tap. Your reps and weight adjust automatically."
               image="slide-3-image"
             />,
             <RestSlide
-              bgColorHexFrom={Tailwind.colors().purplev3[200]}
-              bgColorHexTo={Tailwind.colors().purplev3[100]}
-              bgColor="bg-purplev3-100"
+              bgColorHexFrom={Tailwind.colors().purple[200]}
+              bgColorHexTo={Tailwind.colors().purple[100]}
+              bgColor="bg-background-purpledark"
               borderColor="border-purplev3-200"
               header={
                 <span>
-                  <IconEditor color={Tailwind.colors().purplev3.main} className="inline-block mr-1 align-middle" />
-                  <span className="align-middle text-purplev3-main">Program Editor</span>
+                  <IconEditor color={Tailwind.colors().purple[600]} className="inline-block mr-1 align-middle" />
+                  <span className="align-middle text-text-purple">Program Editor</span>
                 </span>
               }
               bodyText="Modify or switch any program anytime to fit your goals."
               image="slide-4-image"
             />,
             <RestSlide
-              bgColorHexFrom={Tailwind.colors().redv3[200]}
-              bgColorHexTo={Tailwind.colors().redv3[100]}
+              bgColorHexFrom={Tailwind.colors().red[200]}
+              bgColorHexTo={Tailwind.colors().red[100]}
               bgColor="bg-redv3-100"
               borderColor="border-redv3-200"
               header={
                 <span>
-                  <IconTracker color={Tailwind.colors().redv3.main} className="inline-block mr-1 align-middle" />
-                  <span className="align-middle text-redv3-main">Workout History</span>
+                  <IconTracker color={Tailwind.colors().red[600]} className="inline-block mr-1 align-middle" />
+                  <span className="align-middle text-text-error">Workout History</span>
                 </span>
               }
               bodyText="Track your weekly stats to stay on target! "
@@ -134,11 +134,11 @@ function FirstSlide(): JSX.Element {
         backgroundSize: "cover",
       }}
     >
-      <div className="px-8 pt-24 font-bold text-white" style={{ fontSize: "2rem", lineHeight: "1.1" }}>
+      <div className="px-8 pt-24 font-bold text-text-alwayswhite" style={{ fontSize: "2rem", lineHeight: "1.1" }}>
         The most powerful weightlifting <span style={{ color: "#946AFF" }}>planner</span> and{" "}
         <span style={{ color: "#FF775D" }}>tracker</span> app
       </div>
-      <div className="px-8 py-6 text-base font-normal text-white">
+      <div className="px-8 py-6 text-base font-normal text-text-alwayswhite">
         Build any weightlifting program using a simple scripting language and track your progress.
       </div>
       <div

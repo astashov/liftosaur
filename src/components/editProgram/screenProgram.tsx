@@ -535,24 +535,24 @@ function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
         </div>
       </div>
       <div>
-        <div className="flex mb-1 text-grayv2-main">
-          <IconCalendarSmall color={Tailwind.colors().grayv3.main} className="block mr-1" />{" "}
+        <div className="flex mb-1 text-text-secondary">
+          <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
           <div className="text-xs">
             {evaluatedProgram.weeks.length > 1 &&
               `${evaluatedProgram.weeks.length} ${StringUtils.pluralize("week", evaluatedProgram.weeks.length)}, `}
             {Program.daysRange(evaluatedProgram)}, {Program.exerciseRange(evaluatedProgram)}
           </div>
         </div>
-        <div className="flex text-grayv2-main">
+        <div className="flex text-text-secondary">
           <div>
-            <IconTimerSmall color={Tailwind.colors().grayv3.main} />
+            <IconTimerSmall color={Tailwind.colors().lightgray[600]} />
           </div>
           <div className="pl-1 text-xs align-middle">
             {duration.value} {duration.unit}
           </div>
         </div>
       </div>
-      <div className="mt-1 text-xs text-grayv2-main">
+      <div className="mt-1 text-xs text-text-secondary">
         <strong>Next Day: </strong>
         <LinkButton data-cy="change-program-day" name="change-program-day" onClick={() => props.onChangeDay()}>
           {Program.getDayName(evaluatedProgram, evaluatedProgram.nextDay)}

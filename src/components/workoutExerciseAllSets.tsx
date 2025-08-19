@@ -71,13 +71,13 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
     <div>
       <div className="table w-full overflow-hidden">
         <div className="table-row-group">
-          <div className="table-row text-xs border-b text-grayv2-main border-grayv3-100">
+          <div className="table-row text-xs border-b text-text-secondary border-grayv3-100">
             <div className="table-cell px-2 pb-1 font-normal text-center border-b border-grayv3-100">Set</div>
             <div className="table-cell pb-1 font-normal text-left border-b border-grayv3-100">
               <button onClick={props.onTargetClick} className="inline-block w-full text-left">
                 {targetLabel ? <span className="mr-1">{targetLabel}</span> : <></>}
                 {props.onTargetClick && (
-                  <IconSwapSmall className="inline-block" size={12} color={Tailwind.colors().grayv3.main} />
+                  <IconSwapSmall className="inline-block" size={12} color={Tailwind.colors().lightgray[600]} />
                 )}
               </button>
             </div>
@@ -171,7 +171,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             }}
           >
             <span>
-              <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().bluev3.main} />
+              <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().blue[400]} />
             </span>
             <span className="ml-2">Add Warmup Set</span>
           </button>
@@ -197,7 +197,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             }}
           >
             <span>
-              <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().bluev3.main} />
+              <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().blue[400]} />
             </span>
             <span className="ml-2">Add Set</span>
           </button>

@@ -25,7 +25,7 @@ export function EditProgramUiExerciseSetVariations(props: IEditProgramUiExercise
         let currentIndex = setVariations.findIndex((v) => v.isCurrent);
         currentIndex = currentIndex === -1 ? 0 : currentIndex;
         return (
-          <div className={`${i > 0 ? "mt-2 pt-2 border-t border-grayv3-200" : ""}`}>
+          <div className={`${i > 0 ? "mt-2 pt-2 border-t border-border-neutral" : ""}`}>
             <div>
               {setVariations.length > 1 && (
                 <GroupHeader

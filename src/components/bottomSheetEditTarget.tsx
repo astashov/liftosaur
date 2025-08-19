@@ -40,7 +40,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
         <div className="flex items-center py-2">
           <div className="mr-auto text-sm font-semibold">Reps</div>
           <div className="flex items-center gap-2">
-            <div className="text-xs text-grayv3-main">Min</div>
+            <div className="text-xs text-text-secondary">Min</div>
             <div className="mr-2">
               <InputNumber2
                 width={2.5}
@@ -59,7 +59,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 step={1}
               />
             </div>
-            <div className="text-xs text-grayv3-main">Max</div>
+            <div className="text-xs text-text-secondary">Max</div>
             <div className="mr-3">
               <InputNumber2
                 width={2.5}
@@ -126,7 +126,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 min={-9999}
                 settings={props.settings}
               />
-              <span className="ml-1 text-xs text-grayv3-main">{set.originalWeight?.unit ?? props.settings.units}</span>
+              <span className="ml-1 text-xs text-text-secondary">{set.originalWeight?.unit ?? props.settings.units}</span>
             </div>
             <div>
               <label className="leading-none">
@@ -249,7 +249,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   max={600}
                   step={5}
                 />
-                <span className="ml-1 text-xs text-grayv3-main">s</span>
+                <span className="ml-1 text-xs text-text-secondary">s</span>
               </div>
               <div>
                 <button

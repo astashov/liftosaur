@@ -70,7 +70,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
               isBorderless={true}
               name={currentAccount.name ? currentAccount.name : `id: ${currentAccount.id}`}
               value={
-                <div className="text-blackv2">
+                <div className="text-text-primary">
                   <span className="pr-2 align-middle">{currentAccount.numberOfPrograms}</span>
                   <span className="pr-4 align-middle">
                     <IconDoc width={12} height={16} />
@@ -82,7 +82,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 </div>
               }
               addons={
-                <div className="text-xs text-grayv2-main">
+                <div className="text-xs text-text-secondary">
                   {currentAccount.name ? (
                     <div style={{ marginTop: "-0.25rem" }}>{`id: ${currentAccount.id}`}</div>
                   ) : (
@@ -131,7 +131,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 </div>
                 <div>
                   <button
-                    className="flex items-center w-full px-4 py-3 mt-2 text-white rounded-lg bg-blackv2 nm-sign-in-with-apple"
+                    className="flex items-center w-full px-4 py-3 mt-2 text-text-alwayswhite rounded-lg bg-text-primary nm-sign-in-with-apple"
                     onClick={async () => {
                       props.dispatch(Thunk.appleSignIn());
                     }}
@@ -177,7 +177,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
               }
             }}
             value={
-              <div className="text-blackv2">
+              <div className="text-text-primary">
                 {isOtherAccountsEditMode ? (
                   <>
                     <button
@@ -210,7 +210,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
               </div>
             }
             addons={
-              <div className="text-xs text-grayv2-main">
+              <div className="text-xs text-text-secondary">
                 {account.name ? <div style={{ marginTop: "-0.25rem" }}>{`id: ${account.id}`}</div> : <></>}
                 {account.email && account.email !== "noemail@example.com" && (
                   <>

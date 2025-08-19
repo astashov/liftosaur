@@ -84,7 +84,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => updateTimer(props.dispatch, progress, timer - 15, timerSince)}
           >
-            <div className="absolute inset-0 bg-white rounded-lg" style={{ opacity: 0.2 }} />
+            <div className="absolute inset-0 bg-background-default rounded-lg" style={{ opacity: 0.2 }} />
             <span className="font-bold">-15s</span>
           </button>
           <button
@@ -93,7 +93,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => props.dispatch({ type: "StopTimer" })}
           >
-            <div className="absolute inset-0 bg-white rounded-lg" style={{ opacity: 0.2 }} />
+            <div className="absolute inset-0 bg-background-default rounded-lg" style={{ opacity: 0.2 }} />
             <IconTrash color="white" style={{ display: "inline-block" }} />
           </button>
           <button
@@ -101,7 +101,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             className="flex-1 nm-rest-timer-time"
             onClick={() => setIsExpanded(false)}
           >
-            <span data-cy="rest-timer-current" className="font-bold text-white">
+            <span data-cy="rest-timer-current" className="font-bold text-text-alwayswhite">
               {TimeUtils.formatMMSS(timeDifference)}
             </span>
             <span data-cy="rest-timer-total" className={`block text-xs ${totalColor}`}>
@@ -114,7 +114,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => setIsExpanded(false)}
           >
-            <div className="absolute inset-0 bg-white rounded-lg" style={{ opacity: 0.2 }} />
+            <div className="absolute inset-0 bg-background-default rounded-lg" style={{ opacity: 0.2 }} />
             <IconBack color="white" style={{ transform: "rotate(180deg)", display: "inline-block" }} />
           </button>
           <button
@@ -123,7 +123,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => updateTimer(props.dispatch, progress, timer + 15, timerSince)}
           >
-            <div className="absolute inset-0 bg-white rounded-lg" style={{ opacity: 0.2 }} />
+            <div className="absolute inset-0 bg-background-default rounded-lg" style={{ opacity: 0.2 }} />
             <span className="font-bold">+15s</span>
           </button>
         </div>
@@ -136,7 +136,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
           className={`${className} w-16 text-center px-2 py-2 rounded-lg shadow-xl`}
           style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%);" }}
         >
-          <span data-cy="rest-timer-current" className="font-bold text-white ">
+          <span data-cy="rest-timer-current" className="font-bold text-text-alwayswhite ">
             {TimeUtils.formatMMSS(timeDifference)}
           </span>
           <span data-cy="rest-timer-total" className={`block text-xs ${totalColor}`}>

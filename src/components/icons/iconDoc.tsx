@@ -10,7 +10,7 @@ interface IProps {
 }
 
 export function IconDoc(props: IProps): JSX.Element {
-  const color = props.color || Tailwind.colors().grayv2["900"];
+  const color = props.color || Tailwind.colors().lightgray["900"];
   const width = props.width || 17;
   const height = props.height || 22;
   return (

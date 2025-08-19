@@ -34,7 +34,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
         value={`${rm.value}`}
         after={
           <>
-            <span className="mr-2 font-normal text-grayv2-main">{rm.unit}</span>
+            <span className="mr-2 font-normal text-text-secondary">{rm.unit}</span>
             <button
               className="p-2 nm-show-rm-calculator"
               data-cy="onerm-calculator"

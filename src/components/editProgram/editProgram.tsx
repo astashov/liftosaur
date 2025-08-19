@@ -113,7 +113,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
 
   return (
     <div
-      className="sticky left-0 flex flex-row items-center justify-between gap-2 py-2 pl-2 pr-4 bg-white border-b border-grayv3-50"
+      className="sticky left-0 flex flex-row items-center justify-between gap-2 py-2 pl-2 pr-4 bg-background-default border-b border-grayv3-50"
       style={{
         zIndex: 25,
         top: "3.75rem",
@@ -236,7 +236,7 @@ function EditProgramModeSwitchButton(props: IEditProgramModeSwitchButtonProps): 
         }
       }}
     >
-      {props.children(isSelected ? Tailwind.colors().purplev3.main : Tailwind.colors().grayv3.main)}
+      {props.children(isSelected ? Tailwind.colors().purple[600] : Tailwind.colors().lightgray[600])}
     </button>
   );
 }

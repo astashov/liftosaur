@@ -179,7 +179,7 @@ function Filter<T extends string>(props: IFilterProps<T>): JSX.Element {
               <div>
                 <div>
                   <button
-                    className={`bg-grayv3-50 h-12 leading-none px-2 w-full ${value.disabledReason ? "text-grayv3-300" : "text-blackv2"} rounded-lg border text-center ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
+                    className={`bg-grayv3-50 h-12 leading-none px-2 w-full ${value.disabledReason ? "text-grayv3-300" : "text-text-primary"} rounded-lg border text-center ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
                     disabled={!!value.disabledReason}
                     style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
                     onClick={() => {
@@ -189,7 +189,7 @@ function Filter<T extends string>(props: IFilterProps<T>): JSX.Element {
                     {value.label}
                   </button>
                 </div>
-                {value.disabledReason && <div className="text-xs text-grayv3-main">{value.disabledReason}</div>}
+                {value.disabledReason && <div className="text-xs text-text-secondary">{value.disabledReason}</div>}
               </div>
             );
           })}
@@ -241,7 +241,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                     {ObjectUtils.entries(muscleGroups).map(([key, value]) => {
                       return (
                         <button
-                          className={`bg-grayv3-50 h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
+                          className={`bg-grayv3-50 h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
                           style={{
                             paddingLeft: "70px",
                             borderWidth: value.isSelected ? "2px" : "1px",
@@ -314,7 +314,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                                     : "text-base";
                               return (
                                 <button
-                                  className={`bg-grayv3-50 ${fontSize} h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-purplev3-main text-purplev3-main" : "border-grayv3-300"}`}
+                                  className={`bg-grayv3-50 ${fontSize} h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
                                   style={{
                                     paddingLeft: "70px",
                                     borderWidth: value.isSelected ? "2px" : "1px",

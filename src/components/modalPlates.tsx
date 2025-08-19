@@ -26,7 +26,7 @@ export function ModalPlates(props: IProps): JSX.Element {
         <input
           ref={textInput}
           data-cy="plate-input"
-          className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 text-base leading-normal bg-background-default border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type={SendMessage.isIos() ? "number" : "tel"}
           min="0"
           placeholder={`Plate weight in ${props.units}`}

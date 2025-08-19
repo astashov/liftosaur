@@ -297,7 +297,7 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
   let className = "";
   let style = {};
   if (point != null) {
-    className = `${className} absolute w-full ${props.isTransparent ? "" : "bg-white"}}`;
+    className = `${className} absolute w-full ${props.isTransparent ? "" : "bg-background-default"}}`;
     style = {
       top: 0,
       transform: props.mode === "horizontal" ? `translateX(${point}px)` : `translateY(${point}px)`,

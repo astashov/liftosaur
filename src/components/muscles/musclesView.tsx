@@ -81,7 +81,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
           .filter((m) => m)
           .map((muscleName) => {
             const value = muscleName ? (muscleData[muscleName]?.opacity ?? 0) * 100 : undefined;
-            let color = "text-grayv2-600";
+            let color = "text-text-secondary";
             if (value != null && value > 60) {
               color = "text-greenv2-600";
             } else if (value != null && value < 20) {
@@ -134,7 +134,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
                       <div className="text-base font-bold">{Exercise.get(e, props.settings.exercises).name}</div>
                       <div className="flex">
                         <div data-cy="target-muscles-list" className="flex-1">
-                          <div className="text-sm text-grayv2-600">Target</div>
+                          <div className="text-sm text-text-secondary">Target</div>
                           {targetScreenMusclesWithPercentage.map(([m, val]) => (
                             <div>
                               <span>{m}</span>: <span>{val.toFixed(1)}%</span>
@@ -142,7 +142,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
                           ))}
                         </div>
                         <div data-cy="synergist-muscles-list" className="flex-1">
-                          <span className="text-sm text-grayv2-600">Synergist</span>
+                          <span className="text-sm text-text-secondary">Synergist</span>
                           {synergistScreenMusclesWithPercentage.map(([m, val]) => (
                             <div>
                               <span>{m}</span>: <span>{val.toFixed(1)}%</span>

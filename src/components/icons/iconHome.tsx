@@ -18,7 +18,7 @@ export function IconHome(props: IProps): JSX.Element {
 
 export function IconHomeUnselected(props: IInnerProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.colors().blackv2;
+  const color = props.color ?? Tailwind.colors().black;
   return (
     <svg
       width={size}
@@ -40,7 +40,7 @@ export function IconHomeUnselected(props: IInnerProps): JSX.Element {
 
 export function IconHomeSelected(props: IInnerProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.colors().purplev3.main;
+  const color = props.color ?? Tailwind.colors().purple[600];
   return (
     <svg
       width={size}

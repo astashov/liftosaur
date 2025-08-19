@@ -9,7 +9,7 @@ interface IProps {
 
 export function IconMuscleSettings(props: IProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.colors().blackv2;
+  const color = props.color ?? Tailwind.colors().black;
   return (
     <svg
       width={size}

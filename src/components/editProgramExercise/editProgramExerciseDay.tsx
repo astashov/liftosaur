@@ -37,7 +37,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
 
   return (
     <div
-      className="py-3 bg-white border rounded-2xl border-grayv3-200"
+      className="py-3 bg-background-default border rounded-2xl border-border-neutral"
       data-cy={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
     >
       <div className="flex items-center gap-4 px-4 pb-2">
@@ -189,7 +189,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
           settings={props.settings}
         />
       ) : (
-        <div className="px-4 text-sm text-grayv3-main">
+        <div className="px-4 text-sm text-text-secondary">
           <Button
             kind="lightgrayv3"
             className="w-full text-sm"

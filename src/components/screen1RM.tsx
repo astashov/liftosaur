@@ -44,12 +44,12 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
           <strong>N rep max</strong> (for example, you remember you were able to do only 5 reps with 185lb) - use the{" "}
           <strong>1 Rep Max calculator in the keyboard</strong>.
         </p>
-        <p className="px-4 pb-4 text-sm font-bold text-grayv3-main">
+        <p className="px-4 pb-4 text-sm font-bold text-text-secondary">
           You can skip it - and do it later during your first workout!
         </p>
         <div className="table w-full">
           <div className="table-row-group">
-            <div className="table-row text-xs border-b text-grayv2-main border-grayv3-100">
+            <div className="table-row text-xs border-b text-text-secondary border-grayv3-100">
               <div className="table-cell pb-1 pl-4 font-normal text-left border-b border-grayv3-100">Exercise</div>
               <div className="table-cell pb-1 pr-4 font-normal text-center border-b border-grayv3-100">1 Rep Max</div>
             </div>
@@ -125,7 +125,7 @@ function Footer(props: IFooterProps): JSX.Element {
       style={{ marginBottom: "-2px" }}
     >
       <div
-        className="box-content absolute flex bg-white safe-area-inset-bottom"
+        className="box-content absolute flex bg-background-default safe-area-inset-bottom"
         style={{
           width: "4000px",
           marginLeft: "-2000px",

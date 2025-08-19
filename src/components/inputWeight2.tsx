@@ -141,15 +141,15 @@ function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
     props.exerciseType
   );
   return (
-    <div className="flex items-center w-full gap-1 text-xs text-grayv3-main">
+    <div className="flex items-center w-full gap-1 text-xs text-text-secondary">
       <div>
-        <IconBarbellSide size={13} color={Tailwind.colors().bluev3.main} />
+        <IconBarbellSide size={13} color={Tailwind.colors().blue[400]} />
       </div>
       <div>
         <span>Plates: </span>
         <span className="break-all">
           <span
-            className={`font-semibold ${Weight.eq(weight, props.weight) ? "text-blackv2" : "text-redv2-600"}`}
+            className={`font-semibold ${Weight.eq(weight, props.weight) ? "text-text-primary" : "text-redv2-600"}`}
             data-cy="plates-list"
           >
             {plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.exerciseType) : "None"}

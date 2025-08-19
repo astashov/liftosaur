@@ -54,7 +54,7 @@ export function InputSelectValue<T extends string>(
     <>
       <button
         data-cy={`select-${props.name}`}
-        className="flex items-center w-full gap-2 p-2 text-left bg-white border rounded border-grayv3-200"
+        className="flex items-center w-full gap-2 p-2 text-left bg-background-default border rounded border-border-neutral"
         onClick={() => {
           if (!props.disabled) {
             setIsExpanded(!isExpanded);
@@ -62,7 +62,7 @@ export function InputSelectValue<T extends string>(
         }}
       >
         <div className="flex-1 text-sm">
-          {selectedLabel ?? <span className="text-grayv3-main">{props.placeholder}</span>}
+          {selectedLabel ?? <span className="text-text-secondary">{props.placeholder}</span>}
         </div>
         <div>
           <IconArrowDown2 />
@@ -70,14 +70,14 @@ export function InputSelectValue<T extends string>(
       </button>
       {props.values && props.values.length > 0 && (
         <BottomSheet shouldShowClose={true} onClose={() => setIsExpanded(false)} isHidden={!isExpanded}>
-          {props.hint && <div className="pt-1 pl-2 pr-8 text-xs text-grayv3-main">{props.hint}</div>}
+          {props.hint && <div className="pt-1 pl-2 pr-8 text-xs text-text-secondary">{props.hint}</div>}
           <div className="flex flex-col px-2 py-2" data-cy={`select-options-${props.name}`}>
             {props.values?.map(([key, value], i) => (
               <button
                 data-cy={`select-option-${key}`}
                 key={key}
                 className={`py-2 px-2 ${i !== 0 && value !== props.value ? "border-t" : ""} cursor-pointer text-left ${
-                  value === props.value ? "bg-grayv3-100 rounded" : "border-grayv3-200"
+                  value === props.value ? "bg-background-subtle rounded" : "border-border-neutral"
                 }`}
                 onClick={() => {
                   if (props.onChange) {

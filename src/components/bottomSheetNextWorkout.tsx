@@ -44,12 +44,12 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
       <BottomSheet shouldShowClose={true} onClose={props.onClose} isHidden={props.isHidden}>
         <h3 className="pt-3 pb-4 text-lg font-semibold text-center">New Workout</h3>
         {doesProgressNotMatchProgram && (
-          <div className="mx-4 mb-1 text-xs text-center text-grayv2-main">
+          <div className="mx-4 mb-1 text-xs text-center text-text-secondary">
             You currently have ongoing workout. Finish it first to see newly chosen program or a different day.
           </div>
         )}
         {Program.isEmpty(props.currentProgram) && (
-          <div className="mx-4 mb-1 text-xs text-center text-grayv2-main">No program currently selected.</div>
+          <div className="mx-4 mb-1 text-xs text-center text-text-secondary">No program currently selected.</div>
         )}
         <div className="relative flex flex-col flex-1 min-h-0">
           <div className="flex-1 min-h-0 pb-10 overflow-y-auto">
@@ -69,7 +69,7 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
           >
             <div>
               <LinkButton name="change-next-day" data-cy="change-next-day" onClick={() => setShowChangeWorkout(true)}>
-                <IconSwap color={Tailwind.colors().bluev2} className="inline-block pr-1" />
+                <IconSwap color={Tailwind.colors().blue[400]} className="inline-block pr-1" />
                 Change next workout
               </LinkButton>
             </div>
@@ -81,7 +81,7 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
                   props.dispatch(Thunk.startProgramDay(emptyProgramId));
                 }}
               >
-                <IconPlus2 color={Tailwind.colors().bluev2} className="inline-block pr-1" />
+                <IconPlus2 color={Tailwind.colors().blue[400]} className="inline-block pr-1" />
                 Ad-Hoc Workout
               </LinkButton>
             </div>

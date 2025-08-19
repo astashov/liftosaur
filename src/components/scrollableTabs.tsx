@@ -66,8 +66,8 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
                     : `ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
                         selectedIndex === index
                           ? color === "orange"
-                            ? "text-orangev2 border-b border-orangev2 selected-tab-button"
-                            : "text-purplev3-main border-b border-purplev3-main selected-tab-button"
+                            ? "text-icon-yellow border-b border-orangev2 selected-tab-button"
+                            : "text-text-purple border-b border-button-secondarystroke selected-tab-button"
                           : ""
                       } ${isInvalid ? " text-redv2-main" : ""} nm-tab-${nameClass}`;
 

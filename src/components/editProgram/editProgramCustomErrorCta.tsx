@@ -16,7 +16,7 @@ export function EditProgramCustomErrorCta(props: IPlannerEditorCustomCtaProps): 
     const customExerciseName = match[1].trim();
     return (
       <button
-        className="text-white underline border-none nm-planner-add-custom-exercise"
+        className="text-text-alwayswhite underline border-none nm-planner-add-custom-exercise"
         onClick={() => {
           props.dispatch(
             lb<IPlannerState>()

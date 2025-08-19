@@ -28,12 +28,12 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
             props.dispatch({ type: "EditHistoryRecord", historyRecord: maxWeight.historyRecord })
           }
           value={
-            <div className="text-blackv2">
+            <div className="text-text-primary">
               <div data-cy="max-weight-value">
                 {Weight.display(Weight.convertTo(maxWeight.weight, props.settings.units))}
               </div>
               {maxWeight.historyRecord && (
-                <div className="text-xs text-grayv2-main">{DateUtils.format(maxWeight.historyRecord.startTime)}</div>
+                <div className="text-xs text-text-secondary">{DateUtils.format(maxWeight.historyRecord.startTime)}</div>
               )}
             </div>
           }
@@ -49,7 +49,7 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
           }
           name="Max 1RM"
           value={
-            <div className="text-blackv2">
+            <div className="text-text-primary">
               <div data-cy="one-rm-value">
                 {Weight.display(Weight.convertTo(max1RM.weight, props.settings.units))}
                 {max1RM.set
@@ -57,7 +57,7 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
                   : ""}
               </div>
               {max1RM.historyRecord && (
-                <div className="text-xs text-grayv2-main">{DateUtils.format(max1RM.historyRecord.startTime)}</div>
+                <div className="text-xs text-text-secondary">{DateUtils.format(max1RM.historyRecord.startTime)}</div>
               )}
             </div>
           }

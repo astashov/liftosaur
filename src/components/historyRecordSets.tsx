@@ -116,14 +116,14 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
   );
   const isPr = prTypes.length > 0;
   const repsColor = isNext
-    ? "text-grayv2-main"
+    ? "text-text-secondary"
     : set.isCompleted
       ? "text-greenv2-main"
       : set.isInRange
         ? "text-orange-400"
         : "text-redv2-main";
-  const rpeColor = isNext ? "text-grayv2-main" : set.isRpeFailed ? "text-redv2-main" : "text-greenv2-main";
-  const timerColor = isNext ? "text-grayv2-main" : "text-purplev3-main";
+  const rpeColor = isNext ? "text-text-secondary" : set.isRpeFailed ? "text-redv2-main" : "text-greenv2-main";
+  const timerColor = isNext ? "text-text-secondary" : "text-text-purple";
   return (
     <div
       className="text-sm whitespace-nowrap"
@@ -148,7 +148,7 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
             <span className="font-semibold text-purplev2-main" data-cy="history-entry-sets">
               {group.length}
             </span>
-            <span className="text-grayv2-main"> × </span>
+            <span className="text-text-secondary"> × </span>
           </>
         )}
         <span className={`font-semibold ${repsColor}`} data-cy="history-entry-reps">
@@ -156,11 +156,11 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
         </span>
         {set.weight && (
           <>
-            <span className="text-grayv2-main"> × </span>
+            <span className="text-text-secondary"> × </span>
             <span data-cy="history-entry-weight">
               <span className="font-semibold">{set.weight}</span>
               <span className="text-xs">{set.askWeight ? "+" : ""}</span>
-              <span className="text-xs text-grayv2-main">{set.unit}</span>
+              <span className="text-xs text-text-secondary">{set.unit}</span>
             </span>
           </>
         )}

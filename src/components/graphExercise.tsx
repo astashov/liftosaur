@@ -116,7 +116,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
 
   return (
     <div className="relative mx-1">
-      <div className="absolute z-10 text-xs text-grayv2-main" style={{ top: "2rem", left: "0.75rem" }}>
+      <div className="absolute z-10 text-xs text-text-secondary" style={{ top: "2rem", left: "0.75rem" }}>
         {props.subtitle || eqName}
       </div>
       <div className="absolute z-10 text-xs" style={{ top: "0.25rem", right: "0.75rem" }}>

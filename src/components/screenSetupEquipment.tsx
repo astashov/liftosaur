@@ -40,7 +40,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
           Set up <strong>bar/plates</strong>, or <strong>fixed weights</strong> for the equipment you have. Hide the
           equipment you don't have.
         </p>
-        <p className="px-4 pb-4 text-sm font-bold text-grayv3-main">
+        <p className="px-4 pb-4 text-sm font-bold text-text-secondary">
           You can skip it - and do it later during your first workout!
         </p>
         <EquipmentSettings
@@ -71,7 +71,7 @@ function Footer(props: IFooterProps): JSX.Element {
       style={{ marginBottom: "-2px" }}
     >
       <div
-        className="box-content absolute flex bg-white safe-area-inset-bottom"
+        className="box-content absolute flex bg-background-default safe-area-inset-bottom"
         style={{
           width: "4000px",
           marginLeft: "-2000px",

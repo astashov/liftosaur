@@ -30,7 +30,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
   return (
     <div>
       <div className="flex items-end">
-        <div className="flex items-start gap-2 mx-2 font-bold text-white bg-no-repeat bg-contain">
+        <div className="flex items-start gap-2 mx-2 font-bold text-text-alwayswhite bg-no-repeat bg-contain">
           <img src="/images/icon512.png" className="w-6 h-6 rounded-md" />
           <div className="text-lg">Liftosaur</div>
         </div>
@@ -41,7 +41,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
           </div>
         )}
       </div>
-      <div className="p-2 m-2 bg-white rounded-lg">
+      <div className="p-2 m-2 bg-background-default rounded-lg">
         <h2 className="text-base font-bold">{record.programName}</h2>
         <h3 className="text-base">{record.dayName}</h3>
         <div className="flex justify-between mt-1">
@@ -51,7 +51,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
           <Property name="Reps" value={totalReps} />
         </div>
       </div>
-      <div className="flex flex-col gap-1 p-2 m-2 bg-white rounded-lg">
+      <div className="flex flex-col gap-1 p-2 m-2 bg-background-default rounded-lg">
         {entries.map((entry) => {
           const prs = recordPrs[Exercise.toKey(entry.exercise)] ?? {};
           const hasPrs = ObjectUtils.keys(prs).length > 0;
@@ -87,7 +87,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
 function Property(props: { name: string; value: string | number; unit?: string }): JSX.Element {
   return (
     <div>
-      <div className="text-xs text-grayv2-main">{props.name}</div>
+      <div className="text-xs text-text-secondary">{props.name}</div>
       <div>
         <span className="text-xl font-bold">{props.value}</span>
         {props.unit && <span className="ml-1 text-sm">{props.unit}</span>}

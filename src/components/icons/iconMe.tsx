@@ -18,7 +18,7 @@ export function IconMe(props: IProps): JSX.Element {
 
 function IconMeUnselected(props: IProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.colors().blackv2;
+  const color = props.color ?? Tailwind.colors().black;
   return (
     <svg
       width={size}
@@ -52,7 +52,7 @@ function IconMeUnselected(props: IProps): JSX.Element {
 
 function IconMeSelected(props: IInnerProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.colors().purplev3.main;
+  const color = props.color ?? Tailwind.colors().purple[600];
   return (
     <svg
       width={size}

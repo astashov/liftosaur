@@ -40,7 +40,7 @@ export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Ele
             "User is not signed up"
           )}
         </h1>
-        <h2 className="text-base text-grayv2-main">
+        <h2 className="text-base text-text-secondary">
           id: <strong>{userId}</strong>
         </h2>
         {userDao && (
@@ -80,7 +80,7 @@ export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Ele
           const sortedEvents = CollectionUtils.sortBy(events, "timestamp", true);
           return (
             <div key={date}>
-              <h3 className="sticky top-0 left-0 w-full py-2 mt-4 mb-2 text-lg font-bold leading-none bg-white">
+              <h3 className="sticky top-0 left-0 w-full py-2 mt-4 mb-2 text-lg font-bold leading-none bg-background-default">
                 {date}
               </h3>
               <ul>
@@ -111,11 +111,11 @@ function EventView(props: IEventViewProps): JSX.Element | null {
   if (event.type === "event") {
     return (
       <div>
-        {event.isMobile ? <span className="text-grayv2-main">M </span> : <span className="text-greenv2-main">W </span>}
-        {event.iOSVersion && <span className="text-grayv2-main">A{event.iOSVersion} </span>}
-        {event.androidVersion && <span className="text-grayv2-main">G{event.androidVersion} </span>}
-        <span className="text-xs text-grayv3-main">{event.commithash?.slice(0, 4)} </span>
-        <span className="text-grayv2-main">{time}</span>: <span className="">{event.name}</span>
+        {event.isMobile ? <span className="text-text-secondary">M </span> : <span className="text-greenv2-main">W </span>}
+        {event.iOSVersion && <span className="text-text-secondary">A{event.iOSVersion} </span>}
+        {event.androidVersion && <span className="text-text-secondary">G{event.androidVersion} </span>}
+        <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
+        <span className="text-text-secondary">{time}</span>: <span className="">{event.name}</span>
         {event.extra && <span className="ml-2">{JSON.stringify(event.extra)}</span>}
       </div>
     );
@@ -124,12 +124,12 @@ function EventView(props: IEventViewProps): JSX.Element | null {
       <div>
         <div>
           {event.isMobile ? (
-            <span className="text-grayv2-main">M </span>
+            <span className="text-text-secondary">M </span>
           ) : (
             <span className="text-greenv2-main">W </span>
           )}
-          <span className="text-xs text-grayv3-main">{event.commithash?.slice(0, 4)} </span>
-          <span className="text-grayv2-main">{time}</span>:{" "}
+          <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
+          <span className="text-text-secondary">{time}</span>:{" "}
           {event.rollbar_id && (
             <a
               href={`https://rollbar.com/occurrence/uuid/?uuid=${event.rollbar_id}`}
@@ -141,15 +141,15 @@ function EventView(props: IEventViewProps): JSX.Element | null {
           )}{" "}
           <span className="text-red-500">{event.message}</span>
         </div>
-        <pre className="text-xs leading-none text-grayv2-main">{event.stack}</pre>
+        <pre className="text-xs leading-none text-text-secondary">{event.stack}</pre>
       </div>
     );
   } else if (event.type === "safesnapshot" || event.type === "mergesnapshot") {
     return (
       <div>
-        {event.isMobile ? <span className="text-grayv2-main">M </span> : <span className="text-greenv2-main">W </span>}
-        <span className="text-xs text-grayv3-main">{event.commithash?.slice(0, 4)} </span>
-        <span className="text-grayv2-main">{time}: </span>
+        {event.isMobile ? <span className="text-text-secondary">M </span> : <span className="text-greenv2-main">W </span>}
+        <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
+        <span className="text-text-secondary">{time}: </span>
         <span className="">{event.type}: </span>
         <a
           target="_blank"

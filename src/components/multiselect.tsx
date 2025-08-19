@@ -112,7 +112,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
         />
         {showValuesList && filteredValues.length > 0 && (
           <div
-            className="absolute z-20 overflow-y-auto bg-white border-t border-l border-r shadow-sm border-grayv2-400"
+            className="absolute z-20 overflow-y-auto bg-background-default border-t border-l border-r shadow-sm border-grayv2-400"
             style={input.current ? listCoordinates(input.current, height) : {}}
           >
             {filteredValues.map((value) => {

@@ -62,7 +62,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
         </div>
       </div>
       {program.author && (
-        <h3 data-cy="program-author" className="text-sm font-bold uppercase text-grayv2-main">
+        <h3 data-cy="program-author" className="text-sm font-bold uppercase text-text-secondary">
           By {program.author}
         </h3>
       )}
@@ -73,7 +73,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
           <strong>{TimeUtils.formatHHMM(Program.dayAverageTimeMs(evaluatedProgram, props.settings))}</strong>
         </span>
       </div>
-      <div className="py-1 text-grayv2-main">
+      <div className="py-1 text-text-secondary">
         <IconDoc width={15} height={20} color="#607284" />{" "}
         <span className="align-middle">
           {evaluatedProgram.weeks.length > 1 &&

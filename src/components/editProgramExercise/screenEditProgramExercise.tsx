@@ -92,7 +92,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           subtitle={
             plannerExercise.notused ? (
               <div className="pb-1">
-                <div className="inline-block px-1 ml-3 text-xs font-bold text-white rounded bg-grayv2-main">UNUSED</div>
+                <div className="inline-block px-1 ml-3 text-xs font-bold text-text-alwayswhite rounded bg-grayv2-main">UNUSED</div>
               </div>
             ) : undefined
           }
@@ -110,7 +110,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                 </button>
                 {isKebabMenuOpen && (
                   <DropdownMenu
-                    bgColor={Tailwind.colors().grayv3[50]}
+                    bgColor={Tailwind.colors().lightgray[50]}
                     rightOffset="3rem"
                     onClose={() => setIsKebabMenuOpen(false)}
                   >

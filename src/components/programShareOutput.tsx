@@ -36,7 +36,7 @@ function Card(props: { children: ComponentChildren }): JSX.Element {
       style={{
         boxShadow: "0 0px 3px -1px rgba(0,0,0,.1),0 2px 1px -1px rgba(0,0,0,.06)",
       }}
-      className="py-2 bg-white rounded-xl"
+      className="py-2 bg-background-default rounded-xl"
     >
       {props.children}
     </div>
@@ -73,14 +73,14 @@ export const ProgramShareOutput = forwardRef(
 
     return (
       <div ref={ref}>
-        <div className="flex gap-2 px-2 pt-2 bg-grayv2-50" ref={titleRef}>
+        <div className="flex gap-2 px-2 pt-2 bg-background-subtle" ref={titleRef}>
           <div className="flex-1">
             {options.showInfo && (
               <div className="flex items-center gap-2 px-1 pt-2">
                 <div className="text-5xl">🏋️</div>
                 <div className="flex-1">
                   <div className="mb-1 text-xl font-bold">{props.program.name}</div>
-                  <div className="text-base text-grayv2-main">
+                  <div className="text-base text-text-secondary">
                     {props.program.weeks.length > 1 && <span>{props.program.weeks.length} weeks, </span>}
                     {minDays === maxDays ? (
                       <span>
@@ -98,7 +98,7 @@ export const ProgramShareOutput = forwardRef(
           </div>
           {props.url && options.showQRCode && <ProgramQrCode url={props.url} size="5rem" />}
         </div>
-        <div className="p-2 bg-grayv2-50" ref={contentRef} style={{ width: "max-content" }}>
+        <div className="p-2 bg-background-subtle" ref={contentRef} style={{ width: "max-content" }}>
           {props.program.weeks.map((week, weekIndex) => {
             let dayInWeekIndex = 0;
             const visibleDays = week.days.filter((day) => {
@@ -185,13 +185,13 @@ function Workout(props: IWorkoutProps): JSX.Element {
           {day.name}
         </h2>
       </div>
-      <div className="px-4 text-grayv2-main">
+      <div className="px-4 text-text-secondary">
         {exercises.length} {StringUtils.pluralize("exercise", exercises.length)}
         {" · "}
         {setsNumber} {StringUtils.pluralize("set", setsNumber)}
       </div>
       {day.description && (
-        <div className="px-2 py-1 mx-4 my-2 text-xs rounded-md bg-grayv2-50 text-grayv2-main">
+        <div className="px-2 py-1 mx-4 my-2 text-xs rounded-md bg-background-subtle text-text-secondary">
           <Markdown value={day.description} />
         </div>
       )}
@@ -235,7 +235,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
               <Progression exercise={plannerProgramExercise} />
             </div>
             {descriptions.length > 0 && (
-              <div className="px-2 py-1 mt-2 text-xs rounded-md bg-grayv2-50 text-grayv2-main">
+              <div className="px-2 py-1 mt-2 text-xs rounded-md bg-background-subtle text-text-secondary">
                 {descriptions.map((d) => (
                   <Markdown key={d.value} value={d.value} />
                 ))}
@@ -259,7 +259,7 @@ function Set(props: ISetProps): JSX.Element {
     return <div />;
   }
   return (
-    <div className="text-base leading-4 text-right whitespace-nowrap text-grayv2-main">
+    <div className="text-base leading-4 text-right whitespace-nowrap text-text-secondary">
       {repRange.numberOfSets > 1 && (
         <span>
           <span className="font-semibold text-purplev2-main">{repRange.numberOfSets}</span>{" "}
@@ -267,27 +267,27 @@ function Set(props: ISetProps): JSX.Element {
         </span>
       )}
       {repRange.minrep == null ? (
-        <span className="font-semibold text-black">{repRange.maxrep}</span>
+        <span className="font-semibold text-text-primary">{repRange.maxrep}</span>
       ) : (
         <span>
-          <span className="font-semibold text-black">{repRange.minrep}</span>-
-          <span className="font-semibold text-black">{repRange.maxrep}</span>
+          <span className="font-semibold text-text-primary">{repRange.minrep}</span>-
+          <span className="font-semibold text-text-primary">{repRange.maxrep}</span>
         </span>
       )}
-      {repRange.isAmrap && <span className="font-semibold text-blackv2">+</span>}
+      {repRange.isAmrap && <span className="font-semibold text-text-primary">+</span>}
       {set.weight ? (
         <span>
           {" "}
-          <span className="text-xs">×</span> <span className="text-blackv2">{set.weight.value}</span>
-          {set.askWeight && <span className="font-semibold text-blackv2">+</span>}
-          <span className="text-xs text-grayv2-main">{set.weight.unit}</span>
+          <span className="text-xs">×</span> <span className="text-text-primary">{set.weight.value}</span>
+          {set.askWeight && <span className="font-semibold text-text-primary">+</span>}
+          <span className="text-xs text-text-secondary">{set.weight.unit}</span>
         </span>
       ) : set.percentage ? (
         <span>
           {" "}
-          <span className="text-xs">×</span> <span className="text-blackv2">{set.percentage}</span>
-          {set.askWeight && <span className="font-semibold text-blackv2">+</span>}
-          <span className="text-xs text-grayv2-main">%</span>
+          <span className="text-xs">×</span> <span className="text-text-primary">{set.percentage}</span>
+          {set.askWeight && <span className="font-semibold text-text-primary">+</span>}
+          <span className="text-xs text-text-secondary">%</span>
         </span>
       ) : undefined}
       {set.rpe != null && (

@@ -99,7 +99,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
       </div>
       <div className="hidden sm:flex">
         <div
-          className="p-4 border-r bg-grayv2-50 border-grayv2-200"
+          className="p-4 border-r bg-background-subtle border-border-neutral"
           style={{ borderRadius: "0.5rem 0 0 0.5rem", minWidth: "16rem" }}
         >
           <SettingsTab

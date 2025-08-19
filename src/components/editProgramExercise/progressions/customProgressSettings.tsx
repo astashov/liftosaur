@@ -40,20 +40,20 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
 
   return (
     <div>
-      <div className="border rounded-lg bg-purplev3-50 border-purplev3-150">
-        <div className="p-2 text-sm font-semibold border-b border-purplev3-150">Progress State Variables</div>
+      <div className="border rounded-lg bg-background-cardpurple border-border-purple">
+        <div className="p-2 text-sm font-semibold border-b border-border-purple">Progress State Variables</div>
         <ul>
           {ObjectUtils.entries(ownState).map(([key, value]) => {
             const isUsedVariable = ScriptRunner.hasStateVariable(progress.script ?? "", key);
             const metadata = progress.stateMetadata?.[key];
             const isReused = onlyChangedState[key] == null;
             return (
-              <li key={key} className="p-2 text-base border-b border-purplev3-150">
+              <li key={key} className="p-2 text-base border-b border-border-purple">
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
                     <div className="leading-none">{key}</div>
-                    {metadata?.userPrompted && <div className="text-xs text-grayv3-main">User prompted</div>}
-                    {isReused && <div className="text-xs text-grayv3-main">Reused</div>}
+                    {metadata?.userPrompted && <div className="text-xs text-text-secondary">User prompted</div>}
+                    {isReused && <div className="text-xs text-text-secondary">Reused</div>}
                   </div>
                   <div>
                     {typeof value === "number" ? (
@@ -142,7 +142,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                       }}
                     >
                       <IconTrash
-                        color={isUsedVariable ? Tailwind.colors().grayv3[300] : Tailwind.colors().blackv2}
+                        color={isUsedVariable ? Tailwind.colors().lightgray[300] : Tailwind.colors().black}
                         width={14}
                         height={18}
                       />
@@ -158,7 +158,9 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
             kind="lightpurple"
             name="add-state-variable"
             className="w-full text-sm"
-            onClick={() => props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(true), "Show add state variable modal")}
+            onClick={() =>
+              props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(true), "Show add state variable modal")
+            }
           >
             + Add State Variable
           </Button>
@@ -166,7 +168,9 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
       </div>
       {props.ui.showAddStateVariableModal && (
         <ModalCreateStateVariable
-          onClose={() => props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(false), "Close add state variable modal")}
+          onClose={() =>
+            props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(false), "Close add state variable modal")
+          }
           onCreate={(name, type, isUserPrompted) => {
             props.plannerDispatch(
               lbProgram.recordModify((program) => {

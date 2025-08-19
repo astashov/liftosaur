@@ -99,7 +99,7 @@ export function EvalResult(props: IEvalResultProps): JSX.Element | null {
     return (
       <span className="px-2 text-sm">
         <span className={props.redTheme ? "text-redv2-100" : "text-red-500"}>Error: </span>
-        <span className={`font-bold ${props.redTheme ? "text-white" : "text-red-700"}`}>{props.error.message}</span>
+        <span className={`font-bold ${props.redTheme ? "text-text-alwayswhite" : "text-red-700"}`}>{props.error.message}</span>
         <span className="ml-2">{customErrorCta}</span>
       </span>
     );

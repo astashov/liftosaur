@@ -75,7 +75,7 @@ export function StatsList(props: IProps): JSX.Element {
             <img src={ImagePreloader.dynoflex} className="block" style={{ width: 180, height: 232 }} />
           </div>
         </div>
-        <div className="pt-4 pb-6 text-sm text-center text-grayv2-main">No measurements added yet</div>
+        <div className="pt-4 pb-6 text-sm text-center text-text-secondary">No measurements added yet</div>
         <div className="text-center">
           <Button
             name="add-measurements"
@@ -171,7 +171,7 @@ export function StatsList(props: IProps): JSX.Element {
       </div>
       {values.length === 0 ? (
         <>
-          <div className="py-12 text-xl text-center text-grayv2-main">
+          <div className="py-12 text-xl text-center text-text-secondary">
             No {Stats.name(selectedKey)} measurements added yet
           </div>
         </>

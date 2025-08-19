@@ -92,7 +92,7 @@ export function TopNavMenu(props: {
                 return (
                   <li className="inline-block mx-4 align-middle list-none">
                     {props.current === link ? (
-                      <strong className="text-orangev2">{text}</strong>
+                      <strong className="text-icon-yellow">{text}</strong>
                     ) : (
                       <a className="cursor-pointer" href={link}>
                         {text}

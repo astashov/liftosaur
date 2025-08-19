@@ -20,7 +20,7 @@ export function EditProgramExerciseSets(props: IEditProgramExerciseSetsProps): J
   const { plannerExercise } = props;
 
   return (
-    <div className="pt-2 pb-2 bg-white">
+    <div className="pt-2 pb-2 bg-background-default">
       <div className="flex gap-4 px-4 pb-2">
         <div className="text-base font-bold">Edit Sets</div>
       </div>

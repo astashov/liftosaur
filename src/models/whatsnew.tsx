@@ -581,8 +581,8 @@ const whatsNew: Record<string, IWhatsNew> = {
         </li>
         <li>
           On the history and workout screens, we show required RPE like{" "}
-          <strong className="font-bold text-grayv2-main">@8</strong> (gray color) and logged RPE like{" "}
-          <strong className="font-bold text-orangev2">@9</strong> (orange color), prefixed by <strong>@</strong> sign.
+          <strong className="font-bold text-text-secondary">@8</strong> (gray color) and logged RPE like{" "}
+          <strong className="font-bold text-icon-yellow">@9</strong> (orange color), prefixed by <strong>@</strong> sign.
         </li>
       </ul>
     ),
@@ -864,7 +864,7 @@ const whatsNew: Record<string, IWhatsNew> = {
   "20240205": {
     title: (
       <span>
-        New <strong className="text-orangev2">update: custom()</strong> syntax for updates after completed sets (in the
+        New <strong className="text-icon-yellow">update: custom()</strong> syntax for updates after completed sets (in the
         "Experimental" programs)
       </span>
     ),

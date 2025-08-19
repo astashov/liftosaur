@@ -40,7 +40,7 @@ export function EditProgramExerciseRepeat(props: IEditProgramExerciseRepeatProps
       <span className="mr-2 text-sm">Repeat from week {repeatFrom} to week: </span>
       <select
         value={repeatTo}
-        className="mx-1 border border-grayv3-200"
+        className="mx-1 border border-border-neutral"
         data-cy="edit-exercise-repeat"
         onChange={(event) => {
           const target = event.target as HTMLSelectElement;

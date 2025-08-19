@@ -19,7 +19,7 @@ export function IconDoc2(props: IProps): JSX.Element {
 
 export function IconDoc2Unselected(props: IInnerProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.colors().blackv2;
+  const color = props.color ?? Tailwind.colors().black;
   return (
     <svg
       width={size}
@@ -44,7 +44,7 @@ export function IconDoc2Unselected(props: IInnerProps): JSX.Element {
 
 function IconDoc2Selected(props: IInnerProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.colors().purplev3.main;
+  const color = props.color ?? Tailwind.colors().purple[600];
   const bgColor = props.bgColor ?? Tailwind.colors().white;
   return (
     <svg

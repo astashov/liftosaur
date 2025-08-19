@@ -34,7 +34,7 @@ export function HelpEditProgramV2(): JSX.Element {
         and reps after slash (<pre className="inline">/</pre>) character, like this:
       </p>
       <div>
-        <div className="px-4 py-2 my-1 mb-2 bg-white border rounded-md border-grayv2-300">
+        <div className="px-4 py-2 my-1 mb-2 bg-background-default border rounded-md border-border-neutral">
           <PlannerCodeBlock script={script} />
         </div>
       </div>
@@ -44,7 +44,7 @@ export function HelpEditProgramV2(): JSX.Element {
         <abbr title="1RM - One Rep Max. The maximum weight you can lift for one repetition.">1RM</abbr>:
       </p>
       <div>
-        <div className="px-4 py-2 my-1 mb-2 bg-white border rounded-md border-grayv2-300">
+        <div className="px-4 py-2 my-1 mb-2 bg-background-default border rounded-md border-border-neutral">
           <PlannerCodeBlock script={script2} />
         </div>
       </div>

@@ -74,7 +74,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
   const shouldUseTouch = isMobile && !isPlaywright;
 
   return (
-    <div className="px-4 pt-2 pb-2 bg-white">
+    <div className="px-4 pt-2 pb-2 bg-background-default">
       <div className="flex gap-4 pb-2">
         <div className="text-base font-bold">Edit Warmups</div>
         <div className="ml-auto">
@@ -122,7 +122,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
         </div>
       </div>
       {ownWarmups == null ? (
-        <div className="flex gap-2 py-2 pl-3 pr-2 border rounded-lg bg-purplev3-50 border-purplev3-150">
+        <div className="flex gap-2 py-2 pl-3 pr-2 border rounded-lg bg-background-cardpurple border-border-purple">
           <div className="flex-1 text-sm">
             {reuseWarmups ? <div>Reused from</div> : <div className="font-semibold">Default warmups</div>}
           </div>
@@ -133,14 +133,14 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
           </div>
         </div>
       ) : (
-        <div className="border rounded-lg bg-purplev3-50 border-purplev3-150">
+        <div className="border rounded-lg bg-background-cardpurple border-border-purple">
           <div className="table w-full overflow-hidden">
             <div className="table-row-group pt-1">
-              <div className="table-row text-xs border-b text-grayv2-main border-pubplev3-200">
-                <div className="table-cell px-2 py-1 font-normal text-left border-b border-purplev3-150">Set</div>
-                <div className="table-cell py-1 font-normal text-center border-b border-purplev3-150">Reps</div>
-                <div className="table-cell py-1 text-center border-b border-purplev3-150"></div>
-                <div className="table-cell py-1 pr-4 font-normal text-center border-b border-purplev3-150">Weight</div>
+              <div className="table-row text-xs border-b text-text-secondary border-pubplev3-200">
+                <div className="table-cell px-2 py-1 font-normal text-left border-b border-border-purple">Set</div>
+                <div className="table-cell py-1 font-normal text-center border-b border-border-purple">Reps</div>
+                <div className="table-cell py-1 text-center border-b border-border-purple"></div>
+                <div className="table-cell py-1 pr-4 font-normal text-center border-b border-border-purple">Weight</div>
               </div>
             </div>
             <div className="table-row-group">
@@ -166,14 +166,14 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                         onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
                       >
                         <div
-                          className="table-cell px-2 py-1 text-sm align-middle border-b border-purplev3-150"
+                          className="table-cell px-2 py-1 text-sm align-middle border-b border-border-purple"
                           data-cy="warmup-set-number"
                         >
                           <div className={`w-6 h-6 flex items-center justify-start rounded-full`}>
                             <div>{setIndex + 1}</div>
                           </div>
                         </div>
-                        <div className="table-cell py-2 align-middle border-b border-purplev3-150">
+                        <div className="table-cell py-2 align-middle border-b border-border-purple">
                           <div className="flex justify-center text-center">
                             <InputNumber2
                               width={3.5}
@@ -207,12 +207,12 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                           </div>
                         </div>
                         <div
-                          className="table-cell px-1 py-2 text-center align-middle border-b border-purplev3-150"
+                          className="table-cell px-1 py-2 text-center align-middle border-b border-border-purple"
                           data-cy="warmup-set-x"
                         >
                           ×
                         </div>
-                        <div className="relative table-cell py-2 align-middle border-b border-purplev3-150">
+                        <div className="relative table-cell py-2 align-middle border-b border-border-purple">
                           <div className="flex items-center justify-center text-center">
                             <InputWeight2
                               name="set-weight"
@@ -276,7 +276,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                                   "Delete warmup set"
                                 );
                               }}
-                              className="flex-1 h-full text-white bg-redv3-600 nm-workout-exercise-set-delete"
+                              className="flex-1 h-full text-text-alwayswhite bg-background-darkred nm-workout-exercise-set-delete"
                             >
                               Delete
                             </button>
@@ -291,7 +291,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
           </div>
           <div className="flex">
             <button
-              className="flex-1 py-2 m-2 text-xs font-semibold text-center rounded-md bg-purplev3-100 text-bluev3-main"
+              className="flex-1 py-2 m-2 text-xs font-semibold text-center rounded-md bg-background-purpledark text-text-link"
               data-cy="add-warmup-set"
               onClick={() => {
                 props.plannerDispatch(
@@ -326,7 +326,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
               }}
             >
               <span>
-                <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().bluev3.main} />
+                <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().blue[400]} />
               </span>
               <span className="ml-2">Add Warmup Set</span>
             </button>

@@ -44,7 +44,7 @@ export function ModalEditUpdateScript(props: IModalEditUpdateScriptProps): JSX.E
   return (
     <Modal name="modal-edit-progress-script" isFullWidth isFullHeight onClose={props.onClose} shouldShowClose={true}>
       <h2 className="mb-1 text-lg font-bold text-center">Update Script</h2>
-      <p className="mb-2 text-xs text-grayv3-main">
+      <p className="mb-2 text-xs text-text-secondary">
         It's executed after each set completion. Use <strong>setIndex</strong> variable to distinguish between sets.
       </p>
       <ScriptEditorView
