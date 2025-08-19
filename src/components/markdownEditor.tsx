@@ -57,7 +57,7 @@ export function MarkdownEditor(props: IProps): JSX.Element {
   }, [props.value]);
 
   let className =
-    "block w-full px-2 py-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:shadow-outline";
+    "block w-full px-2 py-2 leading-normal bg-background-default border rounded-lg appearance-none focus:outline-none focus:shadow-outline";
   className += " border-gray-300";
 
   return (

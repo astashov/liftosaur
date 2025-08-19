@@ -44,7 +44,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
       <div className="flex items-center pt-2">
         <h2 data-cy="program-name" className="flex-1 text-2xl font-bold leading-tight">
           {program.url ? (
-            <a className="underline text-bluev2" target="_blank" href={program.url}>
+            <a className="underline text-text-link" target="_blank" href={program.url}>
               {program.name}
             </a>
           ) : (
@@ -74,7 +74,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
         </span>
       </div>
       <div className="py-1 text-text-secondary">
-        <IconDoc width={15} height={20} color="#607284" />{" "}
+        <IconDoc width={15} height={20} />{" "}
         <span className="align-middle">
           {evaluatedProgram.weeks.length > 1 &&
             `${evaluatedProgram.weeks.length} ${StringUtils.pluralize("week", evaluatedProgram.weeks.length)}, `}

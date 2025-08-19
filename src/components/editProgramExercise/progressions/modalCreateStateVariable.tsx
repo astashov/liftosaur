@@ -81,7 +81,7 @@ export function ModalCreateStateVariable(props: IModalCreateStateVariableProps):
               }
             }}
           />
-          {showTypeError && <div className="text-xs text-redv2-main">Please select a type for the variable.</div>}
+          {showTypeError && <div className="text-xs text-text-error">Please select a type for the variable.</div>}
         </div>
         <MenuItemEditable
           name="User Prompted?"
@@ -97,7 +97,7 @@ export function ModalCreateStateVariable(props: IModalCreateStateVariableProps):
           }}
         />
         <div className="mt-4 text-center">
-          <Button kind="orange" name="modal-create-state-variable-submit">
+          <Button kind="purple" name="modal-create-state-variable-submit">
             Create
           </Button>
         </div>

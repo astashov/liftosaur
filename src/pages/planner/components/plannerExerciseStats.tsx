@@ -93,7 +93,7 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
         <div className="flex-1">
           <h3 className="mb-2 text-lg font-bold">
             <a href={Exercise.toExternalUrl(exercise)} target="_blank">
-              <span className="font-bold underline text-bluev2">{evaluatedExercise.name}</span>{" "}
+              <span className="font-bold underline text-text-link">{evaluatedExercise.name}</span>{" "}
               <IconExternalLink className="inline-block mb-1 ml-1" size={16} color="#607284" />
             </a>
           </h3>

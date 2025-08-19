@@ -213,7 +213,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                   <Button
                     name="subscription-free"
                     onClick={() => props.dispatch(Thunk.claimkey())}
-                    kind="orange"
+                    kind="purple"
                     className="whitespace-nowrap"
                     data-cy="button-subscription-free"
                     buttonSize="lg"
@@ -234,15 +234,17 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                           lg("start-subscription-monthly");
                           SendMessage.toIos({ type: "subscribeMontly" });
                           SendMessage.toAndroid({ type: "subscribeMontly" });
-                          updateState(props.dispatch, [
-                            lb<IState>().p("subscriptionLoading").record({ monthly: true }),
-                          ], "Start monthly subscription");
+                          updateState(
+                            props.dispatch,
+                            [lb<IState>().p("subscriptionLoading").record({ monthly: true })],
+                            "Start monthly subscription"
+                          );
                         } else {
                           webAlert();
                         }
                       }}
                       className="w-full"
-                      kind="orange"
+                      kind="purple"
                       data-cy="button-subscription-monthly"
                     >
                       {!props.subscriptionLoading?.monthly ? (
@@ -261,7 +263,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                           lg("start-subscription-yearly");
                           SendMessage.toIos({ type: "subscribeYearly" });
                           SendMessage.toAndroid({ type: "subscribeYearly" });
-                          updateState(props.dispatch, [lb<IState>().p("subscriptionLoading").record({ yearly: true })], "Start yearly subscription");
+                          updateState(
+                            props.dispatch,
+                            [lb<IState>().p("subscriptionLoading").record({ yearly: true })],
+                            "Start yearly subscription"
+                          );
                         } else {
                           webAlert();
                         }
@@ -288,9 +294,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                           lg("start-subscription-lifetime");
                           SendMessage.toIos({ type: "subscribeLifetime" });
                           SendMessage.toAndroid({ type: "subscribeLifetime" });
-                          updateState(props.dispatch, [
-                            lb<IState>().p("subscriptionLoading").record({ lifetime: true }),
-                          ], "Start lifetime subscription");
+                          updateState(
+                            props.dispatch,
+                            [lb<IState>().p("subscriptionLoading").record({ lifetime: true })],
+                            "Start lifetime subscription"
+                          );
                         } else {
                           webAlert();
                         }
@@ -323,7 +331,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 <InternalLink
                   name="terms-of-use"
                   href="/terms.html"
-                  className="font-bold underline border-none text-bluev2"
+                  className="font-bold underline border-none text-text-link"
                 >
                   Terms of use
                 </InternalLink>

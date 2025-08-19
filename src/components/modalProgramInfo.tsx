@@ -25,7 +25,7 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
       <h2 className="pr-6 text-lg font-bold">
         {props.hasCustomPrograms ? "Clone" : "Start"} <Link href={props.program.url}>{props.program.name}</Link>
       </h2>
-      <div className="text-sm text-grayv2-700">by {props.program.author}</div>
+      <div className="text-sm text-text-secondary">by {props.program.author}</div>
       {formattedTime && (
         <div className="flex items-center pb-1 text-sm">
           <div className="pr-1">
@@ -45,7 +45,7 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
           name="preview-program"
           data-cy="preview-program"
           type="button"
-          kind="purple"
+          kind="grayv2"
           className="mr-3"
           onClick={props.onPreview}
         >
@@ -54,7 +54,7 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
         <Button
           name="clone-program"
           type="button"
-          kind="orange"
+          kind="purple"
           data-cy="clone-program"
           className="mr-3 ls-modal-clone-program"
           onClick={props.onSelect}

@@ -316,7 +316,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivEl
           return (
             <a
               href={buildExerciseUrl(exercise, filterTypes)}
-              className={`block px-2 rounded-lg hover:bg-grayv2-100 border ${
+              className={`block px-2 rounded-lg hover:bg-background-subtle border ${
                 key === currentKey ? "bg-orange-100 border-orange-200" : "border-transparent"
               }`}
               key={key}
@@ -363,7 +363,7 @@ function MuscleGroupItem(props: IMuscleGroupItemProps): JSX.Element {
             buildExerciseUrl(props.exerciseType, [props.type])
           );
         }}
-        className="underline text-bluev2"
+        className="underline text-text-link"
       >
         {props.type}
       </a>
@@ -528,7 +528,7 @@ function DropdownMenu(props: {
         className={`absolute shadow rounded`}
         style={props.onTop ? { bottom: "0", left: "-2.5rem" } : { top: "-130px", right: "2.5rem" }}
       >
-        <div className={`relative h-full z-20 bg-white rounded p-2 text-right`}>{props.children}</div>
+        <div className={`relative h-full z-20 bg-background-default rounded p-2 text-right`}>{props.children}</div>
         <div className="add-tip" style={{ zIndex: 10, top: "135px" }} />
       </div>
     </section>

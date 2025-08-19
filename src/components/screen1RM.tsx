@@ -49,9 +49,9 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
         </p>
         <div className="table w-full">
           <div className="table-row-group">
-            <div className="table-row text-xs border-b text-text-secondary border-grayv3-100">
-              <div className="table-cell pb-1 pl-4 font-normal text-left border-b border-grayv3-100">Exercise</div>
-              <div className="table-cell pb-1 pr-4 font-normal text-center border-b border-grayv3-100">1 Rep Max</div>
+            <div className="table-row text-xs border-b text-text-secondary border-background-subtle">
+              <div className="table-cell pb-1 pl-4 font-normal text-left border-b border-background-subtle">Exercise</div>
+              <div className="table-cell pb-1 pr-4 font-normal text-center border-b border-background-subtle">1 Rep Max</div>
             </div>
           </div>
           <div className="table-row-group">
@@ -60,7 +60,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
               const onerm = Exercise.onerm(exerciseType, props.settings);
               return (
                 <div className="table-row">
-                  <div className="table-cell py-1 pl-4 align-middle border-b border-grayv3-100">
+                  <div className="table-cell py-1 pl-4 align-middle border-b border-background-subtle">
                     <div className="flex items-center gap-4">
                       <div className="w-12">
                         <ExerciseImage
@@ -77,7 +77,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
                       </div>
                     </div>
                   </div>
-                  <div className="table-cell py-1 pr-4 text-sm align-middle border-b border-grayv3-100">
+                  <div className="table-cell py-1 pr-4 text-sm align-middle border-b border-background-subtle">
                     <div className="flex justify-center">
                       <InputWeight2
                         name="onerm-weight"

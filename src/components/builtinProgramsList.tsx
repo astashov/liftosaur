@@ -153,7 +153,9 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
             );
           })
         ) : (
-          <div className="px-6 py-8 text-lg text-center text-text-secondarysubtle">No programs found with selected filters</div>
+          <div className="px-6 py-8 text-lg text-center text-text-secondarysubtle">
+            No programs found with selected filters
+          </div>
         )}
       </div>
       {selectedProgram != null && (
@@ -193,7 +195,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
 
   return (
     <button
-      className="relative flex items-center w-full p-3 mb-4 text-left border rounded-lg bg-background-cardpurple border-purplev3-200 nm-program-list-choose-program"
+      className="relative flex items-center w-full p-3 mb-4 text-left border rounded-lg bg-background-cardpurple border-background-cardpurpleborder nm-program-list-choose-program"
       onClick={props.onClick}
     >
       <div className="flex-1">

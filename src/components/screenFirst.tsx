@@ -23,7 +23,7 @@ interface IProps {
 export function ScreenFirst(props: IProps): JSX.Element {
   const [showAccountModal, setShowAccountModal] = useState(false);
   return (
-    <section className="flex flex-col h-screen text-text-primary bg-background-default">
+    <section className="flex flex-col h-screen text-black text-text-primary bg-background-default">
       <div className="flex-1 px-4 pt-16 pb-4">
         <StorySlider
           slides={[
@@ -31,7 +31,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
             <RestSlide
               bgColorHexFrom={Tailwind.colors().purple[200]}
               bgColorHexTo={Tailwind.colors().purple[100]}
-              bgColor="bg-background-purpledark"
+              bgColor="bg-purple-100"
               borderColor="border-purplev3-200"
               header={
                 <span>
@@ -45,7 +45,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
             <RestSlide
               bgColorHexFrom={Tailwind.colors().yellow[200]}
               bgColorHexTo={Tailwind.colors().yellow[100]}
-              bgColor="bg-background-cardyellow"
+              bgColor="bg-yellow-100"
               borderColor="border-background-cardyellowborder"
               header={
                 <span>
@@ -62,7 +62,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
             <RestSlide
               bgColorHexFrom={Tailwind.colors().purple[200]}
               bgColorHexTo={Tailwind.colors().purple[100]}
-              bgColor="bg-background-purpledark"
+              bgColor="bg-purple-100"
               borderColor="border-purplev3-200"
               header={
                 <span>
@@ -76,8 +76,8 @@ export function ScreenFirst(props: IProps): JSX.Element {
             <RestSlide
               bgColorHexFrom={Tailwind.colors().red[200]}
               bgColorHexTo={Tailwind.colors().red[100]}
-              bgColor="bg-redv3-100"
-              borderColor="border-redv3-200"
+              bgColor="bg-red-100"
+              borderColor="border-red-200"
               header={
                 <span>
                   <IconTracker color={Tailwind.colors().red[600]} className="inline-block mr-1 align-middle" />
@@ -128,7 +128,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
 function FirstSlide(): JSX.Element {
   return (
     <div
-      className="relative flex flex-col w-full h-full rounded-2xl"
+      className="relative flex flex-col w-full h-full bg-white rounded-2xl"
       style={{
         background: "url('/images/slide-1-bg.jpg') no-repeat center center",
         backgroundSize: "cover",
@@ -171,7 +171,7 @@ function RestSlide(props: IRestSlideProps): JSX.Element {
         }}
       ></div>
       <div className="px-8 font-semibold text-center">{props.header}</div>
-      <div className="px-8 py-6 text-xl font-semibold text-center">{props.bodyText}</div>
+      <div className="px-8 py-6 text-xl font-semibold text-center text-black">{props.bodyText}</div>
       <div
         className="flex items-center justify-center flex-1 w-full bg-no-repeat bg-contain"
         style={{ backgroundImage: `url(/images/${props.image}.png)`, backgroundPosition: "center center" }}

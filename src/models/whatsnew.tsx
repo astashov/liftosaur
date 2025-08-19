@@ -185,7 +185,7 @@ const whatsNew: Record<string, IWhatsNew> = {
       <ul>
         <li>
           There's a new web editor for programs, so you could edit the programs from a laptop -{" "}
-          <InternalLink name="web-editor" className="font-bold underline text-bluev2" href="/program">
+          <InternalLink name="web-editor" className="font-bold underline text-text-link" href="/program">
             liftosaur.com/program
           </InternalLink>
           . You can create a program there, then copy the link, and paste it into the app (on the program selection
@@ -235,7 +235,7 @@ const whatsNew: Record<string, IWhatsNew> = {
       <ul>
         <li>
           We've got a Discord server now! You can join it here:{" "}
-          <a href="https://discord.com/invite/AAh3cvdBRs" target="_blank" className="font-bold underline text-bluev2">
+          <a href="https://discord.com/invite/AAh3cvdBRs" target="_blank" className="font-bold underline text-text-link">
             <IconDiscord className="inline-block mr-1" /> Discord Server
           </a>
         </li>
@@ -458,11 +458,11 @@ const whatsNew: Record<string, IWhatsNew> = {
       <ul>
         <li>
           Liftosaur is{" "}
-          <a href="https://github.com/astashov/liftosaur" target="_blank" className="font-bold underline text-bluev2">
+          <a href="https://github.com/astashov/liftosaur" target="_blank" className="font-bold underline text-text-link">
             open-source
           </a>
           , so anyone can see the code, and potentially add features. Amazing{" "}
-          <a href="https://github.com/codymurdoc" target="_blank" className="font-bold underline text-bluev2">
+          <a href="https://github.com/codymurdoc" target="_blank" className="font-bold underline text-text-link">
             @codymurdoc
           </a>{" "}
           went ahead and added bodyfat tracking support to Liftosaur! This is so cool, thank you so much! It's really
@@ -606,7 +606,7 @@ const whatsNew: Record<string, IWhatsNew> = {
         </li>
         <li>
           If this change somehow breaks the rounding logic in your program, please contact in Discord or by{" "}
-          <a className="font-bold underline text-bluev2" href="mailto:info@liftosaur.com">
+          <a className="font-bold underline text-text-link" href="mailto:info@liftosaur.com">
             info@liftosaur.com
           </a>
           . It shouldn't break anything, but I could miss some edge cases...
@@ -682,7 +682,7 @@ const whatsNew: Record<string, IWhatsNew> = {
           Now, on the Measurement screen, for the graphs there you can add moving average graph. It's super useful
           especially for tracking bodyweight or body fat, due to high volatility of those measurements. This was added
           by awesome{" "}
-          <a href="https://github.com/123marvin123" target="_blank" className="font-bold underline text-bluev2">
+          <a href="https://github.com/123marvin123" target="_blank" className="font-bold underline text-text-link">
             @123marvin123
           </a>
           , thank you so so much for contributing and adding this feature! It'll help a lot of people tracking their
@@ -767,7 +767,7 @@ const whatsNew: Record<string, IWhatsNew> = {
           Now there's a new "Full Program" mode in the{" "}
           <InternalLink
             name="web-editor"
-            className="font-bold underline text-bluev2"
+            className="font-bold underline text-text-link"
             href="https://www.liftosaur.com/planner"
           >
             Workout Planner
@@ -823,7 +823,7 @@ const whatsNew: Record<string, IWhatsNew> = {
           that you used in the{" "}
           <InternalLink
             name="whatsnew-workout-planner"
-            className="font-bold underline text-bluev2"
+            className="font-bold underline text-text-link"
             href="https://www.liftosaur.com/planner"
           >
             Workout Planner
@@ -847,7 +847,7 @@ const whatsNew: Record<string, IWhatsNew> = {
           Read more about new syntax and how to write programs that way{" "}
           <InternalLink
             name="whatsnew-planner-blogpost"
-            className="font-bold underline text-bluev2"
+            className="font-bold underline text-text-link"
             href="https://www.liftosaur.com/blog/posts/new-experimental-program-editor/"
           >
             in the blogpost.
@@ -1857,7 +1857,7 @@ Squat / 3x8 100lb / ...main`}
       <ul>
         <li>
           To help you write Liftoscript, there's now a page -
-          <InternalLink name="web-editor" className="font-bold underline text-bluev2" href="/ai/prompt">
+          <InternalLink name="web-editor" className="font-bold underline text-text-link" href="/ai/prompt">
             liftosaur.com/ai/prompt
           </InternalLink>{" "}
           - that you could use to generate a prompt e.g. for ChatGPT, Claude, Gemini, etc that would help you to write

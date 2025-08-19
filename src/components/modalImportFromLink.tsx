@@ -37,7 +37,7 @@ export function ModalImportFromLink(props: IProps): JSX.Element {
           </Button>
           <Button
             name="modal-import-from-link-submit"
-            kind="orange"
+            kind="purple"
             type="submit"
             className="ls-submit-link"
             onClick={(e) => {

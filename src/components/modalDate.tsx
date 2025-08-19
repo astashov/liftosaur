@@ -69,7 +69,7 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
           </Button>
           <Button
             name="modal-date-submit"
-            kind="orange"
+            kind="purple"
             type="submit"
             className="ls-modal-set-date"
             onClick={() => {

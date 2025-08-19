@@ -9,7 +9,7 @@ interface IProps {
 
 export function IconKettlebellSmall(props: IProps): JSX.Element {
   const size = props.size ?? 14;
-  const color = props.color ?? Tailwind.colors().black;
+  const color = props.color ?? Tailwind.semantic().icon.neutral;
   return (
     <svg
       width={size}

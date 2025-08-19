@@ -76,7 +76,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
             {orderAndRepeat ? <span className="text-sm font-normal text-text-primary"> [{orderAndRepeat}]</span> : ""}
           </div>
           {props.plannerExercise.notused && (
-            <div className="px-1 ml-3 text-xs font-bold text-text-alwayswhite rounded bg-grayv2-main">UNUSED</div>
+            <div className="px-1 ml-3 text-xs font-bold text-text-alwayswhite rounded bg-background-darkgray">UNUSED</div>
           )}
           <button
             className="p-2"
@@ -237,7 +237,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                           </div>
                         </div>
                       </div>
-                      <div className="self-stretch ml-4 mr-4 bg-grayv2-200" style={{ width: "1px" }} />
+                      <div className="self-stretch ml-4 mr-4 bg-border-neutral" style={{ width: "1px" }} />
                     </>
                   )}
                   <div data-cy="ui-workout-sets">

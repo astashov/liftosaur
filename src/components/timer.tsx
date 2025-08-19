@@ -42,7 +42,7 @@ export function Timer(props: IProps): JSX.Element {
           <IconPause color="#607284" size={16} />
         </button>
       )}
-      <span className={`leading-none align-middle ${isPaused ? "text-redv2-main" : "text-greenv2-main"}`}>
+      <span className={`leading-none align-middle ${isPaused ? "text-text-error" : "text-text-success"}`}>
         {TimeUtils.formatHH(workoutTime)}
         <span className={isPaused ? "" : "blinking"}>:</span>
         {TimeUtils.formatMM(workoutTime)} h

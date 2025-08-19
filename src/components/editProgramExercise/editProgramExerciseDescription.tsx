@@ -36,7 +36,7 @@ export function EditProgramExerciseDescription(props: IEditProgramExerciseDescri
                 <span className="mr-2 text-xs">Is Current?</span>
                 <input
                   checked={currentIndex === props.descriptionIndex}
-                  className="block align-middle checkbox text-bluev2"
+                  className="block align-middle checkbox text-text-link"
                   type="checkbox"
                   onChange={(e) => {
                     EditProgramUiHelpers.changeCurrentInstanceExercise(

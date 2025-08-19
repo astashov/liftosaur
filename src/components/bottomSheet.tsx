@@ -40,7 +40,7 @@ export function BottomSheet(props: IProps): JSX.Element {
     <div className={`fixed inset-0 z-40 pointer-events-none`} data-cy="bottom-sheet-container">
       <div
         data-name="overlay"
-        className={`pointer-events-auto absolute inset-0 bg-grayv2-700 will-change-transform ${
+        className={`pointer-events-auto absolute inset-0 bg-text-secondary will-change-transform ${
           props.isHidden ? "invisible opacity-0" : "visible opacity-50"
         }`}
         style={{
@@ -50,7 +50,7 @@ export function BottomSheet(props: IProps): JSX.Element {
       ></div>
       <div
         ref={bottomSheetRef}
-        className={`bottom-sticked absolute bottom-0 left-0 flex w-full overflow-y-auto bg-white pointer-events-auto will-change-transform ${
+        className={`bottom-sticked absolute bottom-0 left-0 flex w-full overflow-y-auto bg-background-default pointer-events-auto will-change-transform ${
           props.isHidden ? "invisible" : "visible"
         }`}
         data-cy="bottom-sheet"
@@ -65,14 +65,14 @@ export function BottomSheet(props: IProps): JSX.Element {
           <button
             data-cy={`bottom-sheet-close`}
             onClick={props.onClose}
-            className="absolute top-0 right-0 z-10 p-2 nm-bottom-sheet-close"
+            className="absolute top-0 right-0 z-20 p-2 nm-bottom-sheet-close"
           >
             <IconCloseCircleOutline size={28} />
           </button>
         )}
         <div className="flex flex-col w-full safe-area-inset-bottom" style={{ maxHeight: "90vh" }}>
           <div className="z-10 flex items-center justify-center pt-2 bg-background-default">
-            <div className="w-8 rounded-sm bg-grayv3-400" style={{ height: "3px" }} />
+            <div className="w-8 rounded-sm bg-text-disabled" style={{ height: "3px" }} />
           </div>
           {props.children}
         </div>

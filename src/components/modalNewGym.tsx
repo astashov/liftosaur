@@ -45,7 +45,7 @@ export function ModalNewGym(props: IProps): JSX.Element {
             Cancel
           </Button>
           <Button
-            kind="orange"
+            kind="purple"
             type="submit"
             name="add-gym-submit"
             className="ls-add-gym"

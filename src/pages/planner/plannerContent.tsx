@@ -249,7 +249,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   return (
     <section className="px-4">
       {!props.shouldSync && isChanged(state) && !clearHasChanges && (
-        <div className="fixed top-0 left-0 z-50 w-full text-xs text-center border-b bg-redv2-200 border-redv2-500 text-redv2-main">
+        <div className="fixed top-0 left-0 z-50 w-full text-xs text-center border-b bg-redv2-200 border-redv2-500 text-text-error">
           Made changes to the program, but the link still goes to the original version. If you want to share updated
           version, generate a new link.
           <button className="p-2 align-middle nm-clear-has-changes" onClick={() => setClearHasChanges(true)}>
@@ -322,7 +322,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               , percentage of{" "}
               <abbr title="1RM - One Rep Max. The maximum weight you can lift for one repetition.">1RM</abbr>, rest
               timers, various progressive overload types, etc. Read more about the features{" "}
-              <a target="_blank" className="font-bold underline text-bluev2" href="https://www.liftosaur.com/docs/">
+              <a target="_blank" className="font-bold underline text-text-link" href="https://www.liftosaur.com/docs/">
                 in the docs
               </a>
               !
@@ -417,7 +417,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               <Button
                 className="w-20"
                 buttonSize="md"
-                kind="orange"
+                kind="purple"
                 name="web-save-planner"
                 disabled={isLoading || isInvalid || !isChanged(state)}
                 onClick={async () => {
@@ -518,7 +518,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         <>
           <div className="mb-2 text-xs text-left sm:text-right text-text-secondary">
             Copied to clipboard:{" "}
-            <a target="_blank" className="font-bold underline text-bluev2" href={showClipboardInfo}>
+            <a target="_blank" className="font-bold underline text-text-link" href={showClipboardInfo}>
               {showClipboardInfo}
             </a>
           </div>

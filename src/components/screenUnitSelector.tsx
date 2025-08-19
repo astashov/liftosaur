@@ -12,10 +12,10 @@ interface IProps {
 }
 
 export function ScreenUnitSelector(props: IProps): JSX.Element {
-  const selectedButtonCls = "text-white bg-purplev3-main border-purplev3-main";
-  const unselectedButtonCls = "text-purplev3-main bg-white border-grayv3-200";
+  const selectedButtonCls = "text-button-primarylabel bg-button-primarybackground border-button-primarybackground";
+  const unselectedButtonCls = "text-text-purple bg-background-default border-border-neutral";
   return (
-    <section className="flex flex-col h-screen text-text-primary">
+    <section className="flex flex-col h-screen text-text-primary bg-background-default">
       <div className="flex-1 px-4 pt-16 pb-4">
         <div className="w-full h-full border border-border-neutral rounded-2xl bg-background-subtle">
           <div className="px-6 pt-16 text-2xl font-semibold text-center">Pick your units</div>

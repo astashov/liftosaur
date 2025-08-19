@@ -88,7 +88,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
           name="Account"
           value={
             props.user?.email == null ? (
-              <span className="text-redv2-main">Not signed in</span>
+              <span className="text-text-error">Not signed in</span>
             ) : props.user?.email === "noemail@example.com" ? (
               "Signed In"
             ) : (

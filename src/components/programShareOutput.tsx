@@ -215,7 +215,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
         }
 
         return (
-          <div className={`mx-4 pb-4 ${i > 0 ? "pt-2 border-t border-grayv2-100" : ""}`}>
+          <div className={`mx-4 pb-4 ${i > 0 ? "pt-2 border-t border-border-neutral" : ""}`}>
             <div className={`flex items-stretch pl-1`} style={{ paddingRight: "1px" }} key={Exercise.toKey(exercise)}>
               <div className="flex items-center w-12 pr-2">
                 <ExerciseImage suppressCustom={true} exerciseType={exercise} size="small" settings={props.settings} />
@@ -262,7 +262,7 @@ function Set(props: ISetProps): JSX.Element {
     <div className="text-base leading-4 text-right whitespace-nowrap text-text-secondary">
       {repRange.numberOfSets > 1 && (
         <span>
-          <span className="font-semibold text-purplev2-main">{repRange.numberOfSets}</span>{" "}
+          <span className="font-semibold text-text-purple">{repRange.numberOfSets}</span>{" "}
           <span className="text-xs">×</span>{" "}
         </span>
       )}
@@ -321,22 +321,22 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
       return (
         <div>
           <strong>Linear Progression:</strong>{" "}
-          <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span>
+          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span>
           {(type.successesRequired || 0 > 1) && (
             <span>
               {" "}
-              after <span className="font-bold text-greenv2-main">{type.successesRequired}</span> successes
+              after <span className="font-bold text-text-success">{type.successesRequired}</span> successes
             </span>
           )}
           {type.decrease != null && type.decrease.value > 0 && (
             <span>
-              , <span className="font-bold text-redv2-main">{Weight.print(type.decrease)}</span>
+              , <span className="font-bold text-text-error">{Weight.print(type.decrease)}</span>
             </span>
           )}
           {type.decrease != null && type.decrease.value > 0 && (
             <span>
               {" "}
-              after <span className="font-bold text-redv2-main">{type.failuresRequired}</span> failures
+              after <span className="font-bold text-text-error">{type.failuresRequired}</span> failures
             </span>
           )}
           .
@@ -346,7 +346,7 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
       return (
         <div>
           <strong>Double Progression</strong>:{" "}
-          <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span> within{" "}
+          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span> within{" "}
           <span className="font-bold">{type.minReps}</span>-<span className="font-bold">{type.maxReps}</span> rep range.
         </div>
       );
@@ -354,7 +354,7 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
       return (
         <div>
           <strong>Sum Reps Progression</strong>:{" "}
-          <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span> if sum of all reps is at
+          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span> if sum of all reps is at
           least <span className="font-bold">{type.reps}</span>.
         </div>
       );

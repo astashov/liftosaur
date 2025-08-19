@@ -9,7 +9,7 @@ interface IIconEdit2Props {
 
 export function IconEdit2(props: IIconEdit2Props): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.colors().lightgray[900];
+  const color = props.color ?? Tailwind.semantic().icon.neutral;
   return (
     <svg
       width={size}

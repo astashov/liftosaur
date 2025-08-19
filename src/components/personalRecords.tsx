@@ -69,7 +69,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                     <div>
                       <strong>{exercise.name}</strong>:{" "}
                       <span className="whitespace-nowrap">
-                        <strong className="text-greenv2-main">
+                        <strong className="text-text-success">
                           {Weight.display(
                             item.set.completedWeight ?? item.set.weight ?? Weight.build(0, props.settings.units)
                           )}
@@ -120,7 +120,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                     <div>
                       <strong>{exercise.name}</strong>:{" "}
                       <span className="whitespace-nowrap">
-                        <strong className="text-greenv2-main">{Weight.display(estimated1RM)}</strong> (
+                        <strong className="text-text-success">{Weight.display(estimated1RM)}</strong> (
                         {item.set.completedReps || 0} ×{" "}
                         {Weight.display(
                           item.set.completedWeight ?? item.set.weight ?? Weight.build(0, props.settings.units)

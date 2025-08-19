@@ -130,7 +130,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                     </span>
                   </div>
                   <div className="flex-1">
-                    <div className="h-full bg-grayv2-200" style={{ width: "1px" }} />
+                    <div className="h-full bg-border-neutral" style={{ width: "1px" }} />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -260,7 +260,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                           const evalResult = evaluatedWeeks[weekIndex][dayIndex];
                           return (
                             <div
-                              className="flex items-center px-4 py-1 my-1 border border-white rounded-lg bg-purplev2-100"
+                              className="flex items-center px-4 py-1 my-1 border border-background-default rounded-lg bg-background-purpledark"
                               style={{ boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.25)" }}
                             >
                               <div className="flex items-center">

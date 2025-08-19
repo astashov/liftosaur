@@ -67,22 +67,22 @@ function Progression(props: IProgressionProps): JSX.Element {
       return (
         <div>
           <strong>Linear Progression:</strong>{" "}
-          <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span>
+          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span>
           {(type.successesRequired || 0 > 1) && (
             <span>
               {" "}
-              after <span className="font-bold text-greenv2-main">{type.successesRequired}</span> successes
+              after <span className="font-bold text-text-success">{type.successesRequired}</span> successes
             </span>
           )}
           {type.decrease != null && type.decrease.value > 0 && (
             <span>
-              , <span className="font-bold text-redv2-main">{Weight.print(type.decrease)}</span>
+              , <span className="font-bold text-text-error">{Weight.print(type.decrease)}</span>
             </span>
           )}
           {type.decrease != null && type.decrease.value > 0 && (
             <span>
               {" "}
-              after <span className="font-bold text-redv2-main">{type.failuresRequired}</span> failures
+              after <span className="font-bold text-text-error">{type.failuresRequired}</span> failures
             </span>
           )}
           .
@@ -92,7 +92,7 @@ function Progression(props: IProgressionProps): JSX.Element {
       return (
         <div>
           <strong>Double Progression</strong>:{" "}
-          <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span> within{" "}
+          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span> within{" "}
           <span className="font-bold">{type.minReps}</span>-<span className="font-bold">{type.maxReps}</span> rep range.
         </div>
       );
@@ -100,7 +100,7 @@ function Progression(props: IProgressionProps): JSX.Element {
       return (
         <div>
           <strong>Sum Reps Progression</strong>:{" "}
-          <span className="font-bold text-greenv2-main">+{Weight.print(type.increase)}</span> if sum of all reps is at
+          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span> if sum of all reps is at
           least <span className="font-bold">{type.reps}</span>.
         </div>
       );

@@ -32,7 +32,7 @@ export function ProgramDetailsGzclUhf5w(props: IProgramDetailsGzclUhf9wProps): J
         GZCL: UHF (Ultra High Frequency) 5 Weeks Program Explained
       </h1>
       <div className="mb-4 text-sm font-bold text-center">
-        <a href="https://www.gainzfever.com/" target="_blank" className="underline text-bluev2">
+        <a href="https://www.gainzfever.com/" target="_blank" className="underline text-text-link">
           By Cody Lefever
         </a>
       </div>
@@ -151,7 +151,7 @@ export function ProgramDetailsGzclUhf5w(props: IProgramDetailsGzclUhf9wProps): J
           <MusclesView title="Muscle Balance" settings={props.settings} points={points} hideListOfExercises={true} />
         </div>
       </div>
-      <div className="w-32 h-px mx-auto my-8 b bg-grayv2-200" />
+      <div className="w-32 h-px mx-auto my-8 b bg-border-neutral" />
       <h3 className="mb-4 text-xl font-bold leading-8">Try it out in interactive playground!</h3>
       <p className="mb-4">
         Tap on squares to finish sets. Tap multiple times to reduce completed reps. Finish workout and see what the next

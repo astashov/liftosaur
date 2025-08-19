@@ -348,7 +348,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
                   <Button
                     name="edit-exercise-change-one"
                     data-cy="edit-exercise-change-one"
-                    kind="orange"
+                    kind="purple"
                     onClick={() => {
                       plannerDispatch(
                         [
@@ -484,7 +484,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
           <div className="py-3 text-center">
             <Button
               name="publish-program"
-              kind="orange"
+              kind="purple"
               onClick={() => {
                 setShouldShowPublishModal(true);
               }}

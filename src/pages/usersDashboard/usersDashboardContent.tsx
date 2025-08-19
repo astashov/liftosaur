@@ -162,7 +162,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                           <tr>
                             <td>
                               <div>
-                                <span className={`${isNew ? "text-greenv2-main" : "text-text-primary"}`}>
+                                <span className={`${isNew ? "text-text-success" : "text-text-primary"}`}>
                                   <a
                                     target="_blank"
                                     className="underline"
@@ -172,16 +172,16 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                   </a>
                                 </span>
                                 {item.subscriptions.indexOf("apple") !== -1 && (
-                                  <span className="ml-2 font-bold text-redv2-main">A</span>
+                                  <span className="ml-2 font-bold text-text-error">A</span>
                                 )}
                                 {item.subscriptions.indexOf("google") !== -1 && (
-                                  <span className="ml-2 font-bold text-greenv2-main">G</span>
+                                  <span className="ml-2 font-bold text-text-success">G</span>
                                 )}
                                 {item.subscriptions.indexOf("unclaimedkey") !== -1 && (
                                   <span className="ml-2 font-bold text-text-secondary">F</span>
                                 )}
                                 {item.subscriptions.indexOf("key") !== -1 && (
-                                  <span className="ml-2 font-bold text-greenv2-main">F</span>
+                                  <span className="ml-2 font-bold text-text-success">F</span>
                                 )}
                                 {item.subscriptionDetails?.isActive &&
                                   !item.subscriptionDetails?.isPromo &&
@@ -201,7 +201,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                               {item.userTs && (
                                 <div
                                   className={`text-xs ${
-                                    isNewUser ? "text-greenv2-main font-bold" : "text-text-secondary"
+                                    isNewUser ? "text-text-success font-bold" : "text-text-secondary"
                                   }`}
                                 >
                                   {DateUtils.format(item.userTs)}

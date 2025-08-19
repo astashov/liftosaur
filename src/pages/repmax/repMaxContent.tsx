@@ -167,7 +167,7 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
             )}
             <div className="text-2xl font-bold">
               <span className="mx-2">=</span>
-              <span className="text-purplev2-main">{weight == null ? "?" : weight}</span>
+              <span className="text-text-purple">{weight == null ? "?" : weight}</span>
             </div>
           </div>
         </div>
@@ -225,7 +225,7 @@ function OtherRepMaxes(props: IOtherRepMaxesProps): JSX.Element {
             </ul>
           )}
         </div>
-        <div className="bg-grayv2-200" style={{ width: "1px" }} />
+        <div className="bg-border-neutral" style={{ width: "1px" }} />
         <div>
           <div className="mb-2">
             <h2 className="text-lg font-bold">1RM Percentages</h2>

@@ -10,7 +10,7 @@ interface IProps {
 
 export const Surface = forwardRef((props: IProps, ref: Ref<HTMLElement>): JSX.Element => {
   return (
-    <section className="h-full">
+    <section className="h-full bg-background-default text-text-primary">
       {props.navbar}
       <section
         data-cy="screen"

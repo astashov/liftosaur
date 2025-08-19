@@ -199,21 +199,21 @@ export function PlannerSetSplit(props: {
 export function colorPctValue(total: number, num: number, target: number): string {
   const strengthPct = total > 0 ? Math.round((num * 100) / total) : 0;
   if (strengthPct >= target) {
-    return "text-greenv2-main";
+    return "text-text-success";
   } else if (strengthPct >= target - 10) {
-    return "text-yellowv2";
+    return "text-icon-yellow";
   } else {
-    return "text-redv2-main";
+    return "text-text-error";
   }
 }
 
 export function colorRangeValue(value: number, min: number, max: number): string {
   if (value >= min && value <= max) {
-    return "text-greenv2-main";
+    return "text-text-success";
   } else if (value >= min * 0.7 && value <= max * 1.3) {
-    return "text-yellowv2";
+    return "text-icon-yellow";
   } else {
-    return "text-redv2-main";
+    return "text-text-error";
   }
 }
 
@@ -229,11 +229,11 @@ export function directionValue(value: number, min: number, max: number): string 
 
 function colorThresholdValue(value: number, threshold: number): string {
   if (value >= threshold) {
-    return "text-greenv2-main";
+    return "text-text-success";
   } else if (value >= threshold * 0.5) {
-    return "text-yellowv2";
+    return "text-icon-yellow";
   } else {
-    return "text-redv2-main";
+    return "text-text-error";
   }
 }
 

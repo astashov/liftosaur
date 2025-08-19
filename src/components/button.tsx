@@ -16,21 +16,21 @@ export function Button(props: IProps): JSX.Element {
       props.className.includes("text-base"));
   let className = `${!hasTextSize ? "text-xs " : ""}rounded-lg`;
   if (props.disabled) {
-    className += " bg-grayv2-main opacity-50 text-white ";
+    className += " bg-background-darkgray opacity-50 text-text-alwayswhite ";
   } else if (kind === "purple") {
-    className += " bg-purplev3-500 text-white ";
+    className += " bg-button-primarybackground text-text-alwayswhite ";
   } else if (kind === "grayv2") {
-    className += " bg-grayv2-main text-white ";
+    className += " bg-background-darkgray text-text-alwayswhite ";
   } else if (kind === "red") {
-    className += " bg-redv2-main text-white ";
+    className += " bg-background-darkred text-text-alwayswhite ";
   } else if (kind === "transparent-purple") {
-    className += " bg-transparent text-purplev3-600 ";
+    className += " bg-transparent text-text-purple ";
   } else if (kind === "lightpurple") {
-    className += " bg-purplev3-100 text-bluev3-main ";
+    className += " bg-background-purpledark text-text-link ";
   } else if (kind === "lightgrayv3") {
-    className += " bg-grayv3-50 text-bluev3-main border border-grayv3-100 ";
+    className += " bg-background-subtle text-text-link border border-background-subtle ";
   } else {
-    className += " bg-orangev2 text-white";
+    className += " bg-button-orangebackground text-text-alwayswhite";
   }
   if (props.buttonSize === "sm") {
     className += " px-2 py-1 font-semibold";

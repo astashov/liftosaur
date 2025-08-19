@@ -10,7 +10,7 @@ export function HistoryRecordsNullState(): JSX.Element {
           <img src={ImagePreloader.dynocoach} className="block" style={{ width: 188, height: 240 }} />
         </div>
       </div>
-      <div className="fixed bottom-0 left-0 w-full py-4 pb-20 text-center border border-purple-300 bg-background-cardpurple rounded-2xl">
+      <div className="fixed bottom-0 left-0 w-full py-4 pb-20 text-center border border-background-cardpurpleborder bg-background-cardpurple rounded-2xl">
         <div className="safe-area-inset-bottom">
           <h3 className="py-2 font-semibold">Welcome to Liftosaur!</h3>
           <div className="text-sm">Tap here to start a workout</div>

@@ -108,7 +108,7 @@ export function ProgramDetailsArnoldGoldenSix(props: IProgramDetailsArnoldGolden
           <MusclesTypeView settings={props.settings} points={points} type="hypertrophy" hideListOfExercises={true} />
         </div>
       </div>
-      <div className="w-32 h-px mx-auto my-8 b bg-grayv2-200" />
+      <div className="w-32 h-px mx-auto my-8 b bg-border-neutral" />
       <h3 className="mb-4 text-xl font-bold leading-8">Try it out in the interactive playground!</h3>
       <p className="mb-4">
         Tap on squares to finish sets. Tap multiple times to reduce completed reps. Finish the workout and see what the

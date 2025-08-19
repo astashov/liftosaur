@@ -17,7 +17,7 @@ export const LabelAndInput = forwardRef((props: ILabelAndInputProps, ref: Ref<HT
     <div className="mb-4">
       <label data-cy={`${identifier}-label`} for={identifier} className="block text-sm font-bold">
         {label}
-        {props.star && <span className="text-redv2-main"> *</span>}
+        {props.star && <span className="text-text-error"> *</span>}
       </label>
       <input ref={ref} data-cy={`${identifier}-input`} id={id} className={inputClassName} type="text" {...props} />
       {hint && <div className="text-xs text-text-secondary">{hint}</div>}

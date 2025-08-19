@@ -118,11 +118,11 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
   const repsColor = isNext
     ? "text-text-secondary"
     : set.isCompleted
-      ? "text-greenv2-main"
+      ? "text-text-success"
       : set.isInRange
         ? "text-orange-400"
-        : "text-redv2-main";
-  const rpeColor = isNext ? "text-text-secondary" : set.isRpeFailed ? "text-redv2-main" : "text-greenv2-main";
+        : "text-text-error";
+  const rpeColor = isNext ? "text-text-secondary" : set.isRpeFailed ? "text-text-error" : "text-text-success";
   const timerColor = isNext ? "text-text-secondary" : "text-text-purple";
   return (
     <div
@@ -145,7 +145,7 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
       <span className={`px-1 ${isPr ? "bg-yellow-200" : ""}`}>
         {group.length > 1 && (
           <>
-            <span className="font-semibold text-purplev2-main" data-cy="history-entry-sets">
+            <span className="font-semibold text-text-purple" data-cy="history-entry-sets">
               {group.length}
             </span>
             <span className="text-text-secondary"> × </span>

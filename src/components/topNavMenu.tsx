@@ -52,7 +52,7 @@ export function TopNavMenu(props: {
                   setIsAccountModalOpen(true);
                 }}
               >
-                <span className={`inline-block py-4 ${props.account ? "text-greenv2-main" : "text-redv2-main"}`}>
+                <span className={`inline-block py-4 ${props.account ? "text-text-success" : "text-text-error"}`}>
                   Account
                 </span>
               </MenuItemWrapper>
@@ -106,7 +106,7 @@ export function TopNavMenu(props: {
               <ul className="flex list-none">
                 <SocialIcons />
               </ul>
-              <div className="mx-3 bg-grayv2-main" style={{ width: "1px", height: "2rem" }} />
+              <div className="mx-3 bg-background-darkgray" style={{ width: "1px", height: "2rem" }} />
               <div className="inline-block leading-5 align-middle list-none">
                 <button onClick={() => setIsAccountModalOpen(true)} className="p-3">
                   <IconUser size={22} color={props.account ? "#38A169" : "#E53E3E"} />

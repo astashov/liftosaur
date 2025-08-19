@@ -48,7 +48,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const isMobile = Mobile.isMobileFromWindow();
   const isPlaywright = Mobile.isPlaywrightFromWindow();
   const shouldUseTouch = isMobile && !isPlaywright;
-  const borderClass = ` border-b border-purplev3-150`;
+  const borderClass = ` border-b border-border-purple`;
   const hasEdit = props.type === "workout";
 
   return (
@@ -348,7 +348,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
               <span>
                 {set.originalWeight && (
                   <span
-                    className={isDiffWeight ? "line-through text-grayv3-main" : "font-semibold"}
+                    className={isDiffWeight ? "line-through text-text-secondary" : "font-semibold"}
                     style={{ color: isDiffWeight ? "" : "#164" }}
                   >
                     <span>{n(set.originalWeight.value)}</span>
@@ -527,7 +527,7 @@ function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculator
   return (
     <span className="text-sm font-semibold break-all">
       <span
-        className={Weight.eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-redv2-600"}
+        className={Weight.eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-text-error"}
         data-cy="plates-list"
       >
         {formattedPlates}

@@ -20,7 +20,7 @@ export function Nux(props: IProps): JSX.Element | null {
   }
   const { dispatch } = props;
   return (
-    <div className={`${props.className} flex py-2 pl-4 text-xs bg-white border border-purplev3-100 rounded-2xl`}>
+    <div className={`${props.className} flex py-2 pl-4 text-xs bg-background-default border border-border-purple rounded-2xl`}>
       <div>
         <div className="inline-block mr-1 align-middle">
           <IconHelp color={Tailwind.colors().purple[500]} size={16} />

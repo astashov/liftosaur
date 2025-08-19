@@ -10,7 +10,7 @@ interface IProps {
 }
 
 export function IconCheckCircle(props: IProps): JSX.Element {
-  const color = props.color || Tailwind.colors().purple[600];
+  const color = props.color || Tailwind.semantic().icon.purple;
   const size = props.size || 20;
   if (props.isChecked) {
     return (

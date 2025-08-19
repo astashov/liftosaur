@@ -181,7 +181,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
           {isEligibleForProgramDay && (
             <div>
               <Button
-                kind="orange"
+                kind="purple"
                 buttonSize="md"
                 data-cy="save-to-program"
                 name="save-to-program"
@@ -245,7 +245,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
         </div>
       </div>
       {props.description && (
-        <div className={`mt-1 text-sm ${props.progress.notes ? "border-b border-grayv3-100 mb-1 pb-1" : ""}`}>
+        <div className={`mt-1 text-sm ${props.progress.notes ? "border-b border-background-subtle mb-1 pb-1" : ""}`}>
           <Markdown value={props.description} />
         </div>
       )}
@@ -287,7 +287,10 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
           {enableReorder ? "Finish Reordering" : "Reorder Exercises"}
         </LinkButton>
       </div>
-      <div className="sticky left-0 z-30 py-1 bg-background-default border-b border-grayv3-100" style={{ top: "56px" }}>
+      <div
+        className="sticky left-0 z-30 py-1 bg-background-default border-b border-background-subtle"
+        style={{ top: "56px" }}
+      >
         <Scroller>
           <div className="flex items-center gap-1 px-4">
             <DraggableList

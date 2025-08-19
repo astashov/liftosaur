@@ -57,7 +57,7 @@ export function ProgramPreviewPlaygroundExerciseEditModal(
         <div className="mt-4 text-center">
           <Button
             name="details-workout-playground-save-statvars"
-            kind="orange"
+            kind="purple"
             onClick={props.onClose}
             data-cy="modal-edit-mode-save-statvars"
           >

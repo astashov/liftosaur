@@ -73,6 +73,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
     <ScrollableTabs
       offsetY={props.scrollableTabsProps?.offsetY ?? (props.hasNavbar ? "3rem" : undefined)}
       shouldNotExpand={true}
+      color="purple"
       type={props.scrollableTabsProps?.type}
       topPadding={props.scrollableTabsProps?.topPadding}
       className={props.scrollableTabsProps?.className}

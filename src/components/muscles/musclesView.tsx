@@ -85,7 +85,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
             if (value != null && value > 60) {
               color = "text-greenv2-600";
             } else if (value != null && value < 20) {
-              color = "text-redv2-600";
+              color = "text-text-error";
             }
             return (
               <MenuItem

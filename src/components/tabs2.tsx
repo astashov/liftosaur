@@ -18,10 +18,10 @@ export function Tabs2(props: IProps): JSX.Element {
           const nameClass = `tab-${StringUtils.dashcase(name.toLowerCase())}`;
 
           return (
-            <div className="flex-1 text-center border-b border-grayv2-50">
+            <div className="flex-1 text-center border-b border-border-neutral">
               <button
                 className={`ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
-                  selectedIndex === index ? "text-icon-yellow border-b border-orangev2" : ""
+                  selectedIndex === index ? "text-icon-yellow border-b border-icon-yellow" : ""
                 } nm-${nameClass}`}
                 style={selectedIndex === index ? { borderBottomWidth: "2px" } : {}}
                 data-cy={nameClass}

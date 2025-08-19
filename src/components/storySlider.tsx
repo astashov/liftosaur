@@ -58,8 +58,8 @@ export default function StorySlider({ slides, duration = 5000 }: StorySliderProp
     <div className="relative w-full h-full overflow-hidden">
       <div className="absolute top-0 left-0 right-0 z-10 flex gap-1 px-4 pt-4">
         {slides.map((_, i) => (
-          <div key={i} className="flex-1 h-1 overflow-hidden rounded bg-background-default/30">
-            <div className="h-full bg-background-default" style={{ width: `${progresses[i] * 100}%` }} />
+          <div key={i} className="flex-1 h-1 overflow-hidden rounded bg-white/30">
+            <div className="h-full bg-white" style={{ width: `${progresses[i] * 100}%` }} />
           </div>
         ))}
       </div>

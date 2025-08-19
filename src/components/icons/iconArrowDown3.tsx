@@ -10,7 +10,7 @@ interface IProps {
 
 export function IconArrowDown3(props: IProps): JSX.Element {
   const size = props.size || 18;
-  const color = props.color || Tailwind.colors().purple[500];
+  const color = props.color || Tailwind.semantic().icon.purple;
   return (
     <svg
       style={props.style}

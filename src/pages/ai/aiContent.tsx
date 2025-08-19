@@ -194,7 +194,7 @@ export function AiContent(props: IAiContentProps): JSX.Element {
                 </div>
                 <Button
                   name="retry-after-validation"
-                  kind="orange"
+                  kind="purple"
                   buttonSize="md"
                   className="ml-4"
                   onClick={handleRetry}

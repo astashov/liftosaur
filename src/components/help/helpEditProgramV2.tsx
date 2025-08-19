@@ -69,7 +69,7 @@ export function HelpEditProgramV2(): JSX.Element {
         rest timers, various progressive overload types, etc. It's very powerful, read more about all the features{" "}
         <InternalLink
           name="help-edit-program-v2-docs"
-          className="font-bold underline text-bluev2"
+          className="font-bold underline text-text-link"
           href="https://www.liftosaur.com/docs"
         >
           in the docs

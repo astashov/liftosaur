@@ -126,14 +126,13 @@ function Footer(props: IFooterProps): JSX.Element {
       style={{ marginBottom: "-2px" }}
     >
       <div
-        className="box-content absolute flex bg-background-default safe-area-inset-bottom"
+        className="box-content absolute flex footer-shadow bg-background-default safe-area-inset-bottom"
         style={{
           width: "4000px",
           marginLeft: "-2000px",
           left: "50%",
           height: "84px",
           bottom: "0",
-          boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)",
         }}
       />
       <div className="safe-area-inset-bottom">

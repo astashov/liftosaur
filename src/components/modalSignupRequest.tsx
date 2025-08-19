@@ -41,7 +41,7 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
           />
         </div>
         <div className="mt-4">
-          You finished <span className="font-bold text-redv2-main">{props.numberOfWorkouts} workouts</span> already!
+          You finished <span className="font-bold text-text-error">{props.numberOfWorkouts} workouts</span> already!
           This is awesome! Consider
           <strong> signing up</strong> so your workout history would be backed up in the cloud.
         </div>
@@ -73,7 +73,7 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
           </Button>
           <Button
             name="modal-signup-request-submit"
-            kind="orange"
+            kind="purple"
             data-cy="modal-signup-request-submit"
             className="ls-signup-request-signup"
             onClick={() => {

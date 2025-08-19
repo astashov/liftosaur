@@ -76,7 +76,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
 
   return (
     <div
-      className="relative overflow-hidden border-t border-grayv2-100"
+      className="relative overflow-hidden border-t border-border-neutral"
       ref={containerRef}
       style={{
         transition: "height 150ms ease-in-out, visibility 150ms linear",
@@ -85,7 +85,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
       }}
     >
       <div
-        className="absolute w-full scroll-barrell-selected bg-grayv2-100"
+        className="absolute w-full scroll-barrell-selected bg-background-subtle"
         style={{
           height: `${props.itemHeight}px`,
           top: "50%",
@@ -124,19 +124,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
           />
         ))}
       </div>
-      <div
-        className="absolute inset-0 pointer-events-none "
-        style={{
-          background: `linear-gradient(0deg, ${[
-            "rgba(255,255,255,1) 0px",
-            "rgba(255,255,255,1) 5%",
-            "rgba(255,255,255,0) 30%",
-            "rgba(255,255,255,0) 60%",
-            "rgba(255,255,255,1) 95%",
-            "rgba(255,255,255,1) 100%",
-          ].join(",")})`,
-        }}
-      />
+      <div className="absolute inset-0 pointer-events-none barrel-bg" />
     </div>
   );
 }

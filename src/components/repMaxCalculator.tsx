@@ -130,7 +130,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
         <div className="flex-1 text-center">
           <Button
             name="rep-max-calculator-submit"
-            kind="orange"
+            kind="purple"
             data-cy="rep-max-calculator-submit"
             onClick={() => props.onSelect(weight)}
           >

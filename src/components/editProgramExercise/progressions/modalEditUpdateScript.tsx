@@ -61,7 +61,7 @@ export function ModalEditUpdateScript(props: IModalEditUpdateScriptProps): JSX.E
       />
       <div className="mt-4 text-center">
         <Button
-          kind="orange"
+          kind="purple"
           name="modal-update-script-submit"
           disabled={error != null}
           onClick={() => {
