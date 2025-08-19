@@ -228,7 +228,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
   const filterOptions = [
     ...equipments.map((e) => equipmentName(e)),
     ...exerciseKinds.map(StringUtils.capitalize),
-    ...screenMuscles,
+    ...screenMuscles.map(StringUtils.capitalize),
   ];
   const initialFilterOptions = (props.initialFilterTypes || []).filter((ft) => filterOptions.indexOf(ft) !== -1);
   const [filterTypes, setFilterTypes] = useState<string[]>(initialFilterOptions);
