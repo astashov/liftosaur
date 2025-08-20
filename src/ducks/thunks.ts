@@ -38,6 +38,7 @@ import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { Weight } from "../models/weight";
 import { EditProgram } from "../models/editProgram";
 import { ICollectionVersions } from "../models/versionTracker";
+import { Subscriptions } from "../../lambda/utils/subscriptions";
 
 declare let Rollbar: RB;
 
@@ -994,6 +995,9 @@ export namespace Thunk {
           SendMessage.toIos({ type: "restoreSubscriptions" });
         } else {
           dispatch(postevent("apple-subscription-verified"));
+          if (getState().storage.subscription.apple.length === 0) {
+            Subscriptions.setAppleReceipt(dispatch, receipt);
+          }
         }
       }
       SendMessage.toAndroid({ type: "restoreSubscriptions" });
