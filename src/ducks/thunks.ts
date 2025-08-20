@@ -38,7 +38,6 @@ import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { Weight } from "../models/weight";
 import { EditProgram } from "../models/editProgram";
 import { ICollectionVersions } from "../models/versionTracker";
-import { Subscriptions } from "../../lambda/utils/subscriptions";
 
 declare let Rollbar: RB;
 
