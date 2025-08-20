@@ -698,7 +698,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     const newStorage: IPartialStorage = {
       ...oldStorage,
       programs: CollectionUtils.setBy(oldStorage.programs, "id", exportedProgram.program.id, exportedProgram.program),
-      settings: Settings.applyExportedProgram(user.storage.settings, exportedProgram),
+      settings: Settings.applyExportedProgram(oldStorage.settings, exportedProgram),
       originalId: Date.now(),
     };
     const newVersions = Storage.updateVersions(oldStorage, newStorage);
