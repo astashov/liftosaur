@@ -4,13 +4,14 @@ import { UidFactory } from "./generator";
 import { Utils } from "../utils";
 
 export interface ILogUtil {
+  id: string;
   log(...str: any[]): void;
   setUser(userid: string): void;
   setRollbar(rollbar: Rollbar): void;
 }
 
 export class LogUtil implements ILogUtil {
-  private readonly id: string;
+  public id: string;
   private userid: string | undefined;
   private rollbar?: Rollbar;
 

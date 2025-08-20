@@ -59,7 +59,7 @@ async function initTheAppAndRecordWorkout(): Promise<{
       },
     },
   });
-  const handler = getRawHandler(di);
+  const handler = getRawHandler(() => di);
   mockFetch.handler = handler;
   const service = new Service(fetch);
   const queue = new AsyncQueue();
@@ -130,7 +130,11 @@ describe("sync", () => {
       [5, 5, 5],
     ]);
     await mockReducer.run([
-      { type: "UpdateSettings", lensRecording: lb<ISettings>().p("isPublicProfile").record(true), desc: "Update public profile" },
+      {
+        type: "UpdateSettings",
+        lensRecording: lb<ISettings>().p("isPublicProfile").record(true),
+        desc: "Update public profile",
+      },
     ]);
     expect(mockReducer.state.storage.settings.isPublicProfile).to.equal(true);
     expect(mockReducer.state.storage.history.length).to.equal(2);

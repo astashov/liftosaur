@@ -73,9 +73,7 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
   };
 }
 
-const log = new LogUtil();
-const di = buildDi(log, fetch);
-const handler = getHandler(di);
+const handler = getHandler(() => buildDi(new LogUtil(), fetch));
 
 // Main API server
 const server = https.createServer(
@@ -152,7 +150,7 @@ const streamingServer = https.createServer(
         isBase64Encoded: false,
       };
 
-      const streamingHandler = getStreamingHandler(di);
+      const streamingHandler = getStreamingHandler(() => buildDi(new LogUtil(), fetch));
 
       const responseStream = {
         write: (chunk: unknown) => {

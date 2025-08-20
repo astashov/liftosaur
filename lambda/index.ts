@@ -2073,18 +2073,23 @@ const rollbar = new Rollbar({
   checkIgnore: RollbarUtils.checkIgnore,
 });
 
-export const getLftStatsLambdaDev = (di: IDI): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
+export const getLftStatsLambdaDev = (
+  diBuilder: () => IDI
+): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
   rollbar.lambdaHandler(
-    async (event: {}): Promise<APIGatewayProxyResult> => statsLambdaHandler(di)(event)
+    async (event: {}): Promise<APIGatewayProxyResult> => statsLambdaHandler(diBuilder)(event)
   ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
 
-export const getLftStatsLambda = (di: IDI): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
+export const getLftStatsLambda = (
+  diBuilder: () => IDI
+): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
   rollbar.lambdaHandler(
-    async (event: {}): Promise<APIGatewayProxyResult> => statsLambdaHandler(di)(event)
+    async (event: {}): Promise<APIGatewayProxyResult> => statsLambdaHandler(diBuilder)(event)
   ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
 
-export const statsLambdaHandler = (di: IDI): ((event: {}) => Promise<APIGatewayProxyResult>) => {
+export const statsLambdaHandler = (diBuilder: () => IDI): ((event: {}) => Promise<APIGatewayProxyResult>) => {
   return async () => {
+    const di = diBuilder();
     const lastThreeMonths = [DateUtils.yearAndMonth(Date.now())];
     const lastMonthlogRecords = await new LogDao(di).getAllForYearAndMonth(
       lastThreeMonths[0][0],
@@ -2211,15 +2216,17 @@ function getIsNewUser(item: IStatsUserData): boolean {
 
 export type IHandler = (event: APIGatewayProxyEvent, context: unknown) => Promise<APIGatewayProxyResult>;
 type IRollbarHandler = Rollbar.LambdaHandler<APIGatewayProxyEvent, APIGatewayProxyResult, unknown>;
-export const getHandler = (di: IDI): IRollbarHandler => {
-  return rollbar.lambdaHandler(getRawHandler(di));
+export const getHandler = (diBuilder: () => IDI): IRollbarHandler => {
+  return rollbar.lambdaHandler(getRawHandler(diBuilder));
 };
 
-export const getRawHandler = (di: IDI): IHandler => {
+export const getRawHandler = (diBuilder: () => IDI): IHandler => {
   return async (event: APIGatewayProxyEvent, context) => {
+    const di = diBuilder();
     if (event.httpMethod === "OPTIONS") {
       return { statusCode: 200, body: "", headers: ResponseUtils.getHeaders(event) };
     }
+    di.log.id = UidFactory.generateUid(4);
     const time = Date.now();
     const userid = await getCurrentUserId(event, di);
     // @ts-ignore

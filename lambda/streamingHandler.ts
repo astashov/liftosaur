@@ -197,8 +197,9 @@ const rollbar = new Rollbar({
 
 export type IHandler = (event: APIGatewayProxyEventV2, responseStream: IStream, context: unknown) => Promise<void>;
 
-export const getStreamingHandler = (di: IDI): IHandler => {
+export const getStreamingHandler = (diBuilder: () => IDI): IHandler => {
   const handler = async (event: APIGatewayProxyEventV2, stream: IStream, context: Context): Promise<void> => {
+    const di = diBuilder();
     const method = event.requestContext.http.method as Method;
     if (method === "OPTIONS") {
       const optionsResponse = {

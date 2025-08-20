@@ -4,12 +4,12 @@ import fetch from "node-fetch";
 import { LogUtil } from "./utils/log";
 import { buildDi } from "./utils/di";
 
-const log = new LogUtil();
-const di = buildDi(log, fetch);
-export const handler = getHandler(di);
+const diBuilder = () => buildDi(new LogUtil(), fetch);
 
-export const LftStatsLambdaDev = getLftStatsLambdaDev(di);
-export const LftStatsLambda = getLftStatsLambda(di);
+export const handler = getHandler(diBuilder);
+
+export const LftStatsLambdaDev = getLftStatsLambdaDev(diBuilder);
+export const LftStatsLambda = getLftStatsLambda(diBuilder);
 
 // Lambda Function URL handler for streaming
-export const streamingHandler = getStreamingHandler(di);
+export const streamingHandler = getStreamingHandler(diBuilder);
