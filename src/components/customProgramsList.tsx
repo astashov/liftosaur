@@ -108,7 +108,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
         </button>
       </div>
       <button
-        className="relative flex items-center w-full p-3 mt-8 mb-4 text-left border rounded-lg bg-background-cardyellow border-background-cardyellowborder nm-program-list-choose-program"
+        className="relative flex items-center w-full p-3 mt-8 mb-4 text-left border rounded-lg bg-background-cardyellow border-border-cardyellow nm-program-list-choose-program"
         onClick={() => {
           if (props.program.planner == null) {
             alert("Old-style programs are not supported anymore");

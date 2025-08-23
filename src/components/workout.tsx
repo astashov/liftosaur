@@ -225,7 +225,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
                 }}
                 name="workout-day-muscles"
               >
-                <IconMuscles2 color={Tailwind.colors().lightgray[900]} />
+                <IconMuscles2 />
               </ButtonIcon>
             </div>
           )}
@@ -288,7 +288,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
         </LinkButton>
       </div>
       <div
-        className="sticky left-0 z-30 py-1 bg-background-default border-b border-background-subtle"
+        className="sticky left-0 z-30 py-1 border-b bg-background-default border-background-subtle"
         style={{ top: "56px" }}
       >
         <Scroller>

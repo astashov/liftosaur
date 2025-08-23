@@ -131,7 +131,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
                 onBlur={changeType === "onblur" ? onInputHandler : undefined}
                 onInput={changeType === "oninput" ? onInputHandler : undefined}
                 onFocus={selectInputOnFocus}
-                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none bg-form-inputbg"
+                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none bg-background-default"
                 style={{ fontSize: size === "md" ? "16px" : "15px", height: `${props.multiline * 25}px` }}
                 {...otherProps}
               />
@@ -142,7 +142,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
                 onBlur={changeType === "onblur" ? onInputHandler : undefined}
                 onInput={changeType === "oninput" ? onInputHandler : undefined}
                 onFocus={selectInputOnFocus}
-                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none bg-form-inputbg"
+                className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none bg-background-default"
                 style={{ height: "1.25rem", fontSize: size === "md" ? "16px" : "15px" }}
                 {...otherProps}
               />

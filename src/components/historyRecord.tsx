@@ -52,9 +52,9 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
         className={`rounded-2xl px-4 text-sm ${
           isCurrent
             ? props.isOngoing
-              ? "bg-background-cardyellow border border-background-cardyellowborder nm-continue-workout"
-              : "border border-background-cardpurpleborder bg-background-cardpurple nm-start-workout"
-            : "bg-background-cardpurple border border-background-cardpurpleborder nm-edit-workout"
+              ? "bg-background-cardyellow border border-border-cardyellow nm-continue-workout"
+              : "border border-border-cardpurple bg-background-cardpurple nm-start-workout"
+            : "bg-background-cardpurple border border-border-cardpurple nm-edit-workout"
         }`}
         style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
         onClick={(event) => {

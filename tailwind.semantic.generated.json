@@ -1,9 +1,32 @@
 {
   "light": {
+    "color": {
+      "red50": "#FFF3F1",
+      "green50": "#EBFEF5",
+      "yellow50": "#FFF8EC",
+      "purple50": "#FAF8FF",
+      "red100": "#FFE6E1",
+      "green100": "#CEFCE5",
+      "yellow100": "#FFF2DB",
+      "purple100": "#F3EEFF",
+      "red150": "#FFD1C7",
+      "green150": "#A3F7D0",
+      "yellow150": "#FFE6B4",
+      "purple150": "#DAD0F5",
+      "red200": "#FFD1C7",
+      "green200": "#A3F7D0",
+      "yellow200": "#FFE6B4",
+      "purple200": "#DAD0F5",
+      "red300": "#FFB0A0",
+      "green300": "#67EEB8",
+      "yellow300": "#FFDD7E",
+      "purple300": "#CCC1F9"
+    },
     "icon": {
       "blue": "#28839F",
       "neutral": "#3C5063",
       "neutralsubtle": "#778999",
+      "light": "#C9D1D8",
       "green": "#009F6C",
       "white": "#FFFFFF",
       "red": "#FF543E",
@@ -25,26 +48,28 @@
       "default": "#FFFFFF",
       "subtle": "#F4F6F7",
       "cardpurple": "#F3EEFF",
-      "cardpurpleborder": "#E2D9F5",
       "purpledark": "#F3EEFF",
       "cardyellow": "#FFF8EC",
-      "cardyellowborder": "#FFE6B4",
-      "yellowdark": "#FFB544",
+      "yellowdark": "#DD8E02",
       "error": "#FFF3F1",
       "success": "#EBFEF5",
       "darkgray": "#607284",
       "darkred": "#ED2E15",
       "set": "#FAF8FF",
-      "setactive": "#FFFFFF"
+      "setactive": "#FFFFFF",
+      "image": "transparent"
     },
     "border": {
       "purple": "#F3EEFF",
-      "neutral": "#D6DADF"
+      "neutral": "#E3E8EA",
+      "prominent": "#C9D1D8",
+      "cardyellow": "#FFE6B4",
+      "cardpurple": "#E2D9F5"
     },
     "text": {
-      "primary": "#171717",
+      "primary": "#000000",
       "secondary": "#3C5063",
-      "secondarysubtle": "#607284",
+      "secondarysubtle": "#A4B0BC",
       "disabled": "#778999",
       "link": "#28839F",
       "success": "#009F6C",
@@ -67,15 +92,44 @@
       "iconactive": "#8356F6",
       "labelactive": "#8356F6",
       "bg": "#FFFFFF"
+    },
+    "syntax": {
+      "reps": "#954D0B",
+      "weight": "#016448",
+      "rpe": "#016448",
+      "timer": "#5721B6"
     }
   },
   "dark": {
+    "color": {
+      "red50": "#281925",
+      "green50": "#1D2931",
+      "yellow50": "#25241E",
+      "purple50": "#0C0819",
+      "red100": "#473142",
+      "green100": "#32424D",
+      "yellow100": "#2E2C24",
+      "purple100": "#252034",
+      "red150": "#67495C",
+      "green150": "#335253",
+      "yellow150": "#3E3B2F",
+      "purple150": "#332D42",
+      "red200": "#7D5158",
+      "green200": "#3C695B",
+      "yellow200": "#474431",
+      "purple200": "#332D42",
+      "red300": "#824344",
+      "green300": "#3F7961",
+      "yellow300": "#595334",
+      "purple300": "#393248"
+    },
     "icon": {
       "blue": "#45B3CB",
       "neutral": "#A4B0BC",
       "neutralsubtle": "#A4B0BC",
+      "light": "#3C5063",
       "green": "#2BDC9B",
-      "white": "#171717",
+      "white": "#000000",
       "red": "#FF8066",
       "yellow": "#FFD820",
       "purple": "#A48BFA"
@@ -92,29 +146,31 @@
       "inputstroke": "#494457"
     },
     "background": {
-      "default": "#171717",
+      "default": "#000000",
       "subtle": "#252034",
       "cardpurple": "#252034",
-      "cardpurpleborder": "#332D42",
       "purpledark": "#393248",
-      "cardyellow": "#302933",
-      "cardyellowborder": "#302933",
+      "cardyellow": "#25241E",
       "yellowdark": "#453D58",
-      "error": "#473142",
-      "success": "#32424D",
+      "error": "#7D5158",
+      "success": "#3C695B",
       "darkgray": "#607284",
       "darkred": "#FF8066",
       "set": "#332D42",
-      "setactive": "#453D58"
+      "setactive": "#453D58",
+      "image": "#F3EEFF"
     },
     "border": {
       "purple": "#2C1065",
-      "neutral": "#494457"
+      "neutral": "#364756",
+      "prominent": "#3C5063",
+      "cardyellow": "#474431",
+      "cardpurple": "#332D42"
     },
     "text": {
       "primary": "#FFFFFF",
       "secondary": "#A4B0BC",
-      "secondarysubtle": "#778999",
+      "secondarysubtle": "#4F5C6B",
       "disabled": "#607284",
       "link": "#45B3CB",
       "success": "#2BDC9B",
@@ -137,6 +193,12 @@
       "iconactive": "#A48BFA",
       "labelactive": "#A48BFA",
       "bg": "#252034"
+    },
+    "syntax": {
+      "reps": "#FFB544",
+      "weight": "#06C383",
+      "rpe": "#06C383",
+      "timer": "#8356F6"
     }
   }
 }

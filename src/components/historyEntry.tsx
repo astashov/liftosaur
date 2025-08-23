@@ -32,7 +32,7 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
       <div
         className={`flex-1 py-2 ${
           !isLast
-            ? `border-b ${isNext ? (isOngoing ? "border-background-cardyellowborder" : "border-background-cardpurpleborder") : "border-border-neutral"}`
+            ? `border-b ${isNext ? (isOngoing ? "border-border-cardyellow" : "border-border-cardpurple") : "border-border-neutral"}`
             : ""
         }`}
       >
