@@ -46,7 +46,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
               bgColorHexFrom={Tailwind.colors().yellow[200]}
               bgColorHexTo={Tailwind.colors().yellow[100]}
               bgColor="bg-yellow-100"
-              borderColor="border-background-cardyellowborder"
+              borderColor="border-border-cardyellow"
               header={
                 <span>
                   <IconWorkoutProgress

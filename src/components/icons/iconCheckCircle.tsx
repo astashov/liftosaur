@@ -3,6 +3,7 @@ import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   isChecked: boolean;
+  checkColor?: string;
   color?: string;
   style?: JSX.CSSProperties;
   size?: number;
@@ -11,6 +12,7 @@ interface IProps {
 
 export function IconCheckCircle(props: IProps): JSX.Element {
   const color = props.color || Tailwind.semantic().icon.purple;
+  const checkColor = props.checkColor || Tailwind.semantic().background.default;
   const size = props.size || 20;
   if (props.isChecked) {
     return (
@@ -29,7 +31,7 @@ export function IconCheckCircle(props: IProps): JSX.Element {
         />
         <path
           d="M14.5 7L8.70846 13L6.5 10.6139"
-          stroke="white"
+          stroke={checkColor}
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"

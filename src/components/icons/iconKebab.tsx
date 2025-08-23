@@ -1,4 +1,5 @@
 import { h, JSX } from "preact";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   style?: { [key: string]: string | number };
@@ -7,6 +8,7 @@ interface IProps {
 }
 
 export function IconKebab(props: IProps): JSX.Element {
+  const color = props.color || Tailwind.semantic().icon.neutral;
   return (
     <svg
       style={props.style}
@@ -17,9 +19,9 @@ export function IconKebab(props: IProps): JSX.Element {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <circle cx="8" cy="2" r="2" fill="#171718" />
-      <circle cx="2" cy="2" r="2" fill="#171718" />
-      <circle cx="14" cy="2" r="2" fill="#171718" />
+      <circle cx="8" cy="2" r="2" fill={color} />
+      <circle cx="2" cy="2" r="2" fill={color} />
+      <circle cx="14" cy="2" r="2" fill={color} />
     </svg>
   );
 }

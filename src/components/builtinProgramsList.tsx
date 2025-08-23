@@ -195,7 +195,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
 
   return (
     <button
-      className="relative flex items-center w-full p-3 mb-4 text-left border rounded-lg bg-background-cardpurple border-background-cardpurpleborder nm-program-list-choose-program"
+      className="relative flex items-center w-full p-3 mb-4 text-left border rounded-lg bg-background-cardpurple border-border-cardpurple nm-program-list-choose-program"
       onClick={props.onClick}
     >
       <div className="flex-1">

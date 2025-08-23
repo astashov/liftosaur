@@ -29,7 +29,11 @@ function updateTimer(dispatch: IDispatch, progress: IHistoryRecord, newTimer: nu
   } else {
     SendMessage.toIos({ type: "stopTimer" });
     SendMessage.toAndroid({ type: "stopTimer" });
-    updateState(dispatch, [lb<IState>().p("progress").pi(progress.id).p("timer").record(Math.max(0, newTimer))], "Update timer");
+    updateState(
+      dispatch,
+      [lb<IState>().p("progress").pi(progress.id).p("timer").record(Math.max(0, newTimer))],
+      "Update timer"
+    );
   }
 }
 
@@ -71,7 +75,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
     const timeDifference = Date.now() - timerSince;
     const isTimeOut = timeDifference > timer * 1000;
     const className = isTimeOut ? "bg-background-darkred" : "bg-background-darkgray";
-    const totalColor = isTimeOut ? "text-redv2-400" : "text-text-disabled";
+    const totalColor = isTimeOut ? "text-white" : "text-gray-300";
     return isExpanded ? (
       <div className="fixed z-30 safe-area-inset-bottom " style={{ left: "1rem", right: "1rem", bottom: "5rem" }}>
         <div
@@ -84,7 +88,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => updateTimer(props.dispatch, progress, timer - 15, timerSince)}
           >
-            <div className="absolute inset-0 bg-background-default rounded-lg" style={{ opacity: 0.2 }} />
+            <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
             <span className="font-bold">-15s</span>
           </button>
           <button
@@ -93,7 +97,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => props.dispatch({ type: "StopTimer" })}
           >
-            <div className="absolute inset-0 bg-background-default rounded-lg" style={{ opacity: 0.2 }} />
+            <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
             <IconTrash color="white" style={{ display: "inline-block" }} />
           </button>
           <button
@@ -114,7 +118,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => setIsExpanded(false)}
           >
-            <div className="absolute inset-0 bg-background-default rounded-lg" style={{ opacity: 0.2 }} />
+            <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
             <IconBack color="white" style={{ transform: "rotate(180deg)", display: "inline-block" }} />
           </button>
           <button
@@ -123,7 +127,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => updateTimer(props.dispatch, progress, timer + 15, timerSince)}
           >
-            <div className="absolute inset-0 bg-background-default rounded-lg" style={{ opacity: 0.2 }} />
+            <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
             <span className="font-bold">+15s</span>
           </button>
         </div>

@@ -280,7 +280,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   return (
     <div ref={containerRef} className="input-number">
       <div
-        className="flex items-center justify-center h-6 bg-background-default border rounded border-border-neutral input-number-child"
+        className="flex items-center justify-center h-6 border rounded bg-background-default border-border-prominent input-number-child"
         style={
           props.autowidth ? { paddingLeft: "0.5rem", paddingRight: "0.5rem" } : { width: `${props.width ?? 4}rem` }
         }
@@ -309,10 +309,12 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       >
         <div ref={inputRef} className="leading-none">
           {!value && !isFocused && props.placeholder ? (
-            <span className="text-sm text-border-neutral text-ellipsis whitespace-nowrap">{props.placeholder}</span>
+            <span className="text-sm text-text-secondarysubtle text-ellipsis whitespace-nowrap">
+              {props.placeholder}
+            </span>
           ) : (
             <span
-              className={`text-sm inline-block ${isFocused && !isTypingRef.current ? "bg-bluev3-300" : ""}`}
+              className={`text-sm inline-block ${isFocused && !isTypingRef.current ? "text-text-secondarysubtle" : ""}`}
               style={{ padding: value ? "1px" : "0" }}
             >
               {value}

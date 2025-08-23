@@ -67,9 +67,12 @@ body {
   user-select: none;
 }
 
-.ptr--ptr,
 .has-shadow {
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .has-shadow {
+  box-shadow: 0 10px 25px -5px rgba(255, 255, 255, 0.1) !important;
 }
 
 .planner-editor-view .cm-editor {
@@ -242,6 +245,10 @@ input[type="checkbox"].checkbox {
   box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.2);
 }
 
+.navbar-shadow {
+  box-shadow: 0 0 4px rgba(255, 27, 27, 0.38);
+}
+
 .barrel-bg {
   background: linear-gradient(
     0deg,
@@ -256,6 +263,10 @@ input[type="checkbox"].checkbox {
 
 .dark .footer-shadow {
   box-shadow: 0 0 4px 0 rgba(255, 255, 255, 0.2);
+}
+
+.dark .navbar-shadow {
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.38);
 }
 
 .dark .barrel-bg {

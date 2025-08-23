@@ -20,7 +20,9 @@ export function Nux(props: IProps): JSX.Element | null {
   }
   const { dispatch } = props;
   return (
-    <div className={`${props.className} flex py-2 pl-4 text-xs bg-background-default border border-border-purple rounded-2xl`}>
+    <div
+      className={`${props.className} flex py-2 pl-4 text-xs bg-background-default border border-border-cardpurple rounded-2xl`}
+    >
       <div>
         <div className="inline-block mr-1 align-middle">
           <IconHelp color={Tailwind.colors().purple[500]} size={16} />
@@ -32,12 +34,16 @@ export function Nux(props: IProps): JSX.Element | null {
           className="p-2 nm-nux-close"
           style={{ marginTop: "-0.5rem" }}
           onClick={() => {
-            updateState(dispatch, [
-              lb<IState>()
-                .p("storage")
-                .p("helps")
-                .recordModify((helps) => [...helps, props.id]),
-            ], "Dismiss help tip");
+            updateState(
+              dispatch,
+              [
+                lb<IState>()
+                  .p("storage")
+                  .p("helps")
+                  .recordModify((helps) => [...helps, props.id]),
+              ],
+              "Dismiss help tip"
+            );
           }}
         >
           <IconClose2 size={12} />

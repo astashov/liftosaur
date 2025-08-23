@@ -48,7 +48,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const isMobile = Mobile.isMobileFromWindow();
   const isPlaywright = Mobile.isPlaywrightFromWindow();
   const shouldUseTouch = isMobile && !isPlaywright;
-  const borderClass = ` border-b border-border-purple`;
+  const borderClass = ` border-b ${WorkoutExerciseUtils.getBorderColor100([props.set], false)}`;
   const hasEdit = props.type === "workout";
 
   return (
@@ -73,7 +73,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
           onPointerMove={!shouldUseTouch ? onPointerMove : undefined}
           onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
         >
-          <div className="table-cell px-2 py-1 text-sm align-middle border-b border-border-purple">
+          <div className={`table-cell px-2 py-1 text-sm align-middle ${borderClass}`}>
             <div
               className={`w-6 h-6 flex items-center justify-center rounded-full${
                 props.isNext ? " bg-button-primarybackground text-text-alwayswhite font-bold" : ""
@@ -338,7 +338,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
           {hasTarget ? (
             <div>
               {set.reps != null && (
-                <span className="font-semibold" style={{ color: "#940" }}>
+                <span className="font-semibold text-syntax-reps">
                   {set.minReps != null ? `${n(Math.max(0, set.minReps))}-` : null}
                   {n(Math.max(0, set.reps))}
                   {set.isAmrap ? "+" : ""}
@@ -348,22 +348,21 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
               <span>
                 {set.originalWeight && (
                   <span
-                    className={isDiffWeight ? "line-through text-text-secondary" : "font-semibold"}
-                    style={{ color: isDiffWeight ? "" : "#164" }}
+                    className={isDiffWeight ? "line-through text-text-secondary" : "font-semibold text-syntax-weight"}
                   >
                     <span>{n(set.originalWeight.value)}</span>
                     <span className="text-xs font-normal">{set.originalWeight.unit}</span>
                   </span>
                 )}
                 {set.weight && isDiffWeight && (
-                  <span style={{ color: "#164" }}>
+                  <span className="text-syntax-weight">
                     <span> </span>
                     <span className="font-semibold">{n(set.weight.value)}</span>
                     <span className="text-xs">{set.weight.unit}</span>
                   </span>
                 )}
               </span>
-              <span className="font-semibold" style={{ color: "#164" }}>
+              <span className="font-semibold text-syntax-rpe">
                 {set.askWeight ? "+" : ""}
                 {set.rpe ? ` @${n(Math.max(0, set.rpe))}` : null}
                 {set.rpe && set.logRpe ? "+" : ""}
@@ -371,7 +370,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
               {set.timer != null ? (
                 <span>
                   <span> </span>
-                  <span style={{ color: "#708" }}>
+                  <span className="text-syntax-timer">
                     <span>{n(set.timer)}</span>
                     <span className="text-xs">s</span>
                   </span>

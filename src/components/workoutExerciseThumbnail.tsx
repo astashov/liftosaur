@@ -7,6 +7,7 @@ import { ExerciseImage } from "./exerciseImage";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { StringUtils } from "../utils/string";
 import { useRef } from "preact/hooks";
+import { Tailwind } from "../utils/tailwindConfig";
 
 interface IWorkoutExerciseThumbnailProps {
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
@@ -23,7 +24,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
   const { entry, entryIndex } = props;
   const setsStatus = Reps.setsStatus(entry.sets);
   const isCurrent = (props.progress.ui?.currentEntryIndex ?? 0) === entryIndex;
-  const borderColor = isCurrent ? "border-button-secondarystroke" : WorkoutExerciseUtils.setsStatusToBorderColor(setsStatus);
+  const borderColor = isCurrent ? "border-purple-600" : WorkoutExerciseUtils.setsStatusToBorderColor(setsStatus);
   const exercise = Exercise.get(entry.exercise, props.settings.exercises);
   const ref = useRef<HTMLButtonElement>(null);
   const totalSetsCount = entry.sets.length;
@@ -40,7 +41,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
       style={{ padding: "0 0.125rem" }}
     >
       <div
-        className={`cursor-pointer border ${borderColor} rounded-lg w-12 h-12 relative box-content overflow-hidden text-ellipsis`}
+        className={`cursor-pointer border ${borderColor} bg-background-image rounded-lg w-12 h-12 relative box-content overflow-hidden text-ellipsis`}
         style={{
           borderWidth: isCurrent ? "2px" : "1px",
           margin: !isCurrent ? "0 1px" : "0",
@@ -58,16 +59,24 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
         {setsStatus === "not-finished" ? (
           props.shouldShowProgress && (
             <div
-              className="absolute bottom-0 right-0 text-xs"
-              style={{ bottom: "0px", right: "0px", padding: "1px 3px", background: "rgba(255, 255, 255, 0.75)" }}
+              className="absolute bottom-0 right-0 text-xs text-black"
+              style={{ bottom: "0px", right: "0px", padding: "1px 3px" }}
             >
-              <strong className="font-semibold">{completedSetsCount}</strong>/
-              <strong className="font-semibold">{totalSetsCount}</strong>
+              <div className="absolute inset-0 opacity-75 bg-background-image" />
+              <div className="relative z-10">
+                <strong className="font-semibold">{completedSetsCount}</strong>/
+                <strong className="font-semibold">{totalSetsCount}</strong>
+              </div>
             </div>
           )
         ) : (
           <div className="absolute bottom-0 right-0" style={{ bottom: "2px", right: "2px" }}>
-            <IconCheckCircle isChecked={true} size={14} color={WorkoutExerciseUtils.setsStatusToColor(setsStatus)} />
+            <IconCheckCircle
+              isChecked={true}
+              size={14}
+              color={WorkoutExerciseUtils.setsStatusToColor(setsStatus)}
+              checkColor={Tailwind.colors().white}
+            />
           </div>
         )}
       </div>

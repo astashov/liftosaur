@@ -1,4 +1,5 @@
 import { ComponentChildren, JSX, h } from "preact";
+import { Tailwind } from "../../../utils/tailwindConfig";
 
 export function DropdownMenu(props: {
   rightOffset?: string;
@@ -7,6 +8,7 @@ export function DropdownMenu(props: {
   bgColor?: string;
   onClose: () => void;
 }): JSX.Element {
+  const color = props.bgColor || Tailwind.semantic().background.subtle;
   return (
     <section className="" style={{ zIndex: 100 }}>
       <div data-name="overlay" className="fixed inset-0 z-10 overflow-scroll scrolling-touch" onClick={props.onClose} />
@@ -14,13 +16,10 @@ export function DropdownMenu(props: {
         className={`absolute shadow rounded`}
         style={{ maxWidth: props.maxWidth || "12rem", top: "0", right: props.rightOffset ?? "2.5rem" }}
       >
-        <div
-          className={`relative h-full z-20 rounded p-2 text-right`}
-          style={{ backgroundColor: props.bgColor ?? "white" }}
-        >
+        <div className={`relative h-full z-20 rounded p-2 text-right`} style={{ backgroundColor: color }}>
           {props.children}
         </div>
-        <div className="add-tip" style={{ backgroundColor: props.bgColor ?? "white" }} />
+        <div className="add-tip" style={{ backgroundColor: color }} />
       </div>
     </section>
   );
