@@ -86,19 +86,8 @@ export namespace Equipment {
     settings: ISettings,
     exerciseType?: IExerciseType
   ): IEquipmentData | undefined {
-    if (exerciseType == null) {
-      return undefined;
-    }
-
-    const exerciseData = settings.exerciseData[Exercise.toKey(exerciseType)];
-    const exerciseEquipment = exerciseData?.equipment;
-    if (exerciseEquipment == null) {
-      return undefined;
-    }
-
-    const currentGym = settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
-    const equipment = exerciseEquipment[currentGym.id];
-
+    const equipment = getEquipmentIdForExerciseType(settings, exerciseType);
+    const currentGym = getCurrentGym(settings);
     return equipment ? currentGym.equipment[equipment] : undefined;
   }
 

@@ -292,18 +292,8 @@ export namespace Weight {
     units: IUnit,
     exerciseType: IExerciseType
   ): { plates: IPlate[]; platesWeight: IWeight; totalWeight: IWeight } {
-    const exerciseData = settings.exerciseData[Exercise.toKey(exerciseType)];
-    if (exerciseData?.equipment == null) {
-      const rounding = Exercise.defaultRounding(exerciseType, settings);
-      allWeight = Weight.build(MathUtils.round(allWeight.value, rounding), allWeight.unit);
-      return { plates: [], platesWeight: allWeight, totalWeight: allWeight };
-    }
-
-    const gym = settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
-    const equipment = exerciseData.equipment[gym.id];
-    const equipmentType = equipment ? gym.equipment[equipment] : undefined;
-
-    if (!equipmentType) {
+    const equipmentData = Equipment.getEquipmentDataForExerciseType(settings, exerciseType);
+    if (equipmentData == null) {
       const rounding = Exercise.defaultRounding(exerciseType, settings);
       allWeight = Weight.build(MathUtils.round(allWeight.value, rounding), allWeight.unit);
       return { plates: [], platesWeight: allWeight, totalWeight: allWeight };
@@ -311,9 +301,9 @@ export namespace Weight {
 
     const absAllWeight = Weight.abs(allWeight);
     const inverted = allWeight.value < 0;
-    if (equipmentType.isFixed) {
+    if (equipmentData.isFixed) {
       const fixed = CollectionUtils.sort(
-        equipmentType.fixed.filter((w) => w.unit === units),
+        equipmentData.fixed.filter((w) => w.unit === units),
         (a, b) => b.value - a.value
       );
       const weight = fixed.find((w) => Weight.lte(w, absAllWeight)) || fixed[fixed.length - 1] || absAllWeight;
@@ -321,9 +311,9 @@ export namespace Weight {
       roundedWeight = inverted ? Weight.invert(roundedWeight) : roundedWeight;
       return { plates: [], platesWeight: roundedWeight, totalWeight: roundedWeight };
     }
-    const availablePlatesArr = equipmentType.plates.filter((p) => p.weight.unit === units);
-    const barWeight = equipmentType.bar[units];
-    const multiplier = equipmentType.multiplier || 1;
+    const availablePlatesArr = equipmentData.plates.filter((p) => p.weight.unit === units);
+    const barWeight = equipmentData.bar[units];
+    const multiplier = equipmentData.multiplier || 1;
     const weight = Weight.roundTo005(Weight.subtract(absAllWeight, barWeight));
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
     availablePlates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));

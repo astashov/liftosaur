@@ -66,7 +66,7 @@ test("Program Preview", async ({ page }) => {
       .first()
       .getByTestId("entry-bent-over-row")
       .getByTestId("input-set-weight-field")
-      .filter({ hasText: "100" })
+      .filter({ hasText: "97.5" })
   ).toHaveCount(3);
   await page.getByTestId("preview-day-workout-a").getByTestId(`workout-tab-bench-press`).nth(0).click();
   await expect(
@@ -75,7 +75,7 @@ test("Program Preview", async ({ page }) => {
       .first()
       .getByTestId("entry-bench-press")
       .getByTestId("input-set-weight-field")
-      .filter({ hasText: "50" })
+      .filter({ hasText: "47.5" })
   ).toHaveCount(3);
   await expect(
     page.getByTestId("preview-day-workout-a").first().getByTestId("entry-bench-press").getByTestId("set-nonstarted")

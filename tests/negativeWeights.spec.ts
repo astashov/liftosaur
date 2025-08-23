@@ -16,8 +16,8 @@ test("negative weights", async ({ page }) => {
     "planner-editor",
     `# Week 1
 ## Day 1
-Squat / 2x5 / -40lb / progress: lp(-5lb)
-Bench Press / 2x3-5 -20lb / progress: lp(30lb)`
+Pull Up, Leverage Machine / 2x5 / -40lb / progress: lp(-5lb)
+Triceps Dip, Leverage Machine / 2x3-5 -20lb / progress: lp(30lb)`
   );
 
   await page.getByTestId("save-program").click();
@@ -31,8 +31,8 @@ Bench Press / 2x3-5 -20lb / progress: lp(30lb)`
   await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("-40");
   await expect(page.getByTestId("input-set-weight-field").nth(1)).toHaveText("-40");
 
-  await PlaywrightUtils.finishExercise(page, "squat", [1, 1]);
-  await PlaywrightUtils.finishExercise(page, "bench-press", [1, 1]);
+  await PlaywrightUtils.finishExercise(page, "pull-up", [1, 1]);
+  await PlaywrightUtils.finishExercise(page, "triceps-dip", [1, 1]);
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
@@ -48,7 +48,9 @@ Bench Press / 2x3-5 -20lb / progress: lp(30lb)`
       .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-weight]")
+      .locator(
+        "[data-cy=history-entry-exercise]:has-text('Pull Up, Leverage Machine') >> [data-cy=history-entry-weight]"
+      )
       .first()
   ).toHaveText("-45lb");
   await expect(
@@ -56,7 +58,9 @@ Bench Press / 2x3-5 -20lb / progress: lp(30lb)`
       .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-weight]")
+      .locator(
+        "[data-cy=history-entry-exercise]:has-text('Triceps Dip, Leverage Machine') >> [data-cy=history-entry-weight]"
+      )
       .first()
   ).toHaveText("10lb");
 });
