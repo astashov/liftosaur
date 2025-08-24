@@ -461,54 +461,54 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <InternalLink
           name="contact-us"
           href="mailto:info@liftosaur.com"
-          className="block py-3 text-base text-left border-b border-gray-200"
+          className="block py-3 text-base text-left border-b border-border-neutral"
         >
           Contact Us
         </InternalLink>
         <a
           href="https://discord.com/invite/AAh3cvdBRs"
           target="_blank"
-          className="block py-3 text-base text-left border-b border-gray-200"
+          className="block py-3 text-base text-left border-b border-border-neutral"
         >
           <IconDiscord className="inline-block mr-1" /> Discord Server
         </a>
         <InternalLink
           name="privacy-policy"
           href="/privacy.html"
-          className="block py-3 text-base text-left border-b border-gray-200"
+          className="block py-3 text-base text-left border-b border-border-neutral"
         >
           Privacy Policy
         </InternalLink>
         <InternalLink
           name="terms"
           href="/terms.html"
-          className="block py-3 text-base text-left border-b border-gray-200"
+          className="block py-3 text-base text-left border-b border-border-neutral"
         >
           Terms &amp; Conditions
         </InternalLink>
         <InternalLink
           name="licenses"
           href="/licenses.html"
-          className="block py-3 text-base text-left border-b border-gray-200"
+          className="block py-3 text-base text-left border-b border-border-neutral"
         >
           Licenses
         </InternalLink>
         <InternalLink
           name="documentation"
           href="/docs"
-          className="block py-3 text-base text-left border-b border-gray-200"
+          className="block py-3 text-base text-left border-b border-border-neutral"
         >
           Documentation
         </InternalLink>
         <a
           href="https://github.com/astashov/liftosaur"
-          className="block py-3 text-base text-left border-b border-gray-200"
+          className="block py-3 text-base text-left border-b border-border-neutral"
         >
           Source Code on Github
         </a>
         <a
           href="https://github.com/astashov/liftosaur/discussions"
-          className="block py-3 text-base text-left border-b border-gray-200"
+          className="block py-3 text-base text-left border-b border-border-neutral"
         >
           📍 Roadmap
         </a>

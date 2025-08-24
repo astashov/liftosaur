@@ -1,4 +1,5 @@
 import { h, JSX } from "preact";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   width: number;
@@ -7,7 +8,7 @@ interface IProps {
 }
 
 export function IconSpinner(props: IProps): JSX.Element {
-  const color = props.color || "#B2B2B2";
+  const color = props.color || Tailwind.semantic().icon.neutral;
   return (
     <svg
       viewBox="0 0 512 512"

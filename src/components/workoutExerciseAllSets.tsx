@@ -71,9 +71,9 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
     <div>
       <div className="table w-full overflow-hidden">
         <div className="table-row-group">
-          <div className="table-row text-xs border-b text-text-secondary border-background-subtle">
-            <div className="table-cell px-2 pb-1 font-normal text-center border-b border-background-subtle">Set</div>
-            <div className="table-cell pb-1 font-normal text-left border-b border-background-subtle">
+          <div className="table-row text-xs border-b text-text-secondary border-border-subtle">
+            <div className="table-cell px-2 pb-1 font-normal text-center border-b border-border-neutral">Set</div>
+            <div className="table-cell pb-1 font-normal text-left border-b border-border-neutral">
               <button onClick={props.onTargetClick} className="inline-block w-full text-left">
                 {targetLabel ? <span className="mr-1">{targetLabel}</span> : <></>}
                 {props.onTargetClick && (
@@ -81,10 +81,10 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
                 )}
               </button>
             </div>
-            <div className="table-cell pb-1 font-normal text-center border-b border-background-subtle">Reps</div>
-            <div className="table-cell pb-1 border-b border-background-subtle"></div>
-            <div className="table-cell pb-1 font-normal text-center border-b border-background-subtle">{exerciseUnit}</div>
-            <div className="table-cell pb-1 pr-4 border-b border-background-subtle"></div>
+            <div className="table-cell pb-1 font-normal text-center border-b border-border-neutral">Reps</div>
+            <div className="table-cell pb-1 border-b border-border-neutral"></div>
+            <div className="table-cell pb-1 font-normal text-center border-b border-border-neutral">{exerciseUnit}</div>
+            <div className="table-cell pb-1 pr-4 border-b border-border-neutral"></div>
           </div>
         </div>
         <div className="table-row-group">

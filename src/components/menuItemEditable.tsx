@@ -124,7 +124,7 @@ export function MenuItemValue(
     return (
       <select
         data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
-        className="border rounded border-grayv2-main"
+        className="border rounded border-border-neutral bg-background-default"
         value={props.value || undefined}
         onChange={handleChange(props.onChange, props.setPatternError)}
       >

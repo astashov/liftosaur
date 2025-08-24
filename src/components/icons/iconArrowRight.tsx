@@ -1,4 +1,5 @@
 import { h, JSX } from "preact";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   style?: { [key: string]: string | number };
@@ -11,6 +12,7 @@ interface IProps {
 export function IconArrowRight(props: IProps): JSX.Element {
   const width = props.width || 7;
   const height = props.height || 12;
+  const color = props.color || Tailwind.semantic().icon.neutral;
   return (
     <svg
       style={props.style}
@@ -21,13 +23,7 @@ export function IconArrowRight(props: IProps): JSX.Element {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path
-        d="M1 1L6 6L1 11"
-        stroke={props.color || "#818385"}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
+      <path d="M1 1L6 6L1 11" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
   );
 }

@@ -1,11 +1,12 @@
 import { h, JSX } from "preact";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   color?: string;
 }
 
 export function IconBarbell(props: IProps): JSX.Element {
-  const color = props.color || "#28839F";
+  const color = props.color || Tailwind.semantic().icon.neutral;
   return (
     <svg
       width="24"

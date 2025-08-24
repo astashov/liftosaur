@@ -17,6 +17,7 @@ import { IconSwap } from "../icons/iconSwap";
 import { delayfn } from "../../utils/throttler";
 import { ReactUtils } from "../../utils/react";
 import { pickerStateFromPlannerExercise } from "../editProgram/editProgramUtils";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IEditProgramExerciseNavbarProps {
   state: IPlannerExerciseState;
@@ -35,7 +36,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
 
   return (
     <div
-      className="sticky left-0 flex flex-row items-center justify-between gap-2 py-1 pl-2 pr-4 bg-background-default border-b border-background-subtle"
+      className="sticky left-0 flex flex-row items-center justify-between gap-2 py-1 pl-2 pr-4 border-b bg-background-default border-background-subtle"
       style={{
         zIndex: 25,
         top: "3.75rem",
@@ -49,7 +50,11 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           disabled={!canUndo(props.state)}
           onClick={() => undo(props.plannerDispatch, props.state)}
         >
-          <IconUndo width={20} height={20} color={!canUndo(props.state) ? "#BAC4CD" : "#171718"} />
+          <IconUndo
+            width={20}
+            height={20}
+            color={!canUndo(props.state) ? Tailwind.semantic().icon.light : Tailwind.semantic().icon.neutral}
+          />
         </button>
         <button
           style={{ cursor: canRedo(props.state) ? "pointer" : "default" }}
@@ -62,7 +67,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
             width={20}
             height={20}
             style={{ transform: "scale(-1,  1)" }}
-            color={!canRedo(props.state) ? "#BAC4CD" : "#171718"}
+            color={!canRedo(props.state) ? Tailwind.semantic().icon.light : Tailwind.semantic().icon.neutral}
           />
         </button>
       </div>

@@ -111,7 +111,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
             </div>
           )}
           {isCurrent && (
-            <div className="font-bold">
+            <div className="mt-2 font-bold">
               {!props.isOngoing ? (
                 <Button
                   name="start-workout-button"

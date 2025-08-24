@@ -1,4 +1,5 @@
 import { h, JSX } from "preact";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   color?: string;
@@ -7,7 +8,7 @@ interface IProps {
 }
 
 export function IconCalculator(props: IProps): JSX.Element {
-  const color = props.color || "#171718";
+  const color = props.color || Tailwind.semantic().icon.neutral;
   const size = props.size ?? 20;
   return (
     <svg

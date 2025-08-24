@@ -7,28 +7,35 @@ import { highlightSelectionMatches } from "@codemirror/search";
 import { IProgramState } from "./types";
 import { tags } from "@lezer/highlight";
 import { buildLiftoscriptLanguageSupport } from "./liftoscriptCodemirror";
+import { Tailwind } from "./utils/tailwindConfig";
 
-const highlightStyle = HighlightStyle.define([
-  { tag: tags.keyword, color: "#708" },
-  { tag: [tags.literal, tags.inserted], color: "#164" },
-  { tag: tags.variableName, color: "#00f" },
-  { tag: tags.comment, color: "#940" },
-]);
+const buildHighlightStyle = () => {
+  return HighlightStyle.define([
+    { tag: tags.keyword, color: Tailwind.semantic().syntax.keyword },
+    { tag: [tags.literal, tags.inserted], color: Tailwind.semantic().syntax.literal },
+    { tag: tags.variableName, color: Tailwind.semantic().syntax.variable },
+    { tag: tags.comment, color: Tailwind.semantic().syntax.comment },
+  ]);
+};
 
-const editorSetup: Extension[] = [
-  history(),
-  drawSelection(),
-  indentOnInput(),
-  autocompletion(),
-  syntaxHighlighting(highlightStyle),
-  highlightSelectionMatches(),
-  keymap.of([
-    ...defaultKeymap,
-    ...historyKeymap,
-    ...completionKeymap,
-    { key: "Tab", run: insertTab, shift: indentLess },
-  ]),
-];
+const buildEditorSetup = () => {
+  const highlightStyle = buildHighlightStyle();
+  const editorSetup: Extension[] = [
+    history(),
+    drawSelection(),
+    indentOnInput(),
+    autocompletion(),
+    syntaxHighlighting(highlightStyle),
+    highlightSelectionMatches(),
+    keymap.of([
+      ...defaultKeymap,
+      ...historyKeymap,
+      ...completionKeymap,
+      { key: "Tab", run: insertTab, shift: indentLess },
+    ]),
+  ];
+  return editorSetup;
+};
 
 interface IArgs {
   onChange?: (newValue: string) => void;
@@ -74,6 +81,7 @@ export class CodeEditor {
 
     const liftoscriptLanguage = buildLiftoscriptLanguageSupport(this);
 
+    const editorSetup = buildEditorSetup();
     const editorState = EditorState.create({
       doc: this.args.value || "",
       extensions: [keymap.of(defaultKeymap), editorSetup, updateFacet, liftoscriptLanguage],

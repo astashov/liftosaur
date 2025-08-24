@@ -57,7 +57,7 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
   return (
     <div className="my-1">
       <div className="flex items-center gap-2 mx-4">
-        <label className="flex items-center flex-1 gap-2 p-2 rounded-lg bg-background-subtle">
+        <label className="flex items-center flex-1 gap-2 p-2 rounded-lg bg-background-neutral">
           <div>
             <IconMagnifyingGlass size={18} color={Tailwind.colors().lightgray[600]} />
           </div>
@@ -65,7 +65,7 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
             <input
               type="text"
               placeholder="Search by name"
-              className="block w-full text-sm bg-transparent border-none outline-none bg-none text-text-secondary placeholder-grayv3-500"
+              className="block w-full text-sm bg-transparent border-none outline-none bg-none text-text-secondary placeholder-text-secondarysubtle"
               data-cy="exercise-filter-by-name"
               value={props.state.search}
               onInput={(event) => {
@@ -89,11 +89,11 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
             }
           >
             {isFiltered && (
-              <span className="flex items-center justify-center w-5 h-5 text-xs font-semibold leading-none text-text-alwayswhite rounded-full bg-button-primarybackground">
+              <span className="flex items-center justify-center w-5 h-5 text-xs font-semibold leading-none rounded-full text-text-alwayswhite bg-button-primarybackground">
                 {filterNames.length}
               </span>
             )}
-            <IconFilter2 color={isFiltered ? Tailwind.colors().purple[600] : Tailwind.colors().black} />
+            <IconFilter2 color={isFiltered ? Tailwind.semantic().icon.purple : Tailwind.semantic().icon.neutral} />
           </button>
         </div>
       </div>

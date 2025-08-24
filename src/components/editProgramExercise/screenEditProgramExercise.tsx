@@ -22,7 +22,6 @@ import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUi
 import { EditProgramExerciseSets } from "./editProgramExerciseSets";
 import { BottomSheetEditProgramExerciseSet } from "./bottomSheetEditProgramExerciseSet";
 import { EditProgramExerciseNavbar } from "./editProgramExerciseNavbar";
-import { Tailwind } from "../../utils/tailwindConfig";
 import { EditProgramBottomSheetPicker } from "../editProgram/editProgramBottomSheetPicker";
 
 interface IProps {
@@ -92,7 +91,9 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           subtitle={
             plannerExercise.notused ? (
               <div className="pb-1">
-                <div className="inline-block px-1 ml-3 text-xs font-bold text-text-alwayswhite rounded bg-background-darkgray">UNUSED</div>
+                <div className="inline-block px-1 ml-3 text-xs font-bold rounded text-text-alwayswhite bg-background-darkgray">
+                  UNUSED
+                </div>
               </div>
             ) : undefined
           }
@@ -109,12 +110,9 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                   <IconKebab />
                 </button>
                 {isKebabMenuOpen && (
-                  <DropdownMenu
-                    bgColor={Tailwind.colors().lightgray[50]}
-                    rightOffset="3rem"
-                    onClose={() => setIsKebabMenuOpen(false)}
-                  >
+                  <DropdownMenu rightOffset="3rem" onClose={() => setIsKebabMenuOpen(false)}>
                     <DropdownMenuItem
+                      isTop={true}
                       data-cy="program-exercise-toggle-progress"
                       onClick={() => {
                         setIsKebabMenuOpen(false);

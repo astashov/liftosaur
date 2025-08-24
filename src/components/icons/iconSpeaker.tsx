@@ -1,4 +1,5 @@
 import { h, JSX } from "preact";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   style?: { [key: string]: string | number };
@@ -9,7 +10,7 @@ interface IProps {
 
 export function IconSpeaker(props: IProps): JSX.Element {
   const size = props.size || 24;
-  const color = props.color || "#171718";
+  const color = props.color || Tailwind.semantic().icon.neutral;
   return (
     <svg
       className={props.className}

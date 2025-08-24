@@ -56,7 +56,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
   if (!Subscriptions.hasSubscription(props.subscription)) {
     return (
       <section
-        className="fixed left-0 z-10 w-full px-3 py-2 border top-16 border-yellowv3-300 bg-background-cardyellow rounded-b-xl"
+        className="fixed left-0 z-10 w-full px-3 py-2 border top-16 border-border-cardyellow bg-background-cardyellow rounded-b-xl"
         onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}
       >
         <div className="flex items-center h-8 gap-1" style={{ marginBottom: "3px" }}>
@@ -77,7 +77,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
   const formattedRange = DateUtils.formatRange(startTs, endRange);
 
   return (
-    <section className="fixed left-0 z-10 w-full py-2 border top-16 border-yellowv3-300 bg-background-cardyellow rounded-b-xl">
+    <section className="fixed left-0 z-10 w-full py-2 border top-16 border-border-cardyellow bg-background-cardyellow rounded-b-xl">
       <div className="px-3">
         <div className="flex gap-4">
           <div className="flex items-center gap-1">
@@ -142,7 +142,9 @@ function WeekInsightsProperty(props: IWeekInsightsPropertyProps): JSX.Element {
     <div className="">
       {props.icon}
       <span className="text-base font-semibold">{props.value}</span>
-      {props.unit && <span className={`text-xs text-text-secondary ${props.hasPadding ? "ml-1" : ""}`}>{props.unit}</span>}
+      {props.unit && (
+        <span className={`text-xs text-text-secondary ${props.hasPadding ? "ml-1" : ""}`}>{props.unit}</span>
+      )}
       {props.increment && props.increment !== 0 ? (
         <span className={`${props.increment > 0 ? `text-text-success` : `text-text-error`} ml-1 text-xs font-semibold`}>
           {props.increment > 0 ? "+" : ""}

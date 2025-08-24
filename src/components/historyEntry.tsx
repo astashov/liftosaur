@@ -25,9 +25,13 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
   const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(settings, exercise);
   const isPr = ObjectUtils.values(props.prs || {}).some((v) => v);
   return (
-    <div data-cy="history-entry-exercise" className={`flex flex-row items-center flex-1`}>
-      <div data-cy="history-entry-exercise-img py-2" style={{ minWidth: "2.25rem" }}>
-        <ExerciseImage settings={props.settings} className="w-6 mr-3" exerciseType={exercise} size="small" />
+    <div data-cy="history-entry-exercise" className={`flex flex-row items-center flex-1 gap-2`}>
+      <div
+        data-cy="history-entry-exercise-img"
+        className="flex items-center justify-center py-1 my-1 rounded-lg bg-background-image"
+        style={{ minWidth: "2.25rem" }}
+      >
+        <ExerciseImage settings={props.settings} className="w-8" exerciseType={exercise} size="small" />
       </div>
       <div
         className={`flex-1 py-2 ${

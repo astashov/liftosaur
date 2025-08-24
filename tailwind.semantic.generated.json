@@ -8,7 +8,7 @@
       "red100": "#FFE6E1",
       "green100": "#CEFCE5",
       "yellow100": "#FFF2DB",
-      "purple100": "#F3EEFF",
+      "purple100": "#EFEAFF",
       "red150": "#FFD1C7",
       "green150": "#A3F7D0",
       "yellow150": "#FFE6B4",
@@ -47,11 +47,15 @@
     "background": {
       "default": "#FFFFFF",
       "subtle": "#F4F6F7",
-      "cardpurple": "#F3EEFF",
-      "purpledark": "#F3EEFF",
+      "neutral": "#E3E8EA",
+      "editoractiveline": "#cceeff44",
+      "subtlecardpurple": "#FAF8FF",
+      "cardpurple": "#EFEAFF",
+      "purpledark": "#EFEAFF",
       "cardyellow": "#FFF8EC",
       "yellowdark": "#DD8E02",
-      "error": "#FFF3F1",
+      "cardpurpleselected": "#CCC1F9",
+      "error": "#FF543E",
       "success": "#EBFEF5",
       "darkgray": "#607284",
       "darkred": "#ED2E15",
@@ -60,7 +64,7 @@
       "image": "transparent"
     },
     "border": {
-      "purple": "#F3EEFF",
+      "purple": "#EFEAFF",
       "neutral": "#E3E8EA",
       "prominent": "#C9D1D8",
       "cardyellow": "#FFE6B4",
@@ -81,7 +85,7 @@
       "primarybackground": "#8356F6",
       "primarylabel": "#FFFFFF",
       "secondarybackground": "#FAF8FF",
-      "secondarystroke": "#F3EEFF",
+      "secondarystroke": "#EFEAFF",
       "orangebackground": "#B76506"
     },
     "menu": {
@@ -97,7 +101,17 @@
       "reps": "#954D0B",
       "weight": "#016448",
       "rpe": "#016448",
-      "timer": "#5721B6"
+      "timer": "#5721B6",
+      "keyword": "#6928D9",
+      "literal": "#009F6C",
+      "variable": "#45B3CB",
+      "comment": "#A4B0BC",
+      "blockComment": "#778999",
+      "atom": "#DD8E02",
+      "attributeName": "#DD8E02",
+      "attributeValue": "#45B3CB",
+      "annotation": "#FFDD7E",
+      "docComment": "#67EEB8"
     }
   },
   "dark": {
@@ -147,18 +161,22 @@
     },
     "background": {
       "default": "#000000",
-      "subtle": "#252034",
+      "subtle": "#0C0819",
+      "neutral": "#252034",
+      "editoractiveline": "#34495444",
+      "subtlecardpurple": "#0C0819",
       "cardpurple": "#252034",
       "purpledark": "#393248",
       "cardyellow": "#25241E",
       "yellowdark": "#453D58",
-      "error": "#7D5158",
+      "cardpurpleselected": "#453D58",
+      "error": "#824344",
       "success": "#3C695B",
       "darkgray": "#607284",
       "darkred": "#FF8066",
       "set": "#332D42",
       "setactive": "#453D58",
-      "image": "#F3EEFF"
+      "image": "#EFEAFF"
     },
     "border": {
       "purple": "#2C1065",
@@ -198,7 +216,17 @@
       "reps": "#FFB544",
       "weight": "#06C383",
       "rpe": "#06C383",
-      "timer": "#8356F6"
+      "timer": "#8356F6",
+      "keyword": "#CCC1F9",
+      "literal": "#2BDC9B",
+      "variable": "#28839F",
+      "comment": "#3C5063",
+      "blockComment": "#4F5C6B",
+      "atom": "#FFD820",
+      "attributeName": "#FFD820",
+      "attributeValue": "#28839F",
+      "annotation": "#B76506",
+      "docComment": "#007F5A"
     }
   }
 }

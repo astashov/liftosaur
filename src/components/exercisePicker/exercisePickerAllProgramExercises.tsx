@@ -65,8 +65,10 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
             key={exerciseKey}
             className={`flex gap-2 px-2 pb-2 mb-4 border-b border-background-subtle ${isAllDisabled ? "opacity-40" : ""}`}
           >
-            <div className="pl-2">
-              <ExerciseImage settings={props.settings} exerciseType={exerciseType} size="small" className="w-10" />
+            <div className="pl-1">
+              <div className="p-1 rounded-lg bg-background-image">
+                <ExerciseImage settings={props.settings} exerciseType={exerciseType} size="small" className="w-10" />
+              </div>
             </div>
             <div className="flex-1 pt-1">
               <h3 className="text-base font-semibold">{exercises[0].name}</h3>

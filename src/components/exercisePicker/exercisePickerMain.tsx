@@ -95,7 +95,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
               );
             }}
           >
-            <IconFilter color={Tailwind.colors().lightgray[600]} />
+            <IconFilter />
           </button>
         </div>
         <h3 className="px-4 font-bold text-center">{title}</h3>
@@ -110,7 +110,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                 );
               }}
             >
-              <IconMuscles2 color={Tailwind.colors().purple[600]} isSelected={props.state.showMuscles} />
+              <IconMuscles2 color={Tailwind.semantic().icon.purple} isSelected={props.state.showMuscles} />
             </button>
           </div>
           <div>
@@ -123,7 +123,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                 );
               }}
             >
-              <IconStar isSelected={isStarred} color={Tailwind.colors().purple[600]} />
+              <IconStar isSelected={isStarred} color={Tailwind.semantic().icon.purple} />
             </button>
           </div>
         </div>

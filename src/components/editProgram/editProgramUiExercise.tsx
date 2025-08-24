@@ -54,7 +54,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
     <div
       id={`edit-program-ui-exercise-${props.plannerExercise.dayData.week}-${props.plannerExercise.dayData.dayInWeek}-${props.plannerExercise.key}`}
       data-cy={`exercise-${props.plannerExercise.key}`}
-      className="my-1 overflow-hidden border bg-background-cardpurple rounded-xl border-border-purple"
+      className="my-1 overflow-hidden border bg-background-cardpurple rounded-xl border-border-cardpurple"
     >
       <div className="flex items-center">
         <div className="p-2 cursor-move" style={{ touchAction: "none" }}>
@@ -76,7 +76,9 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
             {orderAndRepeat ? <span className="text-sm font-normal text-text-primary"> [{orderAndRepeat}]</span> : ""}
           </div>
           {props.plannerExercise.notused && (
-            <div className="px-1 ml-3 text-xs font-bold text-text-alwayswhite rounded bg-background-darkgray">UNUSED</div>
+            <div className="px-1 ml-3 text-xs font-bold rounded text-text-alwayswhite bg-background-darkgray">
+              UNUSED
+            </div>
           )}
           <button
             className="p-2"
@@ -136,7 +138,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
             <IconGraphsE width={16} height={19} />
           </button>
         </div>
-        <div className="py-2 bg-background-default border-l border-border-purple">
+        <div className="py-2 border-l bg-background-default border-border-cardpurple">
           <button
             className="w-10 px-2 text-center nm-edit-exercise-expand-collapse"
             onClick={() => {
@@ -205,10 +207,10 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
 
   return (
     <div>
-      <div className="flex border-t border-border-purple">
+      <div className="flex border-t border-border-cardpurple">
         <div className="flex-1">
           {plannerExercise.descriptions.values.length > 0 && (
-            <div className="flex border-b border-border-purple">
+            <div className="flex border-b border-border-cardpurple">
               <div className="flex-1 px-3 py-1">
                 <EditProgramUiExerciseDescriptions plannerExercise={plannerExercise} settings={props.settings} />
               </div>
@@ -216,8 +218,10 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
           )}
           <div className="flex">
             {exerciseType ? (
-              <div className="px-3">
-                <ExerciseImage settings={props.settings} className="w-10" exerciseType={exerciseType} size="small" />
+              <div className="p-1">
+                <div className="p-1 m-1 rounded-lg bg-background-image">
+                  <ExerciseImage settings={props.settings} className="w-10" exerciseType={exerciseType} size="small" />
+                </div>
               </div>
             ) : (
               <div className="w-2" />
@@ -258,7 +262,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
             </div>
           )}
         </div>
-        <div className="bg-background-default border-l border-border-purple">
+        <div className="border-l bg-background-default border-border-cardpurple">
           <div className="text-center">
             <button
               className="p-2"

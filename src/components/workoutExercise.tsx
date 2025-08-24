@@ -110,7 +110,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
                 minX={Math.round(minX / 1000)}
                 maxX={Math.round(maxX / 1000)}
                 isWithOneRm={true}
-                key={Exercise.toKey(exerciseType)}
+                key={`${Exercise.toKey(exerciseType)}_${props.settings.theme}`}
                 settings={props.settings}
                 isWithProgramLines={true}
                 history={props.history}

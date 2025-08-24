@@ -170,7 +170,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
         </p>
         <ul>
           <Feature
-            icon={<IconBarbell color="#3C5063" />}
+            icon={<IconBarbell />}
             title="Plates Calculator"
             description="What plates to add to each side of a bar to get the necessary weight"
             onClick={() => setIsPlatesCalculatorShown(true)}

@@ -1,4 +1,5 @@
 import { h, JSX } from "preact";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   style?: { [key: string]: string | number };
@@ -10,7 +11,7 @@ interface IProps {
 export function IconUndo(props: IProps): JSX.Element {
   const width = props.width || 24;
   const height = props.height || 24;
-  const color = props.color || "#171718";
+  const color = props.color || Tailwind.semantic().icon.neutral;
   return (
     <svg
       style={props.style}
