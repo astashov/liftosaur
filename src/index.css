@@ -75,6 +75,14 @@ body {
   box-shadow: 0 10px 25px -5px rgba(255, 255, 255, 0.1) !important;
 }
 
+.keyboard-shadow {
+  box-shadow: 0 4px 30px 0 rgba(0, 0, 0, 0.25);
+}
+
+.dark .keyboard-shadow {
+  box-shadow: 0 4px 30px 0 rgba(255, 255, 255, 0.2);
+}
+
 .planner-editor-view .cm-editor {
   font-size: 1rem;
 }
@@ -141,6 +149,28 @@ body {
 .code.block,
 .planner-editor-view .cm-editor .cm-content {
   font-family: "Iosevka Web" !important;
+}
+
+.cm-gutters {
+  background-color: var(--color-background-subtle) !important;
+  border-right: 1px solid var(---color-border-default) !important;
+}
+
+.cm-activeLineGutter {
+  background-color: var(--color-background-neutral) !important;
+}
+
+.cm-activeLine {
+  background-color: var(--color-background-editoractiveline) !important;
+}
+
+.cm-selectionBackground {
+  background-color: var(--color-background-purpledark) !important;
+}
+
+.cm-cursor,
+.cm-dropCursor {
+  border-left: 1.2px solid var(--color-text-primary) !important;
 }
 
 .cm-editor.cm-focused {
@@ -286,8 +316,8 @@ input[type="checkbox"].checkbox {
   -webkit-appearance: none;
   margin: 0;
   border-radius: 50%;
-  background: var(--color-white);
-  border: 1px solid var(--color-grayv3-500);
+  background: var(--color-background-default);
+  border: 1px solid var(--color-icon-neutral);
   display: inline-block;
   width: 20px;
   height: 20px;
@@ -298,7 +328,7 @@ input[type="checkbox"].checkbox {
 
 .radio input[type="radio"]:disabled {
   cursor: not-allowed;
-  border: 1px solid var(--color-grayv3-100);
+  border: 1px solid var(--color-border-subtle);
 }
 
 .radio input[type="radio"]:checked::before {
@@ -533,6 +563,11 @@ iframe#exercise-youtube-player {
   font-weight: bold;
   font-size: 1rem;
   margin-bottom: 0.5rem;
+}
+
+.uplot {
+  background: var(--color-background-default);
+  color: var(--color-text-primary);
 }
 
 .uplot.graph-max-weight .u-title,

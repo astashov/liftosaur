@@ -1,8 +1,13 @@
 import { h, JSX } from "preact";
 import { Tailwind } from "../../utils/tailwindConfig";
 
-export function IconEditSquare(props: { className?: string }): JSX.Element {
-  const color = Tailwind.semantic().icon.neutral;
+interface IProps {
+  className?: string;
+  color?: string;
+}
+
+export function IconEditSquare(props: IProps): JSX.Element {
+  const color = props.color || Tailwind.semantic().icon.neutral;
   return (
     <svg
       width="17"

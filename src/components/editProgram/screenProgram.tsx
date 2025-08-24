@@ -13,7 +13,6 @@ import { HelpEditProgramV2 } from "../help/helpEditProgramV2";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { IEvaluatedProgram, Program } from "../../models/program";
 import { StringUtils } from "../../utils/string";
-import { Tailwind } from "../../utils/tailwindConfig";
 import { IconCalendarSmall } from "../icons/iconCalendarSmall";
 import { TimeUtils } from "../../utils/time";
 import { IconTimerSmall } from "../icons/iconTimerSmall";
@@ -536,7 +535,7 @@ function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
       </div>
       <div>
         <div className="flex mb-1 text-text-secondary">
-          <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
+          <IconCalendarSmall className="block mr-1" />{" "}
           <div className="text-xs">
             {evaluatedProgram.weeks.length > 1 &&
               `${evaluatedProgram.weeks.length} ${StringUtils.pluralize("week", evaluatedProgram.weeks.length)}, `}
@@ -545,7 +544,7 @@ function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
         </div>
         <div className="flex text-text-secondary">
           <div>
-            <IconTimerSmall color={Tailwind.colors().lightgray[600]} />
+            <IconTimerSmall />
           </div>
           <div className="pl-1 text-xs align-middle">
             {duration.value} {duration.unit}

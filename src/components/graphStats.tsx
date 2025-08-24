@@ -17,6 +17,7 @@ import { Stats } from "../models/stats";
 import { DateUtils } from "../utils/date";
 import { GraphsPlugins } from "../utils/graphsPlugins";
 import { IPercentageUnit } from "../types";
+import { Tailwind } from "../utils/tailwindConfig";
 
 interface IGraphStatsProps {
   collection: [number, number][];
@@ -85,6 +86,18 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
       class: "graph-max-weight",
       width: rect.width,
       height: rect.height,
+      axes: [
+        {
+          stroke: Tailwind.semantic().text.primary,
+          ticks: { stroke: Tailwind.semantic().border.neutral },
+          grid: { stroke: Tailwind.semantic().border.neutral },
+        },
+        {
+          stroke: Tailwind.semantic().text.primary,
+          ticks: { stroke: Tailwind.semantic().border.neutral },
+          grid: { stroke: Tailwind.semantic().border.neutral },
+        },
+      ],
       cursor: {
         y: false,
         lock: true,
@@ -124,14 +137,14 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
         {
           label: props.statsKey === "weight" ? "Weight" : props.statsKey === "bodyfat" ? "Percentage" : "Size",
           value: (self, rawValue) => `${rawValue} ${props.units}`,
-          stroke: "red",
+          stroke: Tailwind.colors().red[500],
           width: 1,
         },
         movingAverageWindowSize != null
           ? {
               label: "Moving Average",
               value: (self, rawValue) => `${rawValue} ${props.units}`,
-              stroke: "blue",
+              stroke: Tailwind.colors().blue[500],
               width: 1,
             }
           : {},

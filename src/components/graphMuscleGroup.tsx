@@ -6,6 +6,7 @@ import { ISettings, IVolumeSelectedType } from "../types";
 import { GraphsPlugins } from "../utils/graphsPlugins";
 import { StringUtils } from "../utils/string";
 import { DateUtils } from "../utils/date";
+import { Tailwind } from "../utils/tailwindConfig";
 
 interface IGraphMuscleGroupProps {
   data: [number[], number[], number[]];
@@ -96,7 +97,7 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
           label: "Volume",
           show: props.selectedType === "volume",
           value: (self, rawValue) => `${rawValue} ${props.settings.units}`,
-          stroke: "#FF8066",
+          stroke: Tailwind.colors().red[500],
           width: 1,
           spanGaps: true,
         },
@@ -104,7 +105,7 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
           label: "Sets",
           show: props.selectedType === "sets",
           value: (self, rawValue) => `${rawValue}`,
-          stroke: "#FF8066",
+          stroke: Tailwind.colors().red[500],
           width: 1,
           spanGaps: true,
         },
@@ -116,12 +117,18 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
           values: (self, ticks) => {
             return ticks.map((rawValue) => `${Math.round(rawValue / 1000)}k ${props.settings.units}`);
           },
+          stroke: Tailwind.semantic().text.primary,
+          ticks: { stroke: Tailwind.semantic().border.neutral },
+          grid: { stroke: Tailwind.semantic().border.neutral },
         },
         {
           show: props.selectedType === "sets",
           values: (self, ticks) => {
             return ticks.map((rawValue) => rawValue);
           },
+          stroke: Tailwind.semantic().text.primary,
+          ticks: { stroke: Tailwind.semantic().border.neutral },
+          grid: { stroke: Tailwind.semantic().border.neutral },
         },
       ],
     };

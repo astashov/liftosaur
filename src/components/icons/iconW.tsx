@@ -1,4 +1,5 @@
 import { h, JSX } from "preact";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IIconWProps {
   width?: number;
@@ -7,7 +8,7 @@ interface IIconWProps {
 }
 
 export function IconW(props: IIconWProps): JSX.Element {
-  const color = props.color || "#3C5063";
+  const color = props.color || Tailwind.semantic().icon.neutral;
   return (
     <svg
       width={props.width || 22}

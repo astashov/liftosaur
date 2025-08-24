@@ -17,7 +17,7 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
   const { maxWeight, max1RM } = props;
 
   return (
-    <section data-cy="exercise-stats-pr" className="px-4 py-2 bg-purple-100 rounded-2xl">
+    <section data-cy="exercise-stats-pr" className="px-4 py-2 bg-background-cardpurple rounded-2xl">
       <GroupHeader topPadding={false} name="🏆 Personal Records" />
       {maxWeight && (
         <MenuItem

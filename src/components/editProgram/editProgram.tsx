@@ -113,7 +113,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
 
   return (
     <div
-      className="sticky left-0 flex flex-row items-center justify-between gap-2 py-2 pl-2 pr-4 bg-background-default border-b border-background-subtle"
+      className="sticky left-0 flex flex-row items-center justify-between gap-2 py-2 pl-2 pr-4 border-b bg-background-default border-background-subtle"
       style={{
         zIndex: 25,
         top: "3.75rem",
@@ -127,7 +127,11 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
           disabled={!canUndo(props.state)}
           onClick={() => undo(props.plannerDispatch, props.state)}
         >
-          <IconUndo width={20} height={20} color={!canUndo(props.state) ? "#BAC4CD" : "#171718"} />
+          <IconUndo
+            width={20}
+            height={20}
+            color={!canUndo(props.state) ? Tailwind.semantic().icon.light : Tailwind.semantic().icon.neutral}
+          />
         </button>
         <button
           style={{ cursor: canRedo(props.state) ? "pointer" : "default" }}
@@ -140,7 +144,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
             width={20}
             height={20}
             style={{ transform: "scale(-1,  1)" }}
-            color={!canRedo(props.state) ? "#BAC4CD" : "#171718"}
+            color={!canRedo(props.state) ? Tailwind.semantic().icon.light : Tailwind.semantic().icon.neutral}
           />
         </button>
       </div>
@@ -236,7 +240,7 @@ function EditProgramModeSwitchButton(props: IEditProgramModeSwitchButtonProps): 
         }
       }}
     >
-      {props.children(isSelected ? Tailwind.colors().purple[600] : Tailwind.colors().lightgray[600])}
+      {props.children(isSelected ? Tailwind.semantic().icon.purple : Tailwind.semantic().icon.neutral)}
     </button>
   );
 }

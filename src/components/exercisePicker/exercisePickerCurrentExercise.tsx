@@ -15,7 +15,7 @@ export function ExercisePickerCurrentExercise(props: IExercisePickerCurrentExerc
   return (
     <div className="mx-4 mb-3">
       <GroupHeader name="Current Exercise" />
-      <div className="px-2 border bg-background-cardpurple border-purplev3-200 rounded-2xl">
+      <div className="px-2 border bg-background-cardpurple border-border-cardpurple rounded-2xl">
         <ExercisePickerExerciseItem
           exercise={exercise}
           settings={props.settings}

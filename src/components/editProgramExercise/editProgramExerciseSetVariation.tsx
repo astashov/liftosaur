@@ -43,7 +43,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
   const widthAdd = (4 - additionalFields) * 0.5;
 
   return (
-    <div className="border rounded-lg bg-background-cardpurple border-border-purple">
+    <div className="border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
       <div className="flex items-center gap-4 pt-2 pb-1 pl-4 pr-2">
         <div className="flex-1 font-semibold">{props.name}</div>
         {props.areSetVariationsEnabled && (
@@ -93,21 +93,21 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
       </div>
       <div className="table w-full overflow-hidden">
         <div className="table-row-group pt-1">
-          <div className="table-row text-xs border-b text-text-secondary border-pubplev3-200">
-            <div className="table-cell px-2 py-1 font-normal text-left align-bottom border-b border-border-purple">
+          <div className="table-row text-xs border-b text-text-secondary">
+            <div className="table-cell px-2 py-1 font-normal text-left align-bottom border-b border-border-cardpurple">
               Set
             </div>
             {hasMinReps && (
               <>
-                <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-purple">
+                <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-cardpurple">
                   Min
                   <br />
                   Reps
                 </div>
-                <div className="table-cell py-1 text-center border-b border-border-purple"></div>
+                <div className="table-cell py-1 text-center border-b border-border-cardpurple"></div>
               </>
             )}
-            <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-purple">
+            <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-cardpurple">
               {hasMinReps ? (
                 <>
                   Max
@@ -120,19 +120,19 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
             </div>
             {hasWeight && (
               <>
-                <div className="table-cell py-1 text-center border-b border-border-purple"></div>
-                <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-purple">
+                <div className="table-cell py-1 text-center border-b border-border-cardpurple"></div>
+                <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-cardpurple">
                   Weight
                 </div>
               </>
             )}
             {hasRpe && (
-              <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-purple">
+              <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-cardpurple">
                 RPE
               </div>
             )}
             {hasTimer && (
-              <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-purple">
+              <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-cardpurple">
                 Timer
               </div>
             )}

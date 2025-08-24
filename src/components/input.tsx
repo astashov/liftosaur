@@ -5,7 +5,7 @@ import { StringUtils } from "../utils/string";
 import { IEither } from "../utils/types";
 
 export const inputClassName =
-  "inline-block w-full px-4 text-base py-2 leading-normal bg-background-default border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline text-base";
+  "inline-block w-full px-4 text-base py-2 leading-normal bg-background-default border border-border-prominent rounded-lg appearance-none focus:outline-none focus:shadow-outline text-base";
 
 export type IValidationError = "required" | "pattern-mismatch";
 

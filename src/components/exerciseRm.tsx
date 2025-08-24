@@ -20,7 +20,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
   const [showCalculator, setShowCalculator] = useState(false);
 
   return (
-    <section data-cy="exercise-stats-1rm-set" className="px-4 py-1 mt-2 font-bold bg-purple-100 rounded-2xl">
+    <section data-cy="exercise-stats-1rm-set" className="px-4 py-1 mt-2 font-bold bg-background-cardpurple rounded-2xl">
       <MenuItemEditable
         type="number"
         name={props.name}
@@ -41,7 +41,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
               style={{ marginRight: "-0.25rem" }}
               onClick={() => setShowCalculator(true)}
             >
-              <IconCalculator size={16} color="#607284" />
+              <IconCalculator size={16} />
             </button>
           </>
         }

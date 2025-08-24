@@ -33,14 +33,16 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
   return (
     <section className={`flex gap-2 ${isDisabled ? "opacity-40" : ""}`}>
       <div className="self-center w-12" style={{ minHeight: "2.5rem" }}>
-        <ExerciseImage
-          useTextForCustomExercise={true}
-          customClassName="border border-border-neutral rounded-lg overflow-hidden"
-          settings={props.settings}
-          className="w-full"
-          exerciseType={exerciseType}
-          size="small"
-        />
+        <div className="p-1 rounded-lg bg-background-image">
+          <ExerciseImage
+            useTextForCustomExercise={true}
+            customClassName="border border-border-neutral rounded-lg overflow-hidden"
+            settings={props.settings}
+            className="w-full"
+            exerciseType={exerciseType}
+            size="small"
+          />
+        </div>
       </div>
       <div className="flex-1 py-2 text-sm text-left">
         <button
@@ -56,7 +58,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
               <IconStar
                 size={20}
                 isSelected={isStarred}
-                color={isStarred ? Tailwind.colors().purple[600] : Tailwind.colors().lightgray[600]}
+                color={isStarred ? Tailwind.semantic().icon.purple : Tailwind.semantic().icon.neutral}
               />
             </div>
           )}

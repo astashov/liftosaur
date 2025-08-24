@@ -23,20 +23,22 @@ import { StringUtils } from "../../utils/string";
 import { IAllCustomExercises } from "../../types";
 import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
 import { ObjectUtils } from "../../utils/object";
+import { Tailwind } from "../../utils/tailwindConfig";
 
-const highlightStyle = HighlightStyle.define([
-  { tag: tags.keyword, color: "#708" },
-  { tag: [tags.literal, tags.inserted], color: "#164" },
-  { tag: tags.variableName, color: "#28839f" },
-  { tag: tags.comment, color: "#8B9BAB" },
-  { tag: tags.blockComment, color: "#5a8e7b" },
-  { tag: tags.atom, color: "#940" },
-  { tag: tags.propertyName, color: "#8B9BAB" },
-  { tag: tags.attributeName, color: "#940" },
-  { tag: tags.attributeValue, color: "#28839F" },
-  { tag: tags.annotation, color: "#6f6e24" },
-  { tag: tags.docComment, color: "#12957e" },
-]);
+const buildHighlightStyle = () => {
+  return HighlightStyle.define([
+    { tag: tags.keyword, color: Tailwind.semantic().syntax.keyword },
+    { tag: [tags.literal, tags.inserted], color: Tailwind.semantic().syntax.literal },
+    { tag: tags.variableName, color: Tailwind.semantic().syntax.variable },
+    { tag: tags.comment, color: Tailwind.semantic().syntax.comment },
+    { tag: tags.blockComment, color: Tailwind.semantic().syntax.blockComment },
+    { tag: tags.atom, color: Tailwind.semantic().syntax.atom },
+    { tag: tags.attributeName, color: Tailwind.semantic().syntax.attributeName },
+    { tag: tags.attributeValue, color: Tailwind.semantic().syntax.attributeValue },
+    { tag: tags.annotation, color: Tailwind.semantic().syntax.annotation },
+    { tag: tags.docComment, color: Tailwind.semantic().syntax.docComment },
+  ]);
+};
 
 interface IEditorCompartments {
   errorGutterCompartment: Compartment;
@@ -69,6 +71,7 @@ function buildInfoLine(label: string, data: string): HTMLElement {
 
 function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorCompartments] {
   const errorGutterCompartment = new Compartment();
+  const highlightStyle = buildHighlightStyle();
 
   return [
     [

@@ -75,11 +75,11 @@ export function PlannerEditorView(props: IProps): JSX.Element {
   const divRef = useRef<HTMLDivElement>();
 
   let className =
-    "block w-full px-2 py-2 leading-normal bg-background-default border rounded-lg appearance-none focus:outline-none focus:shadow-outline";
+    "block w-full px-2 py-2 leading-normal border rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline";
   if (props.error != null) {
     className += " border-red-500";
   } else {
-    className += " border-gray-300";
+    className += " border-border-neutral";
   }
 
   return (
@@ -105,8 +105,10 @@ export function EvalResult(props: IEvalResultProps): JSX.Element | null {
     const customErrorCta = props.onCustomErrorCta && props.onCustomErrorCta(props.error.message);
     return (
       <span className="px-2 text-sm">
-        <span className={props.redTheme ? "text-redv2-100" : "text-red-500"}>Error: </span>
-        <span className={`font-bold ${props.redTheme ? "text-text-alwayswhite" : "text-red-700"}`}>{props.error.message}</span>
+        <span className={props.redTheme ? "text-text-alwayswhite" : "text-text-error"}>Error: </span>
+        <span className={`font-bold ${props.redTheme ? "text-text-alwayswhite" : "text-text-error"}`}>
+          {props.error.message}
+        </span>
         <span className="ml-2">{customErrorCta}</span>
       </span>
     );

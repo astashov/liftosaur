@@ -122,7 +122,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
         </div>
       </div>
       {ownWarmups == null ? (
-        <div className="flex gap-2 py-2 pl-3 pr-2 border rounded-lg bg-background-cardpurple border-border-purple">
+        <div className="flex gap-2 py-2 pl-3 pr-2 border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
           <div className="flex-1 text-sm">
             {reuseWarmups ? <div>Reused from</div> : <div className="font-semibold">Default warmups</div>}
           </div>
@@ -133,14 +133,16 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
           </div>
         </div>
       ) : (
-        <div className="border rounded-lg bg-background-cardpurple border-border-purple">
+        <div className="border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
           <div className="table w-full overflow-hidden">
             <div className="table-row-group pt-1">
-              <div className="table-row text-xs border-b text-text-secondary border-pubplev3-200">
-                <div className="table-cell px-2 py-1 font-normal text-left border-b border-border-purple">Set</div>
-                <div className="table-cell py-1 font-normal text-center border-b border-border-purple">Reps</div>
-                <div className="table-cell py-1 text-center border-b border-border-purple"></div>
-                <div className="table-cell py-1 pr-4 font-normal text-center border-b border-border-purple">Weight</div>
+              <div className="table-row text-xs border-b text-text-secondary border-border-neutral">
+                <div className="table-cell px-2 py-1 font-normal text-left border-b border-border-neutral">Set</div>
+                <div className="table-cell py-1 font-normal text-center border-b border-border-neutral">Reps</div>
+                <div className="table-cell py-1 text-center border-b border-border-neutral"></div>
+                <div className="table-cell py-1 pr-4 font-normal text-center border-b border-border-neutral">
+                  Weight
+                </div>
               </div>
             </div>
             <div className="table-row-group">
@@ -166,14 +168,14 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                         onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
                       >
                         <div
-                          className="table-cell px-2 py-1 text-sm align-middle border-b border-border-purple"
+                          className="table-cell px-2 py-1 text-sm align-middle border-b border-border-neutral"
                           data-cy="warmup-set-number"
                         >
                           <div className={`w-6 h-6 flex items-center justify-start rounded-full`}>
                             <div>{setIndex + 1}</div>
                           </div>
                         </div>
-                        <div className="table-cell py-2 align-middle border-b border-border-purple">
+                        <div className="table-cell py-2 align-middle border-b border-border-neutral">
                           <div className="flex justify-center text-center">
                             <InputNumber2
                               width={3.5}
@@ -207,12 +209,12 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                           </div>
                         </div>
                         <div
-                          className="table-cell px-1 py-2 text-center align-middle border-b border-border-purple"
+                          className="table-cell px-1 py-2 text-center align-middle border-b border-border-neutral"
                           data-cy="warmup-set-x"
                         >
                           ×
                         </div>
-                        <div className="relative table-cell py-2 align-middle border-b border-border-purple">
+                        <div className="relative table-cell py-2 align-middle border-b border-border-neutral">
                           <div className="flex items-center justify-center text-center">
                             <InputWeight2
                               name="set-weight"

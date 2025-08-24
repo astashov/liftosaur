@@ -112,7 +112,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
         />
         {showValuesList && filteredValues.length > 0 && (
           <div
-            className="absolute z-20 overflow-y-auto bg-background-default border-t border-l border-r shadow-sm border-grayv2-400"
+            className="absolute z-20 overflow-y-auto border-t border-l border-r shadow-sm bg-background-default border-border-neutral"
             style={input.current ? listCoordinates(input.current, height) : {}}
           >
             {filteredValues.map((value) => {
@@ -126,7 +126,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
                     setFilter("");
                     props.onChange(newValues);
                   }}
-                  className="relative z-30 block w-full px-4 py-2 text-left border-b cursor-pointer border-grayv2-400 hover:bg-background-subtle"
+                  className="relative z-30 block w-full px-4 py-2 text-left border-b cursor-pointer border-border-neutral hover:bg-background-neutral"
                 >
                   {value}
                 </button>
@@ -137,7 +137,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
       </div>
       <div className="mt-1">
         {Array.from(selectedValues).map((sm) => (
-          <div className="inline-block px-2 mb-1 mr-1 text-xs bg-gray-300 rounded-full ">
+          <div className="inline-block px-2 mb-1 mr-1 text-xs rounded-full bg-background-neutral ">
             <span className="py-1 pl-1">{sm} </span>
             <button
               className="p-1 nm-multiselect"

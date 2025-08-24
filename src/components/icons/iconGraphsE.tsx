@@ -1,5 +1,6 @@
 import { h, JSX } from "preact";
 import { UidFactory } from "../../utils/generator";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IIconGraphsEProps {
   width?: number;
@@ -11,7 +12,7 @@ interface IIconGraphsEProps {
 export function IconGraphsE(props: IIconGraphsEProps): JSX.Element {
   const width = props.width || 20;
   const height = props.height || 27;
-  const color = props.color || "#3C5063";
+  const color = props.color || Tailwind.semantic().icon.neutral;
   const id = UidFactory.generateUid(8);
   return (
     <svg

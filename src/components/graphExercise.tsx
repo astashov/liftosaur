@@ -13,6 +13,7 @@ import { HtmlUtils } from "../utils/html";
 import { Reps } from "../models/set";
 import { ObjectUtils } from "../utils/object";
 import { History } from "../models/history";
+import { Tailwind } from "../utils/tailwindConfig";
 
 interface IGraphProps {
   history: IHistoryRecord[];
@@ -121,7 +122,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
       </div>
       <div className="absolute z-10 text-xs" style={{ top: "0.25rem", right: "0.75rem" }}>
         <select
-          className="p-2 text-right"
+          className="p-2 text-right bg-background-default"
           value={selectedType}
           onChange={(e) => setSelectedType(e.currentTarget.value as any)}
         >
@@ -156,6 +157,18 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
     const opts: UPlot.Options = {
       title: props.title || `${exercise.name}`,
       class: "graph-max-weight",
+      axes: [
+        {
+          stroke: Tailwind.semantic().text.primary,
+          ticks: { stroke: Tailwind.semantic().border.neutral },
+          grid: { stroke: Tailwind.semantic().border.neutral },
+        },
+        {
+          stroke: Tailwind.semantic().text.primary,
+          ticks: { stroke: Tailwind.semantic().border.neutral },
+          grid: { stroke: Tailwind.semantic().border.neutral },
+        },
+      ],
       width: rect.width,
       height: rect.height,
       cursor: {
@@ -270,21 +283,21 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
           label: "Weight",
           show: props.selectedType === "weight",
           value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: "red",
+          stroke: Tailwind.colors().red[500],
           width: 1,
           spanGaps: true,
         },
         {
           show: false,
           label: "Reps",
-          stroke: "blue",
+          stroke: Tailwind.colors().yellow[500],
           width: 1,
         },
         {
           label: "e1RM",
           show: props.isWithOneRm && props.selectedType === "weight",
           value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: "#28839F",
+          stroke: Tailwind.colors().blue[500],
           width: 1,
           spanGaps: true,
         },
@@ -292,14 +305,14 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
           label: "Volume",
           show: props.selectedType === "volume",
           value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: "#FF8066",
+          stroke: Tailwind.colors().red[500],
           width: 1,
           spanGaps: true,
         },
         {
           label: "Bodyweight",
           value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: "green",
+          stroke: Tailwind.colors().green[500],
           width: 1,
           spanGaps: true,
         },
