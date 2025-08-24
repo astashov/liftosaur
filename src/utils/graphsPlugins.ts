@@ -1,4 +1,5 @@
 import UPlot from "uplot";
+import { Tailwind } from "./tailwindConfig";
 
 interface IFromTo {
   x: number;
@@ -142,8 +143,8 @@ export class GraphsPlugins {
               self.over.appendChild(programsOverlay);
             }
             programsOverlay.innerHTML = "";
-            const lineColor = "#D2D8DE";
-            const textColor = "#8B9BAB";
+            const lineColor = Tailwind.semantic().border.neutral;
+            const textColor = Tailwind.semantic().text.secondary;
             const changeProgramPos = programTimes.map<[number, string]>((i) => [self.valToPos(i[0], "x"), i[1]]);
             for (let i = 0; i < changeProgramPos.length; i += 1) {
               const [pos, programName] = changeProgramPos[i];
