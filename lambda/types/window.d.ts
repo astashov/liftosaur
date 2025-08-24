@@ -12,6 +12,7 @@ interface Window {
   lftIosAppVersion?: string;
   lftAndroidVersion?: number;
   lftIosVersion?: string;
+  lftSystemDarkMode?: boolean;
   isPressingShiftCmdCtrl?: boolean;
   AppleID: {
     auth: {

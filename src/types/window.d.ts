@@ -22,6 +22,7 @@ interface Window {
   lftAndroidSafeInsetRight?: number;
   lftIosVersion?: string;
   lftIosAppVersion?: string;
+  lftSystemDarkMode?: boolean;
 
   reducerLastState?: any;
   reducerLastActions?: any[];

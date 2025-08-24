@@ -1,6 +1,7 @@
 import { JSX, h, Fragment } from "preact";
 import { useRef, useState, useEffect } from "preact/hooks";
 import { HtmlUtils } from "../utils/html";
+import { Tailwind } from "../utils/tailwindConfig";
 
 interface IData {
   point: number;
@@ -297,7 +298,7 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
   let className = "";
   let style = {};
   if (point != null) {
-    className = `${className} absolute w-full ${props.isTransparent ? "" : "bg-background-default"}}`;
+    className = `${className} absolute w-full ${props.isTransparent ? "" : "bg-background-default border-background-default"}`;
     style = {
       top: 0,
       transform: props.mode === "horizontal" ? `translateX(${point}px)` : `translateY(${point}px)`,
@@ -306,8 +307,9 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
       borderWidth: props.hideBorders ? "0" : "1px 0",
       touchAction: "none",
       position: "absolute",
+      backgroundColor: Tailwind.semantic().background.default,
+      borderColor: Tailwind.semantic().background.default,
       ...(props.mode === "horizontal" ? { height: "100%" } : { width: "100%" }),
-      background: !props.isTransparent ? "white" : undefined,
     };
   }
 
