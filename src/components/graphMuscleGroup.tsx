@@ -23,7 +23,7 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
     <div className="relative mx-1">
       <div className="absolute z-10 text-xs" style={{ top: "0.25rem", right: "0.75rem" }}>
         <select
-          className="p-2 text-right"
+          className="p-2 text-right bg-background-default"
           value={selectedType}
           onChange={(e) => setSelectedType(e.currentTarget.value as any)}
         >

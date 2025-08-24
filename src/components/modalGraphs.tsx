@@ -181,7 +181,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
             return (
               <section
                 data-cy={`item-graph-${graph.type}-${StringUtils.dashcase(graph.id)}`}
-                className="w-full px-2 py-1 text-left border-b border-gray-200"
+                className="w-full px-2 py-1 text-left border-b border-border-neutral"
               >
                 <section className="flex items-center">
                   <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
@@ -218,7 +218,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
               return (
                 <section
                   data-cy={`item-graph-${StringUtils.dashcase(e.name)}`}
-                  className="flex w-full px-2 py-1 text-left border-b border-gray-200"
+                  className="flex w-full px-2 py-1 text-left border-b border-border-neutral"
                   onClick={() => EditGraphs.addExerciseGraph(props.dispatch, e)}
                 >
                   <ExercisePreview exerciseKey={Exercise.toKey(e)} settings={props.settings} />
@@ -234,7 +234,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
               return (
                 <section
                   data-cy={`item-graph-${muscleGroup}`}
-                  className="flex w-full px-2 py-1 text-left border-b border-gray-200"
+                  className="flex w-full px-2 py-1 text-left border-b border-border-neutral"
                   onClick={() => EditGraphs.addMuscleGroupGraph(props.dispatch, muscleGroup)}
                 >
                   <MuscleGroupPreview muscleGroup={muscleGroup} />
@@ -269,7 +269,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
           );
         })}
         {!hasAvailableStats && exercises.length === 0 && graphs.length === 0 && (
-          <div className="mt-3 text-base italic text-gray-500">
+          <div className="mt-3 text-base italic text-text-secondary">
             You haven't tracked any workouts or measurements yet.
           </div>
         )}
