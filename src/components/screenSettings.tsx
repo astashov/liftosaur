@@ -30,6 +30,7 @@ import { INavCommon } from "../models/state";
 import { Stats } from "../models/stats";
 import { Weight } from "../models/weight";
 import { ImagePreloader } from "../utils/imagePreloader";
+import { Settings } from "../models/settings";
 
 interface IProps {
   dispatch: IDispatch;
@@ -419,7 +420,20 @@ export function ScreenSettings(props: IProps): JSX.Element {
             </div>
           </div>
         </MenuItemWrapper>
-
+        <MenuItemEditable
+          type="boolean"
+          name="Dark mode"
+          value={props.settings.theme === "dark" ? "true" : "false"}
+          onChange={(newValue) => {
+            const newTheme = newValue === "true" ? "dark" : "light";
+            Settings.applyTheme(newTheme);
+            props.dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>().p("theme").record(newTheme),
+              desc: "Toggle dark mode",
+            });
+          }}
+        />
         <GroupHeader name="Import / Export" topPadding={true} />
         <div className="ls-export-data">
           <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk.exportStorage())}>
