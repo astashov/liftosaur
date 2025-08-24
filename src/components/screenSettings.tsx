@@ -127,7 +127,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                 <div style={{ marginTop: "-0.5rem" }} className="pb-1">
                   <div className="flex">
                     <button
-                      className="mr-auto text-xs text-left text-blue-700 underline nm-copy-profile-link-to-clipboard"
+                      className="mr-auto text-xs text-left underline text-text-link nm-copy-profile-link-to-clipboard"
                       onClick={() => {
                         const text = Share.generateProfileLink(props.user!.id);
                         if (text != null) {
@@ -141,7 +141,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                     <InternalLink
                       name="public-profile-page"
                       href={`/profile/${props.user.id}`}
-                      className="ml-4 text-xs text-right text-blue-700 underline"
+                      className="ml-4 text-xs text-right underline text-text-link"
                     >
                       Open Public Profile Page
                     </InternalLink>
