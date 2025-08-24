@@ -136,14 +136,9 @@ export function AppView(props: IProps): JSX.Element | null {
     });
     window.addEventListener("keypress", (event) => {
       if (event.key === "q") {
-        document.body.classList.toggle("dark");
-        updateSettings(
-          dispatch,
-          lb<ISettings>()
-            .p("theme")
-            .record(document.body.classList.contains("dark") ? "dark" : "light"),
-          "Toggle theme"
-        );
+        const newTheme = document.body.classList.contains("dark") ? "light" : "dark";
+        Settings.applyTheme(newTheme);
+        updateSettings(dispatch, lb<ISettings>().p("theme").record(newTheme), "Toggle theme");
       }
     });
 
@@ -281,7 +276,7 @@ export function AppView(props: IProps): JSX.Element | null {
       ImagePreloader.preload(ImagePreloader.dynocoach);
     }
 
-    Settings.applyTheme(state.storage.settings.theme);
+    Settings.applyTheme(state.storage.settings.theme || (window.lftSystemDarkMode ? "dark" : "light"));
 
     return () => {
       window.removeEventListener("error", onerror);
