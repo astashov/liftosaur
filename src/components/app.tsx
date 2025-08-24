@@ -56,6 +56,7 @@ import { FallbackScreen } from "./fallbackScreen";
 import { Screen1RM } from "./screen1RM";
 import { ScreenSetupEquipment } from "./screenSetupEquipment";
 import { ISettings } from "../types";
+import { Settings } from "../models/settings";
 
 declare let Rollbar: RB;
 declare let __COMMIT_HASH__: string;
@@ -279,6 +280,8 @@ export function AppView(props: IProps): JSX.Element | null {
     if (state.storage.history.length === 0) {
       ImagePreloader.preload(ImagePreloader.dynocoach);
     }
+
+    Settings.applyTheme(state.storage.settings.theme);
 
     return () => {
       window.removeEventListener("error", onerror);

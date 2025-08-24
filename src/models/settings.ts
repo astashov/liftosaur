@@ -19,6 +19,7 @@ import { Exercise, IExercise } from "./exercise";
 import { CollectionUtils } from "../utils/collection";
 import { ProgramExercise } from "./programExercise";
 import { IExercisePickerSettings } from "../components/exercisePicker/exercisePickerSettings";
+import { SendMessage } from "../utils/sendMessage";
 
 export namespace Settings {
   export function programContentBuild(): Pick<ISettings, "timers" | "units" | "planner"> {
@@ -421,5 +422,15 @@ export namespace Settings {
         }),
       `Set 1RM for ${Exercise.nameWithEquipment(Exercise.get(exerciseType, settings.exercises), settings)} to ${Weight.print(value)}`
     );
+  }
+
+  export function applyTheme(theme?: "dark" | "light"): void {
+    if (theme === "dark") {
+      document.body.classList.add("dark");
+      SendMessage.toIosAndAndroid({ type: "theme", value: "dark" });
+    } else {
+      document.body.classList.remove("dark");
+      SendMessage.toIosAndAndroid({ type: "theme", value: "light" });
+    }
   }
 }
