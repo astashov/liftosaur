@@ -123,7 +123,7 @@ interface INoImageProps {
 
 function ExerciseNoImage(props: INoImageProps): JSX.Element | null {
   return (
-    <div className="px-4 py-10 my-4 text-xs leading-normal text-center bg-gray-200 border border-gray-400 border-dotted rounded-lg">
+    <div className="px-4 py-10 my-4 text-xs leading-normal text-center border border-dotted rounded-lg border-border-neutral bg-background-neutral">
       {props.children}
     </div>
   );

@@ -123,7 +123,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
       <form data-cy="exercises-list" onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-background-default border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 mb-2 text-base leading-normal border rounded-lg appearance-none bg-background-default border-border-neutral focus:outline-none focus:shadow-outline"
           type="text"
           value={filter}
           placeholder="Filter by name"
@@ -236,10 +236,18 @@ function ExerciseItem(props: IExerciseItemProps): JSX.Element {
         props.dispatch(Thunk.pushExerciseStatsScreen(props.exercise));
       }}
     >
-      <div className="flex items-center">
+      <div className="flex items-center gap-2">
         <div className="flex items-center justify-center">
           <div style={{ marginTop: "-1px" }}>
-            <ExerciseImage settings={props.settings} className="w-8 mr-3" exerciseType={props.exercise} size="small" />
+            <div className="p-1 my-1 rounded-lg bg-background-image">
+              <ExerciseImage
+                useTextForCustomExercise={true}
+                settings={props.settings}
+                className="w-8"
+                exerciseType={props.exercise}
+                size="small"
+              />
+            </div>
           </div>
         </div>
         <div className="flex-1 pt-3 pb-1 text-left">

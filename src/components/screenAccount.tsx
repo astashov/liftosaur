@@ -131,7 +131,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 </div>
                 <div>
                   <button
-                    className="flex items-center w-full px-4 py-3 mt-2 text-text-alwayswhite rounded-lg bg-text-primary nm-sign-in-with-apple"
+                    className="flex items-center w-full px-4 py-3 mt-2 bg-black rounded-lg text-text-alwayswhite nm-sign-in-with-apple"
                     onClick={async () => {
                       props.dispatch(Thunk.appleSignIn());
                     }}

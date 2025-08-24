@@ -452,7 +452,6 @@ const StatInput = memo(
         labelSize="xs"
         defaultValue={props.value}
         ref={ref}
-        className="w-full"
         type={SendMessage.isIos() ? "number" : "tel"}
         placeholder="e.g. 10"
         min="0"
