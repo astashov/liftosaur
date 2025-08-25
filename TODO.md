@@ -60,3 +60,8 @@ User debug page:
 - Pop out the NUXes more
 - Progress looks weird if tried to pick reuse set that reuses something else
 
+
+* Program export to image
+* Workout export to image
+* Highlighted syntax blocks
+* Android dark mode

@@ -423,7 +423,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <MenuItemEditable
           type="boolean"
           name="Dark mode"
-          value={props.settings.theme === "dark" ? "true" : "false"}
+          value={Settings.getTheme(props.settings) === "dark" ? "true" : "false"}
           onChange={(newValue) => {
             const newTheme = newValue === "true" ? "dark" : "light";
             Settings.applyTheme(newTheme);

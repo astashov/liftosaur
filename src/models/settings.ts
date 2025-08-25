@@ -424,6 +424,10 @@ export namespace Settings {
     );
   }
 
+  export function getTheme(settings: ISettings): "dark" | "light" {
+    return settings.theme ? settings.theme : window.lftSystemDarkMode ? "dark" : "light";
+  }
+
   export function applyTheme(theme?: "dark" | "light"): void {
     if (theme === "dark") {
       document.body.classList.add("dark");
