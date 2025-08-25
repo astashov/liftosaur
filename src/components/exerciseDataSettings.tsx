@@ -11,6 +11,7 @@ import { GroupHeader } from "./groupHeader";
 import { InputNumber } from "./inputNumber";
 import { MenuItemEditable } from "./menuItemEditable";
 import { EditEquipment } from "../models/editEquipment";
+import { Equipment } from "../models/equipment";
 
 interface IExerciseDataSettingsProps {
   settings: ISettings;
@@ -22,8 +23,6 @@ interface IExerciseDataSettingsProps {
 
 export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Element {
   const fullExercise = props.fullExercise;
-  const exerciseData = props.settings.exerciseData[Exercise.toKey(fullExercise)] || {};
-  const equipmentMap = exerciseData.equipment;
 
   return (
     <section className="my-2">
@@ -45,7 +44,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
         </div>
       )}
       {props.settings.gyms.map((gym, i) => {
-        const equipment = equipmentMap?.[gym.id];
+        const equipment = Equipment.getEquipmentIdForExerciseType(props.settings, props.fullExercise, gym.id);
         const values: [string, string][] = [
           ["", "None"],
           ...ObjectUtils.keys(gym.equipment)
@@ -83,16 +82,20 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
           exercise={fullExercise}
           settings={props.settings}
           onEditVariable={(value) => {
-            updateState(props.dispatch, [
-              lb<IState>()
-                .p("storage")
-                .p("settings")
-                .p("exerciseData")
-                .recordModify((data) => {
-                  const k = Exercise.toKey(fullExercise);
-                  return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
-                }),
-            ], "Update 1RM for exercise");
+            updateState(
+              props.dispatch,
+              [
+                lb<IState>()
+                  .p("storage")
+                  .p("settings")
+                  .p("exerciseData")
+                  .recordModify((data) => {
+                    const k = Exercise.toKey(fullExercise);
+                    return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
+                  }),
+              ],
+              "Update 1RM for exercise"
+            );
           }}
         />
       )}

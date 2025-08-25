@@ -42,17 +42,30 @@ export namespace Equipment {
     }
   }
 
+  export function getGymByIdOrCurrent(settings: ISettings, gymId?: string): IGym {
+    return settings.gyms.find((g) => g.id === (gymId ?? settings.currentGymId)) ?? settings.gyms[0];
+  }
+
   export function getCurrentGym(settings: ISettings): IGym {
     return settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
   }
 
-  export function getEquipmentIdForExerciseType(settings: ISettings, exerciseType?: IExerciseType): string | undefined {
+  export function getEquipmentIdForExerciseType(
+    settings: ISettings,
+    exerciseType?: IExerciseType,
+    gymId?: string
+  ): string | undefined {
     if (exerciseType == null) {
       return undefined;
     }
 
     const key = Exercise.toKey(exerciseType);
-    if (!(settings.exerciseData[key] && "equipment" in settings.exerciseData[key])) {
+    if (
+      !(
+        settings.exerciseData[key] &&
+        ("equipment" in settings.exerciseData[key] || "rounding" in settings.exerciseData[key])
+      )
+    ) {
       return exerciseType.equipment;
     }
     const exerciseData = settings.exerciseData[key];
@@ -61,7 +74,7 @@ export namespace Equipment {
       return undefined;
     }
 
-    const currentGym = getCurrentGym(settings);
+    const currentGym = getGymByIdOrCurrent(settings, gymId);
     return exerciseEquipment[currentGym.id];
   }
 
