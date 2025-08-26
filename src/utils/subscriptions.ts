@@ -9,7 +9,6 @@ import { Thunk } from "../ducks/thunks";
 
 export namespace Subscriptions {
   export function hasSubscription(subscription: ISubscription): boolean {
-    return true;
     if (subscription.key && subscription.key !== "unclaimed") {
       return true;
     }
