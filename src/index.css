@@ -847,47 +847,47 @@ iframe#exercise-youtube-player {
 }
 
 .tok-variableName {
-  color: #28839f;
+  color: var(--color-syntax-variable);
 }
 
 .tok-keyword {
-  color: #708;
+  color: var(--color-syntax-keyword);
 }
 
 .tok-literal {
-  color: #164;
+  color: var(--color-syntax-literal);
 }
 
 .tok-meta {
-  color: #6f6e24;
+  color: var(--color-syntax-attributeName);
 }
 
 .tok-comment {
-  color: #8b9bab;
+  color: var(--color-syntax-comment);
 }
 
 .tok-atom {
-  color: #940;
+  color: var(--color-syntax-atom);
 }
 
 .tok-propertyName {
-  color: #8b9bab;
+  color: var(--color-syntax-comment);
 }
 
 .tok-attributeName {
-  color: #940;
+  color: var(--color-syntax-attributeName);
 }
 
 .tok-attributeValue {
-  color: #28839f;
+  color: var(--color-syntax-attributeValue);
 }
 
 .tok-number {
-  color: #164;
+  color: var(--color-syntax-literal);
 }
 
 .tok-string {
-  color: #28839f;
+  color: var(--color-syntax-variable);
 }
 
 .blinking {
