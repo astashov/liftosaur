@@ -249,7 +249,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   return (
     <section className="px-4">
       {!props.shouldSync && isChanged(state) && !clearHasChanges && (
-        <div className="fixed top-0 left-0 z-50 w-full text-xs text-center border-b bg-redv2-200 border-redv2-500 text-text-error">
+        <div className="fixed top-0 left-0 z-50 w-full text-xs text-center border-b border-border-prominent text-text-error bg-background-lighterror">
           Made changes to the program, but the link still goes to the original version. If you want to share updated
           version, generate a new link.
           <button className="p-2 align-middle nm-clear-has-changes" onClick={() => setClearHasChanges(true)}>
@@ -284,7 +284,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       <div className="mx-auto" style={{ maxWidth }}>
         <div
           style={{ display: showHelp ? "block" : "none" }}
-          className="relative px-8 py-4 mb-4 mr-0 bg-yellow-100 border border-orange-400 rounded-lg sm:mr-64"
+          className="relative px-8 py-4 mb-4 mr-0 border border-orange-400 rounded-lg bg-yellow-50 sm:mr-64"
         >
           <div>
             <p className="mb-2">
@@ -300,7 +300,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               <pre className="inline">/</pre>) character, like this:
             </p>
             <div>
-              <div className="inline-block px-4 py-2 my-1 mb-2 bg-background-default border rounded-md border-border-neutral">
+              <div className="inline-block px-4 py-2 my-1 mb-2 border rounded-md bg-background-default border-border-neutral">
                 <PlannerCodeBlock script={script} />
               </div>
             </div>

@@ -65,7 +65,10 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             <LinkInlineInput
               value={day.name}
               onInputString={(v) => {
-                dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("name").record(v), "Update day name");
+                dispatch(
+                  lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("name").record(v),
+                  "Update day name"
+                );
               }}
             />
           </h3>
@@ -84,7 +87,10 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             <MarkdownEditor
               value={evaluatedDay.success ? (day.description ?? "") : ""}
               onChange={(v) => {
-                dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(v), "Update day description");
+                dispatch(
+                  lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(v),
+                  "Update day description"
+                );
               }}
             />
             <div>
@@ -92,7 +98,10 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
                 className="text-xs"
                 name="planner-add-day-description"
                 onClick={() => {
-                  dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(undefined), "Clear day description");
+                  dispatch(
+                    lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(undefined),
+                    "Clear day description"
+                  );
                 }}
               >
                 Delete Day Description
@@ -105,7 +114,10 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
               className="text-xs"
               name="planner-add-day-description"
               onClick={() => {
-                dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(""), "Add day description");
+                dispatch(
+                  lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(""),
+                  "Add day description"
+                );
               }}
             >
               Add Day Description
@@ -130,7 +142,10 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
                 <PlannerEditorCustomCta dispatch={props.dispatch} err={err} isInvertedColors={true} />
               )}
               onChange={(e) => {
-                dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e), "Update exercises");
+                dispatch(
+                  lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e),
+                  "Update exercises"
+                );
               }}
               onBlur={(e, text) => {}}
               onLineChange={(line) => {
@@ -141,7 +156,10 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
                   focusedExercise.exerciseLine !== line
                 ) {
                   dispatch(
-                    lb<IPlannerState>().p("ui").p("focusedExercise").record({ weekIndex, dayIndex, exerciseLine: line }),
+                    lb<IPlannerState>()
+                      .p("ui")
+                      .p("focusedExercise")
+                      .record({ weekIndex, dayIndex, exerciseLine: line }),
                     "Focus exercise"
                   );
                 }
@@ -170,7 +188,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             props.evaluatedWeeks,
             props.settings
           ) && (
-            <div className="p-4 mt-2 bg-yellow-100 border border-yellow-800 rounded-lg">
+            <div className="p-4 mt-2 border border-yellow-800 rounded-lg bg-yellow-50">
               <PlannerExerciseStats
                 settings={props.settings}
                 evaluatedWeeks={props.evaluatedWeeks}

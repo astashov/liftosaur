@@ -55,6 +55,7 @@
     "yellowdark": { "light": "@colors.yellow.600", "dark": "@colors.darkgray.600" },
     "cardpurpleselected": { "light": "@colors.purple.300", "dark": "@colors.darkgray.600" },
     "error": { "light": "@colors.red.500", "dark": "@colors.redgray.700" },
+    "lighterror": { "light": "@colors.red.50", "dark": "@colors.redgray.950" },
     "success": { "light": "@colors.green.50", "dark": "@colors.greengray.800" },
     "darkgray": { "light": "@colors.lightgray.500", "dark": "@colors.lightgray.500" },
     "darkred": { "light": "@colors.red.600", "dark": "@colors.red.400" },
