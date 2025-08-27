@@ -92,7 +92,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
         <header className="flex">
           <div className="w-16">
             <button
-              className="w-full px-2 rounded-lg bg-background-image nm-workout-exercise-image"
+              className="w-full h-full px-2 rounded-lg bg-background-image nm-workout-exercise-image"
               style={{ marginLeft: "-0.5rem" }}
             >
               <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />

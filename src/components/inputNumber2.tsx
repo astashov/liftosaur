@@ -314,7 +314,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
             </span>
           ) : (
             <span
-              className={`text-sm inline-block ${isFocused && !isTypingRef.current ? "text-text-secondarysubtle" : ""}`}
+              className={`text-sm inline-block ${isFocused && !isTypingRef.current ? "bg-background-cardpurpleselected" : ""}`}
               style={{ padding: value ? "1px" : "0" }}
             >
               {value}

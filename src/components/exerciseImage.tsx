@@ -69,7 +69,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
                 </div>
               </div>
             ) : (
-              <div className={`h-0 inline-block ${props.className}`}>
+              <div className={`inline-block ${props.className}`}>
                 <div
                   className="relative inline-block w-full h-full overflow-hidden align-middle"
                   style={{ paddingBottom: "100%" }}
