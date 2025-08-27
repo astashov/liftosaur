@@ -461,7 +461,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
                   <button
                     data-cy={`keyboard-button-${key}`}
                     key={key}
-                    className="p-2 text-2xl bg-background-default active:bg-background-neutral touch-manipulation"
+                    className="p-2 text-2xl bg-background-default active:bg-background-neutral touch-manipulation text-text-primary"
                     onClick={() => props.onInput(key)}
                   >
                     {key}
@@ -485,7 +485,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
             <div className="flex gap-1">
               <div className="flex-1">
                 <button
-                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-e-none border-border-cardpurple bg-background-cardpurple"
+                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-e-none border-border-cardpurple bg-background-cardpurple text-icon-neutral"
                   data-cy="keyboard-minus"
                   onClick={props.onMinus}
                 >
@@ -494,7 +494,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
               </div>
               <div className="flex-1">
                 <button
-                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-s-none border-border-cardpurple bg-background-cardpurple"
+                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-s-none border-border-cardpurple bg-background-cardpurple text-icon-neutral"
                   data-cy="keyboard-plus"
                   onClick={props.onPlus}
                 >
@@ -506,7 +506,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
               <div className="flex items-center h-10 gap-2 mt-4">
                 {props.enableUnits.map((unit) => (
                   <button
-                    className={`flex touch-manipulation items-center  aspect-square justify-center flex-1 w-full border rounded ${unit === props.selectedUnit ? "border-border-prominent bg-background-cardpurpleselected" : " border-border-cardpurple bg-background-cardpurple"}`}
+                    className={`flex text-icon-neutral touch-manipulation items-center  aspect-square justify-center flex-1 w-full border rounded ${unit === props.selectedUnit ? "border-border-prominent bg-background-cardpurpleselected" : " border-border-cardpurple bg-background-cardpurple"}`}
                     data-cy={`keyboard-unit-${unit}`}
                     onClick={() => {
                       if (props.onChangeUnits) {
