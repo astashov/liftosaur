@@ -45,8 +45,9 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
     weekSetup.map((w, weekIndex) => {
       const week = props.program.weeks[weekIndex];
       const programDay = week.days[(dayInWeek ?? 1) - 1];
+      const dayExercises = Program.getProgramDayExercises(programDay);
       const programExercise = PlannerProgramExercise.toUsed(
-        CollectionUtils.findBy(programDay.exercises, "key", props.programExerciseKey)
+        CollectionUtils.findBy(dayExercises, "key", props.programExerciseKey)
       );
       const entry: IHistoryEntry = programExercise
         ? Program.nextHistoryEntry(props.program, programDay.dayData, programExercise, Stats.getEmpty(), settings)
@@ -105,7 +106,9 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
                     <>
                       {i !== 0 && <div className="h-12 mr-2 border-l border-border-neutral" />}
                       <div>
-                        <div className="px-2 text-xs text-center whitespace-nowrap text-text-secondary">{week.label}</div>
+                        <div className="px-2 text-xs text-center whitespace-nowrap text-text-secondary">
+                          {week.label}
+                        </div>
                         <div className="flex flex-no-wrap justify-center">
                           <HistoryRecordSetsView sets={week.entry.sets} isNext={true} settings={props.settings} />
                         </div>

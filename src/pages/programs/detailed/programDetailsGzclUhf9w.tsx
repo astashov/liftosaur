@@ -77,7 +77,7 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
           <div className="mb-4">
             <ProgramDetailsExerciseExample
               program={evaluatedProgram}
-              programExerciseKey="t1-squat"
+              programExerciseKey="t1-squat_barbell"
               exerciseType={{ id: "squat", equipment: "barbell" }}
               settings={props.settings}
             />
@@ -98,7 +98,7 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
             <ProgramDetailsExerciseExample
               program={evaluatedProgram}
               settings={props.settings}
-              programExerciseKey="t2-incline bench press"
+              programExerciseKey="t2-inclinebenchpress_barbell"
               exerciseType={{ id: "inclineBenchPress", equipment: "barbell" }}
               weekSetup={evaluatedProgram.weeks.slice(0, 8).map((w) => ({ name: w.name }))}
             />
@@ -130,7 +130,7 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
             <ProgramDetailsExerciseExample
               program={evaluatedProgram}
               settings={props.settings}
-              programExerciseKey="t3-bicep curl"
+              programExerciseKey="t3-bicepcurl_dumbbell"
               exerciseType={{ id: "bicepCurl", equipment: "dumbbell" }}
             />
           </div>

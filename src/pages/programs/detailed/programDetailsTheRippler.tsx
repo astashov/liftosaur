@@ -80,7 +80,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
             <ProgramDetailsExerciseExample
               program={evaluatedProgram}
               settings={props.settings}
-              programExerciseKey="bench press"
+              programExerciseKey="t1-benchpress_barbell"
               exerciseType={{ id: "benchPress", equipment: "barbell" }}
               weekSetup={evaluatedProgram.weeks
                 .slice(0, 12)
@@ -97,7 +97,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
           <div className="mb-4">
             <ProgramDetailsExerciseExample
               program={evaluatedProgram}
-              programExerciseKey="incline bench press"
+              programExerciseKey="t2-inclinebenchpress_barbell"
               exerciseType={{ id: "inclineBenchPress", equipment: "barbell" }}
               settings={props.settings}
               weekSetup={evaluatedProgram.weeks

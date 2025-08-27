@@ -130,7 +130,7 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
             <ProgramDetailsExerciseExample
               program={evaluatedProgram}
               settings={props.settings}
-              programExerciseKey="squat"
+              programExerciseKey="squat_barbell"
               exerciseType={{ id: "squat", equipment: "barbell" }}
             />
           </div>
@@ -147,7 +147,7 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
           <ProgramDetailsExerciseExample
             program={evaluatedProgram}
             settings={props.settings}
-            programExerciseKey="deficit deadlift"
+            programExerciseKey="deficitdeadlift_barbell"
             exerciseType={{ id: "deficitDeadlift", equipment: "barbell" }}
           />
           <h3>T2b and T3 Exercises</h3>
@@ -163,7 +163,7 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
             <ProgramDetailsExerciseExample
               program={evaluatedProgram}
               settings={props.settings}
-              programExerciseKey="triceps pushdown"
+              programExerciseKey="tricepspushdown_cable"
               exerciseType={{ id: "tricepsPushdown", equipment: "cable" }}
             />
           </div>
