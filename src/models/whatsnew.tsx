@@ -235,7 +235,11 @@ const whatsNew: Record<string, IWhatsNew> = {
       <ul>
         <li>
           We've got a Discord server now! You can join it here:{" "}
-          <a href="https://discord.com/invite/AAh3cvdBRs" target="_blank" className="font-bold underline text-text-link">
+          <a
+            href="https://discord.com/invite/AAh3cvdBRs"
+            target="_blank"
+            className="font-bold underline text-text-link"
+          >
             <IconDiscord className="inline-block mr-1" /> Discord Server
           </a>
         </li>
@@ -458,7 +462,11 @@ const whatsNew: Record<string, IWhatsNew> = {
       <ul>
         <li>
           Liftosaur is{" "}
-          <a href="https://github.com/astashov/liftosaur" target="_blank" className="font-bold underline text-text-link">
+          <a
+            href="https://github.com/astashov/liftosaur"
+            target="_blank"
+            className="font-bold underline text-text-link"
+          >
             open-source
           </a>
           , so anyone can see the code, and potentially add features. Amazing{" "}
@@ -582,7 +590,8 @@ const whatsNew: Record<string, IWhatsNew> = {
         <li>
           On the history and workout screens, we show required RPE like{" "}
           <strong className="font-bold text-text-secondary">@8</strong> (gray color) and logged RPE like{" "}
-          <strong className="font-bold text-icon-yellow">@9</strong> (orange color), prefixed by <strong>@</strong> sign.
+          <strong className="font-bold text-icon-yellow">@9</strong> (orange color), prefixed by <strong>@</strong>{" "}
+          sign.
         </li>
       </ul>
     ),
@@ -864,8 +873,8 @@ const whatsNew: Record<string, IWhatsNew> = {
   "20240205": {
     title: (
       <span>
-        New <strong className="text-icon-yellow">update: custom()</strong> syntax for updates after completed sets (in the
-        "Experimental" programs)
+        New <strong className="text-icon-yellow">update: custom()</strong> syntax for updates after completed sets (in
+        the "Experimental" programs)
       </span>
     ),
     body: (
@@ -1983,6 +1992,22 @@ Squat / 3x8 100lb / ...main`}
         <li>
           Did that because there was a lot of confusion for new users - like why they set up Barbell equipment, but it's
           not applied to barbell exercises by default.
+        </li>
+      </ul>
+    ),
+  },
+  "20250826": {
+    title: <span>🌑 Dark Theme</span>,
+    body: (
+      <ul>
+        <li>
+          Now there's Dark Theme! By default it uses your phone's current system theme (Dark or Light), but you can
+          override it in Me - Appearance - Dark mode.
+        </li>
+        <li>Make sure to update iOS or Android native apps too, otherwise there'll be some parts that are not dark.</li>
+        <li>
+          Let me know if some colors look weird or contrast is bad - info@liftosaur.com, or our Discord or /r/liftosaur
+          subreddit.
         </li>
       </ul>
     ),
