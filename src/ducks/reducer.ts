@@ -43,6 +43,7 @@ import { EditProgramUiHelpers } from "../components/editProgram/editProgramUi/ed
 import { c } from "../utils/types";
 import { ICollectionVersions } from "../models/versionTracker";
 import { lg } from "../utils/posthog";
+import { Equipment } from "../models/equipment";
 
 declare let __COMMIT_HASH__: string;
 
@@ -393,6 +394,27 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
                 programExerciseIds: CollectionUtils.compact(affectedEntries.map((e) => e.programExerciseId)),
               });
             }
+          }
+        }
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      const progress = newState.progress[0];
+      if (progress != null) {
+        const oldEquipment = Equipment.getCurrentGym(oldState.storage.settings).equipment;
+        const newEquipment = Equipment.getCurrentGym(newState.storage.settings).equipment;
+        if (oldEquipment != null && newEquipment != null && !ObjectUtils.isEqual(oldEquipment, newEquipment)) {
+          const changedEquipmentIds = ObjectUtils.keys(ObjectUtils.changedKeys(oldEquipment, newEquipment));
+          const settings = newState.storage.settings;
+          const affectedEntries = progress.entries.filter((entry) => {
+            const equipmentId = Equipment.getEquipmentIdForExerciseType(settings, entry.exercise);
+            return equipmentId != null && changedEquipmentIds.indexOf(equipmentId) !== -1;
+          });
+          if (affectedEntries.length > 0) {
+            dispatch({
+              type: "ApplyProgramChangesToProgress",
+              programExerciseIds: CollectionUtils.compact(affectedEntries.map((e) => e.programExerciseId)),
+            });
           }
         }
       }
