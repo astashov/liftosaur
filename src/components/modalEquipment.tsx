@@ -3,7 +3,7 @@ import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
 import { MenuItemEditable } from "./menuItemEditable";
 import { Equipment } from "../models/equipment";
-import { IExerciseType, IHistoryEntry, ISettings } from "../types";
+import { IExerciseType, IHistoryEntry, ISettings, IStats } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { equipmentName, Exercise } from "../models/exercise";
 import { EditEquipment } from "../models/editEquipment";
@@ -18,6 +18,7 @@ import { GroupHeader } from "./groupHeader";
 interface IModalEquipmentProps {
   progressId: number;
   settings: ISettings;
+  stats: IStats;
   exercise: IExerciseType;
   entries: IHistoryEntry[];
   dispatch: IDispatch;
@@ -98,6 +99,7 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
                   .p("equipment")
                   .get()}
                 allEquipment={availableEquipment}
+                stats={props.stats}
                 settings={props.settings}
                 equipment={currentEquipment}
                 equipmentData={availableEquipment[currentEquipment]!}

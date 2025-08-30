@@ -2012,6 +2012,23 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250830": {
+    title: <span>Bar == Bodyweight and "Assisted" equipment</span>,
+    body: (
+      <ul>
+        <li>You can now set the bar == your current bodyweight, and also switch the equipment to "Assisted" mode.</li>
+        <li>
+          If the equipment is in the "Assisted" mode, the plates calculator will show the plates you need to add to
+          reduce the weight, not to add to it.
+        </li>
+        <li>
+          This is mostly useful for e.g. assisted pull ups or dips. You can set the bar to your bodyweight, check "Is
+          Assisted", and enter the plates you have for the leverage machine. It will round to the weight to bodyweight
+          minus plates, so properly would show what you need to load on the machine.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

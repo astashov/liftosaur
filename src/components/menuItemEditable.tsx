@@ -62,7 +62,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           {props.prefix}
           <span
             data-cy={`menu-item-name-${StringUtils.dashcase(props.name)}`}
-            className={`flex flex-col min-w-0 break-all items-center pr-2 ${props.isNameBold ? "font-bold" : ""}`}
+            className={`flex flex-col min-w-0 break-all items-start pr-2 ${props.isNameBold ? "font-bold" : ""}`}
             {...(props.isNameHtml ? { dangerouslySetInnerHTML: { __html: props.name } } : {})}
           >
             <div className={props.size === "sm" ? "text-sm" : ""}>{props.isNameHtml ? "" : props.name}</div>

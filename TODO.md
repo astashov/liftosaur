@@ -9,10 +9,8 @@
 - Single vs double side weights (???)
 - Add rounding up/down/middle setting
 - Add reps/volume PR
-- Add 'bodyweight' variable
 - Add a way to create "similar" exercise
 - Add estimated time for the next workout
-- Add 'bodyweight' to Similar equipment
 - Add 'Rhomboids' 
 * Add 'Goals'
 * Add default for dynamic double progression

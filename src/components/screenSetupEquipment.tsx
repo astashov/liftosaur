@@ -1,6 +1,6 @@
 import { JSX, h } from "preact";
 import { IDispatch } from "../ducks/types";
-import { ISettings } from "../types";
+import { ISettings, IStats } from "../types";
 import { INavCommon, IState } from "../models/state";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
@@ -13,6 +13,7 @@ import { lb } from "lens-shmens";
 interface IScreenSetupEquipmentProps {
   dispatch: IDispatch;
   settings: ISettings;
+  stats: IStats;
   navCommon: INavCommon;
 }
 
@@ -44,6 +45,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
           You can skip it - and do it later during your first workout!
         </p>
         <EquipmentSettings
+          stats={props.stats}
           lensPrefix={lb<IState>()
             .p("storage")
             .p("settings")

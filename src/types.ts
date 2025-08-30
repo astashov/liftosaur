@@ -1121,6 +1121,8 @@ export const TEquipmentData = t.intersection(
       name: t.string,
       similarTo: t.string,
       isDeleted: t.boolean,
+      useBodyweightForBar: t.boolean,
+      isAssisting: t.boolean,
     }),
   ],
   "TEquipmentData"
@@ -1273,6 +1275,7 @@ export const TSettings = t.intersection(
       textSize: t.number,
       starredExercises: dictionary(TExerciseId, t.boolean),
       theme: t.union([t.literal("dark"), t.literal("light")]),
+      currentBodyweight: TWeight,
     }),
   ],
   "TSettings"

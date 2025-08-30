@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { ISettings, IEquipment, IAllEquipment } from "../types";
+import { ISettings, IEquipment, IAllEquipment, IStats } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
 import { EquipmentSettings } from "./equipmentSettings";
 import { lb } from "lens-shmens";
@@ -17,6 +17,7 @@ interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
   expandedEquipment?: IEquipment;
+  stats: IStats;
   allEquipment: IAllEquipment;
   selectedGymId?: string;
   navCommon: INavCommon;
@@ -86,6 +87,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
           </div>
         )}
         <EquipmentSettings
+          stats={props.stats}
           expandedEquipment={props.expandedEquipment}
           lensPrefix={lb<IState>()
             .p("storage")

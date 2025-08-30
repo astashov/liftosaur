@@ -312,18 +312,22 @@ export namespace Weight {
       return { plates: [], platesWeight: roundedWeight, totalWeight: roundedWeight };
     }
     const availablePlatesArr = equipmentData.plates.filter((p) => p.weight.unit === units);
-    const barWeight = equipmentData.bar[units];
+    const barWeight =
+      equipmentData.useBodyweightForBar && settings.currentBodyweight
+        ? settings.currentBodyweight
+        : equipmentData.bar[units];
     const multiplier = equipmentData.multiplier || 1;
+    const isAssisting = equipmentData.isAssisting || false;
     const weight = Weight.roundTo005(Weight.subtract(absAllWeight, barWeight));
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
     availablePlates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
-    const useFastMethod = true;
-    const plates: IPlate[] = useFastMethod
-      ? calculatePlatesInternalFast(weight, availablePlates, multiplier)
-      : calculatePlatesInternal(weight, availablePlates, multiplier);
+    const plates: IPlate[] = calculatePlatesInternalFast(weight, availablePlates, multiplier, isAssisting);
     const total = roundTo005(
       plates.reduce(
-        (memo, plate) => Weight.add(memo, Weight.multiply(plate.weight, plate.num)),
+        (memo, plate) => {
+          const weightToAdd = Weight.multiply(plate.weight, plate.num);
+          return isAssisting ? Weight.subtract(memo, weightToAdd) : Weight.add(memo, weightToAdd);
+        },
         Weight.build(0, allWeight.unit)
       )
     );
@@ -340,56 +344,28 @@ export namespace Weight {
     return Weight.build(-weight.value, weight.unit);
   }
 
-  function calculatePlatesInternal(targetWeight: IWeight, plates: IPlate[], multiplier: number): IPlate[] {
-    let result: IPlate[] = [];
-    let closestWeightDifference = Weight.build(Infinity, targetWeight.unit);
-    let exactMatchFound = false;
-
-    function backtrack(index: number, remainingWeight: IWeight, currentResult: IPlate[]): void {
-      if (Weight.lt(remainingWeight, 0) || exactMatchFound) {
-        return;
-      }
-
-      if (index !== 0 && remainingWeight.value === 0) {
-        exactMatchFound = true;
-        result = currentResult.map((plate) => ({ ...plate }));
-        return;
-      }
-
-      if (Weight.lt(remainingWeight, closestWeightDifference)) {
-        closestWeightDifference = remainingWeight;
-        result = currentResult.map((plate) => ({ ...plate }));
-      }
-
-      const plate = plates[index];
-      if (plate == null) {
-        return;
-      }
-      for (let count = plate.num; count >= 0; count -= multiplier) {
-        const weight = Weight.multiply(plate.weight, count);
-        backtrack(index + 1, Weight.subtract(remainingWeight, weight), [
-          ...currentResult,
-          { weight: plate.weight, num: count },
-        ]);
-      }
-    }
-
-    backtrack(0, targetWeight, []);
-    const resultWithoutZeroes = result.filter((p) => p.num > 0);
-    return CollectionUtils.sort(resultWithoutZeroes, (a, b) => b.weight.value - a.weight.value);
-  }
-
-  function calculatePlatesInternalFast(weight: IWeight, availablePlates: IPlate[], multiplier: number): IPlate[] {
+  function calculatePlatesInternalFast(
+    weight: IWeight,
+    availablePlates: IPlate[],
+    multiplier: number,
+    isAssisting: boolean
+  ): IPlate[] {
     let total = Weight.build(0, weight.unit);
     const plates: IPlate[] = [];
     while (true) {
-      const availablePlate = availablePlates.find(
-        (potentialPlate) =>
+      const availablePlate = availablePlates.find((potentialPlate) => {
+        const multipliedWeight = Weight.multiply(potentialPlate.weight, multiplier);
+        const weightToCompare = isAssisting
+          ? Weight.subtract(total, multipliedWeight)
+          : Weight.add(total, multipliedWeight);
+        return (
           potentialPlate.num >= multiplier &&
-          Weight.lte(Weight.add(Weight.multiply(potentialPlate.weight, multiplier), total), weight)
-      );
+          (isAssisting ? Weight.gte(weightToCompare, weight) : Weight.lte(weightToCompare, weight))
+        );
+      });
       if (availablePlate != null) {
-        total = Weight.add(total, Weight.multiply(availablePlate.weight, multiplier));
+        const multipliedWeight = Weight.multiply(availablePlate.weight, multiplier);
+        total = isAssisting ? Weight.subtract(total, multipliedWeight) : Weight.add(total, multipliedWeight);
         availablePlate.num -= multiplier;
         let plate = plates.find((p) => Weight.eq(p.weight, availablePlate!.weight));
         if (plate == null) {

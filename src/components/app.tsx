@@ -16,7 +16,7 @@ import { ScreenEquipment } from "./screenEquipment";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Progress } from "../models/progress";
-import { IEnv, INavCommon, IState, updateSettings, updateState } from "../models/state";
+import { IEnv, INavCommon, IState, updateState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
@@ -55,7 +55,6 @@ import { ScreenEditProgramExercise } from "./editProgramExercise/screenEditProgr
 import { FallbackScreen } from "./fallbackScreen";
 import { Screen1RM } from "./screen1RM";
 import { ScreenSetupEquipment } from "./screenSetupEquipment";
-import { ISettings } from "../types";
 import { Settings } from "../models/settings";
 
 declare let Rollbar: RB;
@@ -134,14 +133,6 @@ export function AppView(props: IProps): JSX.Element | null {
         }
       }
     });
-    window.addEventListener("keypress", (event) => {
-      if (event.key === "q") {
-        const newTheme = document.body.classList.contains("dark") ? "light" : "dark";
-        Settings.applyTheme(newTheme);
-        updateSettings(dispatch, lb<ISettings>().p("theme").record(newTheme), "Toggle theme");
-      }
-    });
-
     window.addEventListener("message", (event) => {
       if (event.data?.type === "setAppleReceipt") {
         dispatch(Thunk.setAppleReceipt(event.data.receipt));
@@ -472,11 +463,19 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.currentName(state.screenStack) === "setupequipment") {
-    content = <ScreenSetupEquipment navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />;
+    content = (
+      <ScreenSetupEquipment
+        stats={state.storage.stats}
+        navCommon={navCommon}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+      />
+    );
   } else if (Screen.currentName(state.screenStack) === "plates") {
     const allEquipment = Equipment.getEquipmentOfGym(state.storage.settings, state.selectedGymId);
     content = (
       <ScreenEquipment
+        stats={state.storage.stats}
         navCommon={navCommon}
         allEquipment={allEquipment}
         expandedEquipment={state.defaultEquipmentExpanded}

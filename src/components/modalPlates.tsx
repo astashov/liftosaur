@@ -50,7 +50,7 @@ export function ModalPlates(props: IProps): JSX.Element {
             onClick={() => {
               const value = textInput.current?.value;
               const numValue = value != null ? parseFloat(value) : undefined;
-              props.onInput(numValue != null && !isNaN(numValue) ? numValue : undefined);
+              props.onInput(numValue != null && !isNaN(numValue) ? Math.abs(numValue) : undefined);
             }}
           >
             Add

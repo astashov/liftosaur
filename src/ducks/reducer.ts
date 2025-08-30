@@ -44,6 +44,8 @@ import { c } from "../utils/types";
 import { ICollectionVersions } from "../models/versionTracker";
 import { lg } from "../utils/posthog";
 import { Equipment } from "../models/equipment";
+import { Stats } from "../models/stats";
+import { Weight } from "../models/weight";
 
 declare let __COMMIT_HASH__: string;
 
@@ -330,6 +332,27 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
         const oldProgram = Program.getProgram(oldState, progress.programId);
         const newProgram = Program.getProgram(newState, progress.programId);
         if (oldProgram != null && newProgram != null && !ObjectUtils.isEqual(oldProgram, newProgram)) {
+          dispatch({ type: "ApplyProgramChangesToProgress" });
+        }
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      if (
+        oldState.storage.stats != newState.storage.stats ||
+        ((newState.storage.stats.weight.weight ?? []).length > 0 && newState.storage.settings.currentBodyweight == null)
+      ) {
+        const oldBodyweight =
+          Stats.getCurrentMovingAverageBodyweight(oldState.storage.stats, oldState.storage.settings) ??
+          Weight.build(0, oldState.storage.settings.units);
+        const newBodyweight =
+          Stats.getCurrentMovingAverageBodyweight(newState.storage.stats, newState.storage.settings) ??
+          Weight.build(0, newState.storage.settings.units);
+        if (!Weight.eq(oldBodyweight, newBodyweight)) {
+          updateState(
+            dispatch,
+            [lb<IState>().p("storage").p("settings").pi("currentBodyweight").record(newBodyweight)],
+            "Update current bodyweight"
+          );
           dispatch({ type: "ApplyProgramChangesToProgress" });
         }
       }

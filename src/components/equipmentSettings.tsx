@@ -1,7 +1,7 @@
 import { ILensRecordingPayload, lb, Lens } from "lens-shmens";
 import { h, JSX, Fragment } from "preact";
 import { Weight } from "../models/weight";
-import { ISettings, IEquipmentData, IEquipment, IAllEquipment, IUnit } from "../types";
+import { ISettings, IEquipmentData, IEquipment, IAllEquipment, IUnit, IStats } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -23,6 +23,7 @@ import { IconArrowUp } from "./icons/iconArrowUp";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
 import { IconEyeClosed } from "./icons/iconEyeClosed";
 import { StringUtils } from "../utils/string";
+import { Stats } from "../models/stats";
 
 interface IProps<T> {
   dispatch: IDispatch;
@@ -30,6 +31,7 @@ interface IProps<T> {
   expandedEquipment?: IEquipment;
   allEquipment: IAllEquipment;
   settings: ISettings;
+  stats: IStats;
 }
 
 function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
@@ -61,6 +63,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
                 <EquipmentSettingsContent
                   key={bar}
                   lensPrefix={props.lensPrefix}
+                  stats={props.stats}
                   allEquipment={props.allEquipment}
                   dispatch={props.dispatch}
                   lensDispatch={lensDispatch}
@@ -127,6 +130,7 @@ interface IEquipmentSettingsContentProps<T> {
   lensDispatch: ILensDispatch<T>;
   lensPrefix: Lens<T, IAllEquipment>;
   equipment: IEquipment;
+  stats: IStats;
   allEquipment: IAllEquipment;
   isExpanded?: boolean;
   equipmentData: IEquipmentData;
@@ -201,6 +205,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
               lensPrefix={props.lensPrefix}
               equipment={props.equipment}
               allEquipment={props.allEquipment}
+              stats={props.stats}
               settings={props.settings}
               dispatch={props.dispatch}
               lensDispatch={props.lensDispatch}
@@ -218,6 +223,7 @@ interface IEquipmentSettingsValuesProps<T> {
   dispatch: IDispatch;
   lensPrefix: Lens<T, IAllEquipment>;
   equipment: IEquipment;
+  stats: IStats;
   allEquipment: IAllEquipment;
   settings: ISettings;
   equipmentData: IEquipmentData;
@@ -278,6 +284,7 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
       ) : (
         <EquipmentSettingsPlates
           lensPrefix={props.lensPrefix}
+          stats={props.stats}
           equipmentData={props.equipmentData}
           allEquipment={props.allEquipment}
           setModalNewPlateEquipmentToShow={setModalNewPlateEquipmentToShow}
@@ -395,6 +402,7 @@ interface IEquipmentSettingsPlatesProps<T> {
   lensPrefix: Lens<T, IAllEquipment>;
   allEquipment: IAllEquipment;
   settings: ISettings;
+  stats: IStats;
   name: IEquipment;
   setModalNewPlateEquipmentToShow: (equipment: IEquipment) => void;
   equipmentData: IEquipmentData;
@@ -408,21 +416,57 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
     equipmentData.plates.filter((p) => p.weight.unit === units),
     (a, b) => Weight.compare(b.weight, a.weight)
   );
+  const currentBodyweight = equipmentData.useBodyweightForBar
+    ? Stats.getCurrentMovingAverageBodyweight(props.stats, props.settings)
+    : undefined;
   return (
     <div className="mb-4">
+      {equipmentData.useBodyweightForBar ? (
+        <div className="opacity-50">
+          <MenuItem name="Bar" value={currentBodyweight != null ? Weight.print(currentBodyweight) : "None"} />
+        </div>
+      ) : (
+        <MenuItemEditable
+          name="Bar"
+          type="number"
+          value={barWeight.value.toString()}
+          valueUnits={barWeight.unit}
+          onChange={(newValue?: string) => {
+            const v = newValue != null && newValue !== "" ? parseFloat(newValue) : null;
+            if (v != null) {
+              const lensRecording = props.lensPrefix
+                .then(lb<IAllEquipment>().pi(props.name).p("bar").p(units).get())
+                .record(Weight.build(v, units));
+              props.dispatch(lensRecording, "Change bar weight");
+            }
+          }}
+        />
+      )}
       <MenuItemEditable
-        name="Bar"
-        type="number"
-        value={barWeight.value.toString()}
-        valueUnits={barWeight.unit}
+        name="Bodyweight for Bar"
+        type="boolean"
+        value={equipmentData.useBodyweightForBar ? "true" : "false"}
         onChange={(newValue?: string) => {
-          const v = newValue != null && newValue !== "" ? parseFloat(newValue) : null;
-          if (v != null) {
-            const lensRecording = props.lensPrefix
-              .then(lb<IAllEquipment>().pi(props.name).p("bar").p(units).get())
-              .record(Weight.build(v, units));
-            props.dispatch(lensRecording, "Change bar weight");
-          }
+          const lensRecording = props.lensPrefix
+            .then(lb<IAllEquipment>().pi(props.name).p("useBodyweightForBar").get())
+            .record(newValue === "true");
+          props.dispatch(lensRecording, "Toggle bodyweight for bar");
+        }}
+      />
+      <MenuItemEditable
+        name="Is assisting?"
+        underName={
+          <span className="text-xs text-text-secondary">
+            If it should reduce total weight, e.g. for assisted pullups
+          </span>
+        }
+        type="boolean"
+        value={equipmentData.isAssisting ? "true" : "false"}
+        onChange={(newValue?: string) => {
+          const lensRecording = props.lensPrefix
+            .then(lb<IAllEquipment>().pi(props.name).p("isAssisting").get())
+            .record(newValue === "true");
+          props.dispatch(lensRecording, "Toggle is assisting equipment");
         }}
       />
       <MenuItemEditable
