@@ -49,7 +49,8 @@ function clamp(value: string | number, min?: number, max?: number): number | und
 }
 
 export function InputNumber2(props: IInputNumber2Props): JSX.Element {
-  const [value, setValue] = useState(props.value != null ? n(props.value) : "");
+  const initialValue = props.value != null ? n(props.value) : "";
+  const [value, setValue] = useState(initialValue);
   const [isFocused, setIsFocused] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -76,8 +77,8 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const maxLength = (props.max?.toString().length ?? 5) + (props.allowDot ? 3 : 0) + (props.allowNegative ? 1 : 0);
 
   useEffect(() => {
-    valueRef.current = props.value?.toString() ?? "";
-    setValue(props.value?.toString() ?? "");
+    valueRef.current = initialValue;
+    setValue(initialValue);
   }, [props.value]);
 
   useEffect(() => {

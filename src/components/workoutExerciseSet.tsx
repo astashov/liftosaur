@@ -17,7 +17,6 @@ import { EditProgressEntry } from "../models/editProgressEntry";
 import { Reps } from "../models/set";
 import { Weight } from "../models/weight";
 import { Exercise } from "../models/exercise";
-import { set } from "fp-ts";
 
 interface IWorkoutExerciseSet {
   exerciseType: IExerciseType;
@@ -42,8 +41,8 @@ interface IWorkoutExerciseSet {
 
 export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const set = props.set;
-  const placeholderReps = `${set.minReps != null ? `${set.minReps}-` : ""}${set.reps != null ? set.reps : ""}${set.reps != null && set.isAmrap ? "+" : ""}`;
-  const placeholderWeight = set.weight?.value != null ? `${set.weight.value}${set.askWeight ? "+" : ""}` : undefined;
+  const placeholderReps = `${set.minReps != null ? `${n(set.minReps)}-` : ""}${set.reps != null ? n(set.reps) : ""}${set.reps != null && set.isAmrap ? "+" : ""}`;
+  const placeholderWeight = set.weight?.value != null ? `${n(set.weight.value)}${set.askWeight ? "+" : ""}` : undefined;
   const completedRpeValue = set.logRpe && set.completedRpe != null ? set.completedRpe : undefined;
   const isMobile = Mobile.isMobileFromWindow();
   const isPlaywright = Mobile.isPlaywrightFromWindow();
