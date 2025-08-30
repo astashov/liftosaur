@@ -2,7 +2,7 @@ import { JSX, RefObject, h } from "preact";
 import { StringUtils } from "../utils/string";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { IconKeyboardClose } from "./icons/iconKeyboardClose";
-import { MathUtils } from "../utils/math";
+import { MathUtils, n } from "../utils/math";
 import { IPercentageUnit, IUnit } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { Modal } from "./modal";
@@ -49,7 +49,7 @@ function clamp(value: string | number, min?: number, max?: number): number | und
 }
 
 export function InputNumber2(props: IInputNumber2Props): JSX.Element {
-  const [value, setValue] = useState(props.value?.toString() ?? "");
+  const [value, setValue] = useState(props.value != null ? n(props.value) : "");
   const [isFocused, setIsFocused] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
 
