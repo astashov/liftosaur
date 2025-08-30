@@ -40,15 +40,15 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
 
   return (
     <div>
-      <div className="border rounded-lg bg-background-cardpurple border-border-purple">
-        <div className="p-2 text-sm font-semibold border-b border-border-purple">Progress State Variables</div>
+      <div className="border rounded-lg bg-background-cardpurple border-border-cardpurple">
+        <div className="p-2 text-sm font-semibold border-b border-border-cardpurple">Progress State Variables</div>
         <ul>
           {ObjectUtils.entries(ownState).map(([key, value]) => {
             const isUsedVariable = ScriptRunner.hasStateVariable(progress.script ?? "", key);
             const metadata = progress.stateMetadata?.[key];
             const isReused = onlyChangedState[key] == null;
             return (
-              <li key={key} className="p-2 text-base border-b border-border-purple">
+              <li key={key} className="p-2 text-base border-b border-border-cardpurple">
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
                     <div className="leading-none">{key}</div>

@@ -55,7 +55,7 @@ function getBgColor100(entry: IHistoryEntry): string {
   } else if (color === "red") {
     return "bg-redv2-100";
   } else {
-    return "bg-background-purpledark";
+    return "bg-background-cardpurple";
   }
 }
 

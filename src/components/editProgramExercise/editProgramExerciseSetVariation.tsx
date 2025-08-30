@@ -181,7 +181,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
           }}
         >
           <span>
-            <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().blue[400]} />
+            <IconPlus2 size={10} className="inline-block" color={Tailwind.semantic().text.link} />
           </span>
           <span className="ml-2">Add Set</span>
         </button>
