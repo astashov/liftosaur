@@ -138,3 +138,40 @@ body {
 .tok-string {
   color: #28839f;
 }
+
+.image-with-text {
+  display: flex;
+}
+
+.image-with-text > div {
+  flex: 1;
+}
+
+.image-with-text > img {
+  display: block;
+  margin: 1rem 1rem 1rem 0;
+  border: 1px solid #eee;
+  width: 30%;
+  max-width: 400px;
+}
+
+.image-with-text-reverse > img {
+  margin: 1rem 0 1rem 1rem;
+}
+
+@media (max-width: 768px) {
+  .image-with-text {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .image-with-text-reverse {
+    flex-direction: column-reverse;
+  }
+
+  .image-with-text > img {
+    width: 75%;
+    max-width: 100%;
+    margin: 1rem 0;
+  }
+}
