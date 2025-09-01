@@ -322,14 +322,12 @@ export namespace Weight {
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
     availablePlates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
     const plates: IPlate[] = calculatePlatesInternalFast(weight, availablePlates, multiplier, isAssisting);
-    const total = roundTo005(
-      plates.reduce(
-        (memo, plate) => {
-          const weightToAdd = Weight.multiply(plate.weight, plate.num);
-          return isAssisting ? Weight.subtract(memo, weightToAdd) : Weight.add(memo, weightToAdd);
-        },
-        Weight.build(0, allWeight.unit)
-      )
+    const total = plates.reduce(
+      (memo, plate) => {
+        const weightToAdd = Weight.multiply(plate.weight, plate.num);
+        return isAssisting ? Weight.subtract(memo, weightToAdd) : Weight.add(memo, weightToAdd);
+      },
+      Weight.build(0, allWeight.unit)
     );
     const totalWeight = inverted ? Weight.invert(Weight.add(total, barWeight)) : Weight.add(total, barWeight);
     const thePlatesWeight = inverted ? Weight.invert(total) : total;
@@ -389,11 +387,11 @@ export namespace Weight {
   }
 
   export function multiply(weight: IWeight, value: IWeight | number): IWeight {
-    return operation(weight, value, (a, b) => MathUtils.roundTo005(a * b));
+    return operation(weight, value, (a, b) => a * b);
   }
 
   export function divide(weight: IWeight, value: IWeight | number): IWeight {
-    return operation(weight, value, (a, b) => MathUtils.roundTo005(a / b));
+    return operation(weight, value, (a, b) => a / b);
   }
 
   export function gt(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
