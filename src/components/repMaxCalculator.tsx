@@ -22,9 +22,6 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
   const [targetRepsValue, setTargetRepsValue] = useState<number>(1);
   const [targetRpeValue, setTargetRpeValue] = useState<number>(10);
 
-  console.log(oneRM);
-
-
   function generateOnChange(
     type: "int" | "float",
     min: number,
