@@ -58,7 +58,6 @@ export class GoogleWebhookHandler {
     }
 
     try {
-      // First decode the base64 body
       const decodedBody = Buffer.from(body, "base64").toString("utf-8");
       const pubsubMessage = JSON.parse(decodedBody) as IGooglePubSubMessage;
       this.di.log.log("Parsed PubSub message", pubsubMessage);
@@ -68,12 +67,10 @@ export class GoogleWebhookHandler {
         return { success: true, message: "No data in message" };
       }
 
-      // Decode base64 data
       const decodedData = Buffer.from(pubsubMessage.message.data, "base64").toString("utf-8");
       const notification = JSON.parse(decodedData) as IGoogleDeveloperNotification;
       this.di.log.log("Decoded Google notification", notification);
 
-      // Handle different notification types
       if (notification.subscriptionNotification) {
         await this.handleSubscriptionNotification(notification.subscriptionNotification, notification.packageName);
       } else if (notification.oneTimeProductNotification) {
@@ -97,14 +94,6 @@ export class GoogleWebhookHandler {
 
   private async handleSubscriptionNotification(notification: IGoogleSubscriptionNotification, packageName: string) {
     const { purchaseToken, subscriptionId, notificationType } = notification;
-
-    // Google subscription notification types:
-    // 1 = SUBSCRIPTION_RECOVERED, 2 = SUBSCRIPTION_RENEWED, 3 = SUBSCRIPTION_CANCELED
-    // 4 = SUBSCRIPTION_PURCHASED, 5 = SUBSCRIPTION_ON_HOLD, 6 = SUBSCRIPTION_IN_GRACE_PERIOD
-    // 7 = SUBSCRIPTION_RESTARTED, 8 = SUBSCRIPTION_PRICE_CHANGE_CONFIRMED, 9 = SUBSCRIPTION_DEFERRED
-    // 10 = SUBSCRIPTION_PAUSED, 11 = SUBSCRIPTION_PAUSE_SCHEDULE_CHANGED, 12 = SUBSCRIPTION_REVOKED
-    // 13 = SUBSCRIPTION_EXPIRED
-
     let paymentType: "purchase" | "renewal" | "refund";
 
     switch (notificationType) {
@@ -127,69 +116,17 @@ export class GoogleWebhookHandler {
       case 10: // SUBSCRIPTION_PAUSED
       case 11: // SUBSCRIPTION_PAUSE_SCHEDULE_CHANGED
       case 13: // SUBSCRIPTION_EXPIRED
-        // These don't represent actual payment events, just log and return
         this.di.log.log(`Google webhook: Received non-payment subscription notification: ${notificationType}`);
         return;
       default:
         this.di.log.log(`Google webhook: Unknown subscription notification type: ${notificationType}`);
         return;
     }
-
-    try {
-      // Look up user by purchase token (stored as originalTransactionId)
-      const userDao = new UserDao(this.di);
-      const userId = await userDao.getUserIdByOriginalTransactionId(purchaseToken);
-
-      if (!userId) {
-        this.di.log.log(`Google webhook: No user found for purchase token ${purchaseToken}`);
-        return;
-      }
-
-      // Call Google Play API to get full purchase details
-      const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
-      const purchaseDetails = await subscriptions.getGooglePurchaseTokenJson(purchaseToken);
-
-      if (!purchaseDetails || "error" in purchaseDetails) {
-        this.di.log.log(`Google webhook: Failed to get purchase details for token ${purchaseToken}`);
-        return;
-      }
-
-      // Extract price and currency information
-      let amount = 0;
-      let currency = "USD";
-      let productId = subscriptionId;
-
-      if (purchaseDetails.kind === "androidpublisher#subscriptionPurchase") {
-        amount = Math.round(Number(purchaseDetails.priceAmountMicros || "0") / 1000000);
-        currency = purchaseDetails.priceCurrencyCode || "USD";
-      }
-
-      // Record the payment event
-      await new PaymentDao(this.di).add({
-        userId,
-        timestamp: Date.now(),
-        originalTransactionId: purchaseToken,
-        productId,
-        amount,
-        currency,
-        type: "google",
-        paymentType,
-      });
-
-      this.di.log.log(
-        `Google webhook: Recorded ${paymentType} for user ${userId}, subscription ${subscriptionId}, amount: ${amount} ${currency}`
-      );
-    } catch (error) {
-      this.di.log.log("Error handling Google subscription notification:", error);
-    }
+    await this.recordPaymentEvent(purchaseToken, subscriptionId, paymentType, "subscription");
   }
 
   private async handleOneTimeProductNotification(notification: IGoogleOneTimeProductNotification, packageName: string) {
     const { purchaseToken, sku, notificationType } = notification;
-
-    // Google one-time product notification types:
-    // 1 = ONE_TIME_PRODUCT_PURCHASED, 2 = ONE_TIME_PRODUCT_CANCELED
-
     let paymentType: "purchase" | "refund";
 
     switch (notificationType) {
@@ -204,8 +141,24 @@ export class GoogleWebhookHandler {
         return;
     }
 
+    await this.recordPaymentEvent(purchaseToken, sku, paymentType, "product");
+  }
+
+  private async handleVoidedPurchaseNotification(notification: IGoogleVoidedPurchaseNotification) {
+    const { purchaseToken, orderId, productType, refundType } = notification;
+    this.di.log.log(
+      `Google webhook: Voided purchase - orderId: ${orderId}, type: ${productType}, refundType: ${refundType}`
+    );
+    await this.recordPaymentEvent(purchaseToken, `voided-${orderId}`, "refund", "voided");
+  }
+
+  private async recordPaymentEvent(
+    purchaseToken: string,
+    productId: string,
+    paymentType: "purchase" | "renewal" | "refund",
+    productType: "subscription" | "product" | "voided"
+  ) {
     try {
-      // Look up user by purchase token (stored as originalTransactionId)
       const userDao = new UserDao(this.di);
       const userId = await userDao.getUserIdByOriginalTransactionId(purchaseToken);
 
@@ -214,31 +167,31 @@ export class GoogleWebhookHandler {
         return;
       }
 
-      // Call Google Play API to get full purchase details
-      const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
-      const purchaseDetails = await subscriptions.getGooglePurchaseTokenJson(purchaseToken);
-
-      if (!purchaseDetails || "error" in purchaseDetails) {
-        this.di.log.log(`Google webhook: Failed to get purchase details for token ${purchaseToken}`);
-        return;
-      }
-
-      // For one-time products, extract purchase info
       let amount = 0;
       let currency = "USD";
 
-      if (purchaseDetails.kind === "androidpublisher#productPurchase") {
-        // One-time products don't have price info in API response unfortunately
-        // We'd need to hardcode based on SKU or get from Play Console
-        this.di.log.log(`Google webhook: One-time product ${sku} - price info not available from API`);
+      if (productType !== "voided") {
+        const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
+        const purchaseDetails = await subscriptions.getGooglePurchaseTokenJson(purchaseToken);
+
+        if (!purchaseDetails || "error" in purchaseDetails) {
+          this.di.log.log(`Google webhook: Failed to get purchase details for token ${purchaseToken}`);
+          return;
+        }
+
+        if (purchaseDetails.kind === "androidpublisher#subscriptionPurchase") {
+          amount = Math.round(Number(purchaseDetails.priceAmountMicros || "0") / 1000000);
+          currency = purchaseDetails.priceCurrencyCode || "USD";
+        } else if (purchaseDetails.kind === "androidpublisher#productPurchase") {
+          this.di.log.log(`Google webhook: One-time product ${productId} - price info not available from API`);
+        }
       }
 
-      // Record the payment event
       await new PaymentDao(this.di).add({
         userId,
         timestamp: Date.now(),
         originalTransactionId: purchaseToken,
-        productId: sku,
+        productId,
         amount,
         currency,
         type: "google",
@@ -246,47 +199,10 @@ export class GoogleWebhookHandler {
       });
 
       this.di.log.log(
-        `Google webhook: Recorded ${paymentType} for user ${userId}, product ${sku}, amount: ${amount} ${currency}`
+        `Google webhook: Recorded ${paymentType} for user ${userId}, product ${productId}, amount: ${amount} ${currency}`
       );
     } catch (error) {
-      this.di.log.log("Error handling Google one-time product notification:", error);
-    }
-  }
-
-  private async handleVoidedPurchaseNotification(notification: IGoogleVoidedPurchaseNotification) {
-    const { purchaseToken, orderId, productType, refundType } = notification;
-
-    this.di.log.log(
-      `Google webhook: Voided purchase - orderId: ${orderId}, type: ${productType}, refundType: ${refundType}`
-    );
-
-    try {
-      // Look up user by purchase token (stored as originalTransactionId)
-      const userDao = new UserDao(this.di);
-      const userId = await userDao.getUserIdByOriginalTransactionId(purchaseToken);
-
-      if (!userId) {
-        this.di.log.log(`Google webhook: No user found for purchase token ${purchaseToken}`);
-        return;
-      }
-
-      // Record the refund event
-      await new PaymentDao(this.di).add({
-        userId,
-        timestamp: Date.now(),
-        originalTransactionId: purchaseToken,
-        productId: `voided-${orderId}`,
-        amount: 0, // Amount not provided in voided notification
-        currency: "USD",
-        type: "google",
-        paymentType: "refund",
-      });
-
-      this.di.log.log(
-        `Google webhook: Recorded refund for user ${userId}, orderId: ${orderId}, refundType: ${refundType}`
-      );
-    } catch (error) {
-      this.di.log.log("Error handling Google voided purchase notification:", error);
+      this.di.log.log(`Error recording Google payment event: ${error}`);
     }
   }
 }
