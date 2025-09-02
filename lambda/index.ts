@@ -87,10 +87,7 @@ interface IOpenIdResponseError {
 }
 
 interface IAppleNotificationV2 {
-  notificationType: string;
-  data: {
-    signedTransactionInfo?: string;
-  };
+  signedPayload: string;
 }
 
 interface IAppleTransactionInfo {
@@ -213,14 +210,19 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
   }
 
   try {
-    const notification = JSON.parse(body) as IAppleNotificationV2;
-    const signedTransactionInfo = notification.data?.signedTransactionInfo;
-    if (!signedTransactionInfo) {
-      di.log.log("Apple webhook: No signedTransactionInfo in notification");
+    const decodedBody = Buffer.from(body, "base64").toString("utf-8");
+    const notification = JSON.parse(decodedBody) as IAppleNotificationV2;
+    di.log.log("Parsed body", notification);
+    const payloadData = JWT.decode(notification.signedPayload) as any;
+    di.log.log("Decoded payload", payloadData);
+
+    if (!payloadData?.data?.signedTransactionInfo) {
+      di.log.log("Apple webhook: No signedTransactionInfo in payload");
       return ResponseUtils.json(200, event, { status: "ok" });
     }
 
-    const transactionInfo = JWT.decode(signedTransactionInfo) as IAppleTransactionInfo | null;
+    // Decode the transaction info JWT
+    const transactionInfo = JWT.decode(payloadData.data.signedTransactionInfo) as IAppleTransactionInfo | null;
     if (!transactionInfo) {
       di.log.log("Apple webhook: Failed to decode transaction info");
       return ResponseUtils.json(200, event, { status: "ok" });
@@ -234,11 +236,11 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     }
 
     let paymentType: "purchase" | "renewal" | "refund" = "purchase";
-    if (notification.notificationType === "DID_RENEW") {
+    if (payloadData.notificationType === "DID_RENEW") {
       paymentType = "renewal";
-    } else if (notification.notificationType === "REFUND") {
+    } else if (payloadData.notificationType === "REFUND") {
       paymentType = "refund";
-    } else if (notification.notificationType === "SUBSCRIBED") {
+    } else if (payloadData.notificationType === "SUBSCRIBED") {
       paymentType = "purchase";
     }
 
