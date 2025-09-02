@@ -58,7 +58,9 @@ export class GoogleWebhookHandler {
     }
 
     try {
-      const pubsubMessage = JSON.parse(body) as IGooglePubSubMessage;
+      // First decode the base64 body
+      const decodedBody = Buffer.from(body, "base64").toString("utf-8");
+      const pubsubMessage = JSON.parse(decodedBody) as IGooglePubSubMessage;
       this.di.log.log("Parsed PubSub message", pubsubMessage);
 
       if (!pubsubMessage.message?.data) {
