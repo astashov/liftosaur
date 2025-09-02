@@ -221,12 +221,12 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
       return ResponseUtils.json(200, event, { status: "ok" });
     }
 
-    // Decode the transaction info JWT
     const transactionInfo = JWT.decode(payloadData.data.signedTransactionInfo) as IAppleTransactionInfo | null;
     if (!transactionInfo) {
       di.log.log("Apple webhook: Failed to decode transaction info");
       return ResponseUtils.json(200, event, { status: "ok" });
     }
+    di.log.log("Decoded transaction info", transactionInfo);
 
     const userDao = new UserDao(di);
     const userId = await userDao.getUserIdByOriginalTransactionId(transactionInfo.originalTransactionId);
