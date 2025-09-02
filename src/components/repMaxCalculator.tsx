@@ -5,19 +5,25 @@ import { IUnit } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { Button } from "./button";
 import { Input } from "./input";
+import { useOneRM } from '../stores/useOneRM';
 
 interface IRepMaxCalculatorProps {
   unit: IUnit;
   backLabel: string;
   onSelect: (weight?: number) => void;
+  exerciseKey?: string
 }
 
 export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
-  const [knownRepsValue, setKnownRepsValue] = useState<number>(5);
+  const oneRM = props.exerciseKey ? useOneRM(props.exerciseKey) : undefined;
+  const [knownRepsValue, setKnownRepsValue] = useState<number>(oneRM?.max1RMSet?.completedReps ?? 5);
   const [knownRpeValue, setKnownRpeValue] = useState<number>(10);
-  const [knownWeightValue, setKnownWeightValue] = useState<number>(200);
+  const [knownWeightValue, setKnownWeightValue] = useState<number>(oneRM?.max1RMSet?.completedWeight?.value ?? 200);
   const [targetRepsValue, setTargetRepsValue] = useState<number>(1);
   const [targetRpeValue, setTargetRpeValue] = useState<number>(10);
+
+  console.log(oneRM);
+
 
   function generateOnChange(
     type: "int" | "float",

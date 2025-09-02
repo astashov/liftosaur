@@ -52,6 +52,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
       {showCalculator && (
         <Modal shouldShowClose={true} onClose={() => setShowCalculator(false)}>
           <RepMaxCalculator
+            exerciseKey={Exercise.toKey(props.exercise)}
             backLabel="Close"
             unit={props.settings.units}
             onSelect={(weightValue) => {
