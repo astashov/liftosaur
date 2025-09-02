@@ -473,6 +473,19 @@ export class UserDao {
     });
   }
 
+  public async getUserIdByOriginalTransactionId(originalTransactionId: string): Promise<string | undefined> {
+    const env = Utils.getEnv();
+    const subscriptionDetails = await this.di.dynamo.query<{ userId: string }>({
+      tableName: subscriptionDetailsTableNames[env].subscriptionDetails,
+      indexName: `lftSubscriptionDetailsOriginalTransactionId${env === "dev" ? "Dev" : ""}`,
+      expression: "originalTransactionId = :tid",
+      values: { ":tid": originalTransactionId },
+      limit: 1,
+    });
+    
+    return subscriptionDetails[0]?.userId;
+  }
+
   public async getUserAndHistory(
     currentUserId: string,
     startDate: string,

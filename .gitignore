@@ -9,6 +9,8 @@
 /cypress/videos
 /cypress/screenshots
 /backup
+/.claude
+CLAUDE.md
 
 /liftosaur-cdk/*.d.ts
 /dist-lambda

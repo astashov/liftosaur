@@ -85,6 +85,8 @@ export interface IVerifyAppleReceiptResponse {
     is_in_intro_offer_period: "true" | "false";
     in_app_ownership_type: string;
     offer_code_ref_name: string;
+    original_transaction_id?: string;
+    transaction_id?: string;
   }[];
   pending_renewal_info?: {
     auto_renew_product_id: string;
@@ -219,6 +221,7 @@ export class Subscriptions {
         isPromo: latestReceipt.offer_code_ref_name != null,
         promoCode: latestReceipt.offer_code_ref_name,
         isActive: expires > Date.now(),
+        originalTransactionId: latestReceipt.original_transaction_id,
       };
     } catch (error) {
       this.log.log("Getting Apple Receipt info error: ", error);
@@ -241,6 +244,7 @@ export class Subscriptions {
           isPromo: false,
           promoCode: "",
           isActive: json.purchaseState === 0 && json.acknowledgementState === 1,
+          originalTransactionId: json.orderId,
         };
       } else {
         return {
@@ -252,6 +256,7 @@ export class Subscriptions {
           isPromo: json.promotionType === 0 || json.promotionType === 1,
           promoCode: json.promotionCode,
           isActive: json.cancelReason !== null || Number(json.expiryTimeMillis || "0") < Date.now(),
+          originalTransactionId: json.orderId,
         };
       }
     } catch (error) {

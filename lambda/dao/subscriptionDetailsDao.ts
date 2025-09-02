@@ -19,6 +19,7 @@ export interface ISubscriptionDetailsDao {
   isActive: boolean;
   expires: number;
   promoCode?: string;
+  originalTransactionId?: string;
 }
 
 export class SubscriptionDetailsDao {

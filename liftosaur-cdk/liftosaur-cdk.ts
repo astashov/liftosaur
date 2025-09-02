@@ -69,6 +69,19 @@ export class LiftosaurCdkStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
     });
+    subscriptionDetailsTable.addGlobalSecondaryIndex({
+      indexName: `lftSubscriptionDetailsOriginalTransactionId${suffix}`,
+      partitionKey: { name: "originalTransactionId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    const paymentsTable = new dynamodb.Table(this, `LftPayments${suffix}`, {
+      tableName: `lftPayments${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
 
     const googleAuthKeysTable = new dynamodb.Table(this, `LftGoogleAuthKeys${suffix}`, {
       tableName: `lftGoogleAuthKeys${suffix}`,
@@ -301,6 +314,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     bucket.grantReadWrite(lambdaFunction);
     debugbucket.grantReadWrite(lambdaFunction);
     exceptionsbucket.grantReadWrite(lambdaFunction);
+    paymentsTable.grantReadWriteData(lambdaFunction);
     programsBucket.grantReadWrite(lambdaFunction);
     statsBucket.grantReadWrite(lambdaFunction);
     storagesBucket.grantReadWrite(lambdaFunction);

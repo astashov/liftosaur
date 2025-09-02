@@ -43,6 +43,7 @@ import { renderAffiliatesHtml } from "./affiliates";
 import { renderAiPromptHtml } from "./aiPrompt";
 import { FreeUserDao } from "./dao/freeUserDao";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
+import { PaymentDao } from "./dao/paymentDao";
 import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
@@ -83,6 +84,24 @@ interface IOpenIdResponseSuccess {
 interface IOpenIdResponseError {
   error: string;
   error_description: string;
+}
+
+interface IAppleNotificationV2 {
+  notificationType: string;
+  data: {
+    signedTransactionInfo?: string;
+  };
+}
+
+interface IAppleTransactionInfo {
+  transactionId: string;
+  originalTransactionId: string;
+  productId: string;
+  purchaseDate: number;
+  expiresDate?: number;
+  storefront: string;
+  price?: number;
+  currency?: string;
 }
 
 interface IPayload {
@@ -179,6 +198,69 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
     }
   }
   return ResponseUtils.json(200, event, { result: !!verifiedGooglePurchaseToken });
+};
+
+const postAppleWebhookEndpoint = Endpoint.build("/api/apple-payment-webhook");
+const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postAppleWebhookEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const body = event.body;
+
+  if (!body) {
+    return ResponseUtils.json(400, event, { error: "No body provided" });
+  }
+
+  try {
+    const notification = JSON.parse(body) as IAppleNotificationV2;
+    const signedTransactionInfo = notification.data?.signedTransactionInfo;
+    if (!signedTransactionInfo) {
+      di.log.log("Apple webhook: No signedTransactionInfo in notification");
+      return ResponseUtils.json(200, event, { status: "ok" });
+    }
+
+    const transactionInfo = JWT.decode(signedTransactionInfo) as IAppleTransactionInfo | null;
+    if (!transactionInfo) {
+      di.log.log("Apple webhook: Failed to decode transaction info");
+      return ResponseUtils.json(200, event, { status: "ok" });
+    }
+
+    const userDao = new UserDao(di);
+    const userId = await userDao.getUserIdByOriginalTransactionId(transactionInfo.originalTransactionId);
+    if (!userId) {
+      di.log.log(`Apple webhook: No user found for transaction ${transactionInfo.originalTransactionId}`);
+      return ResponseUtils.json(200, event, { status: "ok" });
+    }
+
+    let paymentType: "purchase" | "renewal" | "refund" = "purchase";
+    if (notification.notificationType === "DID_RENEW") {
+      paymentType = "renewal";
+    } else if (notification.notificationType === "REFUND") {
+      paymentType = "refund";
+    } else if (notification.notificationType === "SUBSCRIBED") {
+      paymentType = "purchase";
+    }
+
+    await new PaymentDao(di).add({
+      userId,
+      timestamp: transactionInfo.purchaseDate || Date.now(),
+      originalTransactionId: transactionInfo.originalTransactionId,
+      productId: transactionInfo.productId,
+      amount: transactionInfo.price || 0,
+      currency: transactionInfo.currency || "USD",
+      type: "apple",
+      paymentType,
+    });
+
+    di.log.log(
+      `Apple webhook: Recorded ${paymentType} for user ${userId}, amount: ${transactionInfo.price} ${transactionInfo.currency}`
+    );
+
+    return ResponseUtils.json(200, event, { status: "ok" });
+  } catch (error) {
+    di.log.log("Apple webhook error:", error);
+    return ResponseUtils.json(200, event, { status: "error" });
+  }
 };
 
 const postReceiveAdAttrEndpoint = Endpoint.build("/api/adattr");
@@ -2274,6 +2356,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getProgramRevisionEndpoint, getProgramRevisionHandler)
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
       .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)
+      .post(postAppleWebhookEndpoint, postAppleWebhookHandler)
       .post(googleLoginEndpoint, googleLoginHandler)
       .post(appleLoginEndpoint, appleLoginHandler)
       .post(signoutEndpoint, signoutHandler)
