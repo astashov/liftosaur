@@ -44,6 +44,7 @@ import { renderAiPromptHtml } from "./aiPrompt";
 import { FreeUserDao } from "./dao/freeUserDao";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 import { PaymentDao } from "./dao/paymentDao";
+import { AppleJWTVerifier } from "./utils/appleJwtVerifier";
 import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
@@ -213,20 +214,29 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     const decodedBody = Buffer.from(body, "base64").toString("utf-8");
     const notification = JSON.parse(decodedBody) as IAppleNotificationV2;
     di.log.log("Parsed body", notification);
-    const payloadData = JWT.decode(notification.signedPayload) as any;
-    di.log.log("Decoded payload", payloadData);
+    // Verify and decode the signed payload JWT
+    const jwtVerifier = new AppleJWTVerifier(di.log);
+    const payloadData = jwtVerifier.verifyJWT(notification.signedPayload);
+    
+    if (!payloadData) {
+      di.log.log("Apple webhook: JWT signature verification failed");
+      return ResponseUtils.json(200, event, { status: "ok" });
+    }
+    
+    di.log.log("Verified and decoded payload", payloadData);
 
     if (!payloadData?.data?.signedTransactionInfo) {
       di.log.log("Apple webhook: No signedTransactionInfo in payload");
       return ResponseUtils.json(200, event, { status: "ok" });
     }
 
-    const transactionInfo = JWT.decode(payloadData.data.signedTransactionInfo) as IAppleTransactionInfo | null;
+    // Verify and decode the transaction info JWT
+    const transactionInfo = jwtVerifier.verifyJWT(payloadData.data.signedTransactionInfo) as IAppleTransactionInfo | null;
     if (!transactionInfo) {
-      di.log.log("Apple webhook: Failed to decode transaction info");
+      di.log.log("Apple webhook: Failed to verify transaction info JWT");
       return ResponseUtils.json(200, event, { status: "ok" });
     }
-    di.log.log("Decoded transaction info", transactionInfo);
+    di.log.log("Verified and decoded transaction info", transactionInfo);
 
     const userDao = new UserDao(di);
     const userId = await userDao.getUserIdByOriginalTransactionId(transactionInfo.originalTransactionId);
