@@ -206,6 +206,7 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
 }) => {
   const { event, di } = payload;
   const body = event.body;
+  di.log.log("Received body", body);
 
   if (!body) {
     return ResponseUtils.json(400, event, { error: "No body provided" });
