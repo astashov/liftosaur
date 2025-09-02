@@ -235,13 +235,38 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
       return ResponseUtils.json(200, event, { status: "ok" });
     }
 
-    let paymentType: "purchase" | "renewal" | "refund" = "purchase";
-    if (payloadData.notificationType === "DID_RENEW") {
-      paymentType = "renewal";
-    } else if (payloadData.notificationType === "REFUND") {
-      paymentType = "refund";
-    } else if (payloadData.notificationType === "SUBSCRIBED") {
-      paymentType = "purchase";
+    // Determine payment type based on notification type
+    let paymentType: "purchase" | "renewal" | "refund";
+    const notificationType = payloadData.notificationType;
+
+    switch (notificationType) {
+      case "SUBSCRIBED":
+      case "ONE_TIME_CHARGE":
+        paymentType = "purchase";
+        break;
+      case "DID_RENEW":
+        paymentType = "renewal";
+        break;
+      case "REFUND":
+        paymentType = "refund";
+        break;
+      case "DID_CHANGE_RENEWAL_STATUS":
+      case "DID_CHANGE_RENEWAL_PREF":
+      case "DID_FAIL_TO_RENEW":
+      case "EXPIRED":
+      case "GRACE_PERIOD_EXPIRED":
+      case "OFFER_REDEEMED":
+      case "PRICE_INCREASE":
+      case "REFUND_DECLINED":
+      case "RENEWAL_EXTENDED":
+      case "REVOKE":
+      case "TEST":
+        // These don't represent actual payment events, just log and return
+        di.log.log(`Apple webhook: Received non-payment notification: ${notificationType}`);
+        return ResponseUtils.json(200, event, { status: "ok" });
+      default:
+        di.log.log(`Apple webhook: Unknown notification type: ${notificationType}`);
+        return ResponseUtils.json(200, event, { status: "ok" });
     }
 
     await new PaymentDao(di).add({
