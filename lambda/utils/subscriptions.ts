@@ -231,7 +231,8 @@ export class Subscriptions {
 
   public async getGoogleVerificationInfo(
     userId: string,
-    json: IVerifyGoogleSubscriptionTokenSuccess | IVerifyGoogleProductTokenSuccess
+    json: IVerifyGoogleSubscriptionTokenSuccess | IVerifyGoogleProductTokenSuccess,
+    purchaseToken: string
   ): Promise<ISubscriptionDetailsDao | undefined> {
     try {
       if (json.kind === "androidpublisher#productPurchase") {
@@ -244,7 +245,7 @@ export class Subscriptions {
           isPromo: false,
           promoCode: "",
           isActive: json.purchaseState === 0 && json.acknowledgementState === 1,
-          originalTransactionId: json.orderId,
+          originalTransactionId: purchaseToken,
         };
       } else {
         return {
@@ -256,7 +257,7 @@ export class Subscriptions {
           isPromo: json.promotionType === 0 || json.promotionType === 1,
           promoCode: json.promotionCode,
           isActive: json.cancelReason !== null || Number(json.expiryTimeMillis || "0") < Date.now(),
-          originalTransactionId: json.orderId,
+          originalTransactionId: purchaseToken,
         };
       }
     } catch (error) {
@@ -280,7 +281,7 @@ export class Subscriptions {
 
   public async getGooglePurchaseTokenJson(
     googlePurchaseToken: string
-  ): Promise<IVerifyGoogleSubscriptionTokenSuccess | IVerifyGoogleSubscriptionTokenError | undefined> {
+  ): Promise<IVerifyGoogleSubscriptionTokenSuccess | IVerifyGoogleProductTokenSuccess | IVerifyGoogleSubscriptionTokenError | undefined> {
     const { token, productId } = JSON.parse(googlePurchaseToken) as { token: string; productId: string };
     console.log(googlePurchaseToken, token, productId);
     const url =

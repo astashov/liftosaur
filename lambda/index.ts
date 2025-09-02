@@ -45,6 +45,7 @@ import { FreeUserDao } from "./dao/freeUserDao";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 import { PaymentDao } from "./dao/paymentDao";
 import { AppleJWTVerifier } from "./utils/appleJwtVerifier";
+import { GoogleWebhookHandler } from "./utils/googleWebhookHandler";
 import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
@@ -189,7 +190,11 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   if (googleJson) {
     verifiedGooglePurchaseToken = await subscriptions.verifyGooglePurchaseTokenJson(googlePurchaseToken, googleJson);
     if (verifiedGooglePurchaseToken && userId && !("error" in googleJson)) {
-      const subscriptionDetails = await subscriptions.getGoogleVerificationInfo(userId, googleJson);
+      const subscriptionDetails = await subscriptions.getGoogleVerificationInfo(
+        userId,
+        googleJson,
+        googlePurchaseToken
+      );
       if (subscriptionDetails) {
         await new SubscriptionDetailsDao(di).add(subscriptionDetails);
       }
@@ -217,12 +222,12 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     // Verify and decode the signed payload JWT
     const jwtVerifier = new AppleJWTVerifier(di.log);
     const payloadData = jwtVerifier.verifyJWT(notification.signedPayload);
-    
+
     if (!payloadData) {
       di.log.log("Apple webhook: JWT signature verification failed");
       return ResponseUtils.json(200, event, { status: "ok" });
     }
-    
+
     di.log.log("Verified and decoded payload", payloadData);
 
     if (!payloadData?.data?.signedTransactionInfo) {
@@ -231,7 +236,9 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     }
 
     // Verify and decode the transaction info JWT
-    const transactionInfo = jwtVerifier.verifyJWT(payloadData.data.signedTransactionInfo) as IAppleTransactionInfo | null;
+    const transactionInfo = jwtVerifier.verifyJWT(
+      payloadData.data.signedTransactionInfo
+    ) as IAppleTransactionInfo | null;
     if (!transactionInfo) {
       di.log.log("Apple webhook: Failed to verify transaction info JWT");
       return ResponseUtils.json(200, event, { status: "ok" });
@@ -299,6 +306,19 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     di.log.log("Apple webhook error:", error);
     return ResponseUtils.json(200, event, { status: "error" });
   }
+};
+
+const postGoogleWebhookEndpoint = Endpoint.build("/api/google-payment-webhook");
+const postGoogleWebhookHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postGoogleWebhookEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const handler = new GoogleWebhookHandler(di);
+  const result = await handler.handleWebhook(event.body || "");
+
+  return ResponseUtils.json(200, event, { status: result.success ? "ok" : "error", message: result.message });
 };
 
 const postReceiveAdAttrEndpoint = Endpoint.build("/api/adattr");
@@ -2395,6 +2415,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
       .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)
       .post(postAppleWebhookEndpoint, postAppleWebhookHandler)
+      .post(postGoogleWebhookEndpoint, postGoogleWebhookHandler)
       .post(googleLoginEndpoint, googleLoginHandler)
       .post(appleLoginEndpoint, appleLoginHandler)
       .post(signoutEndpoint, signoutHandler)
