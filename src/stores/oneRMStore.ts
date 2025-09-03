@@ -1,7 +1,13 @@
+import {
+  IHistoryRecord,
+  ISet,
+  IWeight,
+} from "../types";
+
 type OneRMTriplet = {
-  max1RM: any;
-  max1RMHistoryRecord: any;
-  max1RMSet: any;
+  max1RM?: IWeight;
+  max1RMHistoryRecord?: IHistoryRecord;
+  max1RMSet?: ISet;
 };
 
 const data = new Map<string, OneRMTriplet>();
