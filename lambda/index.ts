@@ -45,7 +45,7 @@ import { FreeUserDao } from "./dao/freeUserDao";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 import { PaymentDao } from "./dao/paymentDao";
 import { AppleWebhookHandler } from "./utils/appleWebhookHandler";
-import { AppleJWTVerifier } from "./utils/appleJwtVerifier";
+import { ApplePaymentProcessor } from "./utils/applePaymentProcessor";
 import { GoogleWebhookHandler } from "./utils/googleWebhookHandler";
 import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
@@ -153,51 +153,8 @@ const postVerifyAppleReceiptHandler: RouteHandler<
       }
 
       try {
-        const latestReceipt = CollectionUtils.sort(
-          appleJson.latest_receipt_info || [],
-          (a, b) => Number(b.purchase_date_ms) - Number(a.purchase_date_ms)
-        )[0];
-
-        if (latestReceipt) {
-          let amount = 0;
-          let currency = "USD";
-
-          if (latestReceipt.original_transaction_id) {
-            di.log.log(`Apple verification: Fetching transaction history for ${latestReceipt.original_transaction_id}`);
-            const transactionHistory = await subscriptions.getAppleTransactionHistory(
-              latestReceipt.original_transaction_id
-            );
-
-            if (transactionHistory && transactionHistory.signedTransactions) {
-              const jwtVerifier = new AppleJWTVerifier(di.log);
-              for (const signedTransaction of transactionHistory.signedTransactions) {
-                const transaction = jwtVerifier.verifyJWT(signedTransaction);
-                if (transaction && transaction.transactionId === latestReceipt.transaction_id) {
-                  if (transaction.price) {
-                    amount = transaction.price / 1000;
-                    currency = transaction.currency || "USD";
-                  }
-                  break;
-                }
-              }
-            }
-          }
-
-          const originalTransactionId = latestReceipt.original_transaction_id || "";
-          const transactionId = latestReceipt.transaction_id || "";
-          await new PaymentDao(di).addIfNotExists({
-            userId,
-            timestamp: Number(latestReceipt.purchase_date_ms),
-            originalTransactionId,
-            transactionId,
-            productId: latestReceipt.product_id,
-            amount,
-            currency,
-            type: "apple",
-            source: "verifier",
-            paymentType: originalTransactionId === transactionId ? "purchase" : "renewal",
-          });
-        }
+        const applePaymentProcessor = new ApplePaymentProcessor(di, subscriptions);
+        await applePaymentProcessor.processReceiptPayment(userId, appleJson.latest_receipt_info);
       } catch (e) {
         di.log.log("Failed to add Apple payment record", e);
       }

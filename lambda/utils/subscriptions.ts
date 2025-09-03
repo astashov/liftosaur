@@ -22,6 +22,30 @@ interface IVerifyGoogleProductTokenSuccess {
   regionCode: string;
 }
 
+export interface IAppleTransactionHistory {
+  signedTransactions?: string[];
+}
+
+export interface IAppleTransaction {
+  transactionId: string;
+  originalTransactionId: string;
+  bundleId: string;
+  productId: string;
+  purchaseDate: number;
+  originalPurchaseDate: number;
+  quantity: number;
+  type: string;
+  inAppOwnershipType: string;
+  signedDate: number;
+  environment: string;
+  transactionReason: string;
+  storefront: string;
+  storefrontId: string;
+  price: number;
+  currency: string;
+  appTransactionId: string;
+}
+
 interface IVerifyGoogleSubscriptionTokenSuccess {
   startTimeMillis: string;
   expiryTimeMillis: string;
@@ -196,7 +220,9 @@ export class Subscriptions {
     }
   }
 
-  public async getAppleTransactionHistory(originalTransactionId: string): Promise<any> {
+  public async getAppleTransactionHistory(
+    originalTransactionId: string
+  ): Promise<IAppleTransactionHistory | undefined> {
     try {
       const url = `https://api.storekit.itunes.apple.com/inApps/v1/history/${originalTransactionId}`;
 
@@ -204,12 +230,14 @@ export class Subscriptions {
       const appleKeyId = await this.secretsUtil.getAppleKeyId();
       const appleIssuerId = await this.secretsUtil.getAppleIssuerId();
 
+      const now = Math.floor(Date.now() / 1000);
       const token = JWT.sign(
         {
           iss: appleIssuerId,
           aud: "appstoreconnect-v1",
-          iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + 3600,
+          iat: now,
+          exp: now + 1200,
+          bid: "com.liftosaur.www",
         },
         applePrivateKey,
         {
@@ -217,6 +245,7 @@ export class Subscriptions {
           header: {
             kid: appleKeyId,
             typ: "JWT",
+            alg: "ES256",
           },
         }
       );
