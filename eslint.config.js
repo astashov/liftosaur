@@ -1,0 +1,193 @@
+const { defineConfig, globalIgnores } = require("eslint/config");
+
+const globals = require("globals");
+const babelParser = require("babel-eslint");
+const tsParser = require("@typescript-eslint/parser");
+const typescriptEslint = require("@typescript-eslint/eslint-plugin");
+const js = require("@eslint/js");
+
+const { FlatCompat } = require("@eslint/eslintrc");
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+  recommendedConfig: js.configs.recommended,
+  allConfig: js.configs.all,
+});
+
+module.exports = defineConfig([
+  {
+    extends: compat.extends("plugin:prettier/recommended"),
+
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+
+      parser: babelParser,
+      ecmaVersion: 2017,
+      parserOptions: {},
+    },
+
+    rules: {
+      "arrow-parens": ["off", "as-needed"],
+      "comma-dangle": "off",
+      complexity: "off",
+      "constructor-super": "error",
+      curly: "error",
+      "dot-notation": "error",
+      "eol-last": "off",
+      eqeqeq: ["error", "smart"],
+      "guard-for-in": "error",
+      "id-match": "error",
+      "import/order": "off",
+      "linebreak-style": "off",
+      "max-classes-per-file": "off",
+      "max-len": "off",
+      "new-parens": "off",
+      "newline-per-chained-call": "off",
+      "no-bitwise": "error",
+      "no-caller": "error",
+      "no-cond-assign": "error",
+      "no-console": "off",
+      "no-debugger": "error",
+      "no-empty": "off",
+      "no-eval": "error",
+      "no-extra-semi": "off",
+      "no-fallthrough": "off",
+      "no-invalid-this": "off",
+      "no-irregular-whitespace": "off",
+      "no-multiple-empty-lines": "off",
+      "no-new-wrappers": "error",
+
+      "no-plusplus": [
+        "error",
+        {
+          allowForLoopAfterthoughts: true,
+        },
+      ],
+
+      "no-return-await": "error",
+      "no-shadow": "error",
+      "no-template-curly-in-string": "error",
+      "no-throw-literal": "error",
+      "no-trailing-spaces": "off",
+      "no-unsafe-finally": "error",
+      "no-unused-expressions": "error",
+      "no-unused-labels": "error",
+      "no-var": "error",
+      "no-void": "error",
+      "one-var": ["error", "never"],
+      "prefer-const": "error",
+      "prefer-object-spread": "error",
+      "quote-props": "off",
+      radix: "error",
+      "space-before-function-paren": "off",
+      "spaced-comment": "error",
+      "use-isnan": "error",
+      "valid-typeof": "off",
+      "prettier/prettier": "error",
+    },
+  },
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+
+    languageOptions: {
+      parser: tsParser,
+      sourceType: "module",
+
+      parserOptions: {
+        project: "tsconfig.json",
+      },
+    },
+
+    plugins: {
+      "@typescript-eslint": typescriptEslint,
+    },
+
+    rules: {
+      "@typescript-eslint/adjacent-overload-signatures": "error",
+      "@typescript-eslint/await-thenable": "error",
+      "@typescript-eslint/consistent-type-assertions": "error",
+      "@typescript-eslint/consistent-type-definitions": "off",
+
+      "@typescript-eslint/explicit-member-accessibility": [
+        "error",
+        {
+          accessibility: "explicit",
+
+          overrides: {
+            constructors: "off",
+          },
+        },
+      ],
+
+      "@typescript-eslint/indent": "off",
+      "@typescript-eslint/interface-name-prefix": "off",
+
+      "@typescript-eslint/member-delimiter-style": [
+        "off",
+        "error",
+        {
+          multiline: {
+            delimiter: "none",
+            requireLast: true,
+          },
+
+          singleline: {
+            delimiter: "semi",
+            requireLast: false,
+          },
+        },
+      ],
+
+      "@typescript-eslint/no-empty-function": "off",
+      "@typescript-eslint/no-empty-interface": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-misused-new": "error",
+      "@typescript-eslint/no-parameter-properties": "off",
+      "@typescript-eslint/no-use-before-declare": "off",
+      "@typescript-eslint/no-var-requires": "error",
+      "@typescript-eslint/prefer-function-type": "error",
+      "@typescript-eslint/prefer-namespace-keyword": "error",
+      "@typescript-eslint/quotes": "off",
+      "@typescript-eslint/restrict-plus-operands": "error",
+      "@typescript-eslint/semi": ["off", null],
+      "@typescript-eslint/space-within-parens": ["off", "never"],
+      "@typescript-eslint/triple-slash-reference": "error",
+      "@typescript-eslint/type-annotation-spacing": "off",
+      "@typescript-eslint/unbound-method": "error",
+      "@typescript-eslint/unified-signatures": "error",
+      "@typescript-eslint/prefer-readonly": "error",
+
+      "@typescript-eslint/explicit-function-return-type": [
+        "error",
+        {
+          allowExpressions: true,
+        },
+      ],
+
+      "@typescript-eslint/typedef": [
+        "error",
+        {
+          arrowParameter: false,
+          memberVariableDeclaration: false,
+        },
+      ],
+
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          selector: "interface",
+          format: ["PascalCase"],
+          prefix: ["I"],
+        },
+        {
+          selector: "typeAlias",
+          format: ["PascalCase"],
+          prefix: ["I"],
+        },
+      ],
+    },
+  },
+  globalIgnores(["**/dist", "cypress", "**/dist-lambda", "cdk.out", "dist-plannerhighlighter"]),
+]);

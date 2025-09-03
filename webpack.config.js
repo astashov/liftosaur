@@ -35,6 +35,7 @@ module.exports = {
     aiPrompt: ["./src/aiPrompt.tsx", "./src/page.css", "./src/index.css"],
     userdashboard: ["./src/userdashboard.tsx", "./src/page.css", "./src/index.css"],
     usersdashboard: ["./src/usersdashboard.tsx", "./src/page.css", "./src/index.css"],
+    paymentsdashboard: ["./src/paymentsdashboard.tsx", "./src/page.css", "./src/index.css"],
     "webpushr-sw": "./src/webpushr-sw.ts",
   },
   output: {
@@ -296,6 +297,10 @@ module.exports = {
         secure: false,
       },
       "/dashboards/user/*": {
+        target: localapi,
+        secure: false,
+      },
+      "/dashboards/payments": {
         target: localapi,
         secure: false,
       },

@@ -482,7 +482,7 @@ export class UserDao {
       values: { ":tid": originalTransactionId },
       limit: 1,
     });
-    
+
     return subscriptionDetails[0]?.userId;
   }
 

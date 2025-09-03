@@ -66,4 +66,11 @@ export class PaymentDao {
       limit,
     });
   }
+
+  public async getAllPayments(): Promise<IPaymentDao[]> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.scan<IPaymentDao>({
+      tableName: tableNames[env].payments,
+    });
+  }
 }

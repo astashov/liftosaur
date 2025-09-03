@@ -70,8 +70,10 @@ import { renderAllExercisesHtml } from "./allExercises";
 import { renderRepMaxHtml } from "./repmax";
 import { MathUtils } from "../src/utils/math";
 import { EventDao } from "./dao/eventDao";
+import { PaymentDao } from "./dao/paymentDao";
 import { StorageDao } from "./dao/storageDao";
 import { renderUserDashboardHtml } from "./userDashboard";
+import { renderPaymentsDashboardHtml, IPaymentsDashboardData } from "./paymentsDashboard";
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { UrlContentFetcher } from "./utils/urlContentFetcher";
 import { LlmPrompt } from "./utils/llms/llmPrompt";
@@ -1155,6 +1157,44 @@ const getDashboardsUserHandler: RouteHandler<
     } else {
       return ResponseUtils.json(404, event, { error: "User not found" });
     }
+  } else {
+    return ResponseUtils.json(401, event, { data: "Unauthorized" });
+  }
+};
+
+const getDashboardsPaymentsEndpoint = Endpoint.build("/dashboards/payments", { key: "string" });
+const getDashboardsPaymentsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getDashboardsPaymentsEndpoint
+> = async ({ payload, match }) => {
+  const { event, di } = payload;
+  const apiKey = await di.secrets.getApiKey();
+  if (match.params.key === apiKey) {
+    const paymentDao = new PaymentDao(di);
+    const allPayments = await paymentDao.getAllPayments();
+    const paymentsByDate: Record<string, typeof allPayments> = {};
+
+    for (const payment of allPayments) {
+      const date = new Date(payment.timestamp).toISOString().split("T")[0];
+      if (!paymentsByDate[date]) {
+        paymentsByDate[date] = [];
+      }
+      paymentsByDate[date].push(payment);
+    }
+
+    const paymentsData: IPaymentsDashboardData[] = Object.entries(paymentsByDate)
+      .map(([date, payments]) => ({
+        date,
+        payments: payments.sort((a, b) => b.timestamp - a.timestamp),
+      }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    return {
+      statusCode: 200,
+      body: renderPaymentsDashboardHtml(di.fetch, apiKey, paymentsData),
+      headers: { "content-type": "text/html" },
+    };
   } else {
     return ResponseUtils.json(401, event, { data: "Unauthorized" });
   }
@@ -2357,6 +2397,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postReceiveAdAttrEndpoint, postReceiveAdAttrHandler)
       .post(postEventEndpoint, postEventHandler)
       .get(getDashboardsUserEndpoint, getDashboardsUserHandler)
+      .get(getDashboardsPaymentsEndpoint, getDashboardsPaymentsHandler)
       .post(postBatchEventsEndpoint, postBatchEventsHandler);
     r = repmaxpairswords.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
     r = repmaxpairnums.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);

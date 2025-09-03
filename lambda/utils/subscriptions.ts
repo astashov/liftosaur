@@ -47,6 +47,22 @@ export interface IAppleTransaction {
   offerDiscountType?: "FREE_TRIAL" | "PAY_UP_FRONT" | "PAY_AS_YOU_GO";
 }
 
+interface IGoogleOrderInfo {
+  orderId: string;
+  packageName: string;
+  productId: string;
+  purchaseTime: number;
+  purchaseState: number;
+  purchaseToken: string;
+  quantity: number;
+  acknowledged: boolean;
+  total?: {
+    units?: string;
+    nanos?: number;
+    currencyCode?: string;
+  };
+}
+
 interface IVerifyGoogleSubscriptionTokenSuccess {
   startTimeMillis: string;
   expiryTimeMillis: string;
@@ -363,7 +379,7 @@ export class Subscriptions {
     return this.getAppleVerificationInfo(user.id, json);
   }
 
-  public async getGoogleOrderInfo(orderId: string): Promise<any> {
+  public async getGoogleOrderInfo(orderId: string): Promise<IGoogleOrderInfo | undefined> {
     try {
       const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/orders/${orderId}`;
       const googleServiceAccountPubsub = await this.secretsUtil.getGoogleServiceAccountPubsub();
@@ -391,7 +407,7 @@ export class Subscriptions {
         return undefined;
       }
 
-      const json = await response.json();
+      const json: IGoogleOrderInfo = await response.json();
       return json;
     } catch (error) {
       this.log.log(`Error getting order info for ${orderId}:`, error);
