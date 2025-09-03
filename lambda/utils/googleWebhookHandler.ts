@@ -2,6 +2,7 @@ import { IDI } from "./di";
 import { PaymentDao } from "../dao/paymentDao";
 import { UserDao } from "../dao/userDao";
 import { Subscriptions } from "./subscriptions";
+import { GoogleJWTVerifier } from "./googleJwtVerifier";
 
 export interface IGooglePubSubMessage {
   message: {
@@ -50,11 +51,28 @@ export interface IGoogleTestNotification {
 export class GoogleWebhookHandler {
   constructor(private readonly di: IDI) {}
 
-  public async handleWebhook(body: string): Promise<{ success: boolean; message: string }> {
+  public async handleWebhook(
+    body: string,
+    authorizationHeader?: string
+  ): Promise<{ success: boolean; message: string }> {
     this.di.log.log("Google webhook received body", body);
 
     if (!body) {
       return { success: false, message: "No body provided" };
+    }
+
+    if (authorizationHeader) {
+      const jwtVerifier = new GoogleJWTVerifier(this.di.log);
+      const verifiedPayload = await jwtVerifier.verifyJWT(authorizationHeader);
+
+      if (!verifiedPayload) {
+        this.di.log.log("Google webhook: JWT verification failed");
+        return { success: false, message: "JWT verification failed" };
+      }
+
+      this.di.log.log("Google webhook: JWT verification successful");
+    } else {
+      this.di.log.log("Google webhook: No authorization header provided - proceeding without JWT verification");
     }
 
     try {
@@ -162,6 +180,7 @@ export class GoogleWebhookHandler {
       let amount = 0;
       let currency = "USD";
       let originalTransactionId = purchaseToken;
+      let timestamp = Date.now();
 
       if (productType !== "voided") {
         const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
@@ -176,8 +195,10 @@ export class GoogleWebhookHandler {
           amount = Math.round(Number(purchaseDetails.priceAmountMicros || "0") / 1000000);
           currency = purchaseDetails.priceCurrencyCode || "USD";
           originalTransactionId = purchaseDetails.linkedPurchaseToken || purchaseToken;
+          timestamp = Number(purchaseDetails.startTimeMillis || Date.now());
         } else if (purchaseDetails.kind === "androidpublisher#productPurchase") {
           this.di.log.log(`Google webhook: Fetching order info for product ${productId}`);
+          timestamp = purchaseDetails.purchaseTimeMillis;
           const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
           if (orderInfo && orderInfo.total) {
             amount =
@@ -198,7 +219,7 @@ export class GoogleWebhookHandler {
 
       await new PaymentDao(this.di).addIfNotExists({
         userId,
-        timestamp: Date.now(),
+        timestamp,
         originalTransactionId,
         transactionId: purchaseToken,
         productId,

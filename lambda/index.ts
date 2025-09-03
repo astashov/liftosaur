@@ -213,9 +213,16 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
           }
         }
 
+        let timestamp = Date.now();
+        if (googleJson.kind === "androidpublisher#productPurchase") {
+          timestamp = googleJson.purchaseTimeMillis;
+        } else if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
+          timestamp = Number(googleJson.startTimeMillis || Date.now());
+        }
+        
         await new PaymentDao(di).addIfNotExists({
           userId,
-          timestamp: Date.now(),
+          timestamp,
           originalTransactionId,
           transactionId: token,
           productId,
@@ -259,7 +266,8 @@ const postGoogleWebhookHandler: RouteHandler<
 > = async ({ payload }) => {
   const { event, di } = payload;
   const handler = new GoogleWebhookHandler(di);
-  const result = await handler.handleWebhook(event.body || "");
+  const authorizationHeader = event.headers?.authorization || event.headers?.Authorization;
+  const result = await handler.handleWebhook(event.body || "", authorizationHeader);
 
   return ResponseUtils.json(200, event, { status: result.success ? "ok" : "error", message: result.message });
 };
