@@ -44,6 +44,7 @@ import { renderAiPromptHtml } from "./aiPrompt";
 import { FreeUserDao } from "./dao/freeUserDao";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 import { PaymentDao } from "./dao/paymentDao";
+import { AppleWebhookHandler } from "./utils/appleWebhookHandler";
 import { AppleJWTVerifier } from "./utils/appleJwtVerifier";
 import { GoogleWebhookHandler } from "./utils/googleWebhookHandler";
 import { CouponDao } from "./dao/couponDao";
@@ -86,21 +87,6 @@ interface IOpenIdResponseSuccess {
 interface IOpenIdResponseError {
   error: string;
   error_description: string;
-}
-
-interface IAppleNotificationV2 {
-  signedPayload: string;
-}
-
-interface IAppleTransactionInfo {
-  transactionId: string;
-  originalTransactionId: string;
-  productId: string;
-  purchaseDate: number;
-  expiresDate?: number;
-  storefront: string;
-  price?: number;
-  currency?: string;
 }
 
 interface IPayload {
@@ -165,6 +151,56 @@ const postVerifyAppleReceiptHandler: RouteHandler<
       if (subscriptionDetails) {
         await new SubscriptionDetailsDao(di).add(subscriptionDetails);
       }
+
+      try {
+        const latestReceipt = CollectionUtils.sort(
+          appleJson.latest_receipt_info || [],
+          (a, b) => Number(b.purchase_date_ms) - Number(a.purchase_date_ms)
+        )[0];
+
+        if (latestReceipt) {
+          let amount = 0;
+          let currency = "USD";
+
+          if (latestReceipt.original_transaction_id) {
+            di.log.log(`Apple verification: Fetching transaction history for ${latestReceipt.original_transaction_id}`);
+            const transactionHistory = await subscriptions.getAppleTransactionHistory(
+              latestReceipt.original_transaction_id
+            );
+
+            if (transactionHistory && transactionHistory.signedTransactions) {
+              const jwtVerifier = new AppleJWTVerifier(di.log);
+              for (const signedTransaction of transactionHistory.signedTransactions) {
+                const transaction = jwtVerifier.verifyJWT(signedTransaction);
+                if (transaction && transaction.transactionId === latestReceipt.transaction_id) {
+                  if (transaction.price) {
+                    amount = transaction.price / 1000;
+                    currency = transaction.currency || "USD";
+                  }
+                  break;
+                }
+              }
+            }
+          }
+
+          const originalTransactionId = latestReceipt.original_transaction_id || "";
+          const transactionId = latestReceipt.transaction_id || "";
+          await new PaymentDao(di).addIfNotExists({
+            userId,
+            timestamp: Number(latestReceipt.purchase_date_ms),
+            originalTransactionId,
+            transactionId,
+            productId: latestReceipt.product_id,
+            amount,
+            currency,
+            type: "apple",
+            source: "verifier",
+            paymentType: originalTransactionId === transactionId ? "purchase" : "renewal",
+          });
+        }
+      } catch (e) {
+        di.log.log("Failed to add Apple payment record", e);
+      }
     }
     return ResponseUtils.json(200, event, { result: !!verifiedAppleReceipt });
   } else {
@@ -198,6 +234,43 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
       if (subscriptionDetails) {
         await new SubscriptionDetailsDao(di).add(subscriptionDetails);
       }
+
+      try {
+        const { token, productId } = JSON.parse(googlePurchaseToken) as { token: string; productId: string };
+        let amount = 0;
+        let currency = "USD";
+        let originalTransactionId = token;
+
+        if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
+          amount = Math.round(Number(googleJson.priceAmountMicros || "0") / 1000000);
+          currency = googleJson.priceCurrencyCode || "USD";
+          originalTransactionId = googleJson.linkedPurchaseToken || token;
+        } else if (googleJson.kind === "androidpublisher#productPurchase") {
+          di.log.log(`Google verification: Fetching order info for product ${productId}`);
+          const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
+          if (orderInfo && orderInfo.total) {
+            amount =
+              Math.round(Number(orderInfo.total.units || "0")) +
+              Math.round(Number(orderInfo.total.nanos || "0") / 1000000000);
+            currency = orderInfo.total.currencyCode || "USD";
+          }
+        }
+
+        await new PaymentDao(di).addIfNotExists({
+          userId,
+          timestamp: Date.now(),
+          originalTransactionId,
+          transactionId: token,
+          productId,
+          amount,
+          currency,
+          type: "google",
+          source: "verifier",
+          paymentType: originalTransactionId === token ? "purchase" : "renewal",
+        });
+      } catch (e) {
+        di.log.log("Failed to add Google payment record", e);
+      }
     }
   }
   return ResponseUtils.json(200, event, { result: !!verifiedGooglePurchaseToken });
@@ -211,101 +284,14 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
   const body = event.body;
   di.log.log("Received body", body);
 
-  if (!body) {
-    return ResponseUtils.json(400, event, { error: "No body provided" });
+  const appleWebhookHandler = new AppleWebhookHandler(di);
+  const result = await appleWebhookHandler.handleWebhook(body);
+
+  if (result.error) {
+    return ResponseUtils.json(400, event, result);
   }
 
-  try {
-    const decodedBody = Buffer.from(body, "base64").toString("utf-8");
-    const notification = JSON.parse(decodedBody) as IAppleNotificationV2;
-    di.log.log("Parsed body", notification);
-    // Verify and decode the signed payload JWT
-    const jwtVerifier = new AppleJWTVerifier(di.log);
-    const payloadData = jwtVerifier.verifyJWT(notification.signedPayload);
-
-    if (!payloadData) {
-      di.log.log("Apple webhook: JWT signature verification failed");
-      return ResponseUtils.json(200, event, { status: "ok" });
-    }
-
-    di.log.log("Verified and decoded payload", payloadData);
-
-    if (!payloadData?.data?.signedTransactionInfo) {
-      di.log.log("Apple webhook: No signedTransactionInfo in payload");
-      return ResponseUtils.json(200, event, { status: "ok" });
-    }
-
-    // Verify and decode the transaction info JWT
-    const transactionInfo = jwtVerifier.verifyJWT(
-      payloadData.data.signedTransactionInfo
-    ) as IAppleTransactionInfo | null;
-    if (!transactionInfo) {
-      di.log.log("Apple webhook: Failed to verify transaction info JWT");
-      return ResponseUtils.json(200, event, { status: "ok" });
-    }
-    di.log.log("Verified and decoded transaction info", transactionInfo);
-
-    const userDao = new UserDao(di);
-    const userId = await userDao.getUserIdByOriginalTransactionId(transactionInfo.originalTransactionId);
-    if (!userId) {
-      di.log.log(`Apple webhook: No user found for transaction ${transactionInfo.originalTransactionId}`);
-      return ResponseUtils.json(200, event, { status: "ok" });
-    }
-
-    // Determine payment type based on notification type
-    let paymentType: "purchase" | "renewal" | "refund";
-    const notificationType = payloadData.notificationType;
-
-    switch (notificationType) {
-      case "SUBSCRIBED":
-      case "ONE_TIME_CHARGE":
-        paymentType = "purchase";
-        break;
-      case "DID_RENEW":
-        paymentType = "renewal";
-        break;
-      case "REFUND":
-        paymentType = "refund";
-        break;
-      case "DID_CHANGE_RENEWAL_STATUS":
-      case "DID_CHANGE_RENEWAL_PREF":
-      case "DID_FAIL_TO_RENEW":
-      case "EXPIRED":
-      case "GRACE_PERIOD_EXPIRED":
-      case "OFFER_REDEEMED":
-      case "PRICE_INCREASE":
-      case "REFUND_DECLINED":
-      case "RENEWAL_EXTENDED":
-      case "REVOKE":
-      case "TEST":
-        // These don't represent actual payment events, just log and return
-        di.log.log(`Apple webhook: Received non-payment notification: ${notificationType}`);
-        return ResponseUtils.json(200, event, { status: "ok" });
-      default:
-        di.log.log(`Apple webhook: Unknown notification type: ${notificationType}`);
-        return ResponseUtils.json(200, event, { status: "ok" });
-    }
-
-    await new PaymentDao(di).add({
-      userId,
-      timestamp: transactionInfo.purchaseDate || Date.now(),
-      originalTransactionId: transactionInfo.originalTransactionId,
-      productId: transactionInfo.productId,
-      amount: transactionInfo.price || 0,
-      currency: transactionInfo.currency || "USD",
-      type: "apple",
-      paymentType,
-    });
-
-    di.log.log(
-      `Apple webhook: Recorded ${paymentType} for user ${userId}, amount: ${transactionInfo.price} ${transactionInfo.currency}`
-    );
-
-    return ResponseUtils.json(200, event, { status: "ok" });
-  } catch (error) {
-    di.log.log("Apple webhook error:", error);
-    return ResponseUtils.json(200, event, { status: "error" });
-  }
+  return ResponseUtils.json(200, event, result);
 };
 
 const postGoogleWebhookEndpoint = Endpoint.build("/api/google-payment-webhook");

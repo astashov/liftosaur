@@ -159,16 +159,9 @@ export class GoogleWebhookHandler {
     productType: "subscription" | "product" | "voided"
   ) {
     try {
-      const userDao = new UserDao(this.di);
-      const userId = await userDao.getUserIdByOriginalTransactionId(purchaseToken);
-
-      if (!userId) {
-        this.di.log.log(`Google webhook: No user found for purchase token ${purchaseToken}`);
-        return;
-      }
-
       let amount = 0;
       let currency = "USD";
+      let originalTransactionId = purchaseToken;
 
       if (productType !== "voided") {
         const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
@@ -182,19 +175,37 @@ export class GoogleWebhookHandler {
         if (purchaseDetails.kind === "androidpublisher#subscriptionPurchase") {
           amount = Math.round(Number(purchaseDetails.priceAmountMicros || "0") / 1000000);
           currency = purchaseDetails.priceCurrencyCode || "USD";
+          originalTransactionId = purchaseDetails.linkedPurchaseToken || purchaseToken;
         } else if (purchaseDetails.kind === "androidpublisher#productPurchase") {
-          this.di.log.log(`Google webhook: One-time product ${productId} - price info not available from API`);
+          this.di.log.log(`Google webhook: Fetching order info for product ${productId}`);
+          const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
+          if (orderInfo && orderInfo.total) {
+            amount =
+              Math.round(Number(orderInfo.total.units || "0")) +
+              Math.round(Number(orderInfo.total.nanos || "0") / 1000000000);
+            currency = orderInfo.total.currencyCode || "USD";
+          }
         }
       }
 
-      await new PaymentDao(this.di).add({
+      const userDao = new UserDao(this.di);
+      const userId = await userDao.getUserIdByOriginalTransactionId(originalTransactionId);
+
+      if (!userId) {
+        this.di.log.log(`Google webhook: No user found for original transaction ID ${originalTransactionId}`);
+        return;
+      }
+
+      await new PaymentDao(this.di).addIfNotExists({
         userId,
         timestamp: Date.now(),
-        originalTransactionId: purchaseToken,
+        originalTransactionId,
+        transactionId: purchaseToken,
         productId,
         amount,
         currency,
         type: "google",
+        source: "webhook",
         paymentType,
       });
 

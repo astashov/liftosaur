@@ -37,6 +37,7 @@ interface IVerifyGoogleSubscriptionTokenSuccess {
   promotionType?: number;
   promotionCode?: string;
   acknowledgementState: number;
+  linkedPurchaseToken?: string;
   kind: "androidpublisher#subscriptionPurchase";
 }
 
@@ -194,6 +195,51 @@ export class Subscriptions {
     }
   }
 
+  public async getAppleTransactionHistory(originalTransactionId: string): Promise<any> {
+    try {
+      const url = `https://api.storekit.itunes.apple.com/inApps/v1/history/${originalTransactionId}`;
+      
+      const applePrivateKey = await this.secretsUtil.getApplePrivateKey();
+      const appleKeyId = await this.secretsUtil.getAppleKeyId();
+      const appleIssuerId = await this.secretsUtil.getAppleIssuerId();
+      
+      const token = JWT.sign(
+        {
+          iss: appleIssuerId,
+          aud: "appstoreconnect-v1",
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
+        applePrivateKey,
+        { 
+          algorithm: "ES256",
+          header: {
+            kid: appleKeyId,
+            typ: "JWT",
+          },
+        }
+      );
+      
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'User-Agent': 'Liftosaur/1.0',
+        },
+      });
+      
+      if (!response.ok) {
+        this.log.log(`Failed to get Apple transaction history for ${originalTransactionId}: ${response.status}`);
+        return undefined;
+      }
+      
+      const json = await response.json();
+      return json;
+    } catch (error) {
+      this.log.log(`Error getting Apple transaction history for ${originalTransactionId}:`, error);
+      return undefined;
+    }
+  }
+
   public getAppleVerificationInfo(
     userId: string,
     json: IVerifyAppleReceiptResponse
@@ -277,6 +323,42 @@ export class Subscriptions {
       return undefined;
     }
     return this.getAppleVerificationInfo(user.id, json);
+  }
+
+  public async getGoogleOrderInfo(orderId: string): Promise<any> {
+    try {
+      const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/orders/${orderId}`;
+      const googleServiceAccountPubsub = await this.secretsUtil.getGoogleServiceAccountPubsub();
+      
+      const jwttoken = JWT.sign(
+        {
+          iss: googleServiceAccountPubsub.client_email,
+          sub: googleServiceAccountPubsub.client_email,
+          aud: "https://androidpublisher.googleapis.com/",
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
+        googleServiceAccountPubsub.private_key,
+        { algorithm: "RS256" }
+      );
+      
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${jwttoken}`,
+        },
+      });
+      
+      if (!response.ok) {
+        this.log.log(`Failed to get order info for ${orderId}: ${response.status}`);
+        return undefined;
+      }
+      
+      const json = await response.json();
+      return json;
+    } catch (error) {
+      this.log.log(`Error getting order info for ${orderId}:`, error);
+      return undefined;
+    }
   }
 
   public async getGooglePurchaseTokenJson(

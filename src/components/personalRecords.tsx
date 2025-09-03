@@ -78,7 +78,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                       </span>
                     </div>
                     {item.prev != null && (
-                      <div className="text-xs italic text-gray-700">
+                      <div className="text-xs italic text-text-secondarysubtle">
                         (was {item.prev.completedReps || 0} ×{" "}
                         {Weight.display(
                           item.prev.completedWeight ?? item.prev.weight ?? Weight.build(0, props.settings.units)

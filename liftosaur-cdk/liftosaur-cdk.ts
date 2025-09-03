@@ -82,6 +82,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
     });
+    paymentsTable.addGlobalSecondaryIndex({
+      indexName: `lftPaymentsTransactionId${suffix}`,
+      partitionKey: { name: "transactionId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
 
     const googleAuthKeysTable = new dynamodb.Table(this, `LftGoogleAuthKeys${suffix}`, {
       tableName: `lftGoogleAuthKeys${suffix}`,

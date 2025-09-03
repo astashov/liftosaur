@@ -22,6 +22,15 @@ export class MockSecretsUtil implements ISecretsUtil {
   public async getAppleAppSharedSecret(): Promise<string> {
     return "";
   }
+  public async getApplePrivateKey(): Promise<string> {
+    return "";
+  }
+  public async getAppleKeyId(): Promise<string> {
+    return "";
+  }
+  public async getAppleIssuerId(): Promise<string> {
+    return "";
+  }
   public async getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub> {
     return {
       type: "",

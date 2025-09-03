@@ -23,6 +23,9 @@ interface IAllSecrets {
   webpushrAuthToken: string;
   cryptoKey: string;
   appleAppSharedSecret: string;
+  applePrivateKey: string;
+  appleKeyId: string;
+  appleIssuerId: string;
   googleServiceAccountPubsub: IGoogleServiceAccountPubsub;
   openAiKey: string;
   anthropicApiKey: string;
@@ -35,6 +38,9 @@ export interface ISecretsUtil {
   getWebpushrKey(): Promise<string>;
   getWebpushrAuthToken(): Promise<string>;
   getAppleAppSharedSecret(): Promise<string>;
+  getApplePrivateKey(): Promise<string>;
+  getAppleKeyId(): Promise<string>;
+  getAppleIssuerId(): Promise<string>;
   getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub>;
   getOpenAiKey(): Promise<string>;
   getAnthropicKey(): Promise<string>;
@@ -101,6 +107,18 @@ export class SecretsUtil implements ISecretsUtil {
 
   public async getAppleAppSharedSecret(): Promise<string> {
     return this.cache("appleAppSharedSecret", () => this.getSecret("appleAppSharedSecret"));
+  }
+
+  public async getApplePrivateKey(): Promise<string> {
+    return this.cache("applePrivateKey", () => this.getSecret("applePrivateKey"));
+  }
+
+  public async getAppleKeyId(): Promise<string> {
+    return this.cache("appleKeyId", () => this.getSecret("appleKeyId"));
+  }
+
+  public async getAppleIssuerId(): Promise<string> {
+    return this.cache("appleIssuerId", () => this.getSecret("appleIssuerId"));
   }
 
   public async getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub> {

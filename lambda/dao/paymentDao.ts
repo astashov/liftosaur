@@ -14,10 +14,12 @@ export interface IPaymentDao {
   userId: string;
   timestamp: number;
   originalTransactionId: string;
+  transactionId: string;
   productId: string;
   amount: number;
   currency?: string;
   type: "apple" | "google";
+  source: "verifier" | "webhook";
   paymentType: "purchase" | "renewal" | "refund";
 }
 
@@ -30,6 +32,25 @@ export class PaymentDao {
       tableName: tableNames[env].payments,
       item: payment,
     });
+  }
+
+  public async addIfNotExists(payment: IPaymentDao): Promise<boolean> {
+    const env = Utils.getEnv();
+
+    const existingPayments = await this.di.dynamo.query<IPaymentDao>({
+      tableName: tableNames[env].payments,
+      indexName: `lftPaymentsTransactionId${env === "dev" ? "Dev" : ""}`,
+      expression: "transactionId = :transactionId",
+      values: { ":transactionId": payment.transactionId },
+      limit: 1,
+    });
+
+    if (existingPayments.length > 0) {
+      return false;
+    }
+
+    await this.add(payment);
+    return true;
   }
 
   public async getByUserId(userId: string, limit?: number): Promise<IPaymentDao[]> {
