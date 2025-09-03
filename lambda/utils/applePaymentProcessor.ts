@@ -17,12 +17,14 @@ export class ApplePaymentProcessor {
     private readonly subscriptions: Subscriptions
   ) {}
 
-  public async getAmountAndCurrency(
+  public async getTransactionDetails(
     transactionId: string,
     transactionHistory?: IAppleTransactionHistory
-  ): Promise<{ amount: number; currency: string }> {
+  ): Promise<{ amount: number; currency: string; isFreeTrialPayment: boolean }> {
     let amount = 0;
     let currency = "USD";
+    let isFreeTrialPayment = false;
+    
     if (transactionHistory && transactionHistory.signedTransactions) {
       const jwtVerifier = new AppleJWTVerifier(this.di.log);
       for (const signedTransaction of transactionHistory.signedTransactions) {
@@ -32,11 +34,12 @@ export class ApplePaymentProcessor {
             amount = transaction.price / 1000;
             currency = transaction.currency || "USD";
           }
+          isFreeTrialPayment = transaction.offerDiscountType === "FREE_TRIAL";
           break;
         }
       }
     }
-    return { amount, currency };
+    return { amount, currency, isFreeTrialPayment };
   }
 
   public async processReceiptPayment(userId: string, latestReceiptInfo?: IAppleReceiptInfo[]): Promise<void> {
@@ -55,15 +58,17 @@ export class ApplePaymentProcessor {
 
     let amount = 0;
     let currency = "USD";
+    let isFreeTrialPayment = false;
 
     if (latestReceipt.original_transaction_id) {
       this.di.log.log(`Apple verification: Fetching transaction history for ${latestReceipt.original_transaction_id}`);
       const transactionHistory = await this.subscriptions.getAppleTransactionHistory(
         latestReceipt.original_transaction_id
       );
-      const result = await this.getAmountAndCurrency(latestReceipt.transaction_id || "", transactionHistory);
+      const result = await this.getTransactionDetails(latestReceipt.transaction_id || "", transactionHistory);
       amount = result.amount;
       currency = result.currency;
+      isFreeTrialPayment = result.isFreeTrialPayment;
     }
 
     const originalTransactionId = latestReceipt.original_transaction_id || "";
@@ -80,6 +85,7 @@ export class ApplePaymentProcessor {
       type: "apple",
       source: "verifier",
       paymentType: originalTransactionId === transactionId ? "purchase" : "renewal",
+      isFreeTrialPayment,
     });
   }
 }

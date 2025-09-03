@@ -44,6 +44,7 @@ export interface IAppleTransaction {
   price: number;
   currency: string;
   appTransactionId: string;
+  offerDiscountType?: "FREE_TRIAL" | "PAY_UP_FRONT" | "PAY_AS_YOU_GO";
 }
 
 interface IVerifyGoogleSubscriptionTokenSuccess {
@@ -62,6 +63,12 @@ interface IVerifyGoogleSubscriptionTokenSuccess {
   promotionCode?: string;
   acknowledgementState: number;
   linkedPurchaseToken?: string;
+  introductoryPriceInfo?: {
+    introductoryPriceCurrencyCode?: string;
+    introductoryPriceAmountMicros?: string;
+    introductoryPricePeriod?: string;
+    introductoryPriceCycles?: number;
+  };
   kind: "androidpublisher#subscriptionPurchase";
 }
 

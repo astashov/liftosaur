@@ -181,6 +181,7 @@ export class GoogleWebhookHandler {
       let currency = "USD";
       let originalTransactionId = purchaseToken;
       let timestamp = Date.now();
+      let isFreeTrialPayment = false;
 
       if (productType !== "voided") {
         const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
@@ -196,6 +197,11 @@ export class GoogleWebhookHandler {
           currency = purchaseDetails.priceCurrencyCode || "USD";
           originalTransactionId = purchaseDetails.linkedPurchaseToken || purchaseToken;
           timestamp = Number(purchaseDetails.startTimeMillis || Date.now());
+
+          if (purchaseDetails.introductoryPriceInfo) {
+            const introPrice = purchaseDetails.introductoryPriceInfo.introductoryPriceAmountMicros;
+            isFreeTrialPayment = introPrice === "0" || introPrice === undefined;
+          }
         } else if (purchaseDetails.kind === "androidpublisher#productPurchase") {
           this.di.log.log(`Google webhook: Fetching order info for product ${productId}`);
           timestamp = purchaseDetails.purchaseTimeMillis;
@@ -228,6 +234,7 @@ export class GoogleWebhookHandler {
         type: "google",
         source: "webhook",
         paymentType,
+        isFreeTrialPayment,
       });
 
       this.di.log.log(

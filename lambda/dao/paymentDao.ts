@@ -21,6 +21,7 @@ export interface IPaymentDao {
   type: "apple" | "google";
   source: "verifier" | "webhook";
   paymentType: "purchase" | "renewal" | "refund";
+  isFreeTrialPayment: boolean;
 }
 
 export class PaymentDao {

@@ -220,6 +220,12 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
           timestamp = Number(googleJson.startTimeMillis || Date.now());
         }
 
+        let isFreeTrialPayment = false;
+        if (googleJson.kind === "androidpublisher#subscriptionPurchase" && googleJson.introductoryPriceInfo) {
+          const introPrice = googleJson.introductoryPriceInfo.introductoryPriceAmountMicros;
+          isFreeTrialPayment = introPrice === "0" || introPrice === undefined;
+        }
+
         await new PaymentDao(di).addIfNotExists({
           userId,
           timestamp,
@@ -231,6 +237,7 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
           type: "google",
           source: "verifier",
           paymentType: originalTransactionId === token ? "purchase" : "renewal",
+          isFreeTrialPayment,
         });
       } catch (e) {
         di.log.log("Failed to add Google payment record", e);
