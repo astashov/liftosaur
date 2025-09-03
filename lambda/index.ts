@@ -219,7 +219,7 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
         } else if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
           timestamp = Number(googleJson.startTimeMillis || Date.now());
         }
-        
+
         await new PaymentDao(di).addIfNotExists({
           userId,
           timestamp,
@@ -267,6 +267,7 @@ const postGoogleWebhookHandler: RouteHandler<
   const { event, di } = payload;
   const handler = new GoogleWebhookHandler(di);
   const authorizationHeader = event.headers?.authorization || event.headers?.Authorization;
+  di.log.log("Received headers", event.headers);
   const result = await handler.handleWebhook(event.body || "", authorizationHeader);
 
   return ResponseUtils.json(200, event, { status: result.success ? "ok" : "error", message: result.message });
