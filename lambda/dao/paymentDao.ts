@@ -35,21 +35,23 @@ export class PaymentDao {
     });
   }
 
-  public async addIfNotExists(payment: IPaymentDao): Promise<boolean> {
+  public async doesExist(transactionId: string): Promise<boolean> {
     const env = Utils.getEnv();
-
     const existingPayments = await this.di.dynamo.query<IPaymentDao>({
       tableName: tableNames[env].payments,
       indexName: `lftPaymentsTransactionId${env === "dev" ? "Dev" : ""}`,
       expression: "transactionId = :transactionId",
-      values: { ":transactionId": payment.transactionId },
+      values: { ":transactionId": transactionId },
       limit: 1,
     });
 
-    if (existingPayments.length > 0) {
+    return existingPayments.length > 0;
+  }
+
+  public async addIfNotExists(payment: IPaymentDao): Promise<boolean> {
+    if (await this.doesExist(payment.transactionId)) {
       return false;
     }
-
     await this.add(payment);
     return true;
   }

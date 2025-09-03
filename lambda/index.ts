@@ -43,9 +43,9 @@ import { renderAffiliatesHtml } from "./affiliates";
 import { renderAiPromptHtml } from "./aiPrompt";
 import { FreeUserDao } from "./dao/freeUserDao";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
-import { PaymentDao } from "./dao/paymentDao";
 import { AppleWebhookHandler } from "./utils/appleWebhookHandler";
 import { ApplePaymentProcessor } from "./utils/applePaymentProcessor";
+import { GooglePaymentProcessor } from "./utils/googlePaymentProcessor";
 import { GoogleWebhookHandler } from "./utils/googleWebhookHandler";
 import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
@@ -194,51 +194,8 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
       }
 
       try {
-        let amount = 0;
-        let currency = "USD";
-        let originalTransactionId = token;
-
-        if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
-          amount = Math.round(Number(googleJson.priceAmountMicros || "0") / 1000000);
-          currency = googleJson.priceCurrencyCode || "USD";
-          originalTransactionId = googleJson.linkedPurchaseToken || token;
-        } else if (googleJson.kind === "androidpublisher#productPurchase") {
-          di.log.log(`Google verification: Fetching order info for product ${productId}`);
-          const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
-          if (orderInfo && orderInfo.total) {
-            amount =
-              Math.round(Number(orderInfo.total.units || "0")) +
-              Math.round(Number(orderInfo.total.nanos || "0") / 1000000000);
-            currency = orderInfo.total.currencyCode || "USD";
-          }
-        }
-
-        let timestamp = Date.now();
-        if (googleJson.kind === "androidpublisher#productPurchase") {
-          timestamp = googleJson.purchaseTimeMillis;
-        } else if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
-          timestamp = Number(googleJson.startTimeMillis || Date.now());
-        }
-
-        let isFreeTrialPayment = false;
-        if (googleJson.kind === "androidpublisher#subscriptionPurchase" && googleJson.introductoryPriceInfo) {
-          const introPrice = googleJson.introductoryPriceInfo.introductoryPriceAmountMicros;
-          isFreeTrialPayment = introPrice === "0" || introPrice === undefined;
-        }
-
-        await new PaymentDao(di).addIfNotExists({
-          userId,
-          timestamp,
-          originalTransactionId,
-          transactionId: token,
-          productId,
-          amount,
-          currency,
-          type: "google",
-          source: "verifier",
-          paymentType: originalTransactionId === token ? "purchase" : "renewal",
-          isFreeTrialPayment,
-        });
+        const googlePaymentProcessor = new GooglePaymentProcessor(di);
+        await googlePaymentProcessor.processVerificationPayment(userId, googleJson, token, productId);
       } catch (e) {
         di.log.log("Failed to add Google payment record", e);
       }

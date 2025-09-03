@@ -24,7 +24,7 @@ export class ApplePaymentProcessor {
     let amount = 0;
     let currency = "USD";
     let isFreeTrialPayment = false;
-    
+
     if (transactionHistory && transactionHistory.signedTransactions) {
       const jwtVerifier = new AppleJWTVerifier(this.di.log);
       for (const signedTransaction of transactionHistory.signedTransactions) {
@@ -56,6 +56,16 @@ export class ApplePaymentProcessor {
       return;
     }
 
+    const paymentDao = new PaymentDao(this.di);
+    const transactionId = latestReceipt.transaction_id;
+    if (!transactionId) {
+      return;
+    }
+    if (await paymentDao.doesExist(transactionId)) {
+      this.di.log.log(`Apple verification: Payment with transaction ID ${transactionId} already exists`);
+      return;
+    }
+
     let amount = 0;
     let currency = "USD";
     let isFreeTrialPayment = false;
@@ -65,16 +75,14 @@ export class ApplePaymentProcessor {
       const transactionHistory = await this.subscriptions.getAppleTransactionHistory(
         latestReceipt.original_transaction_id
       );
-      const result = await this.getTransactionDetails(latestReceipt.transaction_id || "", transactionHistory);
+      const result = await this.getTransactionDetails(transactionId, transactionHistory);
       amount = result.amount;
       currency = result.currency;
       isFreeTrialPayment = result.isFreeTrialPayment;
     }
 
     const originalTransactionId = latestReceipt.original_transaction_id || "";
-    const transactionId = latestReceipt.transaction_id || "";
-
-    await new PaymentDao(this.di).addIfNotExists({
+    await paymentDao.addIfNotExists({
       userId,
       timestamp: Number(latestReceipt.purchase_date_ms),
       originalTransactionId,
