@@ -221,10 +221,11 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
     return ResponseUtils.json(200, event, { result: false });
   }
   const subscriptions = new Subscriptions(di.log, di.secrets);
-  const googleJson = await subscriptions.getGooglePurchaseTokenJson(googlePurchaseToken);
-  let verifiedGooglePurchaseToken = undefined;
+  const { token, productId } = JSON.parse(googlePurchaseToken) as { token: string; productId: string };
+  const googleJson = await subscriptions.getGooglePurchaseTokenJson(token, productId);
+  let verifiedGooglePurchaseToken = false;
   if (googleJson) {
-    verifiedGooglePurchaseToken = await subscriptions.verifyGooglePurchaseTokenJson(googlePurchaseToken, googleJson);
+    verifiedGooglePurchaseToken = await subscriptions.verifyGooglePurchaseTokenJson(googleJson);
     if (verifiedGooglePurchaseToken && userId && !("error" in googleJson)) {
       const subscriptionDetails = await subscriptions.getGoogleVerificationInfo(
         userId,
@@ -236,7 +237,6 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
       }
 
       try {
-        const { token, productId } = JSON.parse(googlePurchaseToken) as { token: string; productId: string };
         let amount = 0;
         let currency = "USD";
         let originalTransactionId = token;

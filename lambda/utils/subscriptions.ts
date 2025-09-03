@@ -120,7 +120,8 @@ export class Subscriptions {
     }
     if (subscription.google) {
       for (const receipt of subscription.google) {
-        if (await this.verifyGooglePurchaseToken(receipt.value)) {
+        const { token, productId } = JSON.parse(receipt.value) as { token: string; productId: string };
+        if (await this.verifyGooglePurchaseToken(token, productId)) {
           return true;
         }
       }
@@ -198,11 +199,11 @@ export class Subscriptions {
   public async getAppleTransactionHistory(originalTransactionId: string): Promise<any> {
     try {
       const url = `https://api.storekit.itunes.apple.com/inApps/v1/history/${originalTransactionId}`;
-      
+
       const applePrivateKey = await this.secretsUtil.getApplePrivateKey();
       const appleKeyId = await this.secretsUtil.getAppleKeyId();
       const appleIssuerId = await this.secretsUtil.getAppleIssuerId();
-      
+
       const token = JWT.sign(
         {
           iss: appleIssuerId,
@@ -211,7 +212,7 @@ export class Subscriptions {
           exp: Math.floor(Date.now() / 1000) + 3600,
         },
         applePrivateKey,
-        { 
+        {
           algorithm: "ES256",
           header: {
             kid: appleKeyId,
@@ -219,19 +220,19 @@ export class Subscriptions {
           },
         }
       );
-      
+
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'User-Agent': 'Liftosaur/1.0',
+          "User-Agent": "Liftosaur/1.0",
         },
       });
-      
+
       if (!response.ok) {
         this.log.log(`Failed to get Apple transaction history for ${originalTransactionId}: ${response.status}`);
         return undefined;
       }
-      
+
       const json = await response.json();
       return json;
     } catch (error) {
@@ -280,6 +281,7 @@ export class Subscriptions {
     json: IVerifyGoogleSubscriptionTokenSuccess | IVerifyGoogleProductTokenSuccess,
     purchaseToken: string
   ): Promise<ISubscriptionDetailsDao | undefined> {
+    const { token } = JSON.parse(purchaseToken) as { token: string; productId: string };
     try {
       if (json.kind === "androidpublisher#productPurchase") {
         return {
@@ -291,7 +293,7 @@ export class Subscriptions {
           isPromo: false,
           promoCode: "",
           isActive: json.purchaseState === 0 && json.acknowledgementState === 1,
-          originalTransactionId: purchaseToken,
+          originalTransactionId: token,
         };
       } else {
         return {
@@ -303,7 +305,7 @@ export class Subscriptions {
           isPromo: json.promotionType === 0 || json.promotionType === 1,
           promoCode: json.promotionCode,
           isActive: json.cancelReason !== null || Number(json.expiryTimeMillis || "0") < Date.now(),
-          originalTransactionId: purchaseToken,
+          originalTransactionId: json.linkedPurchaseToken || token,
         };
       }
     } catch (error) {
@@ -329,7 +331,7 @@ export class Subscriptions {
     try {
       const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/orders/${orderId}`;
       const googleServiceAccountPubsub = await this.secretsUtil.getGoogleServiceAccountPubsub();
-      
+
       const jwttoken = JWT.sign(
         {
           iss: googleServiceAccountPubsub.client_email,
@@ -341,18 +343,18 @@ export class Subscriptions {
         googleServiceAccountPubsub.private_key,
         { algorithm: "RS256" }
       );
-      
+
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${jwttoken}`,
         },
       });
-      
+
       if (!response.ok) {
         this.log.log(`Failed to get order info for ${orderId}: ${response.status}`);
         return undefined;
       }
-      
+
       const json = await response.json();
       return json;
     } catch (error) {
@@ -362,10 +364,15 @@ export class Subscriptions {
   }
 
   public async getGooglePurchaseTokenJson(
-    googlePurchaseToken: string
-  ): Promise<IVerifyGoogleSubscriptionTokenSuccess | IVerifyGoogleProductTokenSuccess | IVerifyGoogleSubscriptionTokenError | undefined> {
-    const { token, productId } = JSON.parse(googlePurchaseToken) as { token: string; productId: string };
-    console.log(googlePurchaseToken, token, productId);
+    token: string,
+    productId: string
+  ): Promise<
+    | IVerifyGoogleSubscriptionTokenSuccess
+    | IVerifyGoogleProductTokenSuccess
+    | IVerifyGoogleSubscriptionTokenError
+    | undefined
+  > {
+    console.log("Verifying Google token", token, productId);
     const url =
       productId.indexOf("lifetime") !== -1
         ? `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/products/${productId}/tokens/${token}`
@@ -396,39 +403,38 @@ export class Subscriptions {
   }
 
   public async verifyGooglePurchaseTokenJson(
-    googlePurchaseToken: string,
     response:
       | IVerifyGoogleSubscriptionTokenSuccess
       | IVerifyGoogleProductTokenSuccess
       | IVerifyGoogleSubscriptionTokenError
-  ): Promise<string | undefined> {
+  ): Promise<boolean> {
     if ("error" in response) {
-      return undefined;
+      return false;
     }
     if (response.kind === "androidpublisher#productPurchase") {
       if (response.purchaseState === 0 && response.acknowledgementState === 1) {
-        return googlePurchaseToken;
+        return true;
       } else {
-        return undefined;
+        return false;
       }
     } else if (Date.now() < parseInt(response.expiryTimeMillis, 10)) {
       console.log("Google subscription is valid");
-      return googlePurchaseToken;
+      return true;
     } else {
-      return undefined;
+      return false;
     }
   }
 
-  public async verifyGooglePurchaseToken(googlePurchaseToken?: string): Promise<string | undefined> {
-    if (googlePurchaseToken == null) {
+  public async verifyGooglePurchaseToken(token: string, productId: string): Promise<boolean> {
+    if (token == null) {
       console.log("-------- Receipt is undefined!");
-      return undefined;
+      return false;
     }
-    const json = await this.getGooglePurchaseTokenJson(googlePurchaseToken);
+    const json = await this.getGooglePurchaseTokenJson(token, productId);
     if (json) {
-      return this.verifyGooglePurchaseTokenJson(googlePurchaseToken, json);
+      return this.verifyGooglePurchaseTokenJson(json);
     } else {
-      return googlePurchaseToken;
+      return true;
     }
   }
 }
