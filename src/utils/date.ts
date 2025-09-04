@@ -67,6 +67,30 @@ export namespace DateUtils {
     return [year, month, day].join("-");
   }
 
+  export function formatUTCYYYYMMDDHHMM(date: Date | string | number): string {
+    const d = new Date(date);
+    let minutes = `${d.getUTCMinutes()}`;
+    let hours = `${d.getUTCHours()}`;
+    let day = `${d.getUTCDate()}`;
+    let month = `${d.getUTCMonth() + 1}`;
+    const year = `${d.getUTCFullYear()}`;
+
+    if (minutes.length < 2) {
+      minutes = `0${minutes}`;
+    }
+    if (hours.length < 2) {
+      hours = `0${hours}`;
+    }
+    if (month.length < 2) {
+      month = `0${month}`;
+    }
+    if (day.length < 2) {
+      day = `0${day}`;
+    }
+
+    return `${[year, month, day].join("-")} ${hours}:${minutes}`;
+  }
+
   export function parseYYYYMMDDHHMM(dateStr: string): Date | undefined {
     const match = dateStr.match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/);
     if (match != null) {
@@ -178,6 +202,11 @@ export namespace DateUtils {
   export function yearAndMonth(date: Date | string | number): [number, number] {
     const d = new Date(date);
     return [d.getUTCFullYear(), d.getUTCMonth()];
+  }
+
+  export function dayOfWeekStr(date: string): string {
+    const d = new Date(fromYYYYMMDDStr(date));
+    return d.toLocaleDateString(undefined, { weekday: "long" });
   }
 
   export function formatRange(start: Date | string | number, end: Date | string | number): string {

@@ -65,12 +65,12 @@ export class GooglePaymentProcessor {
       }
 
       const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
-      
+
       if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
         amount = Number((Number(googleJson.priceAmountMicros || "0") / 1000000).toFixed(2));
         currency = googleJson.priceCurrencyCode || "USD";
         originalTransactionId = googleJson.linkedPurchaseToken || token;
-        
+
         // Try to fetch order info for subscription to get tax details
         if (googleJson.orderId) {
           this.di.log.log(`Google verification: Fetching order info for subscription ${productId}`);

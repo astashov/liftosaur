@@ -1176,7 +1176,7 @@ const getDashboardsPaymentsHandler: RouteHandler<
     const paymentsByDate: Record<string, typeof allPayments> = {};
 
     for (const payment of allPayments) {
-      const date = new Date(payment.timestamp).toISOString().split("T")[0];
+      const date = DateUtils.formatUTCYYYYMMDD(payment.timestamp);
       if (!paymentsByDate[date]) {
         paymentsByDate[date] = [];
       }

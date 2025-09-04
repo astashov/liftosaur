@@ -7,7 +7,7 @@ import { convertGooglePriceToNumber } from "./googlePaymentProcessor";
 
 export interface IGooglePubSubMessage {
   message: {
-    data: string; // base64 encoded
+    data: string;
     messageId: string;
     publishTime: string;
   };
@@ -91,9 +91,9 @@ export class GoogleWebhookHandler {
       this.di.log.log("Decoded Google notification", notification);
 
       if (notification.subscriptionNotification) {
-        await this.handleSubscriptionNotification(notification.subscriptionNotification, notification.packageName);
+        await this.handleSubscriptionNotification(notification.subscriptionNotification);
       } else if (notification.oneTimeProductNotification) {
-        await this.handleOneTimeProductNotification(notification.oneTimeProductNotification, notification.packageName);
+        await this.handleOneTimeProductNotification(notification.oneTimeProductNotification);
       } else if (notification.voidedPurchaseNotification) {
         await this.handleVoidedPurchaseNotification(notification.voidedPurchaseNotification);
       } else if (notification.testNotification) {
@@ -111,7 +111,7 @@ export class GoogleWebhookHandler {
     }
   }
 
-  private async handleSubscriptionNotification(notification: IGoogleSubscriptionNotification, packageName: string) {
+  private async handleSubscriptionNotification(notification: IGoogleSubscriptionNotification): Promise<void> {
     const { purchaseToken, subscriptionId, notificationType } = notification;
     let paymentType: "purchase" | "renewal" | "refund";
 
@@ -144,7 +144,7 @@ export class GoogleWebhookHandler {
     await this.recordPaymentEvent(purchaseToken, subscriptionId, paymentType, "subscription");
   }
 
-  private async handleOneTimeProductNotification(notification: IGoogleOneTimeProductNotification, packageName: string) {
+  private async handleOneTimeProductNotification(notification: IGoogleOneTimeProductNotification): Promise<void> {
     const { purchaseToken, sku, notificationType } = notification;
     let paymentType: "purchase" | "refund";
 
@@ -163,7 +163,7 @@ export class GoogleWebhookHandler {
     await this.recordPaymentEvent(purchaseToken, sku, paymentType, "product");
   }
 
-  private async handleVoidedPurchaseNotification(notification: IGoogleVoidedPurchaseNotification) {
+  private async handleVoidedPurchaseNotification(notification: IGoogleVoidedPurchaseNotification): Promise<void> {
     const { purchaseToken, orderId, productType, refundType } = notification;
     this.di.log.log(
       `Google webhook: Voided purchase - orderId: ${orderId}, type: ${productType}, refundType: ${refundType}`
@@ -176,7 +176,7 @@ export class GoogleWebhookHandler {
     productId: string,
     paymentType: "purchase" | "renewal" | "refund",
     productType: "subscription" | "product" | "voided"
-  ) {
+  ): Promise<void> {
     try {
       let amount = 0;
       let tax: number | undefined;
@@ -184,6 +184,12 @@ export class GoogleWebhookHandler {
       let originalTransactionId = purchaseToken;
       let timestamp = Date.now();
       let isFreeTrialPayment = false;
+
+      const paymentDao = new PaymentDao(this.di);
+      if (await paymentDao.doesExist(purchaseToken)) {
+        this.di.log.log(`Google webhook: Payment with transaction ID ${purchaseToken} already exists`);
+        return;
+      }
 
       if (productType !== "voided") {
         const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
@@ -204,8 +210,7 @@ export class GoogleWebhookHandler {
             const introPrice = purchaseDetails.introductoryPriceInfo.introductoryPriceAmountMicros;
             isFreeTrialPayment = introPrice === "0" || introPrice === undefined;
           }
-          
-          // Try to fetch order info for subscription to get tax details
+
           if (purchaseDetails.orderId) {
             this.di.log.log(`Google webhook: Fetching order info for subscription ${productId}`);
             const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
@@ -235,7 +240,7 @@ export class GoogleWebhookHandler {
         return;
       }
 
-      await new PaymentDao(this.di).addIfNotExists({
+      await paymentDao.addIfNotExists({
         userId,
         timestamp,
         originalTransactionId,

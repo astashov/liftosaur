@@ -40,4 +40,11 @@ export namespace TimeUtils {
     const minutes = Math.floor((ms / 1000 / 60) % 60);
     return [StringUtils.pad(minutes.toString(), 2), StringUtils.pad(seconds.toString(), 2)].join(":");
   }
+
+  export function formatUTCHHMM(ms: number): string {
+    const date = new Date(ms);
+    const hours = StringUtils.pad(date.getUTCHours().toString(), 2);
+    const minutes = StringUtils.pad(date.getUTCMinutes().toString(), 2);
+    return [hours, minutes].join(":");
+  }
 }

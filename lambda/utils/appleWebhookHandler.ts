@@ -62,6 +62,12 @@ export class AppleWebhookHandler {
         this.di.log.log("Apple webhook: Failed to verify transaction info JWT");
         return { status: "ok" };
       }
+      const paymentDao = new PaymentDao(this.di);
+
+      if (await paymentDao.doesExist(transactionInfo.transactionId)) {
+        this.di.log.log(`Apple webhook: Payment with transaction ID ${transactionInfo.transactionId} already exists`);
+        return { status: "ok" };
+      }
 
       this.di.log.log("Verified and decoded transaction info", transactionInfo);
 
@@ -105,7 +111,7 @@ export class AppleWebhookHandler {
           return { status: "ok" };
       }
 
-      await new PaymentDao(this.di).addIfNotExists({
+      await paymentDao.addIfNotExists({
         userId,
         timestamp: transactionInfo.purchaseDate || Date.now(),
         originalTransactionId: transactionInfo.originalTransactionId,
