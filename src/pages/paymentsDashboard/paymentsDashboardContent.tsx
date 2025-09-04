@@ -298,27 +298,39 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
           <div>
             <div className="text-sm text-gray-600">Total Revenue</div>
             <div>
-              {Object.entries(currencyTotals).map(([currency, totals]) => (
-                <div key={currency}>
-                  <div className="text-xl font-bold">
-                    {formatCurrencyWithUSD(totals.total - totals.refunds, currency)}
+              {Object.entries(currencyTotals)
+                .sort(([currencyA, totalsA], [currencyB, totalsB]) => {
+                  // Convert to USD for sorting
+                  const amountA = totalsA.total - totalsA.refunds;
+                  const amountB = totalsB.total - totalsB.refunds;
+                  const usdA = currencyA === "USD" ? amountA : PriceUtils.exchangeRate(amountA, currencyA).value;
+                  const usdB = currencyB === "USD" ? amountB : PriceUtils.exchangeRate(amountB, currencyB).value;
+                  return usdB - usdA; // Descending order
+                })
+                .map(([currency, totals]) => (
+                  <div key={currency}>
+                    <div className="text-xl font-bold">
+                      {formatCurrencyWithUSD(totals.total - totals.refunds, currency)}
+                    </div>
+                    {totalsByTypeAndCurrency[currency] && (
+                      <div className="text-xs text-gray-600">
+                        Sub: {formatCurrencyWithUSD(totalsByTypeAndCurrency[currency].subscription, currency)}
+                        {totalsByTypeAndCurrency[currency].inapp > 0 && (
+                          <span>
+                            {" "}
+                            | IAP: {formatCurrencyWithUSD(totalsByTypeAndCurrency[currency].inapp, currency)}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {totalsByPlatformAndCurrency[currency] && (
+                      <div className="text-xs text-gray-600">
+                        iOS: {formatCurrencyWithUSD(totalsByPlatformAndCurrency[currency].apple, currency)} | Android:{" "}
+                        {formatCurrencyWithUSD(totalsByPlatformAndCurrency[currency].google, currency)}
+                      </div>
+                    )}
                   </div>
-                  {totalsByTypeAndCurrency[currency] && (
-                    <div className="text-xs text-gray-600">
-                      Sub: {formatCurrencyWithUSD(totalsByTypeAndCurrency[currency].subscription, currency)}
-                      {totalsByTypeAndCurrency[currency].inapp > 0 && (
-                        <span> | IAP: {formatCurrencyWithUSD(totalsByTypeAndCurrency[currency].inapp, currency)}</span>
-                      )}
-                    </div>
-                  )}
-                  {totalsByPlatformAndCurrency[currency] && (
-                    <div className="text-xs text-gray-600">
-                      iOS: {formatCurrencyWithUSD(totalsByPlatformAndCurrency[currency].apple, currency)} | Android:{" "}
-                      {formatCurrencyWithUSD(totalsByPlatformAndCurrency[currency].google, currency)}
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
               <div className="pt-2 mt-2 border-t">
                 <div className="text-xl font-bold text-green-700">
                   Total USD: {formatCurrency(totalUSD - refundsUSD, "USD")}
@@ -403,29 +415,38 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
               </div>
               <div className="text-sm">
                 <div className="font-bold">Net:</div>
-                {Object.entries(periodData.periodTotalsByCurrency).map(([currency, totals]) => {
-                  const netAmount = totals.total - totals.refunds;
-                  const typeData = periodData.periodTotalsByTypeAndCurrency[currency];
-                  const platformData = periodData.periodTotalsByPlatformAndCurrency[currency];
+                {Object.entries(periodData.periodTotalsByCurrency)
+                  .sort(([currencyA, totalsA], [currencyB, totalsB]) => {
+                    // Convert to USD for sorting
+                    const amountA = totalsA.total - totalsA.refunds;
+                    const amountB = totalsB.total - totalsB.refunds;
+                    const usdA = currencyA === "USD" ? amountA : PriceUtils.exchangeRate(amountA, currencyA).value;
+                    const usdB = currencyB === "USD" ? amountB : PriceUtils.exchangeRate(amountB, currencyB).value;
+                    return usdB - usdA; // Descending order
+                  })
+                  .map(([currency, totals]) => {
+                    const netAmount = totals.total - totals.refunds;
+                    const typeData = periodData.periodTotalsByTypeAndCurrency[currency];
+                    const platformData = periodData.periodTotalsByPlatformAndCurrency[currency];
 
-                  return (
-                    <div key={currency} className="ml-4 text-sm">
-                      <span className="font-semibold">{formatCurrencyWithUSD(netAmount, currency)}</span>
-                      {typeData && (
-                        <span className="ml-2 text-xs text-gray-600">
-                          Sub: {formatCurrencyWithUSD(typeData.subscription, currency)}, IAP:{" "}
-                          {formatCurrencyWithUSD(typeData.inapp, currency)}
-                        </span>
-                      )}
-                      {platformData && (
-                        <span className="ml-2 text-xs text-gray-600">
-                          | iOS: {formatCurrencyWithUSD(platformData.apple, currency)}, Android:{" "}
-                          {formatCurrencyWithUSD(platformData.google, currency)}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
+                    return (
+                      <div key={currency} className="ml-4 text-sm">
+                        <span className="font-semibold">{formatCurrencyWithUSD(netAmount, currency)}</span>
+                        {typeData && (
+                          <span className="ml-2 text-xs text-gray-600">
+                            Sub: {formatCurrencyWithUSD(typeData.subscription, currency)}, IAP:{" "}
+                            {formatCurrencyWithUSD(typeData.inapp, currency)}
+                          </span>
+                        )}
+                        {platformData && (
+                          <span className="ml-2 text-xs text-gray-600">
+                            | iOS: {formatCurrencyWithUSD(platformData.apple, currency)}, Android:{" "}
+                            {formatCurrencyWithUSD(platformData.google, currency)}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 <div className="pt-1 mt-1 ml-4 text-sm border-t">
                   <span className="font-semibold text-green-700">
                     USD Total: {formatCurrency(periodData.dayTotalUSD - periodData.dayRefundsUSD, "USD")}
