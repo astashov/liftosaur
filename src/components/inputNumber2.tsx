@@ -124,7 +124,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     setIsFocused(false);
     setIsTyping(false);
     isTypingRef.current = false;
-    let newValueNum = clamp(valueRef.current, props.min, props.max);
+    const newValueNum = clamp(valueRef.current, props.min, props.max);
     valueRef.current = newValueNum != null ? newValueNum.toString() : "";
     setValue(newValueNum != null ? newValueNum.toString() : "");
     if (onBlurRef.current) {
@@ -291,7 +291,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         }}
         onBlur={(event) => {
           setTimeout(() => {
-            let target = (event.relatedTarget || onClickTarget.current) as HTMLElement | null;
+            const target = (event.relatedTarget || onClickTarget.current) as HTMLElement | null;
             const result = maybeBlur(target);
             if (!result) {
               const currentTarget = event.currentTarget || event.target;

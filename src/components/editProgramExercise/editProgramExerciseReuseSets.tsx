@@ -155,10 +155,13 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
               }
             );
             props.setIsOverriding(false);
-            props.plannerDispatch([
-              lb<IPlannerExerciseState>().p("ui").p("isProgressEnabled").record(isProgressEnabled),
-              lb<IPlannerExerciseState>().p("ui").p("isUpdateEnabled").record(isUpdateEnabled),
-            ], "Update progress/update UI flags");
+            props.plannerDispatch(
+              [
+                lb<IPlannerExerciseState>().p("ui").p("isProgressEnabled").record(isProgressEnabled),
+                lb<IPlannerExerciseState>().p("ui").p("isUpdateEnabled").record(isUpdateEnabled),
+              ],
+              "Update progress/update UI flags"
+            );
           }}
         />
       </div>

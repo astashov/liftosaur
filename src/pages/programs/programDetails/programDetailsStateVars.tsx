@@ -42,8 +42,8 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
                 typeof variable === "number"
                   ? newVal
                   : Weight.isPct(variable)
-                  ? Weight.buildPct(newVal)
-                  : Weight.build(newVal, variable.unit);
+                    ? Weight.buildPct(newVal)
+                    : Weight.build(newVal, variable.unit);
               props.onChange(key, newValue);
             }
           }}

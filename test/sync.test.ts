@@ -214,7 +214,7 @@ describe("sync", () => {
       [5, 5, 5],
       [5, 5, 5],
     ]);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     mockReducer.state.storage.version = "20231009191950";
     // expect to throw
     let threw = false;
@@ -230,7 +230,7 @@ describe("sync", () => {
       threw = true;
     }
     expect(threw).to.eql(true);
-    // eslint-disable-next-line no-unused-expressions
+
     expect(msg).to.contain("kill/restart");
   });
 });

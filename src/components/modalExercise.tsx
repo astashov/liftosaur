@@ -295,7 +295,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
                   className="w-full px-2 py-1 text-left border-b border-gray-200"
                   onClick={(event) => {
                     if (!HtmlUtils.classInParents(event.target as Element, "button")) {
-                      let labelValue = props.labelRef?.current?.validationMessage
+                      const labelValue = props.labelRef?.current?.validationMessage
                         ? undefined
                         : props.labelRef?.current?.value;
                       props.onChange({ id: e.id }, labelValue, true);
@@ -364,7 +364,9 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
             }`}
             className="w-full px-2 py-1 text-left border-b border-gray-200"
             onClick={() => {
-              let labelValue = props.labelRef?.current?.validationMessage ? undefined : props.labelRef?.current?.value;
+              const labelValue = props.labelRef?.current?.validationMessage
+                ? undefined
+                : props.labelRef?.current?.value;
               props.onChange(e, labelValue, true);
             }}
           >

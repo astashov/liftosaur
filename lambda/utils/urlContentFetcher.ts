@@ -9,7 +9,7 @@ interface IFetchedContent {
 }
 
 export class UrlContentFetcher {
-  private turndown: TurndownService;
+  private readonly turndown: TurndownService;
 
   constructor(private readonly di: IDI) {
     this.turndown = new TurndownService({

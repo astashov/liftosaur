@@ -50,8 +50,12 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
         <div className="table w-full">
           <div className="table-row-group">
             <div className="table-row text-xs border-b text-text-secondary border-background-subtle">
-              <div className="table-cell pb-1 pl-4 font-normal text-left border-b border-background-subtle">Exercise</div>
-              <div className="table-cell pb-1 pr-4 font-normal text-center border-b border-background-subtle">1 Rep Max</div>
+              <div className="table-cell pb-1 pl-4 font-normal text-left border-b border-background-subtle">
+                Exercise
+              </div>
+              <div className="table-cell pb-1 pr-4 font-normal text-center border-b border-background-subtle">
+                1 Rep Max
+              </div>
             </div>
           </div>
           <div className="table-row-group">

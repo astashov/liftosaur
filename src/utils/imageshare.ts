@@ -3,7 +3,10 @@ import * as htmlToImage from "html-to-image";
 import { SendMessage } from "./sendMessage";
 
 export class ImageShareUtils {
-  constructor(private readonly dataURL: string, private readonly fileName: string) {}
+  constructor(
+    private readonly dataURL: string,
+    private readonly fileName: string
+  ) {}
 
   public static async generateImageDataUrl(element: HTMLElement): Promise<string> {
     await htmlToImage.toPng(element, { pixelRatio: 2 });

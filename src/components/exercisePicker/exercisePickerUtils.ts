@@ -273,7 +273,7 @@ export class ExercisePickerUtils {
       return false;
     });
     const isMultipleInstances = count > 1;
-    let suffix = [];
+    const suffix = [];
     if (isMultipleInstances) {
       if (program.weeks.length > 1) {
         suffix.push(exercise.week);

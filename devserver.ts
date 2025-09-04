@@ -67,7 +67,7 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
     queryStringParameters: qs,
     multiValueQueryStringParameters: {},
     stageVariables: {},
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     requestContext: {} as any,
     resource: "",
   };
@@ -192,7 +192,6 @@ const streamingServer = https.createServer(
   }
 );
 
-// eslint-disable-next-line prefer-const
 (global as any).__COMMIT_HASH__ = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
 (global as any).__FULL_COMMIT_HASH__ = childProcess.execSync("git rev-parse HEAD").toString().trim();
 process.env.COMMIT_HASH = (global as any).__COMMIT_HASH__;

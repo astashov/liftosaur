@@ -59,7 +59,8 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
                   props.type === "squares" ? "" : `flex-1 text-center border-b whitespace-nowrap border-border-neutral`;
                 const selectedWeekButtonStyles =
                   "bg-background-default border border-button-primarybackground text-text-purple selected-tab-button";
-                const unselectedWeekButtonStyles = "bg-background-subtle border border-background-default text-text-secondary";
+                const unselectedWeekButtonStyles =
+                  "bg-background-subtle border border-background-default text-text-secondary";
                 const buttonClassName =
                   props.type === "squares"
                     ? `whitespace-nowrap px-3 py-2 text-sm rounded ${selectedIndex === index ? selectedWeekButtonStyles : unselectedWeekButtonStyles}`

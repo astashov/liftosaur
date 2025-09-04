@@ -226,28 +226,24 @@ export namespace CollectionUtils {
   ): T[K] extends number ? T[] : never {
     const arrCopy = [...arr];
     arrCopy.sort((a, b) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const aVal = a[key] as any;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const bVal = b[key] as any;
       return isReverse ? bVal - aVal : aVal - bVal;
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return arrCopy as any;
   }
 
   export function sortByExpr<T extends {}>(arr: T[], fn: (item: T) => number, isReverse?: boolean): T[] {
     const arrCopy = [...arr];
     arrCopy.sort((a, b) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const aVal = fn(a) as any;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const bVal = fn(b) as any;
       return isReverse ? bVal - aVal : aVal - bVal;
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return arrCopy as any;
   }
 

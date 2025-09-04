@@ -113,7 +113,11 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                   largeImageUrl,
                   exercise
                 );
-                updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises), "Update custom exercise");
+                updateSettings(
+                  props.dispatch,
+                  lb<ISettings>().p("exercises").record(exercises),
+                  "Update custom exercise"
+                );
                 if (props.currentProgram && exercise) {
                   const newProgram = Program.changeExerciseName(exercise.name, name, props.currentProgram, {
                     ...props.settings,

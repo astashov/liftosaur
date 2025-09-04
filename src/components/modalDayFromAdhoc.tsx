@@ -74,12 +74,16 @@ export function ModalDayFromAdhoc(props: IModalChangeNextDayProps): JSX.Element 
           onSelect={(name) => {
             setShowCreateProgramModal(false);
             const program = Program.createFromHistoryRecord(name, props.record, props.settings);
-            updateState(props.dispatch, [
-              lb<IState>()
-                .p("storage")
-                .p("programs")
-                .recordModify((pgms) => [...pgms, program]),
-            ], "Create program from adhoc");
+            updateState(
+              props.dispatch,
+              [
+                lb<IState>()
+                  .p("storage")
+                  .p("programs")
+                  .recordModify((pgms) => [...pgms, program]),
+              ],
+              "Create program from adhoc"
+            );
             alert(`Created new program '${program.name}' with this workout`);
             props.onClose();
           }}

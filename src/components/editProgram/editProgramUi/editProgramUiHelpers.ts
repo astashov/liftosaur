@@ -270,7 +270,7 @@ export class EditProgramUiHelpers {
       const targetDay = evaluatedProgram.weeks[week - 1]?.days[dayData.dayInWeek - 1];
 
       let newFullName: string | undefined;
-      let index = targetDay.exercises.findIndex((e) => e.fullName === fullName);
+      const index = targetDay.exercises.findIndex((e) => e.fullName === fullName);
       const previousExercise = targetDay.exercises[index];
       if (index !== -1 && previousExercise) {
         let exercise: IExercise | undefined;
@@ -400,7 +400,7 @@ export class EditProgramUiHelpers {
     const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
     const { week, dayInWeek } = dayData;
     const targetDay = evaluatedProgram.weeks[week - 1]?.days[dayInWeek - 1];
-    let { label, name } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
+    const { label, name } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
 
     const add = [];
     if (targetDay) {

@@ -39,16 +39,20 @@ export function ScreenGyms(props: IProps): JSX.Element {
           isHidden={!modalNewGym}
           onInput={(name) => {
             if (name) {
-              updateState(props.dispatch, [
-                lb<IState>()
-                  .p("storage")
-                  .p("settings")
-                  .p("gyms")
-                  .recordModify((oldGyms) => {
-                    const id = `gym-${UidFactory.generateUid(8)}`;
-                    return [...oldGyms, { vtype: "gym", id, name, equipment: Settings.defaultEquipment() }];
-                  }),
-              ], "Add new gym");
+              updateState(
+                props.dispatch,
+                [
+                  lb<IState>()
+                    .p("storage")
+                    .p("settings")
+                    .p("gyms")
+                    .recordModify((oldGyms) => {
+                      const id = `gym-${UidFactory.generateUid(8)}`;
+                      return [...oldGyms, { vtype: "gym", id, name, equipment: Settings.defaultEquipment() }];
+                    }),
+                ],
+                "Add new gym"
+              );
             }
             setModalNewGym(false);
           }}
@@ -73,7 +77,11 @@ export function ScreenGyms(props: IProps): JSX.Element {
                     data-cy="edit-gym"
                     className="px-2 align-middle ls-gyms-list-edit-gym button"
                     onClick={() => {
-                      updateState(props.dispatch, [lb<IState>().p("selectedGymId").record(gym.id)], "Select gym to edit");
+                      updateState(
+                        props.dispatch,
+                        [lb<IState>().p("selectedGymId").record(gym.id)],
+                        "Select gym to edit"
+                      );
                       props.dispatch(Thunk.pushScreen("plates"));
                     }}
                   >
@@ -82,21 +90,25 @@ export function ScreenGyms(props: IProps): JSX.Element {
                   <button
                     className="px-2 align-middle ls-gyms-list-copy-gym button"
                     onClick={() => {
-                      updateState(props.dispatch, [
-                        lb<IState>()
-                          .p("storage")
-                          .p("settings")
-                          .p("gyms")
-                          .recordModify((g) => {
-                            const newGym: IGym = {
-                              ...gym,
-                              name: StringUtils.nextName(gym.name),
-                              id: UidFactory.generateUid(8),
-                              equipment: ObjectUtils.clone(gym.equipment),
-                            };
-                            return [...g, newGym];
-                          }),
-                      ], "Duplicate gym");
+                      updateState(
+                        props.dispatch,
+                        [
+                          lb<IState>()
+                            .p("storage")
+                            .p("settings")
+                            .p("gyms")
+                            .recordModify((g) => {
+                              const newGym: IGym = {
+                                ...gym,
+                                name: StringUtils.nextName(gym.name),
+                                id: UidFactory.generateUid(8),
+                                equipment: ObjectUtils.clone(gym.equipment),
+                              };
+                              return [...g, newGym];
+                            }),
+                        ],
+                        "Duplicate gym"
+                      );
                     }}
                   >
                     <IconDuplicate2 />
@@ -107,26 +119,30 @@ export function ScreenGyms(props: IProps): JSX.Element {
                       className="px-2 align-middle ls-gyms-list-delete-gym button"
                       onClick={() => {
                         if (confirm("Are you sure you want to delete this gym?")) {
-                          updateState(props.dispatch, [
-                            lb<IState>()
-                              .p("storage")
-                              .p("settings")
-                              .recordModify((settings) => {
-                                const newGyms = CollectionUtils.removeBy(settings.gyms, "id", gym.id);
-                                const currentGym = newGyms.find((aGym) => aGym.id === props.settings.currentGymId);
-                                if (currentGym == null) {
-                                  settings = { ...settings, currentGymId: newGyms[0].id };
-                                }
-                                return { ...settings, gyms: newGyms };
-                              }),
-                            lb<IState>()
-                              .p("storage")
-                              .p("settings")
-                              .p("deletedGyms")
-                              .recordModify((dg) => {
-                                return Array.from(new Set([...dg, gym.id]));
-                              }),
-                          ], "Delete gym");
+                          updateState(
+                            props.dispatch,
+                            [
+                              lb<IState>()
+                                .p("storage")
+                                .p("settings")
+                                .recordModify((settings) => {
+                                  const newGyms = CollectionUtils.removeBy(settings.gyms, "id", gym.id);
+                                  const currentGym = newGyms.find((aGym) => aGym.id === props.settings.currentGymId);
+                                  if (currentGym == null) {
+                                    settings = { ...settings, currentGymId: newGyms[0].id };
+                                  }
+                                  return { ...settings, gyms: newGyms };
+                                }),
+                              lb<IState>()
+                                .p("storage")
+                                .p("settings")
+                                .p("deletedGyms")
+                                .recordModify((dg) => {
+                                  return Array.from(new Set([...dg, gym.id]));
+                                }),
+                            ],
+                            "Delete gym"
+                          );
                         }
                       }}
                     >

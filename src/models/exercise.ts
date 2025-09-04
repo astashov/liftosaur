@@ -3695,7 +3695,7 @@ export namespace Exercise {
     name: string,
     equipment?: string
   ): IExercise | undefined {
-    let exerciseId = findIdByName(name, customExercises);
+    const exerciseId = findIdByName(name, customExercises);
     const exercise = exerciseId ? findById(exerciseId, customExercises) : undefined;
     if (exercise == null) {
       return undefined;

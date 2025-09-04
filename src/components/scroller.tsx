@@ -45,7 +45,6 @@ export function Scroller(props: IProps): JSX.Element {
             transform: `translateY(${-50 + (props.arrowYOffsetPct || 0)}%)`,
           }}
           onClick={() => {
-            // eslint-disable-next-line no-unused-expressions
             tabsRef.current?.scrollTo({ left: 0, behavior: "smooth" });
           }}
         >
@@ -63,7 +62,6 @@ export function Scroller(props: IProps): JSX.Element {
           onClick={() => {
             const newScrollRight = tabsRef.current?.scrollLeft + tabsRef.current?.clientWidth;
             if (newScrollRight !== undefined) {
-              // eslint-disable-next-line no-unused-expressions
               tabsRef.current?.scrollTo({ left: newScrollRight, behavior: "smooth" });
             }
           }}

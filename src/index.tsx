@@ -19,7 +19,6 @@ import { AsyncQueue } from "./utils/asyncQueue";
 IndexedDBUtils.initializeForSafari();
 
 if ("serviceWorker" in navigator && (typeof window === "undefined" || window.location.protocol.startsWith("http"))) {
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
   navigator.serviceWorker.register("/webpushr-sw.js");
 }
 

@@ -66,7 +66,7 @@ export class ExceptionDao {
       if (!result) {
         resolve(undefined);
       }
-      gunzip((result as unknown) as Uint8Array, (err, data) => {
+      gunzip(result as unknown as Uint8Array, (err, data) => {
         if (err) {
           resolve(undefined);
         }

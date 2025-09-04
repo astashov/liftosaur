@@ -49,7 +49,7 @@ type IStorageResponse =
   | IStorageResponseGetAllKeysResult;
 
 export class NativeStorage {
-  private pendingRequests: Map<string, PendingRequest>;
+  private readonly pendingRequests: Map<string, PendingRequest>;
 
   constructor() {
     this.pendingRequests = new Map();

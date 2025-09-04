@@ -8,7 +8,6 @@ import { MathUtils } from "./utils/math";
 import { IProgramMode } from "./models/program";
 import { parser as LiftoscriptParser } from "./liftoscript";
 
-// eslint-disable-next-line no-shadow
 export enum NodeName {
   LineComment = "LineComment",
   Program = "Program",

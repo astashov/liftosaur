@@ -203,7 +203,6 @@ export namespace ObjectUtils {
     obj1: T,
     obj2: U
   ): Array<keyof T | keyof U> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return Array.from(new Set(ObjectUtils.keys(obj1).concat(ObjectUtils.keys(obj2) as any)));
   }
 

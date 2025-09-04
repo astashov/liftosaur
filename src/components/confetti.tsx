@@ -56,7 +56,7 @@ class ConfettiRunner {
   private lastFrameTime: number = Date.now();
   private particles: IParticle[] = [];
   private waveAngle: number = 0;
-  private context: CanvasRenderingContext2D;
+  private readonly context: CanvasRenderingContext2D;
 
   constructor(context: CanvasRenderingContext2D) {
     this.context = context;

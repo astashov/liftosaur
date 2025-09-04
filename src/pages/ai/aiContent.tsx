@@ -46,7 +46,9 @@ export function AiContent(props: IAiContentProps): JSX.Element {
   };
 
   const handleConvert = async () => {
-    if (!input.trim()) return;
+    if (!input.trim()) {
+      return;
+    }
 
     // Cancel any ongoing conversion
     if (abortControllerRef.current) {
@@ -69,7 +71,9 @@ export function AiContent(props: IAiContentProps): JSX.Element {
       setProgress(input.trim().match(/^https?:\/\//) ? "Fetching content from URL..." : "Converting to Liftoscript...");
 
       for await (const event of service.streamAiLiftoscriptProgram(input)) {
-        if (abortControllerRef.current.signal.aborted) break;
+        if (abortControllerRef.current.signal.aborted) {
+          break;
+        }
 
         switch (event.type) {
           case "progress":

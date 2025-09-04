@@ -12,7 +12,9 @@ export class SetUtils {
   }
 
   public static areAllEqual<T>(sets: Set<T>[]): boolean {
-    if (sets.length < 2) return true;
+    if (sets.length < 2) {
+      return true;
+    }
 
     const [first, ...rest] = sets;
     for (const set of rest) {

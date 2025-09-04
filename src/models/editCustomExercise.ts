@@ -15,21 +15,29 @@ export namespace EditCustomExercise {
     largeImageUrl?: string,
     exercise?: ICustomExercise
   ): void {
-    updateState(dispatch, [
-      EditCustomExerciseLenses.createOrUpdate(
-        lb<IState>().p("storage").p("settings"),
-        name,
-        targetMuscles,
-        synergistMuscles,
-        types,
-        smallImageUrl,
-        largeImageUrl,
-        exercise
-      ),
-    ], "Update custom exercise");
+    updateState(
+      dispatch,
+      [
+        EditCustomExerciseLenses.createOrUpdate(
+          lb<IState>().p("storage").p("settings"),
+          name,
+          targetMuscles,
+          synergistMuscles,
+          types,
+          smallImageUrl,
+          largeImageUrl,
+          exercise
+        ),
+      ],
+      "Update custom exercise"
+    );
   }
 
   export function markDeleted(dispatch: IDispatch, id: string): void {
-    updateState(dispatch, [EditCustomExerciseLenses.markDeleted(lb<IState>().p("storage").p("settings"), id)], "Delete custom exercise");
+    updateState(
+      dispatch,
+      [EditCustomExerciseLenses.markDeleted(lb<IState>().p("storage").p("settings"), id)],
+      "Delete custom exercise"
+    );
   }
 }

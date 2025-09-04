@@ -24,7 +24,7 @@ const filesToCache = [
 function cacheRequest(request: Request, response: Response): Promise<Response> {
   return caches.open(cacheName).then((cache) => {
     console.log("[Service Worker] Caching new resource: " + request.url);
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+
     cache.put(request, response.clone());
     return response;
   });

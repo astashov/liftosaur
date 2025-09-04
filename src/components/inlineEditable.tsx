@@ -33,7 +33,9 @@ export function InlineEditable({ value, onChange, onInput, className = "" }: Inl
   const autoResize = () => {
     const ghost = ghostRef.current;
     const textarea = textareaRef.current;
-    if (!ghost || !textarea) return;
+    if (!ghost || !textarea) {
+      return;
+    }
 
     ghost.textContent = internalValue || " ";
     const height = ghost.offsetHeight;

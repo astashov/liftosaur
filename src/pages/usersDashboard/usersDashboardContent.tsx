@@ -225,11 +225,15 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                             </td>
                             <td>
                               {new Date(item.lastAction.ts).toLocaleString()}
-                              <div className="text-sm text-text-secondary">{item.lastAction.name.replace("ls-", "")}</div>
+                              <div className="text-sm text-text-secondary">
+                                {item.lastAction.name.replace("ls-", "")}
+                              </div>
                             </td>
                             <td>
                               {new Date(item.firstAction.ts).toLocaleString()}
-                              <div className="text-sm text-text-secondary">{item.firstAction.name.replace("ls-", "")}</div>
+                              <div className="text-sm text-text-secondary">
+                                {item.firstAction.name.replace("ls-", "")}
+                              </div>
                             </td>
                             <td>{item.workoutsCount}</td>
                             <td>{Math.ceil((item.lastAction.ts - item.firstAction.ts) / (1000 * 60 * 60 * 24))}</td>

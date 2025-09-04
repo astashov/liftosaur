@@ -241,7 +241,7 @@ export const getStreamingHandler = (diBuilder: () => IDI): IHandler => {
         stream.end();
       },
     };
-    let r = new Router<IPayload, void>(request).post(postAiConvertStreamEndpoint, postAiConvertStreamHandler);
+    const r = new Router<IPayload, void>(request).post(postAiConvertStreamEndpoint, postAiConvertStreamHandler);
     let resp: IEither<void, string>;
     try {
       resp = await r.route(method, url.pathname + url.search);

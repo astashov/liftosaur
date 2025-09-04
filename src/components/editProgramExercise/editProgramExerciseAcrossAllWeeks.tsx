@@ -469,7 +469,9 @@ function TimerValue(props: IValueProps): JSX.Element {
 }
 
 function collapseLastElementRange(data: [string, number][][]): [string, string][][] {
-  if (data.length === 0) return [];
+  if (data.length === 0) {
+    return [];
+  }
 
   const result: [string, string][][] = [];
 
@@ -504,7 +506,9 @@ function collapseLastElementRange(data: [string, number][][]): [string, string][
 
 function isSamePrefix(a: [string, number][], b: [string, number][]): boolean {
   for (let i = 0; i < a.length - 1; i++) {
-    if (a[i][0] !== b[i][0] || a[i][1] !== b[i][1]) return false;
+    if (a[i][0] !== b[i][0] || a[i][1] !== b[i][1]) {
+      return false;
+    }
   }
   return true;
 }

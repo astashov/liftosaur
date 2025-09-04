@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // import { Utils } from "../utils";
 import { IProgramPayload, programTableNames } from "../dao/programDao";
 import { buildDi } from "../utils/di";

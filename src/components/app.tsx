@@ -128,7 +128,6 @@ export function AppView(props: IProps): JSX.Element | null {
         const name = lsName || nsName;
         dispatch(Thunk.postevent("click-" + name));
         if (lsName) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           dispatch(Thunk.log(lsName));
         }
       }

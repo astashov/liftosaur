@@ -126,7 +126,9 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 min={-9999}
                 settings={props.settings}
               />
-              <span className="ml-1 text-xs text-text-secondary">{set.originalWeight?.unit ?? props.settings.units}</span>
+              <span className="ml-1 text-xs text-text-secondary">
+                {set.originalWeight?.unit ?? props.settings.units}
+              </span>
             </div>
             <div>
               <label className="leading-none">

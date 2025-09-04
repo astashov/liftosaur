@@ -4,9 +4,9 @@ type IGestureDetectorCallback = (gesture: "swipeleft" | "swiperight") => void;
 
 export class GestureDetector {
   private points: { x: number; y: number }[] = [];
-  private threshold: number;
-  private callback: IGestureDetectorCallback;
-  private debounceTime: number;
+  private readonly threshold: number;
+  private readonly callback: IGestureDetectorCallback;
+  private readonly debounceTime: number;
   private lastTriggerTime: number;
 
   constructor(callback: IGestureDetectorCallback, threshold: number = 50, debounceTime: number = 500) {

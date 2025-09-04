@@ -16,7 +16,7 @@ const newstorage: IFeature = {
 };
 
 export class Features {
-  private static features = {
+  private static readonly features = {
     newstorage,
   } as const;
 

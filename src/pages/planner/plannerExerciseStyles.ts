@@ -1,6 +1,5 @@
 import { tags as t } from "@lezer/highlight";
 
-// eslint-disable-next-line no-shadow
 export enum PlannerNodeName {
   Program = "Program",
   LineComment = "LineComment",

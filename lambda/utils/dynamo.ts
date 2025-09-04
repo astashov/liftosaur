@@ -144,7 +144,7 @@ export class DynamoUtil implements IDynamoUtil {
   }): AsyncGenerator<T[], void, unknown> {
     const startTime = Date.now();
     let totalItems = 0;
-    
+
     try {
       for await (const batch of streamingQuery<T>((key) => {
         return this.dynamo.query({
@@ -162,7 +162,7 @@ export class DynamoUtil implements IDynamoUtil {
         yield batch;
         totalItems += batch.length;
       }
-      
+
       this.log.log(
         `Dynamo streaming query completed: ${args.tableName}${args.indexName ? ` (${args.indexName})` : ""} - `,
         args.expression,
@@ -190,7 +190,7 @@ export class DynamoUtil implements IDynamoUtil {
   }): AsyncGenerator<T[], void, unknown> {
     const startTime = Date.now();
     let totalItems = 0;
-    
+
     try {
       for await (const batch of streamingQuery<T>((key) => {
         return this.dynamo.scan({
@@ -204,8 +204,10 @@ export class DynamoUtil implements IDynamoUtil {
         yield batch;
         totalItems += batch.length;
       }
-      
-      this.log.log(`Dynamo streaming scan completed: ${args.tableName} - ${totalItems} items - ${Date.now() - startTime}ms`);
+
+      this.log.log(
+        `Dynamo streaming scan completed: ${args.tableName} - ${totalItems} items - ${Date.now() - startTime}ms`
+      );
     } catch (e) {
       this.log.log(`FAILED Dynamo streaming scan: ${args.tableName} - ${Date.now() - startTime}ms`);
       throw e;
@@ -430,20 +432,20 @@ async function* streamingQuery<T>(
 ): AsyncGenerator<T[], void, unknown> {
   let key: DynamoDB.DocumentClient.Key | undefined;
   let totalItems = 0;
-  
+
   do {
     const result = await cb(key).promise();
     const items = result.Items || [];
-    
+
     if (items.length > 0) {
       yield items as T[];
       totalItems += items.length;
     }
-    
+
     if (limit != null && totalItems >= limit) {
       break;
     }
-    
+
     key = result.LastEvaluatedKey;
   } while (key);
 }

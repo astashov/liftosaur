@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-expressions */
 import { h, JSX } from "preact";
 import { useRef } from "preact/hooks";
 

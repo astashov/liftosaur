@@ -21,9 +21,11 @@ export function Modal1RM(props: IModal1RMProps): JSX.Element {
     <Modal
       isHidden={false}
       onClose={() => {
-        updateState(props.dispatch, [
-          lb<IState>().p("progress").pi(props.progressId).pi("ui").p("rm1Modal").record(undefined),
-        ], "Close 1RM modal");
+        updateState(
+          props.dispatch,
+          [lb<IState>().p("progress").pi(props.progressId).pi("ui").p("rm1Modal").record(undefined)],
+          "Close 1RM modal"
+        );
       }}
       shouldShowClose={true}
       isFullWidth
@@ -34,16 +36,20 @@ export function Modal1RM(props: IModal1RMProps): JSX.Element {
         exercise={exercise}
         settings={props.settings}
         onEditVariable={(value) => {
-          updateState(props.dispatch, [
-            lb<IState>()
-              .p("storage")
-              .p("settings")
-              .p("exerciseData")
-              .recordModify((data) => {
-                const k = Exercise.toKey(exercise);
-                return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
-              }),
-          ], "Update 1RM from modal");
+          updateState(
+            props.dispatch,
+            [
+              lb<IState>()
+                .p("storage")
+                .p("settings")
+                .p("exerciseData")
+                .recordModify((data) => {
+                  const k = Exercise.toKey(exercise);
+                  return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
+                }),
+            ],
+            "Update 1RM from modal"
+          );
         }}
       />
     </Modal>

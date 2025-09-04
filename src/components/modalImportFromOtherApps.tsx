@@ -38,24 +38,28 @@ export function ModalImportFromOtherApps(props: IProps): JSX.Element {
     }
     if (historyRecords.length > 0) {
       if (confirm(`Do you want to import ${historyRecords.length} workouts?`)) {
-        updateState(props.dispatch, [
-          lb<IState>()
-            .p("storage")
-            .p("history")
-            .recordModify((oldHistoryRecords) => {
-              return CollectionUtils.sortBy(
-                CollectionUtils.uniqBy(oldHistoryRecords.concat(historyRecords), "id"),
-                "id"
-              );
-            }),
-          lb<IState>()
-            .p("storage")
-            .p("settings")
-            .p("exercises")
-            .recordModify((oldExercises) => {
-              return { ...oldExercises, ...customExercises };
-            }),
-        ], "Import Hevy workouts");
+        updateState(
+          props.dispatch,
+          [
+            lb<IState>()
+              .p("storage")
+              .p("history")
+              .recordModify((oldHistoryRecords) => {
+                return CollectionUtils.sortBy(
+                  CollectionUtils.uniqBy(oldHistoryRecords.concat(historyRecords), "id"),
+                  "id"
+                );
+              }),
+            lb<IState>()
+              .p("storage")
+              .p("settings")
+              .p("exercises")
+              .recordModify((oldExercises) => {
+                return { ...oldExercises, ...customExercises };
+              }),
+          ],
+          "Import Hevy workouts"
+        );
       }
     }
     props.onClose();

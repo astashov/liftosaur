@@ -70,7 +70,9 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
   const reusingTimer = reusingSets && plannerExercise.globals.timer == null;
 
   function changeSet(cb: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
-    if (!plannerExercise) return;
+    if (!plannerExercise) {
+      return;
+    }
     props.plannerDispatch(
       lbProgram.recordModify((program) => {
         return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, props.settings, true, (ex) => {

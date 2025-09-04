@@ -119,7 +119,7 @@ export class Service {
     id: string,
     args: { forcedUserEmail?: string }
   ): Promise<IGetStorageResponse> {
-    let historylimit = 20;
+    const historylimit = 20;
     const body = JSON.stringify({
       token,
       id,
@@ -176,7 +176,7 @@ export class Service {
   }
 
   public async appleSignIn(code: string, idToken: string, id: string): Promise<IGetStorageResponse> {
-    let historylimit = 20;
+    const historylimit = 20;
     const response = await this.client(`${__API_HOST__}/api/signin/apple`, {
       method: "POST",
       body: JSON.stringify({
@@ -355,7 +355,7 @@ export class Service {
     storageId?: string,
     adminKey?: string
   ): Promise<IGetStorageResponse> {
-    let historylimit = 20;
+    const historylimit = 20;
     const url = UrlUtils.build(`${__API_HOST__}/api/storage`);
     if (tempUserId) {
       url.searchParams.set("tempuserid", tempUserId);
@@ -537,14 +537,18 @@ export class Service {
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
 
         for (const line of lines) {
-          if (line.trim() === "") continue;
+          if (line.trim() === "") {
+            continue;
+          }
           if (line.startsWith("data: ")) {
             const data = line.slice(6);
             if (data === "[DONE]") {

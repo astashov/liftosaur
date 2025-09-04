@@ -100,8 +100,8 @@ export function updateStateVariable(state: IProgramState, stateKey: string, newV
     newState[stateKey] = Weight.is(value)
       ? Weight.build(v || 0, value.unit)
       : Weight.isPct(value)
-      ? Weight.buildPct(v)
-      : v;
+        ? Weight.buildPct(v)
+        : v;
   } else {
     delete newState[stateKey];
   }

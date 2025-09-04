@@ -25,7 +25,7 @@ export function ContentGrowingTextarea({ value, onInput, className = "" }: Conte
   }, [value]);
 
   const handleInput = (e: Event) => {
-    let val = (e.target as HTMLTextAreaElement).value.replace(/[\r\n]+/g, "");
+    const val = (e.target as HTMLTextAreaElement).value.replace(/[\r\n]+/g, "");
     setLocalValue(val);
     onInput?.(val);
   };

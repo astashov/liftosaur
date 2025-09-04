@@ -79,7 +79,11 @@ function Hero(): JSX.Element {
               GZCLP
             </a>{" "}
             or{" "}
-            <a className="font-bold underline text-text-link" href="https://thefitness.wiki/5-3-1-primer/" target="_blank">
+            <a
+              className="font-bold underline text-text-link"
+              href="https://thefitness.wiki/5-3-1-primer/"
+              target="_blank"
+            >
               5/3/1
             </a>
             , that have helped thousands of lifters get bigger and stronger.

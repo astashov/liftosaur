@@ -17,14 +17,14 @@ export class AppleJWTVerifier {
     try {
       // Decode header to get certificate chain
       const decoded = JWT.decode(jwtToken, { complete: true });
-      if (!decoded || typeof decoded === 'string') {
+      if (!decoded || typeof decoded === "string") {
         this.log.log("Failed to decode JWT");
         return null;
       }
-      
+
       const header = decoded.header as AppleJWTHeader;
-      
-      if (!header || !header.x5c || header.alg !== 'ES256') {
+
+      if (!header || !header.x5c || header.alg !== "ES256") {
         this.log.log("Invalid JWT header or unsupported algorithm");
         return null;
       }
@@ -34,8 +34,10 @@ export class AppleJWTVerifier {
       const publicKey = createPublicKey(leafCertPem);
 
       // Verify JWT signature - convert KeyObject to string for jsonwebtoken
-      const payload = JWT.verify(jwtToken, publicKey.export({ type: 'spki', format: 'pem' }), { algorithms: ['ES256'] });
-      
+      const payload = JWT.verify(jwtToken, publicKey.export({ type: "spki", format: "pem" }), {
+        algorithms: ["ES256"],
+      });
+
       return payload;
     } catch (error) {
       this.log.log("JWT verification error:", error);
@@ -47,7 +49,7 @@ export class AppleJWTVerifier {
    * Convert DER format to PEM format
    */
   private derToPem(der: string): string {
-    const base64 = der.replace(/(.{64})/g, '$1\n');
+    const base64 = der.replace(/(.{64})/g, "$1\n");
     return `-----BEGIN CERTIFICATE-----\n${base64}\n-----END CERTIFICATE-----`;
   }
 }

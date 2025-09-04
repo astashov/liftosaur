@@ -68,7 +68,10 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
               data-cy="editor-v2-week-muscles"
               className="px-2"
               onClick={() => {
-                props.plannerDispatch(lb<IPlannerState>().pi("ui").p("showWeekStats").record(currentWeekIndex), "Show week stats");
+                props.plannerDispatch(
+                  lb<IPlannerState>().pi("ui").p("showWeekStats").record(currentWeekIndex),
+                  "Show week stats"
+                );
               }}
             >
               <IconMusclesW size={20} />
@@ -79,14 +82,17 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
               <button
                 className="px-2"
                 onClick={() => {
-                  props.plannerDispatch([
-                    lbPlanner.p("weeks").recordModify((weeks) => {
-                      return CollectionUtils.removeAt(weeks, currentWeekIndex);
-                    }),
-                    lbUi.p("weekIndex").recordModify((wi) => {
-                      return wi > 0 ? wi - 1 : 0;
-                    }),
-                  ], "Delete week");
+                  props.plannerDispatch(
+                    [
+                      lbPlanner.p("weeks").recordModify((weeks) => {
+                        return CollectionUtils.removeAt(weeks, currentWeekIndex);
+                      }),
+                      lbUi.p("weekIndex").recordModify((wi) => {
+                        return wi > 0 ? wi - 1 : 0;
+                      }),
+                    ],
+                    "Delete week"
+                  );
                 }}
               >
                 <IconTrash />
@@ -100,7 +106,10 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
           value={currentWeek.description}
           placeholder={`Week description in Markdown...`}
           onChange={(v) => {
-            props.plannerDispatch(lbPlanner.p("weeks").i(currentWeekIndex).p("description").record(v), "Update week description");
+            props.plannerDispatch(
+              lbPlanner.p("weeks").i(currentWeekIndex).p("description").record(v),
+              "Update week description"
+            );
           }}
         />
       </div>
@@ -153,18 +162,21 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
               currentWeekIndex,
               currentWeek.days,
               (order) => {
-                props.plannerDispatch([
-                  lbPlanner
-                    .p("weeks")
-                    .i(currentWeekIndex)
-                    .p("days")
-                    .recordModify((days) => {
-                      const newDays = [...days];
-                      const [daysToMove] = newDays.splice(startIndex, 1);
-                      newDays.splice(endIndex, 0, daysToMove);
-                      return newDays;
-                    }),
-                ], "Reorder days");
+                props.plannerDispatch(
+                  [
+                    lbPlanner
+                      .p("weeks")
+                      .i(currentWeekIndex)
+                      .p("days")
+                      .recordModify((days) => {
+                        const newDays = [...days];
+                        const [daysToMove] = newDays.splice(startIndex, 1);
+                        newDays.splice(endIndex, 0, daysToMove);
+                        return newDays;
+                      }),
+                  ],
+                  "Reorder days"
+                );
                 const [daysToMove] = order.splice(startIndex, 1);
                 order.splice(endIndex, 0, daysToMove);
               }

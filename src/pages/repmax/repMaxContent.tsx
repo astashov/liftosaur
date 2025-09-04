@@ -235,7 +235,8 @@ function OtherRepMaxes(props: IOtherRepMaxesProps): JSX.Element {
               const w = (Weight.rpeMultiplier(r, rpe ?? 10) * 100).toFixed(0);
               return (
                 <li key={r}>
-                  {r}RM{rpeEnabled ? <span className="text-text-secondary">@{rpe ?? 10}</span> : ""}: <strong>{w}%</strong>
+                  {r}RM{rpeEnabled ? <span className="text-text-secondary">@{rpe ?? 10}</span> : ""}:{" "}
+                  <strong>{w}%</strong>
                 </li>
               );
             })}

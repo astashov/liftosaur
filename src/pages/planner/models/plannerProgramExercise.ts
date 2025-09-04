@@ -684,7 +684,7 @@ if (completedReps >= reps && completedRPE <= RPE) {
   }
 
   public static shortNameFromFullName(fullName: string, settings: ISettings): string {
-    let { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
+    const { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
     const shortName = `${name}${equipment ? `, ${equipmentName(equipment)}` : ""}`;
     return shortName;
   }
@@ -698,7 +698,7 @@ if (completedReps >= reps && completedRPE <= RPE) {
     const exercise = Exercise.get(exerciseType, settings.exercises);
     const fullName = Exercise.fullName(exercise, settings);
     const shortName = this.shortNameFromFullName(fullName, settings);
-    let { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
+    const { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
     const setVariations: IPlannerProgramExerciseSetVariation[] = [
       {
         isCurrent: false,

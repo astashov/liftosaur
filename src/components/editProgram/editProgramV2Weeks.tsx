@@ -39,23 +39,26 @@ function onWeeksChange(
     return ui.weekUi.collapsed.has(`${i}`);
   });
   cb(collapsedOrder);
-  plannerDispatch([
-    lbUi.p("dayUi").p("collapsed").record(new Set()),
-    lbUi
-      .p("weekUi")
-      .p("collapsed")
-      .recordModify((collapsed) => {
-        const newCollapsed = new Set<string>(collapsed);
-        for (let i = 0; i < collapsedOrder.length; i++) {
-          if (collapsedOrder[i]) {
-            newCollapsed.add(`${i}`);
-          } else {
-            newCollapsed.delete(`${i}`);
+  plannerDispatch(
+    [
+      lbUi.p("dayUi").p("collapsed").record(new Set()),
+      lbUi
+        .p("weekUi")
+        .p("collapsed")
+        .recordModify((collapsed) => {
+          const newCollapsed = new Set<string>(collapsed);
+          for (let i = 0; i < collapsedOrder.length; i++) {
+            if (collapsedOrder[i]) {
+              newCollapsed.add(`${i}`);
+            } else {
+              newCollapsed.delete(`${i}`);
+            }
           }
-        }
-        return newCollapsed;
-      }),
-  ], "Update week collapse state");
+          return newCollapsed;
+        }),
+    ],
+    "Update week collapse state"
+  );
 }
 
 export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Element {
@@ -108,14 +111,17 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
           mode="vertical"
           onDragEnd={(startIndex, endIndex) => {
             onWeeksChange(props.plannerDispatch, ui, props.state.current.program.planner!.weeks, (order) => {
-              props.plannerDispatch([
-                lbProgram.p("weeks").recordModify((weeks) => {
-                  const newWeeks = [...weeks];
-                  const [weekToMove] = newWeeks.splice(startIndex, 1);
-                  newWeeks.splice(endIndex, 0, weekToMove);
-                  return newWeeks;
-                }),
-              ], "Reorder weeks");
+              props.plannerDispatch(
+                [
+                  lbProgram.p("weeks").recordModify((weeks) => {
+                    const newWeeks = [...weeks];
+                    const [weekToMove] = newWeeks.splice(startIndex, 1);
+                    newWeeks.splice(endIndex, 0, weekToMove);
+                    return newWeeks;
+                  }),
+                ],
+                "Reorder weeks"
+              );
               const [weekToMove] = order.splice(startIndex, 1);
               order.splice(endIndex, 0, weekToMove);
             });
@@ -171,7 +177,10 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                         value={week.name}
                         onInput={(weekName) => {
                           if (weekName) {
-                            props.plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("name").record(weekName), "Update week name");
+                            props.plannerDispatch(
+                              lbProgram.p("weeks").i(weekIndex).p("name").record(weekName),
+                              "Update week name"
+                            );
                           }
                         }}
                       />
@@ -239,18 +248,21 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                             weekIndex,
                             week.days,
                             (order) => {
-                              props.plannerDispatch([
-                                lbProgram
-                                  .p("weeks")
-                                  .i(weekIndex)
-                                  .p("days")
-                                  .recordModify((days) => {
-                                    const newDays = [...days];
-                                    const [daysToMove] = newDays.splice(startIndex, 1);
-                                    newDays.splice(endIndex, 0, daysToMove);
-                                    return newDays;
-                                  }),
-                              ], "Reorder days");
+                              props.plannerDispatch(
+                                [
+                                  lbProgram
+                                    .p("weeks")
+                                    .i(weekIndex)
+                                    .p("days")
+                                    .recordModify((days) => {
+                                      const newDays = [...days];
+                                      const [daysToMove] = newDays.splice(startIndex, 1);
+                                      newDays.splice(endIndex, 0, daysToMove);
+                                      return newDays;
+                                    }),
+                                ],
+                                "Reorder days"
+                              );
                               const [daysToMove] = order.splice(startIndex, 1);
                               order.splice(endIndex, 0, daysToMove);
                             }

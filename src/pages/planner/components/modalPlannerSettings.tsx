@@ -261,10 +261,13 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
                         const clampedValue = Math.max(0, value);
                         const newSets = ObjectUtils.keys(props.settings.planner.weeklyRangeSets).reduce<
                           IPlannerSettings["weeklyRangeSets"]
-                        >((acc, k) => {
-                          acc[k] = [clampedValue, props.settings.planner.weeklyRangeSets[k]?.[1] ?? 0];
-                          return acc;
-                        }, {} as IPlannerSettings["weeklyRangeSets"]);
+                        >(
+                          (acc, k) => {
+                            acc[k] = [clampedValue, props.settings.planner.weeklyRangeSets[k]?.[1] ?? 0];
+                            return acc;
+                          },
+                          {} as IPlannerSettings["weeklyRangeSets"]
+                        );
                         props.onNewSettings(lf(props.settings).p("planner").p("weeklyRangeSets").set(newSets));
                       }
                     }
@@ -285,10 +288,13 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
                         const clampedValue = Math.max(0, value);
                         const newSets = ObjectUtils.keys(props.settings.planner.weeklyRangeSets).reduce<
                           IPlannerSettings["weeklyRangeSets"]
-                        >((acc, k) => {
-                          acc[k] = [props.settings.planner.weeklyRangeSets[k]?.[0] ?? 0, clampedValue];
-                          return acc;
-                        }, {} as IPlannerSettings["weeklyRangeSets"]);
+                        >(
+                          (acc, k) => {
+                            acc[k] = [props.settings.planner.weeklyRangeSets[k]?.[0] ?? 0, clampedValue];
+                            return acc;
+                          },
+                          {} as IPlannerSettings["weeklyRangeSets"]
+                        );
                         props.onNewSettings(lf(props.settings).p("planner").p("weeklyRangeSets").set(newSets));
                       }
                     }
@@ -309,10 +315,13 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
                         const clampedValue = Math.max(0, value);
                         const newSets = ObjectUtils.keys(props.settings.planner.weeklyFrequency).reduce<
                           IPlannerSettings["weeklyFrequency"]
-                        >((acc, k) => {
-                          acc[k] = clampedValue;
-                          return acc;
-                        }, {} as IPlannerSettings["weeklyFrequency"]);
+                        >(
+                          (acc, k) => {
+                            acc[k] = clampedValue;
+                            return acc;
+                          },
+                          {} as IPlannerSettings["weeklyFrequency"]
+                        );
                         props.onNewSettings(lf(props.settings).p("planner").p("weeklyFrequency").set(newSets));
                       }
                     }

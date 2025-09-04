@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unified-signatures */
 import { Exercise } from "./exercise";
 import { Reps } from "./set";
 import { Weight } from "./weight";

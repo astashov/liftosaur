@@ -78,7 +78,9 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
                   props.onSelect(evaluatedProgram.id, dayIndex + 1);
                 }}
               >
-                <div className={`flex px-2 py-2 ${dayIndex + 1 === currentProgram.nextDay ? "bg-background-purpledark" : ""}`}>
+                <div
+                  className={`flex px-2 py-2 ${dayIndex + 1 === currentProgram.nextDay ? "bg-background-purpledark" : ""}`}
+                >
                   <div className="flex-1">
                     <div>{dayName}</div>
                     <div>

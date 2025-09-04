@@ -226,7 +226,7 @@ export class PlannerExerciseEvaluator {
       return undefined;
     }
     const [numberOfSetsStr, repRangeStr] = setParts.split("x", 2);
-    // eslint-disable-next-line prefer-const
+
     const reprange = repRangeStr.split("-", 2);
     let minrepStr: string | undefined = reprange[0];
     let maxrepStr: string | undefined = reprange[1];
@@ -912,7 +912,7 @@ export class PlannerExerciseEvaluator {
       if (nameNode == null) {
         assert("ExerciseName");
       }
-      // eslint-disable-next-line prefer-const
+
       const fullName = this.getValue(nameNode);
       // eslint-disable-next-line prefer-const
       let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings.exercises);

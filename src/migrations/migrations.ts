@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { CollectionUtils } from "../utils/collection";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";

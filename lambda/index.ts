@@ -264,7 +264,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
   match: { params },
 }) => {
   const { event, di } = payload;
-  let setCookie: string | undefined = undefined;
+  const setCookie: string | undefined = undefined;
   const compressedBodyJson = getBodyJson(event);
   const bodyJsonStr = await NodeEncoder.decode(compressedBodyJson.data);
   const bodyJson = JSON.parse(bodyJsonStr);

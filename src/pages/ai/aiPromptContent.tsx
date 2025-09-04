@@ -28,7 +28,9 @@ export function AiPromptContent(props: IAiPromptContentProps): JSX.Element {
   }, [input]);
 
   const generatePrompt = async () => {
-    if (!input.trim()) return;
+    if (!input.trim()) {
+      return;
+    }
 
     setIsLoading(true);
     setError(null);

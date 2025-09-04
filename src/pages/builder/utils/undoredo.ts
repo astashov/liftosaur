@@ -13,18 +13,21 @@ export interface IUndoRedoState<T> {
 
 export function undoRedoMiddleware<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>, oldState: S): void {
   const lastHistoryTsGetter = { lastHistoryTs: lb<S>().p("history").p("lastHistoryTs").get() };
-  dispatch([
-    lbu<S, typeof lastHistoryTsGetter>(lastHistoryTsGetter)
-      .p("history")
-      .recordModify((history, getters) => {
-        const lastHistoryTs = getters.lastHistoryTs?.valueOf();
-        if (lastHistoryTs != null && Date.now() - lastHistoryTs < 500) {
-          return history;
-        } else {
-          return { ...history, past: [...history.past, oldState.current], future: [], lastHistoryTs: Date.now() };
-        }
-      }),
-  ], "Record history");
+  dispatch(
+    [
+      lbu<S, typeof lastHistoryTsGetter>(lastHistoryTsGetter)
+        .p("history")
+        .recordModify((history, getters) => {
+          const lastHistoryTs = getters.lastHistoryTs?.valueOf();
+          if (lastHistoryTs != null && Date.now() - lastHistoryTs < 500) {
+            return history;
+          } else {
+            return { ...history, past: [...history.past, oldState.current], future: [], lastHistoryTs: Date.now() };
+          }
+        }),
+    ],
+    "Record history"
+  );
 }
 
 export function canUndo<T, S extends IUndoRedoState<T>>(state: S): T | undefined {

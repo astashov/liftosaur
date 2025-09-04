@@ -13,7 +13,9 @@ export default function StorySlider({ slides, duration = 5000 }: StorySliderProp
   const startTimeRef = useRef<number | null>(null);
 
   const startProgress = (timestamp: number) => {
-    if (!startTimeRef.current) startTimeRef.current = timestamp;
+    if (!startTimeRef.current) {
+      startTimeRef.current = timestamp;
+    }
     const elapsed = timestamp - startTimeRef.current;
 
     const progressRatio = Math.min(elapsed / duration, 1);
@@ -27,11 +29,15 @@ export default function StorySlider({ slides, duration = 5000 }: StorySliderProp
   };
 
   const goToIndex = (index: number) => {
-    if (index < 0 || index >= slides.length) return;
+    if (index < 0 || index >= slides.length) {
+      return;
+    }
     setCurrentIndex(index);
     setProgresses((prev) => prev.map((_, i) => (i < index ? 1 : i === index ? 0 : 0)));
     startTimeRef.current = null;
-    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
     animationRef.current = requestAnimationFrame(startProgress);
   };
 

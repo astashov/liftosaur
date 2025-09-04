@@ -42,7 +42,9 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
   );
 
   function changeSet(cb: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
-    if (!plannerExercise) return;
+    if (!plannerExercise) {
+      return;
+    }
     props.plannerDispatch(
       lbProgram.recordModify((program) => {
         return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, props.settings, true, (ex) => {

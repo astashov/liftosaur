@@ -517,12 +517,12 @@ export const reducerWrapper =
         if (timerId != null) {
           window.clearTimeout(timerId);
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (window as any).state = newState;
         if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
           timerId = window.setTimeout(async () => {
             clearTimeout(timerId);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
             const newState2: IState = (window as any).state;
             timerId = undefined;
             const userId = newState2.user?.id || newState2.storage.tempUserId;
@@ -681,7 +681,6 @@ function pushScreen<T extends IScreen>(
       if (shouldResetStack) {
         return [{ name, ...(params ? { params } : {}) } as Extract<IScreen, { name: string }>];
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return Screen.push(screenStack, name, params as any);
       }
     }

@@ -3,8 +3,8 @@ import { HttpStreaming } from "./httpStreaming";
 
 export class OpenAIProvider implements ILLMProvider {
   constructor(
-    private apiKey: string,
-    private model: string = "gpt-4o-mini"
+    private readonly apiKey: string,
+    private readonly model: string = "gpt-4o-mini"
   ) {}
 
   async *generate(

@@ -111,7 +111,11 @@ function EventView(props: IEventViewProps): JSX.Element | null {
   if (event.type === "event") {
     return (
       <div>
-        {event.isMobile ? <span className="text-text-secondary">M </span> : <span className="text-text-success">W </span>}
+        {event.isMobile ? (
+          <span className="text-text-secondary">M </span>
+        ) : (
+          <span className="text-text-success">W </span>
+        )}
         {event.iOSVersion && <span className="text-text-secondary">A{event.iOSVersion} </span>}
         {event.androidVersion && <span className="text-text-secondary">G{event.androidVersion} </span>}
         <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
@@ -147,7 +151,11 @@ function EventView(props: IEventViewProps): JSX.Element | null {
   } else if (event.type === "safesnapshot" || event.type === "mergesnapshot") {
     return (
       <div>
-        {event.isMobile ? <span className="text-text-secondary">M </span> : <span className="text-text-success">W </span>}
+        {event.isMobile ? (
+          <span className="text-text-secondary">M </span>
+        ) : (
+          <span className="text-text-success">W </span>
+        )}
         <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
         <span className="text-text-secondary">{time}: </span>
         <span className="">{event.type}: </span>

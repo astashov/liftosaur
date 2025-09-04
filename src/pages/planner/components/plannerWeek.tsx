@@ -105,7 +105,10 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
               <LinkButton
                 name="planner-add-week-description"
                 onClick={() => {
-                  props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("description").record(""), "Add week description");
+                  props.dispatch(
+                    lbProgram.p("weeks").i(props.weekIndex).p("description").record(""),
+                    "Add week description"
+                  );
                 }}
               >
                 Add Week Description
@@ -122,7 +125,10 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
             <MarkdownEditor
               value={props.week.description ?? ""}
               onChange={(v) => {
-                props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("description").record(v), "Update week description");
+                props.dispatch(
+                  lbProgram.p("weeks").i(props.weekIndex).p("description").record(v),
+                  "Update week description"
+                );
               }}
             />
             <div>
@@ -130,7 +136,10 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
                 className="text-xs"
                 name="planner-delete-week-description"
                 onClick={() => {
-                  props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("description").record(undefined), "Delete week description");
+                  props.dispatch(
+                    lbProgram.p("weeks").i(props.weekIndex).p("description").record(undefined),
+                    "Delete week description"
+                  );
                 }}
               >
                 Delete Week Description
