@@ -52,10 +52,10 @@ function getPaymentTypeColor(paymentType: string): string {
 
 export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps): JSX.Element {
   const currencyTotals: Record<string, { total: number; refunds: number }> = {};
-  
+
   const totalsByDay = props.paymentsData.map((dayData) => {
     const dayTotalsByCurrency: Record<string, { total: number; refunds: number }> = {};
-    
+
     dayData.payments.forEach((payment) => {
       const curr = payment.currency || "USD";
       if (!dayTotalsByCurrency[curr]) {
@@ -64,13 +64,13 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
       if (!currencyTotals[curr]) {
         currencyTotals[curr] = { total: 0, refunds: 0 };
       }
-      
+
       if (payment.paymentType === "refund") {
         dayTotalsByCurrency[curr].refunds += payment.amount;
         currencyTotals[curr].refunds += payment.amount;
       } else {
-        dayTotalsByCurrency[curr].total += payment.amount;
-        currencyTotals[curr].total += payment.amount;
+        dayTotalsByCurrency[curr].total += payment.amount - (payment.tax ?? 0);
+        currencyTotals[curr].total += payment.amount - (payment.tax ?? 0);
       }
     });
 
@@ -200,7 +200,8 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     <td className="px-2 py-2">{payment.type}</td>
                     <td className="px-2 py-2">{payment.source}</td>
                     <td className="px-2 py-2 font-mono text-right">
-                      {formatCurrency(payment.amount, payment.currency)}
+                      {formatCurrency(payment.amount - (payment.tax ?? 0), payment.currency)}
+                      {payment.tax ? <span className="text-xs text-gray-500"> (+{payment.tax})</span> : null}
                     </td>
                   </tr>
                 ))}
