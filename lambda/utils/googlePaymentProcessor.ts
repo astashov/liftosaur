@@ -59,15 +59,15 @@ export class GooglePaymentProcessor {
         return;
       }
 
-      this.di.log.log("Google verification: Google JSON", googleJson);
       if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
-        amount = Math.round(Number(googleJson.priceAmountMicros || "0") / 1000000);
+        amount = Number((Number(googleJson.priceAmountMicros || "0") / 1000000).toFixed(2));
         currency = googleJson.priceCurrencyCode || "USD";
         originalTransactionId = googleJson.linkedPurchaseToken || token;
       } else if (googleJson.kind === "androidpublisher#productPurchase") {
         this.di.log.log(`Google verification: Fetching order info for product ${productId}`);
         const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
         const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
+        this.di.log.log("Google verification: Order Info", orderInfo);
         if (orderInfo && orderInfo.total) {
           amount =
             Math.round(Number(orderInfo.total.units || "0")) +
