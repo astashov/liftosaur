@@ -39,6 +39,10 @@ interface IVerifyGoogleSubscriptionTokenSuccess {
   kind: "androidpublisher#subscriptionPurchase";
 }
 
+function convertGooglePriceToNumber(price: { units?: string; nanos?: number }): number {
+  return Number(price.units || "0") + Number(Number((price.nanos ?? 0) / 1000000000).toFixed(2));
+}
+
 export class GooglePaymentProcessor {
   constructor(private readonly di: IDI) {}
 
@@ -50,6 +54,7 @@ export class GooglePaymentProcessor {
   ): Promise<void> {
     try {
       let amount = 0;
+      let tax = 0;
       let currency = "USD";
       let originalTransactionId = token;
 
@@ -69,16 +74,14 @@ export class GooglePaymentProcessor {
         const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
         this.di.log.log("Google verification: Order Info", orderInfo);
         if (orderInfo && orderInfo.total) {
-          amount =
-            Math.round(Number(orderInfo.total.units || "0")) +
-            Math.round(Number(orderInfo.total.nanos || "0") / 1000000000);
+          amount = convertGooglePriceToNumber(orderInfo.total);
           currency = orderInfo.total.currencyCode || "USD";
         }
       }
 
       let timestamp = Date.now();
       if (googleJson.kind === "androidpublisher#productPurchase") {
-        timestamp = googleJson.purchaseTimeMillis;
+        timestamp = Number(googleJson.purchaseTimeMillis);
       } else if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
         timestamp = Number(googleJson.startTimeMillis || Date.now());
       }

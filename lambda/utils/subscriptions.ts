@@ -61,6 +61,11 @@ interface IGoogleOrderInfo {
     nanos?: number;
     currencyCode?: string;
   };
+  tax?: {
+    units?: string;
+    nanos?: number;
+    currencyCode?: string;
+  };
 }
 
 interface IVerifyGoogleSubscriptionTokenSuccess {
