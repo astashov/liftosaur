@@ -112,6 +112,7 @@ export class AppleWebhookHandler {
         transactionId: transactionInfo.transactionId,
         productId: transactionInfo.productId,
         amount: transactionInfo.price ? transactionInfo.price / 1000 : 0,
+        tax: undefined,
         currency: transactionInfo.currency || "USD",
         type: "apple",
         source: "webhook",

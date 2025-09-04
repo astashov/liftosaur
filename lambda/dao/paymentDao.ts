@@ -17,6 +17,7 @@ export interface IPaymentDao {
   transactionId: string;
   productId: string;
   amount: number;
+  tax?: number;
   currency?: string;
   type: "apple" | "google";
   source: "verifier" | "webhook";

@@ -39,7 +39,7 @@ interface IVerifyGoogleSubscriptionTokenSuccess {
   kind: "androidpublisher#subscriptionPurchase";
 }
 
-function convertGooglePriceToNumber(price: { units?: string; nanos?: number }): number {
+export function convertGooglePriceToNumber(price: { units?: string; nanos?: number }): number {
   return Number(price.units || "0") + Number(Number((price.nanos ?? 0) / 1000000000).toFixed(2));
 }
 
@@ -54,7 +54,7 @@ export class GooglePaymentProcessor {
   ): Promise<void> {
     try {
       let amount = 0;
-      let tax = 0;
+      let tax: number | undefined;
       let currency = "USD";
       let originalTransactionId = token;
 
@@ -64,18 +64,32 @@ export class GooglePaymentProcessor {
         return;
       }
 
+      const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
+      
       if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
         amount = Number((Number(googleJson.priceAmountMicros || "0") / 1000000).toFixed(2));
         currency = googleJson.priceCurrencyCode || "USD";
         originalTransactionId = googleJson.linkedPurchaseToken || token;
+        
+        // Try to fetch order info for subscription to get tax details
+        if (googleJson.orderId) {
+          this.di.log.log(`Google verification: Fetching order info for subscription ${productId}`);
+          const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
+          this.di.log.log("Google verification: Subscription Order Info", orderInfo);
+          if (orderInfo && orderInfo.tax) {
+            tax = convertGooglePriceToNumber(orderInfo.tax);
+          }
+        }
       } else if (googleJson.kind === "androidpublisher#productPurchase") {
         this.di.log.log(`Google verification: Fetching order info for product ${productId}`);
-        const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
         const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
         this.di.log.log("Google verification: Order Info", orderInfo);
         if (orderInfo && orderInfo.total) {
           amount = convertGooglePriceToNumber(orderInfo.total);
           currency = orderInfo.total.currencyCode || "USD";
+        }
+        if (orderInfo && orderInfo.tax) {
+          tax = convertGooglePriceToNumber(orderInfo.tax);
         }
       }
 
@@ -99,6 +113,7 @@ export class GooglePaymentProcessor {
         transactionId: token,
         productId,
         amount,
+        tax,
         currency,
         type: "google",
         source: "verifier",

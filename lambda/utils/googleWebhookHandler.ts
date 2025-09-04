@@ -3,6 +3,7 @@ import { PaymentDao } from "../dao/paymentDao";
 import { UserDao } from "../dao/userDao";
 import { Subscriptions } from "./subscriptions";
 import { GoogleJWTVerifier } from "./googleJwtVerifier";
+import { convertGooglePriceToNumber } from "./googlePaymentProcessor";
 
 export interface IGooglePubSubMessage {
   message: {
@@ -178,6 +179,7 @@ export class GoogleWebhookHandler {
   ) {
     try {
       let amount = 0;
+      let tax: number | undefined;
       let currency = "USD";
       let originalTransactionId = purchaseToken;
       let timestamp = Date.now();
@@ -202,15 +204,25 @@ export class GoogleWebhookHandler {
             const introPrice = purchaseDetails.introductoryPriceInfo.introductoryPriceAmountMicros;
             isFreeTrialPayment = introPrice === "0" || introPrice === undefined;
           }
+          
+          // Try to fetch order info for subscription to get tax details
+          if (purchaseDetails.orderId) {
+            this.di.log.log(`Google webhook: Fetching order info for subscription ${productId}`);
+            const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
+            if (orderInfo && orderInfo.tax) {
+              tax = convertGooglePriceToNumber(orderInfo.tax);
+            }
+          }
         } else if (purchaseDetails.kind === "androidpublisher#productPurchase") {
           this.di.log.log(`Google webhook: Fetching order info for product ${productId}`);
           timestamp = purchaseDetails.purchaseTimeMillis;
           const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
           if (orderInfo && orderInfo.total) {
-            amount =
-              Math.round(Number(orderInfo.total.units || "0")) +
-              Math.round(Number(orderInfo.total.nanos || "0") / 1000000000);
+            amount = convertGooglePriceToNumber(orderInfo.total);
             currency = orderInfo.total.currencyCode || "USD";
+          }
+          if (orderInfo && orderInfo.tax) {
+            tax = convertGooglePriceToNumber(orderInfo.tax);
           }
         }
       }
@@ -230,6 +242,7 @@ export class GoogleWebhookHandler {
         transactionId: purchaseToken,
         productId,
         amount,
+        tax,
         currency,
         type: "google",
         source: "webhook",

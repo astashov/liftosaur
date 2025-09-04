@@ -89,6 +89,7 @@ export class ApplePaymentProcessor {
       transactionId,
       productId: latestReceipt.product_id,
       amount,
+      tax: undefined,
       currency,
       type: "apple",
       source: "verifier",
