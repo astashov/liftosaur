@@ -119,7 +119,7 @@ export class GooglePaymentProcessor {
         currency,
         type: "google",
         source: "verifier",
-        paymentType: originalTransactionId === token ? "purchase" : "renewal",
+        paymentType: googleJson.kind === "androidpublisher#subscriptionPurchase" && googleJson.linkedPurchaseToken ? "renewal" : "purchase",
         isFreeTrialPayment,
       });
 
