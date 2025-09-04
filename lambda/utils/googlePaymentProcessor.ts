@@ -59,6 +59,7 @@ export class GooglePaymentProcessor {
         return;
       }
 
+      this.di.log.log("Google verification: Google JSON", googleJson);
       if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
         amount = Math.round(Number(googleJson.priceAmountMicros || "0") / 1000000);
         currency = googleJson.priceCurrencyCode || "USD";
