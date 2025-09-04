@@ -103,9 +103,13 @@ export class GooglePaymentProcessor {
       }
 
       let isFreeTrialPayment = false;
-      if (googleJson.kind === "androidpublisher#subscriptionPurchase" && googleJson.introductoryPriceInfo) {
-        const introPrice = googleJson.introductoryPriceInfo.introductoryPriceAmountMicros;
-        isFreeTrialPayment = introPrice === "0" || introPrice === undefined;
+      if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
+        if (googleJson.paymentState === 2) {
+          isFreeTrialPayment = true;
+        } else if (googleJson.introductoryPriceInfo) {
+          const introPrice = googleJson.introductoryPriceInfo.introductoryPriceAmountMicros;
+          isFreeTrialPayment = introPrice === "0";
+        }
       }
 
       await paymentDao.addIfNotExists({
@@ -119,7 +123,10 @@ export class GooglePaymentProcessor {
         currency,
         type: "google",
         source: "verifier",
-        paymentType: googleJson.kind === "androidpublisher#subscriptionPurchase" && googleJson.linkedPurchaseToken ? "renewal" : "purchase",
+        paymentType:
+          googleJson.kind === "androidpublisher#subscriptionPurchase" && googleJson.linkedPurchaseToken
+            ? "renewal"
+            : "purchase",
         isFreeTrialPayment,
       });
 

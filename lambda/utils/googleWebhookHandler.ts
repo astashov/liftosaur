@@ -206,9 +206,12 @@ export class GoogleWebhookHandler {
           originalTransactionId = purchaseDetails.linkedPurchaseToken || purchaseToken;
           timestamp = Number(purchaseDetails.startTimeMillis || Date.now());
 
-          if (purchaseDetails.introductoryPriceInfo) {
+          // Check if it's a free trial using paymentState (2 = free trial) or intro price
+          if (purchaseDetails.paymentState === 2) {
+            isFreeTrialPayment = true;
+          } else if (purchaseDetails.introductoryPriceInfo) {
             const introPrice = purchaseDetails.introductoryPriceInfo.introductoryPriceAmountMicros;
-            isFreeTrialPayment = introPrice === "0" || introPrice === undefined;
+            isFreeTrialPayment = introPrice === "0";
           }
 
           if (purchaseDetails.orderId) {
