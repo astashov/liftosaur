@@ -204,7 +204,7 @@ export class GoogleWebhookHandler {
           amount = Math.round(Number(purchaseDetails.priceAmountMicros || "0") / 1000000);
           currency = purchaseDetails.priceCurrencyCode || "USD";
           originalTransactionId = purchaseDetails.linkedPurchaseToken || purchaseToken;
-          timestamp = Number(purchaseDetails.startTimeMillis || Date.now());
+          timestamp = Date.now();
 
           // Check if it's a free trial using paymentState (2 = free trial) or intro price
           if (purchaseDetails.paymentState === 2) {

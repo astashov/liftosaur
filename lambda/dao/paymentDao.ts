@@ -29,6 +29,10 @@ export class PaymentDao {
   constructor(private readonly di: IDI) {}
 
   public async add(payment: IPaymentDao): Promise<void> {
+    const date = new Date(2025, 8, 4);
+    if (payment.timestamp < date.getTime()) {
+      return;
+    }
     const env = Utils.getEnv();
     await this.di.dynamo.put({
       tableName: tableNames[env].payments,

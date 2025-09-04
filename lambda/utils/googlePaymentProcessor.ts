@@ -58,6 +58,17 @@ export class GooglePaymentProcessor {
       let currency = "USD";
       let originalTransactionId = token;
 
+      if (
+        googleJson.kind === "androidpublisher#subscriptionPurchase" &&
+        googleJson.startTimeMillis != null &&
+        Date.now() - Number(googleJson.startTimeMillis) > 24 * 60 * 60 * 1000
+      ) {
+        this.di.log.log(
+          `Google verification: Subscription purchase time is more than 24 hours ago, so webhook will handle it.`
+        );
+        return;
+      }
+
       const paymentDao = new PaymentDao(this.di);
       if (await paymentDao.doesExist(token)) {
         this.di.log.log(`Google verification: Payment with transaction ID ${token} already exists`);
