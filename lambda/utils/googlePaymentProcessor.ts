@@ -66,6 +66,8 @@ export class GooglePaymentProcessor {
 
       const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
 
+      this.di.log.log("Google verification: Purchase token", token);
+      this.di.log.log("Google verification: Decoded JSON", googleJson);
       if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
         amount = Number((Number(googleJson.priceAmountMicros || "0") / 1000000).toFixed(2));
         currency = googleJson.priceCurrencyCode || "USD";
