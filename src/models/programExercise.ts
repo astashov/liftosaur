@@ -182,6 +182,12 @@ export namespace ProgramExercise {
                     operation(exercise, sets[setIndex], settings, "timer", value.value, value.op);
                   } else if (key === "weights") {
                     operation(exercise, sets[setIndex], settings, "weight", value.value, value.op);
+                  } else if (key === "amraps") {
+                    operation(exercise, sets[setIndex], settings, "isAmrap", value.value, value.op);
+                  } else if (key === "logrpes") {
+                    operation(exercise, sets[setIndex], settings, "logRpe", value.value, value.op);
+                  } else if (key === "askweights") {
+                    operation(exercise, sets[setIndex], settings, "askWeight", value.value, value.op);
                   }
                 }
               }
@@ -238,7 +244,7 @@ export namespace ProgramExercise {
     programExercise: IPlannerProgramExerciseWithType,
     set: IPlannerProgramExerciseEvaluatedSet,
     settings: ISettings,
-    key: "maxrep" | "minrep" | "weight" | "rpe" | "timer",
+    key: "maxrep" | "minrep" | "weight" | "rpe" | "timer" | "logRpe" | "isAmrap" | "askWeight",
     value: IWeight | IPercentage | number,
     op: IAssignmentOp
   ): void {
@@ -250,10 +256,12 @@ export namespace ProgramExercise {
         (key === "maxrep" || key === "minrep" || key === "timer" || key === "rpe")
       ) {
         set[key] = value;
+      } else if (typeof value === "number" && (key === "askWeight" || key === "isAmrap" || key === "logRpe")) {
+        set[key] = value !== 0;
       }
     } else {
       const onerm = Exercise.onerm(programExercise.exerciseType, settings);
-      let oldValue = set[key];
+      let oldValue = typeof set[key] === "boolean" ? (set[key] ? 1 : 0) : set[key];
       if (oldValue == null && ProgramSet.isEligibleForInferredWeight(set)) {
         const inferredWeight = ProgramSet.getEvaluatedWeight(set, programExercise.exerciseType, settings);
         oldValue = inferredWeight;
@@ -266,6 +274,8 @@ export namespace ProgramExercise {
         (key === "maxrep" || key === "minrep" || key === "timer" || key === "rpe")
       ) {
         set[key] = newValue;
+      } else if (typeof newValue === "number" && (key === "askWeight" || key === "isAmrap" || key === "logRpe")) {
+        set[key] = newValue !== 0;
       }
     }
   }

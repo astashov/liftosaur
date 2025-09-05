@@ -29,6 +29,7 @@ const bindings: IScriptBindings = {
   minReps: [1, 2, 3],
   amraps: [0, 0, 0],
   logrpes: [0, 0, 0],
+  askweights: [0, 0, 0],
   RPE: [0, 0, 0],
   timers: [0, 0, 0],
   completedRPE: [0, 0, 0],

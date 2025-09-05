@@ -111,8 +111,8 @@
       "atom": "#DD8E02",
       "attributeName": "#DD8E02",
       "attributeValue": "#45B3CB",
-      "annotation": "#FFDD7E",
-      "docComment": "#67EEB8"
+      "annotation": "#FFB544",
+      "docComment": "#007F5A"
     }
   },
   "dark": {
@@ -227,8 +227,8 @@
       "atom": "#FFD820",
       "attributeName": "#FFD820",
       "attributeValue": "#28839F",
-      "annotation": "#B76506",
-      "docComment": "#007F5A"
+      "annotation": "#FFD820",
+      "docComment": "#67EEB8"
     }
   }
 }

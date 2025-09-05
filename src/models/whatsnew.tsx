@@ -2029,6 +2029,31 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250904": {
+    title: <span>Add new variables - 'amraps', 'logrpes' and 'askweights'</span>,
+    body: (
+      <ul>
+        <li>
+          They allow to mark a set AMRAP, ask for actual RPE after completing a set or ask for actual weight. Basically
+          the same as adding <strong>+</strong> after appropriate value.
+        </li>
+        <li>
+          You can use them in exactly the same way you use <strong>reps</strong> or <strong>weights</strong>.
+        </li>
+        <li>
+          To disable, assign 0 to them, to enable - assign any non-zero value. E.g.:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`Squat / 3x8 100lb / progress: custom() {~
+  amraps = 1  // Mark all sets AMRAP
+  askweights[ns] = 1 // Ask for the last set actual weight
+~}`}
+            />
+          </div>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

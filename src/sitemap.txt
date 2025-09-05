@@ -6,6 +6,7 @@ https://www.liftosaur.com/exercises
 https://www.liftosaur.com/planner
 https://www.liftosaur.com/privacy.html
 https://www.liftosaur.com/terms.html
+https://www.liftosaur.com/blog/posts/liftosaur-overview/
 https://www.liftosaur.com/blog/posts/implementing-localized-pricing-for-your-app/
 https://www.liftosaur.com/blog/posts/make-new-liftosaur-programs-less-repetetive/
 https://www.liftosaur.com/blog/posts/new-experimental-program-editor/

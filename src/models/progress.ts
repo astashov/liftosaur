@@ -52,6 +52,7 @@ export interface IScriptBindings {
   reps: (number | undefined)[];
   minReps: (number | undefined)[];
   amraps: (number | undefined)[];
+  askweights: (number | undefined)[];
   logrpes: (number | undefined)[];
   timers: (number | undefined)[];
   RPE: (number | undefined)[];
@@ -236,6 +237,7 @@ export namespace Progress {
       RPE: [],
       amraps: [],
       logrpes: [],
+      askweights: [],
       completedReps: [],
       completedRPE: [],
       isCompleted: [],

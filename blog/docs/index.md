@@ -684,6 +684,9 @@ This is the list of available variables you can get values from in your `progres
 - `completedNumberOfSets` - how many sets are completed (by a checkmark).
 - `setVariationIndex` - current set variation index (see below about set variations)
 - `descriptionIndex` - current description index
+- `amraps[n]` - whether to mark the set AMRAP, `1` for AMRAP, `0` for not AMRAP
+- `logrpes[n]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
+- `askweights[n]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
 
 And this is the list of available variables you can change (assign new values):
 
@@ -693,6 +696,9 @@ The weights/reps/RPE and timers:
 - `reps`
 - `RPE`
 - `timers`
+- `amraps`
+- `logrpes`
+- `askweights`
 
 For those, you can specify what set, set variation, day or week you want to change it in. To target specific set, you use the following syntax:
 
@@ -890,6 +896,9 @@ So, the list of variables you can get values from is pretty much the same:
 - `completedNumberOfSets`
 - `setVariationIndex`
 - `descriptionIndex`
+- `amraps`
+- `logrpes`
+- `askweights`
 - `setIndex` - index of a set that was tapped (it's 0 for the initial run - before completing any sets)
 
 But assigning new values is only allowed to the following:
@@ -1181,6 +1190,9 @@ You assign new values to them.
 - `reps[day:week:setvariation:set]` - number of reps for a set.
 - `RPE[day:week:setvariation:set]` - RPE that's required for a set.
 - `timers[day:week:setvariation:set]` - timer that's assigned for a set.
+- `amraps[day:week:setvariation:set]` - whether to mark the set AMRAP, `1` for AMRAP, `0` for not AMRAP
+- `logrpes[day:week:setvariation:set]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
+- `askweights[day:week:setvariation:set]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
 - `rm1` - 1 Rep Max of a current exercise.
 - `setVariationIndex` - index of the current set variation
 - `descriptionIndex` - index of the current description
@@ -1194,6 +1206,9 @@ You assign new values to them.
 - `timers[set]` - timer that's assigned for a set.
 - `rm1` - 1 Rep Max of a current exercise.
 - `numberOfSets` - number of sets for the exercise in this workout
+- `amraps[set]` - whether to mark the set AMRAP, `1` for AMRAP, `0` for not AMRAP
+- `logrpes[set]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
+- `askweights[set]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
 
 ### State variables
 

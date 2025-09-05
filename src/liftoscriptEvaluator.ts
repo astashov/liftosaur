@@ -126,6 +126,9 @@ export type ILiftoscriptEvaluatorUpdate =
   | { type: "weights"; value: ILiftoscriptVariableValue<number | IPercentage | IWeight> }
   | { type: "timers"; value: ILiftoscriptVariableValue<number> }
   | { type: "RPE"; value: ILiftoscriptVariableValue<number> }
+  | { type: "logrpes"; value: ILiftoscriptVariableValue<number> }
+  | { type: "amraps"; value: ILiftoscriptVariableValue<number> }
+  | { type: "askweights"; value: ILiftoscriptVariableValue<number> }
   | { type: "numberOfSets"; value: ILiftoscriptVariableValue<number> };
 
 export class LiftoscriptEvaluator {
@@ -299,7 +302,19 @@ export class LiftoscriptEvaluator {
           if (nameNode != null) {
             const name = this.getValue(nameNode);
             if (this.mode === "update") {
-              if (["reps", "weights", "RPE", "minReps", "numberOfSets", "timers"].indexOf(name) === -1) {
+              if (
+                [
+                  "reps",
+                  "weights",
+                  "RPE",
+                  "minReps",
+                  "numberOfSets",
+                  "timers",
+                  "askweights",
+                  "amraps",
+                  "logrpes",
+                ].indexOf(name) === -1
+              ) {
                 this.error(`Cannot assign to '${name}'`, variableNode);
               }
               const indexExprs = variableNode.getChildren(NodeName.VariableIndex);
@@ -349,6 +364,9 @@ export class LiftoscriptEvaluator {
             "numberOfSets",
             "programNumberOfSets",
             "completedNumberOfSets",
+            "amraps",
+            "logrpes",
+            "askweights",
           ];
           if (validNames.indexOf(name as keyof IScriptBindings) === -1) {
             this.error(`${name} is not an array variable`, nameNode);
@@ -465,7 +483,7 @@ export class LiftoscriptEvaluator {
   }
 
   private changeBinding(
-    key: "reps" | "weights" | "RPE" | "minReps" | "timers",
+    key: "reps" | "weights" | "RPE" | "minReps" | "timers" | "logrpes" | "amraps" | "askweights",
     expression: SyntaxNode,
     indexExprs: SyntaxNode[],
     op: IAssignmentOp
@@ -502,6 +520,9 @@ export class LiftoscriptEvaluator {
           if (key === "RPE") {
             value = MathUtils.round(MathUtils.clamp(value, 0, 10), 0.5);
           }
+          if (key === "amraps" || key === "logrpes" || key === "askweights") {
+            value = Math.round(MathUtils.clamp(value, 0, 1));
+          }
           this.bindings[key][i] = value;
         }
       }
@@ -510,7 +531,18 @@ export class LiftoscriptEvaluator {
   }
 
   private recordVariableUpdate(
-    key: "reps" | "weights" | "timers" | "RPE" | "minReps" | "setVariationIndex" | "descriptionIndex" | "numberOfSets",
+    key:
+      | "reps"
+      | "weights"
+      | "timers"
+      | "RPE"
+      | "minReps"
+      | "setVariationIndex"
+      | "descriptionIndex"
+      | "numberOfSets"
+      | "logrpes"
+      | "amraps"
+      | "askweights",
     expression: SyntaxNode,
     indexExprs: SyntaxNode[],
     op: IAssignmentOp
@@ -762,6 +794,9 @@ export class LiftoscriptEvaluator {
             variable === "RPE" ||
             variable === "minReps" ||
             variable === "timers" ||
+            variable === "logrpes" ||
+            variable === "amraps" ||
+            variable === "askweights" ||
             variable === "setVariationIndex" ||
             variable === "descriptionIndex" ||
             variable === "numberOfSets")
@@ -774,6 +809,9 @@ export class LiftoscriptEvaluator {
           (variable === "reps" ||
             variable === "weights" ||
             variable === "RPE" ||
+            variable === "amraps" ||
+            variable === "logrpes" ||
+            variable === "askweights" ||
             variable === "minReps" ||
             variable === "timers")
         ) {

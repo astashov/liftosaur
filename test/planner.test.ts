@@ -1523,4 +1523,28 @@ Squat / ...t2 / 125lb
 
 `);
   });
+
+  it("updates isAMRAP, logRPE and askWeight", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x5 / @8 100lb / progress: custom() {~
+  amraps[1] = 1
+  amraps[2] = 0
+  logrpes[2] = 1
+  askweights[3] = 1
+~}`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5, 5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x5+ 100lb @8, 1x5 100lb @8+, 1x5 100lb+ @8 / progress: custom() {~
+  amraps[1] = 1
+  amraps[2] = 0
+  logrpes[2] = 1
+  askweights[3] = 1
+~}
+
+
+`);
+  });
 });

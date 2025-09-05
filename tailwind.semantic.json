@@ -111,7 +111,7 @@
     "atom": { "light": "@colors.yellow.600", "dark": "@colors.yellow.400" },
     "attributeName": { "light": "@colors.yellow.600", "dark": "@colors.yellow.400" },
     "attributeValue": { "light": "@colors.blue.400", "dark": "@colors.blue.600" },
-    "annotation": { "light": "@colors.yellow.300", "dark": "@colors.yellow.700" },
-    "docComment": { "light": "@colors.green.300", "dark": "@colors.green.700" }
+    "annotation": { "light": "@colors.yellow.500", "dark": "@colors.yellow.400" },
+    "docComment": { "light": "@colors.green.700", "dark": "@colors.green.300" }
   }
 }
