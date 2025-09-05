@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { Exercise } from "../../models/exercise";

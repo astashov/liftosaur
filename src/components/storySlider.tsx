@@ -1,18 +1,18 @@
 import { h, JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
-interface StorySliderProps {
+interface IStorySliderProps {
   slides: JSX.Element[];
   duration?: number;
 }
 
-export default function StorySlider({ slides, duration = 5000 }: StorySliderProps) {
+export default function StorySlider({ slides, duration = 5000 }: IStorySliderProps): JSX.Element {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progresses, setProgresses] = useState<number[]>(Array(slides.length).fill(0));
   const animationRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
 
-  const startProgress = (timestamp: number) => {
+  const startProgress = (timestamp: number): void => {
     if (!startTimeRef.current) {
       startTimeRef.current = timestamp;
     }
@@ -28,7 +28,7 @@ export default function StorySlider({ slides, duration = 5000 }: StorySliderProp
     }
   };
 
-  const goToIndex = (index: number) => {
+  const goToIndex = (index: number): void => {
     if (index < 0 || index >= slides.length) {
       return;
     }
@@ -41,12 +41,12 @@ export default function StorySlider({ slides, duration = 5000 }: StorySliderProp
     animationRef.current = requestAnimationFrame(startProgress);
   };
 
-  const goToNext = () => {
+  const goToNext = (): void => {
     const nextIndex = (currentIndex + 1) % slides.length;
     goToIndex(nextIndex);
   };
 
-  const goToPrevious = () => {
+  const goToPrevious = (): void => {
     const nextIndex = currentIndex === 0 ? slides.length - 1 : currentIndex - 1;
     goToIndex(nextIndex);
   };

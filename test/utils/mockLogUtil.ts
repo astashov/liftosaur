@@ -20,5 +20,5 @@ export class MockLogUtil implements ILogUtil {
     this.userid = userid;
   }
 
-  setRollbar(rollbar: Rollbar): void {}
+  public setRollbar(rollbar: Rollbar): void {}
 }

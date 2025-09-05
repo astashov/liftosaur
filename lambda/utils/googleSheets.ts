@@ -61,7 +61,7 @@ export class GoogleSheetsUtil {
     content += `Spreadsheet: ${metadata.properties?.title || "Untitled"}\n`;
     content += `Total Sheets: ${sheets.length}\n\n`;
 
-    // Prepare ranges for batch get - all sheets
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sheetNames = sheets.map((s: any) => s.properties?.title || "Sheet1");
 
     // Fetch formulas for all sheets

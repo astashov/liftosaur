@@ -27,7 +27,7 @@ export function AiPromptContent(props: IAiPromptContentProps): JSX.Element {
     }
   }, [input]);
 
-  const generatePrompt = async () => {
+  const generatePrompt = async (): Promise<void> => {
     if (!input.trim()) {
       return;
     }
@@ -52,7 +52,7 @@ export function AiPromptContent(props: IAiPromptContentProps): JSX.Element {
     }
   };
 
-  const copyPrompt = () => {
+  const copyPrompt = (): void => {
     if (generatedPrompt) {
       navigator.clipboard.writeText(generatedPrompt);
       alert("Prompt copied to clipboard!");

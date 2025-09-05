@@ -2,9 +2,9 @@ import { getHandler, getLftStatsLambda, getLftStatsLambdaDev } from "./index";
 import { getStreamingHandler } from "./streamingHandler";
 import fetch from "node-fetch";
 import { LogUtil } from "./utils/log";
-import { buildDi } from "./utils/di";
+import { buildDi, IDI } from "./utils/di";
 
-const diBuilder = () => buildDi(new LogUtil(), fetch);
+const diBuilder = (): IDI => buildDi(new LogUtil(), fetch);
 
 export const handler = getHandler(diBuilder);
 

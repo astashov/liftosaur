@@ -165,7 +165,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             onClick={() => {
               updateProgress(
                 props.dispatch,
-                [props.lbWarmupSets.recordModify((sets) => Reps.addSet(sets, props.settings.units, undefined, true))],
+                [props.lbWarmupSets.recordModify((s) => Reps.addSet(s, props.settings.units, undefined, true))],
                 "add-warmupset"
               );
             }}
@@ -184,9 +184,9 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
               updateProgress(
                 props.dispatch,
                 [
-                  props.lbSets.recordModify((sets) =>
+                  props.lbSets.recordModify((s) =>
                     Reps.addSet(
-                      sets,
+                      s,
                       props.settings.units,
                       props.lastSets ? props.lastSets[props.lastSets.length - 1] : undefined
                     )

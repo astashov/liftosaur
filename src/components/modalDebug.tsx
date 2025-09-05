@@ -7,9 +7,6 @@ import { DateUtils } from "../utils/date";
 import { ObjectUtils } from "../utils/object";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { IndexedDBUtils, nativeStorage } from "../utils/indexeddb";
-import { getIdbKey } from "../ducks/reducer";
-import { NativeStorage } from "../utils/nativeStorage";
 
 interface IModalDebugProps {
   onClose: () => void;
@@ -53,23 +50,6 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
           Send Debug Info
         </Button>
       </div>
-      {NativeStorage.isAvailable() && (
-        <div className="mt-4 text-center">
-          <Button
-            name="send-debug-info"
-            kind="purple"
-            onClick={async () => {
-              const key = await getIdbKey();
-              const indexeddbdata = await IndexedDBUtils.get(key);
-              const nativestoragedata = nativeStorage ? await nativeStorage.get(key) : {};
-              const isEqual = ObjectUtils.isEqual(indexeddbdata, nativestoragedata);
-              alert("IS EQUAL: " + isEqual);
-            }}
-          >
-            Compare iOS storage
-          </Button>
-        </div>
-      )}
     </Modal>
   );
 }

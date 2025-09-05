@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-
 import { h, JSX, Fragment } from "preact";
 import { LinkInlineInput } from "../../../components/inlineInput";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../models/types";

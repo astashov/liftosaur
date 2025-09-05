@@ -41,23 +41,23 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
           return null;
         }
         const isAllDisabled = exercises.every((exercise) => {
-          const exerciseType = exercise.exerciseType;
-          if (exerciseType == null) {
+          const anExerciseType = exercise.exerciseType;
+          if (anExerciseType == null) {
             return true;
           }
           const isSelected = props.state.selectedExercises.some((ex) => {
             return (
               ex.type === "program" &&
-              exerciseType &&
-              Exercise.eq(ex.exerciseType, exerciseType) &&
+              anExerciseType &&
+              Exercise.eq(ex.exerciseType, anExerciseType) &&
               ex.week === exercise.dayData.week &&
               ex.dayInWeek === exercise.dayData.dayInWeek
             );
           });
           const isDisabled = props.state.selectedExercises.some(
-            (ex) => "exerciseType" in ex && Exercise.eq(ex.exerciseType, exerciseType)
+            (ex) => "exerciseType" in ex && Exercise.eq(ex.exerciseType, anExerciseType)
           );
-          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, exerciseType));
+          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, anExerciseType));
           return isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
         });
         return (
@@ -75,23 +75,23 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
             </div>
             <ul>
               {exercises.map((exercise) => {
-                const exerciseType = exercise.exerciseType;
-                if (exerciseType == null) {
+                const anExerciseType = exercise.exerciseType;
+                if (anExerciseType == null) {
                   return null;
                 }
                 const isSelected = props.state.selectedExercises.some((ex) => {
                   return (
                     ex.type === "program" &&
-                    exerciseType &&
-                    Exercise.eq(ex.exerciseType, exerciseType) &&
+                    anExerciseType &&
+                    Exercise.eq(ex.exerciseType, anExerciseType) &&
                     ex.week === exercise.dayData.week &&
                     ex.dayInWeek === exercise.dayData.dayInWeek
                   );
                 });
                 const isDisabled = props.state.selectedExercises.some(
-                  (ex) => "exerciseType" in ex && Exercise.eq(ex.exerciseType, exerciseType)
+                  (ex) => "exerciseType" in ex && Exercise.eq(ex.exerciseType, anExerciseType)
                 );
-                const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, exerciseType));
+                const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, anExerciseType));
                 const currentSetVariation = PlannerProgramExercise.currentEvaluatedSetVariation(exercise);
                 const displayGroups = PlannerProgramExercise.evaluatedSetsToDisplaySets(
                   currentSetVariation.sets,
@@ -125,7 +125,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                                 onChange={() => {
                                   ExercisePickerUtils.chooseProgramExercise(
                                     props.dispatch,
-                                    exerciseType,
+                                    anExerciseType,
                                     exercise.dayData.week,
                                     exercise.dayData.dayInWeek,
                                     props.state
@@ -144,7 +144,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                                 onChange={() => {
                                   ExercisePickerUtils.chooseProgramExercise(
                                     props.dispatch,
-                                    exerciseType,
+                                    anExerciseType,
                                     exercise.dayData.week,
                                     exercise.dayData.dayInWeek,
                                     props.state

@@ -29,7 +29,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
   const [shouldCreateProgram, setShouldCreateProgram] = useState<boolean>(false);
   const [showImportFromLink, setShowImportFromLink] = useState<boolean>(false);
 
-  const builtinPrograms = () => (
+  const builtinPrograms = (): JSX.Element => (
     <BuiltinProgramsList
       hasCustomPrograms={props.customPrograms.length > 0}
       programs={props.programs}
@@ -37,7 +37,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
       dispatch={props.dispatch}
     />
   );
-  const customPrograms = () => (
+  const customPrograms = (): JSX.Element => (
     <CustomProgramsList
       progress={props.progress}
       programs={props.customPrograms}

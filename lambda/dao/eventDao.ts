@@ -17,6 +17,7 @@ export class EventDao {
   constructor(private readonly di: IDI) {}
 
   public static prepareStorageUpdateForEvent(storageUpdate: IStorageUpdate2): string {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const preparedStorageUpdate: any = { ...storageUpdate };
     preparedStorageUpdate.history = storageUpdate.storage?.history?.map((h) => {
       return {

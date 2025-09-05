@@ -141,7 +141,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       memo[element.offsetTop - initialOffset] = firstDayOfWeek;
       return memo;
     }, {});
-    function scrollHandler(e: Event) {
+    function scrollHandler(e: Event): void {
       for (const scrollPos of ObjectUtils.keys(scrollPosToFirstDayOfWeek)) {
         if (scrollPos >= window.scrollY) {
           const firstDayOfWeek = scrollPosToFirstDayOfWeek[scrollPos];
@@ -217,7 +217,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
             onClose={() => setShowMonthCalendar(false)}
             onClick={(historyRecord) => {
               const index = sortedHistory.findIndex((record) => record.id === historyRecord.id);
-              const scrollToElementCal = () => {
+              const scrollToElementCal = (): void => {
                 scrollToElement(historyRecord.id);
                 setShowMonthCalendar(false);
               };

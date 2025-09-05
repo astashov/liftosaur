@@ -27,7 +27,7 @@ export function GroupHeader(props: IProps): JSX.Element {
   const size = props.size || "small";
   const testId = `group-header-${StringUtils.dashcase(name)}`;
 
-  function onClick() {
+  function onClick(): void {
     if (props.children) {
       setIsExpanded(!isExpanded);
     }

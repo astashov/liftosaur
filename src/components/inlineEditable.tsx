@@ -1,14 +1,14 @@
-import { h, Fragment } from "preact";
+import { h, Fragment, JSX } from "preact";
 import { useState, useRef, useEffect } from "preact/hooks";
 
-interface InlineEditableProps {
+interface IInlineEditableProps {
   value: string;
   onChange?: (newValue: string) => void;
   onInput?: (newValue: string) => void;
   className?: string;
 }
 
-export function InlineEditable({ value, onChange, onInput, className = "" }: InlineEditableProps) {
+export function InlineEditable({ value, onChange, onInput, className = "" }: IInlineEditableProps): JSX.Element {
   const [isEditing, setIsEditing] = useState(false);
   const [internalValue, setInternalValue] = useState(value);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -30,7 +30,7 @@ export function InlineEditable({ value, onChange, onInput, className = "" }: Inl
     }
   }, [value, isEditing]);
 
-  const autoResize = () => {
+  const autoResize = (): void => {
     const ghost = ghostRef.current;
     const textarea = textareaRef.current;
     if (!ghost || !textarea) {
@@ -44,7 +44,7 @@ export function InlineEditable({ value, onChange, onInput, className = "" }: Inl
     textarea.style.width = width + "px";
   };
 
-  const handleInput = (e: Event) => {
+  const handleInput = (e: Event): void => {
     const target = e.target as HTMLTextAreaElement;
     const newValue = target.value;
     setInternalValue(newValue);
@@ -52,7 +52,7 @@ export function InlineEditable({ value, onChange, onInput, className = "" }: Inl
     onInput?.(newValue);
   };
 
-  const handleBlur = () => {
+  const handleBlur = (): void => {
     // setIsEditing(false);
     const trimmed = internalValue.trim();
     if (trimmed !== value) {
@@ -60,7 +60,7 @@ export function InlineEditable({ value, onChange, onInput, className = "" }: Inl
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === "Escape") {
       setInternalValue(value);
       setIsEditing(false);

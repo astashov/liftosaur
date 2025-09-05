@@ -25,7 +25,7 @@ import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
 import { ObjectUtils } from "../../utils/object";
 import { Tailwind } from "../../utils/tailwindConfig";
 
-const buildHighlightStyle = () => {
+const buildHighlightStyle = (): HighlightStyle => {
   return HighlightStyle.define([
     { tag: tags.keyword, color: Tailwind.semantic().syntax.keyword },
     { tag: [tags.literal, tags.inserted], color: Tailwind.semantic().syntax.literal },

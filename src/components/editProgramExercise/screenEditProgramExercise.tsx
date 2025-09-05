@@ -245,8 +245,8 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                   [
                     lb<IPlannerExerciseState>()
                       .p("ui")
-                      .recordModify((ui) => {
-                        return { ...ui, isUndoing: false };
+                      .recordModify((ui2) => {
+                        return { ...ui2, isUndoing: false };
                       }),
                   ],
                   "stop-is-undoing"

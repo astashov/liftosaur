@@ -396,9 +396,9 @@ export class DynamoUtil implements IDynamoUtil {
                 }
               }
               this.log.log(JSON);
-            } catch (e) {
+            } catch (error) {
               this.log.log("Failed to log batchPut payload");
-              this.log.log(e);
+              this.log.log(error);
             }
           }
           throw e;

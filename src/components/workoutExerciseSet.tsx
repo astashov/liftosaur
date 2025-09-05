@@ -114,8 +114,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     updateProgress(
                       props.dispatch,
                       [
-                        props.lbSet.recordModify((set) => {
-                          const newSet = { ...set, completedReps: Math.round(value) };
+                        props.lbSet.recordModify((s) => {
+                          const newSet = { ...s, completedReps: Math.round(value) };
                           return Reps.enforceCompletedSet(newSet);
                         }),
                       ],
@@ -127,8 +127,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   updateProgress(
                     props.dispatch,
                     [
-                      props.lbSet.recordModify((set) => {
-                        const newSet = { ...set, completedReps: value };
+                      props.lbSet.recordModify((s) => {
+                        const newSet = { ...s, completedReps: value };
                         return Reps.enforceCompletedSet(newSet);
                       }),
                     ],
@@ -163,8 +163,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     updateProgress(
                       props.dispatch,
                       [
-                        props.lbSet.recordModify((set) => {
-                          const newSet = { ...set, completedWeight: value };
+                        props.lbSet.recordModify((s) => {
+                          const newSet = { ...s, completedWeight: value };
                           return Reps.enforceCompletedSet(newSet);
                         }),
                       ],
@@ -177,8 +177,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     updateProgress(
                       props.dispatch,
                       [
-                        props.lbSet.recordModify((set) => {
-                          const newSet = { ...set, completedWeight: value };
+                        props.lbSet.recordModify((s) => {
+                          const newSet = { ...s, completedWeight: value };
                           return Reps.enforceCompletedSet(newSet);
                         }),
                       ],
@@ -327,50 +327,50 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
       );
     case "adhoc":
     case "program": {
-      const set = props.set;
-      const isDiffWeight = set.weight && set.originalWeight && !Weight.eq(set.weight, set.originalWeight);
-      const hasTarget = set.reps != null || set.weight != null;
+      const aSet = props.set;
+      const isDiffWeight = aSet.weight && aSet.originalWeight && !Weight.eq(aSet.weight, aSet.originalWeight);
+      const hasTarget = aSet.reps != null || aSet.weight != null;
       return (
         <div className="inline-block text-sm align-middle">
-          {set.label ? <div className="text-xs text-text-secondary">{set.label}</div> : null}
+          {aSet.label ? <div className="text-xs text-text-secondary">{aSet.label}</div> : null}
           {props.setType === "adhoc" && <div className="text-xs text-text-secondary">Ad-hoc</div>}
           {hasTarget ? (
             <div>
-              {set.reps != null && (
+              {aSet.reps != null && (
                 <span className="font-semibold text-syntax-reps">
-                  {set.minReps != null ? `${n(Math.max(0, set.minReps))}-` : null}
-                  {n(Math.max(0, set.reps))}
-                  {set.isAmrap ? "+" : ""}
+                  {aSet.minReps != null ? `${n(Math.max(0, aSet.minReps))}-` : null}
+                  {n(Math.max(0, aSet.reps))}
+                  {aSet.isAmrap ? "+" : ""}
                 </span>
               )}
-              {set.reps != null && set.weight != null && <span className="text-text-secondary"> × </span>}
+              {aSet.reps != null && aSet.weight != null && <span className="text-text-secondary"> × </span>}
               <span>
-                {set.originalWeight && (
+                {aSet.originalWeight && (
                   <span
                     className={isDiffWeight ? "line-through text-text-secondary" : "font-semibold text-syntax-weight"}
                   >
-                    <span>{n(set.originalWeight.value)}</span>
-                    <span className="text-xs font-normal">{set.originalWeight.unit}</span>
+                    <span>{n(aSet.originalWeight.value)}</span>
+                    <span className="text-xs font-normal">{aSet.originalWeight.unit}</span>
                   </span>
                 )}
-                {set.weight && isDiffWeight && (
+                {aSet.weight && isDiffWeight && (
                   <span className="text-syntax-weight">
                     <span> </span>
-                    <span className="font-semibold">{n(set.weight.value)}</span>
-                    <span className="text-xs">{set.weight.unit}</span>
+                    <span className="font-semibold">{n(aSet.weight.value)}</span>
+                    <span className="text-xs">{aSet.weight.unit}</span>
                   </span>
                 )}
               </span>
               <span className="font-semibold text-syntax-rpe">
-                {set.askWeight ? "+" : ""}
-                {set.rpe ? ` @${n(Math.max(0, set.rpe))}` : null}
-                {set.rpe && set.logRpe ? "+" : ""}
+                {aSet.askWeight ? "+" : ""}
+                {aSet.rpe ? ` @${n(Math.max(0, aSet.rpe))}` : null}
+                {aSet.rpe && aSet.logRpe ? "+" : ""}
               </span>
-              {set.timer != null ? (
+              {aSet.timer != null ? (
                 <span>
                   <span> </span>
                   <span className="text-syntax-timer">
-                    <span>{n(set.timer)}</span>
+                    <span>{n(aSet.timer)}</span>
                     <span className="text-xs">s</span>
                   </span>
                 </span>

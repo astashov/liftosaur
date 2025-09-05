@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { IVersions, VersionTracker } from "../models/versionTracker";
 import { ISettings, IStorage, IStatsWeight, IStatsPercentage, IStatsLength, STORAGE_VERSION_TYPES } from "../types";
 

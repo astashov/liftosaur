@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * VersionTracker - A field-level version tracking system for JavaScript objects
  *

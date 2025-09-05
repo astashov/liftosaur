@@ -45,7 +45,7 @@ export function AiContent(props: IAiContentProps): JSX.Element {
     }
   };
 
-  const handleConvert = async () => {
+  const handleConvert = async (): Promise<void> => {
     if (!input.trim()) {
       return;
     }
@@ -118,12 +118,12 @@ export function AiContent(props: IAiContentProps): JSX.Element {
     }
   };
 
-  const handleRetry = () => {
+  const handleRetry = (): void => {
     setRetryCount(retryCount + 1);
     handleConvert();
   };
 
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       setIsLoading(false);

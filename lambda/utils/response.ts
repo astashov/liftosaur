@@ -13,7 +13,6 @@ export namespace ResponseUtils {
   export function json(
     status: number,
     event: APIGatewayProxyEvent,
-    // eslint-disable-next-line @typescript-eslint/ban-types
     body: string | object,
     headers?: Record<string, string>
   ): APIGatewayProxyResult {

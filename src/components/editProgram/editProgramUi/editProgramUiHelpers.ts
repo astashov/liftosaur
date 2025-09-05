@@ -59,7 +59,7 @@ export class EditProgramUiHelpers {
     planner: IPlannerProgram,
     modalExerciseUi: IModalExerciseUi,
     onProgramChange: (program: IPlannerProgram) => void,
-    onUiChange: (modalExerciseUi?: IModalExerciseUi) => void,
+    onUiChange: (modalExerciseUi2?: IModalExerciseUi) => void,
     fullName: string,
     value: string | undefined,
     settings: ISettings,

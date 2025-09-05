@@ -101,7 +101,7 @@ export namespace HtmlUtils {
     let lastScrollY = element ? element.scrollTop : window.scrollY;
     let frame: number;
 
-    const checkScroll = () => {
+    const checkScroll = (): void => {
       const currentScrollY = element ? element.scrollTop : window.scrollY;
       if (currentScrollY !== lastScrollY) {
         lastScrollY = currentScrollY;

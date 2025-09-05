@@ -44,7 +44,7 @@ Squat / 1x5 135lb, 1x3-5 135lb / warmup: none / progress: custom() {~
 
   await expect(page.getByTestId("input-set-reps-field").nth(0)).toHaveText("5");
   await expect(page.getByTestId("input-set-reps-field").nth(1)).toHaveText("5");
-  expect(await page.getByTestId("set-completed")).toHaveCount(2);
+  await expect(page.getByTestId("set-completed")).toHaveCount(2);
 
   await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(1), "4");
   await expect(page.getByTestId("set-completed")).toHaveCount(1);

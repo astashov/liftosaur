@@ -7,7 +7,7 @@ export class OpenAIProvider implements ILLMProvider {
     private readonly model: string = "gpt-4o-mini"
   ) {}
 
-  async *generate(
+  public async *generate(
     systemPrompt: string,
     userInput: string
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
@@ -69,8 +69,8 @@ export class OpenAIProvider implements ILLMProvider {
       } else {
         yield { type: "error", data: "No content received from OpenAI" };
       }
-    } catch (error: any) {
-      yield { type: "error", data: error.message || "Failed to connect to OpenAI" };
+    } catch (error: unknown) {
+      yield { type: "error", data: (error as Error).message || "Failed to connect to OpenAI" };
     }
   }
 }

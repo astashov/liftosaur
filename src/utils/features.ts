@@ -20,7 +20,7 @@ export class Features {
     newstorage,
   } as const;
 
-  static isEnabled(name: keyof typeof this.features, userid?: string): boolean {
+  public static isEnabled(name: keyof typeof this.features, userid?: string): boolean {
     userid = userid || (typeof window !== "undefined" ? window.tempUserId || undefined : undefined);
     const feature = this.features[name];
     if (!feature) {

@@ -2,7 +2,7 @@ import JWT from "jsonwebtoken";
 import { createPublicKey } from "crypto";
 import { ILogUtil } from "./log";
 
-interface AppleJWTHeader {
+interface IAppleJWTHeader {
   alg: string;
   x5c: string[]; // Certificate chain
 }
@@ -13,7 +13,7 @@ export class AppleJWTVerifier {
   /**
    * Verify Apple's JWT signature using the certificate from x5c header
    */
-  public verifyJWT(jwtToken: string): any | null {
+  public verifyJWT(jwtToken: string): string | object | null {
     try {
       // Decode header to get certificate chain
       const decoded = JWT.decode(jwtToken, { complete: true });
@@ -22,7 +22,7 @@ export class AppleJWTVerifier {
         return null;
       }
 
-      const header = decoded.header as AppleJWTHeader;
+      const header = decoded.header as IAppleJWTHeader;
 
       if (!header || !header.x5c || header.alg !== "ES256") {
         this.log.log("Invalid JWT header or unsupported algorithm");

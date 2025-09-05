@@ -327,11 +327,11 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                                       lb<IExercisePickerState>()
                                         .p("filters")
                                         .p("muscles")
-                                        .recordModify((muscles) => {
-                                          if (muscles?.includes(key)) {
-                                            return CollectionUtils.remove(muscles, key);
+                                        .recordModify((mscls) => {
+                                          if (mscls?.includes(key)) {
+                                            return CollectionUtils.remove(mscls, key);
                                           } else {
-                                            return [...(muscles || []), key];
+                                            return [...(mscls || []), key];
                                           }
                                         }),
                                       `Set muscle filter in exercise picker to ${key}`

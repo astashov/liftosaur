@@ -15,6 +15,7 @@ import { Account, IAccount } from "../src/models/account";
 import { Subscriptions } from "./utils/subscriptions";
 import { UrlContentFetcher } from "./utils/urlContentFetcher";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const awslambda: any;
 
 interface IStream {
@@ -165,8 +166,8 @@ const postAiConvertStreamHandler: RouteHandler<IPayload, void, typeof postAiConv
     }
 
     const llm = new LlmLiftoscript(di, provider);
-    for await (const event of llm.generateLiftoscript(programContent, account, input)) {
-      const sseData = `data: ${JSON.stringify(event)}\n\n`;
+    for await (const ev of llm.generateLiftoscript(programContent, account, input)) {
+      const sseData = `data: ${JSON.stringify(ev)}\n\n`;
       stream.write(sseData);
     }
     onEnd(200);

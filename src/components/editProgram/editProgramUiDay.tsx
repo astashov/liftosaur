@@ -57,7 +57,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
   return (
     <div
       key={props.day.id}
-      className="p-1 my-1 bg-background-default border rounded-2xl border-border-neutral"
+      className="p-1 my-1 border bg-background-default rounded-2xl border-border-neutral"
       data-cy={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
     >
       <div className="flex items-center">
@@ -110,11 +110,11 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                           .p("weeks")
                           .i(props.weekIndex)
                           .p("days")
-                          .recordModify((days) => {
+                          .recordModify((days2) => {
                             const newDays = [
-                              ...days.slice(0, props.dayInWeekIndex + 1),
+                              ...days2.slice(0, props.dayInWeekIndex + 1),
                               newDay,
-                              ...days.slice(props.dayInWeekIndex + 1),
+                              ...days2.slice(props.dayInWeekIndex + 1),
                             ];
                             return newDays;
                           }),
@@ -147,8 +147,8 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                             .p("weeks")
                             .i(props.weekIndex)
                             .p("days")
-                            .recordModify((days) => {
-                              return CollectionUtils.removeAt(days, props.dayInWeekIndex);
+                            .recordModify((days2) => {
+                              return CollectionUtils.removeAt(days2, props.dayInWeekIndex);
                             }),
                           "Delete day"
                         );

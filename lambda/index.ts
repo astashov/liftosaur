@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import "source-map-support/register";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Endpoint, Method, Router, RouteHandler } from "yatro";
@@ -770,9 +769,11 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       extra: {
         versions: JSON.stringify(newVersions.programs),
         name: exportedProgram.program.name,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         suspciousDeletion: JSON.stringify((global as any).suspiciousDeletion),
       },
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((global as any).suspiciousDeletion) {
       await eventDao.post({
         type: "event",
@@ -785,6 +786,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
           programId: exportedProgram.program.id,
           name: exportedProgram.program.name,
           clonedAt: exportedProgram.program.clonedAt || "none",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           suspciousDeletion: JSON.stringify((global as any).suspiciousDeletion),
           programs: JSON.stringify(
             newStorage.programs?.map((p) => {
@@ -1074,13 +1076,13 @@ const postBatchEventsHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   for (const group of idGroups) {
     const eventsToPost: IEventPayload[] = [];
     for (const id of group) {
-      const event = events[id];
+      const event2 = events[id];
       let attempts = 0;
-      while (attempts < 5 && eventsToPost.some((e) => e.timestamp === event.timestamp)) {
-        event.timestamp += 1;
+      while (attempts < 5 && eventsToPost.some((e) => e.timestamp === event2.timestamp)) {
+        event2.timestamp += 1;
         attempts += 1;
       }
-      eventsToPost.push(event);
+      eventsToPost.push(event2);
     }
     try {
       await eventDao.batchPost(CollectionUtils.uniqBy(eventsToPost, "timestamp"));
@@ -2091,7 +2093,9 @@ const postShortUrlHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
 }) => {
   const { event, di } = payload;
   const { type } = params;
-  let { url, src } = getBodyJson(event);
+  const json = getBodyJson(event);
+  let url = json.url;
+  const src = json.src;
   const userid = await getCurrentUserId(event, di);
   if (url == null || typeof url !== "string") {
     return ResponseUtils.json(400, event, {});
@@ -2416,6 +2420,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       di.log.log(e);
       errorStatus = 500;
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         rollbar.error(e as any, undefined, { person: { id: userid } });
       } catch (_e) {}
       resp = { success: false, error: "Internal Server Error" };

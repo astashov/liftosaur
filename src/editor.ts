@@ -9,7 +9,7 @@ import { tags } from "@lezer/highlight";
 import { buildLiftoscriptLanguageSupport } from "./liftoscriptCodemirror";
 import { Tailwind } from "./utils/tailwindConfig";
 
-const buildHighlightStyle = () => {
+const buildHighlightStyle = (): HighlightStyle => {
   return HighlightStyle.define([
     { tag: tags.keyword, color: Tailwind.semantic().syntax.keyword },
     { tag: [tags.literal, tags.inserted], color: Tailwind.semantic().syntax.literal },
@@ -18,7 +18,7 @@ const buildHighlightStyle = () => {
   ]);
 };
 
-const buildEditorSetup = () => {
+const buildEditorSetup = (): Extension[] => {
   const highlightStyle = buildHighlightStyle();
   const editorSetup: Extension[] = [
     history(),

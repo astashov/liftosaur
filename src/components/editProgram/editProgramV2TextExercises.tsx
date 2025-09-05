@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-
 import { LensBuilder, lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";

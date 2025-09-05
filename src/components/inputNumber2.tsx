@@ -67,8 +67,8 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const isMobile = typeof window !== "undefined" && Mobile.isMobile(window.navigator?.userAgent || "");
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const isCalculatorOpenRef = useRef(isCalculatorOpen);
-  const onBlurRef = useRef<((value: number | undefined) => void) | undefined>(props.onBlur);
-  const onInputRef = useRef<((value: number | undefined) => void) | undefined>(props.onInput);
+  const onBlurRef = useRef<((v: number | undefined) => void) | undefined>(props.onBlur);
+  const onInputRef = useRef<((v: number | undefined) => void) | undefined>(props.onInput);
   useEffect(() => {
     onBlurRef.current = props.onBlur;
     onInputRef.current = props.onInput;
@@ -88,7 +88,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     isCalculatorOpenRef.current = !!isCalculatorOpen;
   }, [isFocused, props.allowDot, props.allowNegative, isCalculatorOpen]);
 
-  const handleInput = (key: string) => {
+  const handleInput = (key: string): void => {
     let newValue = valueRef.current;
     if (!isTypingRef.current) {
       newValue = "";
@@ -192,7 +192,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   }, [isFocused, props.initialValue]);
 
   useEffect(() => {
-    const keyboardHandler = (event: KeyboardEvent) => {
+    const keyboardHandler = (event: KeyboardEvent): void => {
       if (!isFocusedRef.current) {
         return;
       }
@@ -264,7 +264,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   }, []);
 
   useEffect(() => {
-    const documentClickHandler = (event: MouseEvent | TouchEvent) => {
+    const documentClickHandler = (event: MouseEvent | TouchEvent): void => {
       if (isCalculatorOpenRef.current) {
         return;
       }

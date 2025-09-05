@@ -177,12 +177,12 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
         {exercisesList.map((e) => {
           const ex = Exercise.get({ id: e.id }, props.settings.exercises);
           const isSelectedAlready = props.state.selectedExercises.some(
-            (ex) => "exerciseType" in ex && Exercise.eq(ex.exerciseType, e)
+            (exrcs) => "exerciseType" in exrcs && Exercise.eq(exrcs.exerciseType, e)
           );
           const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, e));
           const isMultiselect = ExercisePickerUtils.getIsMultiselect(props.state);
           const isSelected = props.state.selectedExercises.some(
-            (ex) => ex.type === "adhoc" && Exercise.eq(ex.exerciseType, e)
+            (exrcs) => exrcs.type === "adhoc" && Exercise.eq(exrcs.exerciseType, e)
           );
           return (
             <section

@@ -407,7 +407,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                 value={props.settings.textSize ?? "16"}
                 onChange={(e) => {
                   const valueStr = e.currentTarget.value;
-                  const value = valueStr != null ? parseInt(valueStr) : undefined;
+                  const value = valueStr != null ? parseInt(valueStr, 10) : undefined;
                   if (value != null && !isNaN(value)) {
                     props.dispatch({
                       type: "UpdateSettings",

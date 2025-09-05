@@ -2,13 +2,13 @@ import JWT from "jsonwebtoken";
 import { createPublicKey } from "crypto";
 import { ILogUtil } from "./log";
 
-interface GoogleJWTHeader {
+interface IGoogleJWTHeader {
   alg: string;
   kid: string;
   typ: string;
 }
 
-interface GoogleJWTPayload {
+interface IGoogleJWTPayload {
   aud: string;
   email: string;
   email_verified: boolean;
@@ -21,7 +21,7 @@ interface GoogleJWTPayload {
 export class GoogleJWTVerifier {
   constructor(private readonly log: ILogUtil) {}
 
-  public async verifyJWT(authorizationHeader: string): Promise<GoogleJWTPayload | null> {
+  public async verifyJWT(authorizationHeader: string): Promise<IGoogleJWTPayload | null> {
     try {
       const token = authorizationHeader.replace("Bearer ", "");
 
@@ -31,7 +31,7 @@ export class GoogleJWTVerifier {
         return null;
       }
 
-      const header = decoded.header as GoogleJWTHeader;
+      const header = decoded.header as IGoogleJWTHeader;
 
       if (!header || !header.kid || header.alg !== "RS256") {
         this.log.log("Invalid Google JWT header or unsupported algorithm");
@@ -57,7 +57,7 @@ export class GoogleJWTVerifier {
       const verified = JWT.verify(token, publicKeyPem, {
         algorithms: ["RS256"],
         issuer: "https://accounts.google.com",
-      }) as GoogleJWTPayload;
+      }) as IGoogleJWTPayload;
 
       if (!verified.email_verified) {
         this.log.log("Google JWT email not verified");
@@ -82,7 +82,7 @@ export class GoogleJWTVerifier {
     }
   }
 
-  private async getGooglePublicKeyJWK(kid: string): Promise<any | null> {
+  private async getGooglePublicKeyJWK(kid: string): Promise<string | null> {
     try {
       const response = await fetch("https://www.googleapis.com/oauth2/v3/certs");
       if (!response.ok) {
@@ -91,7 +91,7 @@ export class GoogleJWTVerifier {
       }
 
       const data = await response.json();
-      const key = data.keys?.find((k: any) => k.kid === kid);
+      const key = data.keys?.find((k: { kid: string }) => k.kid === kid);
 
       if (!key) {
         this.log.log(`Google public key not found for kid: ${kid}`);

@@ -54,6 +54,7 @@ export namespace IndexedDBUtils {
     try {
       const result = await promise;
       return result;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const errorDetails = {
         name: e?.name,
@@ -69,6 +70,7 @@ export namespace IndexedDBUtils {
   async function withNative<T>(operation: () => T): Promise<T | undefined> {
     try {
       return await operation();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       lg("ls-native-storage-error", { json: JSON.stringify(e) });
       console.error("Native Storage error:", e);

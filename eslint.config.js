@@ -16,6 +16,7 @@ const compat = new FlatCompat({
 
 module.exports = defineConfig([
   {
+    files: ["**/*.ts", "**/*.tsx"],
     extends: compat.extends("plugin:prettier/recommended"),
 
     languageOptions: {
@@ -37,7 +38,6 @@ module.exports = defineConfig([
       "dot-notation": "error",
       "eol-last": "off",
       eqeqeq: ["error", "smart"],
-      "guard-for-in": "error",
       "id-match": "error",
       "import/order": "off",
       "linebreak-style": "off",
@@ -66,13 +66,11 @@ module.exports = defineConfig([
         },
       ],
 
-      "no-return-await": "error",
       "no-shadow": "error",
       "no-template-curly-in-string": "error",
       "no-throw-literal": "error",
       "no-trailing-spaces": "off",
       "no-unsafe-finally": "error",
-      "no-unused-expressions": "error",
       "no-unused-labels": "error",
       "no-var": "error",
       "no-void": "error",
@@ -189,5 +187,13 @@ module.exports = defineConfig([
       ],
     },
   },
-  globalIgnores(["**/dist", "cypress", "**/dist-lambda", "cdk.out", "dist-plannerhighlighter"]),
+  globalIgnores([
+    "**/dist",
+    "cypress",
+    "**/dist-lambda",
+    "cdk.out",
+    "dist-plannerhighlighter",
+    "worker",
+    "test-results",
+  ]),
 ]);

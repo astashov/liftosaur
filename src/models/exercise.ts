@@ -32,7 +32,7 @@ import { EditProgram } from "./editProgram";
 import { lb } from "lens-shmens";
 import { updateSettings } from "./state";
 
-export const exercises: Record<IExerciseId, IExercise> = {
+export const allExercisesList: Record<IExerciseId, IExercise> = {
   abWheel: {
     id: "abWheel",
     name: "Ab Wheel",
@@ -1669,8 +1669,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
   },
 };
 
-const nameToIdMapping = ObjectUtils.keys(exercises).reduce<Partial<Record<string, IExerciseId>>>((acc, key) => {
-  acc[exercises[key].name.toLowerCase()] = exercises[key].id;
+const nameToIdMapping = ObjectUtils.keys(allExercisesList).reduce<Partial<Record<string, IExerciseId>>>((acc, key) => {
+  acc[allExercisesList[key].name.toLowerCase()] = allExercisesList[key].id;
   return acc;
 }, {});
 
@@ -3563,12 +3563,12 @@ function maybeGetExercise(id: IExerciseId, customExercises: IAllCustomExercises)
         startingWeightKg: Weight.build(0, "kg"),
         startingWeightLb: Weight.build(0, "lb"),
       }
-    : exercises[id];
+    : allExercisesList[id];
 }
 
 function getExercise(id: IExerciseId, customExercises: IAllCustomExercises): IExercise {
   const exercise = maybeGetExercise(id, customExercises);
-  return exercise != null ? exercise : exercises.squat;
+  return exercise != null ? exercise : allExercisesList.squat;
 }
 
 export namespace Exercise {
@@ -3577,7 +3577,7 @@ export namespace Exercise {
   }
 
   export function exists(name: string, customExercises: IAllCustomExercises): boolean {
-    let exercise = ObjectUtils.keys(exercises).filter((k) => exercises[k].name === name)[0];
+    let exercise = ObjectUtils.keys(allExercisesList).filter((k) => allExercisesList[k].name === name)[0];
     if (exercise == null) {
       exercise = ObjectUtils.keys(customExercises).filter(
         (k) => !customExercises[k]!.isDeleted && customExercises[k]!.name === name
@@ -3763,18 +3763,25 @@ export namespace Exercise {
   export function all(customExercises: IAllCustomExercises): IExercise[] {
     return ObjectUtils.keys(customExercises)
       .map((id) => getExercise(id, customExercises))
-      .concat(ObjectUtils.keys(exercises).map((k) => ({ ...exercises[k], equipment: exercises[k].defaultEquipment })));
+      .concat(
+        ObjectUtils.keys(allExercisesList).map((k) => ({
+          ...allExercisesList[k],
+          equipment: allExercisesList[k].defaultEquipment,
+        }))
+      );
   }
 
   export function allExpanded(customExercises: IAllCustomExercises): IExercise[] {
     return ObjectUtils.keys(customExercises)
       .map((id) => getExercise(id, customExercises))
       .concat(
-        ObjectUtils.keys(exercises).flatMap((k) => {
+        ObjectUtils.keys(allExercisesList).flatMap((k) => {
           return CollectionUtils.compact(
             equipments.map((equipment) => {
               const exerciseType = { id: k, equipment };
-              return ExerciseImageUtils.exists(exerciseType, "small") ? { ...exercises[k], equipment } : undefined;
+              return ExerciseImageUtils.exists(exerciseType, "small")
+                ? { ...allExercisesList[k], equipment }
+                : undefined;
             })
           );
         })
@@ -3827,7 +3834,7 @@ export namespace Exercise {
       slug = slug.slice(equipmentKey.length + 1);
     }
     const exerciseId = StringUtils.camelCase(StringUtils.undashcase(slug));
-    if (exercises[exerciseId]) {
+    if (allExercisesList[exerciseId]) {
       return { id: exerciseId as IExerciseId, equipment };
     } else {
       return undefined;
@@ -4138,15 +4145,15 @@ export namespace Exercise {
     program?: IProgram
   ): void {
     const oldExercise = settings.exercises[exercise.id];
-    const exercises =
+    const ex =
       action === "upsert"
         ? Exercise.upsertCustomExercise(settings.exercises, exercise)
         : Exercise.deleteCustomExercise(settings.exercises, exercise.id);
-    updateSettings(dispatch, lb<ISettings>().p("exercises").record(exercises), "Create custom exercise");
+    updateSettings(dispatch, lb<ISettings>().p("exercises").record(ex), "Create custom exercise");
     if (program && oldExercise && oldExercise.name !== exercise.name) {
       const newProgram = Program.changeExerciseName(oldExercise.name, exercise.name, program, {
         ...settings,
-        exercises,
+        exercises: ex,
       });
       EditProgram.updateProgram(dispatch, newProgram);
     }

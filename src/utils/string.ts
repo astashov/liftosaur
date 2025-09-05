@@ -43,7 +43,7 @@ export namespace StringUtils {
   }
 
   export function unindent(string: string): string {
-    const indent = string.split("\n").reduce<number | undefined>((memo, line) => {
+    const indent2 = string.split("\n").reduce<number | undefined>((memo, line) => {
       const match = line.match(/^(\s*)\S/);
       if (match != null) {
         const spaces = match[1];
@@ -53,11 +53,11 @@ export namespace StringUtils {
       }
       return memo;
     }, undefined);
-    if (indent != null) {
+    if (indent2 != null) {
       return string
         .split("\n")
         .filter((s) => s.trim() !== "")
-        .map((s) => s.slice(indent, s.length).trimEnd())
+        .map((s) => s.slice(indent2, s.length).trimEnd())
         .join("\n");
     } else {
       return string;
@@ -65,10 +65,10 @@ export namespace StringUtils {
   }
 
   export function indent(string: string, spaces: number): string {
-    const indent = new Array(spaces + 1).join(" ");
+    const indent2 = new Array(spaces + 1).join(" ");
     return string
       .split("\n")
-      .map((s) => (s.trim() !== "" ? `${indent}${s}` : s))
+      .map((s) => (s.trim() !== "" ? `${indent2}${s}` : s))
       .join("\n");
   }
 

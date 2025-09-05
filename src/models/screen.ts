@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { IState } from "./state";
 import { dequal } from "dequal";
 import { Progress } from "./progress";

@@ -41,7 +41,7 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
     (e) => e.key === editSetBottomSheet?.exerciseKey
   );
 
-  function changeSet(cb: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
+  function changeSet(cb: (s: IPlannerProgramExerciseEvaluatedSet) => void): void {
     if (!plannerExercise) {
       return;
     }
@@ -49,8 +49,8 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
       lbProgram.recordModify((program) => {
         return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, props.settings, true, (ex) => {
           const setVariation = ex.evaluatedSetVariations[setVariationIndex];
-          const set = setVariation.sets[setIndex];
-          cb(set);
+          const s = setVariation.sets[setIndex];
+          cb(s);
         });
       }),
       "Update set"
@@ -69,8 +69,8 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
               value={set.label}
               maxLength={8}
               onChange={(value) => {
-                changeSet((set) => {
-                  set.label = value;
+                changeSet((s) => {
+                  s.label = value;
                 });
               }}
             />
@@ -79,11 +79,11 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
               name="Reps Range"
               value={set.minrep != null ? "true" : "false"}
               onChange={(value) => {
-                changeSet((set) => {
+                changeSet((s) => {
                   if (value === "true") {
-                    set.minrep = Math.min(set.maxrep ?? 5, set.minrep ?? 3);
+                    s.minrep = Math.min(s.maxrep ?? 5, s.minrep ?? 3);
                   } else {
-                    set.minrep = undefined;
+                    s.minrep = undefined;
                   }
                 });
               }}
@@ -93,11 +93,11 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
               name="Weight"
               value={set.weight != null ? "true" : "false"}
               onChange={(value) => {
-                changeSet((set) => {
+                changeSet((s) => {
                   if (value === "true") {
-                    set.weight = set.weight ?? Weight.build(0, props.settings.units);
+                    s.weight = s.weight ?? Weight.build(0, props.settings.units);
                   } else {
-                    set.weight = undefined;
+                    s.weight = undefined;
                   }
                 });
               }}
@@ -107,11 +107,11 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
               name="RPE"
               value={set.rpe != null ? "true" : "false"}
               onChange={(value) => {
-                changeSet((set) => {
+                changeSet((s) => {
                   if (value === "true") {
-                    set.rpe = set.rpe ?? 8;
+                    s.rpe = s.rpe ?? 8;
                   } else {
-                    set.rpe = undefined;
+                    s.rpe = undefined;
                   }
                 });
               }}
@@ -121,11 +121,11 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
               name="Timer"
               value={set.timer != null ? "true" : "false"}
               onChange={(value) => {
-                changeSet((set) => {
+                changeSet((s) => {
                   if (value === "true") {
-                    set.timer = set.timer ?? 120;
+                    s.timer = s.timer ?? 120;
                   } else {
-                    set.timer = undefined;
+                    s.timer = undefined;
                   }
                 });
               }}

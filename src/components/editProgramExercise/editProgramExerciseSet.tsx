@@ -69,7 +69,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
   const reusingRpe = reusingSets && plannerExercise.globals.rpe == null;
   const reusingTimer = reusingSets && plannerExercise.globals.timer == null;
 
-  function changeSet(cb: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
+  function changeSet(cb: (s: IPlannerProgramExerciseEvaluatedSet) => void): void {
     if (!plannerExercise) {
       return;
     }
@@ -77,8 +77,8 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
       lbProgram.recordModify((program) => {
         return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, props.settings, true, (ex) => {
           const setVariation = ex.evaluatedSetVariations[setVariationIndex];
-          const set = setVariation.sets[setIndex];
-          cb(set);
+          const s = setVariation.sets[setIndex];
+          cb(s);
         });
       }),
       "Update set"
@@ -173,12 +173,12 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                           name="set-min-reps"
                           onBlur={(value) => {
                             if (value != null && !isNaN(value)) {
-                              changeSet((set) => (set.minrep = value));
+                              changeSet((s) => (s.minrep = value));
                             }
                           }}
                           onInput={(value) => {
                             if (value != null && !isNaN(value)) {
-                              changeSet((set) => (set.minrep = value));
+                              changeSet((s) => (s.minrep = value));
                             }
                           }}
                           value={set.minrep}
@@ -208,12 +208,12 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   name="set-reps"
                   onBlur={(value) => {
                     if (value != null && !isNaN(value)) {
-                      changeSet((set) => (set.maxrep = value));
+                      changeSet((s) => (s.maxrep = value));
                     }
                   }}
                   onInput={(value) => {
                     if (value != null && !isNaN(value)) {
-                      changeSet((set) => (set.maxrep = value));
+                      changeSet((s) => (s.maxrep = value));
                     }
                   }}
                   after={() => {
@@ -226,7 +226,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                         label="Is AMRAP?"
                         value={set.isAmrap}
                         onChange={(value) => {
-                          changeSet((set) => (set.isAmrap = value));
+                          changeSet((s) => (s.isAmrap = value));
                         }}
                       />
                     </div>
@@ -263,12 +263,12 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                         units={["lb", "kg", "%"] as const}
                         onBlur={(value) => {
                           if (value != null) {
-                            changeSet((set) => (set.weight = value));
+                            changeSet((s) => (s.weight = value));
                           }
                         }}
                         onInput={(value) => {
                           if (value != null) {
-                            changeSet((set) => (set.weight = value));
+                            changeSet((s) => (s.weight = value));
                           }
                         }}
                         showUnitInside={true}
@@ -287,7 +287,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                               label="Ask Weight?"
                               value={set.askWeight}
                               onChange={(value) => {
-                                changeSet((set) => (set.askWeight = value));
+                                changeSet((s) => (s.askWeight = value));
                               }}
                             />
                           );
@@ -325,19 +325,19 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                             data-cy="keyboard-addon-log-rpe"
                             value={set.logRpe}
                             onChange={(value) => {
-                              changeSet((set) => (set.logRpe = value));
+                              changeSet((s) => (s.logRpe = value));
                             }}
                           />
                         </div>
                       }
                       onBlur={(value) => {
                         if (value != null && !isNaN(value)) {
-                          changeSet((set) => (set.rpe = value));
+                          changeSet((s) => (s.rpe = value));
                         }
                       }}
                       onInput={(value) => {
                         if (value != null && !isNaN(value)) {
-                          changeSet((set) => (set.rpe = value));
+                          changeSet((s) => (s.rpe = value));
                         }
                       }}
                       value={set.rpe}
@@ -369,12 +369,12 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                       name="timer-value"
                       onBlur={(value) => {
                         if (value != null && !isNaN(value)) {
-                          changeSet((set) => (set.timer = value));
+                          changeSet((s) => (s.timer = value));
                         }
                       }}
                       onInput={(value) => {
                         if (value != null && !isNaN(value)) {
-                          changeSet((set) => (set.timer = value));
+                          changeSet((s) => (s.timer = value));
                         }
                       }}
                       value={set.timer}

@@ -513,11 +513,11 @@ export function AppView(props: IProps): JSX.Element | null {
     const plannerState = screenData.name === "editProgramExercise" ? screenData.params?.plannerState : undefined;
     content = (
       <FallbackScreen state={{ plannerState, exerciseKey, dayData }} dispatch={dispatch}>
-        {({ plannerState, exerciseKey, dayData }) => (
+        {({ plannerState: plannerState2, exerciseKey: exerciseKey2, dayData: dayData2 }) => (
           <ScreenEditProgramExercise
-            plannerState={plannerState}
-            exerciseKey={exerciseKey}
-            dayData={dayData}
+            plannerState={plannerState2}
+            exerciseKey={exerciseKey2}
+            dayData={dayData2}
             dispatch={dispatch}
             settings={state.storage.settings}
             navCommon={navCommon}
@@ -534,7 +534,7 @@ export function AppView(props: IProps): JSX.Element | null {
     );
     content = (
       <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>
-        {({ plannerState, editProgram }) => (
+        {({ plannerState: plannerState2, editProgram: editProgram2 }) => (
           <ScreenEditProgram
             client={client}
             helps={state.storage.helps}
@@ -543,9 +543,9 @@ export function AppView(props: IProps): JSX.Element | null {
             subscription={state.storage.subscription}
             settings={state.storage.settings}
             dispatch={dispatch}
-            originalProgram={editProgram}
-            plannerState={plannerState}
-            revisions={(state.revisions || {})[editProgram.id] || []}
+            originalProgram={editProgram2}
+            plannerState={plannerState2}
+            revisions={(state.revisions || {})[editProgram2.id] || []}
             isLoggedIn={state.user != null}
           />
         )}

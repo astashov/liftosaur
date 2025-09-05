@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "mocha";
 import { expect } from "chai";
 import { VersionTracker, IVersions, ICollectionVersions, IVersionTypes } from "../src/models/versionTracker";
@@ -303,8 +304,8 @@ describe("VersionTracker", () => {
         },
       };
 
-      const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
-      const merged = versionTracker.mergeByVersions(
+      const versionTracker2 = new VersionTracker(STORAGE_VERSION_TYPES);
+      const merged = versionTracker2.mergeByVersions(
         storage,
         {},
         { settings: { exercises: { boo: 300 } } },

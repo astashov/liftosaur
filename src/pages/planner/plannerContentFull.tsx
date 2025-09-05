@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { lb, lbu, LensBuilder } from "lens-shmens";
 import { h, JSX } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";

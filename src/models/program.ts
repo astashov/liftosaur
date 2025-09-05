@@ -1,4 +1,4 @@
-import { Exercise, exercises, warmupValues } from "./exercise";
+import { Exercise, allExercisesList, warmupValues } from "./exercise";
 import { ScriptRunner } from "../parser";
 import { IScriptBindings, Progress } from "./progress";
 import { lb } from "lens-shmens";
@@ -575,7 +575,7 @@ export namespace Program {
         equipment: "barbell",
       },
       state: {
-        weight: units === "kg" ? exercises.squat.startingWeightKg : exercises.squat.startingWeightLb,
+        weight: units === "kg" ? allExercisesList.squat.startingWeightKg : allExercisesList.squat.startingWeightLb,
       },
       warmupSets: defaultWarmup,
       finishDayExpr: "",
@@ -1150,12 +1150,12 @@ export namespace Program {
   }
 
   export async function toUrl(program: IProgram, settings: ISettings, client: Window["fetch"]): Promise<string> {
-    const exportProgram = Program.exportProgram(program, settings);
+    const exportedProgram = Program.exportProgram(program, settings);
     const baseUrl = UrlUtils.build(
       "/planner",
       typeof window !== "undefined" ? window.location.href : "https://www.liftosaur.com"
     );
-    const json = JSON.stringify(exportProgram);
+    const json = JSON.stringify(exportedProgram);
     const hash = StringUtils.hashString(json);
     const encodedUrl = await Encoder.encodeIntoUrl(json, baseUrl.toString());
     const encodedProgramUrl = encodedUrl.toString();

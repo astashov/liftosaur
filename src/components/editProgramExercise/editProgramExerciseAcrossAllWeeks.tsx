@@ -322,8 +322,8 @@ function RepsValue(props: IValueProps): JSX.Element {
                 data-cy="min-reps-value"
                 name="set-min-reps"
                 onBlur={(value) => {
-                  change(group, (set) => {
-                    set.minrep = value;
+                  change(group, (s) => {
+                    s.minrep = value;
                   });
                 }}
                 value={set.minrep}
@@ -346,7 +346,7 @@ function RepsValue(props: IValueProps): JSX.Element {
             width={3.5}
             data-cy="reps-value"
             name="set-reps"
-            onBlur={(value) => change(group, (set) => (set.maxrep = value))}
+            onBlur={(value) => change(group, (s) => (s.maxrep = value))}
             after={() => {
               return set.isAmrap ? <span className="text-xs text-text-secondary">+</span> : undefined;
             }}
@@ -356,7 +356,7 @@ function RepsValue(props: IValueProps): JSX.Element {
                   label="Is AMRAP?"
                   value={set.isAmrap}
                   onChange={(value) => {
-                    change(group, (set) => (set.isAmrap = value));
+                    change(group, (s) => (s.isAmrap = value));
                   }}
                 />
               </div>
@@ -384,7 +384,7 @@ function WeightsValue(props: IValueProps): JSX.Element {
           exerciseType={props.exerciseType}
           data-cy="weight-value"
           units={["lb", "kg", "%"] as const}
-          onBlur={(value) => change(group, (set) => (set.weight = value))}
+          onBlur={(value) => change(group, (s) => (s.weight = value))}
           showUnitInside={true}
           subscription={undefined}
           value={set.weight}
@@ -400,7 +400,7 @@ function WeightsValue(props: IValueProps): JSX.Element {
                 label="Ask Weight?"
                 value={set.askWeight}
                 onChange={(value) => {
-                  change(group, (set) => (set.askWeight = value));
+                  change(group, (s) => (s.askWeight = value));
                 }}
               />
             );
@@ -431,12 +431,12 @@ function RpeValue(props: IValueProps): JSX.Element {
                 label="Log RPE?"
                 value={set.isAmrap}
                 onChange={(value) => {
-                  change(group, (set) => (set.logRpe = value));
+                  change(group, (s) => (s.logRpe = value));
                 }}
               />
             </div>
           }
-          onBlur={(value) => change(group, (set) => (set.rpe = value))}
+          onBlur={(value) => change(group, (s) => (s.rpe = value))}
           value={set.rpe}
           min={0}
           max={10}
@@ -457,7 +457,7 @@ function TimerValue(props: IValueProps): JSX.Element {
           width={3.5}
           data-cy="set-timer"
           name="timer-value"
-          onBlur={(value) => change(group, (set) => (set.timer = value))}
+          onBlur={(value) => change(group, (s) => (s.timer = value))}
           value={set.timer}
           min={0}
           max={9999}

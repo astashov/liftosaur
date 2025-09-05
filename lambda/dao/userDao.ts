@@ -967,6 +967,7 @@ function convertStatsFromDb(statsDb: IStatDb[]): IStats {
       const stat: IStatsLengthValue | IStatsWeightValue | IStatsPercentageValue = {
         timestamp: statDb.timestamp,
         updatedAt: statDb.timestamp,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         value: statDb.value as any,
         vtype: "stat",
       };

@@ -10,7 +10,7 @@ export interface IStreamingRequest {
 }
 
 export class HttpStreaming {
-  static async *streamRequest(request: IStreamingRequest): AsyncGenerator<string, void, unknown> {
+  public static async *streamRequest(request: IStreamingRequest): AsyncGenerator<string, void, unknown> {
     const response = await this.makeRequest(request);
 
     if (response.statusCode !== 200) {

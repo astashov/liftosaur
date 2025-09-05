@@ -95,7 +95,6 @@ function initialize(service: ServiceWorkerGlobalScope): void {
     }
   });
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
   self.addEventListener("activate", async (event: object) => {
     console.log("Activate Service Worker", event);
     const keys = (await caches.keys()).filter((k) => k !== cacheName);

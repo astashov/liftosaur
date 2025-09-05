@@ -239,8 +239,8 @@ export function ScreenProgram(props: IProps): JSX.Element {
                   [
                     lb<IPlannerState>()
                       .p("ui")
-                      .recordModify((ui) => {
-                        return { ...ui, isUndoing: false };
+                      .recordModify((ui2) => {
+                        return { ...ui2, isUndoing: false };
                       }),
                   ],
                   "stop-is-undoing"

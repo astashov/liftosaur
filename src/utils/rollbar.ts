@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import RB, { Dictionary, LogArgument } from "rollbar";
 import { Service } from "../api/service";
 import { IState } from "../models/state";

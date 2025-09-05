@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { ILensRecordingPayload, LensBuilder } from "lens-shmens";
 import { IExerciseType, IPercentage, IProgramExercise, IProgramState, ISettings, IWeight } from "../types";
 import { ObjectUtils } from "../utils/object";

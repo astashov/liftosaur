@@ -54,9 +54,9 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
   useEffect(() => {
     new Promise(async (resolve) => {
       if (url == null) {
-        const url = await Program.toUrl(props.program, props.settings, props.client);
-        setUrl(url);
-        resolve(void 0);
+        const url2 = await Program.toUrl(props.program, props.settings, props.client);
+        setUrl(url2);
+        resolve(undefined);
       }
     });
   }, []);

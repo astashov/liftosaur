@@ -465,7 +465,7 @@ export class PlannerProgramExercise {
       (key, value) =>
         originalState[key] == null ||
         !Weight.eq(originalState[key], value) ||
-        originalStateMetadata[key]?.userPrompted != stateMetadata[key]?.userPrompted
+        originalStateMetadata[key]?.userPrompted !== stateMetadata[key]?.userPrompted
     ) as IProgramState;
   }
 

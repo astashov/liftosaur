@@ -16,7 +16,7 @@ export class GestureDetector {
     this.lastTriggerTime = 0;
   }
 
-  public addPoint(x: number, y: number) {
+  public addPoint(x: number, y: number): void {
     this.points.push({ x, y });
 
     if (this.points.length > 2) {
@@ -24,7 +24,7 @@ export class GestureDetector {
     }
   }
 
-  private detectSwipe() {
+  private detectSwipe(): void {
     const first = this.points[0];
     const last = this.points[this.points.length - 1];
 
@@ -41,12 +41,16 @@ export class GestureDetector {
     }
   }
 
-  private reset() {
+  private reset(): void {
     this.points = [];
   }
 }
 
-export function useGesture(callback: IGestureDetectorCallback) {
+export function useGesture(callback: IGestureDetectorCallback): {
+  onPointerDown: (event: PointerEvent) => void;
+  onPointerMove: (event: PointerEvent) => void;
+  onPointerUp: (event: PointerEvent) => void;
+} {
   const swipeDetectorRef = useRef(new GestureDetector(callback));
   const isTracking = useRef(false);
 

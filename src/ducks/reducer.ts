@@ -338,7 +338,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
     },
     (dispatch, action, oldState, newState) => {
       if (
-        oldState.storage.stats != newState.storage.stats ||
+        oldState.storage.stats !== newState.storage.stats ||
         ((newState.storage.stats.weight.weight ?? []).length > 0 && newState.storage.settings.currentBodyweight == null)
       ) {
         const oldBodyweight =

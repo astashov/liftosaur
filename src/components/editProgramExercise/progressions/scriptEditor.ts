@@ -22,7 +22,7 @@ import { buildLiftoscriptLanguageSupport } from "../../../liftoscriptCodemirror"
 import { LiftoscriptSyntaxError } from "../../../liftoscriptEvaluator";
 import { Tailwind } from "../../../utils/tailwindConfig";
 
-const buildHighlightStyle = () => {
+const buildHighlightStyle = (): HighlightStyle => {
   return HighlightStyle.define([
     { tag: tags.keyword, color: Tailwind.semantic().syntax.keyword },
     { tag: [tags.literal, tags.inserted], color: Tailwind.semantic().syntax.literal },

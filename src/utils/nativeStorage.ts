@@ -1,7 +1,8 @@
 import { UidFactory } from "./generator";
 import { SendMessage } from "./sendMessage";
 
-interface PendingRequest<T = any> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface IPendingRequest<T = any> {
   resolve: (value: T) => void;
   reject: (error: Error) => void;
   timeout: NodeJS.Timeout;
@@ -49,7 +50,7 @@ type IStorageResponse =
   | IStorageResponseGetAllKeysResult;
 
 export class NativeStorage {
-  private readonly pendingRequests: Map<string, PendingRequest>;
+  private readonly pendingRequests: Map<string, IPendingRequest>;
 
   constructor() {
     this.pendingRequests = new Map();
@@ -58,6 +59,7 @@ export class NativeStorage {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async set<T = any>(key: string, value: T): Promise<boolean> {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<boolean>(requestId);
@@ -72,6 +74,7 @@ export class NativeStorage {
     return promise;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async get<T = any>(key: string): Promise<T | undefined> {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<T | undefined>(requestId);

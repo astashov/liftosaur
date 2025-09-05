@@ -781,7 +781,7 @@ export const THistoryRecordChange = t.keyof(
   ),
   "THistoryRecordChange"
 );
-export type tHistoryRecordChange = t.TypeOf<typeof THistoryRecordChange>;
+export type IHistoryRecordChange = t.TypeOf<typeof THistoryRecordChange>;
 
 export const THistoryRecord = t.intersection(
   [

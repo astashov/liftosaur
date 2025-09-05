@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-
 import { h, JSX } from "preact";
 import { LinkInlineInput } from "../../../components/inlineInput";
 import { LinkButton } from "../../../components/linkButton";

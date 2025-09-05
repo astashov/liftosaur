@@ -109,9 +109,9 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
           }
         }}
         enableCalculator={true}
-        onBlur={(value) => {
+        onBlur={(v) => {
           if (props.onBlur) {
-            const weight = value != null ? Weight.buildAny(value, unitRef.current) : undefined;
+            const weight = v != null ? Weight.buildAny(v, unitRef.current) : undefined;
             props.onBlur(weight);
           }
         }}

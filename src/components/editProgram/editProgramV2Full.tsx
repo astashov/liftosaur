@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { JSX, h } from "preact";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -27,8 +26,8 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
   const settingsRef = useRef(props.settings);
   useEffect(() => {
     settingsRef.current = props.settings;
-    const { evaluatedWeeks } = PlannerProgram.evaluateFull(fulltext, settingsRef.current);
-    const newError = evaluatedWeeks.success ? undefined : evaluatedWeeks.error;
+    const { evaluatedWeeks: evaluatedWeeks2 } = PlannerProgram.evaluateFull(fulltext, settingsRef.current);
+    const newError = evaluatedWeeks2.success ? undefined : evaluatedWeeks2.error;
     if (
       props.ui.fullTextError?.message !== newError?.message ||
       props.ui.fullTextError?.line !== newError?.line ||
@@ -63,10 +62,10 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
             )}
             onChange={(text) => {
               const weeks = PlannerProgram.evaluateText(text);
-              const { evaluatedWeeks } = PlannerProgram.evaluateFull(text, settingsRef.current);
+              const { evaluatedWeeks: evaluatedWeeks2 } = PlannerProgram.evaluateFull(text, settingsRef.current);
               props.plannerDispatch(
                 [
-                  lbUi.p("fullTextError").record(evaluatedWeeks.success ? undefined : evaluatedWeeks.error),
+                  lbUi.p("fullTextError").record(evaluatedWeeks2.success ? undefined : evaluatedWeeks2.error),
                   lbProgram.p("weeks").record(weeks),
                 ],
                 "Update full program text"

@@ -60,7 +60,7 @@ export const ProgramShareOutput = forwardRef(
     });
 
     useEffect(() => {
-      const handleResize = () => {
+      const handleResize = (): void => {
         if (contentRef.current && titleRef.current) {
           titleRef.current.style.width = `${contentRef.current.clientWidth}px`;
         }

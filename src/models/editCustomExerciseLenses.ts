@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-
 import { ILensRecordingPayload, LensBuilder } from "lens-shmens";
 import { ICustomExercise, IExerciseKind, IMuscle, ISettings } from "../types";
 import { Exercise } from "./exercise";

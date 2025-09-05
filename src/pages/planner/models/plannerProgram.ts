@@ -123,16 +123,16 @@ export class PlannerProgram {
       if (exercise.key === key) {
         if (!dayData || (dayData.week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1)) {
           exercise.exerciseType = typeof toExerciseType === "string" ? undefined : toExerciseType;
-          const newLabel = getLabel(exercise.label);
-          exercise.label = newLabel;
+          const newLabel2 = getLabel(exercise.label);
+          exercise.label = newLabel2;
           if (typeof toExerciseType === "string") {
             exercise.notused = true;
-            exercise.fullName = `${newLabel ? `${newLabel}: ` : ""}${toExerciseType}`;
+            exercise.fullName = `${newLabel2 ? `${newLabel2}: ` : ""}${toExerciseType}`;
           }
           const newKey =
             typeof toExerciseType === "string"
-              ? PlannerKey.fromLabelNameAndEquipment(newLabel, toExerciseType, undefined, settings.exercises)
-              : PlannerKey.fromExerciseType(toExerciseType, newLabel);
+              ? PlannerKey.fromLabelNameAndEquipment(newLabel2, toExerciseType, undefined, settings.exercises)
+              : PlannerKey.fromExerciseType(toExerciseType, newLabel2);
           renameMapping[exercise.key] = { to: newKey, dayData };
           exercise.key = newKey;
         }

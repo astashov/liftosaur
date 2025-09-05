@@ -19,7 +19,7 @@ interface ISwipeableRowProps {
   showHint?: boolean;
 }
 
-export function SwipeableRow(props: ISwipeableRowProps) {
+export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
   const { children, width, openThreshold, closeThreshold } = props;
   const [translateX, setTranslateX] = useState(0);
   const startX = useRef(0);
@@ -30,7 +30,7 @@ export function SwipeableRow(props: ISwipeableRowProps) {
   const isSwiping = useRef(false);
   const isOpen = useRef(false);
 
-  const handlePointerDown = (event: TouchEvent | PointerEvent) => {
+  const handlePointerDown = (event: TouchEvent | PointerEvent): void => {
     if (props.onPointerDown) {
       props.onPointerDown();
     }
@@ -46,7 +46,7 @@ export function SwipeableRow(props: ISwipeableRowProps) {
     isSwiping.current = false;
   };
 
-  const handlePointerMove = (event: TouchEvent | PointerEvent) => {
+  const handlePointerMove = (event: TouchEvent | PointerEvent): void => {
     if (isSwiping.current) {
       event.preventDefault();
     }
@@ -69,7 +69,7 @@ export function SwipeableRow(props: ISwipeableRowProps) {
     }
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (): void => {
     isDragging.current = false;
     const parentScroller = document.querySelectorAll(".parent-scroller");
     for (const scroller of Array.from(parentScroller)) {
@@ -90,7 +90,7 @@ export function SwipeableRow(props: ISwipeableRowProps) {
     }
   };
 
-  const close = () => {
+  const close = (): void => {
     setTranslateX(0);
     isOpen.current = false;
   };

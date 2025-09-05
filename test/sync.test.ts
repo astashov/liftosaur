@@ -101,6 +101,7 @@ describe("sync", () => {
       ts += 1;
       return ts;
     });
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     sandbox.stub(Encoder, "encode").callsFake(NodeEncoder.encode);
   });
 

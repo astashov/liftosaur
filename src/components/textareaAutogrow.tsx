@@ -16,7 +16,7 @@ export function TextareaAutogrow(props: IProps): JSX.Element {
     }
   }, [value]);
 
-  const handleChange = (event: Event) => {
+  const handleChange = (event: Event): void => {
     const target = event.target as HTMLTextAreaElement;
     setValue(target.value);
     if (props.onChangeText) {

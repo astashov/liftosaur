@@ -1,13 +1,13 @@
-import { h } from "preact";
+import { h, JSX } from "preact";
 import { useRef, useState, useLayoutEffect } from "preact/hooks";
 
-interface ContentGrowingTextareaProps {
+interface IContentGrowingTextareaProps {
   value: string;
   onInput?: (value: string) => void;
   className?: string;
 }
 
-export function ContentGrowingTextarea({ value, onInput, className = "" }: ContentGrowingTextareaProps) {
+export function ContentGrowingTextarea({ value, onInput, className = "" }: IContentGrowingTextareaProps): JSX.Element {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mirrorRef = useRef<HTMLDivElement>(null);
   const [localValue, setLocalValue] = useState(value);
@@ -24,19 +24,19 @@ export function ContentGrowingTextarea({ value, onInput, className = "" }: Conte
     setLocalValue(value);
   }, [value]);
 
-  const handleInput = (e: Event) => {
+  const handleInput = (e: Event): void => {
     const val = (e.target as HTMLTextAreaElement).value.replace(/[\r\n]+/g, "");
     setLocalValue(val);
     onInput?.(val);
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === "Enter") {
       e.preventDefault(); // prevent newlines
     }
   };
 
-  const handleBlur = () => {
+  const handleBlur = (): void => {
     if (localValue.trim() === "") {
       setLocalValue(value);
     }

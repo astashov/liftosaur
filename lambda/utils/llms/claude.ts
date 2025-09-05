@@ -7,7 +7,7 @@ export class ClaudeProvider implements ILLMProvider {
     private readonly model: string = "claude-sonnet-4-20250514"
   ) {}
 
-  async *generate(
+  public async *generate(
     systemPrompt: string,
     userInput: string
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
@@ -81,8 +81,8 @@ export class ClaudeProvider implements ILLMProvider {
       } else {
         yield { type: "error", data: "No content received from Claude" };
       }
-    } catch (error: any) {
-      yield { type: "error", data: error.message || "Failed to connect to Claude" };
+    } catch (error: unknown) {
+      yield { type: "error", data: (error as Error).message || "Failed to connect to Claude" };
     }
   }
 }

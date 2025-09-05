@@ -20,7 +20,7 @@ interface IDraggableListProps<T> {
     item: T,
     index: number,
     handleWrapper?: (touchEvent: TouchEvent | MouseEvent) => void,
-    onClick?: (index: number) => void
+    onClick?: (i: number) => void
   ) => JSX.Element;
   onClick?: (index: number) => void;
   delayMs?: number;
@@ -198,7 +198,7 @@ interface IDraggableListItemProps<T> {
     item: T,
     index: number,
     handleWrapper?: (touchEvent: TouchEvent | MouseEvent) => void,
-    onClick?: (index: number) => void
+    onClick?: (i: number) => void
   ) => JSX.Element;
   item: T;
   index: number;

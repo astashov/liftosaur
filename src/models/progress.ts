@@ -461,17 +461,17 @@ export namespace Progress {
       let bodyHeader = "The rest is over";
       const nextEntryAndSet = Reps.findNextEntryAndSet(progress, entryIndex);
       if (nextEntryAndSet != null) {
-        const { entry, set } = nextEntryAndSet;
+        const { entry, set: aSet } = nextEntryAndSet;
         const exercise = Exercise.get(entry.exercise, settings.exercises);
         if (exercise) {
           subtitleHeader = "Next Set";
           subtitle = CollectionUtils.compact([
             exercise.name,
-            set.reps != null ? `${set.reps}${set.isAmrap ? "+" : ""} reps` : undefined,
-            set.weight != null ? Weight.display(set.weight) : undefined,
+            aSet.reps != null ? `${aSet.reps}${aSet.isAmrap ? "+" : ""} reps` : undefined,
+            aSet.weight != null ? Weight.display(aSet.weight) : undefined,
           ]).join(", ");
-          if (set.weight != null) {
-            const { plates } = Weight.calculatePlates(set.weight, settings, set.weight.unit, entry.exercise);
+          if (aSet.weight != null) {
+            const { plates } = Weight.calculatePlates(aSet.weight, settings, aSet.weight.unit, entry.exercise);
             const formattedPlates = plates.length > 0 ? Weight.formatOneSide(settings, plates, exercise) : "None";
             bodyHeader = "Plates per side";
             body = formattedPlates;
