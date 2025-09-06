@@ -1547,4 +1547,123 @@ Squat / 1x5+ 100lb @8, 1x5 100lb @8+, 1x5 100lb+ @8 / progress: custom() {~
 
 `);
   });
+
+  describe("description reuse", () => {
+    it("keeps description [1:1] reuse syntax if different day or week", () => {
+      const programText = `# Week 1
+## Day 1
+// Description
+Squat / 1x1
+
+# Week 2
+## Day 1
+// ...Squat[1:1]
+Bench Press / 1x1`;
+      const { program } = PlannerTestUtils.finish(programText, { completedReps: [[1]] });
+      const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+      expect(newText).to.equal(`# Week 1
+## Day 1
+// Description
+Squat / 1x1
+
+
+# Week 2
+## Day 1
+// ...Squat[1:1]
+Bench Press / 1x1
+
+
+`);
+    });
+  });
+
+  it("omits [1:1] description reuse syntax if on the same week", () => {
+    const programText = `# Week 1
+## Day 1
+// Description
+Squat / 1x1
+
+## Day 2
+// ...Squat
+Bench Press / 1x1`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[1]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+// Description
+Squat / 1x1
+
+## Day 2
+// ...Squat
+Bench Press / 1x1
+
+
+`);
+  });
+
+  it("adds [1:1] description reuse syntax if there's 2 same exercises", () => {
+    const programText = `# Week 1
+## Day 1
+// Description
+Squat / 1x1
+
+## Day 2
+// Description 2
+Squat / 1x1
+
+## Day 3
+// ...Squat[1:2]
+Bench Press / 1x1`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[1]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+// Description
+Squat / 1x1
+
+## Day 2
+// Description 2
+Squat / 1x1
+
+## Day 3
+// ...Squat[1:2]
+Bench Press / 1x1
+
+
+`);
+  });
+
+  it("omits [1:1] description reuse syntax if exercise description is repeated on the same week", () => {
+    const programText = `# Week 1
+## Day 1
+
+// Description
+Squat / 1x1
+
+# Week 2
+## Day 1
+
+Squat / 1x1
+// ...Squat
+Bench Press / 1x1`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[1]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    console.log(newText);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+
+// Description
+Squat / 1x1
+
+# Week 2
+## Day 1
+
+// Description
+Squat / 1x1
+// ...Squat
+Bench Press / 1x1
+
+
+`);
+  });
 });

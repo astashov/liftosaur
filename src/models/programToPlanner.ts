@@ -245,7 +245,19 @@ export class ProgramToPlanner {
       }
       return { lines, addedCurrentDescription };
     } else if (exercise?.descriptions.reuse?.exercise) {
-      return { lines: [`// ...${exercise.descriptions.reuse.exercise.fullName}`], addedCurrentDescription };
+      const reusedExercise = exercise.descriptions.reuse.exercise;
+      const reusedDayData = reusedExercise.dayData;
+      const currentWeekReusedExercisesCount = this.program.weeks[weekIndex]?.days.filter((day) => {
+        return day.exercises.some((e) => e.key === reusedExercise.key);
+      }).length;
+      if (currentWeekReusedExercisesCount === 1 && reusedDayData.week === weekIndex + 1) {
+        return { lines: [`// ...${reusedExercise.fullName}`], addedCurrentDescription };
+      } else {
+        return {
+          lines: [`// ...${reusedExercise.fullName}[${reusedDayData.week}:${reusedDayData.dayInWeek}]`],
+          addedCurrentDescription,
+        };
+      }
     } else {
       return undefined;
     }
