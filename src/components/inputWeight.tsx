@@ -81,6 +81,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
           <div>
             <select
               ref={unitRef}
+              className="bg-background-default"
               data-cy="edit-weight-unit"
               onChange={() => {
                 const value = getValue();
