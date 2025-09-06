@@ -301,6 +301,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
             )}
             {progress.ui?.rm1Modal?.exerciseType && (
               <Modal1RM
+                history={props.history}
                 progressId={progress.id}
                 settings={props.settings}
                 exercise={progress.ui?.rm1Modal.exerciseType}

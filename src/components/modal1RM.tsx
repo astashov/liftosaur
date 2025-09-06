@@ -5,7 +5,7 @@ import { Weight } from "../models/weight";
 import { lb } from "lens-shmens";
 import { Exercise } from "../models/exercise";
 import { updateState, IState } from "../models/state";
-import { ISettings, IExerciseType } from "../types";
+import { ISettings, IExerciseType, IHistoryRecord } from "../types";
 import { ExerciseRM } from "./exerciseRm";
 
 interface IModal1RMProps {
@@ -13,6 +13,7 @@ interface IModal1RMProps {
   settings: ISettings;
   exercise: IExerciseType;
   dispatch: IDispatch;
+  history: IHistoryRecord[];
 }
 
 export function Modal1RM(props: IModal1RMProps): JSX.Element {
@@ -33,6 +34,7 @@ export function Modal1RM(props: IModal1RMProps): JSX.Element {
       <ExerciseRM
         name="1 Rep Max"
         rmKey="rm1"
+        history={props.history}
         exercise={exercise}
         settings={props.settings}
         onEditVariable={(value) => {

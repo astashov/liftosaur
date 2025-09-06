@@ -8,7 +8,7 @@ import { History } from "../models/history";
 import { LinkButton } from "./linkButton";
 import { CollectionUtils } from "../utils/collection";
 import { IEvaluatedProgram, IEvaluatedProgramDay } from "../models/program";
-import { useMemo, useRef } from "preact/hooks";
+import { useMemo, useRef, useEffect } from "preact/hooks";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { Collector } from "../utils/collector";
 import { Locker } from "./locker";
@@ -17,6 +17,7 @@ import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
 import { ExerciseHistory } from "./exerciseHistory";
 import { Reps } from "../models/set";
 import { WorkoutExerciseCard } from "./workoutExerciseCard";
+import { setOneRM } from '../stores/oneRMStore';
 
 interface IWorkoutExerciseProps {
   day: number;
@@ -58,9 +59,15 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
     });
     return results;
   }, [props.history, exerciseType, props.settings]);
+
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
   const status = Reps.setsStatus(props.entry.sets);
   const surfaceRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const exKey = Exercise.toKey(exerciseType);
+    setOneRM(exKey, { max1RM, max1RMHistoryRecord, max1RMSet });
+  }, [exerciseType, max1RMHistoryRecord, max1RMSet]);
 
   return (
     <div data-cy={`exercise-progress-${status}`} ref={surfaceRef}>
