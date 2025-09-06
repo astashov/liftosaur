@@ -73,7 +73,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
               className="flex items-center"
               onClick={() => props.dispatch(Thunk.pushExerciseStatsScreen(props.entry.exercise))}
             >
-              <span className="pr-1 font-bold">{Exercise.nameWithEquipment(exercise, props.settings)}</span>{" "}
+              <span className="pr-1 font-bold text-left">{Exercise.nameWithEquipment(exercise, props.settings)}</span>{" "}
               <IconArrowRight width={5} height={10} style={{ marginBottom: "1px" }} className="inline-block" />
             </button>
           </div>
