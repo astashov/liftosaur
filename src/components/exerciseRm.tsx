@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { MenuItemEditable } from "./menuItemEditable";
 import { Exercise, IExercise } from "../models/exercise";
-import { IExerciseDataValue, ISettings } from "../types";
+import { IExerciseDataValue, ISettings, IHistoryRecord } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { useState } from "preact/hooks";
 import { Modal } from "./modal";
@@ -13,6 +13,7 @@ interface IExerciseRMProps {
   exercise: IExercise;
   settings: ISettings;
   onEditVariable: (value: number) => void;
+  history: IHistoryRecord[];
 }
 
 export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
@@ -52,7 +53,9 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
       {showCalculator && (
         <Modal shouldShowClose={true} onClose={() => setShowCalculator(false)}>
           <RepMaxCalculator
-            exerciseKey={Exercise.toKey(props.exercise)}
+            history={props.history}
+            exercise={props.exercise}
+            settings={props.settings}
             backLabel="Close"
             unit={props.settings.units}
             onSelect={(weightValue) => {

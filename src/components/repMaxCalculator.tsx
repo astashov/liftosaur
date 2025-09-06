@@ -1,24 +1,30 @@
 import { JSX, h } from "preact";
 import { useState } from "preact/hooks";
 import { Weight } from "../models/weight";
-import { IUnit } from "../types";
+import { IUnit, IHistoryRecord, ISettings, IExerciseType } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { Button } from "./button";
 import { Input } from "./input";
-import { useOneRM } from '../stores/useOneRM';
+import { History } from "../models/history";
+import { Collector } from "../utils/collector";
 
 interface IRepMaxCalculatorProps {
   unit: IUnit;
   backLabel: string;
   onSelect: (weight?: number) => void;
-  exerciseKey?: string
+  exercise: IExerciseType;
+  history: IHistoryRecord[];
+  settings: ISettings;
 }
 
 export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
-  const oneRM = props.exerciseKey ? useOneRM(props.exerciseKey) : undefined;
-  const [knownRepsValue, setKnownRepsValue] = useState<number>(oneRM?.max1RMSet?.completedReps ?? 5);
+  const historyCollector = Collector.build(props.history)
+    .addFn(History.collect1RMPersonalRecord(props.exercise, props.settings));
+  const [{ max1RMSet }] = historyCollector.run();
+
+  const [knownRepsValue, setKnownRepsValue] = useState<number>(max1RMSet?.completedReps ?? 5);
   const [knownRpeValue, setKnownRpeValue] = useState<number>(10);
-  const [knownWeightValue, setKnownWeightValue] = useState<number>(oneRM?.max1RMSet?.completedWeight?.value ?? 200);
+  const [knownWeightValue, setKnownWeightValue] = useState<number>(max1RMSet?.completedWeight?.value ?? 200);
   const [targetRepsValue, setTargetRepsValue] = useState<number>(1);
   const [targetRpeValue, setTargetRpeValue] = useState<number>(10);
 
