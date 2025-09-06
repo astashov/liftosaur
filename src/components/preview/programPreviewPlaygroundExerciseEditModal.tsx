@@ -46,15 +46,19 @@ export function ProgramPreviewPlaygroundExerciseEditModal(
             />
           </>
         )}
-        {hasStateVariables && (
+        {(hasStateVariables || props.hideVariables) && (
           <>
             <h2 className="mb-2 text-lg text-center">Edit state variables</h2>
-            <ProgramStateVariables
-              settings={props.settings}
-              state={state}
-              stateMetadata={stateMetadata}
-              onEditStateVariable={props.onEditStateVariable}
-            />
+            {hasStateVariables ? (
+              <ProgramStateVariables
+                settings={props.settings}
+                state={state}
+                stateMetadata={stateMetadata}
+                onEditStateVariable={props.onEditStateVariable}
+              />
+            ) : (
+              <div className="px-4 py-2 text-sm italic text-center text-text-secondary">No state variables</div>
+            )}
           </>
         )}
         <div className="mt-4 text-center">
