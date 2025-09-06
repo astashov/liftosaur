@@ -25,13 +25,14 @@ interface IProps {
 }
 
 export function CustomProgramsList(props: IProps): JSX.Element {
+  const programs = CollectionUtils.sort(props.programs, (a, b) => a.name.localeCompare(b.name));
   return (
     <>
       <div className="px-4">
-        {props.programs.map((program) => {
+        {programs.map((program) => {
           return (
             <CustomProgram
-              programs={props.programs}
+              programs={programs}
               settings={props.settings}
               progress={props.progress}
               program={program}
