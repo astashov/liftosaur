@@ -11,16 +11,16 @@ import { CollectionUtils } from "../utils/collection";
 import { InputNumber } from "./inputNumber";
 import { EquipmentSettingsValues } from "./equipmentSettings";
 import { ILensRecordingPayload, lb } from "lens-shmens";
-import { IState, updateState } from "../models/state";
+import { IState } from "../models/state";
 import { ILensDispatch } from "../utils/useLensReducer";
 import { GroupHeader } from "./groupHeader";
 
 interface IModalEquipmentProps {
-  progressId: number;
   settings: ISettings;
   stats: IStats;
   exercise: IExerciseType;
   entries: IHistoryEntry[];
+  onClose: () => void;
   dispatch: IDispatch;
 }
 
@@ -38,18 +38,7 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
 
   const currentGymId = props.settings.currentGymId ?? props.settings.gyms[0].id;
   return (
-    <Modal
-      isHidden={false}
-      onClose={() => {
-        updateState(
-          props.dispatch,
-          [lb<IState>().p("progress").pi(props.progressId).pi("ui").p("equipmentModal").record(undefined)],
-          "Close equipment modal"
-        );
-      }}
-      shouldShowClose={true}
-      isFullWidth
-    >
+    <Modal isHidden={false} onClose={props.onClose} shouldShowClose={true} isFullWidth>
       <div data-cy="modal-equipment">
         <MenuItemEditable
           type="select"

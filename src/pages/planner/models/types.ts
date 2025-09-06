@@ -225,6 +225,15 @@ export interface IPlannerUi {
   editExerciseModal?: {
     plannerExercise: IPlannerProgramExercise;
   };
+  previewExerciseModal?: {
+    plannerExercise: IPlannerProgramExercise;
+  };
+  previewOneRepMaxModal?: {
+    plannerExercise: IPlannerProgramExercise;
+  };
+  previewEquipmentModal?: {
+    plannerExercise: IPlannerProgramExercise;
+  };
   weekIndex: number;
   showPictureExport?: boolean;
   showWeekStats?: number;

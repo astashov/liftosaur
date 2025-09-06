@@ -43,6 +43,8 @@ import { UrlUtils } from "../../utils/url";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { EditProgramBottomSheetPicker } from "./editProgramBottomSheetPicker";
 import { pickerStateFromPlannerExercise } from "./editProgramUtils";
+import { ProgramPreviewTab } from "../preview/programPreviewTab";
+import { Nux } from "../nux";
 
 interface IProps {
   originalProgram: IProgram;
@@ -429,18 +431,14 @@ export function ScreenProgram(props: IProps): JSX.Element {
             {
               label: "Preview",
               children: () => (
-                <ProgramPreviewPlayground
+                <ProgramPreviewTab
                   key="preview"
-                  scrollableTabsProps={{
-                    topPadding: "0.25rem",
-                    offsetY: "3.75rem",
-                    className: "gap-2 px-4",
-                    type: "squares",
-                  }}
-                  isPlayground={false}
+                  ui={ui}
                   program={program}
                   settings={props.settings}
                   stats={props.navCommon.stats}
+                  dispatch={props.dispatch}
+                  plannerDispatch={plannerDispatch}
                 />
               ),
             },
@@ -462,19 +460,26 @@ export function ScreenProgram(props: IProps): JSX.Element {
             {
               label: "Playground",
               children: () => (
-                <ProgramPreviewPlayground
-                  key="playground"
-                  scrollableTabsProps={{
-                    topPadding: "0.25rem",
-                    offsetY: "3.75rem",
-                    className: "gap-2 px-4",
-                    type: "squares",
-                  }}
-                  isPlayground={true}
-                  program={program}
-                  settings={props.settings}
-                  stats={props.navCommon.stats}
-                />
+                <div className="pb-4">
+                  <Nux className="mx-4 my-2" id="Playground" helps={props.helps} dispatch={props.dispatch}>
+                    Playground lets you test the program logic. You can finish workouts here and see how reps, weights,
+                    sets change. Everything you do here is ephemeral, and doesn't change any settings, workouts or
+                    programs.
+                  </Nux>
+                  <ProgramPreviewPlayground
+                    key="playground"
+                    scrollableTabsProps={{
+                      topPadding: "0.25rem",
+                      offsetY: "3.75rem",
+                      className: "gap-2 px-4",
+                      type: "squares",
+                    }}
+                    isPlayground={true}
+                    program={program}
+                    settings={props.settings}
+                    stats={props.navCommon.stats}
+                  />
+                </div>
               ),
             },
           ]}

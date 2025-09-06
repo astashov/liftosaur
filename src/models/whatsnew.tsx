@@ -2054,6 +2054,23 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250905": {
+    title: <span>Preview tab on the Program screen now changes 1RM/Equipment/State vars</span>,
+    body: (
+      <ul>
+        <li>
+          It used to be ephemeral like Playground, but it's non obvious that it behaves that way. Also, seems like a lot
+          of people go there after cloning a program, so this is the place where they'd expect to configure equipment
+          and 1RMs.
+        </li>
+        <li>
+          So, now you can change 1RM and Equipment there, adjust state variables, and all those changes would be
+          persisted.
+        </li>
+        <li>Tapping on the name or exercise image also goes to the Exercise Stats screen.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

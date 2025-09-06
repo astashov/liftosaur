@@ -12,6 +12,7 @@ import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgra
 
 interface IProgramPreviewPlaygroundExerciseEditModalProps {
   programExercise: IPlannerProgramExercise;
+  hideVariables?: boolean;
   onClose: () => void;
   onEditStateVariable: (stateKey: string, newValue: string) => void;
   onEditVariable: (variableKey: keyof IExerciseDataValue, newValue: number) => void;
@@ -32,17 +33,19 @@ export function ProgramPreviewPlaygroundExerciseEditModal(
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <div style={{ minWidth: "15rem" }}>
-        <>
-          <ExerciseRM
-            name="1 Rep Max"
-            rmKey="rm1"
-            exercise={exercise}
-            settings={props.settings}
-            onEditVariable={(value) => {
-              props.onEditVariable("rm1", value);
-            }}
-          />
-        </>
+        {!props.hideVariables && (
+          <>
+            <ExerciseRM
+              name="1 Rep Max"
+              rmKey="rm1"
+              exercise={exercise}
+              settings={props.settings}
+              onEditVariable={(value) => {
+                props.onEditVariable("rm1", value);
+              }}
+            />
+          </>
+        )}
         {hasStateVariables && (
           <>
             <h2 className="mb-2 text-lg text-center">Edit state variables</h2>

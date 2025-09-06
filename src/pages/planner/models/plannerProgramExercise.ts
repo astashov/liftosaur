@@ -549,7 +549,7 @@ export class PlannerProgramExercise {
           failureCounter: args[5] ? parseInt(args[5], 10) : 0,
         };
         const script = `if (completedReps >= reps && completedRPE <= RPE) {
-    state.successCounter += 1;
+    state.successCounter += 1
     if (state.successCounter >= state.successes) {
       weights += state.increment
       state.successCounter = 0
@@ -558,7 +558,7 @@ export class PlannerProgramExercise {
   }
   if (state.decrement > 0 && state.failures > 0) {
     if (!(completedReps >= minReps && completedRPE <= RPE)) {
-      state.failureCounter += 1;
+      state.failureCounter += 1
       if (state.failureCounter >= state.failures) {
         weights -= state.decrement
         state.failureCounter = 0

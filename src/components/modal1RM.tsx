@@ -9,27 +9,16 @@ import { ISettings, IExerciseType } from "../types";
 import { ExerciseRM } from "./exerciseRm";
 
 interface IModal1RMProps {
-  progressId: number;
   settings: ISettings;
   exercise: IExerciseType;
+  onClose: () => void;
   dispatch: IDispatch;
 }
 
 export function Modal1RM(props: IModal1RMProps): JSX.Element {
   const exercise = Exercise.get(props.exercise, props.settings.exercises);
   return (
-    <Modal
-      isHidden={false}
-      onClose={() => {
-        updateState(
-          props.dispatch,
-          [lb<IState>().p("progress").pi(props.progressId).pi("ui").p("rm1Modal").record(undefined)],
-          "Close 1RM modal"
-        );
-      }}
-      shouldShowClose={true}
-      isFullWidth
-    >
+    <Modal isHidden={false} onClose={props.onClose} shouldShowClose={true} isFullWidth>
       <ExerciseRM
         name="1 Rep Max"
         rmKey="rm1"

@@ -292,7 +292,13 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
             {progress.ui?.equipmentModal?.exerciseType && (
               <ModalEquipment
                 stats={props.stats}
-                progressId={progress.id}
+                onClose={() => {
+                  updateState(
+                    props.dispatch,
+                    [lb<IState>().p("progress").pi(progress.id).pi("ui").p("equipmentModal").record(undefined)],
+                    "Close equipment modal"
+                  );
+                }}
                 settings={props.settings}
                 exercise={progress.ui?.equipmentModal.exerciseType}
                 entries={progress.entries}
@@ -301,7 +307,13 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
             )}
             {progress.ui?.rm1Modal?.exerciseType && (
               <Modal1RM
-                progressId={progress.id}
+                onClose={() => {
+                  updateState(
+                    props.dispatch,
+                    [lb<IState>().p("progress").pi(progress.id).pi("ui").p("rm1Modal").record(undefined)],
+                    "Close 1RM modal"
+                  );
+                }}
                 settings={props.settings}
                 exercise={progress.ui?.rm1Modal.exerciseType}
                 dispatch={props.dispatch}
