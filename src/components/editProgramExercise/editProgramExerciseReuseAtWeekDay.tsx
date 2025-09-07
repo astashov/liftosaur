@@ -36,7 +36,7 @@ export function EditProgramExerciseReuseAtWeekDay(props: IEditProgramExerciseReu
     <div className="text-sm">
       <span>At week</span>
       <select
-        className="mx-1 border border-border-neutral"
+        className="mx-1 border border-border-neutral bg-background-default"
         value={week || ""}
         data-cy="edit-exercise-reuse-sets-week"
         onChange={(event) => {
@@ -62,7 +62,7 @@ export function EditProgramExerciseReuseAtWeekDay(props: IEditProgramExerciseReu
       </select>
       <span className="ml-2">day</span>
       <select
-        className="mx-1 border border-border-neutral"
+        className="mx-1 border border-border-neutral bg-background-default"
         value={day || ""}
         data-cy="edit-exercise-reuse-sets-day"
         onChange={(event) => {
