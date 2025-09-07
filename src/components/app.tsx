@@ -142,6 +142,7 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.syncHealthKit());
       } else if (event.data?.type === "wake") {
         dispatch(Thunk.postevent("wake"));
+        queue.clearStaleOperations();
         dispatch(Thunk.sync2({ force: true }));
         dispatch(Thunk.syncHealthKit());
       } else if (event.data?.type === "syncToAppleHealthError") {

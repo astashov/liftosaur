@@ -232,6 +232,7 @@ export class Service {
   public async postSync(args: {
     storageUpdate: IStorageUpdate2;
     tempUserId: string | undefined;
+    signal?: AbortSignal;
   }): Promise<IPostSyncResponse> {
     const url = UrlUtils.build(`${__API_HOST__}/api/sync2`);
     if (args.tempUserId) {
@@ -244,6 +245,7 @@ export class Service {
       method: "POST",
       body: payload,
       credentials: "include",
+      signal: args.signal,
     });
     const json: IPostSyncResponse = await result.json();
     if (json.type === "dirty") {

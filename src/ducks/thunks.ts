@@ -173,7 +173,8 @@ export namespace Thunk {
     dispatch: IDispatch,
     getState: () => IState,
     env: IEnv,
-    args?: { force: boolean }
+    args?: { force: boolean },
+    signal?: AbortSignal
   ): Promise<void> {
     const state = getState();
     function handleResponse(
@@ -273,7 +274,11 @@ export namespace Thunk {
         storageUpdate: {
           version: state.storage.version,
         },
+        signal,
       });
+      if (signal?.aborted) {
+        return;
+      }
       const handled = handleResponse(result, { requestedLastStorage: true });
       if (handled) {
         await _sync2(dispatch, getState, env, args);
@@ -286,7 +291,11 @@ export namespace Thunk {
         const result = await env.service.postSync({
           tempUserId: state.storage.tempUserId,
           storageUpdate: storageUpdate,
+          signal,
         });
+        if (signal?.aborted) {
+          return;
+        }
         handleResponse(result, { lastSyncedStorage });
       }
     }
@@ -376,12 +385,12 @@ export namespace Thunk {
         const state = getState();
         if (state.errors.corruptedstorage == null && !state.nosync && (state.user != null || args?.force)) {
           await env.queue.enqueue(
-            async (args2) => {
+            async (args2, signal) => {
               await load(dispatch, "Sync", async () => {
                 if (args2?.log) {
                   dispatch(postevent("sync2-start"));
                 }
-                await _sync2(dispatch, getState, env, args2);
+                await _sync2(dispatch, getState, env, args2, signal);
               });
             },
             { force: !!args?.force, log: !!args?.log }
@@ -1122,12 +1131,27 @@ function _load<T>(
     .then((r) => {
       updateState(
         dispatch,
-        [lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now())],
+        [
+          lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now()),
+          lb<IState>().p("loading").p("items").pi(name).p("error").record(undefined),
+        ],
         "End loading"
       );
       resolve(r);
     })
     .catch((e) => {
+      if (e.name === "AbortError") {
+        updateState(
+          dispatch,
+          [
+            lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now()),
+            lb<IState>().p("loading").p("items").pi(name).p("error").record(undefined),
+          ],
+          "Abort loading"
+        );
+        reject(e);
+        return;
+      }
       if (attempt >= 3 || (e instanceof NoRetryError && e.noretry)) {
         updateState(
           dispatch,
@@ -1135,7 +1159,7 @@ function _load<T>(
             lb<IState>().p("loading").p("items").pi(name).p("error").record(`${type} failed`),
             lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now()),
           ],
-          "Failed loading"
+          `Failed loading`
         );
         if (type === "Logging in") {
           Rollbar.error("Error while logging in", {

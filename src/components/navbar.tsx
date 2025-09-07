@@ -121,7 +121,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
             style={{ bottom: "-1rem" }}
           >
             <div
-              className="flex pl-4 rounded-full pointer-events-auto bg-background-error border-text-error text-text-error"
+              className="flex pl-4 text-white rounded-full pointer-events-auto bg-background-error border-text-error"
               style={{ boxShadow: "0 0 4px rgba(255, 27, 27, 0.38)" }}
             >
               <div className="font-bold" style={{ paddingTop: "1px" }}>
@@ -143,7 +143,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
                   )
                 }
               >
-                <IconClose size={16} color={Tailwind.semantic().icon.red} />
+                <IconClose size={16} color={Tailwind.colors().white} />
               </button>
             </div>
           </div>
