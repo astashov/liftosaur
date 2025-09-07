@@ -25,6 +25,7 @@ export const programOrder = [
   "the531bbb",
   "monolith531",
   "nsuns",
+  "pzerofullbody",
   "gzclp",
   "gzclp-blacknoir",
   "gzcl-the-rippler",
