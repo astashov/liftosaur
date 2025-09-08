@@ -162,7 +162,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
           ) : null}
         </div>
       </div>
-      <BottomSheet isHidden={!showPickerOptions} onClose={() => setShowPickerOptions(false)}>
+      <BottomSheet isHidden={!showPickerOptions} onClose={() => setShowPickerOptions(false)} zIndex={50}>
         <div className="p-4">
           <BottomSheetItem
             title="From Camera"

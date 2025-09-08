@@ -7,6 +7,7 @@ interface IProps {
   isHidden: boolean;
   shouldShowClose?: boolean;
   children?: ComponentChildren;
+  zIndex?: number;
   onClose: () => void;
 }
 
@@ -37,7 +38,11 @@ export function BottomSheet(props: IProps): JSX.Element {
   const containerRef = typeof window !== "undefined" ? window.document.getElementById("bottomsheet") : undefined;
 
   const element = (
-    <div className={`fixed inset-0 z-40 pointer-events-none`} data-cy="bottom-sheet-container">
+    <div
+      className={`fixed inset-0 ${!props.zIndex ? "z-40" : ""} pointer-events-none`}
+      style={{ zIndex: props.zIndex }}
+      data-cy="bottom-sheet-container"
+    >
       <div
         data-name="overlay"
         className={`pointer-events-auto absolute inset-0 bg-text-secondary will-change-transform ${
