@@ -217,6 +217,10 @@ export class GoogleWebhookHandler {
           if (purchaseDetails.orderId) {
             this.di.log.log(`Google webhook: Fetching order info for subscription ${productId}`);
             const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
+            if (orderInfo && orderInfo.total) {
+              amount = convertGooglePriceToNumber(orderInfo.total);
+              currency = orderInfo.total.currencyCode || currency;
+            }
             if (orderInfo && orderInfo.tax) {
               tax = convertGooglePriceToNumber(orderInfo.tax);
             }
