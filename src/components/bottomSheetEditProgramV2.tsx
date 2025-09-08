@@ -10,6 +10,7 @@ interface IProps {
   isHidden: boolean;
   isLoggedIn: boolean;
   isLoadingRevisions: boolean;
+  isAffiliateEnabled: boolean;
   onExportProgramToLink: () => void;
   onShareProgramToLink: () => void;
   onGenerateProgramImage: () => void;
@@ -27,7 +28,22 @@ export function BottomSheetEditProgramV2(props: IProps): JSX.Element {
           className="ls-public-share-program"
           title="Copy Shareable Link to Program"
           icon={<IconLink />}
-          description="To share it with somebody."
+          description={
+            <span>
+              To share it with somebody
+              {props.isAffiliateEnabled ? (
+                <>
+                  ,{" "}
+                  <span className="inline-block px-1 rounded-md border-border-cardyellow bg-background-yellowdark text-text-purple">
+                    as an affiliate link
+                  </span>
+                </>
+              ) : (
+                <></>
+              )}
+              .
+            </span>
+          }
           onClick={props.onShareProgramToLink}
         />
         <BottomSheetItem

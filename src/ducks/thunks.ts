@@ -827,8 +827,13 @@ export namespace Thunk {
       dispatch(postevent("generate-and-copy-link"));
       const link = await Program.exportProgramToLink(editProgram, settings, getLatestMigrationVersion());
       try {
+        const state = getState();
         const service = new Service(env.service.client);
-        const url = await service.postShortUrl(link, "p");
+        const url = await service.postShortUrl(
+          link,
+          "p",
+          state.storage.settings.affiliateEnabled && state.user?.id ? state.user.id : undefined
+        );
         ClipboardUtils.copy(url);
         cb(url);
       } catch (error) {

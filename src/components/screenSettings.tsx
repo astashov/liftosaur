@@ -23,6 +23,7 @@ import { IconDiscord } from "./icons/iconDiscord";
 import { SendMessage } from "../utils/sendMessage";
 import { IconSpeaker } from "./icons/iconSpeaker";
 import { ModalImportFromOtherApps } from "./modalImportFromOtherApps";
+import { ModalAffiliate } from "./modalAffiliate";
 import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
 import { Subscriptions } from "../utils/subscriptions";
 import { HealthSync } from "../lib/healthSync";
@@ -31,10 +32,12 @@ import { Stats } from "../models/stats";
 import { Weight } from "../models/weight";
 import { ImagePreloader } from "../utils/imagePreloader";
 import { Settings } from "../models/settings";
+import { Features } from "../utils/features";
 
 interface IProps {
   dispatch: IDispatch;
   subscription: ISubscription;
+  tempUserId?: string;
   stats: IStats;
   user?: IUser;
   currentProgramName?: string;
@@ -45,6 +48,7 @@ interface IProps {
 export function ScreenSettings(props: IProps): JSX.Element {
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const [showImportFromOtherAppsModal, setShowImportFromOtherAppsModal] = useState(false);
+  const [showAffiliateModal, setShowAffiliateModal] = useState(false);
   const currentBodyweight = Stats.getCurrentBodyweight(props.stats);
   const currentBodyfat = Stats.getCurrentBodyfat(props.stats);
 
@@ -71,6 +75,12 @@ export function ScreenSettings(props: IProps): JSX.Element {
             dispatch={props.dispatch}
             isHidden={!showImportFromOtherAppsModal}
             onClose={() => setShowImportFromOtherAppsModal(false)}
+          />
+          <ModalAffiliate
+            dispatch={props.dispatch}
+            isAffiliateEnabled={!!props.settings.affiliateEnabled}
+            isHidden={!showAffiliateModal}
+            onClose={() => setShowAffiliateModal(false)}
           />
         </>
       }
@@ -434,6 +444,18 @@ export function ScreenSettings(props: IProps): JSX.Element {
             });
           }}
         />
+        {Features.isEnabled("affiliates", props.user?.id ?? props.tempUserId) && (
+          <>
+            <GroupHeader name="Earn money with Liftosaur" topPadding={true} />
+            <MenuItem
+              expandName={true}
+              name="Affiliate Program"
+              onClick={() => setShowAffiliateModal(true)}
+              value={props.settings.affiliateEnabled ? "On" : "Off"}
+              shouldShowRightArrow={true}
+            />
+          </>
+        )}
         <GroupHeader name="Import / Export" topPadding={true} />
         <div className="ls-export-data">
           <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk.exportStorage())}>

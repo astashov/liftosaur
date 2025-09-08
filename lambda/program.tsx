@@ -12,6 +12,7 @@ export function renderProgramHtml(
   shouldSyncProgram: boolean,
   program?: IExportedProgram,
   account?: IAccount,
+  source?: string,
   storage?: IStorage,
   revisions: string[] = []
 ): string {
@@ -22,6 +23,7 @@ export function renderProgramHtml(
       isMobile={isMobile}
       client={client}
       account={account}
+      source={source}
       storage={storage}
       revisions={revisions}
     />

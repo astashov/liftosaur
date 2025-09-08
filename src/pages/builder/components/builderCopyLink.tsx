@@ -6,7 +6,6 @@ import { useEffect } from "preact/hooks";
 import { ClipboardUtils } from "../../../utils/clipboard";
 
 interface IBuilderCopyLinkProps<T> {
-  msg?: string;
   rightAligned?: boolean;
   suppressShowInfo?: boolean;
   encodedProgram?: () => Promise<string>;
@@ -19,7 +18,11 @@ interface IBuilderCopyLinkProps<T> {
 }
 
 export function BuilderCopyLink<T>(props: IBuilderCopyLinkProps<T>): JSX.Element {
-  const msg = props.msg || "Copied this workout link to clipboard";
+  let msg = "Copied this workout link to clipboard";
+  if (props.source != null) {
+    msg += `, as an affiliate link.`;
+  }
+
   const [showInfo, setShowInfo] = useState<string | undefined>(undefined);
 
   useEffect(() => {

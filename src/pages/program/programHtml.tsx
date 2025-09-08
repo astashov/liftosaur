@@ -13,6 +13,7 @@ interface IProps {
   shouldSyncProgram: boolean;
   revisions: string[];
   currentRevision?: string;
+  source?: string;
   storage?: IStorage;
   client: Window["fetch"];
 }

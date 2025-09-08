@@ -15,6 +15,7 @@ const tableNames = {
 export interface IUrlDao {
   id: string;
   url: string;
+  userId?: string;
 }
 
 export class UrlDao {
@@ -26,7 +27,7 @@ export class UrlDao {
     return result?.url;
   }
 
-  public async put(url: string): Promise<string> {
+  public async put(url: string, userId?: string): Promise<string> {
     const env = Utils.getEnv();
     let id = StringUtils.hashString(url);
     let item = await this.di.dynamo.get<IUrlDao>({ tableName: tableNames[env].urls, key: { id } });
@@ -38,7 +39,7 @@ export class UrlDao {
         item = await this.di.dynamo.get<IUrlDao>({ tableName: tableNames[env].urls, key: { id } });
       } while (item != null);
     }
-    await this.di.dynamo.put({ tableName: tableNames[env].urls, item: { id, url } });
+    await this.di.dynamo.put({ tableName: tableNames[env].urls, item: { id, url, userId } });
     return id;
   }
 }

@@ -1648,16 +1648,14 @@ Squat / 1x1
 Bench Press / 1x1`;
     const { program } = PlannerTestUtils.finish(programText, { completedReps: [[1]] });
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
-    console.log(newText);
     expect(newText).to.equal(`# Week 1
 ## Day 1
-
 // Description
 Squat / 1x1
 
+
 # Week 2
 ## Day 1
-
 // Description
 Squat / 1x1
 // ...Squat

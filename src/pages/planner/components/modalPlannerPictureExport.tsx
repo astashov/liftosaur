@@ -18,6 +18,7 @@ import { Program } from "../../../models/program";
 interface IModalPlannerPictureExportProps {
   settings: ISettings;
   client: Window["fetch"];
+  userId?: string;
   program: IProgram;
   isChanged: boolean;
   url?: string;
@@ -54,7 +55,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
   useEffect(() => {
     new Promise(async (resolve) => {
       if (url == null) {
-        const url2 = await Program.toUrl(props.program, props.settings, props.client);
+        const url2 = await Program.toUrl(props.program, props.settings, props.client, props.userId);
         setUrl(url2);
         resolve(undefined);
       }

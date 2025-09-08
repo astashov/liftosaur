@@ -1276,6 +1276,7 @@ export const TSettings = t.intersection(
       starredExercises: dictionary(TExerciseId, t.boolean),
       theme: t.union([t.literal("dark"), t.literal("light")]),
       currentBodyweight: TWeight,
+      affiliateEnabled: t.boolean,
     }),
   ],
   "TSettings"

@@ -7,6 +7,7 @@ export interface IAccount {
   email?: string;
   numberOfPrograms?: number;
   numberOfWorkouts?: number;
+  affiliateEnabled?: boolean;
   isCurrent: boolean;
 }
 
@@ -18,6 +19,7 @@ export namespace Account {
       name: storage.settings.nickname,
       numberOfPrograms: storage.programs?.length,
       numberOfWorkouts: storage.history?.length,
+      affiliateEnabled: storage.settings.affiliateEnabled,
       isCurrent: true,
     };
   }
@@ -39,6 +41,7 @@ export namespace Account {
             numberOfPrograms: storage?.programs?.length || 0,
             numberOfWorkouts: storage?.history?.length || 0,
             isCurrent: id === currentAccount,
+            affiliateEnabled: storage?.settings?.affiliateEnabled,
           });
         }
       }

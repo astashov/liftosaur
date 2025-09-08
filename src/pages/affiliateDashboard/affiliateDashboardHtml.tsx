@@ -3,9 +3,17 @@ import { Page } from "../../components/page";
 import type { IAffiliateData } from "./affiliateDashboardContent";
 import { AffiliateDashboardContent } from "./affiliateDashboardContent";
 
+export interface IAffiliateDashboardSummary {
+  totalUsers: number;
+  paidUsers: number;
+  totalRevenue: number;
+  monthlyRevenue: number;
+}
+
 export interface IAffiliateDashboardHtmlProps {
   affiliateId: string;
   affiliateData: IAffiliateData[];
+  summary: IAffiliateDashboardSummary;
   client: Window["fetch"];
 }
 

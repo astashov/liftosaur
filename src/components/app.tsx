@@ -368,6 +368,7 @@ export function AppView(props: IProps): JSX.Element | null {
     content = (
       <ScreenSettings
         stats={state.storage.stats}
+        tempUserId={state.storage.tempUserId}
         navCommon={navCommon}
         subscription={state.storage.subscription}
         dispatch={dispatch}

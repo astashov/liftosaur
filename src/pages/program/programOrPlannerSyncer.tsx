@@ -13,6 +13,7 @@ export interface IProgramOrPlannerSyncerProps {
   exportedProgram?: IExportedProgram;
   shouldSyncProgram: boolean;
   revisions: string[];
+  source?: string;
   currentRevision?: string;
 }
 
