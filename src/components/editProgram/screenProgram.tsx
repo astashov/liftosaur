@@ -149,6 +149,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
       addons={
         <>
           <BottomSheetEditProgramV2
+            isAffiliateEnabled={!!props.settings.affiliateEnabled}
             isLoadingRevisions={isLoadingRevisions}
             isLoggedIn={props.isLoggedIn}
             onExportProgramToLink={() => {
@@ -215,6 +216,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
           {shouldShowGenerateImageModal && (
             <ModalPlannerPictureExport
               settings={props.settings}
+              userId={props.navCommon.userId}
               client={props.client}
               isChanged={false}
               program={plannerState.current.program}

@@ -1149,7 +1149,12 @@ export namespace Program {
     };
   }
 
-  export async function toUrl(program: IProgram, settings: ISettings, client: Window["fetch"]): Promise<string> {
+  export async function toUrl(
+    program: IProgram,
+    settings: ISettings,
+    client: Window["fetch"],
+    userId?: string
+  ): Promise<string> {
     const exportedProgram = Program.exportProgram(program, settings);
     const baseUrl = UrlUtils.build(
       "/planner",
@@ -1163,7 +1168,11 @@ export namespace Program {
       return encodedProgramHashToShortUrl[hash];
     } else {
       const service = new Service(client);
-      const shortUrl = await service.postShortUrl(encodedProgramUrl, "p");
+      const shortUrl = await service.postShortUrl(
+        encodedProgramUrl,
+        "p",
+        settings.affiliateEnabled ? userId : undefined
+      );
       encodedProgramHashToShortUrl[hash] = shortUrl;
       return shortUrl;
     }

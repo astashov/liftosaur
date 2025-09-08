@@ -10,6 +10,7 @@ export interface IPlannerContentSyncerProps {
   account?: IAccount;
   exportedProgram?: IExportedProgram;
   shouldSyncProgram: boolean;
+  source?: string;
   revisions: string[];
   currentRevision?: string;
 }
@@ -22,6 +23,7 @@ export function PlannerContentSyncer(props: IPlannerContentSyncerProps): JSX.Ele
       client={props.client}
       nextDay={exportedProgram?.program.nextDay}
       initialProgram={exportedProgram}
+      source={props.source}
       partialStorage={props.storage}
       account={props.account}
       shouldSync={props.shouldSyncProgram}

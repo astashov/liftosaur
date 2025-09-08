@@ -165,6 +165,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
     });
+    urlsTable.addGlobalSecondaryIndex({
+      indexName: `lftUrlsUserId${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
 
     const freeUsersTable = new dynamodb.Table(this, `LftFreeUsers${suffix}`, {
       tableName: `lftFreeUsers${suffix}`,
@@ -436,4 +441,4 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-new LiftosaurCdkStack(app, "LiftosaurStack", false);
+// new LiftosaurCdkStack(app, "LiftosaurStack", false);

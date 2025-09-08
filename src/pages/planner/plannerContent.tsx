@@ -55,6 +55,7 @@ declare let __HOST__: string;
 
 export interface IPlannerContentProps {
   client: Window["fetch"];
+  source?: string;
   nextDay?: number;
   initialProgram?: IExportedProgram;
   partialStorage?: IPartialStorage;
@@ -372,6 +373,13 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
 
       <div className="flex flex-col mb-2 sm:flex-row">
         <div className="flex-1 py-2 ">
+          {props.source != null && props.source === props.account?.id && (
+            <div>
+              <div className="inline-block px-2 text-sm rounded-md border-border-cardpurple bg-background-purpledark text-text-purple">
+                It's your affiliate link
+              </div>
+            </div>
+          )}
           <h2 className="mr-2 text-2xl font-bold">
             <LinkInlineInput
               value={state.current.program.name}
@@ -490,7 +498,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 onShowInfo={setShowClipboardInfo}
                 type="p"
                 program={program}
-                source={getCurrentSource()}
+                source={getCurrentSource() ?? (settings.affiliateEnabled ? props.account?.id : undefined)}
                 client={props.client}
                 encodedProgram={async () => {
                   const exportProgram = Program.exportProgram(program, settings);
@@ -522,6 +530,13 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               {showClipboardInfo}
             </a>
           </div>
+          {props.account?.affiliateEnabled && props.account?.id && (
+            <div className="text-left sm:text-right">
+              <div className="inline-block px-2 text-sm rounded-md border-border-cardpurple bg-background-purpledark text-text-purple">
+                Copied as an affiliate link
+              </div>
+            </div>
+          )}
           <div className="text-right">
             <ProgramQrCode url={showClipboardInfo} title="Scan this QR to open that link:" />
           </div>
@@ -729,6 +744,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       )}
       {state.ui.showPictureExport && (
         <ModalPlannerPictureExport
+          userId={props.account?.id}
           isChanged={isChanged(state)}
           client={props.client}
           url={showClipboardInfo ?? getCurrentUrl()}

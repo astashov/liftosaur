@@ -8,16 +8,15 @@ export interface IFeature {
   platform?: "ios" | "android";
 }
 
-const newstorage: IFeature = {
-  name: "newstorage",
-  rollout: 1.0,
-  userids: ["tiolnbjbleke", "udvlvsutjj", "gwwxznaz", "mcgezrzzvo"],
-  platform: "ios",
+const affiliates: IFeature = {
+  name: "affiliates",
+  rollout: 0.0,
+  userids: ["tiolnbjbleke", "txgxmqgyps", "gwwxznaz"],
 };
 
 export class Features {
   private static readonly features = {
-    newstorage,
+    affiliates,
   } as const;
 
   public static isEnabled(name: keyof typeof this.features, userid?: string): boolean {

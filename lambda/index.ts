@@ -33,7 +33,7 @@ import { ImportExporter } from "../src/lib/importexporter";
 import { UrlDao } from "./dao/urlDao";
 import { AffiliateDao } from "./dao/affiliateDao";
 import { renderAffiliateDashboardHtml } from "./affiliateDashboard";
-import type { IAffiliateData } from "../src/pages/affiliateDashboard/affiliateDashboardContent";
+import { renderUserAffiliatesHtml } from "./userAffiliates";
 import { renderUsersDashboardHtml } from "./usersDashboard";
 import { DateUtils } from "../src/utils/date";
 import { IUsersDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
@@ -1422,29 +1422,11 @@ const getDashboardsAffiliatesHandler: RouteHandler<
   const apiKey = await di.secrets.getApiKey();
   if (match.params.key === apiKey) {
     const affiliateDao = new AffiliateDao(di);
-    const userIds = await affiliateDao.getUserIds(match.params.id);
-    const logRecords = await new LogDao(di).getForUsers(userIds);
-
-    const logs = CollectionUtils.groupByKey(logRecords, "userId");
-    const unsortedAffiliateData: IAffiliateData[] = Object.keys(logs).map((userId) => {
-      const userLogs = logs[userId] || [];
-      const sortedUserLogs = CollectionUtils.sortBy(userLogs, "ts");
-      const minTs = sortedUserLogs[0].ts;
-      const maxTs = sortedUserLogs[sortedUserLogs.length - 1].ts;
-      const workoutLog = userLogs.filter((log) => log.action === "ls-finish-workout")[0];
-      const numberOfWorkouts = workoutLog ? workoutLog.cnt : 0;
-      const lastWorkoutTs = workoutLog.ts;
-      const daysOfUsing = Math.floor((maxTs - minTs) / (1000 * 60 * 60 * 24));
-      const isEligible = numberOfWorkouts >= 3 && daysOfUsing >= 7;
-      const isPaid = false;
-
-      return { userId, minTs, numberOfWorkouts, lastWorkoutTs, daysOfUsing, isEligible, isPaid };
-    });
-    const affiliateData = CollectionUtils.sortByMultiple(unsortedAffiliateData, ["isPaid", "isEligible", "minTs"]);
+    const { affiliateData, summary } = await affiliateDao.getDashboardData(match.params.id);
 
     return {
       statusCode: 200,
-      body: renderAffiliateDashboardHtml(di.fetch, match.params.id, affiliateData),
+      body: renderAffiliateDashboardHtml(di.fetch, match.params.id, affiliateData, summary),
       headers: { "content-type": "text/html" },
     };
   } else {
@@ -1482,6 +1464,45 @@ const getAdminLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   } else {
     return ResponseUtils.json(401, event, { data: "Unauthorized" });
   }
+};
+
+const getUserAffiliatesEndpoint = Endpoint.build("/user/affiliates", { key: "string?", userid: "string?" });
+const getUserAffiliatesHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getUserAffiliatesEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  let currentUserId = await getCurrentUserId(event, di);
+  if (params.key && params.userid) {
+    const apiKey = await di.secrets.getApiKey();
+    if (params.key === apiKey) {
+      currentUserId = params.userid;
+    }
+  }
+  if (!currentUserId) {
+    const baseHeaders = ResponseUtils.getHeaders(event);
+    return {
+      statusCode: 302,
+      headers: {
+        ...baseHeaders,
+        "content-type": "text/html",
+        Location: `/login?url=${encodeURIComponent("/user/affiliates")}`,
+      },
+      body: "",
+    };
+  }
+
+  const affiliateDao = new AffiliateDao(di);
+  const creatorStats = await affiliateDao.getCreatorStats(currentUserId);
+  const userResult = await getUserAccount(payload, { withBodyweight: true });
+  const account = userResult.success ? userResult.data.account : undefined;
+
+  return {
+    statusCode: 200,
+    body: renderUserAffiliatesHtml(di.fetch, account, creatorStats),
+    headers: { "content-type": "text/html" },
+  };
 };
 
 export const deleteAccountEndpoint = Endpoint.build("/api/deleteaccount");
@@ -1604,7 +1625,7 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 
   return {
     statusCode: 200,
-    body: renderProgramHtml(di.fetch, isMobile, false, program, account, storage),
+    body: renderProgramHtml(di.fetch, isMobile, false, program, account, undefined, storage),
     headers: { "content-type": "text/html" },
   };
 };
@@ -1790,7 +1811,7 @@ const getUserProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   const programRevisions = await userDao.listProgramRevisions(user.id, params.programid);
   return {
     statusCode: 200,
-    body: renderProgramHtml(di.fetch, isMobile, true, exportedProgram, account, storage, programRevisions),
+    body: renderProgramHtml(di.fetch, isMobile, true, exportedProgram, account, undefined, storage, programRevisions),
     headers: { "content-type": "text/html" },
   };
 };
@@ -2037,6 +2058,7 @@ const getProgramShorturlHandler: RouteHandler<
   if (urlString) {
     const url = UrlUtils.build(urlString, "https://www.liftosaur.com");
     const data = url.searchParams.get("data");
+    const source = url.searchParams.get("s") || undefined;
     if (data) {
       try {
         const exportedProgramJson = await NodeEncoder.decode(data);
@@ -2053,7 +2075,7 @@ const getProgramShorturlHandler: RouteHandler<
 
           return {
             statusCode: 200,
-            body: renderProgramHtml(di.fetch, isMobile, false, program, account, storage),
+            body: renderProgramHtml(di.fetch, isMobile, false, program, account, source, storage),
             headers: { "content-type": "text/html" },
           };
         } else {
@@ -2113,7 +2135,7 @@ const postShortUrlHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
       url = uri.toString();
     }
   }
-  const id = await new UrlDao(di).put(url);
+  const id = await new UrlDao(di).put(url, userid);
   const newUrl = `/${type}/${id}`;
 
   return ResponseUtils.json(200, event, { url: newUrl });
@@ -2370,6 +2392,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getProgramEndpoint, getProgramHandler)
       .get(getUserProgramsEndpoint, getUserProgramsHandler)
       .get(getUserProgramEndpoint, getUserProgramHandler)
+      .get(getUserAffiliatesEndpoint, getUserAffiliatesHandler)
       .get(getProgramRevisionsEndpoint, getProgramRevisionsHandler)
       .get(getProgramRevisionEndpoint, getProgramRevisionHandler)
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)

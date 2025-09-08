@@ -56,7 +56,7 @@ export function TopNavMenu(props: {
                   Account
                 </span>
               </MenuItemWrapper>
-              {getMenuItemsList(!!props.account).map(([text, link]) => {
+              {getMenuItemsList(!!props.account, !!props.account?.affiliateEnabled).map(([text, link]) => {
                 return (
                   <MenuItemWrapper name={text}>
                     {props.current === link ? (
@@ -86,11 +86,11 @@ export function TopNavMenu(props: {
               />
             </a>
           </div>
-          <div className="flex flex-wrap items-center flex-1">
-            <ul className="flex-1 ml-2 font-bold align-middle list-none whitespace-nowrap">
-              {getMenuItemsList(!!props.account).map(([text, link]) => {
+          <div className="flex items-center flex-1">
+            <ul className="flex flex-wrap flex-1 ml-2 font-bold align-middle list-none">
+              {getMenuItemsList(!!props.account, !!props.account?.affiliateEnabled).map(([text, link]) => {
                 return (
-                  <li className="inline-block mx-4 align-middle list-none">
+                  <li className="inline-block py-1 mx-4 align-middle list-none">
                     {props.current === link ? (
                       <strong className="text-icon-yellow">{text}</strong>
                     ) : (
@@ -123,7 +123,7 @@ export function TopNavMenu(props: {
   );
 }
 
-function getMenuItemsList(isLoggedIn: boolean): readonly (readonly [string, string])[] {
+function getMenuItemsList(isLoggedIn: boolean, affiliateEnabled: boolean): readonly (readonly [string, string])[] {
   return [
     ["About", "/about"],
     ["Docs", "/docs"],
@@ -132,6 +132,7 @@ function getMenuItemsList(isLoggedIn: boolean): readonly (readonly [string, stri
     ["Web Editor", "/planner"],
     ["AI Helper", "/ai/prompt"],
     ...(isLoggedIn ? [["Your Programs", "/user/programs"] as const] : []),
+    ...(isLoggedIn && affiliateEnabled ? [["Affiliate Stats", "/user/affiliates"] as const] : []),
   ];
 }
 
