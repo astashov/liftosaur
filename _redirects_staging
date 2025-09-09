@@ -7,6 +7,8 @@
 /dashboards/users key=:key https://api3-dev.liftosaur.com/dashboards/users?key=:key  200
 /dashboards/payments key=:key https://api3-dev.liftosaur.com/dashboards/payments?key=:key  200
 /dashboards/user/:userid key=:key https://api3-dev.liftosaur.com/dashboards/user/:userid?key=:key  200
+/dashboards/affiliates/:id key=:key https://api3-dev.liftosaur.com/dashboards/affiliates/:id?key=:key  200
+/user/affiliates https://api3-dev.liftosaur.com/user/affiliates  200
 /admin/logs key=:key https://api3-dev.liftosaur.com/admin/logs?key=:key  200
 /profile/:user https://api3-dev.liftosaur.com/profile?user=:user  200
 /profileimage/:user https://api3-dev.liftosaur.com/profileimage?user=:user  200
