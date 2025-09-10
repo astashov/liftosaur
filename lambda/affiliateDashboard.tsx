@@ -9,9 +9,16 @@ export function renderAffiliateDashboardHtml(
   client: Window["fetch"],
   affiliateId: string,
   affiliateData: IAffiliateData[],
-  summary: IAffiliateDashboardSummary
+  summary: IAffiliateDashboardSummary,
+  apiKey: string
 ): string {
   return renderPage(
-    <AffiliateDashboardHtml client={client} affiliateId={affiliateId} affiliateData={affiliateData} summary={summary} />
+    <AffiliateDashboardHtml
+      client={client}
+      affiliateId={affiliateId}
+      affiliateData={affiliateData}
+      summary={summary}
+      apiKey={apiKey}
+    />
   );
 }

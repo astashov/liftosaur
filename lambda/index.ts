@@ -1426,7 +1426,7 @@ const getDashboardsAffiliatesHandler: RouteHandler<
 
     return {
       statusCode: 200,
-      body: renderAffiliateDashboardHtml(di.fetch, match.params.id, affiliateData, summary),
+      body: renderAffiliateDashboardHtml(di.fetch, match.params.id, affiliateData, summary, apiKey),
       headers: { "content-type": "text/html" },
     };
   } else {

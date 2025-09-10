@@ -14,6 +14,7 @@ export interface IAffiliateDashboardHtmlProps {
   affiliateId: string;
   affiliateData: IAffiliateData[];
   summary: IAffiliateDashboardSummary;
+  apiKey: string;
   client: Window["fetch"];
 }
 
