@@ -222,11 +222,6 @@ export class GoogleWebhookHandler {
             this.di.log.log(`Google webhook: Fetching order info for subscription ${productId}`);
             const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
             this.di.log.log("Google webhook: Subscription Order Info", orderInfo);
-            subscriptionStartTimestamp = orderInfo?.createTime
-              ? new Date(orderInfo.createTime).getTime()
-              : orderInfo?.lastEventTime
-                ? new Date(orderInfo.lastEventTime).getTime()
-                : subscriptionStartTimestamp;
             if (orderInfo && orderInfo.total) {
               amount = convertGooglePriceToNumber(orderInfo.total);
               currency = orderInfo.total.currencyCode || currency;
