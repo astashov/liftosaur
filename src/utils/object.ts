@@ -142,10 +142,10 @@ export namespace ObjectUtils {
     return changes;
   }
 
-  export function mapValues<U, V, T extends Record<any, U>>(obj: T, fn: (x: U) => V): Record<keyof T, V> {
+  export function mapValues<U, V, T extends Record<any, U>>(obj: T, fn: (x: U, k: keyof T) => V): Record<keyof T, V> {
     return ObjectUtils.keys(obj).reduce<Record<keyof T, V>>(
       (memo, k) => {
-        memo[k] = fn(obj[k]);
+        memo[k] = fn(obj[k], k);
         return memo;
       },
       {} as Record<keyof T, V>

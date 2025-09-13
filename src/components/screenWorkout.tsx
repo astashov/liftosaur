@@ -258,8 +258,15 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   }, 0);
                 }}
                 exercisePicker={exercisePickerState}
-                onChangeCustomExercise={(action, exercise) => {
-                  Exercise.handleCustomExerciseChange(props.dispatch, action, exercise, props.settings, props.program);
+                onChangeCustomExercise={(action, exercise, notes) => {
+                  Exercise.handleCustomExerciseChange(
+                    props.dispatch,
+                    action,
+                    exercise,
+                    notes,
+                    props.settings,
+                    props.program
+                  );
                 }}
                 evaluatedProgram={evaluatedCurrentProgram}
                 onStar={(key) => Settings.toggleStarredExercise(props.dispatch, key)}

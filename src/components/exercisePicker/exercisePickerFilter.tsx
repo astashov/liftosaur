@@ -1,13 +1,11 @@
 import { h, JSX } from "preact";
 import {
-  availableMuscles,
   equipments,
   exerciseKinds,
   IBuiltinEquipment,
   IExerciseKind,
   IExercisePickerSort,
   IExercisePickerState,
-  IMuscle,
   IScreenMuscle,
   ISettings,
   screenMuscles,
@@ -25,6 +23,8 @@ import { StringUtils } from "../../utils/string";
 import { ScrollableTabs } from "../scrollableTabs";
 import { Muscle } from "../../models/muscle";
 import { ExercisePickerUtils } from "./exercisePickerUtils";
+import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
+import { ExercisePickerOptions } from "./exercisePickerOptions";
 
 interface IProps {
   settings: ISettings;
@@ -172,29 +172,7 @@ function Filter<T extends string>(props: IFilterProps<T>): JSX.Element {
           <button className="px-2">{isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}</button>
         </div>
       </div>
-      {isExpanded && (
-        <div className="grid grid-cols-2 gap-4 mt-2">
-          {ObjectUtils.entries(props.values).map(([key, value]) => {
-            return (
-              <div>
-                <div>
-                  <button
-                    className={`bg-background-subtle h-12 leading-none px-2 w-full ${value.disabledReason ? "text-border-neutral" : "text-text-primary"} rounded-lg border text-center ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
-                    disabled={!!value.disabledReason}
-                    style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
-                    onClick={() => {
-                      props.onChange(key);
-                    }}
-                  >
-                    {value.label}
-                  </button>
-                </div>
-                {value.disabledReason && <div className="text-xs text-text-secondary">{value.disabledReason}</div>}
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {isExpanded && <ExercisePickerOptions values={props.values} onSelect={props.onChange} />}
     </div>
   );
 }
@@ -278,75 +256,25 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
             {
               label: "Muscles",
               children: () => {
-                const groupedMuscles = availableMuscles.reduce(
-                  (memo, muscle) => {
-                    const group = Muscle.getScreenMusclesFromMuscle(muscle)?.[0];
-                    if (group != null) {
-                      memo[group] = memo[group] || {};
-                      const isSelected = selectedValues.includes(muscle);
-                      memo[group][muscle] = { label: muscle, isSelected };
-                    }
-                    return memo;
-                  },
-                  {} as Record<IScreenMuscle, Record<IMuscle, IFilterValue>>
-                );
-                const sortedGroupedMuscles = ObjectUtils.keys(groupedMuscles).sort(([a], [b]) => a.localeCompare(b));
-
                 return (
-                  <div>
-                    {sortedGroupedMuscles.map((group) => {
-                      const muscles = groupedMuscles[group];
-                      const sortedMuscles = ObjectUtils.keys(muscles).sort(([a], [b]) => a.localeCompare(b));
-                      return (
-                        <div className="mb-4">
-                          <h3 className="mb-2 font-semibold">{StringUtils.capitalize(group)}</h3>
-                          <div className="grid grid-cols-2 gap-4 mt-2">
-                            {sortedMuscles.map((key) => {
-                              const value = muscles[key];
-                              const words = value.label.split(" ");
-                              const wordCount = words.length;
-                              const longestWord = Math.max(...words.map((w) => w.length));
-                              const fontSize =
-                                wordCount > 3 || longestWord > 11
-                                  ? "text-xs"
-                                  : wordCount > 2 || longestWord > 9
-                                    ? "text-sm"
-                                    : "text-base";
-                              return (
-                                <button
-                                  className={`bg-background-subtle ${fontSize} h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
-                                  style={{
-                                    paddingLeft: "70px",
-                                    borderWidth: value.isSelected ? "2px" : "1px",
-                                    backgroundImage: `url(/images/svgs/muscles/${key.toLowerCase().replace(/ /g, "")}.svg)`,
-                                    backgroundSize: "contain",
-                                    backgroundPosition: "0 50%",
-                                  }}
-                                  onClick={() => {
-                                    props.dispatch(
-                                      lb<IExercisePickerState>()
-                                        .p("filters")
-                                        .p("muscles")
-                                        .recordModify((mscls) => {
-                                          if (mscls?.includes(key)) {
-                                            return CollectionUtils.remove(mscls, key);
-                                          } else {
-                                            return [...(mscls || []), key];
-                                          }
-                                        }),
-                                      `Set muscle filter in exercise picker to ${key}`
-                                    );
-                                  }}
-                                >
-                                  {value.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
+                  <ExercisePickerOptionsMuscles
+                    selectedValues={selectedValues}
+                    onSelect={(key) => {
+                      props.dispatch(
+                        lb<IExercisePickerState>()
+                          .p("filters")
+                          .p("muscles")
+                          .recordModify((mscls) => {
+                            if (mscls?.includes(key)) {
+                              return CollectionUtils.remove(mscls, key);
+                            } else {
+                              return [...(mscls || []), key];
+                            }
+                          }),
+                        `Set muscle filter in exercise picker to ${key}`
                       );
-                    })}
-                  </div>
+                    }}
+                  />
                 );
               },
             },

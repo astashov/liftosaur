@@ -382,6 +382,8 @@ export const TCustomExercise = t.intersection(
     t.partial({
       defaultEquipment: TEquipment,
       types: t.array(TExerciseKind),
+      clonedFrom: TExerciseType,
+      reuseImageFrom: TExerciseType,
       largeImageUrl: t.string,
       smallImageUrl: t.string,
     }),

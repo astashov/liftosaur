@@ -87,7 +87,7 @@ export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercis
             </button>
           </div>
         </div>
-        <h3 className="px-4 font-bold text-center">{props.exercise ? "Edit" : "Create"} Custom Exercise</h3>
+        <h3 className="px-4 font-semibold text-center">{props.exercise ? "Edit" : "Create"} Custom Exercise</h3>
         <div className="absolute flex top-3 right-4">
           <div>
             <Button

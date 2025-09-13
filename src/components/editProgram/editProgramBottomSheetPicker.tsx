@@ -154,8 +154,8 @@ export function EditProgramBottomSheetPicker(props: IEditProgramBottomSheetPicke
         );
         props.onClose();
       }}
-      onChangeCustomExercise={(action, exercise) => {
-        Exercise.handleCustomExerciseChange(props.dispatch, action, exercise, props.settings, props.program);
+      onChangeCustomExercise={(action, exercise, notes) => {
+        Exercise.handleCustomExerciseChange(props.dispatch, action, exercise, notes, props.settings, props.program);
       }}
       onClose={props.onClose}
       onStar={(key) => Settings.toggleStarredExercise(props.dispatch, key)}

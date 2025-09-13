@@ -4145,6 +4145,7 @@ export namespace Exercise {
     dispatch: IDispatch,
     action: "upsert" | "delete",
     exercise: ICustomExercise,
+    notes: string | undefined,
     settings: ISettings,
     program?: IProgram
   ): void {
@@ -4154,6 +4155,11 @@ export namespace Exercise {
         ? Exercise.upsertCustomExercise(settings.exercises, exercise)
         : Exercise.deleteCustomExercise(settings.exercises, exercise.id);
     updateSettings(dispatch, lb<ISettings>().p("exercises").record(ex), "Create custom exercise");
+    updateSettings(
+      dispatch,
+      lb<ISettings>().p("exerciseData").pi(exercise.id).p("notes").record(notes),
+      "Update notes"
+    );
     if (program && oldExercise && oldExercise.name !== exercise.name) {
       const newProgram = Program.changeExerciseName(oldExercise.name, exercise.name, program, {
         ...settings,

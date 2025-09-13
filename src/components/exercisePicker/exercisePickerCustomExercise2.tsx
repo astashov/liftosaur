@@ -1,0 +1,356 @@
+import { JSX, h, Fragment } from "preact";
+import {
+  ISettings,
+  ICustomExercise,
+  IExercisePickerState,
+  IExercisePickerScreen,
+  IMuscle,
+  exerciseKinds,
+  IExerciseKind,
+} from "../../types";
+import { Button } from "../button";
+import { ILensDispatch } from "../../utils/useLensReducer";
+import { lb } from "lens-shmens";
+import { IconBack } from "../icons/iconBack";
+import { IconClose2 } from "../icons/iconClose2";
+import { IconPlus2 } from "../icons/iconPlus2";
+import { Tailwind } from "../../utils/tailwindConfig";
+import { Input2 } from "../input2";
+import { Textarea2 } from "../textarea2";
+import { IconAi } from "../icons/iconAi";
+import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
+import { useState } from "preact/hooks";
+import { BottomSheet } from "../bottomSheet";
+import { IconArrowDown2 } from "../icons/iconArrowDown2";
+import { ExercisePickerOptions, IFilterValue } from "./exercisePickerOptions";
+import { StringUtils } from "../../utils/string";
+import { ObjectUtils } from "../../utils/object";
+import { Exercise } from "../../models/exercise";
+import { UidFactory } from "../../utils/generator";
+
+interface IExercisePickerCustomExercise2Props {
+  settings: ISettings;
+  screenStack: IExercisePickerScreen[];
+  exercise?: ICustomExercise;
+  dispatch: ILensDispatch<IExercisePickerState>;
+  onClose: () => void;
+  onChange: (action: "upsert" | "delete", exercise: ICustomExercise, notes?: string) => void;
+}
+
+export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExercise2Props): JSX.Element {
+  function goBack(desc: string): void {
+    if (props.screenStack.length > 1) {
+      props.dispatch(
+        [
+          lb<IExercisePickerState>()
+            .p("screenStack")
+            .recordModify((stack) => stack.slice(0, -1)),
+          lb<IExercisePickerState>().p("editCustomExercise").record(undefined),
+        ],
+        desc
+      );
+    } else {
+      props.onClose();
+    }
+  }
+
+  const [editCustomExercise, setEditCustomExercise] = useState<ICustomExercise>(
+    props.exercise
+      ? ObjectUtils.clone(props.exercise)
+      : {
+          vtype: "custom_exercise",
+          id: UidFactory.generateUid(8),
+          name: "",
+          isDeleted: false,
+          meta: {
+            bodyParts: [],
+            targetMuscles: [],
+            synergistMuscles: [],
+          },
+        }
+  );
+  const [notes, setNotes] = useState<string | undefined>(
+    props.exercise ? Exercise.getNotes(props.exercise, props.settings) : undefined
+  );
+  const isEdited = !props.exercise || !ObjectUtils.isEqual(editCustomExercise, props.exercise);
+  const isValid = editCustomExercise.name.trim().length ?? 0 > 0;
+
+  const customExercises = props.settings.exercises;
+
+  const typeValues = exerciseKinds.reduce<Record<IExerciseKind, IFilterValue>>(
+    (memo, type) => {
+      memo[type] = {
+        label: StringUtils.capitalize(type),
+        isSelected: !!editCustomExercise.types?.includes(type),
+      };
+      return memo;
+    },
+    {} as Record<IExerciseKind, IFilterValue>
+  );
+
+  return (
+    <div className="flex flex-col h-full" style={{ marginTop: "-0.75rem" }}>
+      <div className="relative py-4 mt-2">
+        <div className="absolute flex top-2 left-2">
+          <div>
+            <button
+              className="p-2 nm-back"
+              data-cy="navbar-back"
+              onClick={() => {
+                goBack("Pop screen in exercise picker screen stack");
+              }}
+            >
+              {props.screenStack.length > 1 ? <IconBack /> : <IconClose2 size={22} />}
+            </button>
+          </div>
+        </div>
+        <h3 className="px-4 font-semibold text-center">{props.exercise ? "Edit" : "Create"} Custom Exercise</h3>
+        <div className="absolute flex top-3 right-4">
+          <div>
+            <Button
+              kind="purple"
+              buttonSize="md"
+              disabled={!isEdited || !isValid}
+              name="navbar-save-custom-exercise"
+              className="p-2 nm-save-custom-exercise"
+              data-cy="custom-exercise-create"
+              onClick={(e) => {
+                e.preventDefault();
+                props.onChange("upsert", editCustomExercise, notes);
+                goBack("Save custom exercise");
+              }}
+            >
+              Save
+            </Button>
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 pb-4 overflow-y-auto">
+        <div className="px-4">
+          <button className="relative flex items-center justify-center w-16 h-20 p-2 text-xs border rounded-md border-border-neutral text-text-secondary">
+            Add image
+            <span className="absolute p-1 rounded-full bg-icon-purple" style={{ bottom: "-8px", right: "-8px" }}>
+              <IconPlus2 size={8} color={Tailwind.colors().white} />
+            </span>
+          </button>
+        </div>
+        <div className="px-4 pt-2">
+          <div>
+            <Input2
+              identifier="custom-exercise-name"
+              label="Name"
+              value={editCustomExercise.name}
+              placeholder="Super Squat"
+              required
+              requiredMessage="Name cannot be empty"
+              onInput={(v) => {
+                const target = v.target;
+                if (target instanceof HTMLInputElement) {
+                  setEditCustomExercise({ ...editCustomExercise, name: target.value });
+                }
+              }}
+            />
+          </div>
+          <div className="pt-2">
+            <Textarea2
+              identifier="custom-exercise-name"
+              labelElement={
+                <>
+                  <span>Exercise Notes</span> <span className="text-xs text-text-secondary">(optional)</span>
+                </>
+              }
+              value={notes}
+              onInput={(v) => {
+                const target = v.target;
+                if (target instanceof HTMLTextAreaElement) {
+                  setNotes(target.value);
+                }
+              }}
+              height={3}
+            />
+          </div>
+          <div className="pt-2">
+            <Button
+              buttonSize="sm"
+              kind="lightgrayv3"
+              name="autofill-muscles"
+              className="flex items-center justify-center w-full"
+              onClick={() => undefined}
+            >
+              <div className="flex items-center">
+                <div>
+                  <IconAi color={Tailwind.semantic().icon.blue} />
+                </div>
+                <div className="ml-1">Autofill Muscles and Types</div>
+              </div>
+            </Button>
+          </div>
+          <div className="pt-2">
+            <ExercisePickerCustomExerciseMuscles
+              bottomSheetTitle="Target Muscles"
+              label={
+                <>
+                  <span>Target Muscles</span> <span className="text-xs text-text-secondary">(optional)</span>
+                </>
+              }
+              selectedMuscles={editCustomExercise.meta.targetMuscles}
+              onSelect={(muscle) => {
+                const current = new Set(editCustomExercise.meta.targetMuscles);
+                if (current.has(muscle)) {
+                  current.delete(muscle);
+                } else {
+                  current.add(muscle);
+                }
+                setEditCustomExercise({
+                  ...editCustomExercise,
+                  meta: { ...editCustomExercise.meta, targetMuscles: Array.from(current).sort() },
+                });
+              }}
+            />
+          </div>
+          <div className="pt-2">
+            <ExercisePickerCustomExerciseMuscles
+              bottomSheetTitle="Synergist Muscles"
+              label={
+                <>
+                  <span>Synergist Muscles</span> <span className="text-xs text-text-secondary">(optional)</span>
+                </>
+              }
+              selectedMuscles={editCustomExercise.meta.synergistMuscles}
+              onSelect={(muscle) => {
+                const current = new Set(editCustomExercise.meta.synergistMuscles);
+                if (current.has(muscle)) {
+                  current.delete(muscle);
+                } else {
+                  current.add(muscle);
+                }
+                setEditCustomExercise({
+                  ...editCustomExercise,
+                  meta: { ...editCustomExercise.meta, synergistMuscles: Array.from(current).sort() },
+                });
+              }}
+            />
+          </div>
+          <div className="pt-2">
+            <ExercisePickerCustomExerciseTypes
+              types={typeValues}
+              onNewTypes={(types) => {
+                const newTypes = ObjectUtils.keys(types).filter((k) => types[k].isSelected);
+                setEditCustomExercise({ ...editCustomExercise, types: newTypes });
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface IExercisePickerCustomExerciseTypesProps {
+  types: Record<IExerciseKind, IFilterValue>;
+  onNewTypes: (types: Record<IExerciseKind, IFilterValue>) => void;
+}
+
+function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseTypesProps): JSX.Element {
+  const [isOpened, setIsOpened] = useState<boolean>(false);
+  const selectedValues = ObjectUtils.keys(props.types).filter((k) => props.types[k].isSelected);
+  return (
+    <div className="w-full">
+      <label className="pb-1 text-sm leading-none text-text-primary">
+        <span>Types</span> <span className="text-xs text-text-secondary">(optional)</span>
+      </label>
+      <div onClick={() => setIsOpened(true)}>
+        <ExercisePickerCustomExercise2SelectInput selectedValues={selectedValues} />
+      </div>
+      {isOpened && (
+        <BottomSheet
+          shouldShowClose={true}
+          onClose={() => {
+            setIsOpened(false);
+          }}
+          isHidden={!isOpened}
+        >
+          <div className="flex flex-col h-full px-4">
+            <h3 className="pt-1 pb-3 text-base font-semibold text-center">Types</h3>
+            <div className="flex-1 overflow-y-auto">
+              <div className="pb-4">
+                <ExercisePickerOptions
+                  values={props.types}
+                  onSelect={(key) => {
+                    const newTypes = ObjectUtils.mapValues(props.types, (type: IFilterValue, k: IExerciseKind) => {
+                      if (k === key) {
+                        return { ...type, isSelected: !type.isSelected };
+                      }
+                      return type;
+                    });
+                    props.onNewTypes(newTypes);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </BottomSheet>
+      )}
+    </div>
+  );
+}
+
+interface IExercisePickerCustomExerciseMusclesProps {
+  label: JSX.Element;
+  bottomSheetTitle: string;
+  selectedMuscles: IMuscle[];
+  onSelect: (muscle: IMuscle) => void;
+}
+
+function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExerciseMusclesProps): JSX.Element {
+  const [isOpened, setIsOpened] = useState<boolean>(false);
+  return (
+    <div className="w-full">
+      <label className="pb-1 text-sm leading-none text-text-primary">{props.label}</label>
+      <div onClick={() => setIsOpened(true)}>
+        <ExercisePickerCustomExercise2SelectInput selectedValues={props.selectedMuscles} />
+      </div>
+      {isOpened && (
+        <BottomSheet
+          shouldShowClose={true}
+          onClose={() => {
+            setIsOpened(false);
+          }}
+          isHidden={!isOpened}
+        >
+          <div className="flex flex-col h-full px-4">
+            <h3 className="pt-1 pb-3 text-base font-semibold text-center">{props.bottomSheetTitle}</h3>
+            <div className="flex-1 overflow-y-auto">
+              <div className="pb-4">
+                <ExercisePickerOptionsMuscles selectedValues={props.selectedMuscles} onSelect={props.onSelect} />
+              </div>
+            </div>
+          </div>
+        </BottomSheet>
+      )}
+    </div>
+  );
+}
+
+interface IExercisePickerCustomExercise2SelectInputProps {
+  selectedValues: string[];
+}
+
+function ExercisePickerCustomExercise2SelectInput(props: IExercisePickerCustomExercise2SelectInputProps): JSX.Element {
+  return (
+    <div className="relative flex">
+      <div className="flex items-center flex-1 p-2 text-sm border rounded-md bg-form-inputbg border-form-inputstroke min-h-8">
+        <div className="flex-1">
+          {props.selectedValues.map((m) => (
+            <span className="inline-block px-2 py-1 mr-1 text-xs rounded-full bg-background-subtle text-text-secondary">
+              {m}
+            </span>
+          ))}
+        </div>
+        <div>
+          <IconArrowDown2 />
+        </div>
+      </div>
+    </div>
+  );
+}
