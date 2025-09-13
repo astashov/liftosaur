@@ -195,6 +195,7 @@ export class GoogleWebhookHandler {
       if (productType !== "voided") {
         const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
         const purchaseDetails = await subscriptions.getGooglePurchaseTokenJson(purchaseToken, productId);
+        this.di.log.log("Google webhook: Purchase details", purchaseDetails);
 
         if (!purchaseDetails || "error" in purchaseDetails) {
           this.di.log.log(`Google webhook: Failed to get purchase details for token ${purchaseToken}`);
@@ -220,6 +221,7 @@ export class GoogleWebhookHandler {
           if (purchaseDetails.orderId) {
             this.di.log.log(`Google webhook: Fetching order info for subscription ${productId}`);
             const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
+            tihs.di.log.log("Google webhook: Subscription Order Info", orderInfo);
             subscriptionStartTimestamp = orderInfo?.createTime
               ? new Date(orderInfo.createTime).getTime()
               : orderInfo?.lastEventTime
