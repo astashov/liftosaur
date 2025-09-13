@@ -484,7 +484,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                   <tr key={`${payment.transactionId}-${idx}`} className="border-b hover:bg-gray-50">
                     <td className="px-2 py-2">
                       {payment.subscriptionStartTimestamp != null
-                        ? DateUtils.formatUTCYYYYMMDDHHMM(payment.subscriptionStartTimestamp)
+                        ? DateUtils.formatUTCYYYYMMDD(payment.subscriptionStartTimestamp)
                         : "Unknown"}
                     </td>
                     <td className="px-2 py-2">
