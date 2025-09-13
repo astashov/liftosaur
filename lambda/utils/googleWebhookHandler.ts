@@ -221,7 +221,7 @@ export class GoogleWebhookHandler {
           if (purchaseDetails.orderId) {
             this.di.log.log(`Google webhook: Fetching order info for subscription ${productId}`);
             const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
-            tihs.di.log.log("Google webhook: Subscription Order Info", orderInfo);
+            this.di.log.log("Google webhook: Subscription Order Info", orderInfo);
             subscriptionStartTimestamp = orderInfo?.createTime
               ? new Date(orderInfo.createTime).getTime()
               : orderInfo?.lastEventTime
