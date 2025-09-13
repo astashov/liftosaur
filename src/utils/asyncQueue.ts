@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { DateUtils } from "./date";
 import { lg } from "./posthog";
 
 export interface IAsyncQueueOptions {
@@ -22,10 +23,11 @@ interface IQueueItem {
 }
 
 export class AsyncQueue {
-  private queue: IQueueItem[] = [];
-  private isProcessing = false;
-  private readonly defaultTimeoutMs = 120000;
-  private currentItem: IQueueItem | null = null;
+  public queue: IQueueItem[] = [];
+  public isProcessing = false;
+  public readonly defaultTimeoutMs = 120000;
+  public currentItem: IQueueItem | null = null;
+  public readonly logs: [string, string, Record<string, string | number>][] = [];
 
   public enqueue<T, V>(
     operation: (deps: V, signal: AbortSignal) => Promise<T>,
@@ -70,6 +72,7 @@ export class AsyncQueue {
     this.isProcessing = true;
     try {
       const item = this.queue.shift();
+      this.addLog("processing item", { queueLength: this.queue.length });
       if (item) {
         this.currentItem = item;
         const { deps, operation, timeoutMs, controller } = item;
@@ -81,7 +84,7 @@ export class AsyncQueue {
             timeoutId = setTimeout(() => {
               controller.abort();
               console.error(`AsyncQueue operation timed out after ${timeoutMs}ms`, this.queue.length);
-              lg("async-queue-timeout", {
+              this.log("async-queue-timeout", {
                 timeout: timeoutMs,
                 queueLength: this.queue.length,
               });
@@ -92,6 +95,7 @@ export class AsyncQueue {
           const operationPromise = operation(deps, controller.signal);
 
           await Promise.race([operationPromise, timeoutPromise]);
+          this.addLog("finish item", { queueLength: this.queue.length });
           if (timeoutId != null) {
             clearTimeout(timeoutId);
           }
@@ -105,6 +109,19 @@ export class AsyncQueue {
       this.currentItem = null;
       this.isProcessing = false;
       this.processQueue();
+    }
+  }
+
+  private log(name: string, extra?: Record<string, string | number>): void {
+    this.addLog(name, extra);
+    lg(name, extra);
+  }
+
+  private addLog(name: string, extra?: Record<string, string | number>): void {
+    const currentTime = DateUtils.formatYYYYMMDDHHMM(Date.now(), "-");
+    this.logs.push([currentTime, name, extra || {}]);
+    if (this.logs.length > 1000) {
+      this.logs.shift();
     }
   }
 
@@ -125,6 +142,7 @@ export class AsyncQueue {
 
   public clearStaleOperations(): void {
     const now = Date.now();
+    this.addLog("clear-stale-operations", { queueLength: this.queue.length });
 
     if (this.currentItem && this.currentItem.timeoutMs) {
       const elapsed = now - this.currentItem.enqueuedAt;
@@ -132,7 +150,7 @@ export class AsyncQueue {
         console.error(
           `Clearing stale current operation (elapsed: ${elapsed}ms, timeout: ${this.currentItem.timeoutMs}ms)`
         );
-        lg("async-queue-stale-current", {
+        this.log("async-queue-stale-current", {
           elapsed,
           timeout: this.currentItem.timeoutMs,
         });
@@ -150,7 +168,7 @@ export class AsyncQueue {
           console.error(
             `Clearing stale queued operation at index ${index} (elapsed: ${elapsed}ms, timeout: ${item.timeoutMs}ms)`
           );
-          lg("async-queue-stale-queued", {
+          this.log("async-queue-stale-queued", {
             elapsed,
             timeout: item.timeoutMs,
             index,

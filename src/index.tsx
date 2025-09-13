@@ -40,6 +40,7 @@ async function initialize(loadedData: unknown): Promise<void> {
   (window as any).state = initialState;
   (window as any).service = new Service(window.fetch.bind(window));
   const queue = new AsyncQueue();
+  (window as any).queue = queue;
   render(
     <AppView initialState={initialState} client={client} audio={audio} queue={queue} />,
     document.getElementById("app")!
