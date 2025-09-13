@@ -11,8 +11,8 @@ import {
 import { ExercisePickerMain } from "./exercisePickerMain";
 import { ExercisePickerFilter } from "./exercisePickerFilter";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { ExercisePickerCustomExercise } from "./exercisePickerCustomExercise";
 import { ExercisePickerSettings, IExercisePickerSettings } from "./exercisePickerSettings";
+import { ExercisePickerCustomExercise2 } from "./exercisePickerCustomExercise2";
 
 interface IProps {
   isHidden: boolean;
@@ -55,10 +55,9 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
     content = <ExercisePickerFilter state={state} settings={props.settings} dispatch={props.dispatch} />;
   } else if (currentScreen === "customExercise") {
     content = (
-      <ExercisePickerCustomExercise
+      <ExercisePickerCustomExercise2
         screenStack={state.screenStack}
         settings={props.settings}
-        customExerciseName={state.customExerciseName}
         dispatch={props.dispatch}
         exercise={state.editCustomExercise}
         onClose={props.onClose}
