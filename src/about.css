@@ -64,6 +64,7 @@ a {
 .logo-facebook,
 .logo-instagram,
 .logo-twitter,
+.logo-youtube,
 .logo-discord,
 .logo-reddit {
   width: 1.5em;
@@ -90,6 +91,10 @@ a {
 
 .logo-twitter {
   background-image: url(/images/logo-twitter.svg);
+}
+
+.logo-youtube {
+  background-image: url(/images/logo-youtube.svg);
 }
 
 .logo-discord {
@@ -472,7 +477,9 @@ a.hero-title {
   right: -315px;
   font-size: 2.5em;
   color: #c53030;
-  font-family: Dancing Script, cursive;
+  font-family:
+    Dancing Script,
+    cursive;
 }
 
 .features-progress-bottom-arrow {
@@ -503,7 +510,9 @@ a.hero-title {
   right: -244px;
   font-size: 2.5em;
   color: #c53030;
-  font-family: Dancing Script, cursive;
+  font-family:
+    Dancing Script,
+    cursive;
 }
 
 .features-settings-top-arrow {
@@ -534,7 +543,9 @@ a.hero-title {
   left: -305px;
   font-size: 2.5em;
   color: #c53030;
-  font-family: Dancing Script, cursive;
+  font-family:
+    Dancing Script,
+    cursive;
 }
 
 .final {

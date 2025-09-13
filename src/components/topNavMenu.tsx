@@ -141,7 +141,7 @@ function SocialIcons(): JSX.Element {
     <>
       {[
         ["Instagram", "https://www.instagram.com/liftosaurapp", "logo-instagram"],
-        ["Twitter", "https://www.twitter.com/liftosaur", "logo-twitter"],
+        ["Youtube", "https://www.youtube.com/@Liftosaur", "logo-youtube"],
         ["Reddit", "https://www.reddit.com/r/liftosaur", "logo-reddit"],
         ["Discord", "https://discord.gg/AAh3cvdBRs", "logo-discord"],
       ].map(([text, link, img]) => {
