@@ -468,6 +468,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="border-b">
+                  <th className="px-2 py-2 text-left">{viewMode === "month" ? "Start Date" : "Start Time"}, UTC</th>
                   <th className="px-2 py-2 text-left">{viewMode === "month" ? "Date" : "Time"}, UTC</th>
                   <th className="px-2 py-2 text-left">User ID</th>
                   <th className="px-2 py-2 text-left">Transaction ID</th>
@@ -481,6 +482,11 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
               <tbody>
                 {periodData.payments.map((payment, idx) => (
                   <tr key={`${payment.transactionId}-${idx}`} className="border-b hover:bg-gray-50">
+                    <td className="px-2 py-2">
+                      {payment.subscriptionStartTimestamp != null
+                        ? DateUtils.formatUTCYYYYMMDDHHMM(payment.subscriptionStartTimestamp)
+                        : "Unknown"}
+                    </td>
                     <td className="px-2 py-2">
                       {viewMode === "month"
                         ? DateUtils.formatUTCYYYYMMDDHHMM(payment.timestamp)

@@ -26,6 +26,7 @@ interface IVerifyGoogleSubscriptionTokenSuccess {
   orderId: string;
   purchaseType: number;
   paymentState?: number;
+  purchaseTimeMillis?: string;
   promotionType?: number;
   promotionCode?: string;
   acknowledgementState: number;
@@ -57,6 +58,7 @@ export class GooglePaymentProcessor {
       let tax: number | undefined;
       let currency = "USD";
       let originalTransactionId = token;
+      let purchaseTime: number | undefined = undefined;
 
       if (
         googleJson.kind === "androidpublisher#subscriptionPurchase" &&
@@ -89,6 +91,11 @@ export class GooglePaymentProcessor {
           this.di.log.log(`Google verification: Fetching order info for subscription ${productId}`);
           const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
           this.di.log.log("Google verification: Subscription Order Info", orderInfo);
+          purchaseTime = orderInfo?.createTime
+            ? new Date(orderInfo.createTime).getTime()
+            : orderInfo?.lastEventTime
+              ? new Date(orderInfo.lastEventTime).getTime()
+              : purchaseTime;
           if (orderInfo && orderInfo.total) {
             amount = convertGooglePriceToNumber(orderInfo.total);
             currency = orderInfo.total.currencyCode || currency;
@@ -143,6 +150,7 @@ export class GooglePaymentProcessor {
             ? "renewal"
             : "purchase",
         isFreeTrialPayment,
+        subscriptionStartTimestamp: purchaseTime,
       });
 
       this.di.log.log(

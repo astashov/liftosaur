@@ -52,6 +52,8 @@ interface IGoogleOrderInfo {
   packageName: string;
   productId: string;
   purchaseTime: number;
+  createTime: string; // like "2025-03-03T17:11:49.283Z";
+  lastEventTime: string; // like "2025-03-03T17:11:50.905Z";
   purchaseState: number;
   purchaseToken: string;
   quantity: number;

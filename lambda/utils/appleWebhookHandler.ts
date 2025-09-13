@@ -11,6 +11,7 @@ export interface IAppleTransactionInfo {
   transactionId: string;
   originalTransactionId: string;
   productId: string;
+  originalPurchaseDate?: number;
   purchaseDate: number;
   expiresDate?: number;
   storefront: string;
@@ -124,6 +125,7 @@ export class AppleWebhookHandler {
         source: "webhook",
         paymentType,
         isFreeTrialPayment: transactionInfo.offerDiscountType === "FREE_TRIAL",
+        subscriptionStartTimestamp: transactionInfo.originalPurchaseDate,
       });
 
       this.di.log.log(

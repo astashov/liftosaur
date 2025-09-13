@@ -23,6 +23,7 @@ export interface IPaymentDao {
   source: "verifier" | "webhook";
   paymentType: "purchase" | "renewal" | "refund";
   isFreeTrialPayment: boolean;
+  subscriptionStartTimestamp?: number;
 }
 
 export class PaymentDao {

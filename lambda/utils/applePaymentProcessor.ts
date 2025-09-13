@@ -20,26 +20,29 @@ export class ApplePaymentProcessor {
   public async getTransactionDetails(
     transactionId: string,
     transactionHistory?: IAppleTransactionHistory
-  ): Promise<{ amount: number; currency: string; isFreeTrialPayment: boolean }> {
+  ): Promise<{ amount: number; currency: string; isFreeTrialPayment: boolean; originalPurchaseDate?: number }> {
     let amount = 0;
     let currency = "USD";
     let isFreeTrialPayment = false;
+    let originalPurchaseDate: number | undefined = undefined;
 
     if (transactionHistory && transactionHistory.signedTransactions) {
       const jwtVerifier = new AppleJWTVerifier(this.di.log);
       for (const signedTransaction of transactionHistory.signedTransactions) {
         const transaction = jwtVerifier.verifyJWT(signedTransaction) as IAppleTransaction | null;
+        this.di.log.log("Verified transaction", transaction);
         if (transaction && transaction.transactionId === transactionId) {
           if (transaction.price) {
             amount = transaction.price / 1000;
             currency = transaction.currency || "USD";
           }
+          originalPurchaseDate = transaction.originalPurchaseDate;
           isFreeTrialPayment = transaction.offerDiscountType === "FREE_TRIAL";
           break;
         }
       }
     }
-    return { amount, currency, isFreeTrialPayment };
+    return { amount, currency, isFreeTrialPayment, originalPurchaseDate };
   }
 
   public async processReceiptPayment(userId: string, latestReceiptInfo?: IAppleReceiptInfo[]): Promise<void> {
@@ -69,6 +72,7 @@ export class ApplePaymentProcessor {
     let amount = 0;
     let currency = "USD";
     let isFreeTrialPayment = false;
+    let originalPurchaseDate: number | undefined = undefined;
 
     if (latestReceipt.original_transaction_id) {
       this.di.log.log(`Apple verification: Fetching transaction history for ${latestReceipt.original_transaction_id}`);
@@ -79,9 +83,12 @@ export class ApplePaymentProcessor {
       amount = result.amount;
       currency = result.currency;
       isFreeTrialPayment = result.isFreeTrialPayment;
+      originalPurchaseDate = result.originalPurchaseDate;
     }
 
     const originalTransactionId = latestReceipt.original_transaction_id || "";
+    const isPurchase = originalTransactionId === transactionId;
+
     await paymentDao.addIfNotExists({
       userId,
       timestamp: Number(latestReceipt.purchase_date_ms),
@@ -93,8 +100,9 @@ export class ApplePaymentProcessor {
       currency,
       type: "apple",
       source: "verifier",
-      paymentType: originalTransactionId === transactionId ? "purchase" : "renewal",
+      paymentType: isPurchase ? "purchase" : "renewal",
       isFreeTrialPayment,
+      subscriptionStartTimestamp: originalPurchaseDate,
     });
   }
 }
