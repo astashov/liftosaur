@@ -2071,6 +2071,41 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250914": {
+    title: <span>Exercise and equipment notes</span>,
+    body: (
+      <ul>
+        <li>You can now add exercise and equipment notes.</li>
+        <li>
+          Those are not tied to a program, those are associated with exercises or equipment. You can use exercise notes
+          to e.g. list form cues for a specific exercise, and the equipment notes to e.g. list tweaks of equipment, e.g.
+          bench angle, cable setup, etc.
+        </li>
+        <li>So, this way you have 3 note types in the app:</li>
+        <ul className="pl-4 list-disc">
+          <li>
+            <strong>Program exercise description</strong> - the ones you add right in the program text via{" "}
+            <strong>// comment</strong>. You can use them to add program-specific details for the exercise, e.g.
+            progression explanation.
+          </li>
+          <li>
+            <strong>Exercise notes</strong> - those would be not tied to a program, but to an exercise. You can use them
+            to add general notes for the exercise, e.g. form cues. You can edit them on the Exercise Stats screen.
+          </li>
+          <li>
+            <strong>Equipment notes</strong> - those would be tied to a specific equipment. You can use them to add
+            details about the equipment, e.g. bench angle, cable setup, etc. You can edit them on the Available
+            Equipment screen.
+          </li>
+        </ul>
+        <li>All of them would be displayed on the workout screen.</li>
+        <li>
+          Also, from now on the previous workout exercise note only would be displayed for two months on the workout
+          screen.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
