@@ -85,16 +85,20 @@ export class GooglePaymentProcessor {
         amount = Number((Number(googleJson.priceAmountMicros || "0") / 1000000).toFixed(2));
         currency = googleJson.priceCurrencyCode || "USD";
         originalTransactionId = googleJson.linkedPurchaseToken || token;
+        purchaseTime = googleJson.startTimeMillis != null ? Number(googleJson.startTimeMillis) : purchaseTime;
 
         // Try to fetch order info for subscription to get tax details
         if (googleJson.orderId) {
           this.di.log.log(`Google verification: Fetching order info for subscription ${productId}`);
           const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
           this.di.log.log("Google verification: Subscription Order Info", orderInfo);
-          purchaseTime = orderInfo?.createTime
-            ? new Date(orderInfo.createTime).getTime()
-            : orderInfo?.lastEventTime
-              ? new Date(orderInfo.lastEventTime).getTime()
+          purchaseTime =
+            purchaseTime == null
+              ? orderInfo?.createTime
+                ? new Date(orderInfo.createTime).getTime()
+                : orderInfo?.lastEventTime
+                  ? new Date(orderInfo.lastEventTime).getTime()
+                  : purchaseTime
               : purchaseTime;
           if (orderInfo && orderInfo.total) {
             amount = convertGooglePriceToNumber(orderInfo.total);
@@ -108,6 +112,7 @@ export class GooglePaymentProcessor {
         this.di.log.log(`Google verification: Fetching order info for product ${productId}`);
         const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
         this.di.log.log("Google verification: Order Info", orderInfo);
+        purchaseTime = googleJson.purchaseTimeMillis != null ? Number(googleJson.purchaseTimeMillis) : purchaseTime;
         if (orderInfo && orderInfo.total) {
           amount = convertGooglePriceToNumber(orderInfo.total);
           currency = orderInfo.total.currencyCode || "USD";
