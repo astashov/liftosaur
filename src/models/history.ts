@@ -350,7 +350,8 @@ export namespace History {
     return {
       fn: (acc, hr) => {
         const time = hr.endTime ?? hr.startTime;
-        if (time < startTime && (acc.timestamp == null || time > acc.timestamp)) {
+        const twoMonthsAgo = startTime - 60 * 24 * 60 * 60 * 1000;
+        if (time < startTime && time > twoMonthsAgo && (acc.timestamp == null || time > acc.timestamp)) {
           const entry = hr.entries.find((e) => Exercise.eq(e.exercise, exerciseType));
           if (entry && entry.notes) {
             acc = { lastNote: entry.notes, timestamp: time };

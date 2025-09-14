@@ -1123,6 +1123,7 @@ export const TEquipmentData = t.intersection(
       isDeleted: t.boolean,
       useBodyweightForBar: t.boolean,
       isAssisting: t.boolean,
+      notes: t.string,
     }),
   ],
   "TEquipmentData"
@@ -1140,6 +1141,7 @@ export const TExerciseDataValue = t.partial(
     rm1: TWeight,
     rounding: t.number,
     equipment: dictionary(t.string, t.union([t.string, t.undefined])),
+    notes: t.string,
   },
   "TExerciseDataValue"
 );

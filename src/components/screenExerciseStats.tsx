@@ -32,6 +32,8 @@ import { Program } from "../models/program";
 import { EditProgram } from "../models/editProgram";
 import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
 import { ExerciseHistory } from "./exerciseHistory";
+import { MarkdownEditorBorderless } from "./markdownEditorBorderless";
+import { GroupHeader } from "./groupHeader";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -144,16 +146,20 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           <MuscleGroupsView exercise={fullExercise} settings={props.settings} />
         </div>
         {Exercise.isCustom(fullExercise.id, props.settings.exercises) && (
-          <div className="flex">
+          <div className="flex mb-2">
             <div className="mr-auto">
-              <LinkButton name="edit-custom-exercise-stats" onClick={() => setShowCustomExerciseModal(true)}>
+              <LinkButton
+                className="text-sm"
+                name="edit-custom-exercise-stats"
+                onClick={() => setShowCustomExerciseModal(true)}
+              >
                 Edit
               </LinkButton>
             </div>
             <div>
               <LinkButton
                 name="edit-custom-exercise-stats"
-                className="text-text-error"
+                className="text-sm text-text-error"
                 onClick={() => {
                   if (confirm("Are you sure you want to delete this exercise?")) {
                     updateSettings(
@@ -177,6 +183,26 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
             </div>
           </div>
         )}
+
+        <GroupHeader name="Notes" />
+        <div style={{ marginLeft: "-0.25rem", marginRight: "-0.25rem" }}>
+          <MarkdownEditorBorderless
+            value={Exercise.getNotes(exerciseType, props.settings)}
+            placeholder={`Exercise notes in Markdown...`}
+            onChange={(v) => {
+              updateSettings(
+                props.dispatch,
+                lb<ISettings>()
+                  .p("exerciseData")
+                  .recordModify((data) => {
+                    const key = Exercise.toKey(exerciseType);
+                    return { ...data, [key]: { ...data[key], notes: v } };
+                  }),
+                "Update exercise notes"
+              );
+            }}
+          />
+        </div>
 
         <ExerciseDataSettings
           fullExercise={fullExercise}

@@ -24,6 +24,7 @@ import { IconArrowDown2 } from "./icons/iconArrowDown2";
 import { IconEyeClosed } from "./icons/iconEyeClosed";
 import { StringUtils } from "../utils/string";
 import { Stats } from "../models/stats";
+import { MarkdownEditorBorderless } from "./markdownEditorBorderless";
 
 interface IProps<T> {
   dispatch: IDispatch;
@@ -493,6 +494,17 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
           }
         }}
       />
+      <GroupHeader topPadding={true} name="Notes" />
+      <div style={{ marginLeft: "-0.25rem", marginRight: "-0.25rem" }}>
+        <MarkdownEditorBorderless
+          value={equipmentData.notes}
+          placeholder={`Hints or equipment specifics in Markdown...`}
+          onChange={(v) => {
+            const lensRecording = props.lensPrefix.then(lb<IAllEquipment>().pi(props.name).p("notes").get()).record(v);
+            props.dispatch(lensRecording, "Update plate");
+          }}
+        />
+      </div>
       <GroupHeader
         topPadding={true}
         name={`Number of ${equipmentName(props.name, props.allEquipment)} plates available`}

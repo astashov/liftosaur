@@ -18,6 +18,8 @@ import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgra
 import { WorkoutExerciseAllSets } from "../workoutExerciseAllSets";
 import { WorkoutExerciseUtils } from "../../utils/workoutExerciseUtils";
 import { Tailwind } from "../../utils/tailwindConfig";
+import { Equipment } from "../../models/equipment";
+import { GroupHeader } from "../groupHeader";
 
 interface IProps {
   entry: IHistoryEntry;
@@ -150,10 +152,11 @@ interface IProgramPreviewPlaygroundProps {
 
 function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.Element {
   const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
-  const equipment = exercise.equipment;
   const programExercise = props.programExercise;
   const dayData = Program.getDayData(props.program, props.dayIndex);
   const description = PlannerProgramExercise.currentDescription(programExercise);
+  const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
+  const exerciseNotes = Exercise.getNotes(props.entry.exercise, props.settings);
 
   return (
     <div
@@ -177,13 +180,22 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
           </div>
           <div className="flex-1 ml-auto" style={{ minWidth: "4rem" }}>
             <div className="flex items-center">
-              <div className="flex-1 mr-1 font-bold">{exercise.name}</div>
+              <div className="flex-1 mr-1 font-bold">{Exercise.nameWithEquipment(exercise, props.settings)}</div>
             </div>
-            {equipment && <div className="text-sm text-text-secondary">{equipmentName(equipment)}</div>}
+            <div data-cy="exercise-equipment" className="text-xs text-text-secondary">
+              Equipment: <strong>{currentEquipmentName || "None"}</strong>
+            </div>
           </div>
         </div>
+        {exerciseNotes && (
+          <div className="mt-1 text-sm">
+            {exerciseNotes && description && <GroupHeader name="Exercise Notes" />}
+            <Markdown value={exerciseNotes} />
+          </div>
+        )}
         {description && (
-          <div className="mx-4 mt-1 text-sm">
+          <div className="mt-1 text-sm">
+            {exerciseNotes && description && <GroupHeader name="Program Exercise Description" />}
             <Markdown value={description} />
           </div>
         )}

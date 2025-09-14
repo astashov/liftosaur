@@ -61,6 +61,8 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
   const exerciseType = props.entry.exercise;
   const exercise = Exercise.get(exerciseType, props.settings.exercises);
   const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
+  const currentEquipmentNotes = Equipment.getEquipmentDataForExerciseType(props.settings, exercise)?.notes;
+  const exerciseNotes = Exercise.getNotes(exerciseType, props.settings);
   const description = programExercise ? PlannerProgramExercise.currentDescription(programExercise) : undefined;
   const onerm = Exercise.onerm(exercise, props.settings);
   const hasUnequalWeights = props.entry.sets.some((w) => !Weight.eqNull(w.originalWeight, w.weight));
@@ -125,6 +127,11 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 {currentEquipmentName || "None"}
               </LinkButton>
             </div>
+            {currentEquipmentNotes && (
+              <div className="text-xs">
+                <Markdown value={currentEquipmentNotes} />
+              </div>
+            )}
             {programExercise && ProgramExercise.doesUse1RM(programExercise) && (
               <div data-cy="exercise-rm1" className="text-sm text-text-secondary">
                 1RM:{" "}
@@ -244,8 +251,15 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
             )}
           </div>
         </header>
+        {exerciseNotes && (
+          <div className="mt-1 text-sm">
+            {exerciseNotes && description && <GroupHeader name="Exercise Notes" />}
+            <Markdown value={exerciseNotes} />
+          </div>
+        )}
         {description && (
           <div className="mt-1 text-sm">
+            {exerciseNotes && description && <GroupHeader name="Program Exercise Description" />}
             <Markdown value={description} />
           </div>
         )}
@@ -263,7 +277,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
             id="exercise-notes"
             maxLength={4095}
             name="exercise-notes"
-            placeholder="Add exercise notes here..."
+            placeholder="Add workout notes for this exercise here..."
             value={props.entry.notes}
             onChangeText={(text) => {
               Progress.editExerciseNotes(props.dispatch, props.entryIndex, text);

@@ -24,6 +24,7 @@ import { Equipment } from "../../models/equipment";
 import { Modal1RM } from "../modal1RM";
 import { ModalEquipment } from "../modalEquipment";
 import { IconArrowRight } from "../icons/iconArrowRight";
+import { GroupHeader } from "../groupHeader";
 
 interface IProgramPreviewTabExerciseProps {
   entry: IHistoryEntry;
@@ -44,6 +45,8 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
   const programExercise = props.programExercise;
   const description = PlannerProgramExercise.currentDescription(programExercise);
   const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
+  const currentEquipmentNotes = Equipment.getEquipmentDataForExerciseType(props.settings, exercise)?.notes;
+  const exerciseNotes = Exercise.getNotes(props.entry.exercise, props.settings);
   const onerm = Exercise.onerm(exercise, props.settings);
 
   return (
@@ -95,6 +98,11 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
               {currentEquipmentName || "None"}
             </LinkButton>
           </div>
+          {currentEquipmentNotes && (
+            <div className="text-xs">
+              <Markdown value={currentEquipmentNotes} />
+            </div>
+          )}
           {programExercise && ProgramExercise.doesUse1RM(programExercise) && (
             <div data-cy="exercise-rm1" className="text-xs text-text-secondary">
               1RM:{" "}
@@ -120,8 +128,15 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
           <HistoryRecordSetsView sets={props.entry.sets} settings={props.settings} isNext={true} />
         </section>
       </div>
+      {exerciseNotes && (
+        <div className="mt-1 text-sm">
+          {exerciseNotes && description && <GroupHeader name="Exercise Notes" />}
+          <Markdown value={exerciseNotes} />
+        </div>
+      )}
       {description && (
         <div className="mt-1 text-sm">
+          {exerciseNotes && description && <GroupHeader name="Program Exercise Description" />}
           <Markdown value={description} />
         </div>
       )}

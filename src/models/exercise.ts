@@ -3666,6 +3666,10 @@ export namespace Exercise {
     return { ...exercise, equipment: type.equipment };
   }
 
+  export function getNotes(type: IExerciseType, settings: ISettings): string | undefined {
+    return settings.exerciseData[Exercise.toKey(type)]?.notes;
+  }
+
   export function onerm(type: IExerciseType, settings: ISettings): IWeight {
     const rm = settings.exerciseData[Exercise.toKey(type)]?.rm1;
     if (rm) {
