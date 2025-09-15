@@ -9,9 +9,11 @@ import { IAffiliateData } from "../../src/pages/affiliateDashboard/affiliateDash
 const tableNames = {
   dev: {
     affiliates: "lftAffiliatesDev",
+    affiliatesUserIdIndex: "lftAffiliatesUserIdDev",
   },
   prod: {
     affiliates: "lftAffiliates",
+    affiliatesUserIdIndex: "lftAffiliatesUserId",
   },
 } as const;
 
@@ -41,6 +43,39 @@ export class AffiliateDao {
     return result.map((r) => r.userId);
   }
 
+  public async getAffiliatesForUser(userId: string): Promise<IAffiliateDao[]> {
+    const env = Utils.getEnv();
+    const result = await this.di.dynamo.query<IAffiliateDao>({
+      tableName: tableNames[env].affiliates,
+      indexName: tableNames[env].affiliatesUserIdIndex,
+      expression: "userId = :userId",
+      values: { ":userId": userId },
+    });
+    return result;
+  }
+
+  public async getAffiliatesForUsers(allUserIds: string[]): Promise<Partial<Record<string, IAffiliateDao[]>>> {
+    const groups = CollectionUtils.inGroupsOf(50, allUserIds);
+    const env = Utils.getEnv();
+    const allResults: IAffiliateDao[] = [];
+
+    for (const group of groups) {
+      const groupResults = await Promise.all(
+        group.map(async (userId) => {
+          return await this.di.dynamo.query<IAffiliateDao>({
+            tableName: tableNames[env].affiliates,
+            indexName: tableNames[env].affiliatesUserIdIndex,
+            expression: "userId = :userId",
+            values: { ":userId": userId },
+          });
+        })
+      );
+      allResults.push(...groupResults.flat());
+    }
+
+    return CollectionUtils.groupByKey(allResults, "userId");
+  }
+
   public async put(items: { affiliateId: string; userId: string }[]): Promise<void> {
     if (items.length === 0) {
       return;
@@ -67,48 +102,53 @@ export class AffiliateDao {
     );
   }
 
-  private async getAffiliatedUsers(affiliateId: string): Promise<{
-    users: Array<{ user: ILimitedUserDao; affiliateTimestamp: number; isFirstAffiliate: boolean }>;
-    currentMonthTs: number;
-  }> {
+  private async getAffiliatedUsers(
+    affiliateId: string
+  ): Promise<Array<{ userId: string; user?: ILimitedUserDao; affiliateTimestamp: number; isFirstAffiliate: boolean }>> {
     // Get user IDs affiliated with this creator from the affiliates table
     const affiliatedUserIds = await this.getUserIds(affiliateId);
 
     if (affiliatedUserIds.length === 0) {
-      return { users: [], currentMonthTs: 0 };
+      return [];
     }
 
     const userDao = new UserDao(this.di);
     const affiliatedUsers = await userDao.getLimitedByIds(affiliatedUserIds);
+    const restUserIds = affiliatedUserIds.filter((userId) => !affiliatedUsers.some((user) => user.id === userId));
+    const userIdToAffiliates = await this.getAffiliatesForUsers(restUserIds);
+    const idToAffiliatedUser = CollectionUtils.groupByKeyUniq(affiliatedUsers, "id");
 
-    // Get current month timestamp for filtering
-    const currentMonth = new Date();
-    currentMonth.setUTCHours(0, 0, 0, 0);
-    currentMonth.setUTCDate(1);
-    const currentMonthTs = currentMonth.getTime();
+    const users = affiliatedUserIds.map((userId) => {
+      const user = idToAffiliatedUser[userId];
+      if (user) {
+        const affiliates = user.storage?.affiliates || {};
+        const affiliateTimestamp = affiliates[affiliateId] || 0;
 
-    const users = affiliatedUsers.map((user) => {
-      const affiliates = user.storage?.affiliates || {};
-      const affiliateTimestamp = affiliates[affiliateId] || 0;
+        // Check if this creator is the first affiliate (lowest timestamp)
+        const sortedAffiliates = Object.entries(affiliates).sort((a, b) => (a[1] || 0) - (b[1] || 0));
+        const isFirstAffiliate = sortedAffiliates.length === 0 || sortedAffiliates[0][0] === affiliateId;
 
-      // Check if this creator is the first affiliate (lowest timestamp)
-      const sortedAffiliates = Object.entries(affiliates).sort((a, b) => (a[1] || 0) - (b[1] || 0));
-      const isFirstAffiliate = sortedAffiliates.length === 0 || sortedAffiliates[0][0] === affiliateId;
-
-      return { user, affiliateTimestamp, isFirstAffiliate };
+        return { userId, user, affiliateTimestamp, isFirstAffiliate };
+      } else {
+        const affiliates = userIdToAffiliates[userId] || [];
+        const sortedAffiliates = CollectionUtils.sortByExpr(affiliates, (e) => e.timestamp || 0);
+        const affiliateTimestamp = sortedAffiliates.find((a) => a.affiliateId === affiliateId)?.timestamp || 0;
+        const isFirstAffiliate = sortedAffiliates.length > 0 && sortedAffiliates[0].affiliateId === affiliateId;
+        return { userId, user: undefined, affiliateTimestamp, isFirstAffiliate };
+      }
     });
 
-    return { users, currentMonthTs };
+    return users;
   }
 
   private async calculateUserRevenue(
-    user: ILimitedUserDao,
+    userId: string,
     affiliateTimestamp: number,
-    isFirstAffiliate: boolean,
-    currentMonthTs: number
+    isFirstAffiliate: boolean
   ): Promise<{ userTotalRevenue: number; userMonthlyRevenue: number; eligiblePayments: IPaymentDao[] }> {
     const paymentDao = new PaymentDao(this.di);
-    const userPayments = await paymentDao.getByUserId(user.id);
+    const userPayments = await paymentDao.getByUserId(userId);
+    const currentMonthTs = new Date(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1).getTime();
 
     // Only count payments made AFTER the affiliate timestamp and if they're the first affiliate
     const eligiblePayments = userPayments.filter(
@@ -131,7 +171,7 @@ export class AffiliateDao {
     affiliateData: IAffiliateData[];
     summary: IAffiliateDashboardSummary;
   }> {
-    const { users, currentMonthTs } = await this.getAffiliatedUsers(affiliateId);
+    const users = await this.getAffiliatedUsers(affiliateId);
 
     if (users.length === 0) {
       return {
@@ -151,23 +191,22 @@ export class AffiliateDao {
     let monthlyRevenue = 0;
 
     // Process users in batches to avoid overwhelming the database
-    const batchSize = 20;
+    const batchSize = 50;
     const userGroups = CollectionUtils.inGroupsOf(batchSize, users);
 
     for (const group of userGroups) {
       // Process each group concurrently (payments + logs)
       const groupResults = await Promise.all(
-        group.map(async ({ user, affiliateTimestamp, isFirstAffiliate }) => {
+        group.map(async ({ user, userId, affiliateTimestamp, isFirstAffiliate }) => {
           // Get payment data
           const { userTotalRevenue, userMonthlyRevenue, eligiblePayments } = await this.calculateUserRevenue(
-            user,
+            userId,
             affiliateTimestamp,
-            isFirstAffiliate,
-            currentMonthTs
+            isFirstAffiliate
           );
 
           // Get log data for workout statistics (only for admin dashboard)
-          const userLogs = await logDao.getForUsers([user.id]);
+          const userLogs = await logDao.getForUsers([userId]);
           const sortedUserLogs = CollectionUtils.sortBy(userLogs, "ts");
           const minTs = sortedUserLogs.length > 0 ? sortedUserLogs[0].ts : affiliateTimestamp;
           const workoutLog = userLogs.find((log) => log.action === "ls-finish-workout");
@@ -179,16 +218,16 @@ export class AffiliateDao {
           const isPaid = eligiblePayments.length > 0;
           // Check if user has any subscription data (simplified check - doesn't verify if active)
           const hasActiveSubscription = !!(
-            user.storage?.subscription?.key ||
-            (user.storage?.subscription?.apple && user.storage.subscription.apple.length > 0) ||
-            (user.storage?.subscription?.google && user.storage.subscription.google.length > 0)
+            user?.storage?.subscription?.key ||
+            (user?.storage?.subscription?.apple && user.storage.subscription.apple.length > 0) ||
+            (user?.storage?.subscription?.google && user.storage.subscription.google.length > 0)
           );
 
           return {
             userTotalRevenue,
             userMonthlyRevenue,
             affiliateData: {
-              userId: user.id,
+              userId: userId,
               affiliateTimestamp,
               importDate: new Date(affiliateTimestamp).toISOString(),
               numberOfWorkouts,
@@ -196,6 +235,7 @@ export class AffiliateDao {
               daysOfUsing,
               isPaid,
               hasActiveSubscription,
+              isSignedUp: user != null,
               isFirstAffiliate,
               userTotalRevenue: userTotalRevenue,
               userMonthlyRevenue: userMonthlyRevenue,
@@ -229,7 +269,7 @@ export class AffiliateDao {
 
   public async getCreatorStats(creatorId: string): Promise<IAffiliateDashboardSummary> {
     // Optimized version that doesn't fetch logs or detailed user data
-    const { users, currentMonthTs } = await this.getAffiliatedUsers(creatorId);
+    const users = await this.getAffiliatedUsers(creatorId);
 
     if (users.length === 0) {
       return {
@@ -254,8 +294,8 @@ export class AffiliateDao {
     for (const group of userGroups) {
       // Process each group concurrently
       const groupResults = await Promise.all(
-        group.map(async ({ user, affiliateTimestamp, isFirstAffiliate }) => {
-          return this.calculateUserRevenue(user, affiliateTimestamp, isFirstAffiliate, currentMonthTs);
+        group.map(async ({ userId, affiliateTimestamp, isFirstAffiliate }) => {
+          return this.calculateUserRevenue(userId, affiliateTimestamp, isFirstAffiliate);
         })
       );
 

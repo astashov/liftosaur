@@ -23,6 +23,7 @@ export interface IAffiliateData {
   lastWorkoutTs: number;
   daysOfUsing: number;
   isPaid: boolean;
+  isSignedUp: boolean;
   hasActiveSubscription: boolean;
   isFirstAffiliate: boolean;
   userTotalRevenue: number;
@@ -68,38 +69,41 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
 
       {/* Users Table */}
       <div className="overflow-hidden bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold">Affiliated Users</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   User ID
                 </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                  Signed?
+                </th>
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   Import Date
                 </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   Status
                 </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   Workouts
                 </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   Days Active
                 </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   Payments
                 </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   Monthly Rev
                 </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   Total Rev
                 </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   First Affiliate
                 </th>
               </tr>
@@ -107,7 +111,7 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
             <tbody className="bg-white divide-y divide-gray-200">
               {props.affiliateData.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={9} className="px-4 py-4 text-center text-gray-500">
                     No affiliated users yet
                   </td>
                 </tr>
@@ -115,7 +119,7 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
                 props.affiliateData.map((item) => {
                   return (
                     <tr key={item.userId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                         <a
                           href={`/dashboards/user/${item.userId}?key=${props.apiKey}`}
                           className="text-text-link"
@@ -124,10 +128,17 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
                           {item.userId}
                         </a>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                      <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
+                        {item.isSignedUp ? (
+                          <span className="font-medium text-green-600">Yes</span>
+                        ) : (
+                          <span className="font-medium text-red-600">No</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
                         {new Date(item.affiliateTimestamp).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             item.isPaid
@@ -140,16 +151,16 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
                           {item.isPaid ? "Paid" : item.hasActiveSubscription ? "Active" : "Free"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{item.numberOfWorkouts}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{item.daysOfUsing}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{item.paymentsCount}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                      <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">{item.numberOfWorkouts}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">{item.daysOfUsing}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">{item.paymentsCount}</td>
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                         {formatCurrency(item.userMonthlyRevenue)}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                         {formatCurrency(item.userTotalRevenue)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             item.isFirstAffiliate ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
