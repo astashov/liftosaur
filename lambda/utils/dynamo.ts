@@ -37,6 +37,12 @@ export interface IDynamoUtil {
   }): AsyncGenerator<T[], void, unknown>;
   get<T>(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<T | undefined>;
   put(args: { tableName: string; item: DynamoDB.DocumentClient.PutItemInputAttributeMap }): Promise<void>;
+  putIfNotExists(args: {
+    tableName: string;
+    item: DynamoDB.DocumentClient.PutItemInputAttributeMap;
+    partitionKey: string;
+    sortKey?: string;
+  }): Promise<boolean>;
   update(args: {
     tableName: string;
     key: DynamoDB.DocumentClient.Key;
@@ -246,6 +252,56 @@ export class DynamoUtil implements IDynamoUtil {
       throw e;
     }
     this.log.log(`Dynamo put: ${args.tableName} - `, args.item, ` - ${Date.now() - startTime}ms`);
+  }
+
+  public async putIfNotExists(args: {
+    tableName: string;
+    item: DynamoDB.DocumentClient.PutItemInputAttributeMap;
+    partitionKey: string;
+    sortKey?: string;
+  }): Promise<boolean> {
+    const startTime = Date.now();
+    try {
+      let conditionExpression = `attribute_not_exists(#pk)`;
+      const expressionAttributeNames: Record<string, string> = {
+        "#pk": args.partitionKey,
+      };
+
+      if (args.sortKey) {
+        conditionExpression += ` AND attribute_not_exists(#sk)`;
+        expressionAttributeNames["#sk"] = args.sortKey;
+      }
+
+      await this.dynamo
+        .put({
+          TableName: args.tableName,
+          Item: args.item,
+          ConditionExpression: conditionExpression,
+          ExpressionAttributeNames: expressionAttributeNames,
+        })
+        .promise();
+
+      this.log.log(
+        `Dynamo putIfNotExists (inserted): ${args.tableName} - `,
+        args.item,
+        ` - ${Date.now() - startTime}ms`
+      );
+      return true;
+    } catch (error) {
+      const e = error as AWSError;
+      if (e.code === "ConditionalCheckFailedException") {
+        this.log.log(
+          `Dynamo putIfNotExists (already exists): ${args.tableName} - `,
+          args.item,
+          ` - ${Date.now() - startTime}ms`
+        );
+        return false;
+      }
+      this.log.log(`FAILED Dynamo putIfNotExists: ${args.tableName} - `, args.item, ` - ${Date.now() - startTime}ms`);
+      this.log.log(e.message);
+      this.log.log(e.stack);
+      throw e;
+    }
   }
 
   public async update(args: {

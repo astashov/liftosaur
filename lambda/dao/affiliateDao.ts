@@ -18,6 +18,7 @@ const tableNames = {
 export interface IAffiliateDao {
   affiliateId: string;
   userId: string;
+  timestamp?: number;
 }
 
 export interface IAffiliateDashboardSummary {
@@ -46,6 +47,24 @@ export class AffiliateDao {
     }
     const env = Utils.getEnv();
     await this.di.dynamo.batchPut({ tableName: tableNames[env].affiliates, items });
+  }
+
+  public async putIfNotExists(items: { affiliateId: string; userId: string; timestamp?: number }[]): Promise<void> {
+    if (items.length === 0) {
+      return;
+    }
+    const env = Utils.getEnv();
+
+    await Promise.all(
+      items.map((item) =>
+        this.di.dynamo.putIfNotExists({
+          tableName: tableNames[env].affiliates,
+          item: { ...item },
+          partitionKey: "affiliateId",
+          sortKey: "userId",
+        })
+      )
+    );
   }
 
   private async getAffiliatedUsers(affiliateId: string): Promise<{
@@ -93,7 +112,11 @@ export class AffiliateDao {
 
     // Only count payments made AFTER the affiliate timestamp and if they're the first affiliate
     const eligiblePayments = userPayments.filter(
-      (p) => p.timestamp > affiliateTimestamp && isFirstAffiliate && p.paymentType !== "refund"
+      (p) =>
+        p.subscriptionStartTimestamp != null &&
+        p.subscriptionStartTimestamp > affiliateTimestamp &&
+        isFirstAffiliate &&
+        p.paymentType !== "refund"
     );
 
     // Calculate revenue (20% share)

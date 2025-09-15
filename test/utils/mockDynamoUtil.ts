@@ -92,6 +92,24 @@ export class MockDynamoUtil implements IDynamoUtil {
       throw new Error(`MockDynamo: Missing put key mapping for ${args.tableName}`);
     }
   }
+
+  public putIfNotExists(args: {
+    tableName: string;
+    item: DynamoDB.DocumentClient.PutItemInputAttributeMap;
+    partitionKey: string;
+    sortKey?: string;
+  }): Promise<boolean> {
+    const keyNames = idKeys[args.tableName];
+    if (keyNames) {
+      const key = keyNames.reduce((memo, k) => ({ ...memo, [k]: args.item[k] }), {});
+      this.data[args.tableName] = this.data[args.tableName] || {};
+      this.data[args.tableName][JSON.stringify(key)] = args.item;
+      return Promise.resolve(true);
+    } else {
+      throw new Error(`MockDynamo: Missing put key mapping for ${args.tableName}`);
+    }
+  }
+
   public async update(args: {
     tableName: string;
     key: DynamoDB.DocumentClient.Key;

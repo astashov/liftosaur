@@ -115,7 +115,13 @@ export class LogDao {
     const day = new Date().getUTCDate();
     if (Object.keys(combinedAffiliates).length > 0) {
       const affiliateDao = new AffiliateDao(this.di);
-      await affiliateDao.put(Object.keys(combinedAffiliates).map((affiliateId) => ({ affiliateId, userId })));
+      await affiliateDao.putIfNotExists(
+        Object.keys(combinedAffiliates).map((affiliateId) => ({
+          affiliateId,
+          userId,
+          timestamp: combinedAffiliates[affiliateId],
+        }))
+      );
       await this.di.dynamo.update({
         tableName: logTableNames[env].logs,
         key: { userId, action },
