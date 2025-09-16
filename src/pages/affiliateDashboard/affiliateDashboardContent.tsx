@@ -12,6 +12,7 @@ export interface IAffiliateDashboardContentProps {
   affiliateData: IAffiliateData[];
   affiliateId: string;
   summary: IAffiliateDashboardSummary;
+  monthlyPayments: { month: string; revenue: number; count: number }[];
   apiKey: string;
 }
 
@@ -63,6 +64,56 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
           <div className="mb-1 text-sm text-gray-600">Total Revenue (20%)</div>
           <div className="text-2xl font-bold text-purple-600">{formatCurrency(props.summary.totalRevenue)}</div>
+        </div>
+      </div>
+
+      {/* Payments by Month */}
+      <div className="mb-8 overflow-hidden bg-white rounded-lg shadow">
+        <div className="px-4 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold">Payments by Month</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="border-b border-gray-200 bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                  Month
+                </th>
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                  Number of Payments
+                </th>
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                  Revenue (20% share)
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {props.monthlyPayments.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-4 py-4 text-center text-gray-500">
+                    No payments yet
+                  </td>
+                </tr>
+              ) : (
+                props.monthlyPayments.map((monthData) => {
+                  const [year, month] = monthData.month.split("-");
+                  const monthName = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  });
+                  return (
+                    <tr key={monthData.month} className="hover:bg-gray-50">
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{monthName}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">{monthData.count}</td>
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                        {formatCurrency(monthData.revenue)}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

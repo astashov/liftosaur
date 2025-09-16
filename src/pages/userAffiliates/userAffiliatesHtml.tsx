@@ -2,6 +2,7 @@ import { h, JSX } from "preact";
 import { Page } from "../../components/page";
 import { UserAffiliatesContent } from "./userAffiliatesContent";
 import { IAccount } from "../../models/account";
+import type { ICreatorStats } from "../../../lambda/userAffiliates";
 
 export interface IUserAffiliatesSummary {
   totalUsers: number;
@@ -12,7 +13,7 @@ export interface IUserAffiliatesSummary {
 
 export interface IUserAffiliatesHtmlProps {
   account: IAccount | undefined;
-  summary: IUserAffiliatesSummary;
+  creatorStats: ICreatorStats;
   client: Window["fetch"];
 }
 

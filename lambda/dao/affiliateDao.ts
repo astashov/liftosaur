@@ -105,7 +105,6 @@ export class AffiliateDao {
   private async getAffiliatedUsers(
     affiliateId: string
   ): Promise<Array<{ userId: string; user?: ILimitedUserDao; affiliateTimestamp: number; isFirstAffiliate: boolean }>> {
-    // Get user IDs affiliated with this creator from the affiliates table
     const affiliatedUserIds = await this.getUserIds(affiliateId);
 
     if (affiliatedUserIds.length === 0) {
@@ -124,7 +123,6 @@ export class AffiliateDao {
         const affiliates = user.storage?.affiliates || {};
         const affiliateTimestamp = affiliates[affiliateId] || 0;
 
-        // Check if this creator is the first affiliate (lowest timestamp)
         const sortedAffiliates = Object.entries(affiliates).sort((a, b) => (a[1] || 0) - (b[1] || 0));
         const isFirstAffiliate = sortedAffiliates.length === 0 || sortedAffiliates[0][0] === affiliateId;
 
@@ -150,7 +148,6 @@ export class AffiliateDao {
     const userPayments = await paymentDao.getByUserId(userId);
     const currentMonthTs = new Date(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1).getTime();
 
-    // Only count payments made AFTER the affiliate timestamp and if they're the first affiliate
     const eligiblePayments = userPayments.filter(
       (p) =>
         p.subscriptionStartTimestamp != null &&
@@ -159,7 +156,6 @@ export class AffiliateDao {
         p.paymentType !== "refund"
     );
 
-    // Calculate revenue (20% share)
     const userTotalRevenue = eligiblePayments.reduce((sum, p) => sum + (p.amount || 0), 0) * 0.2;
     const userMonthlyRevenue =
       eligiblePayments.filter((p) => p.timestamp >= currentMonthTs).reduce((sum, p) => sum + (p.amount || 0), 0) * 0.2;
@@ -167,9 +163,30 @@ export class AffiliateDao {
     return { userTotalRevenue, userMonthlyRevenue, eligiblePayments };
   }
 
+  private generateMonthlyPayments(
+    allEligiblePayments: IPaymentDao[]
+  ): { month: string; revenue: number; count: number }[] {
+    const paymentsPerMonth: Record<string, { revenue: number; count: number }> = {};
+
+    allEligiblePayments.forEach((payment) => {
+      const date = new Date(payment.timestamp);
+      const monthKey = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+      if (!paymentsPerMonth[monthKey]) {
+        paymentsPerMonth[monthKey] = { revenue: 0, count: 0 };
+      }
+      paymentsPerMonth[monthKey].revenue += (payment.amount || 0) * 0.2;
+      paymentsPerMonth[monthKey].count += 1;
+    });
+
+    return Object.entries(paymentsPerMonth)
+      .map(([month, data]) => ({ month, ...data }))
+      .sort((a, b) => b.month.localeCompare(a.month));
+  }
+
   public async getDashboardData(affiliateId: string): Promise<{
     affiliateData: IAffiliateData[];
     summary: IAffiliateDashboardSummary;
+    monthlyPayments: { month: string; revenue: number; count: number }[];
   }> {
     const users = await this.getAffiliatedUsers(affiliateId);
 
@@ -182,6 +199,7 @@ export class AffiliateDao {
           totalRevenue: 0,
           monthlyRevenue: 0,
         },
+        monthlyPayments: [],
       };
     }
 
@@ -189,23 +207,22 @@ export class AffiliateDao {
     const unsortedAffiliateData: IAffiliateData[] = [];
     let totalRevenue = 0;
     let monthlyRevenue = 0;
+    const allEligiblePayments: IPaymentDao[] = [];
 
-    // Process users in batches to avoid overwhelming the database
     const batchSize = 50;
     const userGroups = CollectionUtils.inGroupsOf(batchSize, users);
 
     for (const group of userGroups) {
-      // Process each group concurrently (payments + logs)
       const groupResults = await Promise.all(
         group.map(async ({ user, userId, affiliateTimestamp, isFirstAffiliate }) => {
-          // Get payment data
           const { userTotalRevenue, userMonthlyRevenue, eligiblePayments } = await this.calculateUserRevenue(
             userId,
             affiliateTimestamp,
             isFirstAffiliate
           );
 
-          // Get log data for workout statistics (only for admin dashboard)
+          allEligiblePayments.push(...eligiblePayments);
+
           const userLogs = await logDao.getForUsers([userId]);
           const sortedUserLogs = CollectionUtils.sortBy(userLogs, "ts");
           const minTs = sortedUserLogs.length > 0 ? sortedUserLogs[0].ts : affiliateTimestamp;
@@ -216,7 +233,6 @@ export class AffiliateDao {
           const daysOfUsing = Math.floor((maxTs - minTs) / (1000 * 60 * 60 * 24));
 
           const isPaid = eligiblePayments.length > 0;
-          // Check if user has any subscription data (simplified check - doesn't verify if active)
           const hasActiveSubscription = !!(
             user?.storage?.subscription?.key ||
             (user?.storage?.subscription?.apple && user.storage.subscription.apple.length > 0) ||
@@ -244,7 +260,6 @@ export class AffiliateDao {
         })
       );
 
-      // Aggregate results from this batch
       for (const { userTotalRevenue, userMonthlyRevenue, affiliateData } of groupResults) {
         totalRevenue += userTotalRevenue;
         monthlyRevenue += userMonthlyRevenue;
@@ -252,10 +267,8 @@ export class AffiliateDao {
       }
     }
 
-    // Sort by isPaid (paid users first) then by affiliateTimestamp (most recent first)
     const affiliateData = CollectionUtils.sortByMultiple(unsortedAffiliateData, ["isPaid", "affiliateTimestamp"], true);
 
-    // Add summary data
     const summary = {
       totalUsers: affiliateData.length,
       paidUsers: affiliateData.filter((d) => d.isPaid).length,
@@ -263,56 +276,66 @@ export class AffiliateDao {
       monthlyRevenue: monthlyRevenue,
     };
 
-    return { affiliateData, summary };
+    const monthlyPayments = this.generateMonthlyPayments(allEligiblePayments);
+
+    return { affiliateData, summary, monthlyPayments };
   }
 
-  public async getCreatorStats(creatorId: string): Promise<IAffiliateDashboardSummary> {
-    // Optimized version that doesn't fetch logs or detailed user data
+  public async getCreatorStats(creatorId: string): Promise<{
+    summary: IAffiliateDashboardSummary;
+    monthlyPayments: { month: string; revenue: number; count: number }[];
+  }> {
     const users = await this.getAffiliatedUsers(creatorId);
 
     if (users.length === 0) {
       return {
-        totalUsers: 0,
-        paidUsers: 0,
-        totalRevenue: 0,
-        monthlyRevenue: 0,
+        summary: {
+          totalUsers: 0,
+          paidUsers: 0,
+          totalRevenue: 0,
+          monthlyRevenue: 0,
+        },
+        monthlyPayments: [],
       };
     }
 
-    // Filter to only first affiliates before processing payments
     const firstAffiliateUsers = users.filter(({ isFirstAffiliate }) => isFirstAffiliate);
 
     let totalRevenue = 0;
     let monthlyRevenue = 0;
     let paidUsersCount = 0;
+    const allEligiblePayments: IPaymentDao[] = [];
 
-    // Process payments in batches to avoid overwhelming the database
     const batchSize = 20;
     const userGroups = CollectionUtils.inGroupsOf(batchSize, firstAffiliateUsers);
 
     for (const group of userGroups) {
-      // Process each group concurrently
       const groupResults = await Promise.all(
         group.map(async ({ userId, affiliateTimestamp, isFirstAffiliate }) => {
           return this.calculateUserRevenue(userId, affiliateTimestamp, isFirstAffiliate);
         })
       );
 
-      // Aggregate results from this batch
       for (const { userTotalRevenue, userMonthlyRevenue, eligiblePayments } of groupResults) {
         if (eligiblePayments.length > 0) {
           paidUsersCount += 1;
         }
         totalRevenue += userTotalRevenue;
         monthlyRevenue += userMonthlyRevenue;
+        allEligiblePayments.push(...eligiblePayments);
       }
     }
 
+    const monthlyPayments = this.generateMonthlyPayments(allEligiblePayments);
+
     return {
-      totalUsers: users.length,
-      paidUsers: paidUsersCount,
-      totalRevenue: totalRevenue, // Convert from cents to dollars
-      monthlyRevenue: monthlyRevenue,
+      summary: {
+        totalUsers: users.length,
+        paidUsers: paidUsersCount,
+        totalRevenue: totalRevenue,
+        monthlyRevenue: monthlyRevenue,
+      },
+      monthlyPayments,
     };
   }
 }

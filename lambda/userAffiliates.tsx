@@ -5,10 +5,15 @@ import { UserAffiliatesHtml } from "../src/pages/userAffiliates/userAffiliatesHt
 import type { IAffiliateDashboardSummary } from "./dao/affiliateDao";
 import { IAccount } from "../src/models/account";
 
+export interface ICreatorStats {
+  summary: IAffiliateDashboardSummary;
+  monthlyPayments: { month: string; revenue: number; count: number }[];
+}
+
 export function renderUserAffiliatesHtml(
   client: Window["fetch"],
   account: IAccount | undefined,
-  summary: IAffiliateDashboardSummary
+  creatorStats: ICreatorStats
 ): string {
-  return renderPage(<UserAffiliatesHtml client={client} account={account} summary={summary} />);
+  return renderPage(<UserAffiliatesHtml client={client} account={account} creatorStats={creatorStats} />);
 }

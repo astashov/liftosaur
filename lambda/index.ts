@@ -1422,11 +1422,11 @@ const getDashboardsAffiliatesHandler: RouteHandler<
   const apiKey = await di.secrets.getApiKey();
   if (match.params.key === apiKey) {
     const affiliateDao = new AffiliateDao(di);
-    const { affiliateData, summary } = await affiliateDao.getDashboardData(match.params.id);
+    const { affiliateData, summary, monthlyPayments } = await affiliateDao.getDashboardData(match.params.id);
 
     return {
       statusCode: 200,
-      body: renderAffiliateDashboardHtml(di.fetch, match.params.id, affiliateData, summary, apiKey),
+      body: renderAffiliateDashboardHtml(di.fetch, match.params.id, affiliateData, summary, monthlyPayments, apiKey),
       headers: { "content-type": "text/html" },
     };
   } else {

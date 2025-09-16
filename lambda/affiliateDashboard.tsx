@@ -10,6 +10,7 @@ export function renderAffiliateDashboardHtml(
   affiliateId: string,
   affiliateData: IAffiliateData[],
   summary: IAffiliateDashboardSummary,
+  monthlyPayments: { month: string; revenue: number; count: number }[],
   apiKey: string
 ): string {
   return renderPage(
@@ -18,6 +19,7 @@ export function renderAffiliateDashboardHtml(
       affiliateId={affiliateId}
       affiliateData={affiliateData}
       summary={summary}
+      monthlyPayments={monthlyPayments}
       apiKey={apiKey}
     />
   );

@@ -1,5 +1,6 @@
 import { h, JSX } from "preact";
 import { IAccount } from "../../models/account";
+import type { ICreatorStats } from "../../../lambda/userAffiliates";
 
 export interface IUserAffiliatesSummary {
   totalUsers: number;
@@ -11,14 +12,14 @@ export interface IUserAffiliatesSummary {
 export interface IUserAffiliatesContentProps {
   client: Window["fetch"];
   account: IAccount | undefined;
-  summary: IUserAffiliatesSummary;
+  creatorStats: ICreatorStats;
 }
 
 export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.Element {
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
   };
-  console.log(props.summary);
+  const { summary, monthlyPayments } = props.creatorStats;
 
   return (
     <section className="py-8">
@@ -27,30 +28,80 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
       <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
           <div className="mb-1 text-sm text-gray-600">Total Users</div>
-          <div className="text-3xl font-bold text-gray-900">{props.summary.totalUsers}</div>
+          <div className="text-3xl font-bold text-gray-900">{summary.totalUsers}</div>
           <div className="mt-1 text-xs text-gray-500">Who imported your programs</div>
         </div>
 
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
           <div className="mb-1 text-sm text-gray-600">Paying Users</div>
-          <div className="text-3xl font-bold text-green-600">{props.summary.paidUsers}</div>
+          <div className="text-3xl font-bold text-green-600">{summary.paidUsers}</div>
           <div className="mt-1 text-xs text-gray-500">
-            {props.summary.totalUsers > 0
-              ? `${((props.summary.paidUsers / props.summary.totalUsers) * 100).toFixed(1)}% conversion`
+            {summary.totalUsers > 0
+              ? `${((summary.paidUsers / summary.totalUsers) * 100).toFixed(1)}% conversion`
               : "No users yet"}
           </div>
         </div>
 
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
           <div className="mb-1 text-sm text-gray-600">This Month</div>
-          <div className="text-3xl font-bold text-blue-600">{formatCurrency(props.summary.monthlyRevenue)}</div>
+          <div className="text-3xl font-bold text-blue-600">{formatCurrency(summary.monthlyRevenue)}</div>
           <div className="mt-1 text-xs text-gray-500">Your 20% share</div>
         </div>
 
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
           <div className="mb-1 text-sm text-gray-600">Total Earnings</div>
-          <div className="text-3xl font-bold text-purple-600">{formatCurrency(props.summary.totalRevenue)}</div>
+          <div className="text-3xl font-bold text-purple-600">{formatCurrency(summary.totalRevenue)}</div>
           <div className="mt-1 text-xs text-gray-500">Lifetime revenue</div>
+        </div>
+      </div>
+
+      {/* Payments by Month */}
+      <div className="mb-8 overflow-hidden bg-white rounded-lg shadow">
+        <div className="px-4 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold">Payments by Month</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="border-b border-gray-200 bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                  Month
+                </th>
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                  Number of Payments
+                </th>
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                  Revenue (20% share)
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {monthlyPayments.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-4 py-4 text-center text-gray-500">
+                    No payments yet
+                  </td>
+                </tr>
+              ) : (
+                monthlyPayments.map((monthData) => {
+                  const [year, month] = monthData.month.split("-");
+                  const monthName = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  });
+                  return (
+                    <tr key={monthData.month} className="hover:bg-gray-50">
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{monthName}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">{monthData.count}</td>
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                        {formatCurrency(monthData.revenue)}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -115,7 +166,7 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
         </ul>
       </div>
 
-      {props.summary.totalUsers === 0 && (
+      {summary.totalUsers === 0 && (
         <div className="p-8 mt-8 text-center rounded-lg bg-gray-50">
           <h3 className="mb-2 text-lg font-semibold text-gray-900">No affiliated users yet</h3>
           <p className="mb-4 text-gray-600">Start earning by creating and sharing great workout programs!</p>
