@@ -270,11 +270,14 @@ export class AffiliateDao {
     }
 
     const affiliateData = CollectionUtils.sortByMultiple(unsortedAffiliateData, ["isPaid", "affiliateTimestamp"], true);
+    const isFirstAffiliateUsers = users.filter(({ isFirstAffiliate }) => isFirstAffiliate);
+    const signedUpUsersCount = isFirstAffiliateUsers.filter(({ user }) => user != null).length;
+    const paidUsers = affiliateData.filter((d) => d.isFirstAffiliate && d.isPaid).length;
 
     const summary = {
-      totalUsers: affiliateData.length,
-      signedUpUsers: affiliateData.filter((d) => d.isSignedUp).length,
-      paidUsers: affiliateData.filter((d) => d.isPaid).length,
+      totalUsers: isFirstAffiliateUsers.length,
+      signedUpUsers: signedUpUsersCount,
+      paidUsers,
       totalRevenue: totalRevenue,
       monthlyRevenue: monthlyRevenue,
     };
@@ -304,7 +307,7 @@ export class AffiliateDao {
     }
 
     const firstAffiliateUsers = users.filter(({ isFirstAffiliate }) => isFirstAffiliate);
-    const signedUpUsersCount = users.filter(({ user }) => user != null).length;
+    const signedUpUsersCount = firstAffiliateUsers.filter(({ user }) => user != null).length;
 
     let totalRevenue = 0;
     let monthlyRevenue = 0;
@@ -335,7 +338,7 @@ export class AffiliateDao {
 
     return {
       summary: {
-        totalUsers: users.length,
+        totalUsers: firstAffiliateUsers.length,
         signedUpUsers: signedUpUsersCount,
         paidUsers: paidUsersCount,
         totalRevenue: totalRevenue,
