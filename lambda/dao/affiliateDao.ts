@@ -25,6 +25,7 @@ export interface IAffiliateDao {
 
 export interface IAffiliateDashboardSummary {
   totalUsers: number;
+  signedUpUsers: number;
   paidUsers: number;
   totalRevenue: number;
   monthlyRevenue: number;
@@ -198,6 +199,7 @@ export class AffiliateDao {
           paidUsers: 0,
           totalRevenue: 0,
           monthlyRevenue: 0,
+          signedUpUsers: 0,
         },
         monthlyPayments: [],
       };
@@ -271,6 +273,7 @@ export class AffiliateDao {
 
     const summary = {
       totalUsers: affiliateData.length,
+      signedUpUsers: affiliateData.filter((d) => d.isSignedUp).length,
       paidUsers: affiliateData.filter((d) => d.isPaid).length,
       totalRevenue: totalRevenue,
       monthlyRevenue: monthlyRevenue,
@@ -291,6 +294,7 @@ export class AffiliateDao {
       return {
         summary: {
           totalUsers: 0,
+          signedUpUsers: 0,
           paidUsers: 0,
           totalRevenue: 0,
           monthlyRevenue: 0,
@@ -300,6 +304,7 @@ export class AffiliateDao {
     }
 
     const firstAffiliateUsers = users.filter(({ isFirstAffiliate }) => isFirstAffiliate);
+    const signedUpUsersCount = users.filter(({ user }) => user != null).length;
 
     let totalRevenue = 0;
     let monthlyRevenue = 0;
@@ -331,6 +336,7 @@ export class AffiliateDao {
     return {
       summary: {
         totalUsers: users.length,
+        signedUpUsers: signedUpUsersCount,
         paidUsers: paidUsersCount,
         totalRevenue: totalRevenue,
         monthlyRevenue: monthlyRevenue,

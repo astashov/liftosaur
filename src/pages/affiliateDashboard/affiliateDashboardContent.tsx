@@ -2,6 +2,7 @@ import { h, JSX } from "preact";
 
 export interface IAffiliateDashboardSummary {
   totalUsers: number;
+  signedUpUsers: number;
   paidUsers: number;
   totalRevenue: number;
   monthlyRevenue: number;
@@ -97,10 +98,13 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
               ) : (
                 props.monthlyPayments.map((monthData) => {
                   const [year, month] = monthData.month.split("-");
-                  const monthName = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", {
-                    month: "long",
-                    year: "numeric",
-                  });
+                  const monthName = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "long",
+                      year: "numeric",
+                    }
+                  );
                   return (
                     <tr key={monthData.month} className="hover:bg-gray-50">
                       <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{monthName}</td>

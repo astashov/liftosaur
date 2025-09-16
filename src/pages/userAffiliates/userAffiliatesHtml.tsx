@@ -6,6 +6,7 @@ import type { ICreatorStats } from "../../../lambda/userAffiliates";
 
 export interface IUserAffiliatesSummary {
   totalUsers: number;
+  signedUpUsers: number;
   paidUsers: number;
   totalRevenue: number;
   monthlyRevenue: number;

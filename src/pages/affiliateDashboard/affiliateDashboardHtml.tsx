@@ -1,14 +1,7 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
-import type { IAffiliateData } from "./affiliateDashboardContent";
+import type { IAffiliateDashboardSummary, IAffiliateData } from "./affiliateDashboardContent";
 import { AffiliateDashboardContent } from "./affiliateDashboardContent";
-
-export interface IAffiliateDashboardSummary {
-  totalUsers: number;
-  paidUsers: number;
-  totalRevenue: number;
-  monthlyRevenue: number;
-}
 
 export interface IAffiliateDashboardHtmlProps {
   affiliateId: string;

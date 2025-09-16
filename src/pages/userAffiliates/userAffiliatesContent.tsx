@@ -4,6 +4,7 @@ import type { ICreatorStats } from "../../../lambda/userAffiliates";
 
 export interface IUserAffiliatesSummary {
   totalUsers: number;
+  signedUpUsers: number;
   paidUsers: number;
   totalRevenue: number;
   monthlyRevenue: number;
@@ -30,6 +31,10 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
           <div className="mb-1 text-sm text-gray-600">Total Users</div>
           <div className="text-3xl font-bold text-gray-900">{summary.totalUsers}</div>
           <div className="mt-1 text-xs text-gray-500">Who imported your programs</div>
+          <div className="mt-1 text-xs text-gray-500">
+            (<span className="text-green-700">{summary.signedUpUsers}</span> signed up,{" "}
+            <span className="text-red-700">{summary.totalUsers - summary.signedUpUsers}</span> not)
+          </div>
         </div>
 
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
@@ -85,10 +90,13 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
               ) : (
                 monthlyPayments.map((monthData) => {
                   const [year, month] = monthData.month.split("-");
-                  const monthName = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", {
-                    month: "long",
-                    year: "numeric",
-                  });
+                  const monthName = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "long",
+                      year: "numeric",
+                    }
+                  );
                   return (
                     <tr key={monthData.month} className="hover:bg-gray-50">
                       <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{monthName}</td>
