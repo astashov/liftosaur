@@ -281,6 +281,7 @@ export namespace Progress {
       bindings.RPE.push(set.rpe);
       bindings.amraps.push(set.isAmrap ? 1 : undefined);
       bindings.logrpes.push(set.logRpe ? 1 : undefined);
+      bindings.askweights.push(set.askWeight ? 1 : undefined);
       bindings.timers.push(set.timer);
       bindings.isCompleted.push(set.isCompleted ? 1 : 0);
     }
@@ -760,7 +761,17 @@ export namespace Progress {
   }
 
   export function applyBindings(oldEntry: IHistoryEntry, bindings: IScriptBindings): IHistoryEntry {
-    const keys = ["RPE", "minReps", "reps", "weights", "amraps", "logrpes", "timers", "originalWeights"] as const;
+    const keys = [
+      "RPE",
+      "minReps",
+      "reps",
+      "weights",
+      "amraps",
+      "logrpes",
+      "timers",
+      "originalWeights",
+      "askweights",
+    ] as const;
     const entry = ObjectUtils.clone(oldEntry);
     const lastCompletedIndex = CollectionUtils.findIndexReverse(bindings.completedReps, (r) => r != null) + 1;
     entry.sets = entry.sets.slice(0, Math.max(lastCompletedIndex, bindings.numberOfSets, 0));
@@ -798,6 +809,9 @@ export namespace Progress {
           } else if (key === "logrpes") {
             const value = bindings.logrpes[i];
             entry.sets[i].logRpe = !!value;
+          } else if (key === "askweights") {
+            const value = bindings.askweights[i];
+            entry.sets[i].askWeight = !!value;
           } else if (key === "timers") {
             const value = bindings.timers[i];
             entry.sets[i].timer = value !== 0 ? value : undefined;

@@ -18,7 +18,6 @@ export interface IAffiliateDashboardContentProps {
 export interface IAffiliateData {
   userId: string;
   affiliateTimestamp: number;
-  importDate: string;
   numberOfWorkouts: number;
   lastWorkoutTs: number;
   daysOfUsing: number;
@@ -136,7 +135,7 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
                         )}
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
-                        {new Date(item.affiliateTimestamp).toLocaleDateString()}
+                        {item.affiliateTimestamp ? new Date(item.affiliateTimestamp).toLocaleDateString() : "Unknown"}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span

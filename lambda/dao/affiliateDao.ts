@@ -229,7 +229,6 @@ export class AffiliateDao {
             affiliateData: {
               userId: userId,
               affiliateTimestamp,
-              importDate: new Date(affiliateTimestamp).toISOString(),
               numberOfWorkouts,
               lastWorkoutTs,
               daysOfUsing,
