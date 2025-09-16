@@ -36,7 +36,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   let bodyweightData: [number, number][] = [];
 
   const sortedHistory = CollectionUtils.sort(props.history, (a, b) => {
-    return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
+    return new Date(Date.parse(a.date)).getTime() - new Date(Date.parse(b.date)).getTime();
   });
 
   const historyCollector = Collector.build(sortedHistory)
