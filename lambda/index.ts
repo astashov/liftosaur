@@ -56,7 +56,7 @@ import { Account, IAccount } from "../src/models/account";
 import { Storage } from "../src/models/storage";
 import { renderProgramsListHtml } from "./programsList";
 import { renderMainHtml } from "./main";
-import { LftS3Buckets } from "./dao/buckets";
+import { getUserImagesPrefix, LftS3Buckets } from "./dao/buckets";
 import { IStorageUpdate, IStorageUpdate2 } from "../src/utils/sync";
 import { IEventPayload, IPostSyncResponse } from "../src/api/service";
 import { Settings } from "../src/models/settings";
@@ -1945,13 +1945,7 @@ const getUploadedImagesHandler: RouteHandler<
   return ResponseUtils.json(
     200,
     event,
-    {
-      data: {
-        images: files.map(
-          (f) => `https://${LftS3Buckets.userimages}${Utils.getEnv() === "dev" ? "dev" : ""}.s3.amazonaws.com/${f}`
-        ),
-      },
-    },
+    { data: { images: files.map((f) => `${getUserImagesPrefix()}${f}`) } },
     { "Cache-Control": "no-store" }
   );
 };
@@ -1984,9 +1978,7 @@ const postImageUploadUrlHandler: RouteHandler<
       contentType,
       expiresIn: 300,
     });
-    console.log("upload url", uploadUrl);
-
-    const imageUrl = `https://${bucketname}.s3.amazonaws.com/${key}`;
+    const imageUrl = `${getUserImagesPrefix()}${key}`;
 
     return ResponseUtils.json(200, event, {
       uploadUrl,
