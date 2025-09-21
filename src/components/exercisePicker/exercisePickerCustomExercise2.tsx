@@ -453,7 +453,7 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
             <BottomSheetItem
               title="From Camera"
               name="from-camera"
-              icon={isUploading ? <IconSpinner width={18} height={18} /> : <IconCamera size={24} color="black" />}
+              icon={isUploading ? <IconSpinner width={18} height={18} /> : <IconCamera size={24} />}
               isFirst={true}
               description="Take a photo"
               onClick={async () => {
@@ -466,7 +466,7 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
             <BottomSheetItem
               title="From Photo Library"
               name="from-photo-library"
-              icon={isUploading ? <IconSpinner width={18} height={18} /> : <IconPicture size={24} color="black" />}
+              icon={isUploading ? <IconSpinner width={18} height={18} /> : <IconPicture size={24} />}
               description="Pick photo from your photo library"
               onClick={async () => {
                 setIsUploading(true);
