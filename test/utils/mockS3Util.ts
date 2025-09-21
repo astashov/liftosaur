@@ -23,4 +23,13 @@ export class MockS3Util implements IS3Util {
   public async deleteObject(args: { bucket: string; key: string }): Promise<void> {
     return undefined;
   }
+
+  public getPresignedUploadUrl(args: {
+    bucket: string;
+    key: string;
+    contentType: string;
+    expiresIn?: number;
+  }): Promise<string> {
+    return Promise.resolve("https://example.com/presigned-upload-url");
+  }
 }

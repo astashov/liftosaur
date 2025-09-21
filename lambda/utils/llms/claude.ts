@@ -9,11 +9,12 @@ export class ClaudeProvider implements ILLMProvider {
 
   public async *generate(
     systemPrompt: string,
-    userInput: string
+    userInput: string,
+    temperature: number = 0.2
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
     const requestBody = JSON.stringify({
       model: this.model,
-      temperature: 0.2,
+      temperature: temperature,
       system: [
         {
           type: "text",

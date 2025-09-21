@@ -79,6 +79,9 @@ import { LlmPrompt } from "./utils/llms/llmPrompt";
 import { AiLogsDao } from "./dao/aiLogsDao";
 import { ICollectionVersions } from "../src/models/versionTracker";
 import { ObjectUtils } from "../src/utils/object";
+import { ClaudeProvider } from "./utils/llms/claude";
+import { MuscleGenerator } from "./utils/muscleGenerator";
+import { LlmMuscles } from "./utils/llms/llmMuscles";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1831,6 +1834,26 @@ const getAffiliatesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   };
 };
 
+const getMusclesForExerciseEndpoint = Endpoint.build("/api/muscles", { exercise: "string", tempuserid: "string" });
+const getMusclesForExerciseHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getMusclesForExerciseEndpoint
+> = async ({ payload, match }) => {
+  const di = payload.di;
+  const anthropicKey = await di.secrets.getAnthropicKey();
+  const userId = (await getCurrentUserId(payload.event, di)) ?? match.params.tempuserid;
+  const llmProvider = new ClaudeProvider(anthropicKey);
+  const llmMuscles = new LlmMuscles(di, llmProvider, userId);
+  const muscleGenerator = new MuscleGenerator(di, llmMuscles);
+  const musclesResponse = await muscleGenerator.generateMuscles(match.params.exercise);
+  if (musclesResponse) {
+    return ResponseUtils.json(200, payload.event, { data: musclesResponse });
+  } else {
+    return ResponseUtils.json(500, payload.event, { error: "Failed to generate muscles" });
+  }
+};
+
 // const getAiEndpoint = Endpoint.build("/ai");
 // const getAiHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAiEndpoint> = async ({
 //   payload,
@@ -1903,6 +1926,51 @@ const postAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   } catch (error) {
     di.log.log("Error generating prompt:", error);
     return ResponseUtils.json(400, event, { error: `Failed to generate prompt: ${error}` });
+  }
+};
+
+const postImageUploadUrlEndpoint = Endpoint.build("/api/imageuploadurl", { tempuserid: "string?" });
+const postImageUploadUrlHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postImageUploadUrlEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  const { fileName, contentType } = getBodyJson(event);
+
+  const userId = (await getCurrentUserId(event, di)) ?? params.tempuserid;
+  // if (!userId) {
+  //   return ResponseUtils.json(401, event, { error: "Unauthorized" });
+  // }
+
+  if (!fileName || !contentType) {
+    return ResponseUtils.json(400, event, { error: "fileName and contentType are required" });
+  }
+
+  try {
+    const timestamp = Date.now();
+    const fileExtension = fileName.split(".").pop() || "jpg";
+    const key = `user-uploads/${userId}/${timestamp}-${UidFactory.generateUid(8)}.${fileExtension}`;
+    const env = Utils.getEnv();
+    const bucketname = `${LftS3Buckets.userimages}${env === "dev" ? "dev" : ""}`;
+    const uploadUrl = await di.s3.getPresignedUploadUrl({
+      bucket: bucketname,
+      key,
+      contentType,
+      expiresIn: 300,
+    });
+    console.log("upload url", uploadUrl);
+
+    const imageUrl = `https://${bucketname}.s3.amazonaws.com/${key}`;
+
+    return ResponseUtils.json(200, event, {
+      uploadUrl,
+      imageUrl,
+      key,
+    });
+  } catch (error) {
+    di.log.log("Error generating presigned URL:", error);
+    return ResponseUtils.json(500, event, { error: "Failed to generate upload URL" });
   }
 };
 
@@ -2385,6 +2453,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
       .post(postAiPromptEndpoint, postAiPromptHandler)
+      .post(postImageUploadUrlEndpoint, postImageUploadUrlHandler)
       .post(postSyncEndpoint, postSyncHandler)
       .post(postSync2Endpoint, postSync2Handler)
       .get(getStorageEndpoint, getStorageHandler)
@@ -2395,6 +2464,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getUserAffiliatesEndpoint, getUserAffiliatesHandler)
       .get(getProgramRevisionsEndpoint, getProgramRevisionsHandler)
       .get(getProgramRevisionEndpoint, getProgramRevisionHandler)
+      .get(getMusclesForExerciseEndpoint, getMusclesForExerciseHandler)
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
       .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)
       .post(postAppleWebhookEndpoint, postAppleWebhookHandler)

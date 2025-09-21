@@ -1,4 +1,4 @@
-import { IStorage, IHistoryRecord, ISettings, IProgram } from "../types";
+import { IStorage, IHistoryRecord, ISettings, IProgram, IMuscleGeneratorResponse } from "../types";
 import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
@@ -411,6 +411,31 @@ export class Service {
     });
   }
 
+  public async postImageUploadUrl(
+    fileName: string,
+    contentType: string
+  ): Promise<{ uploadUrl: string; imageUrl: string; key: string }> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/imageuploadurl`);
+    if (typeof window !== "undefined" && window.tempUserId) {
+      url.searchParams.set("tempuserid", window.tempUserId);
+    }
+    const response = await this.client(url.toString(), {
+      method: "POST",
+      body: JSON.stringify({ fileName, contentType }),
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to get upload URL: ${error}`);
+    }
+
+    return response.json();
+  }
+
   public async verifyAppleReceipt(userId: string, appleReceipt: string): Promise<boolean> {
     const json = await this.cache(`verifyAppleReceipt:${userId}:${appleReceipt}`, async () => {
       try {
@@ -492,6 +517,21 @@ export class Service {
     return this.client(`${__API_HOST__}/api/programs`, { credentials: "include" })
       .then((response) => response.json())
       .then((json) => json.programs.map((p: { program: IProgram }) => p.program));
+  }
+
+  public async getMuscles(exercise: string): Promise<IMuscleGeneratorResponse | undefined> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/muscles`);
+    url.searchParams.set("exercise", exercise);
+    if (typeof window !== "undefined" && window.tempUserId) {
+      url.searchParams.set("tempuserid", window.tempUserId);
+    }
+    const response = await this.client(url.toString(), { credentials: "include" });
+    if (response.ok) {
+      const json: { data: IMuscleGeneratorResponse } = await response.json();
+      return json.data;
+    } else {
+      return undefined;
+    }
   }
 
   public async generateAiPrompt(input: string): Promise<{ prompt?: string; error?: string }> {

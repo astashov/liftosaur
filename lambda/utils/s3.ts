@@ -14,6 +14,12 @@ export interface IS3Util {
     };
   }): Promise<void>;
   deleteObject(args: { bucket: string; key: string }): Promise<void>;
+  getPresignedUploadUrl(args: {
+    bucket: string;
+    key: string;
+    contentType: string;
+    expiresIn?: number;
+  }): Promise<string>;
 }
 
 export class S3Util implements IS3Util {
@@ -92,5 +98,29 @@ export class S3Util implements IS3Util {
     const startTime = Date.now();
     await this.s3.deleteObject({ Bucket: args.bucket, Key: args.key }).promise();
     this.log.log("S3 delete:", `${args.bucket}/${args.key}`, `- ${Date.now() - startTime}ms`);
+  }
+
+  public async getPresignedUploadUrl(args: {
+    bucket: string;
+    key: string;
+    contentType: string;
+    expiresIn?: number;
+  }): Promise<string> {
+    const startTime = Date.now();
+    const params = {
+      Bucket: args.bucket,
+      Key: args.key,
+      ContentType: args.contentType,
+      Expires: args.expiresIn || 300,
+    };
+
+    const uploadUrl = await this.s3.getSignedUrlPromise("putObject", params);
+    this.log.log(
+      "S3 presigned URL generated:",
+      `${args.bucket}/${args.key}`,
+      args.contentType,
+      `- ${Date.now() - startTime}ms`
+    );
+    return uploadUrl;
   }
 }

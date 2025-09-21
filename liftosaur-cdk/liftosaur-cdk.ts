@@ -9,6 +9,7 @@ import { aws_iam as iam } from "aws-cdk-lib";
 import { aws_events, aws_events_targets } from "aws-cdk-lib";
 import { aws_cloudfront as cloudfront } from "aws-cdk-lib";
 import { aws_cloudfront_origins as origins } from "aws-cdk-lib";
+import { aws_s3_notifications } from "aws-cdk-lib";
 import { LftS3Buckets } from "../lambda/dao/buckets";
 import childProcess from "child_process";
 
@@ -262,6 +263,53 @@ export class LiftosaurCdkStack extends cdk.Stack {
       bucketName: `${LftS3Buckets.programs}${suffix.toLowerCase()}`,
     });
 
+    const userimagesbucket = new s3.Bucket(this, `LftS3UserImages${suffix}`, {
+      bucketName: `${LftS3Buckets.userimages}${suffix.toLowerCase()}`,
+      cors: [
+        {
+          allowedHeaders: ["*"],
+          allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT, s3.HttpMethods.POST, s3.HttpMethods.HEAD],
+          allowedOrigins: [
+            "http://localhost:3000",
+            "https://www.liftosaur.com",
+            "https://stage.liftosaur.com",
+            "https://api3.liftosaur.com",
+            "https://api3-dev.liftosaur.com",
+            "https://local.liftosaur.com:8080",
+            "https://local-api.liftosaur.com:3000",
+          ],
+          exposedHeaders: ["ETag"],
+          maxAge: 3000,
+        },
+      ],
+      publicReadAccess: true,
+      blockPublicAccess: {
+        blockPublicAcls: false,
+        blockPublicPolicy: false,
+        ignorePublicAcls: false,
+        restrictPublicBuckets: false,
+      },
+    });
+
+    const imageResizerFunction = new lambda.Function(this, `LftImageResizer${suffix}`, {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromAsset("dist-lambda"),
+      memorySize: 1536,
+      layers: [depsLayer],
+      timeout: cdk.Duration.seconds(60),
+      handler: "lambda/imageResizer.handler",
+      environment: {
+        IS_DEV: `${isDev}`,
+      },
+    });
+
+    userimagesbucket.grantReadWrite(imageResizerFunction);
+    userimagesbucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new aws_s3_notifications.LambdaDestination(imageResizerFunction),
+      { prefix: "user-uploads/" }
+    );
+
     const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
     const fullCommitHash = childProcess.execSync("git rev-parse HEAD").toString().trim();
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
@@ -331,6 +379,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     exceptionsbucket.grantReadWrite(lambdaFunction);
     paymentsTable.grantReadWriteData(lambdaFunction);
     programsBucket.grantReadWrite(lambdaFunction);
+    userimagesbucket.grantReadWrite(lambdaFunction);
     statsBucket.grantReadWrite(lambdaFunction);
     storagesBucket.grantReadWrite(lambdaFunction);
     statsBucket.grantReadWrite(statsLambdaFunction);
@@ -446,4 +495,4 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-new LiftosaurCdkStack(app, "LiftosaurStack", false);
+// new LiftosaurCdkStack(app, "LiftosaurStack", false);

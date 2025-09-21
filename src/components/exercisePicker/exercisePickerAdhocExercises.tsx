@@ -14,6 +14,7 @@ import { lb } from "lens-shmens";
 import { exercisePickerSortNames } from "./exercisePickerFilter";
 import { ExercisePickerUtils } from "./exercisePickerUtils";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
+import { UidFactory } from "../../utils/generator";
 
 interface IProps {
   settings: ISettings;
@@ -163,9 +164,20 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
             name="create-custom-exercise"
             onClick={() => {
               props.dispatch(
-                lb<IExercisePickerState>()
-                  .p("screenStack")
-                  .recordModify((stack) => [...stack, "customExercise"]),
+                [
+                  lb<IExercisePickerState>()
+                    .p("editCustomExercise")
+                    .record({
+                      id: UidFactory.generateUid(8),
+                      name: "",
+                      vtype: "custom_exercise",
+                      meta: { targetMuscles: [], synergistMuscles: [], bodyParts: [] },
+                      isDeleted: false,
+                    }),
+                  lb<IExercisePickerState>()
+                    .p("screenStack")
+                    .recordModify((stack) => [...stack, "customExercise"]),
+                ],
                 "Navigate to create custom exercise screen"
               );
             }}
@@ -209,7 +221,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
                       lb<IExercisePickerState>()
                         .p("screenStack")
                         .recordModify((stack) => [...stack, "customExercise"]),
-                      lb<IExercisePickerState>().p("editCustomExercise").record(e),
+                      lb<IExercisePickerState>().p("editCustomExercise").record(ObjectUtils.clone(e)),
                     ],
                     `Navigate to edit custom exercise screen for ${e.name}`
                   );

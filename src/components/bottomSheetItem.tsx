@@ -3,9 +3,9 @@ import { h, JSX } from "preact";
 interface IProps {
   title: string;
   name: string;
-  icon: JSX.Element;
+  icon?: JSX.Element;
   isFirst?: boolean;
-  description: string | JSX.Element;
+  description?: string | JSX.Element;
   className?: string;
   onClick: () => void;
 }
@@ -21,10 +21,10 @@ export function BottomSheetItem(props: IProps): JSX.Element {
       onClick={props.onClick}
     >
       <div className={`flex items-center ${!props.isFirst ? "pt-4" : ""}`}>
-        <div>{props.icon}</div>
+        {props.icon && <div>{props.icon}</div>}
         <div className="flex-1 pl-3">{props.title}</div>
       </div>
-      <div className="pt-2 text-xs text-text-secondary">{props.description}</div>
+      {props.description && <div className="pt-2 text-xs text-text-secondary">{props.description}</div>}
     </button>
   );
 }

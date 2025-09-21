@@ -56,6 +56,7 @@ import { FallbackScreen } from "./fallbackScreen";
 import { Screen1RM } from "./screen1RM";
 import { ScreenSetupEquipment } from "./screenSetupEquipment";
 import { Settings } from "../models/settings";
+import { AppContext } from "./appContext";
 
 declare let Rollbar: RB;
 declare let __COMMIT_HASH__: string;
@@ -615,7 +616,7 @@ export function AppView(props: IProps): JSX.Element | null {
       `,
         }}
       />
-      {content}
+      <AppContext.Provider value={{ service }}>{content}</AppContext.Provider>
       {progress && screensWithoutTimer.indexOf(Screen.currentName(state.screenStack)) === -1 && (
         <RestTimer progress={progress} dispatch={dispatch} />
       )}

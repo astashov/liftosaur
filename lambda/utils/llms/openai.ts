@@ -9,7 +9,8 @@ export class OpenAIProvider implements ILLMProvider {
 
   public async *generate(
     systemPrompt: string,
-    userInput: string
+    userInput: string,
+    temperature: number = 0.3
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
     const messages = [
       { role: "system", content: systemPrompt },
@@ -22,7 +23,7 @@ export class OpenAIProvider implements ILLMProvider {
     const requestBody = JSON.stringify({
       model: this.model,
       messages,
-      temperature: 0.3,
+      temperature,
       stream: true,
     });
 

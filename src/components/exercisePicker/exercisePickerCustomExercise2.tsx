@@ -19,22 +19,52 @@ import { Input2 } from "../input2";
 import { Textarea2 } from "../textarea2";
 import { IconAi } from "../icons/iconAi";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
-import { useState } from "preact/hooks";
+import { useContext, useState } from "preact/hooks";
 import { BottomSheet } from "../bottomSheet";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { ExercisePickerOptions, IFilterValue } from "./exercisePickerOptions";
 import { StringUtils } from "../../utils/string";
 import { ObjectUtils } from "../../utils/object";
 import { Exercise } from "../../models/exercise";
-import { UidFactory } from "../../utils/generator";
+import { AppContext } from "../appContext";
+import { Service } from "../../api/service";
+import { IconSpinner } from "../icons/iconSpinner";
+import { BottomSheetItem } from "../bottomSheetItem";
+import { SendMessage } from "../../utils/sendMessage";
+import { IconCamera } from "../icons/iconCamera";
+import { ImageUploader } from "../../utils/imageUploader";
+import { IconPicture } from "../icons/iconPicture";
 
 interface IExercisePickerCustomExercise2Props {
   settings: ISettings;
   screenStack: IExercisePickerScreen[];
-  exercise?: ICustomExercise;
+  originalExercise?: ICustomExercise;
+  exercise: ICustomExercise;
   dispatch: ILensDispatch<IExercisePickerState>;
   onClose: () => void;
   onChange: (action: "upsert" | "delete", exercise: ICustomExercise, notes?: string) => void;
+}
+
+async function uploadAndUpdateImage(
+  source: "camera" | "photo-library",
+  exerciseId: string,
+  service: Service,
+  dispatch: ILensDispatch<IExercisePickerState>
+): Promise<void> {
+  const result = await SendMessage.toIosAndAndroidWithResult<{ data: string }>({
+    type: "pickphoto",
+    source,
+  });
+  if (!result?.data) {
+    alert("Couldn't get image from camera");
+    return;
+  }
+  const imageUploader = new ImageUploader(service);
+  const url = await imageUploader.uploadBase64Image(result?.data, exerciseId);
+  dispatch(
+    lb<IExercisePickerState>().pi("editCustomExercise").p("smallImageUrl").record(url),
+    "Set custom exercise image URL"
+  );
 }
 
 export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExercise2Props): JSX.Element {
@@ -53,29 +83,18 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
       props.onClose();
     }
   }
+  const appContext = useContext(AppContext);
+  const service = appContext.service ?? new Service(window.fetch.bind(window));
 
-  const [editCustomExercise, setEditCustomExercise] = useState<ICustomExercise>(
-    props.exercise
-      ? ObjectUtils.clone(props.exercise)
-      : {
-          vtype: "custom_exercise",
-          id: UidFactory.generateUid(8),
-          name: "",
-          isDeleted: false,
-          meta: {
-            bodyParts: [],
-            targetMuscles: [],
-            synergistMuscles: [],
-          },
-        }
-  );
+  const editCustomExercise = props.exercise;
   const [notes, setNotes] = useState<string | undefined>(
     props.exercise ? Exercise.getNotes(props.exercise, props.settings) : undefined
   );
-  const isEdited = !props.exercise || !ObjectUtils.isEqual(editCustomExercise, props.exercise);
+  const isEdited = !props.originalExercise || !ObjectUtils.isEqual(editCustomExercise, props.originalExercise);
   const isValid = editCustomExercise.name.trim().length ?? 0 > 0;
-
-  const customExercises = props.settings.exercises;
+  const [isAutofilling, setIsAutofilling] = useState<boolean>(false);
+  const [showImageBottomSheet, setShowImageBottomSheet] = useState<boolean>(false);
+  const [showPicturePickerBottomSheet, setShowPicturePickerBottomSheet] = useState<boolean>(false);
 
   const typeValues = exerciseKinds.reduce<Record<IExerciseKind, IFilterValue>>(
     (memo, type) => {
@@ -126,14 +145,29 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
         </div>
       </div>
       <div className="flex-1 pb-4 overflow-y-auto">
-        <div className="px-4">
-          <button className="relative flex items-center justify-center w-16 h-20 p-2 text-xs border rounded-md border-border-neutral text-text-secondary">
-            Add image
-            <span className="absolute p-1 rounded-full bg-icon-purple" style={{ bottom: "-8px", right: "-8px" }}>
-              <IconPlus2 size={8} color={Tailwind.colors().white} />
-            </span>
-          </button>
+        <div className="flex px-4">
+          <div>
+            <button
+              className="relative flex items-center justify-center w-16 h-20 p-2 text-xs border rounded-md border-border-neutral text-text-secondary"
+              onClick={() => setShowImageBottomSheet(true)}
+            >
+              Add image
+              <span className="absolute p-1 rounded-full bg-icon-purple" style={{ bottom: "-8px", right: "-8px" }}>
+                <IconPlus2 size={8} color={Tailwind.colors().white} />
+              </span>
+            </button>
+          </div>
+          {editCustomExercise.smallImageUrl && (
+            <div>
+              <img
+                src={editCustomExercise.smallImageUrl}
+                alt="Exercise"
+                className="object-cover w-16 h-20 ml-4 border rounded-md border-border-neutral"
+              />
+            </div>
+          )}
         </div>
+        <div className="px-4 pt-2"></div>
         <div className="px-4 pt-2">
           <div>
             <Input2
@@ -146,7 +180,10 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
               onInput={(v) => {
                 const target = v.target;
                 if (target instanceof HTMLInputElement) {
-                  setEditCustomExercise({ ...editCustomExercise, name: target.value });
+                  props.dispatch(
+                    lb<IExercisePickerState>().pi("editCustomExercise").p("name").record(target.value),
+                    "Update custom exercise name"
+                  );
                 }
               }}
             />
@@ -175,13 +212,46 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
               kind="lightgrayv3"
               name="autofill-muscles"
               className="flex items-center justify-center w-full"
-              onClick={() => undefined}
+              onClick={async () => {
+                setIsAutofilling(true);
+                const response = await service.getMuscles(editCustomExercise.name);
+                setIsAutofilling(false);
+                if (response != null) {
+                  const { targetMuscles, synergistMuscles, types } = response;
+                  props.dispatch(
+                    [
+                      lb<IExercisePickerState>()
+                        .pi("editCustomExercise")
+                        .p("meta")
+                        .p("targetMuscles")
+                        .record(targetMuscles),
+                      lb<IExercisePickerState>()
+                        .pi("editCustomExercise")
+                        .p("meta")
+                        .p("synergistMuscles")
+                        .record(synergistMuscles),
+                      lb<IExercisePickerState>().pi("editCustomExercise").p("types").record(types),
+                    ],
+                    "Autofill custom exercise muscles and types"
+                  );
+                } else {
+                  alert("Could't autofill the muscles for this exercise. Try a different name!");
+                }
+              }}
             >
               <div className="flex items-center">
-                <div>
-                  <IconAi color={Tailwind.semantic().icon.blue} />
-                </div>
-                <div className="ml-1">Autofill Muscles and Types</div>
+                {isAutofilling ? (
+                  <div className="flex items-center min-h-6">
+                    <IconSpinner width={18} height={18} />
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <IconAi color={Tailwind.semantic().icon.blue} />
+                    </div>
+                    <div className="ml-1">Autofill Muscles and Types</div>
+                  </>
+                )}
               </div>
             </Button>
           </div>
@@ -201,10 +271,14 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
                 } else {
                   current.add(muscle);
                 }
-                setEditCustomExercise({
-                  ...editCustomExercise,
-                  meta: { ...editCustomExercise.meta, targetMuscles: Array.from(current).sort() },
-                });
+                props.dispatch(
+                  lb<IExercisePickerState>()
+                    .pi("editCustomExercise")
+                    .p("meta")
+                    .p("targetMuscles")
+                    .record(Array.from(current).sort()),
+                  "Update custom exercise target muscles"
+                );
               }}
             />
           </div>
@@ -224,10 +298,14 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
                 } else {
                   current.add(muscle);
                 }
-                setEditCustomExercise({
-                  ...editCustomExercise,
-                  meta: { ...editCustomExercise.meta, synergistMuscles: Array.from(current).sort() },
-                });
+                props.dispatch(
+                  lb<IExercisePickerState>()
+                    .pi("editCustomExercise")
+                    .p("meta")
+                    .p("synergistMuscles")
+                    .record(Array.from(current).sort()),
+                  "Update custom exercise synergist muscles"
+                );
               }}
             />
           </div>
@@ -236,12 +314,78 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
               types={typeValues}
               onNewTypes={(types) => {
                 const newTypes = ObjectUtils.keys(types).filter((k) => types[k].isSelected);
-                setEditCustomExercise({ ...editCustomExercise, types: newTypes });
+                props.dispatch(
+                  lb<IExercisePickerState>().pi("editCustomExercise").p("types").record(newTypes),
+                  "Update custom exercise types"
+                );
               }}
             />
           </div>
         </div>
       </div>
+      {showImageBottomSheet && (
+        <BottomSheet
+          shouldShowClose={true}
+          onClose={() => setShowImageBottomSheet(false)}
+          isHidden={!showImageBottomSheet}
+        >
+          <div className="p-4">
+            <BottomSheetItem
+              isFirst={true}
+              name="from-image-url"
+              className="ls-custom-exercise-image-url"
+              title="From Image URL"
+              onClick={() => undefined}
+            />
+            <BottomSheetItem
+              name="from-image-library"
+              className="ls-custom-exercise-image-library"
+              title="From Image Library"
+              onClick={() => undefined}
+            />
+            <BottomSheetItem
+              name="upload-image"
+              className="ls-custom-exercise-upload-image"
+              title="Upload Image"
+              onClick={() => {
+                setShowImageBottomSheet(false);
+                setShowPicturePickerBottomSheet(true);
+              }}
+            />
+          </div>
+        </BottomSheet>
+      )}
+      {showPicturePickerBottomSheet && (
+        <BottomSheet
+          shouldShowClose={true}
+          onClose={() => setShowPicturePickerBottomSheet(false)}
+          isHidden={!showPicturePickerBottomSheet}
+        >
+          <div className="p-4">
+            <BottomSheetItem
+              title="From Camera"
+              name="from-camera"
+              icon={<IconCamera size={24} color="black" />}
+              isFirst={true}
+              description="Take a photo"
+              onClick={async () => {
+                await uploadAndUpdateImage("camera", editCustomExercise.id, service, props.dispatch);
+                setShowPicturePickerBottomSheet(false);
+              }}
+            />
+            <BottomSheetItem
+              title="From Photo Library"
+              name="from-photo-library"
+              icon={<IconPicture size={24} color="black" />}
+              description="Pick photo from your photo library"
+              onClick={async () => {
+                await uploadAndUpdateImage("photo-library", editCustomExercise.id, service, props.dispatch);
+                setShowPicturePickerBottomSheet(false);
+              }}
+            />
+          </div>
+        </BottomSheet>
+      )}
     </div>
   );
 }

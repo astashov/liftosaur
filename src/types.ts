@@ -1358,6 +1358,16 @@ export type IProgramContentSettings = Partial<
   Pick<ISettings, "units" | "planner"> & { timers: Partial<ISettings["timers"]> }
 >;
 
+export const TMuscleGeneratorResponse = t.type(
+  {
+    targetMuscles: t.array(TMuscle),
+    synergistMuscles: t.array(TMuscle),
+    types: t.array(TExerciseKind),
+  },
+  "TMusclesGeneratorResponse"
+);
+export type IMuscleGeneratorResponse = t.TypeOf<typeof TMuscleGeneratorResponse>;
+
 export type IDayData = {
   week?: number;
   day: number;

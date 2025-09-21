@@ -143,6 +143,7 @@
     "qrcode": "^1.5.3",
     "rollbar": "^2.26.2",
     "rsa-pem-from-mod-exp": "^0.8.5",
+    "sharp": "^0.34.4",
     "uplot": "^1.6.23",
     "upng-js": "^2.1.0",
     "yatro": "^0.2.7",

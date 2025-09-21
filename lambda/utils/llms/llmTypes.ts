@@ -1,7 +1,8 @@
 export interface ILLMProvider {
   generate(
     systemPrompt: string,
-    userInput: string
+    userInput: string,
+    temperature?: number
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown>;
 }
 
