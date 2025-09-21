@@ -8,30 +8,6 @@ export class ImageUploader {
 
   public async uploadImage(file: File): Promise<string> {
     const resizedFile = await this.resizeImage(file);
-
-    // Debug: Display resized image
-    const debugImg = document.createElement("img");
-    debugImg.src = URL.createObjectURL(resizedFile);
-    debugImg.style.position = "fixed";
-    debugImg.style.bottom = "10px";
-    debugImg.style.right = "10px";
-    debugImg.style.border = "2px solid red";
-    debugImg.style.maxWidth = "600px";
-    debugImg.style.maxHeight = "800px";
-    debugImg.style.zIndex = "9999";
-    debugImg.title = `Resized: ${resizedFile.size} bytes`;
-    document.body.appendChild(debugImg);
-
-    console.log("Debug image added to screen. Size:", resizedFile.size, "bytes");
-
-    // Remove debug image after 10 seconds
-    setTimeout(() => {
-      if (debugImg.parentNode) {
-        debugImg.parentNode.removeChild(debugImg);
-        URL.revokeObjectURL(debugImg.src);
-      }
-    }, 10000);
-
     const presignedUrlResponse = await this.service.postImageUploadUrl(resizedFile.name, resizedFile.type);
     await this.uploadToS3(presignedUrlResponse.uploadUrl, resizedFile);
     return presignedUrlResponse.imageUrl;
@@ -138,7 +114,7 @@ export class ImageUploader {
             }
           },
           "image/jpeg",
-          0.95 // Increased quality from 0.9 to 0.95
+          0.95
         );
       };
 

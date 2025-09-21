@@ -34,6 +34,9 @@ import { SendMessage } from "../../utils/sendMessage";
 import { IconCamera } from "../icons/iconCamera";
 import { ImageUploader } from "../../utils/imageUploader";
 import { IconPicture } from "../icons/iconPicture";
+import { BottomSheetExerciseImageLibrary } from "./bottomSheetExerciseImageLibrary";
+import { ExerciseImageUtils } from "../../models/exerciseImage";
+import { UrlUtils } from "../../utils/url";
 
 interface IExercisePickerCustomExercise2Props {
   settings: ISettings;
@@ -56,11 +59,11 @@ async function uploadAndUpdateImage(
     source,
   });
   if (!result?.data) {
-    alert("Couldn't get image from camera");
+    alert(source === "camera" ? "Couldn't get image from camera" : "Couldn't get image from photo library");
     return;
   }
   const imageUploader = new ImageUploader(service);
-  const url = await imageUploader.uploadBase64Image(result?.data, exerciseId);
+  const url = await imageUploader.uploadBase64Image(result.data, exerciseId);
   dispatch(
     lb<IExercisePickerState>().pi("editCustomExercise").p("smallImageUrl").record(url),
     "Set custom exercise image URL"
@@ -95,6 +98,12 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
   const [isAutofilling, setIsAutofilling] = useState<boolean>(false);
   const [showImageBottomSheet, setShowImageBottomSheet] = useState<boolean>(false);
   const [showPicturePickerBottomSheet, setShowPicturePickerBottomSheet] = useState<boolean>(false);
+  const [showImageLibrary, setShowImageLibrary] = useState<boolean>(false);
+  const smallImageUrlResult = editCustomExercise.smallImageUrl
+    ? UrlUtils.buildSafe(editCustomExercise.smallImageUrl)
+    : undefined;
+  const isLiftosaurUrl = smallImageUrlResult?.success && smallImageUrlResult.data.host.includes("liftosaur.com");
+  const [showUrlInputs, setShowUrlInputs] = useState<boolean>(!!editCustomExercise.smallImageUrl && !isLiftosaurUrl);
 
   const typeValues = exerciseKinds.reduce<Record<IExerciseKind, IFilterValue>>(
     (memo, type) => {
@@ -146,17 +155,56 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
       </div>
       <div className="flex-1 pb-4 overflow-y-auto">
         <div className="flex px-4">
-          <div>
-            <button
-              className="relative flex items-center justify-center w-16 h-20 p-2 text-xs border rounded-md border-border-neutral text-text-secondary"
-              onClick={() => setShowImageBottomSheet(true)}
-            >
-              Add image
-              <span className="absolute p-1 rounded-full bg-icon-purple" style={{ bottom: "-8px", right: "-8px" }}>
-                <IconPlus2 size={8} color={Tailwind.colors().white} />
-              </span>
-            </button>
-          </div>
+          {showUrlInputs ? (
+            <div>
+              <div>
+                <Input2
+                  identifier="custom-exercise-small-url"
+                  label="Small Image Url"
+                  value={editCustomExercise.smallImageUrl}
+                  onInput={(v) => {
+                    const target = v.target;
+                    if (target instanceof HTMLInputElement) {
+                      props.dispatch(
+                        lb<IExercisePickerState>().pi("editCustomExercise").p("smallImageUrl").record(target.value),
+                        "Update custom exercise small iamge url"
+                      );
+                    }
+                  }}
+                />
+                <div className="text-xs text-text-secondary">1:1 aspect ratio, {">"}= 150px width</div>
+              </div>
+              <div>
+                <Input2
+                  identifier="custom-exercise-large-url"
+                  label="Large Image Url"
+                  value={editCustomExercise.largeImageUrl}
+                  onInput={(v) => {
+                    const target = v.target;
+                    if (target instanceof HTMLInputElement) {
+                      props.dispatch(
+                        lb<IExercisePickerState>().pi("editCustomExercise").p("largeImageUrl").record(target.value),
+                        "Update custom exercise large image url"
+                      );
+                    }
+                  }}
+                />
+                <div className="text-xs text-text-secondary">4:3 aspect ratio, {">"}= 800px width</div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <button
+                className="relative flex items-center justify-center w-16 h-20 p-2 text-xs border rounded-md border-border-neutral text-text-secondary"
+                onClick={() => setShowImageBottomSheet(true)}
+              >
+                Add image
+                <span className="absolute p-1 rounded-full bg-icon-purple" style={{ bottom: "-8px", right: "-8px" }}>
+                  <IconPlus2 size={8} color={Tailwind.colors().white} />
+                </span>
+              </button>
+            </div>
+          )}
           {editCustomExercise.smallImageUrl && (
             <div>
               <img
@@ -335,23 +383,31 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
               name="from-image-url"
               className="ls-custom-exercise-image-url"
               title="From Image URL"
-              onClick={() => undefined}
+              onClick={() => {
+                setShowImageBottomSheet(false);
+                setShowUrlInputs(true);
+              }}
             />
             <BottomSheetItem
               name="from-image-library"
               className="ls-custom-exercise-image-library"
               title="From Image Library"
-              onClick={() => undefined}
-            />
-            <BottomSheetItem
-              name="upload-image"
-              className="ls-custom-exercise-upload-image"
-              title="Upload Image"
               onClick={() => {
                 setShowImageBottomSheet(false);
-                setShowPicturePickerBottomSheet(true);
+                setShowImageLibrary(true);
               }}
             />
+            {(SendMessage.isIos() || SendMessage.isAndroid()) && (
+              <BottomSheetItem
+                name="upload-image"
+                className="ls-custom-exercise-upload-image"
+                title="Upload Image"
+                onClick={() => {
+                  setShowImageBottomSheet(false);
+                  setShowPicturePickerBottomSheet(true);
+                }}
+              />
+            )}
           </div>
         </BottomSheet>
       )}
@@ -385,6 +441,25 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
             />
           </div>
         </BottomSheet>
+      )}
+      {showImageLibrary && (
+        <BottomSheetExerciseImageLibrary
+          isHidden={!showImageLibrary}
+          settings={props.settings}
+          onClose={() => setShowImageLibrary(false)}
+          onSelect={(exerciseType) => {
+            const smallImageUrl = ExerciseImageUtils.url(exerciseType, "small");
+            const largeImageUrl = ExerciseImageUtils.url(exerciseType, "large");
+            props.dispatch(
+              [
+                lb<IExercisePickerState>().pi("editCustomExercise").p("smallImageUrl").record(smallImageUrl),
+                lb<IExercisePickerState>().pi("editCustomExercise").p("largeImageUrl").record(largeImageUrl),
+              ],
+              "Set custom exercise image URL"
+            );
+            setShowImageLibrary(false);
+          }}
+        />
       )}
     </div>
   );
