@@ -2,7 +2,7 @@ import { Service } from "../api/service";
 
 export class ImageUploader {
   private readonly MAX_WIDTH = 600;
-  private readonly MAX_HEIGHT = 800;
+  private readonly MAX_HEIGHT = 900;
 
   constructor(private readonly service: Service) {}
 

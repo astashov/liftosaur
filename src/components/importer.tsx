@@ -3,7 +3,8 @@ import { useRef } from "preact/compat";
 
 interface IImporterProps {
   children: (onClick: () => void) => ComponentChildren;
-  onFileSelect: (contents: string) => void;
+  onRawFile?: (file: File) => void;
+  onFileSelect?: (contents: string) => void;
 }
 
 export function Importer(props: IImporterProps): JSX.Element {
@@ -18,14 +19,20 @@ export function Importer(props: IImporterProps): JSX.Element {
         onChange={() => {
           const file = fileInput.current.files?.[0];
           if (file != null) {
-            const reader = new FileReader();
-            reader.addEventListener("load", async (event) => {
-              const result = event.target?.result;
-              if (typeof result === "string") {
-                props.onFileSelect(result);
-              }
-            });
-            reader.readAsText(file);
+            if (props.onRawFile != null) {
+              props.onRawFile(file);
+            }
+            const onFileSelect = props.onFileSelect;
+            if (onFileSelect != null) {
+              const reader = new FileReader();
+              reader.addEventListener("load", async (event) => {
+                const result = event.target?.result;
+                if (typeof result === "string") {
+                  onFileSelect(result);
+                }
+              });
+              reader.readAsText(file);
+            }
           }
         }}
       />

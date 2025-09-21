@@ -5,7 +5,7 @@ import { LogUtil } from "./utils/log";
 import fetch from "node-fetch";
 
 const MAX_WIDTH = 600;
-const MAX_HEIGHT = 800;
+const MAX_HEIGHT = 900;
 
 export const handler = async (event: S3Event): Promise<void> => {
   const di = buildDi(new LogUtil(), fetch);
