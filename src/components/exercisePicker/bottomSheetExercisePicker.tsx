@@ -60,6 +60,7 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
       <ExercisePickerCustomExercise2
         screenStack={state.screenStack}
         settings={props.settings}
+        showMuscles={!!state.showMuscles}
         isLoggedIn={props.isLoggedIn}
         dispatch={props.dispatch}
         originalExercise={originalExercise}

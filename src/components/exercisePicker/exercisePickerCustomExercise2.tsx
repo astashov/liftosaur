@@ -36,11 +36,14 @@ import { BottomSheetExerciseImageLibrary } from "./bottomSheetExerciseImageLibra
 import { LinkButton } from "../linkButton";
 import { Importer } from "../importer";
 import { MarkdownEditor } from "../markdownEditor";
+import { BottomSheetExerciseCloneLibrary } from "./bottomSheetExerciseCloneLibrary";
+import { ExerciseImageUtils } from "../../models/exerciseImage";
 
 interface IExercisePickerCustomExercise2Props {
   settings: ISettings;
   screenStack: IExercisePickerScreen[];
   originalExercise?: ICustomExercise;
+  showMuscles: boolean;
   exercise: ICustomExercise;
   isLoggedIn: boolean;
   dispatch: ILensDispatch<IExercisePickerState>;
@@ -93,12 +96,14 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
   const service = appContext.service ?? new Service(window.fetch.bind(window));
 
   const editCustomExercise = props.exercise;
+  console.log("Edit custom exercise", editCustomExercise);
   const [notes, setNotes] = useState<string | undefined>(
     props.exercise ? Exercise.getNotes(props.exercise, props.settings) : undefined
   );
   const isEdited = !props.originalExercise || !ObjectUtils.isEqual(editCustomExercise, props.originalExercise);
   const isValid = editCustomExercise.name.trim().length ?? 0 > 0;
   const [isAutofilling, setIsAutofilling] = useState<boolean>(false);
+  const [showCloneBottomSheet, setShowCloneBottomSheet] = useState<boolean>(false);
   const [showImageBottomSheet, setShowImageBottomSheet] = useState<boolean>(false);
   const [showPicturePickerBottomSheet, setShowPicturePickerBottomSheet] = useState<boolean>(false);
   const [showImageLibrary, setShowImageLibrary] = useState<boolean>(false);
@@ -153,7 +158,12 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
         </div>
       </div>
       <div className="flex-1 pb-4 overflow-y-auto">
-        <div className="px-4 pt-2">
+        <div className="px-4">
+          <div className="pb-2 text-center">
+            <LinkButton className="text-xs" name="clone-builtin-exercise" onClick={() => setShowCloneBottomSheet(true)}>
+              Clone from another exercise
+            </LinkButton>
+          </div>
           <div>
             <Input2
               identifier="custom-exercise-name"
@@ -343,6 +353,25 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
             </div>
           </div>
         </div>
+        {props.originalExercise && (
+          <div className="px-4 pb-4">
+            <Button
+              name="delete-custom-exercise"
+              kind="red"
+              data-cy="custom-exercise-delete"
+              buttonSize="md"
+              className="w-full mt-4"
+              onClick={() => {
+                if (confirm("Are you sure you want to delete this exercise? This action cannot be undone.")) {
+                  props.onChange("delete", editCustomExercise);
+                }
+                goBack("Delete custom exercise");
+              }}
+            >
+              Delete Exercise
+            </Button>
+          </div>
+        )}
       </div>
       {showImageBottomSheet && (
         <BottomSheet
@@ -465,6 +494,38 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
               "Set custom exercise image URL"
             );
             setShowImageLibrary(false);
+          }}
+        />
+      )}
+      {showCloneBottomSheet && (
+        <BottomSheetExerciseCloneLibrary
+          isHidden={!showCloneBottomSheet}
+          showMuscles={props.showMuscles}
+          settings={props.settings}
+          onClose={() => setShowCloneBottomSheet(false)}
+          onSelect={(exercise) => {
+            const customExercise = props.settings.exercises[exercise.id];
+            const smallImageUrl = customExercise
+              ? customExercise.smallImageUrl
+              : ExerciseImageUtils.url(exercise, "small");
+            const largeImageUrl = customExercise
+              ? customExercise.largeImageUrl
+              : ExerciseImageUtils.url(exercise, "large");
+            const targetMuscles = ObjectUtils.clone(Exercise.targetMuscles(exercise, props.settings.exercises));
+            const synergistMuscles = ObjectUtils.clone(Exercise.synergistMuscles(exercise, props.settings.exercises));
+            const types = ObjectUtils.clone(exercise.types);
+            const prefix = lb<IExercisePickerState>().pi("editCustomExercise");
+            props.dispatch(
+              [
+                prefix.p("smallImageUrl").record(smallImageUrl),
+                prefix.p("largeImageUrl").record(largeImageUrl),
+                prefix.p("meta").p("targetMuscles").record(targetMuscles),
+                prefix.p("meta").p("synergistMuscles").record(synergistMuscles),
+                prefix.p("types").record(types),
+              ],
+              "Clone built-in exercise into custom exercise"
+            );
+            setShowCloneBottomSheet(false);
           }}
         />
       )}
