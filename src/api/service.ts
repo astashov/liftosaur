@@ -411,14 +411,22 @@ export class Service {
     });
   }
 
+  public async getUploadedImages(): Promise<string[]> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/uploadedimages`);
+    const response = await this.client(url.toString(), { credentials: "include" });
+    if (response.ok) {
+      const json: { data: { images: string[] } } = await response.json();
+      return json.data.images;
+    } else {
+      return [];
+    }
+  }
+
   public async postImageUploadUrl(
     fileName: string,
     contentType: string
   ): Promise<{ uploadUrl: string; imageUrl: string; key: string }> {
     const url = UrlUtils.build(`${__API_HOST__}/api/imageuploadurl`);
-    if (typeof window !== "undefined" && window.tempUserId) {
-      url.searchParams.set("tempuserid", window.tempUserId);
-    }
     const response = await this.client(url.toString(), {
       method: "POST",
       body: JSON.stringify({ fileName, contentType }),

@@ -227,6 +227,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
           )}
           {exercisePickerUi && (
             <EditProgramBottomSheetPicker
+              isLoggedIn={props.isLoggedIn}
               program={program}
               dayData={exercisePickerUi.dayData}
               plannerExercise={exercisePickerPlannerExercise}

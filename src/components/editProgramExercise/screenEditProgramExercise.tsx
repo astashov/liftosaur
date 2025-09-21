@@ -234,6 +234,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           {exercisePickerState && (
             <EditProgramBottomSheetPicker
               program={plannerState.current.program}
+              isLoggedIn={!!props.navCommon.userId}
               exercisePickerState={exercisePickerState}
               settings={props.settings}
               evaluatedProgram={evaluatedProgram}

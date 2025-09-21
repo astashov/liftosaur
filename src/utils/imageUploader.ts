@@ -6,9 +6,11 @@ export class ImageUploader {
 
   constructor(private readonly service: Service) {}
 
-  public async uploadImage(file: File): Promise<string> {
+  public async uploadImage(file: File, exerciseId: string): Promise<string> {
+    const extension = file.name.split(".").pop() || "png";
+    const fileName = `${exerciseId}.${extension}`;
     const resizedFile = await this.resizeImage(file);
-    const presignedUrlResponse = await this.service.postImageUploadUrl(resizedFile.name, resizedFile.type);
+    const presignedUrlResponse = await this.service.postImageUploadUrl(fileName, resizedFile.type);
     await this.uploadToS3(presignedUrlResponse.uploadUrl, resizedFile);
     return presignedUrlResponse.imageUrl;
   }
@@ -19,7 +21,7 @@ export class ImageUploader {
     const extension = blob.type.split("/")[1] || "png";
     const fileName = `${exerciseId}.${extension}`;
     const file = new File([blob], fileName, { type: blob.type });
-    return this.uploadImage(file);
+    return this.uploadImage(file, exerciseId);
   }
 
   private async resizeImage(file: File): Promise<File> {
@@ -36,46 +38,70 @@ export class ImageUploader {
       img.onload = () => {
         const width = img.width;
         const height = img.height;
+        const currentAspectRatio = width / height;
+        const targetAspectRatio = this.MAX_WIDTH / this.MAX_HEIGHT;
 
-        if (width <= this.MAX_WIDTH && height <= this.MAX_HEIGHT) {
+        let canvasWidth: number;
+        let canvasHeight: number;
+        let imageWidth: number;
+        let imageHeight: number;
+
+        if (width > this.MAX_WIDTH || height > this.MAX_HEIGHT) {
+          canvasWidth = this.MAX_WIDTH;
+          canvasHeight = this.MAX_HEIGHT;
+
+          if (currentAspectRatio > targetAspectRatio) {
+            imageWidth = this.MAX_WIDTH;
+            imageHeight = Math.round(this.MAX_WIDTH / currentAspectRatio);
+          } else {
+            imageHeight = this.MAX_HEIGHT;
+            imageWidth = Math.round(this.MAX_HEIGHT * currentAspectRatio);
+          }
+        } else {
+          imageWidth = width;
+          imageHeight = height;
+
+          if (currentAspectRatio > targetAspectRatio) {
+            canvasWidth = width;
+            canvasHeight = Math.round(width / targetAspectRatio);
+          } else {
+            canvasHeight = height;
+            canvasWidth = Math.round(height * targetAspectRatio);
+          }
+
+          if (canvasWidth > this.MAX_WIDTH || canvasHeight > this.MAX_HEIGHT) {
+            const scale = Math.min(this.MAX_WIDTH / canvasWidth, this.MAX_HEIGHT / canvasHeight);
+            canvasWidth = Math.round(canvasWidth * scale);
+            canvasHeight = Math.round(canvasHeight * scale);
+            imageWidth = Math.round(imageWidth * scale);
+            imageHeight = Math.round(imageHeight * scale);
+          }
+        }
+
+        if (width === canvasWidth && height === canvasHeight) {
           resolve(file);
           return;
         }
 
-        const aspectRatio = width / height;
-        const maxAspectRatio = this.MAX_WIDTH / this.MAX_HEIGHT;
-
-        let newWidth: number;
-        let newHeight: number;
-
-        if (aspectRatio > maxAspectRatio) {
-          newWidth = this.MAX_WIDTH;
-          newHeight = Math.round(this.MAX_WIDTH / aspectRatio);
-        } else {
-          newHeight = this.MAX_HEIGHT;
-          newWidth = Math.round(this.MAX_HEIGHT * aspectRatio);
-        }
-
-        canvas.width = this.MAX_WIDTH;
-        canvas.height = this.MAX_HEIGHT;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
 
         ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, this.MAX_WIDTH, this.MAX_HEIGHT);
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-        // Enable high quality image smoothing
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
 
-        // Step-down approach for better quality when significantly downscaling
-        if (width > this.MAX_WIDTH * 2 || height > this.MAX_HEIGHT * 2) {
-          // Create temporary canvas for step-down scaling
+        const xOffset = Math.round((canvasWidth - imageWidth) / 2);
+        const yOffset = Math.round((canvasHeight - imageHeight) / 2);
+
+        if (width > imageWidth * 2 || height > imageHeight * 2) {
           const tempCanvas = document.createElement("canvas");
           const tempCtx = tempCanvas.getContext("2d");
 
           if (tempCtx) {
-            // First scale to 2x target size
-            const tempWidth = newWidth * 2;
-            const tempHeight = newHeight * 2;
+            const tempWidth = imageWidth * 2;
+            const tempHeight = imageHeight * 2;
             tempCanvas.width = tempWidth;
             tempCanvas.height = tempHeight;
 
@@ -83,21 +109,12 @@ export class ImageUploader {
             tempCtx.imageSmoothingQuality = "high";
             tempCtx.drawImage(img, 0, 0, tempWidth, tempHeight);
 
-            // Then scale from temp canvas to final size
-            const xOffset = Math.round((this.MAX_WIDTH - newWidth) / 2);
-            const yOffset = Math.round((this.MAX_HEIGHT - newHeight) / 2);
-            ctx.drawImage(tempCanvas, 0, 0, tempWidth, tempHeight, xOffset, yOffset, newWidth, newHeight);
+            ctx.drawImage(tempCanvas, 0, 0, tempWidth, tempHeight, xOffset, yOffset, imageWidth, imageHeight);
           } else {
-            // Fallback to direct scaling
-            const xOffset = Math.round((this.MAX_WIDTH - newWidth) / 2);
-            const yOffset = Math.round((this.MAX_HEIGHT - newHeight) / 2);
-            ctx.drawImage(img, xOffset, yOffset, newWidth, newHeight);
+            ctx.drawImage(img, xOffset, yOffset, imageWidth, imageHeight);
           }
         } else {
-          // Direct scaling for smaller reductions
-          const xOffset = Math.round((this.MAX_WIDTH - newWidth) / 2);
-          const yOffset = Math.round((this.MAX_HEIGHT - newHeight) / 2);
-          ctx.drawImage(img, xOffset, yOffset, newWidth, newHeight);
+          ctx.drawImage(img, xOffset, yOffset, imageWidth, imageHeight);
         }
 
         canvas.toBlob(
@@ -107,7 +124,7 @@ export class ImageUploader {
                 type: "image/jpeg",
                 lastModified: Date.now(),
               });
-              console.log(`Resized image from ${img.width}x${img.height} to ${this.MAX_WIDTH}x${this.MAX_HEIGHT}`);
+              console.log(`Processed image from ${width}x${height} to ${canvasWidth}x${canvasHeight} canvas`);
               resolve(resizedFile);
             } else {
               reject(new Error("Failed to create blob from canvas"));

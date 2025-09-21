@@ -684,6 +684,19 @@ export class UserDao {
       key: { userId },
     });
 
+    const userimages = await this.getImages(userId);
+    const groupedUserImages = CollectionUtils.inGroupsOf(30, userimages);
+    for (const group of groupedUserImages) {
+      await Promise.all(
+        group.map((key) =>
+          this.di.s3.deleteObject({
+            bucket: `${LftS3Buckets.userimages}${env === "dev" ? "dev" : ""}`,
+            key,
+          })
+        )
+      );
+    }
+
     const logDao = new LogDao(this.di);
     const logs = await logDao.getForUsers([userId]);
     const actions = logs.map((l) => l.action);
@@ -697,6 +710,13 @@ export class UserDao {
         })
       );
     }
+  }
+
+  public async getImages(userId: string): Promise<string[]> {
+    return await this.di.s3.listObjects({
+      bucket: `${LftS3Buckets.userimages}${Utils.getEnv() === "dev" ? "dev" : ""}`,
+      prefix: `user-uploads/${userId}/`,
+    });
   }
 
   public async getById(

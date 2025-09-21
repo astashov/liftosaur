@@ -1,28 +1,61 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { BottomSheet } from "../bottomSheet";
-import { IExerciseType, ISettings } from "../../types";
+import { ISettings } from "../../types";
 import { Exercise } from "../../models/exercise";
 import { MenuItemWrapper } from "../menuItem";
 import { ExerciseImage } from "../exerciseImage";
 import { Tailwind } from "../../utils/tailwindConfig";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import { StringUtils } from "../../utils/string";
+import { Service } from "../../api/service";
+import { GroupHeader } from "../groupHeader";
+import { IconSpinner } from "../icons/iconSpinner";
+import { UidFactory } from "../../utils/generator";
+import { ExerciseImageUtils } from "../../models/exerciseImage";
 
 interface IProps {
   isHidden: boolean;
   settings: ISettings;
+  isLoggedIn: boolean;
+  service: Service;
   onClose: () => void;
-  onSelect: (exerciseType: IExerciseType) => void;
+  onSelect: (smallImageUrl?: string, largeImageUrl?: string) => void;
+}
+
+function getExerciseIdFromImageUrl(url: string): string | undefined {
+  return url.split("/").pop()?.split("-").slice(1).join("-").split(".")[0];
 }
 
 export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
+  useEffect(() => {
+    if (props.isLoggedIn) {
+      props.service.getUploadedImages().then((imgs) => {
+        setUploadedImages(imgs);
+        setIsLoading(false);
+      });
+    }
+  }, []);
+
+  const [isLoading, setIsLoading] = useState<boolean>(props.isLoggedIn);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [search, setSearch] = useState<string>("");
   const trimmedSearch = search.trim().toLowerCase();
   const exercises = !trimmedSearch
     ? Exercise.allExpanded({})
     : Exercise.allExpanded({}).filter((e) => {
         return StringUtils.fuzzySearch(trimmedSearch, e.name.toLowerCase());
+      });
+  const filteredUploadedImages = !trimmedSearch
+    ? uploadedImages
+    : uploadedImages.filter((img) => {
+        const exerciseId = getExerciseIdFromImageUrl(img);
+        const customExercise = exerciseId ? Exercise.find({ id: exerciseId }, props.settings.exercises) : undefined;
+        if (customExercise) {
+          return StringUtils.fuzzySearch(trimmedSearch, customExercise.name.toLowerCase());
+        } else {
+          return false;
+        }
       });
 
   return (
@@ -52,12 +85,50 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
         </div>
         <div className="flex-1 overflow-y-auto">
           <div className="pb-4">
+            {(isLoading || filteredUploadedImages.length > 0) && (
+              <>
+                <GroupHeader name="Uploaded Images" />
+                {isLoading ? (
+                  <div className="py-4 text-sm text-center text-text-secondary">
+                    <IconSpinner width={18} height={18} />
+                  </div>
+                ) : (
+                  filteredUploadedImages.map((img) => {
+                    const exerciseId = getExerciseIdFromImageUrl(img) ?? UidFactory.generateUid(8);
+                    const customExercise = exerciseId
+                      ? Exercise.find({ id: exerciseId }, props.settings.exercises)
+                      : undefined;
+                    return (
+                      <MenuItemWrapper
+                        key={exerciseId}
+                        name={customExercise?.name ?? exerciseId}
+                        onClick={() => {
+                          props.onSelect(img);
+                        }}
+                      >
+                        <div className="flex items-center h-20 gap-4">
+                          <div className="w-10">
+                            <img src={img} alt={customExercise?.name ?? "Custom Exercise"} className="w-full" />
+                          </div>
+                          {customExercise && (
+                            <div className="flex-1">{Exercise.fullName(customExercise, props.settings)}</div>
+                          )}
+                        </div>
+                      </MenuItemWrapper>
+                    );
+                  })
+                )}
+                <GroupHeader name="Built-in Images" topPadding={true} />
+              </>
+            )}
             {exercises.map((exercise) => (
               <MenuItemWrapper
                 key={exercise.id}
                 name={exercise.name}
                 onClick={() => {
-                  props.onSelect(exercise);
+                  const smallImageUrl = ExerciseImageUtils.url(exercise, "small");
+                  const largeImageUrl = ExerciseImageUtils.url(exercise, "large");
+                  props.onSelect(smallImageUrl, largeImageUrl);
                 }}
               >
                 <div className="flex items-center h-20 gap-4">

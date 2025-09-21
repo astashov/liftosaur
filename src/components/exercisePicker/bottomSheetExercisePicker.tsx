@@ -16,6 +16,7 @@ import { ExercisePickerCustomExercise2 } from "./exercisePickerCustomExercise2";
 
 interface IProps {
   isHidden: boolean;
+  isLoggedIn: boolean;
   settings: ISettings;
   exercisePicker: IExercisePickerState;
   usedExerciseTypes: IExerciseType[];
@@ -59,6 +60,7 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
       <ExercisePickerCustomExercise2
         screenStack={state.screenStack}
         settings={props.settings}
+        isLoggedIn={props.isLoggedIn}
         dispatch={props.dispatch}
         originalExercise={originalExercise}
         exercise={state.editCustomExercise}

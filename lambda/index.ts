@@ -1929,7 +1929,34 @@ const postAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   }
 };
 
-const postImageUploadUrlEndpoint = Endpoint.build("/api/imageuploadurl", { tempuserid: "string?" });
+const getUploadedImagesEndpoint = Endpoint.build("/api/uploadedimages");
+const getUploadedImagesHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getUploadedImagesEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils.json(401, event, { error: "Unauthorized" });
+  }
+  const userDao = new UserDao(di);
+  const files = await userDao.getImages(userId);
+  return ResponseUtils.json(
+    200,
+    event,
+    {
+      data: {
+        images: files.map(
+          (f) => `https://${LftS3Buckets.userimages}${Utils.getEnv() === "dev" ? "dev" : ""}.s3.amazonaws.com/${f}`
+        ),
+      },
+    },
+    { "Cache-Control": "no-store" }
+  );
+};
+
+const postImageUploadUrlEndpoint = Endpoint.build("/api/imageuploadurl");
 const postImageUploadUrlHandler: RouteHandler<
   IPayload,
   APIGatewayProxyResult,
@@ -1938,19 +1965,17 @@ const postImageUploadUrlHandler: RouteHandler<
   const { event, di } = payload;
   const { fileName, contentType } = getBodyJson(event);
 
-  const userId = (await getCurrentUserId(event, di)) ?? params.tempuserid;
-  // if (!userId) {
-  //   return ResponseUtils.json(401, event, { error: "Unauthorized" });
-  // }
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils.json(401, event, { error: "Unauthorized" });
+  }
 
   if (!fileName || !contentType) {
     return ResponseUtils.json(400, event, { error: "fileName and contentType are required" });
   }
 
   try {
-    const timestamp = Date.now();
-    const fileExtension = fileName.split(".").pop() || "jpg";
-    const key = `user-uploads/${userId}/${timestamp}-${UidFactory.generateUid(8)}.${fileExtension}`;
+    const key = `user-uploads/${userId}/${UidFactory.generateUid(8)}-${fileName}`;
     const env = Utils.getEnv();
     const bucketname = `${LftS3Buckets.userimages}${env === "dev" ? "dev" : ""}`;
     const uploadUrl = await di.s3.getPresignedUploadUrl({
@@ -2443,6 +2468,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getPlannerShorturlResponseEndpoint, getPlannerShorturlResponseHandler)
       .get(getPlanShorturlResponseEndpoint, getPlanShorturlResponseHandler)
       .get(getHistoryEndpoint, getHistoryHandler)
+      .get(getUploadedImagesEndpoint, getUploadedImagesHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .get(getLoginEndpoint, getLoginHandler)
       .post(postSaveProgramEndpoint, postSaveProgramHandler)

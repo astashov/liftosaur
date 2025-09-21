@@ -2,7 +2,7 @@ import { AWSError, S3 } from "aws-sdk";
 import { ILogUtil } from "./log";
 
 export interface IS3Util {
-  listObjects(args: { bucket: string; prefix: string }): Promise<string[] | undefined>;
+  listObjects(args: { bucket: string; prefix: string }): Promise<string[]>;
   getObject(args: { bucket: string; key: string }): Promise<AWS.S3.GetObjectOutput["Body"] | undefined>;
   putObject(args: {
     bucket: string;
@@ -34,7 +34,7 @@ export class S3Util implements IS3Util {
     return this._s3;
   }
 
-  public async listObjects(args: { bucket: string; prefix: string }): Promise<string[] | undefined> {
+  public async listObjects(args: { bucket: string; prefix: string }): Promise<string[]> {
     const startTime = Date.now();
     let result: string[] = [];
     let nextPageAvailable = true;

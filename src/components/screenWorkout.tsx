@@ -186,6 +186,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
             {exercisePickerState && (
               <BottomSheetExercisePicker
                 settings={props.settings}
+                isLoggedIn={!!props.navCommon.userId}
                 isHidden={exercisePickerState == null}
                 usedExerciseTypes={progress.entries.map((e) => e.exercise)}
                 onChoose={(selectedExercises) => {

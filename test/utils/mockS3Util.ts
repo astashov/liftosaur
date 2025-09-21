@@ -4,7 +4,7 @@ import { IS3Util } from "../../lambda/utils/s3";
 export class MockS3Util implements IS3Util {
   constructor(public readonly log: ILogUtil) {}
 
-  public async listObjects(args: { bucket: string; prefix: string }): Promise<string[] | undefined> {
+  public async listObjects(args: { bucket: string; prefix: string }): Promise<string[]> {
     return [];
   }
   public async getObject(args: { bucket: string; key: string }): Promise<AWS.S3.GetObjectOutput["Body"] | undefined> {

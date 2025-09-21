@@ -33,7 +33,6 @@ import { IconCamera } from "../icons/iconCamera";
 import { ImageUploader } from "../../utils/imageUploader";
 import { IconPicture } from "../icons/iconPicture";
 import { BottomSheetExerciseImageLibrary } from "./bottomSheetExerciseImageLibrary";
-import { ExerciseImageUtils } from "../../models/exerciseImage";
 import { LinkButton } from "../linkButton";
 import { Importer } from "../importer";
 import { MarkdownEditor } from "../markdownEditor";
@@ -43,6 +42,7 @@ interface IExercisePickerCustomExercise2Props {
   screenStack: IExercisePickerScreen[];
   originalExercise?: ICustomExercise;
   exercise: ICustomExercise;
+  isLoggedIn: boolean;
   dispatch: ILensDispatch<IExercisePickerState>;
   onClose: () => void;
   onChange: (action: "upsert" | "delete", exercise: ICustomExercise, notes?: string) => void;
@@ -102,6 +102,7 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
   const [showImageBottomSheet, setShowImageBottomSheet] = useState<boolean>(false);
   const [showPicturePickerBottomSheet, setShowPicturePickerBottomSheet] = useState<boolean>(false);
   const [showImageLibrary, setShowImageLibrary] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const typeValues = exerciseKinds.reduce<Record<IExerciseKind, IFilterValue>>(
     (memo, type) => {
@@ -216,6 +217,10 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
               name="autofill-muscles"
               className="flex items-center justify-center w-full"
               onClick={async () => {
+                if (!isValid) {
+                  alert("Please enter a name");
+                  return;
+                }
                 setIsAutofilling(true);
                 const response = await service.getMuscles(editCustomExercise.name);
                 setIsAutofilling(false);
@@ -346,8 +351,8 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
           isHidden={!showImageBottomSheet}
         >
           <div className="p-4">
+            <div className="text-xs text-center text-text-secondary">Prefer 2:3 aspect ratio</div>
             <BottomSheetItem
-              isFirst={true}
               name="from-image-library"
               className="ls-custom-exercise-image-library"
               title="From Image Library"
@@ -362,6 +367,10 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
                 className="ls-custom-exercise-upload-image"
                 title="Upload Image"
                 onClick={() => {
+                  if (!props.isLoggedIn) {
+                    alert("You need to be logged in to upload custom exercise images");
+                    return;
+                  }
                   setShowImageBottomSheet(false);
                   setShowPicturePickerBottomSheet(true);
                 }}
@@ -370,7 +379,8 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
               <Importer
                 onRawFile={async (file) => {
                   const imageUploader = new ImageUploader(service);
-                  const url = await imageUploader.uploadImage(file);
+                  const url = await imageUploader.uploadImage(file, editCustomExercise.id);
+                  setIsUploading(true);
                   props.dispatch(
                     [
                       lb<IExercisePickerState>().pi("editCustomExercise").p("smallImageUrl").record(url),
@@ -378,6 +388,7 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
                     ],
                     "Set custom exercise image URL"
                   );
+                  setIsUploading(false);
                   setShowImageBottomSheet(false);
                 }}
               >
@@ -385,9 +396,16 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
                   return (
                     <BottomSheetItem
                       name="upload-image"
+                      icon={isUploading ? <IconSpinner width={18} height={18} /> : undefined}
                       className="ls-custom-exercise-upload-image"
                       title="Upload Image"
-                      onClick={onClick}
+                      onClick={() => {
+                        if (!props.isLoggedIn) {
+                          alert("You need to be logged in to upload custom exercise images");
+                        } else {
+                          onClick();
+                        }
+                      }}
                     />
                   );
                 }}
@@ -406,21 +424,25 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
             <BottomSheetItem
               title="From Camera"
               name="from-camera"
-              icon={<IconCamera size={24} color="black" />}
+              icon={isUploading ? <IconSpinner width={18} height={18} /> : <IconCamera size={24} color="black" />}
               isFirst={true}
               description="Take a photo"
               onClick={async () => {
+                setIsUploading(true);
                 await uploadAndUpdateImage("camera", editCustomExercise.id, service, props.dispatch);
+                setIsUploading(false);
                 setShowPicturePickerBottomSheet(false);
               }}
             />
             <BottomSheetItem
               title="From Photo Library"
               name="from-photo-library"
-              icon={<IconPicture size={24} color="black" />}
+              icon={isUploading ? <IconSpinner width={18} height={18} /> : <IconPicture size={24} color="black" />}
               description="Pick photo from your photo library"
               onClick={async () => {
+                setIsUploading(true);
                 await uploadAndUpdateImage("photo-library", editCustomExercise.id, service, props.dispatch);
+                setIsUploading(false);
                 setShowPicturePickerBottomSheet(false);
               }}
             />
@@ -430,11 +452,11 @@ export function ExercisePickerCustomExercise2(props: IExercisePickerCustomExerci
       {showImageLibrary && (
         <BottomSheetExerciseImageLibrary
           isHidden={!showImageLibrary}
+          isLoggedIn={props.isLoggedIn}
+          service={service}
           settings={props.settings}
           onClose={() => setShowImageLibrary(false)}
-          onSelect={(exerciseType) => {
-            const smallImageUrl = ExerciseImageUtils.url(exerciseType, "small");
-            const largeImageUrl = ExerciseImageUtils.url(exerciseType, "large");
+          onSelect={(smallImageUrl, largeImageUrl) => {
             props.dispatch(
               [
                 lb<IExercisePickerState>().pi("editCustomExercise").p("smallImageUrl").record(smallImageUrl),

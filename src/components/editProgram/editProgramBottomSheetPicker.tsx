@@ -108,6 +108,7 @@ interface IEditProgramBottomSheetPickerProps {
   program: IProgram;
   evaluatedProgram: IEvaluatedProgram;
   exercisePickerState?: IExercisePickerState;
+  isLoggedIn: boolean;
   dayData: IShortDayData;
   plannerExercise?: IPlannerProgramExercise;
   change: "one" | "all" | "duplicate";
@@ -130,6 +131,7 @@ export function EditProgramBottomSheetPicker(props: IEditProgramBottomSheetPicke
       settings={props.settings}
       isHidden={exercisePickerState == null}
       exercisePicker={exercisePickerState}
+      isLoggedIn={props.isLoggedIn}
       evaluatedProgram={props.evaluatedProgram}
       usedExerciseTypes={Program.getExerciseTypesForWeekDay(
         props.evaluatedProgram,
