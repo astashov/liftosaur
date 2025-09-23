@@ -12,7 +12,7 @@ import { ExercisePickerMain } from "./exercisePickerMain";
 import { ExercisePickerFilter } from "./exercisePickerFilter";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { ExercisePickerSettings, IExercisePickerSettings } from "./exercisePickerSettings";
-import { ExercisePickerCustomExercise2 } from "./exercisePickerCustomExercise2";
+import { ExercisePickerCustomExercise } from "./exercisePickerCustomExercise";
 
 interface IProps {
   isHidden: boolean;
@@ -57,7 +57,7 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
   } else if (currentScreen === "customExercise" && state.editCustomExercise != null) {
     const originalExercise = props.settings.exercises[state.editCustomExercise.id];
     content = (
-      <ExercisePickerCustomExercise2
+      <ExercisePickerCustomExercise
         screenStack={state.screenStack}
         settings={props.settings}
         showMuscles={!!state.showMuscles}
