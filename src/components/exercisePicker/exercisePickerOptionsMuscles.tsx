@@ -4,6 +4,7 @@ import { Muscle } from "../../models/muscle";
 import { ObjectUtils } from "../../utils/object";
 import { StringUtils } from "../../utils/string";
 import { IFilterValue } from "./exercisePickerOptions";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   selectedValues: IMuscle[];
@@ -25,6 +26,12 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
     {} as Record<IScreenMuscle, Record<IMuscle, IFilterValue>>
   );
   const sortedGroupedMuscles = ObjectUtils.keys(groupedMuscles).sort(([a], [b]) => a.localeCompare(b));
+
+  const muscleColors = [
+    `--muscle-fill: ${Tailwind.semantic().background.default}`,
+    `--muscle-primary: ${Tailwind.semantic().icon.blue}`,
+    `--muscle-light: ${Tailwind.semantic().icon.light}`,
+  ];
 
   return (
     <div>
@@ -48,19 +55,19 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
                       : "text-base";
                 return (
                   <button
-                    className={`bg-background-subtle ${fontSize} h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-text-purple text-text-purple" : "border-border-neutral"}`}
-                    style={{
-                      paddingLeft: "70px",
-                      borderWidth: value.isSelected ? "2px" : "1px",
-                      backgroundImage: `url(/images/svgs/muscles/${key.toLowerCase().replace(/ /g, "")}.svg)`,
-                      backgroundSize: "contain",
-                      backgroundPosition: "0 50%",
-                    }}
-                    onClick={() => {
-                      props.onSelect(key);
-                    }}
+                    className={`bg-background-subtle ${fontSize} flex gap-2 h-12 leading-none overflow-hidden bg-no-repeat items-center rounded-lg border text-left ${value.isSelected ? "border-text-purple text-text-purple" : "border-border-neutral"}`}
+                    style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
+                    onClick={() => props.onSelect(key)}
                   >
-                    {value.label}
+                    <div>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 61 48" width="61" height="48">
+                        <use
+                          href={`/images/svgs/muscles-combined.svg#${key.toLowerCase().replace(/ /g, "")}`}
+                          style={muscleColors.join(";")}
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-1">{value.label}</div>
                   </button>
                 );
               })}

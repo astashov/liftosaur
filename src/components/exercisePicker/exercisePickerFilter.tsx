@@ -25,6 +25,7 @@ import { Muscle } from "../../models/muscle";
 import { ExercisePickerUtils } from "./exercisePickerUtils";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
 import { ExercisePickerOptions } from "./exercisePickerOptions";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 interface IProps {
   settings: ISettings;
@@ -186,6 +187,13 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
   const selectedValues = props.state.filters?.muscles || [];
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
   const selectedMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroupNames(selectedValues);
+
+  const muscleColors = [
+    `--muscle-fill: ${Tailwind.semantic().background.default}`,
+    `--muscle-primary: ${Tailwind.semantic().icon.blue}`,
+    `--muscle-light: ${Tailwind.semantic().icon.light}`,
+  ];
+
   return (
     <div className="px-4 py-2 border-b border-background-subtle">
       <div className="flex items-center pb-1" onClick={() => setIsExpanded(!isExpanded)}>
@@ -219,14 +227,8 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                     {ObjectUtils.entries(muscleGroups).map(([key, value]) => {
                       return (
                         <button
-                          className={`bg-background-subtle h-12 leading-none overflow-hidden bg-no-repeat flex items-center rounded-lg border text-left ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
-                          style={{
-                            paddingLeft: "70px",
-                            borderWidth: value.isSelected ? "2px" : "1px",
-                            backgroundImage: `url(/images/svgs/musclegroups/${key}.svg)`,
-                            backgroundSize: "contain",
-                            backgroundPosition: "0 50%",
-                          }}
+                          className={`bg-background-subtle h-12 leading-none overflow-hidden bg-no-repeat flex gap-2 items-center rounded-lg border text-left ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
+                          style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
                           onClick={() => {
                             props.dispatch(
                               lb<IExercisePickerState>()
@@ -245,7 +247,15 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                             );
                           }}
                         >
-                          <span>{value.label}</span>
+                          <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 61 48" width="61" height="48">
+                              <use
+                                href={`/images/svgs/musclegroups-combined.svg#${key.toLowerCase().replace(/ /g, "")}`}
+                                style={muscleColors.join(";")}
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1">{value.label}</div>
                         </button>
                       );
                     })}
