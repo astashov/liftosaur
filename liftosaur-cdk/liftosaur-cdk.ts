@@ -215,6 +215,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
       pointInTimeRecovery: true,
     });
 
+    const aiMuscleCaches = new dynamodb.Table(this, `LftAiMuscleCaches${suffix}`, {
+      tableName: `lftAiMuscleCaches${suffix}`,
+      partitionKey: { name: "key", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
+
     // Add GSI for querying by userId
     aiLogsTable.addGlobalSecondaryIndex({
       indexName: "userId-timestamp-index",
@@ -377,6 +384,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     restApi.root.addProxy();
 
     aiLogsTable.grantReadWriteData(lambdaFunction);
+    aiMuscleCaches.grantReadWriteData(lambdaFunction);
     bucket.grantReadWrite(lambdaFunction);
     debugbucket.grantReadWrite(lambdaFunction);
     exceptionsbucket.grantReadWrite(lambdaFunction);

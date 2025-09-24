@@ -82,6 +82,7 @@ import { ObjectUtils } from "../src/utils/object";
 import { ClaudeProvider } from "./utils/llms/claude";
 import { MuscleGenerator } from "./utils/muscleGenerator";
 import { LlmMuscles } from "./utils/llms/llmMuscles";
+import { AiMuscleCacheDao } from "./dao/aiMuscleCacheDao";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -130,6 +131,10 @@ async function getCurrentLimitedUser(event: APIGatewayProxyEvent, di: IDI): Prom
   } else {
     return undefined;
   }
+}
+
+function getUserAgent(event: APIGatewayProxyEvent): string {
+  return event.headers["user-agent"] || event.headers["User-Agent"] || "";
 }
 
 const postVerifyAppleReceiptEndpoint = Endpoint.build("/api/verifyapplereceipt");
@@ -1841,16 +1846,48 @@ const getMusclesForExerciseHandler: RouteHandler<
   typeof getMusclesForExerciseEndpoint
 > = async ({ payload, match }) => {
   const di = payload.di;
-  const anthropicKey = await di.secrets.getAnthropicKey();
+  const exerciseName = match.params.exercise;
+  const aiMuscleCacheDao = new AiMuscleCacheDao(di);
+  const eventDao = new EventDao(di);
   const userId = (await getCurrentUserId(payload.event, di)) ?? match.params.tempuserid ?? "anonymous";
-  const llmProvider = new ClaudeProvider(anthropicKey);
-  const llmMuscles = new LlmMuscles(di, llmProvider, userId);
-  const muscleGenerator = new MuscleGenerator(di, llmMuscles);
-  const musclesResponse = await muscleGenerator.generateMuscles(match.params.exercise);
-  if (musclesResponse) {
-    return ResponseUtils.json(200, payload.event, { data: musclesResponse });
+  await eventDao.post({
+    type: "event",
+    name: "ai-get-muscles",
+    userId: userId,
+    commithash: process.env.COMMIT_HASH ?? "",
+    timestamp: Date.now(),
+    isMobile: Mobile.isMobile(getUserAgent(payload.event)),
+    extra: { exercise: exerciseName },
+  });
+  di.log.log("Looking for muscles for exercise:", exerciseName);
+  const cachedResponse = await aiMuscleCacheDao.getByName(exerciseName);
+  if (cachedResponse) {
+    di.log.log("Found cached response for muscles for exercise:", exerciseName);
+    if (cachedResponse.isSuccess) {
+      const musclesResponse = JSON.parse(cachedResponse.response);
+      return ResponseUtils.json(200, payload.event, { data: musclesResponse }, { "X-Cache": "HIT" });
+    } else {
+      return ResponseUtils.json(500, payload.event, { error: "Failed to generate muscles" }, { "X-Cache": "HIT" });
+    }
   } else {
-    return ResponseUtils.json(500, payload.event, { error: "Failed to generate muscles" });
+    di.log.log("Missed cached response for muscles for exercise:", exerciseName);
+    const anthropicKey = await di.secrets.getAnthropicKey();
+    const llmProvider = new ClaudeProvider(anthropicKey);
+    const llmMuscles = new LlmMuscles(di, llmProvider, userId);
+    const muscleGenerator = new MuscleGenerator(di, llmMuscles);
+    const musclesResponse = await muscleGenerator.generateMuscles(match.params.exercise);
+    di.log.log("Generated muscles response for ", exerciseName, musclesResponse);
+    if (musclesResponse) {
+      await aiMuscleCacheDao.create({ name: exerciseName, response: JSON.stringify(musclesResponse), isSuccess: true });
+      return ResponseUtils.json(200, payload.event, { data: musclesResponse });
+    } else {
+      await aiMuscleCacheDao.create({
+        name: exerciseName,
+        response: JSON.stringify({}),
+        isSuccess: false,
+      });
+      return ResponseUtils.json(500, payload.event, { error: "Failed to generate muscles" });
+    }
   }
 };
 
