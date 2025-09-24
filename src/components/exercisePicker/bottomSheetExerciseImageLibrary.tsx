@@ -1,5 +1,4 @@
 import { h, JSX, Fragment } from "preact";
-import { BottomSheet } from "../bottomSheet";
 import { ISettings } from "../../types";
 import { Exercise } from "../../models/exercise";
 import { MenuItemWrapper } from "../menuItem";
@@ -13,6 +12,7 @@ import { GroupHeader } from "../groupHeader";
 import { IconSpinner } from "../icons/iconSpinner";
 import { UidFactory } from "../../utils/generator";
 import { ExerciseImageUtils } from "../../models/exerciseImage";
+import { BottomSheetOrModal } from "../bottomSheetOrModal";
 
 interface IProps {
   isHidden: boolean;
@@ -59,7 +59,7 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
       });
 
   return (
-    <BottomSheet isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
+    <BottomSheetOrModal isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
       <div className="flex flex-col h-full px-4">
         <div className="pb-2">
           <h3 className="pt-1 pb-3 text-base font-semibold text-center">Pick Exercise Image</h3>
@@ -142,6 +142,6 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
           </div>
         </div>
       </div>
-    </BottomSheet>
+    </BottomSheetOrModal>
   );
 }

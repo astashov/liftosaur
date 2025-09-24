@@ -8,7 +8,6 @@ import { Input2 } from "../input2";
 import { IconAi } from "../icons/iconAi";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
 import { useContext, useState } from "preact/hooks";
-import { BottomSheet } from "../bottomSheet";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { ExercisePickerOptions, IFilterValue } from "./exercisePickerOptions";
 import { StringUtils } from "../../utils/string";
@@ -28,6 +27,7 @@ import { Importer } from "../importer";
 import { MarkdownEditor } from "../markdownEditor";
 import { BottomSheetExerciseCloneLibrary } from "./bottomSheetExerciseCloneLibrary";
 import { ExerciseImageUtils } from "../../models/exerciseImage";
+import { BottomSheetOrModal } from "../bottomSheetOrModal";
 
 interface IExercisePickerCustomExerciseContentProps {
   settings: ISettings;
@@ -35,12 +35,14 @@ interface IExercisePickerCustomExerciseContentProps {
   showMuscles: boolean;
   exercise: ICustomExercise;
   isLoggedIn: boolean;
+  hideDeleteButton: boolean;
+  hideNotes: boolean;
   notes: string | undefined;
   setNotes: (notes: string) => void;
   dispatch: ILensDispatch<ICustomExercise>;
   onClose: () => void;
   onGoBack: (reason: string) => void;
-  onChange: (action: "upsert" | "delete", exercise: ICustomExercise, notes?: string) => void;
+  onDelete: () => void;
 }
 
 async function uploadAndUpdateImage(
@@ -70,7 +72,6 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
   const service = appContext.service ?? new Service(window.fetch.bind(window));
 
   const editCustomExercise = props.exercise;
-  console.log("Edit custom exercise", editCustomExercise);
   const { notes, setNotes } = props;
   const isValid = editCustomExercise.name.trim().length ?? 0 > 0;
   const [isAutofilling, setIsAutofilling] = useState<boolean>(false);
@@ -252,21 +253,23 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             }}
           />
         </div>
-        <div className="pt-2 pb-4">
-          <label className={`leading-none text-sm text-text-primary pb-1`}>
-            <span>Exercise Notes</span> <span className="text-xs text-text-secondary">(optional)</span>
-          </label>
-          <div className="text-xs">
-            <MarkdownEditor
-              value={notes ?? ""}
-              onChange={(v) => {
-                setNotes(v);
-              }}
-            />
+        {!props.hideNotes && (
+          <div className="pt-2 pb-4">
+            <label className={`leading-none text-sm text-text-primary pb-1`}>
+              <span>Exercise Notes</span> <span className="text-xs text-text-secondary">(optional)</span>
+            </label>
+            <div className="text-xs">
+              <MarkdownEditor
+                value={notes ?? ""}
+                onChange={(v) => {
+                  setNotes(v);
+                }}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
-      {props.originalExercise && (
+      {props.originalExercise && !props.hideDeleteButton && (
         <div className="px-4 pb-4">
           <Button
             name="delete-custom-exercise"
@@ -276,7 +279,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             className="w-full mt-4"
             onClick={() => {
               if (confirm("Are you sure you want to delete this exercise? This action cannot be undone.")) {
-                props.onChange("delete", editCustomExercise);
+                props.onDelete();
               }
               props.onGoBack("Delete custom exercise");
             }}
@@ -286,7 +289,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
         </div>
       )}
       {showImageBottomSheet && (
-        <BottomSheet
+        <BottomSheetOrModal
           shouldShowClose={true}
           onClose={() => setShowImageBottomSheet(false)}
           isHidden={!showImageBottomSheet}
@@ -353,10 +356,10 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               </Importer>
             )}
           </div>
-        </BottomSheet>
+        </BottomSheetOrModal>
       )}
       {showPicturePickerBottomSheet && (
-        <BottomSheet
+        <BottomSheetOrModal
           shouldShowClose={true}
           onClose={() => setShowPicturePickerBottomSheet(false)}
           isHidden={!showPicturePickerBottomSheet}
@@ -388,7 +391,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               }}
             />
           </div>
-        </BottomSheet>
+        </BottomSheetOrModal>
       )}
       {showImageLibrary && (
         <BottomSheetExerciseImageLibrary
@@ -461,7 +464,7 @@ function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseT
         <ExercisePickerCustomExercise2SelectInput selectedValues={selectedValues} />
       </div>
       {isOpened && (
-        <BottomSheet
+        <BottomSheetOrModal
           shouldShowClose={true}
           onClose={() => {
             setIsOpened(false);
@@ -487,7 +490,7 @@ function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseT
               </div>
             </div>
           </div>
-        </BottomSheet>
+        </BottomSheetOrModal>
       )}
     </div>
   );
@@ -509,7 +512,7 @@ function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExercis
         <ExercisePickerCustomExercise2SelectInput selectedValues={props.selectedMuscles} />
       </div>
       {isOpened && (
-        <BottomSheet
+        <BottomSheetOrModal
           shouldShowClose={true}
           onClose={() => {
             setIsOpened(false);
@@ -524,7 +527,7 @@ function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExercis
               </div>
             </div>
           </div>
-        </BottomSheet>
+        </BottomSheetOrModal>
       )}
     </div>
   );

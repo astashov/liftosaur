@@ -616,7 +616,7 @@ export function AppView(props: IProps): JSX.Element | null {
       `,
         }}
       />
-      <AppContext.Provider value={{ service }}>{content}</AppContext.Provider>
+      <AppContext.Provider value={{ service, isApp: true }}>{content}</AppContext.Provider>
       {progress && screensWithoutTimer.indexOf(Screen.currentName(state.screenStack)) === -1 && (
         <RestTimer progress={progress} dispatch={dispatch} />
       )}

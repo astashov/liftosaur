@@ -1,5 +1,4 @@
 import { h, JSX } from "preact";
-import { BottomSheet } from "../bottomSheet";
 import { ISettings } from "../../types";
 import { Exercise, IExercise } from "../../models/exercise";
 import { Tailwind } from "../../utils/tailwindConfig";
@@ -7,6 +6,7 @@ import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { useState } from "preact/hooks";
 import { StringUtils } from "../../utils/string";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
+import { BottomSheetOrModal } from "../bottomSheetOrModal";
 
 interface IProps {
   isHidden: boolean;
@@ -27,7 +27,7 @@ export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
   exercises = exercises.sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <BottomSheet isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
+    <BottomSheetOrModal isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
       <div className="flex flex-col h-full px-4">
         <div className="pb-2">
           <h3 className="pt-1 pb-3 text-base font-semibold text-center">Pick Exercise To Clone From</h3>
@@ -56,6 +56,7 @@ export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
             {exercises.map((ex) => {
               return (
                 <button
+                  className="block"
                   onClick={() => {
                     props.onSelect(ex);
                   }}
@@ -72,6 +73,6 @@ export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
           </div>
         </div>
       </div>
-    </BottomSheet>
+    </BottomSheetOrModal>
   );
 }

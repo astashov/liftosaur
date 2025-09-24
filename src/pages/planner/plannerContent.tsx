@@ -597,6 +597,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       )}
       {modalExerciseUi && (
         <ModalExercise
+          isLoggedIn={!!props.account}
           isHidden={!modalExerciseUi}
           shouldAddExternalLinks={true}
           onChange={(exerciseType, label, shouldClose) => {

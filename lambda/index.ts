@@ -1834,7 +1834,7 @@ const getAffiliatesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   };
 };
 
-const getMusclesForExerciseEndpoint = Endpoint.build("/api/muscles", { exercise: "string", tempuserid: "string" });
+const getMusclesForExerciseEndpoint = Endpoint.build("/api/muscles", { exercise: "string", tempuserid: "string?" });
 const getMusclesForExerciseHandler: RouteHandler<
   IPayload,
   APIGatewayProxyResult,
@@ -1842,7 +1842,7 @@ const getMusclesForExerciseHandler: RouteHandler<
 > = async ({ payload, match }) => {
   const di = payload.di;
   const anthropicKey = await di.secrets.getAnthropicKey();
-  const userId = (await getCurrentUserId(payload.event, di)) ?? match.params.tempuserid;
+  const userId = (await getCurrentUserId(payload.event, di)) ?? match.params.tempuserid ?? "anonymous";
   const llmProvider = new ClaudeProvider(anthropicKey);
   const llmMuscles = new LlmMuscles(di, llmProvider, userId);
   const muscleGenerator = new MuscleGenerator(di, llmMuscles);

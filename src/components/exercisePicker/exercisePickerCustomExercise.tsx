@@ -71,6 +71,8 @@ export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercis
           <ExercisePickerCustomExerciseContent
             onGoBack={props.onGoBack}
             settings={props.settings}
+            hideNotes={false}
+            hideDeleteButton={false}
             notes={notes}
             setNotes={setNotes}
             originalExercise={props.originalExercise}
@@ -79,7 +81,9 @@ export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercis
             isLoggedIn={props.isLoggedIn}
             dispatch={props.dispatch}
             onClose={props.onClose}
-            onChange={props.onChange}
+            onDelete={() => {
+              props.onChange("delete", props.exercise);
+            }}
           />
         </div>
       </div>

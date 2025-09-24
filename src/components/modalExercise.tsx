@@ -3,7 +3,6 @@ import { Ref, useRef, useState } from "preact/hooks";
 import { Modal } from "./modal";
 import { StringUtils } from "../utils/string";
 import {
-  availableMuscles,
   ICustomExercise,
   IEquipment,
   IMuscle,
@@ -32,6 +31,8 @@ import { ScrollableTabs } from "./scrollableTabs";
 import { IconExternalLink } from "./icons/iconExternalLink";
 import { Input, IValidationError } from "./input";
 import { IEither } from "../utils/types";
+import { ExercisePickerCustomExerciseContent } from "./exercisePicker/exercisePickerCustomExerciseContent";
+import { useLensReducer } from "../utils/useLensReducer";
 
 interface IModalExerciseProps {
   isHidden: boolean;
@@ -39,6 +40,7 @@ interface IModalExerciseProps {
   settings: ISettings;
   initialFilter?: string;
   initialFilterTypes?: string[];
+  isLoggedIn: boolean;
   shouldAddExternalLinks?: boolean;
   onSaveAsTemplate?: (name: string | undefined, label: string | undefined) => void;
   templateName?: string;
@@ -75,6 +77,7 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
       <div style={{ maxWidth: "600px", minWidth: "260px" }}>
         {isCustomExerciseDisplayed ? (
           <CustomExerciseForm
+            isLoggedIn={props.isLoggedIn}
             backLabel="Back to list"
             exercise={editingExercise}
             customExerciseName={props.customExerciseName}
@@ -399,6 +402,7 @@ interface IEditCustomExerciseProps {
   settings: ISettings;
   backLabel: string;
   exercise?: ICustomExercise;
+  isLoggedIn: boolean;
   setIsCustomExerciseDisplayed: (value: boolean) => void;
   onCreateOrUpdate: (
     shouldClose: boolean,
@@ -414,75 +418,34 @@ interface IEditCustomExerciseProps {
 }
 
 function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
-  const customExercises = props.settings.exercises;
-  const [name, setName] = useState<string>(props.exercise?.name || props.customExerciseName || "");
-  const [nameError, setNameError] = useState<string | undefined>(undefined);
-  const [targetMuscles, setTargetMuscles] = useState<IMuscle[]>(props.exercise?.meta.targetMuscles || []);
-  const [synergistMuscles, setSynergistMuscles] = useState<IMuscle[]>(props.exercise?.meta.synergistMuscles || []);
-  const [types, setTypes] = useState<IExerciseKind[]>(props.exercise?.types || []);
-  const [smallImageUrl, setSmallImageUrl] = useState<string>(props.exercise?.smallImageUrl || "");
-  const [largeImageUrl, setLargeImageUrl] = useState<string>(props.exercise?.largeImageUrl || "");
+  const [notes, setNotes] = useState<string | undefined>(
+    props.exercise ? Exercise.getNotes(props.exercise, props.settings) : undefined
+  );
+  const [state, dispatch] = useLensReducer(
+    props.exercise ?? Exercise.createCustomExercise(props.customExerciseName ?? "", [], [], []),
+    {},
+    []
+  );
 
   return (
     <form onSubmit={(e) => e.preventDefault()}>
-      <LabelAndInput
-        star={true}
-        identifier="custom-exercise-name"
-        label="Name"
-        errorMessage={nameError}
-        value={name}
-        placeholder="Super Squat"
-        onInput={(e) => {
-          if (e.currentTarget.value != null) {
-            setName(e.currentTarget.value?.trim() || "");
-          }
-        }}
-      />
-      <Multiselect
-        id="target_muscles"
-        label="Target Muscles"
-        values={availableMuscles}
-        initialSelectedValues={new Set(props.exercise?.meta.targetMuscles || [])}
-        onChange={(muscles) => setTargetMuscles(Array.from(muscles) as IMuscle[])}
-      />
-      <Multiselect
-        id="synergist_muscles"
-        label="Synergist Muscles"
-        values={availableMuscles}
-        initialSelectedValues={new Set(props.exercise?.meta.synergistMuscles || [])}
-        onChange={(muscles) => setSynergistMuscles(Array.from(muscles) as IMuscle[])}
-      />
-      <Multiselect
-        id="types"
-        label="Types"
-        values={exerciseKinds}
-        initialSelectedValues={new Set(props.exercise?.types || [])}
-        onChange={(t) => setTypes(Array.from(t) as IExerciseKind[])}
-      />
-      <LabelAndInput
-        identifier="custom-exercise-small-image"
-        label="Small Image Url"
-        value={smallImageUrl}
-        hint="1:1 aspect ratio, >= 150px width"
-        placeholder="https://www.img.com/small.jpg"
-        onInput={(e) => {
-          if (e.currentTarget.value != null) {
-            setSmallImageUrl(e.currentTarget.value);
-          }
-        }}
-      />
-      <LabelAndInput
-        identifier="custom-exercise-large-image"
-        label="Large Image Url"
-        value={largeImageUrl}
-        hint="4:3 aspect ratio, >= 800px width"
-        placeholder="https://www.img.com/large.jpg"
-        onInput={(e) => {
-          if (e.currentTarget.value != null) {
-            setLargeImageUrl(e.currentTarget.value);
-          }
-        }}
-      />
+      <div>
+        <ExercisePickerCustomExerciseContent
+          onGoBack={() => props.setIsCustomExerciseDisplayed(false)}
+          settings={props.settings}
+          notes={notes}
+          setNotes={setNotes}
+          hideNotes={true}
+          hideDeleteButton={true}
+          originalExercise={props.exercise}
+          showMuscles={true}
+          exercise={state}
+          isLoggedIn={props.isLoggedIn}
+          dispatch={dispatch}
+          onClose={() => props.setIsCustomExerciseDisplayed(false)}
+          onDelete={() => {}}
+        />
+      </div>
       <div class="py-4 flex">
         <div class="flex-1">
           <Button
@@ -504,26 +467,17 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
             data-cy="custom-exercise-create"
             onClick={(e) => {
               e.preventDefault();
-              if (!name) {
-                setNameError("Name cannot be empty");
-              } else if (props.exercise?.name !== name && Exercise.exists(name, customExercises)) {
-                setNameError("Name already taken");
-              } else {
-                setNameError(undefined);
-                const cleanedSmallImageUrl = smallImageUrl.trim();
-                const cleanedLargeImageUrl = largeImageUrl.trim();
-                props.onCreateOrUpdate(
-                  !!props.customExerciseName,
-                  name,
-                  targetMuscles,
-                  synergistMuscles,
-                  types,
-                  cleanedSmallImageUrl || undefined,
-                  cleanedLargeImageUrl || undefined,
-                  props.exercise
-                );
-                props.setIsCustomExerciseDisplayed(false);
-              }
+              props.onCreateOrUpdate(
+                true,
+                state.name,
+                state.meta.targetMuscles,
+                state.meta.synergistMuscles,
+                state.types || [],
+                state.smallImageUrl,
+                state.largeImageUrl,
+                props.exercise
+              );
+              props.setIsCustomExerciseDisplayed(false);
             }}
           >
             {props.exercise != null ? "Update" : "Create"}
