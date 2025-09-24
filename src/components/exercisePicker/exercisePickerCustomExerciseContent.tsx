@@ -200,6 +200,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
         </div>
         <div className="pt-2">
           <ExercisePickerCustomExerciseMuscles
+            name="target-muscles"
             bottomSheetTitle="Target Muscles"
             label={
               <>
@@ -223,6 +224,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
         </div>
         <div className="pt-2">
           <ExercisePickerCustomExerciseMuscles
+            name="synergist-muscles"
             bottomSheetTitle="Synergist Muscles"
             label={
               <>
@@ -471,8 +473,8 @@ function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseT
           }}
           isHidden={!isOpened}
         >
-          <div className="flex flex-col h-full px-4">
-            <h3 className="pt-1 pb-3 text-base font-semibold text-center">Types</h3>
+          <div className="flex flex-col h-full px-4" style={{ marginTop: "-0.75rem" }}>
+            <h3 className="pt-6 pb-3 text-base font-semibold text-center">Types</h3>
             <div className="flex-1 overflow-y-auto">
               <div className="pb-4">
                 <ExercisePickerOptions
@@ -489,6 +491,19 @@ function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseT
                 />
               </div>
             </div>
+            <div className="py-2 bg-background-default">
+              <Button
+                kind="purple"
+                name="done-selecting-types"
+                className="w-full"
+                buttonSize="md"
+                onClick={() => {
+                  setIsOpened(false);
+                }}
+              >
+                Done
+              </Button>
+            </div>
           </div>
         </BottomSheetOrModal>
       )}
@@ -498,6 +513,7 @@ function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseT
 
 interface IExercisePickerCustomExerciseMusclesProps {
   label: JSX.Element;
+  name: string;
   bottomSheetTitle: string;
   selectedMuscles: IMuscle[];
   onSelect: (muscle: IMuscle) => void;
@@ -506,9 +522,9 @@ interface IExercisePickerCustomExerciseMusclesProps {
 function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExerciseMusclesProps): JSX.Element {
   const [isOpened, setIsOpened] = useState<boolean>(false);
   return (
-    <div className="w-full">
+    <div className="flex flex-col w-full h-full">
       <label className="pb-1 text-sm leading-none text-text-primary">{props.label}</label>
-      <div onClick={() => setIsOpened(true)}>
+      <div onClick={() => setIsOpened(true)} data-cy={`select-${props.name}`}>
         <ExercisePickerCustomExercise2SelectInput selectedValues={props.selectedMuscles} />
       </div>
       {isOpened && (
@@ -519,12 +535,26 @@ function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExercis
           }}
           isHidden={!isOpened}
         >
-          <div className="flex flex-col h-full px-4">
-            <h3 className="pt-1 pb-3 text-base font-semibold text-center">{props.bottomSheetTitle}</h3>
+          <div className="flex flex-col h-full px-4" style={{ marginTop: "-0.75rem" }}>
+            <h3 className="pt-6 pb-3 text-base font-semibold text-center">{props.bottomSheetTitle}</h3>
             <div className="flex-1 overflow-y-auto">
               <div className="pb-4">
                 <ExercisePickerOptionsMuscles selectedValues={props.selectedMuscles} onSelect={props.onSelect} />
               </div>
+            </div>
+            <div className="py-2 bg-background-default">
+              <Button
+                kind="purple"
+                data-cy="done-selecting-muscles"
+                name="done-selecting-muscles"
+                className="w-full"
+                buttonSize="md"
+                onClick={() => {
+                  setIsOpened(false);
+                }}
+              >
+                Done
+              </Button>
             </div>
           </div>
         </BottomSheetOrModal>

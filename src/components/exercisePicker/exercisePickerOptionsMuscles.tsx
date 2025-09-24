@@ -55,6 +55,7 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
                       : "text-base";
                 return (
                   <button
+                    data-cy={`select-muscle-${StringUtils.dashcase(value.label)}`}
                     className={`bg-background-subtle ${fontSize} flex gap-2 h-12 leading-none overflow-hidden bg-no-repeat items-center rounded-lg border text-left ${value.isSelected ? "border-text-purple text-text-purple" : "border-border-neutral"}`}
                     style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
                     onClick={() => props.onSelect(key)}

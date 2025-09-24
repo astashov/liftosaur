@@ -83,12 +83,13 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("custom-exercise-edit-my-exercise-2").click();
   await page.getByTestId("custom-exercise-name-input").fill("My Exercise 3");
-  await page.getByTestId("multiselect-target_muscles").fill("Adductor Magnus");
-  await page.getByTestId("multiselect-option-adductor-magnus").click({ force: true });
-  await page.getByTestId("multiselect-target_muscles").fill("Deltoid Posterior");
-  await page.getByTestId("multiselect-option-deltoid-posterior").click({ force: true });
-  await page.getByTestId("multiselect-synergist_muscles").fill("Obliques");
-  await page.getByTestId("multiselect-option-obliques").click({ force: true });
+  await page.getByTestId("select-target-muscles").click();
+  await page.getByTestId("select-muscle-adductor-magnus").click();
+  await page.getByTestId("select-muscle-deltoid-posterior").click();
+  await page.getByTestId("done-selecting-muscles").click();
+  await page.getByTestId("select-synergist-muscles").click();
+  await page.getByTestId("select-muscle-obliques").click();
+  await page.getByTestId("done-selecting-muscles").click();
   await page.getByTestId("custom-exercise-create").click();
 
   await page.getByTestId("menu-item-my-exercise-3").click();
