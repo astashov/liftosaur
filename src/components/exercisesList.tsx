@@ -4,18 +4,7 @@ import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Equipment } from "../models/equipment";
 import { equipmentName, Exercise } from "../models/exercise";
-import {
-  equipments,
-  exerciseKinds,
-  ICustomExercise,
-  IExerciseKind,
-  IExerciseType,
-  IMuscle,
-  IProgram,
-  ISettings,
-  IWeight,
-  screenMuscles,
-} from "../types";
+import { equipments, exerciseKinds, IExerciseType, IProgram, ISettings, IWeight, screenMuscles } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
 import { ExerciseImage } from "./exerciseImage";
@@ -26,17 +15,15 @@ import { IHistoryRecord } from "../types";
 import { Weight } from "../models/weight";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { LinkButton } from "./linkButton";
-import { ModalCustomExercise } from "./modalExercise";
-import { lb } from "lens-shmens";
-import { updateSettings } from "../models/state";
 import { ObjectUtils } from "../utils/object";
 import { Settings } from "../models/settings";
 import { Program } from "../models/program";
-import { EditProgram } from "../models/editProgram";
+import { BottomSheetCustomExercise } from "./bottomSheetCustomExercise";
 
 interface IExercisesListProps {
   dispatch: IDispatch;
   settings: ISettings;
+  isLoggedIn: boolean;
   program: IProgram;
   history: IHistoryRecord[];
 }
@@ -181,41 +168,16 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
         );
       })}
       {showCustomExerciseModal && (
-        <ModalCustomExercise
+        <BottomSheetCustomExercise
           settings={props.settings}
           onClose={() => setShowCustomExerciseModal(false)}
-          onCreateOrUpdate={(
-            shouldClose: boolean,
-            name: string,
-            targetMuscles: IMuscle[],
-            synergistMuscles: IMuscle[],
-            types: IExerciseKind[],
-            smallImageUrl?: string,
-            largeImageUrl?: string,
-            exercise?: ICustomExercise
-          ) => {
-            const exercises = Exercise.createOrUpdateCustomExercise(
-              props.settings.exercises,
-              name,
-              targetMuscles,
-              synergistMuscles,
-              types,
-              smallImageUrl,
-              largeImageUrl,
-              exercise
-            );
-            updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises), "Create custom exercise");
-            if (exercise) {
-              const newProgram = Program.changeExerciseName(exercise.name, name, props.program, {
-                ...props.settings,
-                exercises,
-              });
-              EditProgram.updateProgram(props.dispatch, newProgram);
-            }
-            if (shouldClose) {
-              setShowCustomExerciseModal(false);
-            }
+          onChange={(action, exercise, notes) => {
+            Exercise.handleCustomExerciseChange(props.dispatch, action, exercise, notes, props.settings, props.program);
           }}
+          dispatch={props.dispatch}
+          isHidden={!showCustomExerciseModal}
+          isLoggedIn={props.isLoggedIn}
+          exercise={Exercise.createCustomExercise("", [], [], [])}
         />
       )}
     </div>

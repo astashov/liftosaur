@@ -4211,49 +4211,6 @@ export namespace Exercise {
     }
   }
 
-  export function mergeExercises(
-    oldExercises: IAllCustomExercises,
-    newExercises: IAllCustomExercises
-  ): IAllCustomExercises {
-    const newKeys = Array.from(new Set([...ObjectUtils.keys(newExercises), ...ObjectUtils.keys(oldExercises)]));
-    return newKeys.reduce<IAllCustomExercises>((acc, name) => {
-      const newExercisesData = newExercises[name];
-      const oldExercisesData = oldExercises[name];
-      if (newExercisesData != null && oldExercisesData == null) {
-        acc[name] = newExercisesData;
-      } else if (newExercisesData == null && oldExercisesData != null) {
-        acc[name] = oldExercisesData;
-      } else if (newExercisesData != null && oldExercisesData != null) {
-        acc[name] = {
-          id: newExercisesData.id,
-          vtype: "custom_exercise",
-          name: newExercisesData.name,
-          defaultEquipment: newExercisesData.defaultEquipment,
-          isDeleted: newExercisesData.isDeleted,
-          meta: {
-            targetMuscles: CollectionUtils.merge(
-              newExercisesData.meta.targetMuscles || [],
-              oldExercisesData.meta.targetMuscles || []
-            ),
-            synergistMuscles: CollectionUtils.merge(
-              newExercisesData.meta.synergistMuscles || [],
-              oldExercisesData.meta.synergistMuscles || []
-            ),
-            bodyParts: CollectionUtils.merge(
-              newExercisesData.meta.bodyParts || [],
-              oldExercisesData.meta.bodyParts || []
-            ),
-            sortedEquipment: newExercisesData.meta.sortedEquipment
-              ? CollectionUtils.merge(newExercisesData.meta.sortedEquipment, [])
-              : undefined,
-          },
-          types: CollectionUtils.merge(newExercisesData.types || [], oldExercisesData.types || []),
-        };
-      }
-      return acc;
-    }, {});
-  }
-
   export function filterExercises<T extends { name: string }>(allExercises: T[], filter: string): T[] {
     return allExercises.filter((e) => StringUtils.fuzzySearch(filter.toLowerCase(), e.name.toLowerCase()));
   }

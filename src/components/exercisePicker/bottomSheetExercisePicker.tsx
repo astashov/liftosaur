@@ -13,6 +13,8 @@ import { ExercisePickerFilter } from "./exercisePickerFilter";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { ExercisePickerSettings, IExercisePickerSettings } from "./exercisePickerSettings";
 import { ExercisePickerCustomExercise } from "./exercisePickerCustomExercise";
+import { lb } from "lens-shmens";
+import { buildCustomLensDispatch } from "../../ducks/types";
 
 interface IProps {
   isHidden: boolean;
@@ -62,12 +64,27 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
         settings={props.settings}
         showMuscles={!!state.showMuscles}
         isLoggedIn={props.isLoggedIn}
-        dispatch={props.dispatch}
+        dispatch={buildCustomLensDispatch(props.dispatch, lb<IExercisePickerState>().pi("editCustomExercise"))}
         originalExercise={originalExercise}
         exercise={state.editCustomExercise}
         onClose={props.onClose}
         onChange={(action, exercise, notes) => {
           props.onChangeCustomExercise(action, exercise, notes);
+        }}
+        onGoBack={(desc) => {
+          if (state.screenStack.length > 1) {
+            props.dispatch(
+              [
+                lb<IExercisePickerState>()
+                  .p("screenStack")
+                  .recordModify((stack) => stack.slice(0, -1)),
+                lb<IExercisePickerState>().p("editCustomExercise").record(undefined),
+              ],
+              desc
+            );
+          } else {
+            props.onClose();
+          }
         }}
       />
     );

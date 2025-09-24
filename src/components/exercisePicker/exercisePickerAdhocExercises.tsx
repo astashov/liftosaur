@@ -14,7 +14,6 @@ import { lb } from "lens-shmens";
 import { exercisePickerSortNames } from "./exercisePickerFilter";
 import { ExercisePickerUtils } from "./exercisePickerUtils";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
-import { UidFactory } from "../../utils/generator";
 
 interface IProps {
   settings: ISettings;
@@ -167,13 +166,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
                 [
                   lb<IExercisePickerState>()
                     .p("editCustomExercise")
-                    .record({
-                      id: UidFactory.generateUid(8),
-                      name: "",
-                      vtype: "custom_exercise",
-                      meta: { targetMuscles: [], synergistMuscles: [], bodyParts: [] },
-                      isDeleted: false,
-                    }),
+                    .record(Exercise.createCustomExercise("", [], [], [])),
                   lb<IExercisePickerState>()
                     .p("screenStack")
                     .recordModify((stack) => [...stack, "customExercise"]),

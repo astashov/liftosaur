@@ -1,15 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import {
-  ICustomExercise,
-  IExerciseKind,
-  IExerciseType,
-  IHistoryRecord,
-  IMuscle,
-  IProgram,
-  ISettings,
-  ISubscription,
-} from "../types";
+import { IExerciseType, IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { INavCommon, updateSettings } from "../models/state";
 import { History } from "../models/history";
 import { Surface } from "./surface";
@@ -25,15 +16,15 @@ import { useRef, useState } from "preact/hooks";
 import { Locker } from "./locker";
 import { HelpExerciseStats } from "./help/helpExerciseStats";
 import { ExerciseDataSettings } from "./exerciseDataSettings";
-import { MuscleGroupsView, ModalCustomExercise } from "./modalExercise";
+import { MuscleGroupsView } from "./modalExercise";
 import { LinkButton } from "./linkButton";
 import { Thunk } from "../ducks/thunks";
 import { Program } from "../models/program";
-import { EditProgram } from "../models/editProgram";
 import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
 import { ExerciseHistory } from "./exerciseHistory";
 import { MarkdownEditorBorderless } from "./markdownEditorBorderless";
 import { GroupHeader } from "./groupHeader";
+import { BottomSheetCustomExercise } from "./bottomSheetCustomExercise";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -90,47 +81,24 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
       }
       addons={
         <>
-          {showCustomExerciseModal && (
-            <ModalCustomExercise
-              exercise={customExercise}
+          {showCustomExerciseModal && customExercise && (
+            <BottomSheetCustomExercise
               settings={props.settings}
               onClose={() => setShowCustomExerciseModal(false)}
-              onCreateOrUpdate={(
-                shouldClose: boolean,
-                name: string,
-                targetMuscles: IMuscle[],
-                synergistMuscles: IMuscle[],
-                types: IExerciseKind[],
-                smallImageUrl?: string,
-                largeImageUrl?: string,
-                exercise?: ICustomExercise
-              ) => {
-                const exercises = Exercise.createOrUpdateCustomExercise(
-                  props.settings.exercises,
-                  name,
-                  targetMuscles,
-                  synergistMuscles,
-                  types,
-                  smallImageUrl,
-                  largeImageUrl,
-                  exercise
-                );
-                updateSettings(
+              onChange={(action, exercise, notes) => {
+                Exercise.handleCustomExerciseChange(
                   props.dispatch,
-                  lb<ISettings>().p("exercises").record(exercises),
-                  "Update custom exercise"
+                  action,
+                  exercise,
+                  notes,
+                  props.settings,
+                  props.currentProgram
                 );
-                if (props.currentProgram && exercise) {
-                  const newProgram = Program.changeExerciseName(exercise.name, name, props.currentProgram, {
-                    ...props.settings,
-                    exercises,
-                  });
-                  EditProgram.updateProgram(props.dispatch, newProgram);
-                }
-                if (shouldClose) {
-                  setShowCustomExerciseModal(false);
-                }
               }}
+              dispatch={props.dispatch}
+              isHidden={!showCustomExerciseModal}
+              isLoggedIn={props.navCommon.userId != null}
+              exercise={customExercise}
             />
           )}
         </>

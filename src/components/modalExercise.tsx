@@ -106,38 +106,6 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
   );
 }
 
-interface IModalCustomExerciseProps {
-  exercise?: ICustomExercise;
-  onClose: () => void;
-  settings: ISettings;
-  onCreateOrUpdate: (
-    shouldClose: boolean,
-    name: string,
-    targetMuscles: IMuscle[],
-    synergistMuscles: IMuscle[],
-    types: IExerciseKind[],
-    smallImageUrl?: string,
-    largeImageUrl?: string,
-    exercise?: ICustomExercise
-  ) => void;
-}
-
-export function ModalCustomExercise(props: IModalCustomExerciseProps): JSX.Element {
-  return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
-      <div style={{ maxWidth: "600px", minWidth: "260px" }}>
-        <CustomExerciseForm
-          backLabel="Cancel"
-          exercise={props.exercise}
-          setIsCustomExerciseDisplayed={() => props.onClose()}
-          settings={props.settings}
-          onCreateOrUpdate={props.onCreateOrUpdate}
-        />
-      </div>
-    </Modal>
-  );
-}
-
 type IExercisePickerContainerProps = Omit<IExercisesListProps, "isSubstitute">;
 
 const ExercisePickerContainer = forwardRef((props: IExercisePickerContainerProps) => {
@@ -263,7 +231,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
       )}
       <input
         ref={textInput}
-        className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-background-default border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+        className="block w-full px-4 py-2 mb-2 text-base leading-normal border border-gray-300 rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"
         type="text"
         value={filter}
         data-cy="exercise-filter-by-name"
@@ -445,7 +413,7 @@ interface IEditCustomExerciseProps {
   customExerciseName?: string;
 }
 
-export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
+function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
   const customExercises = props.settings.exercises;
   const [name, setName] = useState<string>(props.exercise?.name || props.customExerciseName || "");
   const [nameError, setNameError] = useState<string | undefined>(undefined);

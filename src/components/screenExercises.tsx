@@ -32,6 +32,7 @@ export function ScreenExercises(props: IProps): JSX.Element {
     >
       <section className="px-4">
         <ExercisesList
+          isLoggedIn={!!props.navCommon.userId}
           dispatch={props.dispatch}
           settings={props.settings}
           program={Program.fullProgram(props.program, props.settings)}
