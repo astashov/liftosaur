@@ -2106,6 +2106,57 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20250924": {
+    title: <span>🏋️‍♂️ Improved custom exercises</span>,
+    body: (
+      <ul>
+        <li>Added a bunch of changes to address most requests/feedback about the custom exercises:</li>
+        <li>
+          <ul className="pl-4 list-disc">
+            <li>
+              People noted it's hard to add target/synergist muscles because you don't know on the top of your head what
+              muscles exercise works, and from what muscle group each muscle is. So now:
+              <ul className="pl-6 list-decimal">
+                <li>
+                  Each muscle has a <strong>little image</strong>
+                </li>
+                <li>
+                  They're <strong>grouped by a muscle group</strong>
+                </li>
+                <li>
+                  There's <strong>"Autofill"</strong> button, that tries to prefill all the muscles/types based on the
+                  exercise name using AI.
+                </li>
+              </ul>
+            </li>
+
+            <li>
+              Added ability to <strong>add exercise notes</strong> to the custom exercise form as well
+            </li>
+            <li>
+              You now can <strong>upload an image</strong> for a custom exercise from your phone (it requires being
+              signed up though, to avoid abusing API for uploading images).
+            </li>
+            <li>
+              You also can pick an image from <strong>"Image library"</strong> for your custom exercise. The Image
+              Library has images of built-in exercises, as well as previously uploaded ones.
+            </li>
+            <li>
+              You can <strong>clone from existing</strong> built-in (or existing custom) exercises, and it will prefill
+              the image, the muscles and the types of the cloned exercise to your custom one.
+            </li>
+          </ul>
+        </li>
+        <li>
+          There's one <strong>breaking change</strong> though - you won't be able to specify URLs of images anymore for
+          custom exercises. It was a temporary hack (which survived for like 2 years!), and external images sometimes
+          don't work if you generate workout or program images. It still will work for existing exercises, but you won't
+          be able to change their image URLs anymore. You can only change the image there by uploading a new one, or
+          picking from a library.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
