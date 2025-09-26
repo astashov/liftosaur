@@ -1097,7 +1097,8 @@ export namespace Progress {
     progress: IHistoryRecord,
     program: IEvaluatedProgram,
     day: number,
-    settings: ISettings
+    settings: ISettings,
+    programExerciseIds?: string[]
   ): IHistoryRecord {
     const programDay = Program.getProgramDay(program, day);
     if (!programDay) {
@@ -1105,6 +1106,9 @@ export namespace Progress {
     }
     const newEntries = progress.entries.map((entry) => {
       if (entry.programExerciseId == null) {
+        return entry;
+      }
+      if (programExerciseIds != null && !programExerciseIds.includes(entry.programExerciseId)) {
         return entry;
       }
       const programExercise = Program.getProgramExerciseForKeyAndDay(program, day, entry.programExerciseId);

@@ -909,7 +909,13 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const progress = state.progress[0];
     if (progress != null) {
       const program = Program.evaluate(Program.getProgram(state, progress.programId)!, state.storage.settings);
-      let newProgress = Progress.applyProgramDay(progress, program, progress.day, state.storage.settings);
+      let newProgress = Progress.applyProgramDay(
+        progress,
+        program,
+        progress.day,
+        state.storage.settings,
+        action.programExerciseIds
+      );
       newProgress = Progress.runInitialUpdateScripts(
         newProgress,
         action.programExerciseIds,
