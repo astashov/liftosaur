@@ -86,9 +86,6 @@ export class ImageUploader {
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
 
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
 
@@ -117,11 +114,15 @@ export class ImageUploader {
           ctx.drawImage(img, xOffset, yOffset, imageWidth, imageHeight);
         }
 
+        const isPng = file.type === "image/png";
+        const outputType = isPng ? "image/png" : "image/jpeg";
+        const quality = isPng ? undefined : 0.95;
+
         canvas.toBlob(
           (blob) => {
             if (blob) {
               const resizedFile = new File([blob], file.name, {
-                type: "image/jpeg",
+                type: outputType,
                 lastModified: Date.now(),
               });
               console.log(`Processed image from ${width}x${height} to ${canvasWidth}x${canvasHeight} canvas`);
@@ -130,8 +131,8 @@ export class ImageUploader {
               reject(new Error("Failed to create blob from canvas"));
             }
           },
-          "image/jpeg",
-          0.95
+          outputType,
+          quality
         );
       };
 

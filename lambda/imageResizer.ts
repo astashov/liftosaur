@@ -65,26 +65,37 @@ export const handler = async (event: S3Event): Promise<void> => {
         continue;
       }
 
-      const resizedImage = await image
-        .resize(canvasWidth, canvasHeight, {
-          fit: "contain",
-          background: { r: 255, g: 255, b: 255, alpha: 1 },
-          withoutEnlargement: true,
-        })
-        .jpeg({ quality: 90 })
-        .toBuffer();
+      const isPng = metadata.format === "png";
+      const background = isPng
+        ? { r: 0, g: 0, b: 0, alpha: 0 }
+        : { r: 255, g: 255, b: 255, alpha: 1 };
+
+      let resizedImage = image.resize(canvasWidth, canvasHeight, {
+        fit: "contain",
+        background,
+        withoutEnlargement: true,
+      });
+
+      if (isPng) {
+        resizedImage = resizedImage.png({ quality: 90 });
+      } else {
+        resizedImage = resizedImage.jpeg({ quality: 90 });
+      }
+
+      const buffer = await resizedImage.toBuffer();
+      const contentType = isPng ? "image/png" : "image/jpeg";
 
       await di.s3.putObject({
         bucket,
         key,
-        body: resizedImage,
+        body: buffer,
         opts: {
-          contentType: "image/jpeg",
+          contentType,
         },
       });
 
       di.log.log(
-        `Successfully processed ${key} from ${metadata.width}x${metadata.height} to ${canvasWidth}x${canvasHeight} canvas with white padding`
+        `Successfully processed ${key} from ${metadata.width}x${metadata.height} to ${canvasWidth}x${canvasHeight} canvas with ${isPng ? "transparent" : "white"} padding`
       );
     } catch (error) {
       di.log.log(`Error resizing ${key}:`, error);
