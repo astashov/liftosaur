@@ -5,6 +5,7 @@ import { IStorageUpdate2 } from "../utils/sync";
 import { IExportedProgram } from "../models/program";
 import { CollectionUtils } from "../utils/collection";
 import { Encoder } from "../utils/encoder";
+import { IApplePromotionalOffer } from "../models/state";
 
 export interface IGetStorageResponse {
   email: string;
@@ -330,17 +331,36 @@ export class Service {
     }
   }
 
-  public async postClaimCoupon(code: string): Promise<IEither<{ key: string; expires: number }, IRedeemCouponError>> {
+  public async postClaimCoupon(
+    code: string,
+    platform?: "ios" | "android"
+  ): Promise<
+    IEither<
+      {
+        key?: string;
+        expires?: number;
+        applePromotionalOffer?: IApplePromotionalOffer;
+      },
+      IRedeemCouponError
+    >
+  > {
     const url = UrlUtils.build(`${__API_HOST__}/api/coupon/claim/${code}`);
     const result = await this.client(url.toString(), {
       method: "POST",
       credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ platform }),
     });
     const json = await result.json();
     if (result.status === 200) {
-      const { key, expires } = json.data || {};
+      const { key, expires, applePromotionalOffer } = json.data || {};
       if (key && expires) {
-        return { success: true, data: { key, expires } };
+        return { success: true, data: { key, expires, applePromotionalOffer } };
+      } else if (applePromotionalOffer) {
+        // Only promotional offer data returned
+        return { success: true, data: { applePromotionalOffer } };
       }
     } else if ("error" in json) {
       const error = json.error as IRedeemCouponError;

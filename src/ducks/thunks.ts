@@ -1020,10 +1020,26 @@ export namespace Thunk {
   export function redeemCoupon(code: string): IThunk {
     return async (dispatch, getState, env) => {
       dispatch(postevent("redeem-coupon"));
-      const result = await load(dispatch, "Claiming coupon", () => env.service.postClaimCoupon(code));
+      const platform = SendMessage.isIos() ? "ios" : SendMessage.isAndroid() ? "android" : undefined;
+      const result = await load(dispatch, "Claiming coupon", () => env.service.postClaimCoupon(code, platform));
       if (result.success) {
-        const { key, expires } = result.data;
-        finishFreeAccess(dispatch, key, expires);
+        const { key, expires, applePromotionalOffer } = result.data;
+        if (applePromotionalOffer) {
+          console.log("Apple promotional offer data:", applePromotionalOffer);
+          if (key && expires) {
+            finishFreeAccess(dispatch, key, expires);
+          } else {
+            updateState(
+              dispatch,
+              [lb<IState>().p("applePromotionalOffer").record(applePromotionalOffer)],
+              "Set apple promotional offer"
+            );
+            lg("ls-coupon-applied", { code });
+            alert("Coupon has been applied! Proceed with to with a discount.");
+          }
+        } else if (key && expires) {
+          finishFreeAccess(dispatch, key, expires);
+        }
       } else {
         switch (result.error) {
           case "not_authorized": {

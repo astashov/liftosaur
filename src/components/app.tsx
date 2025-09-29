@@ -306,6 +306,7 @@ export function AppView(props: IProps): JSX.Element | null {
     content = (
       <ScreenSubscription
         prices={state.prices}
+        applePromotionalOffer={state.applePromotionalOffer}
         subscription={state.storage.subscription}
         subscriptionLoading={state.subscriptionLoading}
         dispatch={dispatch}

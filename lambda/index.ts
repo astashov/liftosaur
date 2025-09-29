@@ -7,6 +7,7 @@ import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import { Utils } from "./utils";
+import { ApplePromotionalOfferSigner } from "./utils/applePromotionalOfferSigner";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
 import { IPartialStorage, IProgram, IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
@@ -84,6 +85,7 @@ import { ClaudeProvider } from "./utils/llms/claude";
 import { MuscleGenerator } from "./utils/muscleGenerator";
 import { LlmMuscles } from "./utils/llms/llmMuscles";
 import { AiMuscleCacheDao } from "./dao/aiMuscleCacheDao";
+import { IApplePromotionalOffer } from "../src/models/state";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1023,10 +1025,9 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
 }) => {
   const { event, di } = payload;
   const couponDao = new CouponDao(di);
+  const bodyJson = getBodyJson(event);
+  const { platform } = bodyJson;
   const currentUserId = await getCurrentUserId(payload.event, payload.di);
-  if (currentUserId == null) {
-    return ResponseUtils.json(401, event, { error: "not_authorized" });
-  }
 
   const coupon = await couponDao.get(params.code);
   if (!coupon) {
@@ -1037,9 +1038,30 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     return ResponseUtils.json(400, event, { error: "coupon_already_claimed" });
   }
 
+  let applePromotionalOffer: IApplePromotionalOffer | undefined;
+  if (platform === "ios" && coupon.applePromotionalOfferId) {
+    if (!coupon.appleProductId) {
+      di.log.log(`Coupon ${params.code} has promotional offer but no product ID`);
+      return ResponseUtils.json(500, event, { error: "Invalid coupon configuration" });
+    }
+    const applePromoSigner = new ApplePromotionalOfferSigner(di);
+    applePromotionalOffer = await applePromoSigner.generateSignature(
+      coupon.applePromotionalOfferId,
+      currentUserId || "",
+      coupon.appleProductId
+    );
+    return ResponseUtils.json(200, event, { data: { applePromotionalOffer } });
+  }
+
+  if (currentUserId == null) {
+    return ResponseUtils.json(401, event, { error: "not_authorized" });
+  }
+
   await couponDao.claim(coupon);
   const freeuser = await new FreeUserDao(di).create(currentUserId, Date.now() + coupon.ttlMs, true, coupon.code);
-  return ResponseUtils.json(200, event, { data: { key: freeuser.key, expires: freeuser.expires } });
+  return ResponseUtils.json(200, event, {
+    data: { key: freeuser.key, expires: freeuser.expires, applePromotionalOffer },
+  });
 };
 
 const logEndpoint = Endpoint.build("/api/log");

@@ -67,6 +67,13 @@ export interface IStateErrors {
   };
 }
 
+export interface IApplePromotionalOffer {
+  offerId: string;
+  signature: string;
+  nonce: string;
+  timestamp: number;
+}
+
 export interface IState {
   user?: IUser;
   storage: IStorage;
@@ -98,6 +105,7 @@ export interface IState {
   reportedCorruptedStorage?: boolean;
   nosync: boolean;
   selectedGymId?: string;
+  applePromotionalOffer?: IApplePromotionalOffer;
 }
 
 export interface ILocalStorage {

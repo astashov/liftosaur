@@ -10,6 +10,7 @@
 /cypress/screenshots
 /backup
 /.claude
+/pricepointscache
 CLAUDE.md
 
 /liftosaur-cdk/*.d.ts

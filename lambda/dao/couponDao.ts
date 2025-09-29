@@ -16,6 +16,8 @@ export interface ICouponDao {
   ttlMs: number;
   isClaimed: boolean;
   info?: string;
+  applePromotionalOfferId?: string;
+  appleProductId?: string;
 }
 
 export class CouponDao {
@@ -40,13 +42,21 @@ export class CouponDao {
     return coupon;
   }
 
-  public async create(ttlMs: number, info?: string): Promise<ICouponDao> {
+  public async create(
+    ttlMs: number,
+    info?: string,
+    applePromotionalData?: {
+      applePromotionalOfferId: string;
+      appleProductId: string;
+    }
+  ): Promise<ICouponDao> {
     const env = Utils.getEnv();
     const coupon: ICouponDao = {
       code: UidFactory.generateUid(8),
       ttlMs,
       isClaimed: false,
       info,
+      ...applePromotionalData,
     };
     await this.di.dynamo.put({
       tableName: couponsTableNames[env].coupons,

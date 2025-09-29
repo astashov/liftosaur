@@ -31,6 +31,12 @@ export class MockSecretsUtil implements ISecretsUtil {
   public async getAppleIssuerId(): Promise<string> {
     return "";
   }
+  public async getApplePromotionalOfferKeyId(): Promise<string> {
+    return "";
+  }
+  public async getApplePromotionalOfferPrivateKey(): Promise<string> {
+    return "";
+  }
   public async getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub> {
     return {
       type: "",

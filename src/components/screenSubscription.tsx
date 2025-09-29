@@ -2,7 +2,7 @@ import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
-import { INavCommon, IState, ISubscriptionLoading, updateState } from "../models/state";
+import { IApplePromotionalOffer, INavCommon, IState, ISubscriptionLoading, updateState } from "../models/state";
 import { IconBarbell } from "./icons/iconBarbell";
 import { IconGraphs } from "./icons/iconGraphs";
 import { Button } from "./button";
@@ -25,6 +25,7 @@ import { IconW } from "./icons/iconW";
 interface IProps {
   prices?: Partial<Record<string, string>>;
   subscription: ISubscription;
+  applePromotionalOffer?: IApplePromotionalOffer;
   subscriptionLoading?: ISubscriptionLoading;
   dispatch: IDispatch;
   navCommon: INavCommon;
@@ -232,7 +233,10 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       onClick={() => {
                         if (SendMessage.isIos() || SendMessage.isAndroid()) {
                           lg("start-subscription-monthly");
-                          SendMessage.toIos({ type: "subscribeMontly" });
+                          SendMessage.toIos({
+                            type: "subscribeMontly",
+                            offer: JSON.stringify(props.applePromotionalOffer),
+                          });
                           SendMessage.toAndroid({ type: "subscribeMontly" });
                           updateState(
                             props.dispatch,

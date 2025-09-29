@@ -29,6 +29,8 @@ interface IAllSecrets {
   googleServiceAccountPubsub: IGoogleServiceAccountPubsub;
   openAiKey: string;
   anthropicApiKey: string;
+  applePromotionalOfferKeyId: string;
+  applePromotionalOfferPrivateKey: string;
 }
 
 export interface ISecretsUtil {
@@ -44,6 +46,8 @@ export interface ISecretsUtil {
   getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub>;
   getOpenAiKey(): Promise<string>;
   getAnthropicKey(): Promise<string>;
+  getApplePromotionalOfferKeyId(): Promise<string>;
+  getApplePromotionalOfferPrivateKey(): Promise<string>;
 }
 
 export class SecretsUtil implements ISecretsUtil {
@@ -119,6 +123,14 @@ export class SecretsUtil implements ISecretsUtil {
 
   public async getAppleIssuerId(): Promise<string> {
     return this.cache("appleIssuerId", () => this.getSecret("appleIssuerId"));
+  }
+
+  public async getApplePromotionalOfferKeyId(): Promise<string> {
+    return this.cache("applePromotionalOfferKeyId", () => this.getSecret("applePromotionalOfferKeyId"));
+  }
+
+  public async getApplePromotionalOfferPrivateKey(): Promise<string> {
+    return this.cache("applePromotionalOfferPrivateKey", () => this.getSecret("applePromotionalOfferPrivateKey"));
   }
 
   public async getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub> {
