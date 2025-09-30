@@ -26,6 +26,7 @@ import { ImageCacher } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
 import { Subscriptions } from "./utils/subscriptions";
+import * as ClientSubscription from "../src/utils/subscriptions";
 import { NodeEncoder } from "./utils/nodeEncoder";
 import { renderProgramHtml } from "./program";
 import { IExportedProgram, Program } from "../src/models/program";
@@ -103,6 +104,7 @@ export interface IStatsUserData {
   userId: string;
   email?: string;
   userTs?: number;
+  isSubscribed?: boolean;
   firstAction: { ts: number; name: string };
   lastAction: { ts: number; name: string };
 }
@@ -2349,10 +2351,16 @@ export const statsLambdaHandler = (diBuilder: () => IDI): ((event: {}) => Promis
       const userLogRecords = CollectionUtils.sortBy(logRecordsByUserId[userId] || [], "ts", true);
       const lastAction = userLogRecords[0];
       const firstAction = userLogRecords[userLogRecords.length - 1];
+      const userSubscriptions = usersById[userId]?.storage.subscription;
+      const isSubscribed =
+        userSubscriptions != null
+          ? ClientSubscription.Subscriptions.hasSubscription(userSubscriptions)
+          : userLogRecords.some((lr) => (lr.subscriptions || []).length > 0);
       return {
         userId,
         email: usersById[userId]?.email,
         userTs: usersById[userId]?.createdAt,
+        isSubscribed: isSubscribed,
         firstAction: { name: firstAction.action, ts: firstAction.ts },
         lastAction: { name: lastAction.action, ts: lastAction.ts },
       };
@@ -2388,6 +2396,10 @@ export const statsLambdaHandler = (diBuilder: () => IDI): ((event: {}) => Promis
     }
 
     const activeMontlyCount = data.reduce((acc, dayGroup) => acc + dayGroup.length, 0);
+    const activeMonthlySubscribedCount = data.reduce(
+      (acc, dayGroup) => acc + dayGroup.filter((i) => i.isSubscribed).length,
+      0
+    );
     const activeMonthlyRegisteredCount = data.reduce(
       (acc, dayGroup) => acc + dayGroup.filter((i) => i.email != null).length,
       0
@@ -2404,6 +2416,7 @@ export const statsLambdaHandler = (diBuilder: () => IDI): ((event: {}) => Promis
 
     const dayGroup = data[0];
     const activeCount = dayGroup.length;
+    const activeSubscribedCount = dayGroup.filter((i) => i.isSubscribed).length;
     const activeRegisteredCount = dayGroup.filter((i) => i.email != null).length;
     const newThisDay = dayGroup.filter((i) => Date.now() - i.firstAction.ts < 1000 * 60 * 60 * 24).length;
     const newRegisteredThisDay = dayGroup.filter(
@@ -2415,11 +2428,11 @@ export const statsLambdaHandler = (diBuilder: () => IDI): ((event: {}) => Promis
     let stats = statsFile?.toString();
     if (!stats) {
       stats =
-        "date,monthly,monthly_registered,monthly_new,monthly_new_registered,daily,daily_registered,daily_new,daily_new_registered\n";
+        "date,monthly,monthly_subscribed,monthly_registered,monthly_new,monthly_new_registered,daily,daily_subscribed,daily_registered,daily_new,daily_new_registered\n";
     }
     stats += `${DateUtils.formatYYYYMMDD(
       new Date()
-    )},${activeMontlyCount},${activeMonthlyRegisteredCount},${newThisMonth},${newRegisteredThisMonth},${activeCount},${activeRegisteredCount},${newThisDay},${newRegisteredThisDay}\n`;
+    )},${activeMontlyCount},${activeMonthlySubscribedCount},${activeMonthlyRegisteredCount},${newThisMonth},${newRegisteredThisMonth},${activeCount},${activeSubscribedCount},${activeRegisteredCount},${newThisDay},${newRegisteredThisDay}\n`;
     await di.s3.putObject({
       bucket: bucket,
       key: "stats.csv",
