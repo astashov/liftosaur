@@ -4118,6 +4118,7 @@ export namespace Exercise {
     allExercises: IAllCustomExercises,
     exercise: ICustomExercise
   ): IAllCustomExercises {
+    exercise = { ...exercise, name: exercise.name.trim() };
     const existingExercise = allExercises[exercise.id];
     if (existingExercise) {
       return { ...allExercises, [exercise.id]: { ...existingExercise, ...exercise, isDeleted: false } };
