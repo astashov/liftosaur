@@ -129,7 +129,11 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
               <button
                 className="p-2 mr-2 nm-delete-progress ls-delete-progress"
                 onClick={() => {
-                  if (confirm("Are you sure?")) {
+                  if (
+                    confirm(
+                      `Are you sure you want to delete this ${Progress.isCurrent(props.progress) ? "ONGOING" : "PAST"} workout?`
+                    )
+                  ) {
                     props.dispatch({ type: "DeleteProgress" });
                   }
                 }}
@@ -145,7 +149,11 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 onClick={() => {
                   if (
                     (Progress.isCurrent(props.progress) && Progress.isFullyFinishedSet(props.progress)) ||
-                    confirm("Are you sure?")
+                    confirm(
+                      Progress.isCurrent(props.progress)
+                        ? "Are you sure you want to FINISH this workout? Some sets are not marked as completed."
+                        : "Are you sure you want to SAVE this PAST workout?"
+                    )
                   ) {
                     SendMessage.toIosAndAndroid({ type: "pauseWorkout" });
                     props.dispatch({ type: "FinishProgramDayAction" });
