@@ -495,6 +495,9 @@ function WorkoutExerciseSetTargetField(props: IWorkoutExerciseSetTargetFieldProp
         <WorkoutExercisePlatesCalculator set={props.set} settings={props.settings} exerciseType={props.exerciseType} />
       );
     }
+    case "e1rm": {
+      return <WorkoutExerciseE1RMSet set={props.set} settings={props.settings} />;
+    }
   }
   return <div />;
 }
@@ -530,6 +533,29 @@ function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculator
       >
         {formattedPlates}
       </span>
+    </span>
+  );
+}
+
+interface IWorkoutExerciseE1RMSetProps {
+  set: ISet;
+  settings: ISettings;
+}
+
+function WorkoutExerciseE1RMSet(props: IWorkoutExerciseE1RMSetProps): JSX.Element {
+  const set = props.set;
+  const isCompleted = !!set.isCompleted;
+  const weight = set.completedWeight ?? set.weight ?? set.originalWeight;
+  const reps = set.completedReps ?? set.reps;
+  const rpe = set.completedRpe ?? set.rpe ?? 10;
+  if (weight == null || Weight.isPct(weight) || reps == null) {
+    return <span className="text-sm break-all">Unknown</span>;
+  }
+  const e1RM = Weight.getOneRepMax(weight, reps, rpe);
+  return (
+    <span className={`text-sm break-all ${isCompleted ? "" : "opacity-40"}`}>
+      <span className="font-semibold">{n(e1RM.value)}</span>
+      <span className="text-xs">{e1RM.unit}</span>
     </span>
   );
 }

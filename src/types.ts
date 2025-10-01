@@ -1199,7 +1199,7 @@ export const TGym = t.type(
 );
 export type IGym = t.TypeOf<typeof TGym>;
 
-export const targetTypes = ["target", "lasttime", "platescalculator"] as const;
+export const targetTypes = ["target", "lasttime", "platescalculator", "e1rm"] as const;
 export const TTargetType = t.keyof(
   targetTypes.reduce<Record<IArrayElement<typeof targetTypes>, null>>(
     (memo, exerciseType) => {
