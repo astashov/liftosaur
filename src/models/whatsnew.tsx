@@ -2157,6 +2157,19 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20251001": {
+    title: <span>Added estimated 1 Rep Max column to the workout screen</span>,
+    body: (
+      <ul>
+        <li>
+          If you tap on the swap icon at the second column header (where the "Target" is) - the last variant would be
+          the estimated 1 Rep Max for the set. Would be semi-transparent for non-completed set, and solid for completed
+          set. It uses completed reps/weight/RPE for calculation, but if not available yet - uses target
+          reps/weight/RPE.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
