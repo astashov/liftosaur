@@ -62,7 +62,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
               className="absolute bottom-0 right-0 text-xs text-black"
               style={{ bottom: "0px", right: "0px", padding: "1px 3px" }}
             >
-              <div className="absolute inset-0 opacity-75 bg-background-image" />
+              <div className="absolute inset-0 rounded-md opacity-75 bg-lightgray-50" />
               <div className="relative z-10">
                 <strong className="font-semibold">{completedSetsCount}</strong>/
                 <strong className="font-semibold">{totalSetsCount}</strong>
