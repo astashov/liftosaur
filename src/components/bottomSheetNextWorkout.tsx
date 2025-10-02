@@ -63,7 +63,7 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
               />
             )}
           </div>
-          <div className="absolute bottom-0 left-0 flex justify-between w-full px-4 pt-4 pb-6 text-sm">
+          <div className="absolute bottom-0 left-0 flex justify-between w-full px-4 pt-4 pb-6 text-sm bg-background-default">
             <div>
               <LinkButton name="change-next-day" data-cy="change-next-day" onClick={() => setShowChangeWorkout(true)}>
                 <IconSwap color={Tailwind.colors().blue[400]} className="inline-block pr-1" />
