@@ -239,15 +239,13 @@ interface IGroupLabelProps {
 }
 
 function GroupLabel(props: IGroupLabelProps): JSX.Element {
+  console.log("Group", props.group);
   const groupSetVariationsPerWeekDay: Record<string, Set<number>> = {};
   for (const setData of props.group) {
     const key = `${setData.week}-${setData.dayInWeek}`;
     groupSetVariationsPerWeekDay[key] = groupSetVariationsPerWeekDay[key] || new Set();
     groupSetVariationsPerWeekDay[key].add(setData.setVariation);
   }
-  const allSetVariationsEqual = ObjectUtils.entries(groupSetVariationsPerWeekDay).every(([key, setVariations]) => {
-    return SetUtils.areEqual(props.setVariationsPerWeekDay[key], setVariations);
-  });
 
   const groupSetsPerWeekDaySetVariation: Record<string, Set<number>> = {};
   for (const setData of props.group) {
@@ -255,8 +253,30 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
     groupSetsPerWeekDaySetVariation[key] = groupSetsPerWeekDaySetVariation[key] || new Set();
     groupSetsPerWeekDaySetVariation[key].add(setData.set);
   }
+
+  const allSetVariationsEqual = ObjectUtils.entries(groupSetVariationsPerWeekDay).every(([key, setVariations]) => {
+    const allSetVariationsForWeekDay = props.setVariationsPerWeekDay[key];
+    if (
+      setVariations.size !== allSetVariationsForWeekDay.size ||
+      !SetUtils.areEqual(allSetVariationsForWeekDay, setVariations)
+    ) {
+      return false;
+    }
+    // Also check that all sets within each set variation are equal
+    for (const setVariation of setVariations) {
+      const setKey = `${key}-${setVariation}`;
+      const groupSets = groupSetsPerWeekDaySetVariation[setKey];
+      const allSets = props.setsPerWeekDaySetVariation[setKey];
+      if (!groupSets || groupSets.size !== allSets.size || !SetUtils.areEqual(allSets, groupSets)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
   const allSetsEqual = ObjectUtils.entries(groupSetsPerWeekDaySetVariation).every(([key, sets]) => {
-    return SetUtils.areEqual(props.setsPerWeekDaySetVariation[key], sets);
+    const allSetsForWeekDaySetVariation = props.setsPerWeekDaySetVariation[key];
+    return sets.size === allSetsForWeekDaySetVariation.size && SetUtils.areEqual(allSetsForWeekDaySetVariation, sets);
   });
 
   if (props.allWeeksEqual && props.allDaysEqual && allSetVariationsEqual && allSetsEqual) {
@@ -264,12 +284,6 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
   }
 
   const parts = props.group.map<[string, number][]>((setData) => {
-    const setVariationKey = `${setData.week}-${setData.dayInWeek}`;
-    const areSetVariationsEqual = SetUtils.areEqual(
-      groupSetVariationsPerWeekDay[setVariationKey],
-      props.setVariationsPerWeekDay[setVariationKey]
-    );
-
     const setKey = `${setData.week}-${setData.dayInWeek}-${setData.setVariation}`;
     const areSetsEqual = SetUtils.areEqual(
       groupSetsPerWeekDaySetVariation[setKey],
@@ -278,14 +292,16 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
     return CollectionUtils.compact([
       props.allWeeksEqual ? undefined : ["Week", setData.week],
       props.allDaysEqual ? undefined : ["Day", setData.dayInWeek],
-      areSetVariationsEqual ? undefined : ["Set Variation", setData.setVariation],
+      allSetVariationsEqual ? undefined : ["Set Variation", setData.setVariation],
       areSetsEqual ? undefined : ["Set", setData.set],
     ]);
   });
+  console.log("Parts", parts);
   const collapsedParts = collapseLastElementRange(parts);
   const uniqueParts = Array.from(
     new Set(collapsedParts.map((part) => part.map(([key, value]) => `${key} ${value}`).join(", ")))
   );
+  console.log("Unique parts", uniqueParts);
 
   return (
     <ul>
@@ -487,7 +503,7 @@ function collapseLastElementRange(data: [string, number][][]): [string, string][
     const sameDepth = prev.length === curr.length;
     const sameLastKey = prevLast[0] === currLast[0];
     const samePrefix = isSamePrefix(prev, curr);
-    const isConsecutive = currLast[1] === prevLast[1] + 1;
+    const isConsecutive = currLast[1] === prevLast[1] || currLast[1] === prevLast[1] + 1;
 
     const canGroup = sameDepth && sameLastKey && isConsecutive && (curr.length === 1 || samePrefix);
 
