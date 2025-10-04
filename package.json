@@ -85,6 +85,7 @@
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
     "globals": "^16.3.0",
+    "googleapis": "^161.0.0",
     "jimp": "^0.16.1",
     "knip": "^5.44.0",
     "lambda-local": "^1.7.4",

@@ -66,9 +66,7 @@ export const handler = async (event: S3Event): Promise<void> => {
       }
 
       const isPng = metadata.format === "png";
-      const background = isPng
-        ? { r: 0, g: 0, b: 0, alpha: 0 }
-        : { r: 255, g: 255, b: 255, alpha: 1 };
+      const background = isPng ? { r: 0, g: 0, b: 0, alpha: 0 } : { r: 255, g: 255, b: 255, alpha: 1 };
 
       let resizedImage = image.resize(canvasWidth, canvasHeight, {
         fit: "contain",
