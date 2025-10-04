@@ -1023,20 +1023,17 @@ export namespace Thunk {
       const platform = SendMessage.isIos() ? "ios" : SendMessage.isAndroid() ? "android" : undefined;
       const result = await load(dispatch, "Claiming coupon", () => env.service.postClaimCoupon(code, platform));
       if (result.success) {
-        const { key, expires, applePromotionalOffer } = result.data;
-        if (applePromotionalOffer) {
-          console.log("Apple promotional offer data:", applePromotionalOffer);
-          if (key && expires) {
-            finishFreeAccess(dispatch, key, expires);
-          } else {
-            updateState(
-              dispatch,
-              [lb<IState>().p("applePromotionalOffer").record(applePromotionalOffer)],
-              "Set apple promotional offer"
-            );
-            lg("ls-coupon-applied", { code });
-            alert("Coupon has been applied! Proceed with to with a discount.");
-          }
+        const { key, expires, appleOffer, googleOffer } = result.data;
+        if (appleOffer) {
+          console.log("Apple promotional offer data:", appleOffer);
+          updateState(dispatch, [lb<IState>().p("appleOffer").record(appleOffer)], "Set apple promotional offer");
+          lg("ls-coupon-applied", { code, type: "apple" });
+          alert("Coupon has been applied! Proceed to purchase now.");
+        } else if (googleOffer) {
+          console.log("Google promotional offer data:", googleOffer);
+          updateState(dispatch, [lb<IState>().p("googleOffer").record(googleOffer)], "Set google promotional offer");
+          lg("ls-coupon-applied", { code, type: "google" });
+          alert("Coupon has been applied! Proceed to purchase now.");
         } else if (key && expires) {
           finishFreeAccess(dispatch, key, expires);
         }

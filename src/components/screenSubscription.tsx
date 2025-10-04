@@ -2,7 +2,7 @@ import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
-import { IApplePromotionalOffer, INavCommon, IState, ISubscriptionLoading, updateState } from "../models/state";
+import { IAppleOffer, IGoogleOffer, INavCommon, IState, ISubscriptionLoading, updateState } from "../models/state";
 import { IconBarbell } from "./icons/iconBarbell";
 import { IconGraphs } from "./icons/iconGraphs";
 import { Button } from "./button";
@@ -25,7 +25,8 @@ import { IconW } from "./icons/iconW";
 interface IProps {
   prices?: Partial<Record<string, string>>;
   subscription: ISubscription;
-  applePromotionalOffer?: IApplePromotionalOffer;
+  appleOffer?: IAppleOffer;
+  googleOffer?: IGoogleOffer;
   subscriptionLoading?: ISubscriptionLoading;
   dispatch: IDispatch;
   navCommon: INavCommon;
@@ -235,9 +236,12 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                           lg("start-subscription-monthly");
                           SendMessage.toIos({
                             type: "subscribeMontly",
-                            offer: JSON.stringify(props.applePromotionalOffer),
+                            offer: JSON.stringify(props.appleOffer?.monthly),
                           });
-                          SendMessage.toAndroid({ type: "subscribeMontly" });
+                          SendMessage.toAndroid({
+                            type: "subscribeMontly",
+                            offer: JSON.stringify(props.googleOffer?.monthly),
+                          });
                           updateState(
                             props.dispatch,
                             [lb<IState>().p("subscriptionLoading").record({ monthly: true })],
@@ -265,8 +269,14 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       onClick={() => {
                         if (SendMessage.isIos() || SendMessage.isAndroid()) {
                           lg("start-subscription-yearly");
-                          SendMessage.toIos({ type: "subscribeYearly" });
-                          SendMessage.toAndroid({ type: "subscribeYearly" });
+                          SendMessage.toIos({
+                            type: "subscribeYearly",
+                            offer: JSON.stringify(props.appleOffer?.yearly),
+                          });
+                          SendMessage.toAndroid({
+                            type: "subscribeYearly",
+                            offer: JSON.stringify(props.googleOffer?.yearly),
+                          });
                           updateState(
                             props.dispatch,
                             [lb<IState>().p("subscriptionLoading").record({ yearly: true })],

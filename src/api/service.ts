@@ -5,7 +5,7 @@ import { IStorageUpdate2 } from "../utils/sync";
 import { IExportedProgram } from "../models/program";
 import { CollectionUtils } from "../utils/collection";
 import { Encoder } from "../utils/encoder";
-import { IApplePromotionalOffer } from "../models/state";
+import { IAppleOffer, IGoogleOffer } from "../models/state";
 
 export interface IGetStorageResponse {
   email: string;
@@ -339,7 +339,8 @@ export class Service {
       {
         key?: string;
         expires?: number;
-        applePromotionalOffer?: IApplePromotionalOffer;
+        appleOffer?: IAppleOffer;
+        googleOffer?: IGoogleOffer;
       },
       IRedeemCouponError
     >
@@ -355,12 +356,13 @@ export class Service {
     });
     const json = await result.json();
     if (result.status === 200) {
-      const { key, expires, applePromotionalOffer } = json.data || {};
+      const { key, expires, appleOffer, googleOffer } = json.data || {};
       if (key && expires) {
-        return { success: true, data: { key, expires, applePromotionalOffer } };
-      } else if (applePromotionalOffer) {
-        // Only promotional offer data returned
-        return { success: true, data: { applePromotionalOffer } };
+        return { success: true, data: { key, expires } };
+      } else if (appleOffer) {
+        return { success: true, data: { appleOffer } };
+      } else if (googleOffer) {
+        return { success: true, data: { googleOffer } };
       }
     } else if ("error" in json) {
       const error = json.error as IRedeemCouponError;

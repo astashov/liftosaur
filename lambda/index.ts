@@ -85,7 +85,6 @@ import { ClaudeProvider } from "./utils/llms/claude";
 import { MuscleGenerator } from "./utils/muscleGenerator";
 import { LlmMuscles } from "./utils/llms/llmMuscles";
 import { AiMuscleCacheDao } from "./dao/aiMuscleCacheDao";
-import { IApplePromotionalOffer } from "../src/models/state";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1038,19 +1037,34 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     return ResponseUtils.json(400, event, { error: "coupon_already_claimed" });
   }
 
-  let applePromotionalOffer: IApplePromotionalOffer | undefined;
-  if (platform === "ios" && coupon.applePromotionalOfferId) {
-    if (!coupon.appleProductId) {
-      di.log.log(`Coupon ${params.code} has promotional offer but no product ID`);
-      return ResponseUtils.json(500, event, { error: "Invalid coupon configuration" });
-    }
+  const data = couponDao.getData(coupon);
+  if (platform === "ios" && data) {
     const applePromoSigner = new ApplePromotionalOfferSigner(di);
-    applePromotionalOffer = await applePromoSigner.generateSignature(
-      coupon.applePromotionalOfferId,
+    const monthlyOffer = await applePromoSigner.generateSignature(
+      data.apple.monthly.offerId,
       currentUserId || "",
-      coupon.appleProductId
+      data.apple.monthly.productId
     );
-    return ResponseUtils.json(200, event, { data: { applePromotionalOffer } });
+    const yearlyOffer = await applePromoSigner.generateSignature(
+      data.apple.yearly.offerId,
+      currentUserId || "",
+      data.apple.yearly.productId
+    );
+    return ResponseUtils.json(200, event, { data: { appleOffer: { monthly: monthlyOffer, yearly: yearlyOffer } } });
+  }
+
+  if (platform === "android" && data) {
+    const googleOffer = {
+      monthly: {
+        offerId: data.google.monthly.offerId,
+        productId: data.google.monthly.productId,
+      },
+      yearly: {
+        offerId: data.google.yearly.offerId,
+        productId: data.google.yearly.productId,
+      },
+    };
+    return ResponseUtils.json(200, event, { data: { googleOffer } });
   }
 
   if (currentUserId == null) {
@@ -1060,7 +1074,7 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   await couponDao.claim(coupon);
   const freeuser = await new FreeUserDao(di).create(currentUserId, Date.now() + coupon.ttlMs, true, coupon.code);
   return ResponseUtils.json(200, event, {
-    data: { key: freeuser.key, expires: freeuser.expires, applePromotionalOffer },
+    data: { key: freeuser.key, expires: freeuser.expires },
   });
 };
 

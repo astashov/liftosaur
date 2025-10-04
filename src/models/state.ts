@@ -67,11 +67,26 @@ export interface IStateErrors {
   };
 }
 
+export interface IAppleOffer {
+  yearly: IApplePromotionalOffer;
+  monthly: IApplePromotionalOffer;
+}
+
 export interface IApplePromotionalOffer {
   offerId: string;
   signature: string;
   nonce: string;
   timestamp: number;
+}
+
+export interface IGoogleOffer {
+  yearly: IGooglePromotionalOffer;
+  monthly: IGooglePromotionalOffer;
+}
+
+export interface IGooglePromotionalOffer {
+  offerId: string;
+  productId: string;
 }
 
 export interface IState {
@@ -105,7 +120,8 @@ export interface IState {
   reportedCorruptedStorage?: boolean;
   nosync: boolean;
   selectedGymId?: string;
-  applePromotionalOffer?: IApplePromotionalOffer;
+  appleOffer?: IAppleOffer;
+  googleOffer?: IGoogleOffer;
 }
 
 export interface ILocalStorage {
