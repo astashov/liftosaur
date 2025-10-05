@@ -148,7 +148,7 @@ export namespace Storage {
             if (affiliates[source] != null) {
               return affiliates;
             }
-            return { ...affiliates, [source]: { id: source, timestamp: Date.now(), type } };
+            return { ...affiliates, [source]: { id: source, timestamp: Date.now(), type, vtype: "affiliate" } };
           }),
       ],
       "Set affiliate"

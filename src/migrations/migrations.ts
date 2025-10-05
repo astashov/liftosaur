@@ -288,7 +288,7 @@ export const migrations = {
     for (const key of Object.keys(storage.affiliates || {})) {
       const value = storage.affiliates[key];
       if (typeof value === "number") {
-        storage.affiliates[key] = { id: key, type: "program", timestamp: value };
+        storage.affiliates[key] = { id: key, type: "program", timestamp: value, vtype: "affiliate" };
       }
     }
     return storage;

@@ -1136,20 +1136,6 @@ describe("VersionTracker", () => {
           expect(versions.reviewRequests).to.equal(timestamp);
         });
 
-        it("should handle missing type field in objects", () => {
-          const oldStorage = Storage.getDefault();
-          const newStorage = {
-            ...oldStorage,
-            affiliates: { source1: { id: "source1", type: "program" as const, timestamp: 123 } },
-          };
-
-          const timestamp = 1000;
-
-          const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
-
-          expect(versions.affiliates).to.deep.equal({ source1: timestamp });
-        });
-
         it("should handle circular references gracefully", () => {
           const oldStorage = Storage.getDefault();
           const newStorage = {

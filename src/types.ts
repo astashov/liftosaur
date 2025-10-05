@@ -1321,6 +1321,7 @@ export const TAffiliateData = t.type({
   id: t.string,
   timestamp: t.number,
   type: t.union([t.literal("coupon"), t.literal("program")]),
+  vtype: t.literal("affiliate"),
 });
 export type IAffiliateData = t.TypeOf<typeof TAffiliateData>;
 
@@ -1403,6 +1404,7 @@ export const ATOMIC_TYPES = [
   "graph",
   "graphs",
   "subscription_receipt",
+  "affiliate",
 ] as const;
 
 export type IAtomicType = (typeof ATOMIC_TYPES)[number];
@@ -1420,6 +1422,7 @@ export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
 
 // Define id field for each type
 export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
+  affiliate: "id",
   program: "clonedAt",
   history_record: "id",
   gym: "id",
@@ -1434,7 +1437,12 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
 
 // Dictionary fields - these are free-form key-value mappings that should use collection versioning
 // Full path from storage root
-export const DICTIONARY_FIELDS = ["settings.exercises", "settings.exerciseData", "settings.gyms.equipment"] as const;
+export const DICTIONARY_FIELDS = [
+  "settings.exercises",
+  "settings.exerciseData",
+  "settings.gyms.equipment",
+  "affiliates",
+] as const;
 
 export type IDictionaryFieldPath = (typeof DICTIONARY_FIELDS)[number];
 
