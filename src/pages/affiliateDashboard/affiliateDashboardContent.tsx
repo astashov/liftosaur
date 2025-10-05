@@ -6,6 +6,10 @@ export interface IAffiliateDashboardSummary {
   paidUsers: number;
   totalRevenue: number;
   monthlyRevenue: number;
+  programUsers: number;
+  couponUsers: number;
+  programRevenue: number;
+  couponRevenue: number;
 }
 
 export interface IAffiliateDashboardContentProps {
@@ -30,6 +34,7 @@ export interface IAffiliateData {
   userTotalRevenue: number;
   userMonthlyRevenue: number;
   paymentsCount: number;
+  affiliateType?: "coupon" | "program";
 }
 
 export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps): JSX.Element {
@@ -48,6 +53,9 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
           <div className="mb-1 text-sm text-gray-600">Total Users</div>
           <div className="text-2xl font-bold">{props.summary.totalUsers}</div>
+          <div className="text-xs text-gray-500 mt-1">
+            Programs: {props.summary.programUsers} / Coupons: {props.summary.couponUsers}
+          </div>
         </div>
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
           <div className="mb-1 text-sm text-gray-600">Paid Users</div>
@@ -65,6 +73,10 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
           <div className="mb-1 text-sm text-gray-600">Total Revenue (20%)</div>
           <div className="text-2xl font-bold text-purple-600">{formatCurrency(props.summary.totalRevenue)}</div>
+          <div className="text-xs text-gray-500 mt-1">
+            Programs: {formatCurrency(props.summary.programRevenue)} / Coupons:{" "}
+            {formatCurrency(props.summary.couponRevenue)}
+          </div>
         </div>
       </div>
 
@@ -160,12 +172,13 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
                 <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   First Affiliate
                 </th>
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Type</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {props.affiliateData.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-4 text-center text-gray-500">
+                  <td colSpan={11} className="px-4 py-4 text-center text-gray-500">
                     No affiliated users yet
                   </td>
                 </tr>
@@ -221,6 +234,23 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
                           }`}
                         >
                           {item.isFirstAffiliate ? "Yes" : "No"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            item.affiliateType === "program"
+                              ? "bg-blue-100 text-blue-800"
+                              : item.affiliateType === "coupon"
+                                ? "bg-purple-100 text-purple-800"
+                                : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {item.affiliateType === "program"
+                            ? "Program"
+                            : item.affiliateType === "coupon"
+                              ? "Coupon"
+                              : "Unknown"}
                         </span>
                       </td>
                     </tr>

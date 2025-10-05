@@ -8,6 +8,10 @@ export interface IUserAffiliatesSummary {
   paidUsers: number;
   totalRevenue: number;
   monthlyRevenue: number;
+  programUsers: number;
+  couponUsers: number;
+  programRevenue: number;
+  couponRevenue: number;
 }
 
 export interface IUserAffiliatesContentProps {
@@ -30,7 +34,10 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
           <div className="mb-1 text-sm text-gray-600">Total Users</div>
           <div className="text-3xl font-bold text-gray-900">{summary.totalUsers}</div>
-          <div className="mt-1 text-xs text-gray-500">Who imported your programs</div>
+          <div className="mt-1 text-xs text-gray-500">
+            <span className="text-blue-700">{summary.programUsers}</span> programs,{" "}
+            <span className="text-purple-700">{summary.couponUsers}</span> coupons
+          </div>
           <div className="mt-1 text-xs text-gray-500">
             (<span className="text-green-700">{summary.signedUpUsers}</span> signed up,{" "}
             <span className="text-red-700">{summary.totalUsers - summary.signedUpUsers}</span> not)
@@ -56,7 +63,10 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
           <div className="mb-1 text-sm text-gray-600">Total Earnings</div>
           <div className="text-3xl font-bold text-purple-600">{formatCurrency(summary.totalRevenue)}</div>
-          <div className="mt-1 text-xs text-gray-500">Lifetime revenue</div>
+          <div className="mt-1 text-xs text-gray-500">
+            <span className="text-blue-700">{formatCurrency(summary.programRevenue)}</span> programs,{" "}
+            <span className="text-purple-700">{formatCurrency(summary.couponRevenue)}</span> coupons
+          </div>
         </div>
       </div>
 
@@ -123,10 +133,10 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
                 1
               </div>
               <div>
-                <h3 className="font-semibold text-blue-900">Share Your Programs</h3>
+                <h3 className="font-semibold text-blue-900">Share Your Programs & Coupons</h3>
                 <p className="text-sm text-blue-800">
-                  When users import any of your published programs, they're automatically linked to your affiliate
-                  account.
+                  When users import your published programs or use your coupons, they're automatically linked to your
+                  affiliate account.
                 </p>
               </div>
             </div>
@@ -139,7 +149,7 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
                 <h3 className="font-semibold text-blue-900">Users Subscribe</h3>
                 <p className="text-sm text-blue-800">
                   When affiliated users purchase subscriptions or make payments <strong>after</strong> importing your
-                  program, you earn 20% of their payments.
+                  program or using your coupon, you earn 20% of their payments.
                 </p>
               </div>
             </div>
@@ -164,10 +174,12 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
         <h3 className="mb-2 text-sm font-semibold text-yellow-900">Important Notes:</h3>
         <ul className="space-y-1 text-sm text-yellow-800">
           <li>
-            • Only payments made <strong>after</strong> importing your program count toward commissions
+            • Only payments made <strong>after</strong> importing your program or using your coupon count toward
+            commissions
           </li>
           <li>
-            • If a user imports multiple programs, only the <strong>first</strong> program creator gets the commission
+            • If a user imports multiple programs or uses multiple coupons, only the <strong>first</strong> affiliate
+            gets the commission
           </li>
           <li>• Refunded payments are excluded from commission calculations</li>
           <li>• Revenue share applies to both one-time purchases and recurring subscriptions</li>

@@ -21,6 +21,7 @@ export interface IAffiliateDao {
   affiliateId: string;
   userId: string;
   timestamp?: number;
+  type?: "coupon" | "program";
 }
 
 export interface IAffiliateDashboardSummary {
@@ -29,6 +30,10 @@ export interface IAffiliateDashboardSummary {
   paidUsers: number;
   totalRevenue: number;
   monthlyRevenue: number;
+  programUsers: number;
+  couponUsers: number;
+  programRevenue: number;
+  couponRevenue: number;
 }
 
 export class AffiliateDao {
@@ -105,9 +110,15 @@ export class AffiliateDao {
     );
   }
 
-  private async getAffiliatedUsers(
-    affiliateId: string
-  ): Promise<Array<{ userId: string; user?: ILimitedUserDao; affiliateTimestamp: number; isFirstAffiliate: boolean }>> {
+  private async getAffiliatedUsers(affiliateId: string): Promise<
+    Array<{
+      userId: string;
+      user?: ILimitedUserDao;
+      affiliateTimestamp: number;
+      isFirstAffiliate: boolean;
+      affiliateType?: "coupon" | "program";
+    }>
+  > {
     const affiliatedUserIds = await this.getUserIds(affiliateId);
 
     if (affiliatedUserIds.length === 0) {
@@ -125,19 +136,22 @@ export class AffiliateDao {
       if (user) {
         const affiliates = user.storage?.affiliates || {};
         const affiliateTimestamp = affiliates[affiliateId]?.timestamp || 0;
+        const affiliateType = affiliates[affiliateId]?.type;
 
         const sortedAffiliates = Object.entries(affiliates).sort(
           ([a, av], [b, bv]) => (av?.timestamp || 0) - (bv?.timestamp || 0)
         );
         const isFirstAffiliate = sortedAffiliates.length === 0 || sortedAffiliates[0][0] === affiliateId;
 
-        return { userId, user, affiliateTimestamp, isFirstAffiliate };
+        return { userId, user, affiliateTimestamp, isFirstAffiliate, affiliateType };
       } else {
         const affiliates = userIdToAffiliates[userId] || [];
         const sortedAffiliates = CollectionUtils.sortByExpr(affiliates, (e) => e.timestamp || 0);
-        const affiliateTimestamp = sortedAffiliates.find((a) => a.affiliateId === affiliateId)?.timestamp || 0;
+        const currentAffiliate = sortedAffiliates.find((a) => a.affiliateId === affiliateId);
+        const affiliateTimestamp = currentAffiliate?.timestamp || 0;
+        const affiliateType = currentAffiliate?.type;
         const isFirstAffiliate = sortedAffiliates.length > 0 && sortedAffiliates[0].affiliateId === affiliateId;
-        return { userId, user: undefined, affiliateTimestamp, isFirstAffiliate };
+        return { userId, user: undefined, affiliateTimestamp, isFirstAffiliate, affiliateType };
       }
     });
 
@@ -204,6 +218,10 @@ export class AffiliateDao {
           totalRevenue: 0,
           monthlyRevenue: 0,
           signedUpUsers: 0,
+          programUsers: 0,
+          couponUsers: 0,
+          programRevenue: 0,
+          couponRevenue: 0,
         },
         monthlyPayments: [],
       };
@@ -213,6 +231,8 @@ export class AffiliateDao {
     const unsortedAffiliateData: IAffiliateData[] = [];
     let totalRevenue = 0;
     let monthlyRevenue = 0;
+    let programRevenue = 0;
+    let couponRevenue = 0;
     const allEligiblePayments: IPaymentDao[] = [];
 
     const batchSize = 50;
@@ -220,7 +240,7 @@ export class AffiliateDao {
 
     for (const group of userGroups) {
       const groupResults = await Promise.all(
-        group.map(async ({ user, userId, affiliateTimestamp, isFirstAffiliate }) => {
+        group.map(async ({ user, userId, affiliateTimestamp, isFirstAffiliate, affiliateType }) => {
           const { userTotalRevenue, userMonthlyRevenue, eligiblePayments } = await this.calculateUserRevenue(
             userId,
             affiliateTimestamp,
@@ -248,6 +268,7 @@ export class AffiliateDao {
           return {
             userTotalRevenue,
             userMonthlyRevenue,
+            affiliateType,
             affiliateData: {
               userId: userId,
               affiliateTimestamp,
@@ -261,14 +282,20 @@ export class AffiliateDao {
               userTotalRevenue: userTotalRevenue,
               userMonthlyRevenue: userMonthlyRevenue,
               paymentsCount: eligiblePayments.length,
+              affiliateType,
             },
           };
         })
       );
 
-      for (const { userTotalRevenue, userMonthlyRevenue, affiliateData } of groupResults) {
+      for (const { userTotalRevenue, userMonthlyRevenue, affiliateData, affiliateType } of groupResults) {
         totalRevenue += userTotalRevenue;
         monthlyRevenue += userMonthlyRevenue;
+        if (affiliateType === "program") {
+          programRevenue += userTotalRevenue;
+        } else if (affiliateType === "coupon") {
+          couponRevenue += userTotalRevenue;
+        }
         unsortedAffiliateData.push(affiliateData);
       }
     }
@@ -277,6 +304,8 @@ export class AffiliateDao {
     const isFirstAffiliateUsers = users.filter(({ isFirstAffiliate }) => isFirstAffiliate);
     const signedUpUsersCount = isFirstAffiliateUsers.filter(({ user }) => user != null).length;
     const paidUsers = affiliateData.filter((d) => d.isFirstAffiliate && d.isPaid).length;
+    const programUsers = isFirstAffiliateUsers.filter(({ affiliateType }) => affiliateType === "program").length;
+    const couponUsers = isFirstAffiliateUsers.filter(({ affiliateType }) => affiliateType === "coupon").length;
 
     const summary = {
       totalUsers: isFirstAffiliateUsers.length,
@@ -284,6 +313,10 @@ export class AffiliateDao {
       paidUsers,
       totalRevenue: totalRevenue,
       monthlyRevenue: monthlyRevenue,
+      programUsers,
+      couponUsers,
+      programRevenue,
+      couponRevenue,
     };
 
     const monthlyPayments = this.generateMonthlyPayments(allEligiblePayments);
@@ -305,6 +338,10 @@ export class AffiliateDao {
           paidUsers: 0,
           totalRevenue: 0,
           monthlyRevenue: 0,
+          programUsers: 0,
+          couponUsers: 0,
+          programRevenue: 0,
+          couponRevenue: 0,
         },
         monthlyPayments: [],
       };
@@ -312,9 +349,13 @@ export class AffiliateDao {
 
     const firstAffiliateUsers = users.filter(({ isFirstAffiliate }) => isFirstAffiliate);
     const signedUpUsersCount = firstAffiliateUsers.filter(({ user }) => user != null).length;
+    const programUsers = firstAffiliateUsers.filter(({ affiliateType }) => affiliateType === "program").length;
+    const couponUsers = firstAffiliateUsers.filter(({ affiliateType }) => affiliateType === "coupon").length;
 
     let totalRevenue = 0;
     let monthlyRevenue = 0;
+    let programRevenue = 0;
+    let couponRevenue = 0;
     let paidUsersCount = 0;
     const allEligiblePayments: IPaymentDao[] = [];
 
@@ -323,17 +364,23 @@ export class AffiliateDao {
 
     for (const group of userGroups) {
       const groupResults = await Promise.all(
-        group.map(async ({ userId, affiliateTimestamp, isFirstAffiliate }) => {
-          return this.calculateUserRevenue(userId, affiliateTimestamp, isFirstAffiliate);
+        group.map(async ({ userId, affiliateTimestamp, isFirstAffiliate, affiliateType }) => {
+          const revenue = await this.calculateUserRevenue(userId, affiliateTimestamp, isFirstAffiliate);
+          return { ...revenue, affiliateType };
         })
       );
 
-      for (const { userTotalRevenue, userMonthlyRevenue, eligiblePayments } of groupResults) {
+      for (const { userTotalRevenue, userMonthlyRevenue, eligiblePayments, affiliateType } of groupResults) {
         if (eligiblePayments.length > 0) {
           paidUsersCount += 1;
         }
         totalRevenue += userTotalRevenue;
         monthlyRevenue += userMonthlyRevenue;
+        if (affiliateType === "program") {
+          programRevenue += userTotalRevenue;
+        } else if (affiliateType === "coupon") {
+          couponRevenue += userTotalRevenue;
+        }
         allEligiblePayments.push(...eligiblePayments);
       }
     }
@@ -347,6 +394,10 @@ export class AffiliateDao {
         paidUsers: paidUsersCount,
         totalRevenue: totalRevenue,
         monthlyRevenue: monthlyRevenue,
+        programUsers,
+        couponUsers,
+        programRevenue,
+        couponRevenue,
       },
       monthlyPayments,
     };

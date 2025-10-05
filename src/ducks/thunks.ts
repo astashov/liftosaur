@@ -1019,7 +1019,7 @@ export namespace Thunk {
     };
   }
 
-  export function redeemCoupon(code: string, cb: () => void): IThunk {
+  export function redeemCoupon(code: string, cb: (success: boolean) => void): IThunk {
     return async (dispatch, getState, env) => {
       dispatch(postevent("redeem-coupon"));
       const platform = SendMessage.isIos() ? "ios" : SendMessage.isAndroid() ? "android" : undefined;
@@ -1042,7 +1042,7 @@ export namespace Thunk {
         if (affiliate) {
           Storage.setAffiliate(dispatch, affiliate, "coupon");
         }
-        cb();
+        cb(true);
       } else {
         switch (result.error) {
           case "not_authorized": {
@@ -1050,6 +1050,10 @@ export namespace Thunk {
             break;
           }
           case "coupon_not_found": {
+            alert("Couldn't find the coupon with that code.");
+            break;
+          }
+          case "coupon_disabled": {
             alert("Couldn't find the coupon with that code.");
             break;
           }
@@ -1063,6 +1067,7 @@ export namespace Thunk {
           }
         }
         dispatch(log("ls-claim-coupon-fail"));
+        cb(false);
       }
     };
   }
