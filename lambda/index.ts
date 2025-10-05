@@ -1010,7 +1010,7 @@ const postCreateCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
   const { event, di } = payload;
   const ttlMs = parseInt(params.ttl, 10);
   if (!isNaN(ttlMs) && params.key === (await di.secrets.getApiKey())) {
-    const coupon = await new CouponDao(di).create(ttlMs, params.info);
+    const coupon = await new CouponDao(di).create({ ttlMs, info: params.info });
     return ResponseUtils.json(200, event, { data: coupon });
   } else {
     return ResponseUtils.json(401, event, {});
@@ -1031,6 +1031,10 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   const coupon = await couponDao.get(params.code);
   if (!coupon) {
     return ResponseUtils.json(404, event, { error: "coupon_not_found" });
+  }
+
+  if (coupon.isDisabled) {
+    return ResponseUtils.json(404, event, { error: "coupon_disabled" });
   }
 
   if (coupon.isClaimed) {
@@ -1066,7 +1070,7 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
         productId: data.google.yearly.productId,
       },
     };
-    return ResponseUtils.json(200, event, { data: { googleOffer } });
+    return ResponseUtils.json(200, event, { affiliate: coupon.affiliate, data: { googleOffer } });
   }
 
   if (currentUserId == null) {

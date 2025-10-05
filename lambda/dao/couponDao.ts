@@ -38,6 +38,7 @@ export interface ICouponDao {
   code: string;
   ttlMs: number;
   isClaimed: boolean;
+  isDisabled?: boolean;
   affiliate?: string;
   info?: string;
   applePromotionalOfferIdMonthly?: string;
@@ -117,16 +118,20 @@ export class CouponDao {
     };
   }
 
-  public async create(
-    ttlMs: number,
-    code: string = UidFactory.generateUid(8),
-    info?: string,
-    data?: ICouponData
-  ): Promise<ICouponDao> {
+  public async create(args: {
+    ttlMs: number;
+    code?: string;
+    affiliate?: string;
+    info?: string;
+    data?: ICouponData;
+  }): Promise<ICouponDao> {
     const env = Utils.getEnv();
+    const code = args.code || UidFactory.generateUid(8);
+    const { ttlMs, data, info, affiliate } = args;
     const coupon: ICouponDao = {
       code: code.toLowerCase(),
       ttlMs,
+      affiliate,
       isClaimed: false,
       info,
       applePromotionalOfferIdMonthly: data?.apple.monthly.offerId,

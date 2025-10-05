@@ -1,5 +1,6 @@
 import RB from "rollbar";
 import { UrlUtils } from "./url";
+import { IAffiliateData } from "../types";
 
 declare let Rollbar: RB;
 declare let __API_HOST__: string;
@@ -8,7 +9,7 @@ export namespace LogUtils {
   export async function log(
     user: string,
     action: string,
-    affiliates: Partial<Record<string, number>>,
+    affiliates: Partial<Record<string, IAffiliateData>>,
     subscriptions: string[],
     onClear: () => void,
     key?: string,

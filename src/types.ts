@@ -1317,6 +1317,13 @@ export const TSubscription = t.intersection([
 ]);
 export type ISubscription = t.TypeOf<typeof TSubscription>;
 
+export const TAffiliateData = t.type({
+  id: t.string,
+  timestamp: t.number,
+  type: t.union([t.literal("coupon"), t.literal("program")]),
+});
+export type IAffiliateData = t.TypeOf<typeof TAffiliateData>;
+
 export const TStorage = t.intersection(
   [
     t.interface({
@@ -1334,7 +1341,7 @@ export const TStorage = t.intersection(
       helps: t.array(t.string),
       tempUserId: t.string,
       email: t.union([t.string, t.undefined]),
-      affiliates: dictionary(t.string, t.number),
+      affiliates: dictionary(t.string, TAffiliateData),
       subscription: TSubscription,
       whatsNew: t.union([t.string, t.undefined]),
     }),

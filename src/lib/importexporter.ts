@@ -74,7 +74,10 @@ export namespace ImportExporter {
     if ((url.pathname === "/program" && url.searchParams.has("data")) || url.pathname.startsWith("/p/")) {
       const data = await ImportFromLink.importFromLink(link, client);
       if (data.success) {
-        Storage.setAffiliate(dispatch, data.data.source);
+        const source = data.data.source;
+        if (source) {
+          Storage.setAffiliate(dispatch, source, "program");
+        }
         dispatch(Thunk.importProgram(data.data));
       } else {
         alert(data.error.join("\n"));

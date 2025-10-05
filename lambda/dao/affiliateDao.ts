@@ -85,7 +85,9 @@ export class AffiliateDao {
     await this.di.dynamo.batchPut({ tableName: tableNames[env].affiliates, items });
   }
 
-  public async putIfNotExists(items: { affiliateId: string; userId: string; timestamp?: number }[]): Promise<void> {
+  public async putIfNotExists(
+    items: { affiliateId: string; userId: string; timestamp?: number; type: "coupon" | "program" }[]
+  ): Promise<void> {
     if (items.length === 0) {
       return;
     }
@@ -122,9 +124,11 @@ export class AffiliateDao {
       const user = idToAffiliatedUser[userId];
       if (user) {
         const affiliates = user.storage?.affiliates || {};
-        const affiliateTimestamp = affiliates[affiliateId] || 0;
+        const affiliateTimestamp = affiliates[affiliateId]?.timestamp || 0;
 
-        const sortedAffiliates = Object.entries(affiliates).sort((a, b) => (a[1] || 0) - (b[1] || 0));
+        const sortedAffiliates = Object.entries(affiliates).sort(
+          ([a, av], [b, bv]) => (av?.timestamp || 0) - (bv?.timestamp || 0)
+        );
         const isFirstAffiliate = sortedAffiliates.length === 0 || sortedAffiliates[0][0] === affiliateId;
 
         return { userId, user, affiliateTimestamp, isFirstAffiliate };

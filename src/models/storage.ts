@@ -137,19 +137,22 @@ export namespace Storage {
     };
   }
 
-  export function setAffiliate(dispatch: IDispatch, source?: string): void {
-    if (source) {
-      updateState(
-        dispatch,
-        [
-          lb<IState>()
-            .p("storage")
-            .p("affiliates")
-            .recordModify((affiliates) => ({ [source]: Date.now(), ...affiliates })),
-        ],
-        "Set affiliate"
-      );
-    }
+  export function setAffiliate(dispatch: IDispatch, source: string, type: "coupon" | "program"): void {
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("affiliates")
+          .recordModify((affiliates) => {
+            if (affiliates[source] != null) {
+              return affiliates;
+            }
+            return { ...affiliates, [source]: { id: source, timestamp: Date.now(), type } };
+          }),
+      ],
+      "Set affiliate"
+    );
   }
 
   export function isChanged(aStorage?: IStorage, bStorage?: IStorage): boolean {

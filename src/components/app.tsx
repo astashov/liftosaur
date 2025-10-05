@@ -240,19 +240,6 @@ export function AppView(props: IProps): JSX.Element | null {
       }
     };
     if (typeof window !== "undefined") {
-      const source = url?.searchParams.get("s");
-      if (source) {
-        updateState(
-          dispatch,
-          [
-            lb<IState>()
-              .p("storage")
-              .p("affiliates")
-              .recordModify((affiliates) => ({ [source]: Date.now(), ...affiliates })),
-          ],
-          `Set affiliate source to ${source}`
-        );
-      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       window.replaceState = (newState: any) => {
         dispatch({ type: "ReplaceState", state: newState });

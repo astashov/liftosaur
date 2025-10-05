@@ -280,4 +280,17 @@ export const migrations = {
     }
     return storage;
   },
+  "20251005115332_migrate_affiliates_to_data": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const key of Object.keys(storage.affiliates || {})) {
+      const value = storage.affiliates[key];
+      if (typeof value === "number") {
+        storage.affiliates[key] = { id: key, type: "program", timestamp: value };
+      }
+    }
+    return storage;
+  },
 };

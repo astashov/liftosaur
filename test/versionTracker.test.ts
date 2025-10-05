@@ -1140,7 +1140,7 @@ describe("VersionTracker", () => {
           const oldStorage = Storage.getDefault();
           const newStorage = {
             ...oldStorage,
-            affiliates: { source1: 123 },
+            affiliates: { source1: { id: "source1", type: "program" as const, timestamp: 123 } },
           };
 
           const timestamp = 1000;

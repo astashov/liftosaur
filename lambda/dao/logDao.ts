@@ -1,4 +1,6 @@
+import { IAffiliateData } from "../../src/types";
 import { CollectionUtils } from "../../src/utils/collection";
+import { ObjectUtils } from "../../src/utils/object";
 import { Utils } from "../utils";
 import { IDI } from "../utils/di";
 import { AffiliateDao } from "./affiliateDao";
@@ -20,6 +22,7 @@ export interface ILogDao {
   cnt: number;
   ts: number;
   affiliates?: Partial<Record<string, number>>;
+  affiliatesCoupons?: Partial<Record<string, number>>;
   platforms: { name: string; version?: string }[];
   subscriptions: ("apple" | "google")[];
   year: number;
@@ -90,20 +93,36 @@ export class LogDao {
     action: string,
     platform: { name: string; version?: string },
     subscriptions: ("apple" | "google")[],
-    maybeAffiliates?: Partial<Record<string, number>>,
+    maybeAffiliates?: Partial<Record<string, IAffiliateData>>,
     referrer?: string
   ): Promise<void> {
     const env = Utils.getEnv();
     const item = await this.di.dynamo.get<ILogDao>({ tableName: logTableNames[env].logs, key: { userId, action } });
-    const affiliates = maybeAffiliates || {};
-    const itemAffiliates = item?.affiliates || {};
-    const combinedAffiliates = [...Object.keys(affiliates), ...Object.keys(itemAffiliates)].reduce<
+    const itemProgramAffiliates = item?.affiliates || {};
+    const programAffiliates = ObjectUtils.mapValues(
+      ObjectUtils.filter(maybeAffiliates || {}, (k, v) => v?.type === "program"),
+      (a: IAffiliateData | undefined) => a?.timestamp
+    );
+    const combinedProgramAffiliates = [...Object.keys(programAffiliates), ...Object.keys(itemProgramAffiliates)].reduce<
       Partial<Record<string, number>>
     >((memo, key) => {
-      const minTs = Math.min(itemAffiliates[key] || Infinity, affiliates[key] || Infinity);
+      const minTs = Math.min(itemProgramAffiliates[key] || Infinity, programAffiliates[key] || Infinity);
       memo[key] = minTs;
       return memo;
     }, {});
+    const couponAffiliates = ObjectUtils.mapValues(
+      ObjectUtils.filter(maybeAffiliates || {}, (k, v) => v?.type === "coupon"),
+      (a: IAffiliateData | undefined) => a?.timestamp
+    );
+    const itemCouponAffiliates = item?.affiliatesCoupons || {};
+    const combinedCouponAffiliates = [...Object.keys(couponAffiliates), ...Object.keys(itemCouponAffiliates)].reduce<
+      Partial<Record<string, number>>
+    >((memo, key) => {
+      const minTs = Math.min(itemCouponAffiliates[key] || Infinity, couponAffiliates[key] || Infinity);
+      memo[key] = minTs;
+      return memo;
+    }, {});
+    const combinedAffiliates = { ...combinedProgramAffiliates, ...combinedCouponAffiliates };
     const platforms = [...(item?.platforms || [])];
     // eslint-disable-next-line eqeqeq
     if (!platforms.some((p) => p.name === platform.name && p.version == platform.version)) {
@@ -115,22 +134,34 @@ export class LogDao {
     const day = new Date().getUTCDate();
     if (Object.keys(combinedAffiliates).length > 0) {
       const affiliateDao = new AffiliateDao(this.di);
-      await affiliateDao.putIfNotExists(
-        Object.keys(combinedAffiliates).map((affiliateId) => ({
-          affiliateId,
-          userId,
-          timestamp: combinedAffiliates[affiliateId],
-        }))
-      );
+      await Promise.all([
+        affiliateDao.putIfNotExists(
+          Object.keys(combinedProgramAffiliates).map((affiliateId) => ({
+            affiliateId,
+            userId,
+            timestamp: combinedProgramAffiliates[affiliateId],
+            type: "program",
+          }))
+        ),
+        affiliateDao.putIfNotExists(
+          Object.keys(combinedCouponAffiliates).map((affiliateId) => ({
+            affiliateId,
+            userId,
+            timestamp: combinedCouponAffiliates[affiliateId],
+            type: "coupon",
+          }))
+        ),
+      ]);
       await this.di.dynamo.update({
         tableName: logTableNames[env].logs,
         key: { userId, action },
         expression:
-          "SET #ts = :timestamp, #cnt = :cnt, #affiliates = :affiliates, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer",
+          "SET #ts = :timestamp, #cnt = :cnt, #affiliates = :affiliates, #affiliatesCoupons = :affiliatesCoupons, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer",
         attrs: {
           "#ts": "ts",
           "#cnt": "cnt",
           "#affiliates": "affiliates",
+          "#affiliatesCoupons": "affiliatesCoupons",
           "#platforms": "platforms",
           "#subscriptions": "subscriptions",
           "#year": "year",
@@ -141,7 +172,8 @@ export class LogDao {
         values: {
           ":timestamp": Date.now(),
           ":cnt": count + 1,
-          ":affiliates": combinedAffiliates,
+          ":affiliates": combinedProgramAffiliates,
+          ":affiliatesCoupons": combinedCouponAffiliates,
           ":platforms": platforms,
           ":subscriptions": subscriptions,
           ":year": year,

@@ -49,7 +49,12 @@ export type IPostStorageResponse =
       storage: IStorage;
     };
 
-type IRedeemCouponError = "not_authorized" | "coupon_not_found" | "coupon_already_claimed" | "unknown";
+type IRedeemCouponError =
+  | "not_authorized"
+  | "coupon_not_found"
+  | "coupon_already_claimed"
+  | "coupon_disabled"
+  | "unknown";
 
 export interface IAiConvertResponse {
   program: string;
@@ -367,7 +372,12 @@ export class Service {
       }
     } else if ("error" in json) {
       const error = json.error as IRedeemCouponError;
-      if (error === "not_authorized" || error === "coupon_not_found" || error === "coupon_already_claimed") {
+      if (
+        error === "not_authorized" ||
+        error === "coupon_not_found" ||
+        error === "coupon_already_claimed" ||
+        error === "coupon_disabled"
+      ) {
         return { success: false, error };
       }
     }

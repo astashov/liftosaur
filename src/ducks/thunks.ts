@@ -814,7 +814,9 @@ export namespace Thunk {
       dispatch(postevent("import-from-link"));
       const data = await ImportFromLink.importFromLink(link, env.service.client);
       if (data.success) {
-        Storage.setAffiliate(dispatch, data.data.source);
+        if (data.data.source) {
+          Storage.setAffiliate(dispatch, data.data.source, "program");
+        }
         dispatch(Thunk.importProgram(data.data));
       } else {
         alert(data.error.join("\n"));
@@ -1038,7 +1040,7 @@ export namespace Thunk {
           finishFreeAccess(dispatch, key, expires);
         }
         if (affiliate) {
-          Storage.setAffiliate(dispatch, affiliate);
+          Storage.setAffiliate(dispatch, affiliate, "coupon");
         }
         cb();
       } else {
