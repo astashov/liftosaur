@@ -135,11 +135,14 @@ export class AffiliateDao {
       const user = idToAffiliatedUser[userId];
       if (user) {
         const affiliates = user.storage?.affiliates || {};
-        const affiliateTimestamp = affiliates[affiliateId]?.timestamp || 0;
-        const affiliateType = affiliates[affiliateId]?.type;
+        const affiliateValue = affiliates[affiliateId];
+        const affiliateTimestamp =
+          (typeof affiliateValue === "number" ? affiliateValue : affiliates[affiliateId]?.timestamp) || 0;
+        const affiliateType = typeof affiliateValue === "number" ? "program" : affiliateValue?.type || "program";
 
         const sortedAffiliates = Object.entries(affiliates).sort(
-          ([a, av], [b, bv]) => (av?.timestamp || 0) - (bv?.timestamp || 0)
+          ([a, av], [b, bv]) =>
+            ((typeof av === "number" ? av : av?.timestamp) || 0) - ((typeof bv === "number" ? bv : bv?.timestamp) || 0)
         );
         const isFirstAffiliate = sortedAffiliates.length === 0 || sortedAffiliates[0][0] === affiliateId;
 
@@ -149,7 +152,7 @@ export class AffiliateDao {
         const sortedAffiliates = CollectionUtils.sortByExpr(affiliates, (e) => e.timestamp || 0);
         const currentAffiliate = sortedAffiliates.find((a) => a.affiliateId === affiliateId);
         const affiliateTimestamp = currentAffiliate?.timestamp || 0;
-        const affiliateType = currentAffiliate?.type;
+        const affiliateType = currentAffiliate?.type ?? "program";
         const isFirstAffiliate = sortedAffiliates.length > 0 && sortedAffiliates[0].affiliateId === affiliateId;
         return { userId, user: undefined, affiliateTimestamp, isFirstAffiliate, affiliateType };
       }
