@@ -280,7 +280,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20251005115332_migrate_affiliates_to_data": async (
+  "20251005115332_migrate_affiliates_to_affiliates_data": async (
     client: Window["fetch"],
     aStorage: IStorage
   ): Promise<IStorage> => {
@@ -290,6 +290,11 @@ export const migrations = {
       if (typeof value === "number") {
         storage.affiliates[key] = { id: key, type: "program", timestamp: value, vtype: "affiliate" };
       }
+    }
+    // @ts-ignore
+    if (storage._versions?.affiliates && !("items" in storage._versions?.affiliates)) {
+      const items = storage._versions.affiliates;
+      storage._versions.affiliates = { items, deleted: {} };
     }
     return storage;
   },
