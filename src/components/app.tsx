@@ -154,7 +154,12 @@ export function AppView(props: IProps): JSX.Element | null {
       } else if (event.data?.type === "products") {
         dispatch(Thunk.postevent("sync-prices"));
         const newPrices = { ...state.prices, ...event.data.data };
-        updateState(dispatch, [lb<IState>().p("prices").record(newPrices)], "Update prices for products");
+        const newOffers = { ...state.offers, ...event.data.offers };
+        updateState(
+          dispatch,
+          [lb<IState>().p("prices").record(newPrices), lb<IState>().p("offers").record(newOffers)],
+          "Update prices for products"
+        );
       } else if (event.data?.type === "universalLink") {
         ImportExporter.handleUniversalLink(dispatch, event.data.link, client);
       } else if (event.data?.type === "goBack") {
@@ -306,6 +311,7 @@ export function AppView(props: IProps): JSX.Element | null {
     content = (
       <ScreenSubscription
         prices={state.prices}
+        offers={state.offers}
         appleOffer={state.appleOffer}
         googleOffer={state.googleOffer}
         subscription={state.storage.subscription}

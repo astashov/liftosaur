@@ -89,6 +89,11 @@ export interface IGooglePromotionalOffer {
   productId: string;
 }
 
+export interface IOfferData {
+  offerId: string;
+  formattedPrice: string;
+}
+
 export interface IState {
   user?: IUser;
   storage: IStorage;
@@ -98,6 +103,7 @@ export interface IState {
   screenStack: IScreenStack;
   revisions: Partial<Record<string, string[]>>;
   prices?: Partial<Record<string, string>>;
+  offers?: Partial<Record<string, IOfferData[]>>;
   loading: ILoading;
   defaultEquipmentExpanded?: IEquipment;
   subscriptionLoading?: ISubscriptionLoading;

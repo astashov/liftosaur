@@ -1017,7 +1017,7 @@ export namespace Thunk {
     };
   }
 
-  export function redeemCoupon(code: string): IThunk {
+  export function redeemCoupon(code: string, cb: () => void): IThunk {
     return async (dispatch, getState, env) => {
       dispatch(postevent("redeem-coupon"));
       const platform = SendMessage.isIos() ? "ios" : SendMessage.isAndroid() ? "android" : undefined;
@@ -1037,6 +1037,7 @@ export namespace Thunk {
         } else if (key && expires) {
           finishFreeAccess(dispatch, key, expires);
         }
+        cb();
       } else {
         switch (result.error) {
           case "not_authorized": {

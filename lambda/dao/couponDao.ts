@@ -116,10 +116,15 @@ export class CouponDao {
     };
   }
 
-  public async create(ttlMs: number, info?: string, data?: ICouponData): Promise<ICouponDao> {
+  public async create(
+    ttlMs: number,
+    code: string = UidFactory.generateUid(8),
+    info?: string,
+    data?: ICouponData
+  ): Promise<ICouponDao> {
     const env = Utils.getEnv();
     const coupon: ICouponDao = {
-      code: UidFactory.generateUid(8),
+      code: code.toLowerCase(),
       ttlMs,
       isClaimed: false,
       info,

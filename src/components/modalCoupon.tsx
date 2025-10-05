@@ -27,7 +27,7 @@ export function ModalCoupon(props: IProps): JSX.Element {
           onClick={() => {
             const value = textInput.current.value?.trim() || "";
             if (value) {
-              props.dispatch(Thunk.redeemCoupon(value));
+              props.dispatch(Thunk.redeemCoupon(value, () => props.onClose()));
             }
           }}
         >

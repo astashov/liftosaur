@@ -2,7 +2,15 @@ import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
-import { IAppleOffer, IGoogleOffer, INavCommon, IState, ISubscriptionLoading, updateState } from "../models/state";
+import {
+  IAppleOffer,
+  IGoogleOffer,
+  INavCommon,
+  IOfferData,
+  IState,
+  ISubscriptionLoading,
+  updateState,
+} from "../models/state";
 import { IconBarbell } from "./icons/iconBarbell";
 import { IconGraphs } from "./icons/iconGraphs";
 import { Button } from "./button";
@@ -24,6 +32,7 @@ import { IconW } from "./icons/iconW";
 
 interface IProps {
   prices?: Partial<Record<string, string>>;
+  offers?: Partial<Record<string, IOfferData[]>>;
   subscription: ISubscription;
   appleOffer?: IAppleOffer;
   googleOffer?: IGoogleOffer;
@@ -43,7 +52,21 @@ export function ScreenSubscription(props: IProps): JSX.Element {
   const yearlyPrice =
     ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("year") !== -1)?.[0]?.[1] ?? "$39.99";
   const lifetimePrice =
-    ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("lifetime") !== -1)?.[0]?.[1] ?? "$79.99";
+    ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("lifetime") !== -1)?.[0]?.[1] ?? "$99.99";
+  let monthlyOffer: IOfferData | undefined = undefined;
+  let yearlyOffer: IOfferData | undefined = undefined;
+  for (const productId of ObjectUtils.keys(props.offers || {})) {
+    monthlyOffer =
+      monthlyOffer ||
+      props.offers?.[productId]?.find((o) => {
+        return o.offerId === props.appleOffer?.monthly?.offerId || o.offerId === props.googleOffer?.monthly?.offerId;
+      });
+    yearlyOffer =
+      yearlyOffer ||
+      props.offers?.[productId]?.find((o) => {
+        return o.offerId === props.appleOffer?.yearly?.offerId || o.offerId === props.googleOffer?.yearly?.offerId;
+      });
+  }
 
   return (
     <Surface
@@ -230,6 +253,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                   <div className="flex-1 px-2 text-center">
                     <div className="text-xs text-text-secondary">Includes free 14 days trial</div>
                     <Button
+                      style={{ padding: "0.75rem 0.5rem" }}
                       name="subscription-monthly"
                       onClick={() => {
                         if (SendMessage.isIos() || SendMessage.isAndroid()) {
@@ -256,7 +280,17 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       data-cy="button-subscription-monthly"
                     >
                       {!props.subscriptionLoading?.monthly ? (
-                        monthlyPrice + "/month"
+                        <>
+                          {monthlyOffer ? (
+                            <>
+                              <span className="mr-1 font-normal line-through">{monthlyPrice}</span>
+                              <span className="font-bold">{monthlyOffer.formattedPrice}</span>
+                            </>
+                          ) : (
+                            <span>{monthlyPrice}</span>
+                          )}
+                          <span>/month</span>
+                        </>
                       ) : (
                         <IconSpinner color="white" width={18} height={18} />
                       )}
@@ -266,6 +300,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                     <div className="text-xs text-text-secondary">Includes free 14 days trial</div>
                     <Button
                       name="subscription-yearly"
+                      style={{ padding: "0.75rem 0.5rem" }}
                       onClick={() => {
                         if (SendMessage.isIos() || SendMessage.isAndroid()) {
                           lg("start-subscription-yearly");
@@ -291,13 +326,28 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       data-cy="button-subscription-yearly"
                     >
                       {!props.subscriptionLoading?.yearly ? (
-                        yearlyPrice + "/year"
+                        <>
+                          {yearlyOffer ? (
+                            <>
+                              <span className="mr-1 font-normal line-through">{yearlyPrice}</span>
+                              <span className="font-bold">{yearlyOffer.formattedPrice}</span>
+                            </>
+                          ) : (
+                            <span>{yearlyPrice}</span>
+                          )}
+                          <span>/year</span>
+                        </>
                       ) : (
                         <IconSpinner color="white" width={18} height={18} />
                       )}
                     </Button>
                   </div>
                 </div>
+                {(monthlyOffer || yearlyOffer) && (
+                  <div className="pt-1 text-xs text-center text-text-secondary">
+                    Discount applies for the first year
+                  </div>
+                )}
                 {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 8) ||
                   (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 15)) && (
                   <div className="px-2 pt-2 text-center">
