@@ -1050,7 +1050,9 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       currentUserId || "",
       data.apple.yearly.productId
     );
-    return ResponseUtils.json(200, event, { data: { appleOffer: { monthly: monthlyOffer, yearly: yearlyOffer } } });
+    return ResponseUtils.json(200, event, {
+      data: { affiliate: coupon.affiliate, appleOffer: { monthly: monthlyOffer, yearly: yearlyOffer } },
+    });
   }
 
   if (platform === "android" && data) {

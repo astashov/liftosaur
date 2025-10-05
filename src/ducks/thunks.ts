@@ -1023,7 +1023,7 @@ export namespace Thunk {
       const platform = SendMessage.isIos() ? "ios" : SendMessage.isAndroid() ? "android" : undefined;
       const result = await load(dispatch, "Claiming coupon", () => env.service.postClaimCoupon(code, platform));
       if (result.success) {
-        const { key, expires, appleOffer, googleOffer } = result.data;
+        const { key, expires, appleOffer, googleOffer, affiliate } = result.data;
         if (appleOffer) {
           console.log("Apple promotional offer data:", appleOffer);
           updateState(dispatch, [lb<IState>().p("appleOffer").record(appleOffer)], "Set apple promotional offer");
@@ -1036,6 +1036,9 @@ export namespace Thunk {
           alert("Coupon has been applied! Proceed to purchase now.");
         } else if (key && expires) {
           finishFreeAccess(dispatch, key, expires);
+        }
+        if (affiliate) {
+          Storage.setAffiliate(dispatch, affiliate);
         }
         cb();
       } else {

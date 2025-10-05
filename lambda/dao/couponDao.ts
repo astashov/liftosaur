@@ -38,6 +38,7 @@ export interface ICouponDao {
   code: string;
   ttlMs: number;
   isClaimed: boolean;
+  affiliate?: string;
   info?: string;
   applePromotionalOfferIdMonthly?: string;
   appleProductIdMonthly?: string;
