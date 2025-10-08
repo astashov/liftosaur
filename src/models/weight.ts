@@ -286,6 +286,10 @@ export namespace Weight {
     return Weight.build(MathUtils.roundTo005(weight.value), weight.unit);
   }
 
+  export function roundTo000005(weight: IWeight): IWeight {
+    return Weight.build(MathUtils.roundTo000005(weight.value), weight.unit);
+  }
+
   export function calculatePlates(
     allWeight: IWeight,
     settings: ISettings,
@@ -318,7 +322,7 @@ export namespace Weight {
         : equipmentData.bar[units];
     const multiplier = equipmentData.multiplier || 1;
     const isAssisting = equipmentData.isAssisting || false;
-    const weight = Weight.roundTo005(Weight.subtract(absAllWeight, barWeight));
+    const weight = Weight.roundTo000005(Weight.subtract(absAllWeight, barWeight));
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
     availablePlates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
     const plates: IPlate[] = calculatePlatesInternalFast(weight, availablePlates, multiplier, isAssisting);
@@ -329,7 +333,9 @@ export namespace Weight {
       },
       Weight.build(0, allWeight.unit)
     );
-    const totalWeight = inverted ? Weight.invert(Weight.add(total, barWeight)) : Weight.add(total, barWeight);
+    const totalWeight = Weight.roundTo000005(
+      inverted ? Weight.invert(Weight.add(total, barWeight)) : Weight.add(total, barWeight)
+    );
     const thePlatesWeight = inverted ? Weight.invert(total) : total;
     return { plates, platesWeight: thePlatesWeight, totalWeight };
   }

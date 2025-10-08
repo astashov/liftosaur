@@ -19,6 +19,10 @@ export namespace MathUtils {
     return round(value, 0.0005);
   }
 
+  export function roundTo000005(value: number): number {
+    return round(value, 0.00005);
+  }
+
   export function roundFloat(value: number, precision: number): number {
     return +value.toFixed(precision);
   }
