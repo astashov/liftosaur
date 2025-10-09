@@ -65,7 +65,7 @@ async function initTheAppAndRecordWorkout(): Promise<{
   const queue = new AsyncQueue();
   const env: IEnv = { service, audio: new MockAudioInterface(), queue };
   const url = UrlUtils.build("https://www.liftosaur.com");
-  const initialState = await getInitialState(fetch, { url, storage: aStorage });
+  const initialState = await getInitialState(fetch, { url, storage: aStorage, deviceId: "web_123" });
   const mockReducer = MockReducer.build(initialState, env);
   await mockReducer.run([Thunk.fetchInitial(), Thunk.sync2({ force: true })]);
 

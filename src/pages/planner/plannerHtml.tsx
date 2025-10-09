@@ -37,6 +37,7 @@ export function PlannerHtml(props: IProps): JSX.Element {
       data={data}
       url="/planner"
       client={client}
+      postHead={<script>window.webeditor = true</script>}
     >
       <PlannerContent client={client} {...data} />
     </Page>

@@ -15,6 +15,7 @@ import { IndexedDBUtils } from "./utils/indexeddb";
 import { Service } from "./api/service";
 import { UrlUtils } from "./utils/url";
 import { AsyncQueue } from "./utils/asyncQueue";
+import { DeviceId } from "./utils/deviceId";
 
 IndexedDBUtils.initializeForSafari();
 
@@ -31,7 +32,8 @@ const adminKey = url.searchParams.get("admin");
 
 async function initialize(loadedData: unknown): Promise<void> {
   (window as any).loadedData = loadedData;
-  const initialState = await getInitialState(client, { url, rawStorage: loadedData as string | undefined });
+  const deviceId = await DeviceId.get();
+  const initialState = await getInitialState(client, { url, rawStorage: loadedData as string | undefined, deviceId });
   if (adminKey) {
     initialState.adminKey = adminKey;
   }

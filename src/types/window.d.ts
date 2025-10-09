@@ -13,6 +13,7 @@ interface Window {
   };
   replaceState: (state: any) => void;
   isUndoing?: boolean;
+  webeditor?: boolean;
   isPressingShiftCmdCtrl?: boolean;
   lftAndroidVersion?: number;
   lftAndroidAppVersion?: string;

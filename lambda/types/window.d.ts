@@ -8,6 +8,7 @@ interface Window {
   reducerLastActions?: any[];
   loadRollbar: (item: string | number, token: string) => Promise<void>;
   isUndoing?: boolean;
+  webeditor?: boolean;
   lftAndroidAppVersion?: string;
   lftIosAppVersion?: string;
   lftAndroidVersion?: number;

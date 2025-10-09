@@ -70,7 +70,7 @@ export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<str
 
 export async function getInitialState(
   client: Window["fetch"],
-  args?: { url?: URL; rawStorage?: string; storage?: IStorage }
+  args?: { url?: URL; rawStorage?: string; storage?: IStorage; deviceId?: string }
 ): Promise<IState> {
   const url = args?.url || UrlUtils.build(document.location.href);
   const messageerror = url.searchParams.get("messageerror") || undefined;
@@ -94,6 +94,7 @@ export async function getInitialState(
         }
       : undefined;
 
+  const deviceId = args?.deviceId;
   if (storage != null && storage.storage != null) {
     const hasUnrunMigrations = unrunMigrations(storage.storage).length > 0;
     const maybeStorage = await Storage.get(client, storage.storage, true);
@@ -144,12 +145,14 @@ export async function getInitialState(
       freshMigrations: maybeStorage.success && hasUnrunMigrations,
       errors,
       nosync,
+      deviceId,
     };
   }
   const newState = buildState({
     notification,
     shouldSkipIntro,
     nosync,
+    deviceId,
   });
   LogUtils.log(newState.storage.tempUserId, "ls-initialize-user", {}, [], () => undefined);
   return newState;
@@ -303,7 +306,9 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   return [
     (dispatch, action, oldState, newState) => {
       const isFinishDayAction = "type" in action && action.type === "FinishProgramDayAction";
-      if (Storage.isChanged(oldState.storage, newState.storage)) {
+      const isMergingStorage =
+        "type" in action && action.type === "UpdateState" && action.desc === "Merge synced storage";
+      if (!isMergingStorage && Storage.isChanged(oldState.storage, newState.storage)) {
         dispatch(Thunk.sync2({ log: isFinishDayAction }));
       }
     },
@@ -496,9 +501,11 @@ export const reducerWrapper =
       }
     }
     let newState = reducer(state, action);
-    const isStorageChanged = Storage.isChanged(state.storage, newState.storage);
+    const isMergingStorage =
+      "type" in action && action.type === "UpdateState" && action.desc === "Merge synced storage";
+    const isStorageChanged = !isMergingStorage && Storage.isChanged(state.storage, newState.storage);
     if (isStorageChanged) {
-      const versions = Storage.updateVersions(state.storage, newState.storage);
+      const versions = Storage.updateVersions(state.storage, newState.storage, state.deviceId);
       newState = { ...newState, storage: { ...newState.storage, _versions: versions } };
     }
 

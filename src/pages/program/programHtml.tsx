@@ -40,6 +40,7 @@ export function ProgramHtml(props: IProps): JSX.Element {
       account={props.account}
       client={client}
       url={data.exportedProgram?.program?.planner ? "/planner" : "/program"}
+      postHead={<script>window.webeditor = true</script>}
     >
       <ProgramOrPlannerSyncer client={client} {...data} />
     </Page>
