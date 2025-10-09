@@ -43,8 +43,8 @@ export namespace Storage {
     return validateAndReport(data, TStorage, "storage");
   }
 
-  export function fillVersions<T extends IPartialStorage | IStorage>(storage: T): T {
-    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+  export function fillVersions<T extends IPartialStorage | IStorage>(storage: T, deviceId?: string): T {
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
     const timestamp = Date.now();
     const filledVersions = versionTracker.fillVersions(storage, storage._versions || {}, timestamp);
     return {
@@ -189,10 +189,14 @@ export namespace Storage {
     }
   }
 
-  export function updateVersions(oldStorage: IPartialStorage, newStorage: IPartialStorage): IVersions<IStorage> {
+  export function updateVersions(
+    oldStorage: IPartialStorage,
+    newStorage: IPartialStorage,
+    deviceId?: string
+  ): IVersions<IStorage> {
     const { id: oldId, originalId: oldOriginalId, _versions: oldVersions, ...oldCleanedStorage } = oldStorage;
     const { id: newId, originalId: newOriginalId, _versions: newVersions, ...newCleanedStorage } = newStorage;
-    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
     const timestamp = Date.now();
     if (
       oldCleanedStorage.tempUserId === newCleanedStorage.tempUserId &&
@@ -210,10 +214,10 @@ export namespace Storage {
     }
   }
 
-  export function mergeStorage(oldStorage: IStorage, newStorage: IStorage): IStorage {
+  export function mergeStorage(oldStorage: IStorage, newStorage: IStorage, deviceId?: string): IStorage {
     const { id: oldId, originalId: oldOriginalId, _versions: oldVersions, ...oldCleanedStorage } = oldStorage;
     const { id: newId, originalId: newOriginalId, _versions: newVersions, ...newCleanedStorage } = newStorage;
-    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
     const updatedVersions = versionTracker.mergeVersions(oldVersions || {}, newVersions || {});
     const updatedCleanedStorage = versionTracker.mergeByVersions(
       oldCleanedStorage,

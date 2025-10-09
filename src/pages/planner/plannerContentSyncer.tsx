@@ -7,6 +7,7 @@ import { PlannerContent } from "../planner/plannerContent";
 export interface IPlannerContentSyncerProps {
   client: Window["fetch"];
   storage?: IStorage;
+  deviceId?: string;
   account?: IAccount;
   exportedProgram?: IExportedProgram;
   shouldSyncProgram: boolean;
@@ -21,6 +22,7 @@ export function PlannerContentSyncer(props: IPlannerContentSyncerProps): JSX.Ele
   return (
     <PlannerContent
       client={props.client}
+      deviceId={props.deviceId}
       nextDay={exportedProgram?.program.nextDay}
       initialProgram={exportedProgram}
       source={props.source}

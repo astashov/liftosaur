@@ -239,7 +239,6 @@ interface IGroupLabelProps {
 }
 
 function GroupLabel(props: IGroupLabelProps): JSX.Element {
-  console.log("Group", props.group);
   const groupSetVariationsPerWeekDay: Record<string, Set<number>> = {};
   for (const setData of props.group) {
     const key = `${setData.week}-${setData.dayInWeek}`;
@@ -296,12 +295,10 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
       areSetsEqual ? undefined : ["Set", setData.set],
     ]);
   });
-  console.log("Parts", parts);
   const collapsedParts = collapseLastElementRange(parts);
   const uniqueParts = Array.from(
     new Set(collapsedParts.map((part) => part.map(([key, value]) => `${key} ${value}`).join(", ")))
   );
-  console.log("Unique parts", uniqueParts);
 
   return (
     <ul>

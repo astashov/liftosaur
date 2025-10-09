@@ -59,14 +59,19 @@ export interface IPlannerContentProps {
   nextDay?: number;
   initialProgram?: IExportedProgram;
   partialStorage?: IPartialStorage;
+  deviceId?: string;
   account?: IAccount;
   shouldSync?: boolean;
   revisions: string[];
 }
 
-async function saveProgram(client: Window["fetch"], exportProgram: IExportedProgram): Promise<string | undefined> {
+async function saveProgram(
+  client: Window["fetch"],
+  exportProgram: IExportedProgram,
+  deviceId?: string
+): Promise<string | undefined> {
   const service = new Service(client);
-  const result = await service.postSaveProgram(exportProgram);
+  const result = await service.postSaveProgram(exportProgram, deviceId);
   if (result.success) {
     return result.data;
   } else {
@@ -362,7 +367,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 }
               }
               setIsBannerLoading(true);
-              const id = await saveProgram(props.client, exportProgram);
+              const id = await saveProgram(props.client, exportProgram, props.deviceId);
               if (id != null) {
                 window.location.href = `${__HOST__}/user/p/${id}`;
               }
@@ -432,7 +437,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   setIsLoading(true);
                   try {
                     const exportProgram = Program.exportProgram(state.current.program, settings);
-                    await saveProgram(props.client, exportProgram);
+                    await saveProgram(props.client, exportProgram, props.deviceId);
                     dispatch(
                       lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram),
                       "Save program"

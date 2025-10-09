@@ -79,12 +79,27 @@
 import { ObjectUtils } from "../utils/object";
 import { SetUtils } from "../utils/setUtils";
 
+export interface IVectorClock {
+  vc: { [deviceId: string]: number };
+  t: number;
+}
+
+export type IFieldVersion = number | IVectorClock;
+
+function isVectorClock(v: unknown): v is IVectorClock {
+  return typeof v === "object" && v !== null && "vc" in v && "t" in v;
+}
+
+function isFieldVersion(v: unknown): v is IFieldVersion {
+  return typeof v === "number" || isVectorClock(v);
+}
+
 export interface IVersions<T> {
-  [key: string]: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined;
+  [key: string]: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined;
 }
 
 export interface ICollectionVersions<T> {
-  items?: Record<string, IVersions<T> | number>;
+  items?: Record<string, IVersions<T> | IFieldVersion>;
   deleted?: Record<string, number>;
   nukedeleted?: number;
 }
@@ -100,9 +115,11 @@ export interface IVersionTypes<TAtomicType extends string, TControlledType exten
 
 export class VersionTracker<TAtomicType extends string, TControlledType extends string> {
   private readonly versionTypes: IVersionTypes<TAtomicType, TControlledType>;
+  private readonly deviceId?: string;
 
-  constructor(versionTypes: IVersionTypes<TAtomicType, TControlledType>) {
+  constructor(versionTypes: IVersionTypes<TAtomicType, TControlledType>, options?: { deviceId?: string }) {
     this.versionTypes = versionTypes;
+    this.deviceId = options?.deviceId;
   }
 
   private isAtomicType(value: unknown): value is { type: TAtomicType } {
@@ -135,6 +152,116 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     const typedObj = obj as { vtype: unknown } & Record<string, unknown>;
     const id = typedObj[idField];
     return id != null ? String(id) : undefined;
+  }
+
+  private createVersion(timestamp: number, currentVersion?: IFieldVersion): IFieldVersion {
+    if (!this.deviceId) {
+      return timestamp;
+    }
+
+    const current = this.normalizeVersion(currentVersion);
+    const newClock = { ...current.vc };
+    newClock[this.deviceId] = (newClock[this.deviceId] || 0) + 1;
+
+    return {
+      vc: newClock,
+      t: timestamp,
+    };
+  }
+
+  private normalizeVersion(version?: IFieldVersion): IVectorClock {
+    if (!version) {
+      return { vc: {}, t: 0 };
+    }
+    if (isVectorClock(version)) {
+      return version;
+    }
+    return { vc: {}, t: version };
+  }
+
+  private compareVersions(a: IFieldVersion, b: IFieldVersion): "a_newer" | "b_newer" | "concurrent" | "equal" {
+    const aNorm = this.normalizeVersion(a);
+    const bNorm = this.normalizeVersion(b);
+
+    const aDevices = Object.keys(aNorm.vc);
+    const bDevices = Object.keys(bNorm.vc);
+    const aHasVc = aDevices.length > 0;
+    const bHasVc = bDevices.length > 0;
+
+    // Mixed case: one has vector clock, one has plain timestamp
+    // Can't determine causality, so fall back to timestamp comparison
+    if (aHasVc !== bHasVc) {
+      if (aNorm.t === bNorm.t) {
+        return "equal";
+      }
+      return aNorm.t > bNorm.t ? "a_newer" : "b_newer";
+    }
+
+    // Both are plain timestamps
+    if (!aHasVc && !bHasVc) {
+      if (aNorm.t === bNorm.t) {
+        return "equal";
+      }
+      return aNorm.t > bNorm.t ? "a_newer" : "b_newer";
+    }
+
+    // Both have vector clocks - compare causality
+    const allDevices = new Set([...aDevices, ...bDevices]);
+    let aHasHigher = false;
+    let bHasHigher = false;
+
+    for (const deviceId of allDevices) {
+      const aCount = aNorm.vc[deviceId] || 0;
+      const bCount = bNorm.vc[deviceId] || 0;
+
+      if (aCount > bCount) {
+        aHasHigher = true;
+      }
+      if (bCount > aCount) {
+        bHasHigher = true;
+      }
+    }
+
+    if (!aHasHigher && !bHasHigher) {
+      return "equal";
+    }
+    if (aHasHigher && !bHasHigher) {
+      return "a_newer";
+    }
+    if (bHasHigher && !aHasHigher) {
+      return "b_newer";
+    }
+    return "concurrent";
+  }
+
+  private mergeFieldVersions(path: string, a: IFieldVersion, b: IFieldVersion): IFieldVersion {
+    const comparison = this.compareVersions(a, b);
+    if (comparison === "a_newer") {
+      return a;
+    }
+    if (comparison === "b_newer") {
+      return b;
+    }
+    if (comparison === "equal") {
+      return a;
+    }
+
+    // Concurrent changes - merge vector clocks by taking MAX of each device's counter
+    const aNorm = this.normalizeVersion(a);
+    const bNorm = this.normalizeVersion(b);
+
+    const allDevices = new Set([...Object.keys(aNorm.vc), ...Object.keys(bNorm.vc)]);
+    const mergedVc: { [deviceId: string]: number } = {};
+
+    for (const deviceId of allDevices) {
+      mergedVc[deviceId] = Math.max(aNorm.vc[deviceId] || 0, bNorm.vc[deviceId] || 0);
+    }
+
+    const result = {
+      vc: mergedVc,
+      t: Math.max(aNorm.t, bNorm.t),
+    };
+    return result;
   }
 
   public updateVersions<T extends Record<string, unknown>>(
@@ -185,11 +312,11 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     newFullVersion: unknown,
     oldValue: unknown,
     newValue: unknown,
-    currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
-    newVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
+    newVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
     timestamp: number,
     path: string
-  ): IVersions<unknown> | ICollectionVersions<unknown> | number | undefined {
+  ): IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined {
     if (Array.isArray(newValue)) {
       const hasTrackableItems = newValue.some((item) => this.getId(item) !== undefined);
       const oldHasTrackableItems =
@@ -231,7 +358,22 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
               : undefined;
 
             if (!ObjectUtils.isEqual(oldItem, item)) {
-              const itemVersion = this.getItemVersion(oldItem, item, items[itemId], timestamp);
+              // Extract incoming version from newVersion and merge with current version
+              // to preserve all deviceIds from both sources
+              const newCollectionVersion = newVersion as ICollectionVersions<unknown> | undefined;
+              const newItemVersion = newCollectionVersion?.items?.[itemId];
+              const mergedItemVersion = this.mergeVersionField(
+                items[itemId],
+                newItemVersion,
+                `${path}.items.${itemId}`
+              );
+
+              const itemVersion = this.getItemVersion(
+                oldItem,
+                item,
+                mergedItemVersion as IFieldVersion | IVersions<unknown> | undefined,
+                timestamp
+              );
               if (itemVersion !== undefined) {
                 items[itemId] = itemVersion;
               }
@@ -250,7 +392,13 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const compactedCollection = this.applyCompaction(collectionVersions, path, timestamp);
         return hasChanges || currentVersion ? compactedCollection : undefined;
       } else {
-        return timestamp;
+        // Merge with incoming version to preserve all deviceIds
+        const mergedVersion = this.mergeVersionField(
+          currentVersion as IFieldVersion | undefined,
+          newVersion as IFieldVersion | undefined,
+          path
+        );
+        return this.createVersion(timestamp, mergedVersion as IFieldVersion | undefined);
       }
     } else if (typeof newValue === "object" && newValue !== null) {
       if (this.versionTypes.dictionaryFields.includes(path)) {
@@ -286,7 +434,18 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         for (const [key, item] of Object.entries(newDict)) {
           const oldItem = oldDict?.[key];
           if (oldItem !== item) {
-            const itemVersion = this.getItemVersion(oldItem, item, items[key], timestamp);
+            // Extract incoming version from newVersion and merge with current version
+            // to preserve all deviceIds from both sources
+            const newCollectionVersion = newVersion as ICollectionVersions<unknown> | undefined;
+            const newItemVersion = newCollectionVersion?.items?.[key];
+            const mergedItemVersion = this.mergeVersionField(items[key], newItemVersion, `${path}.items.${key}`);
+
+            const itemVersion = this.getItemVersion(
+              oldItem,
+              item,
+              mergedItemVersion as IFieldVersion | IVersions<unknown> | undefined,
+              timestamp
+            );
             if (itemVersion !== undefined) {
               items[key] = itemVersion;
             }
@@ -304,9 +463,22 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const compactedCollection = this.applyCompaction(collectionVersions, path, timestamp);
         return hasChanges || currentVersion ? compactedCollection : undefined;
       } else if (this.isControlledType(newValue)) {
-        return this.updateControlledObjectVersion(oldValue, newValue, currentVersion, timestamp);
+        // Merge with incoming version to preserve all deviceIds from both sources
+        const mergedVersion = this.mergeVersionField(currentVersion, newVersion, path);
+        return this.updateControlledObjectVersion(
+          oldValue,
+          newValue,
+          mergedVersion as IVersions<unknown> | undefined,
+          timestamp
+        );
       } else if (this.isAtomicType(newValue)) {
-        return timestamp;
+        // Merge with incoming version to preserve all deviceIds
+        const mergedVersion = this.mergeVersionField(
+          currentVersion as IFieldVersion | undefined,
+          newVersion as IFieldVersion | undefined,
+          path
+        );
+        return this.createVersion(timestamp, mergedVersion as IFieldVersion | undefined);
       } else {
         const oldObjValue = typeof oldValue === "object" && oldValue !== null ? oldValue : undefined;
         const nestedVersions = this.updateNestedVersions(
@@ -324,29 +496,35 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         return nestedVersions;
       }
     } else {
-      return timestamp;
+      // Merge with incoming version to preserve all deviceIds
+      const mergedVersion = this.mergeVersionField(
+        currentVersion as IFieldVersion | undefined,
+        newVersion as IFieldVersion | undefined,
+        path
+      );
+      return this.createVersion(timestamp, mergedVersion as IFieldVersion | undefined);
     }
   }
 
   private getItemVersion(
     oldItem: unknown,
     newItem: unknown,
-    currentItemVersion: number | IVersions<unknown> | undefined,
+    currentItemVersion: IFieldVersion | IVersions<unknown> | undefined,
     timestamp: number
-  ): number | IVersions<unknown> | undefined {
+  ): IFieldVersion | IVersions<unknown> | undefined {
     if (this.isAtomicType(newItem)) {
-      return timestamp;
+      return this.createVersion(timestamp, currentItemVersion as IFieldVersion | undefined);
     } else if (this.isControlledType(newItem)) {
       return this.updateControlledObjectVersion(oldItem, newItem, currentItemVersion, timestamp);
     } else {
-      return timestamp;
+      return this.createVersion(timestamp, currentItemVersion as IFieldVersion | undefined);
     }
   }
 
   private updateControlledObjectVersion(
     oldValue: unknown,
     newValue: unknown,
-    currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
     timestamp: number
   ): IVersions<unknown> | undefined {
     const controlledFields = this.versionTypes.controlledFields[(newValue as { vtype: TControlledType }).vtype] || [];
@@ -367,7 +545,11 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         !ObjectUtils.isEqual(oldFieldValue as Record<string, unknown>, newFieldValue as Record<string, unknown>) &&
         newFieldValue != null
       ) {
-        (fieldVersions as Record<string, number>)[controlledField] = timestamp;
+        const currentFieldVersion = (fieldVersions as Record<string, IFieldVersion>)[controlledField];
+        (fieldVersions as Record<string, IFieldVersion>)[controlledField] = this.createVersion(
+          timestamp,
+          currentFieldVersion
+        );
         hasChanges = true;
       }
     }
@@ -479,11 +661,11 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
   private fillFieldVersion(
     value: unknown,
-    currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
     timestamp: number,
     path: string
-  ): IVersions<unknown> | ICollectionVersions<unknown> | number | undefined {
-    if (typeof currentVersion === "number") {
+  ): IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined {
+    if (isFieldVersion(currentVersion)) {
       return currentVersion;
     }
 
@@ -521,7 +703,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
               // For other objects, recursively fill nested versions
               const filledItemVersion = this.fillFieldVersion(item, items[itemId], timestamp, `${path}[${itemId}]`);
               if (filledItemVersion !== undefined) {
-                items[itemId] = filledItemVersion as IVersions<unknown> | number;
+                items[itemId] = filledItemVersion as IVersions<unknown> | IFieldVersion;
               }
             }
           }
@@ -530,7 +712,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         return { ...collectionVersions, items };
       } else {
         // Non-trackable array - return timestamp if missing
-        return currentVersion !== undefined ? currentVersion : timestamp;
+        return currentVersion !== undefined ? currentVersion : this.createVersion(timestamp, undefined);
       }
     } else if (typeof value === "object" && value !== null) {
       if (this.versionTypes.dictionaryFields.includes(path)) {
@@ -564,7 +746,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
               // For other objects, recursively fill nested versions
               const filledItemVersion = this.fillFieldVersion(item, items[key], timestamp, `${path}.${key}`);
               if (filledItemVersion !== undefined) {
-                items[key] = filledItemVersion as IVersions<unknown> | number;
+                items[key] = filledItemVersion as IVersions<unknown> | IFieldVersion;
               }
             }
           }
@@ -588,25 +770,25 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       }
     } else {
       // Primitive value - return timestamp if missing
-      return currentVersion !== undefined ? currentVersion : timestamp;
+      return currentVersion !== undefined ? currentVersion : this.createVersion(timestamp, undefined);
     }
   }
 
-  private getInitialItemVersion(item: unknown, timestamp: number): number | IVersions<unknown> | undefined {
+  private getInitialItemVersion(item: unknown, timestamp: number): IFieldVersion | IVersions<unknown> | undefined {
     if (this.isAtomicType(item)) {
-      return timestamp;
+      return this.createVersion(timestamp, undefined);
     } else if (this.isControlledType(item)) {
       return this.fillControlledObjectVersion(item, undefined, timestamp);
     } else if (typeof item === "object" && item !== null) {
       return this.fillNestedVersions(item as Record<string, unknown>, {}, timestamp, "");
     } else {
-      return timestamp;
+      return this.createVersion(timestamp, undefined);
     }
   }
 
   private fillControlledObjectVersion(
     value: unknown,
-    currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
     timestamp: number
   ): IVersions<unknown> | undefined {
     const controlledFields = this.versionTypes.controlledFields[(value as { vtype: TControlledType }).vtype] || [];
@@ -615,12 +797,16 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       fieldVersions = {};
     }
 
-    const result = { ...fieldVersions } as Record<string, number>;
+    const result = { ...fieldVersions } as Record<string, IFieldVersion>;
+    // If not empty - it's likely a diff, so no need to fill missing fields
+    if (Object.keys(result).length !== 0) {
+      return fieldVersions as IVersions<unknown>;
+    }
 
     for (const controlledField of controlledFields) {
       const fieldValue = (value as Record<string, unknown>)[controlledField];
       if (fieldValue != null && !(controlledField in result)) {
-        result[controlledField] = timestamp;
+        result[controlledField] = this.createVersion(timestamp, undefined);
       }
     }
 
@@ -680,15 +866,16 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   }
 
   private diffFieldVersion(
-    oldVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
-    newVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined
-  ): IVersions<unknown> | ICollectionVersions<unknown> | number | undefined {
-    if (typeof oldVersion !== typeof newVersion) {
-      return newVersion;
+    oldVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
+    newVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined
+  ): IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined {
+    if (isFieldVersion(oldVersion) && isFieldVersion(newVersion)) {
+      const comparison = this.compareVersions(oldVersion, newVersion);
+      return comparison === "equal" ? undefined : newVersion;
     }
 
-    if (typeof newVersion === "number") {
-      return oldVersion !== newVersion ? newVersion : undefined;
+    if (isFieldVersion(newVersion) && !isFieldVersion(oldVersion)) {
+      return newVersion;
     }
 
     if (newVersion && typeof newVersion === "object" && ("items" in newVersion || "deleted" in newVersion)) {
@@ -713,7 +900,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const itemDiff = this.diffFieldVersion(oldItemVersion, newItemVersion);
         if (itemDiff !== undefined) {
           diffCollection.items = diffCollection.items || {};
-          diffCollection.items[id] = itemDiff as IVersions<unknown> | number;
+          diffCollection.items[id] = itemDiff as IVersions<unknown> | IFieldVersion;
           hasChanges = true;
         }
       }
@@ -770,10 +957,10 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
   private extractFieldByVersion(
     value: unknown,
-    version: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    version: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
     path: string
   ): unknown {
-    if (typeof version === "number") {
+    if (isFieldVersion(version)) {
       return value;
     }
 
@@ -878,13 +1065,17 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
 
   private mergeFieldByVersion(
     fullValue: unknown,
-    fullVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
-    diffVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    fullVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
+    diffVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
     extractedValue: unknown,
     path: string
   ): unknown {
-    if (typeof diffVersion === "number" && typeof fullVersion === "number") {
-      return diffVersion > fullVersion ? extractedValue : fullValue;
+    if (isFieldVersion(diffVersion) && isFieldVersion(fullVersion)) {
+      const comparison = this.compareVersions(diffVersion, fullVersion);
+      if (comparison === "a_newer" || comparison === "concurrent") {
+        return extractedValue;
+      }
+      return fullValue;
     }
 
     if (diffVersion !== undefined && fullVersion === undefined) {
@@ -938,24 +1129,34 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         const controlledType = (extractedValue as any).vtype as TControlledType;
         const controlledFields = this.versionTypes.controlledFields[controlledType] || [];
 
-        let shouldTakeExtracted = false;
+        // IMPORTANT: Merge field-by-field instead of taking entire object
+        // Start with fullValue and selectively update fields that are newer in extractedValue
+        const mergedItem = { ...(fullValue as Record<string, unknown>) };
+        const extractedObj = extractedValue as Record<string, unknown>;
+
         for (const field of controlledFields) {
           if (field in diffVersion) {
             const diffFieldVersion = (diffVersion as any)[field];
             const fullFieldVersion =
               fullVersion && typeof fullVersion === "object" ? (fullVersion as any)[field] : undefined;
 
-            if (
-              typeof diffFieldVersion === "number" &&
-              (fullFieldVersion === undefined || diffFieldVersion > fullFieldVersion)
-            ) {
-              shouldTakeExtracted = true;
-              break;
+            if (isFieldVersion(diffFieldVersion)) {
+              // Take the extracted field if:
+              // 1. fullFieldVersion doesn't exist (new field)
+              // 2. diffFieldVersion is newer or concurrent
+              if (fullFieldVersion === undefined || !isFieldVersion(fullFieldVersion)) {
+                mergedItem[field] = extractedObj[field];
+              } else {
+                const comparison = this.compareVersions(diffFieldVersion, fullFieldVersion);
+                if (comparison === "a_newer" || comparison === "concurrent") {
+                  mergedItem[field] = extractedObj[field];
+                }
+              }
             }
           }
         }
 
-        return shouldTakeExtracted ? extractedValue : fullValue;
+        return mergedItem;
       }
 
       if (typeof fullValue === "object" && fullValue !== null) {
@@ -997,11 +1198,30 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
           processedIds.add(itemId);
           const diffItemVersion = diffVersion?.items?.[itemId];
           const fullItemVersion = fullVersion?.items?.[itemId];
+          const fullItem = fullValue.find((item) => this.getId(item) === itemId);
 
-          if (this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)) {
+          // For items with object versions (controlled objects with field-level tracking),
+          // use mergeFieldByVersion to properly merge field-by-field instead of taking entire object
+          if (
+            !isFieldVersion(diffItemVersion) &&
+            !isFieldVersion(fullItemVersion) &&
+            typeof diffItemVersion === "object" &&
+            typeof fullItemVersion === "object" &&
+            fullItem &&
+            typeof fullItem === "object" &&
+            typeof extractedItem === "object"
+          ) {
+            const mergedItem = this.mergeFieldByVersion(
+              fullItem,
+              fullItemVersion,
+              diffItemVersion,
+              extractedItem,
+              `item:${itemId}`
+            );
+            result.push(mergedItem);
+          } else if (this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)) {
             result.push(extractedItem);
           } else {
-            const fullItem = fullValue.find((item) => this.getId(item) === itemId);
             if (fullItem) {
               result.push(fullItem);
             } else {
@@ -1039,8 +1259,22 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       for (const [key, value] of Object.entries(extractedDict)) {
         const diffItemVersion = diffVersion?.items?.[key];
         const fullItemVersion = fullVersion?.items?.[key];
+        const fullItem = fullDict[key];
 
-        if (!deletedKeys.has(key) && this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)) {
+        // For items with object versions (controlled objects with field-level tracking),
+        // use mergeFieldByVersion to properly merge field-by-field instead of taking entire object
+        if (
+          !isFieldVersion(diffItemVersion) &&
+          !isFieldVersion(fullItemVersion) &&
+          typeof diffItemVersion === "object" &&
+          typeof fullItemVersion === "object" &&
+          fullItem &&
+          typeof fullItem === "object" &&
+          typeof value === "object"
+        ) {
+          const mergedItem = this.mergeFieldByVersion(fullItem, fullItemVersion, diffItemVersion, value, `item:${key}`);
+          result[key] = mergedItem;
+        } else if (!deletedKeys.has(key) && this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)) {
           result[key] = value;
         }
       }
@@ -1052,11 +1286,12 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   }
 
   private shouldTakeExtractedItem(
-    diffVersion: IVersions<unknown> | number | undefined,
-    fullVersion: IVersions<unknown> | number | undefined
+    diffVersion: IVersions<unknown> | IFieldVersion | undefined,
+    fullVersion: IVersions<unknown> | IFieldVersion | undefined
   ): boolean {
-    if (typeof diffVersion === "number" && typeof fullVersion === "number") {
-      return diffVersion > fullVersion;
+    if (isFieldVersion(diffVersion) && isFieldVersion(fullVersion)) {
+      const comparison = this.compareVersions(diffVersion, fullVersion);
+      return comparison === "a_newer" || comparison === "concurrent";
     }
 
     if (diffVersion !== undefined && fullVersion === undefined) {
@@ -1100,19 +1335,20 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
   }
 
   private mergeVersionField(
-    fullVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
-    diffVersion: IVersions<unknown> | ICollectionVersions<unknown> | number | undefined,
+    fullVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
+    diffVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
     path: string = ""
-  ): IVersions<unknown> | ICollectionVersions<unknown> | number | undefined {
+  ): IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined {
     if (diffVersion === undefined) {
       return fullVersion;
     }
 
-    if (typeof fullVersion === "number" && typeof diffVersion === "number") {
-      return Math.max(fullVersion, diffVersion);
+    if (isFieldVersion(fullVersion) && isFieldVersion(diffVersion)) {
+      const newVersion = this.mergeFieldVersions(path, fullVersion, diffVersion);
+      return newVersion;
     }
 
-    if (typeof diffVersion === "number") {
+    if (isFieldVersion(diffVersion)) {
       return diffVersion;
     }
 
@@ -1167,7 +1403,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       const mergedItemVersion = this.mergeVersionField(fullItemVersion, diffItemVersion);
       if (mergedItemVersion !== undefined) {
         result.items = result.items || {};
-        result.items[id] = mergedItemVersion as IVersions<unknown> | number;
+        result.items[id] = mergedItemVersion as IVersions<unknown> | IFieldVersion;
       }
     }
 

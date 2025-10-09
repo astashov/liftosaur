@@ -278,6 +278,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
   const compressedBodyJson = getBodyJson(event);
   const bodyJsonStr = await NodeEncoder.decode(compressedBodyJson.data);
   const bodyJson = JSON.parse(bodyJsonStr);
+  const deviceId = bodyJson.deviceId as string | undefined;
   const timestamp = bodyJson.timestamp || Date.now();
   const storageUpdate = bodyJson.storageUpdate as IStorageUpdate2;
   const historylimit = bodyJson.historylimit as number | undefined;
@@ -299,7 +300,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
       if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
         di.log.log("Fetch: Safe update");
         di.log.log(JSON.stringify(storageUpdate, null, 2));
-        const result = await userDao.applySafeSync2(limitedUser, storageUpdate);
+        const result = await userDao.applySafeSync2(limitedUser, storageUpdate, deviceId);
         if (result.success) {
           di.log.log("New original id", result.data.originalId);
           const [storageId] = await Promise.all([
@@ -333,7 +334,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
         di.log.log("Fetch: Merging update");
         di.log.log(JSON.stringify(storageUpdate, null, 2));
         storageUpdate.originalId = Date.now();
-        const result = await userDao.applySafeSync2(limitedUser, storageUpdate);
+        const result = await userDao.applySafeSync2(limitedUser, storageUpdate, deviceId);
         if (result.success) {
           di.log.log("New original id", result.data.originalId);
           const fullUser = (await userDao.getById(userId))!;
@@ -749,6 +750,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   const user = await getCurrentLimitedUser(event, di);
   if (user != null) {
     const bodyJson = getBodyJson(event);
+    const deviceId = bodyJson.deviceId as string | undefined;
     const exportedProgram: IExportedProgram = bodyJson.program;
     const userDao = new UserDao(di);
     const eventDao = new EventDao(di);
@@ -769,7 +771,8 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       settings: Settings.applyExportedProgram(oldStorage.settings, exportedProgram),
       originalId: Date.now(),
     };
-    const newVersions = Storage.updateVersions(oldStorage, newStorage);
+    di.log.log("Device id", deviceId);
+    const newVersions = Storage.updateVersions(oldStorage, newStorage, deviceId);
     const saveVersions = eventDao.post({
       type: "event",
       name: "save-program-www-versions",

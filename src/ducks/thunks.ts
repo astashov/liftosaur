@@ -38,6 +38,7 @@ import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { Weight } from "../models/weight";
 import { EditProgram } from "../models/editProgram";
 import { ICollectionVersions } from "../models/versionTracker";
+import { DeviceId } from "../utils/deviceId";
 
 declare let Rollbar: RB;
 
@@ -214,7 +215,7 @@ export namespace Thunk {
           );
         } else {
           dispatch(Thunk.postevent("handle-response-dirty"));
-          const newStorage = Storage.mergeStorage(getState().storage, result.storage);
+          const newStorage = Storage.mergeStorage(getState().storage, result.storage, getState().deviceId);
           const newProgramIds = newStorage.programs.map((p) => p.id);
           if (Array.from(new Set(newProgramIds)).length !== newProgramIds.length) {
             lg("program-duplicate-ids-after-merge", {
@@ -275,6 +276,7 @@ export namespace Thunk {
           version: state.storage.version,
         },
         signal,
+        deviceId: state.deviceId,
       });
       if (signal?.aborted) {
         return;
@@ -285,13 +287,14 @@ export namespace Thunk {
       }
     } else {
       dispatch(Thunk.postevent("sync-storage-update", { force: args?.force ? "true" : "false" }));
-      const storageUpdate = Sync.getStorageUpdate2(state.storage, state.lastSyncedStorage);
+      const storageUpdate = Sync.getStorageUpdate2(state.storage, state.lastSyncedStorage, state.deviceId);
       if (args?.force || storageUpdate.storage) {
         const lastSyncedStorage = state.storage;
         const result = await env.service.postSync({
           tempUserId: state.storage.tempUserId,
           storageUpdate: storageUpdate,
           signal,
+          deviceId: state.deviceId,
         });
         if (signal?.aborted) {
           return;
@@ -906,7 +909,7 @@ export namespace Thunk {
       dispatch(postevent("create-account"));
       dispatch(
         Thunk.logOut(async () => {
-          const newState = await getInitialState(env.service.client);
+          const newState = await getInitialState(env.service.client, { deviceId: getState().deviceId });
           dispatch({ type: "ReplaceState", state: newState });
           dispatch(Thunk.fetchInitial());
         })
@@ -952,7 +955,7 @@ export namespace Thunk {
           if (rawStorage != null) {
             const result = await Storage.get(env.service.client, JSON.parse(rawStorage)?.storage);
             if (result.success) {
-              const newState = await getInitialState(env.service.client, { rawStorage });
+              const newState = await getInitialState(env.service.client, { rawStorage, deviceId: getState().deviceId });
               dispatch({ type: "ReplaceState", state: newState });
               dispatch(Thunk.fetchInitial());
             } else {
@@ -1241,7 +1244,7 @@ async function handleLogin(
       } else {
         dispatch(Thunk.postevent("login-different-user"));
         storage.subscription.key = result.key;
-        const newState = await getInitialState(client, { storage });
+        const newState = await getInitialState(client, { storage, deviceId: await DeviceId.get() });
         newState.lastSyncedStorage = ObjectUtils.clone(newState.storage);
         newState.user = { id: result.user_id, email: result.email };
         dispatch({ type: "ReplaceState", state: newState });

@@ -134,9 +134,34 @@ export class UserDao {
     return undefined;
   }
 
-  public async applySafeSync2(
+  private async augmentLimitedUser(
     limitedUser: ILimitedUserDao,
     storageUpdate: IStorageUpdate2
+  ): Promise<ILimitedUserDao> {
+    let history = limitedUser.storage?.history;
+    let programs = limitedUser.storage?.programs;
+    if (storageUpdate.storage?.history != null) {
+      const historyIds = storageUpdate.storage.history.map((h) => h.id);
+      history = await this.getHistoryByUserId(limitedUser.id, { ids: historyIds });
+    }
+    if (storageUpdate.storage?.programs != null) {
+      const programIds = storageUpdate.storage.programs.map((p) => p.id);
+      programs = await this.getProgramsByUserId(limitedUser.id, { ids: programIds });
+    }
+    return {
+      ...limitedUser,
+      storage: {
+        ...limitedUser.storage,
+        history,
+        programs,
+      },
+    };
+  }
+
+  public async applySafeSync2(
+    limitedUser: ILimitedUserDao,
+    storageUpdate: IStorageUpdate2,
+    deviceId?: string
   ): Promise<IEither<{ originalId: number; newStorage?: IPartialStorage }, string>> {
     const env = Utils.getEnv();
     if (limitedUser.storage.version !== getLatestMigrationVersion()) {
@@ -149,6 +174,8 @@ export class UserDao {
       }
       limitedUser = (await this.getLimitedById(limitedUser.id))!;
     }
+    limitedUser = await this.augmentLimitedUser(limitedUser, storageUpdate);
+
     const result = await Storage.get(fetch, limitedUser.storage);
     if (!result.success) {
       return { success: false, error: "corrupted_server_storage" };
@@ -163,7 +190,7 @@ export class UserDao {
     ) {
       return { success: true, data: { originalId: storageUpdate.originalId || Date.now() } };
     }
-    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
     const originalId = Date.now();
     const newVersions = versionTracker.mergeVersions(_versions || {}, storageUpdate.versions || {});
     const mergedStorage = versionTracker.mergeByVersions(
@@ -179,7 +206,7 @@ export class UserDao {
     };
     const newStorage = Storage.fillVersions(preNewStorage);
 
-    const versionsHistory = storageUpdate.versions?.history as ICollectionVersions<IHistoryRecord[]> | undefined;
+    const versionsHistory = newStorage._versions?.history as ICollectionVersions<IHistoryRecord[]> | undefined;
     const deletedVersionsHistory = ObjectUtils.keys(versionsHistory?.deleted || {}).map((v) => Number(v));
     const historyDeletes = this.di.dynamo.batchDelete({
       tableName: userTableNames[env].historyRecords,
@@ -187,7 +214,7 @@ export class UserDao {
     });
     const historyUpdates = this.di.dynamo.batchPut({
       tableName: userTableNames[env].historyRecords,
-      items: CollectionUtils.uniqBy(storageUpdate.storage?.history || [], "id")
+      items: CollectionUtils.uniqBy(newStorage.history || [], "id")
         .filter((hr) => deletedVersionsHistory.indexOf(hr.id) === -1)
         .map((record) => ({
           ...record,
@@ -195,7 +222,7 @@ export class UserDao {
         })),
     });
 
-    const versionsPrograms = storageUpdate.versions?.programs as ICollectionVersions<IProgram[]> | undefined;
+    const versionsPrograms = newStorage._versions?.programs as ICollectionVersions<IProgram[]> | undefined;
     const deletedVersionsPrograms = ObjectUtils.keys(versionsPrograms?.deleted || {}).map((v) => Number(v));
     const userPrograms = deletedVersionsPrograms.length > 0 ? await this.getProgramsByUserId(limitedUser.id) : [];
     const programIdsToDelete = userPrograms
@@ -208,7 +235,7 @@ export class UserDao {
 
     const programUpdates = this.di.dynamo.batchPut({
       tableName: userTableNames[env].programs,
-      items: (storageUpdate.storage?.programs || [])
+      items: (newStorage.programs || [])
         .filter((p) => programIdsToDelete.indexOf(p.id) === -1)
         .map((record) => ({ ...record, userId: limitedUser.id })),
     });
@@ -510,23 +537,40 @@ export class UserDao {
     }
   }
 
-  public getHistoryByUserId(userId: string, args: { limit?: number; after?: number } = {}): Promise<IHistoryRecord[]> {
+  public getHistoryByUserId(
+    userId: string,
+    args: { limit?: number; after?: number; ids?: number[] } = {}
+  ): Promise<IHistoryRecord[]> {
     const env = Utils.getEnv();
-    return this.di.dynamo
-      .query<IHistoryRecord & { userId?: string }>({
-        tableName: userTableNames[env].historyRecords,
-        expression: ["#userId = :userId", ...(args.after != null ? ["#id < :id"] : [])].join(" AND "),
-        scanIndexForward: false,
-        attrs: { "#userId": "userId", ...(args.after != null ? { "#id": "id" } : {}) },
-        values: { ":userId": userId, ...(args.after != null ? { ":id": args.after } : {}) },
-        limit: args.limit,
-      })
-      .then((arr) =>
-        arr.map((r) => {
-          delete r.userId;
-          return r;
+    if (args.ids != null) {
+      return this.di.dynamo
+        .batchGet<IHistoryRecord & { userId?: string }>({
+          tableName: userTableNames[env].historyRecords,
+          keys: args.ids.map((id) => ({ id, userId })),
         })
-      );
+        .then((arr) =>
+          arr.map((r) => {
+            delete r.userId;
+            return r;
+          })
+        );
+    } else {
+      return this.di.dynamo
+        .query<IHistoryRecord & { userId?: string }>({
+          tableName: userTableNames[env].historyRecords,
+          expression: ["#userId = :userId", ...(args.after != null ? ["#id < :id"] : [])].join(" AND "),
+          scanIndexForward: false,
+          attrs: { "#userId": "userId", ...(args.after != null ? { "#id": "id" } : {}) },
+          values: { ":userId": userId, ...(args.after != null ? { ":id": args.after } : {}) },
+          limit: args.limit,
+        })
+        .then((arr) =>
+          arr.map((r) => {
+            delete r.userId;
+            return r;
+          })
+        );
+    }
   }
 
   public async getStatsByUserId(userId: string): Promise<IStats> {
@@ -566,8 +610,21 @@ export class UserDao {
     );
   }
 
-  public getProgramsByUserId(userId: string): Promise<IProgram[]> {
+  public getProgramsByUserId(userId: string, args: { ids?: string[] } = {}): Promise<IProgram[]> {
     const env = Utils.getEnv();
+    if (args.ids != null) {
+      return this.di.dynamo
+        .batchGet<IProgram & { userId?: string }>({
+          tableName: userTableNames[env].programs,
+          keys: args.ids.map((id) => ({ id, userId })),
+        })
+        .then((arr) =>
+          arr.map((r) => {
+            delete r.userId;
+            return r;
+          })
+        );
+    }
     return this.di.dynamo
       .query<IProgram & { userId?: string }>({
         tableName: userTableNames[env].programs,

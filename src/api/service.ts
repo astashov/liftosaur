@@ -239,12 +239,18 @@ export class Service {
     storageUpdate: IStorageUpdate2;
     tempUserId: string | undefined;
     signal?: AbortSignal;
+    deviceId?: string;
   }): Promise<IPostSyncResponse> {
     const url = UrlUtils.build(`${__API_HOST__}/api/sync2`);
     if (args.tempUserId) {
       url.searchParams.set("tempuserid", args.tempUserId);
     }
-    const body = JSON.stringify({ storageUpdate: args.storageUpdate, timestamp: Date.now(), historylimit: 20 });
+    const body = JSON.stringify({
+      storageUpdate: args.storageUpdate,
+      timestamp: Date.now(),
+      historylimit: 20,
+      deviceId: args.deviceId,
+    });
     const compressedBody = await Encoder.encode(body);
     const payload = JSON.stringify({ data: compressedBody });
     const result = await this.client(url.toString(), {
@@ -295,12 +301,12 @@ export class Service {
     });
   }
 
-  public async postSaveProgram(program: IExportedProgram): Promise<IEither<string, string>> {
+  public async postSaveProgram(program: IExportedProgram, deviceId?: string): Promise<IEither<string, string>> {
     const url = UrlUtils.build(`${__API_HOST__}/api/program`);
     try {
       const response = await this.client(url.toString(), {
         method: "POST",
-        body: JSON.stringify({ program }),
+        body: JSON.stringify({ program, deviceId }),
         credentials: "include",
       });
       if (response.status === 200) {

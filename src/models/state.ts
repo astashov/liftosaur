@@ -128,6 +128,7 @@ export interface IState {
   selectedGymId?: string;
   appleOffer?: IAppleOffer;
   googleOffer?: IGoogleOffer;
+  deviceId?: string;
 }
 
 export interface ILocalStorage {
@@ -143,6 +144,7 @@ export function buildState(args: {
   notification?: INotification;
   userId?: string;
   nosync?: boolean;
+  deviceId?: string;
 }): IState {
   return {
     screenStack: [{ name: args.shouldSkipIntro ? "programs" : "first" }],
@@ -156,6 +158,7 @@ export function buildState(args: {
     revisions: {},
     freshMigrations: false,
     nosync: !!args.nosync,
+    deviceId: args.deviceId,
   };
 }
 

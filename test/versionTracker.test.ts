@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "mocha";
 import { expect } from "chai";
-import { VersionTracker, IVersions, ICollectionVersions, IVersionTypes } from "../src/models/versionTracker";
+import {
+  VersionTracker,
+  IVersions,
+  ICollectionVersions,
+  IVersionTypes,
+  IVectorClock,
+} from "../src/models/versionTracker";
 import { IAtomicType, IControlledType, ISubscriptionReceipt, STORAGE_VERSION_TYPES } from "../src/types";
 import { Storage } from "../src/models/storage";
 import { Settings } from "../src/models/settings";
@@ -1631,6 +1637,7 @@ describe("VersionTracker", () => {
       const fullProgram: IProgram = {
         vtype: "program",
         id: "prog1",
+        clonedAt: 1,
         name: "Old Program",
         description: "Old Description",
         url: "",
@@ -1669,7 +1676,21 @@ describe("VersionTracker", () => {
 
       const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
 
-      expect(merged.program).to.deep.equal(extractedProgram);
+      expect(merged.program).to.deep.equal({
+        vtype: "program",
+        id: "prog1",
+        name: "New Program",
+        description: "Old Description",
+        url: "",
+        author: "",
+        clonedAt: 1,
+        nextDay: 1,
+        days: [],
+        weeks: [],
+        exercises: [],
+        isMultiweek: false,
+        tags: [],
+      });
     });
 
     it("should merge array collections", () => {
@@ -2348,8 +2369,7 @@ describe("VersionTracker", () => {
       const programVersions = filled.programs as ICollectionVersions<IProgram>;
 
       expect(programVersions.items!["1"]).to.deep.equal({
-        name: 1000, // Existing preserved
-        nextDay: timestamp, // Missing controlled field added
+        name: 1000, // Existing preserved (missing fields not added since partial versions exist)
       });
       expect(programVersions.items!["2"]).to.deep.equal({
         name: timestamp,
@@ -2475,8 +2495,7 @@ describe("VersionTracker", () => {
       const gymVersions = (filled.settings as any).gyms as ICollectionVersions<IGym>;
 
       expect(gymVersions.items!.gym1).to.deep.equal({
-        name: 1000, // Existing preserved
-        equipment: timestamp, // Missing controlled field added
+        name: 1000, // Existing preserved (missing fields not added since partial versions exist)
       });
     });
 
@@ -2663,6 +2682,675 @@ describe("VersionTracker", () => {
         },
         2: { name: 2000 },
         3: 3000,
+      });
+    });
+  });
+
+  describe("vector clocks", () => {
+    it("should create vector clock versions when deviceId is provided", () => {
+      const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc123" });
+      const oldStorage = Storage.getDefault();
+      const newStorage = { ...oldStorage, currentProgramId: "program-123" };
+      const timestamp = 1000;
+
+      const versions = trackerWithDevice.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+
+      expect(versions.currentProgramId).to.be.an("object");
+      expect((versions.currentProgramId as any).vc).to.deep.equal({ web_abc123: 1 });
+      expect((versions.currentProgramId as any).t).to.equal(timestamp);
+    });
+
+    it("should create plain timestamp versions when deviceId is not provided", () => {
+      const trackerNoDevice = new VersionTracker(STORAGE_VERSION_TYPES);
+      const oldStorage = Storage.getDefault();
+      const newStorage = { ...oldStorage, currentProgramId: "program-123" };
+      const timestamp = 1000;
+
+      const versions = trackerNoDevice.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+
+      expect(versions.currentProgramId).to.equal(timestamp);
+    });
+
+    it("should increment vector clock counter for same device", () => {
+      const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc123" });
+      const storage1 = Storage.getDefault();
+      const storage2 = { ...storage1, currentProgramId: "program-1" };
+      const storage3 = { ...storage2, currentProgramId: "program-2" };
+
+      const versions1 = trackerWithDevice.updateVersions(storage1, storage2, {}, {}, 1000);
+      const versions2 = trackerWithDevice.updateVersions(storage2, storage3, versions1, {}, 2000);
+
+      expect((versions2.currentProgramId as any).vc).to.deep.equal({ web_abc123: 2 });
+      expect((versions2.currentProgramId as any).t).to.equal(2000);
+    });
+
+    it("should detect sequential changes (a happened-before b)", () => {
+      const trackerDevice1 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+      const trackerDevice2 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+      // Device 1 makes first change
+      const storage1 = Storage.getDefault();
+      const storage2 = { ...storage1, currentProgramId: "program-1" };
+      const versions1 = trackerDevice1.updateVersions(storage1, storage2, {}, {}, 1000);
+      // versions1.currentProgramId = { vc: { web_abc: 1 }, t: 1000 }
+
+      // Device 2 receives that change and makes another
+      const storage3 = { ...storage2, currentProgramId: "program-2" };
+      const versions2 = trackerDevice2.updateVersions(storage2, storage3, versions1, {}, 2000);
+      // versions2.currentProgramId = { vc: { web_abc: 1, ios_xyz: 1 }, t: 2000 }
+
+      // When merging, device 2's change should win (it's newer)
+      const fullObj = { currentProgramId: "program-1" };
+      const fullVersions = { currentProgramId: versions1.currentProgramId };
+      const diffVersions = { currentProgramId: versions2.currentProgramId };
+      const extractedObj = { currentProgramId: "program-2" };
+
+      const merged = trackerDevice1.mergeByVersions(fullObj, fullVersions, diffVersions, extractedObj);
+      expect(merged.currentProgramId).to.equal("program-2");
+    });
+
+    it("should detect concurrent changes and use timestamp as tiebreaker", () => {
+      const trackerDevice1 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+      const trackerDevice2 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+      // Device 1 makes a change
+      const storage1 = Storage.getDefault();
+      const storage2Web = { ...storage1, currentProgramId: "program-web" };
+      const versionsWeb = trackerDevice1.updateVersions(storage1, storage2Web, {}, {}, 1000);
+      // versionsWeb.currentProgramId = { vc: { web_abc: 1 }, t: 1000 }
+
+      // Device 2 makes a concurrent change (doesn't know about device 1's change)
+      const storage2Ios = { ...storage1, currentProgramId: "program-ios" };
+      const versionsIos = trackerDevice2.updateVersions(storage1, storage2Ios, {}, {}, 2000);
+      // versionsIos.currentProgramId = { vc: { ios_xyz: 1 }, t: 2000 }
+
+      // When merging concurrent changes, higher timestamp should win
+      const fullObj = { currentProgramId: "program-web" };
+      const fullVersions = { currentProgramId: versionsWeb.currentProgramId };
+      const diffVersions = { currentProgramId: versionsIos.currentProgramId };
+      const extractedObj = { currentProgramId: "program-ios" };
+
+      const merged = trackerDevice1.mergeByVersions(fullObj, fullVersions, diffVersions, extractedObj);
+      expect(merged.currentProgramId).to.equal("program-ios"); // iOS wins due to higher timestamp
+    });
+
+    it("should handle three-way merge with sequential changes", () => {
+      const trackerDevice1 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+      const trackerDevice2 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+      // Device 1 makes a change
+      const storage1 = Storage.getDefault();
+      const storage2Web = { ...storage1, currentProgramId: "program-web" };
+      const versionsWeb = trackerDevice1.updateVersions(storage1, storage2Web, {}, {}, 3000);
+
+      // Device 2 receives device 1's change and makes another change on top
+      const storage3Ios = { ...storage2Web, currentProgramId: "program-ios" };
+      const versionsIos = trackerDevice2.updateVersions(storage2Web, storage3Ios, versionsWeb, {}, 4000);
+
+      // When merging, iOS should win because it happened after web's change
+      const fullObj = { currentProgramId: "program-web" };
+      const fullVersions = { currentProgramId: versionsWeb.currentProgramId };
+      const diffVersions = { currentProgramId: versionsIos.currentProgramId };
+      const extractedObj = { currentProgramId: "program-ios" };
+
+      const merged = trackerDevice1.mergeByVersions(fullObj, fullVersions, diffVersions, extractedObj);
+      expect(merged.currentProgramId).to.equal("program-ios"); // iOS wins because it's sequential (newer)
+    });
+
+    it("should handle mixed vector clock and plain timestamp versions", () => {
+      const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+
+      // Start with plain timestamp (old version without deviceId)
+      const storage1 = Storage.getDefault();
+      const storage2 = { ...storage1, currentProgramId: "program-1" };
+      const versionsPlain = { currentProgramId: 1000 }; // Plain timestamp
+
+      // New change with vector clock
+      const storage3 = { ...storage2, currentProgramId: "program-2" };
+      const versionsNew = trackerWithDevice.updateVersions(storage2, storage3, versionsPlain, {}, 2000);
+
+      // Should create vector clock from plain timestamp
+      expect((versionsNew.currentProgramId as any).vc).to.deep.equal({ web_abc: 1 });
+      expect((versionsNew.currentProgramId as any).t).to.equal(2000);
+    });
+
+    it("should merge vector clock versions correctly", () => {
+      const trackerDevice1 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+
+      const fullVersions = {
+        name: { vc: { web_abc: 2, ios_xyz: 1 }, t: 2000 },
+        age: { vc: { web_abc: 1 }, t: 1000 },
+      };
+
+      const diffVersions = {
+        name: { vc: { web_abc: 1, ios_xyz: 2 }, t: 3000 },
+        email: { vc: { ios_xyz: 1 }, t: 1500 },
+      };
+
+      const merged = trackerDevice1.mergeVersions(fullVersions, diffVersions);
+
+      // name: concurrent change, diff has higher timestamp, should use diff
+      expect((merged.name as any).t).to.equal(3000);
+
+      // age: only in full, should keep full
+      expect((merged.age as any).vc).to.deep.equal({ web_abc: 1 });
+      expect((merged.age as any).t).to.equal(1000);
+
+      // email: only in diff, should use diff
+      expect((merged.email as any).vc).to.deep.equal({ ios_xyz: 1 });
+      expect((merged.email as any).t).to.equal(1500);
+    });
+
+    it("should use plain timestamps for deletions even with deviceId", () => {
+      const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+
+      const program1: IProgram = {
+        vtype: "program",
+        id: "prog1",
+        clonedAt: 1,
+        name: "Program 1",
+        description: "",
+        url: "",
+        author: "",
+        nextDay: 1,
+        days: [],
+        weeks: [],
+        exercises: [],
+        isMultiweek: false,
+        tags: [],
+      };
+
+      const oldStorage = {
+        ...Storage.getDefault(),
+        programs: [program1],
+      };
+
+      const newStorage = {
+        ...oldStorage,
+        programs: [],
+      };
+
+      const timestamp = 1000;
+      const versions = trackerWithDevice.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+
+      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      // Deletion should be plain timestamp, not vector clock
+      expect(programVersions.deleted!["1"]).to.equal(timestamp);
+      expect(typeof programVersions.deleted!["1"]).to.equal("number");
+    });
+
+    it("should compare equal vector clocks correctly", () => {
+      const trackerDevice1 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+
+      const storage1 = Storage.getDefault();
+      const storage2 = { ...storage1, currentProgramId: "program-1" };
+      const versions1 = trackerDevice1.updateVersions(storage1, storage2, {}, {}, 1000);
+
+      // Try to merge with itself - should keep original
+      const fullObj = { currentProgramId: "program-1" };
+      const fullVersions = { currentProgramId: versions1.currentProgramId };
+      const diffVersions = { currentProgramId: versions1.currentProgramId };
+      const extractedObj = { currentProgramId: "program-1" };
+
+      const merged = trackerDevice1.mergeByVersions(fullObj, fullVersions, diffVersions, extractedObj);
+      expect(merged.currentProgramId).to.equal("program-1");
+    });
+
+    it("should work with vector clocks in nested structures", () => {
+      const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+
+      const oldStorage = Storage.getDefault();
+      const newStorage = {
+        ...oldStorage,
+        settings: {
+          ...oldStorage.settings,
+          volume: 75,
+        },
+      };
+
+      const timestamp = 1000;
+      const versions = trackerWithDevice.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+
+      expect((versions.settings as any).volume).to.be.an("object");
+      expect((versions.settings as any).volume.vc).to.deep.equal({ web_abc: 1 });
+      expect((versions.settings as any).volume.t).to.equal(timestamp);
+    });
+
+    it("should work with vector clocks in collections", () => {
+      const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+      const program: IProgram = {
+        vtype: "program",
+        id: "prog1",
+        clonedAt: 1,
+        name: "Program 1",
+        description: "",
+        url: "",
+        author: "",
+        nextDay: 1,
+        days: [],
+        weeks: [],
+        exercises: [],
+        isMultiweek: false,
+        tags: [],
+      };
+
+      const updatedProgram: IProgram = {
+        ...program,
+        name: "Updated Program",
+      };
+
+      const oldStorage = {
+        ...Storage.getDefault(),
+        programs: [program],
+      };
+
+      const newStorage = {
+        ...oldStorage,
+        programs: [updatedProgram],
+      };
+
+      const timestamp = 1000;
+      const versions = trackerWithDevice.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+
+      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      const itemVersion = programVersions.items!["1"] as any;
+
+      expect(itemVersion.name).to.be.an("object");
+      expect(itemVersion.name.vc).to.deep.equal({ ios_xyz: 1 });
+      expect(itemVersion.name.t).to.equal(timestamp);
+    });
+
+    it("should preserve vector clock counters during concurrent merges (no regression)", () => {
+      const trackerA = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+      const trackerB = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+      // Device A makes 2 changes
+      const storage1 = Storage.getDefault();
+      const storage2 = { ...storage1, currentProgramId: "program-1" };
+      const versionsA1 = trackerA.updateVersions(storage1, storage2, {}, {}, 1000);
+      // versionsA1.currentProgramId = { vc: { web_abc: 1 }, t: 1000 }
+
+      const storage3 = { ...storage2, currentProgramId: "program-2" };
+      const versionsA2 = trackerA.updateVersions(storage2, storage3, versionsA1, {}, 2000);
+      // versionsA2.currentProgramId = { vc: { web_abc: 2 }, t: 2000 }
+
+      // Device B makes a concurrent change (doesn't know about Device A's changes)
+      const storage4 = { ...storage1, currentProgramId: "program-B" };
+      const versionsB = trackerB.updateVersions(storage1, storage4, {}, {}, 3000);
+      // versionsB.currentProgramId = { vc: { ios_xyz: 1 }, t: 3000 }
+
+      // Device A merges B's version (concurrent conflict)
+      const mergedVersions = trackerA.mergeVersions(versionsA2, versionsB);
+
+      // The merged version should have BOTH counters (web_abc: 2, ios_xyz: 1)
+      const mergedVc = (mergedVersions.currentProgramId as any).vc;
+      expect(mergedVc.web_abc).to.equal(2); // ✓ Preserved from A
+      expect(mergedVc.ios_xyz).to.equal(1); // ✓ Preserved from B
+
+      // Now Device A makes another change - counter should increment from 2 to 3
+      const storage5 = { ...storage3, currentProgramId: "program-3" };
+      const versionsA3 = trackerA.updateVersions(storage3, storage5, mergedVersions, {}, 4000);
+
+      const finalVc = (versionsA3.currentProgramId as any).vc;
+      expect(finalVc.web_abc).to.equal(3); // ✓ No regression! (was 2, now 3)
+      expect(finalVc.ios_xyz).to.equal(1); // ✓ Still preserved
+    });
+
+    it("should not lose data when mixing vector clocks with plain timestamps (migration safety)", () => {
+      const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+      const trackerNoDevice = new VersionTracker(STORAGE_VERSION_TYPES); // Old client
+
+      // Old client (no vector clocks) makes a change at time 5000
+      const storage1 = Storage.getDefault();
+      const storage2Old = { ...storage1, currentProgramId: "Latest Change" };
+      const versionsOld = trackerNoDevice.updateVersions(storage1, storage2Old, {}, {}, 5000);
+      // versionsOld.currentProgramId = 5000 (plain timestamp)
+
+      // New client (with vector clocks) has an older change from time 1000
+      const storage2New = { ...storage1, currentProgramId: "Old Change" };
+      const versionsNew = trackerWithDevice.updateVersions(storage1, storage2New, {}, {}, 1000);
+      // versionsNew.currentProgramId = { vc: { web_abc: 1 }, t: 1000 }
+
+      // Merge: plain timestamp (5000) vs vector clock ({ web_abc: 1, t: 1000 })
+      // Should use timestamp comparison: 5000 > 1000, so plain timestamp wins
+      const fullObj = { currentProgramId: "Old Change" };
+      const fullVersions = { currentProgramId: versionsNew.currentProgramId };
+      const diffVersions = { currentProgramId: versionsOld.currentProgramId };
+      const extractedObj = { currentProgramId: "Latest Change" };
+
+      const merged = trackerWithDevice.mergeByVersions(fullObj, fullVersions, diffVersions, extractedObj);
+
+      // ✓ Should preserve the newer value from the plain timestamp
+      expect(merged.currentProgramId).to.equal("Latest Change");
+    });
+
+    it("should still upgrade to vector clocks after mixed-mode merge", () => {
+      const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+
+      // Plain timestamp wins in merge (5000 > 1000)
+      const plainTimestampVersion = 5000;
+      const vectorClockVersion = { vc: { web_abc: 1 }, t: 1000 };
+
+      // After merge, version is still plain timestamp
+      const mergedVersions = trackerWithDevice.mergeVersions(
+        { currentProgramId: vectorClockVersion },
+        { currentProgramId: plainTimestampVersion }
+      );
+
+      expect(mergedVersions.currentProgramId).to.equal(5000); // Still plain timestamp
+
+      // Now device with VC makes a change - should upgrade to vector clock
+      const storage1 = { currentProgramId: "Value A" };
+      const storage2 = { currentProgramId: "Value B" };
+      const newVersions = trackerWithDevice.updateVersions(storage1, storage2, mergedVersions, {}, 6000);
+
+      // ✓ Should now have vector clock (upgraded from plain timestamp)
+      expect((newVersions.currentProgramId as any).vc).to.deep.equal({ web_abc: 1 });
+      expect((newVersions.currentProgramId as any).t).to.equal(6000);
+    });
+
+    describe("preserving newVersion deviceIds (regression tests)", () => {
+      it("should preserve deviceIds from newVersion when updating collection items", () => {
+        const trackerWeb = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+        const trackerIos = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+        const program: IProgram = {
+          vtype: "program",
+          id: "prog1",
+          clonedAt: 1,
+          name: "Program 1",
+          description: "",
+          url: "",
+          author: "",
+          nextDay: 1,
+          days: [],
+          weeks: [],
+          exercises: [],
+          isMultiweek: false,
+          tags: [],
+        };
+
+        // iOS device creates program
+        const storage1 = { ...Storage.getDefault(), programs: [] };
+        const storage2 = { ...storage1, programs: [program] };
+        const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
+        // versionsIos.programs.items["1"].name = { vc: { ios_xyz: 1 }, t: 1000 }
+
+        // Web device receives iOS's version and makes a change
+        const updatedProgram = { ...program, name: "Updated Program" };
+        const storage3 = { ...storage2, programs: [updatedProgram] };
+        const versionsWeb = trackerWeb.updateVersions(storage2, storage3, {}, versionsIos, 2000);
+
+        // Web's version should have BOTH device counters
+        const programVersions = versionsWeb.programs as ICollectionVersions<IProgram>;
+        const nameVersion = (programVersions.items!["1"] as any).name;
+
+        expect(nameVersion.vc.ios_xyz).to.equal(1); // ✓ Preserved from iOS
+        expect(nameVersion.vc.web_abc).to.equal(1); // ✓ Added by Web
+        expect(nameVersion.t).to.equal(2000);
+      });
+
+      it("should preserve deviceIds from newVersion when updating dictionary items", () => {
+        const trackerWeb = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+        const trackerIos = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+        const customExercise: ICustomExercise = {
+          isDeleted: false,
+          vtype: "custom_exercise",
+          id: "custom-ex",
+          name: "Custom Ex",
+          types: [],
+          meta: {
+            bodyParts: [],
+            targetMuscles: [],
+            synergistMuscles: [],
+          },
+        };
+
+        // iOS device creates a custom exercise
+        const storage1 = {
+          ...Storage.getDefault(),
+          settings: {
+            ...Storage.getDefault().settings,
+            exercises: { "custom-ex": customExercise },
+          },
+        };
+        const storage2 = {
+          ...storage1,
+          settings: {
+            ...storage1.settings,
+            exercises: { "custom-ex": { ...customExercise, name: "Custom Exercise" } },
+          },
+        };
+        const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
+
+        // Web device receives iOS's version and makes another change
+        const storage3 = {
+          ...storage2,
+          settings: {
+            ...storage2.settings,
+            exercises: { "custom-ex": { ...customExercise, name: "Custom Exercise Updated" } },
+          },
+        };
+        const versionsWeb = trackerWeb.updateVersions(storage2, storage3, {}, versionsIos, 2000);
+
+        // Web's version should have BOTH device counters
+        const settingsVersions = versionsWeb.settings as any;
+        const exercisesVersions = settingsVersions.exercises as ICollectionVersions<any>;
+        const customExVersion = exercisesVersions.items!["custom-ex"] as IVectorClock;
+
+        // Should preserve ios_xyz and add web_abc
+        expect(customExVersion.vc.ios_xyz).to.equal(1);
+        expect(customExVersion.vc.web_abc).to.equal(1);
+        expect(customExVersion.t).to.equal(2000);
+      });
+
+      it("should preserve deviceIds from newVersion for non-trackable arrays", () => {
+        const trackerWeb = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+        const trackerIos = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+        // iOS device modifies a non-trackable array
+        const storage1 = {
+          ...Storage.getDefault(),
+          settings: { ...Storage.getDefault().settings, timers: [30, 60] },
+        };
+        const storage2 = {
+          ...storage1,
+          settings: { ...storage1.settings, timers: [45, 90] },
+        };
+        const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
+
+        // Web device receives iOS's version and makes another change
+        const storage3 = {
+          ...storage2,
+          settings: { ...storage2.settings, timers: [45, 90, 120] },
+        };
+        const versionsWeb = trackerWeb.updateVersions(storage2, storage3, {}, versionsIos, 2000);
+
+        // Web's version should have BOTH device counters
+        const timersVersion = (versionsWeb.settings as any).timers as IVectorClock;
+        expect(timersVersion.vc.ios_xyz).to.equal(1); // ✓ Preserved from iOS
+        expect(timersVersion.vc.web_abc).to.equal(1); // ✓ Added by Web
+        expect(timersVersion.t).to.equal(2000);
+      });
+
+      it("should preserve deviceIds from newVersion for controlled objects", () => {
+        const trackerWeb = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+        const trackerIos = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+        const program: IProgram = {
+          vtype: "program",
+          id: "prog1",
+          clonedAt: 1,
+          name: "Program 1",
+          description: "",
+          url: "",
+          author: "",
+          nextDay: 1,
+          days: [],
+          weeks: [],
+          exercises: [],
+          isMultiweek: false,
+          tags: [],
+        };
+
+        // iOS device creates program and updates name
+        const storage1 = { ...Storage.getDefault(), programs: [program] };
+        const storage2 = { ...storage1, programs: [{ ...program, name: "Updated by iOS" }] };
+        const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
+
+        // Web device receives iOS's version and updates name again
+        const storage3 = { ...storage2, programs: [{ ...program, name: "Updated by Web" }] };
+        const versionsWeb = trackerWeb.updateVersions(storage2, storage3, {}, versionsIos, 2000);
+
+        // Web's version should have BOTH device counters
+        const programVersions = versionsWeb.programs as ICollectionVersions<IProgram>;
+        const nameVersion = (programVersions.items!["1"] as any).name as IVectorClock;
+
+        expect(nameVersion.vc.ios_xyz).to.equal(1); // ✓ Preserved from iOS
+        expect(nameVersion.vc.web_abc).to.equal(1); // ✓ Added by Web
+        expect(nameVersion.t).to.equal(2000);
+      });
+
+      it("should preserve deviceIds from newVersion for atomic objects", () => {
+        const trackerWeb = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+        const trackerIos = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+        const record: IHistoryRecord = {
+          vtype: "history_record",
+          id: 1,
+          date: "2024-01-01",
+          programId: "prog1",
+          programName: "Program 1",
+          dayName: "Day 1",
+          day: 1,
+          entries: [],
+          startTime: 0,
+          endTime: 0,
+        };
+
+        // iOS device creates history record
+        const storage1 = { ...Storage.getDefault(), history: [] };
+        const storage2 = { ...storage1, history: [record] };
+        const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
+
+        // Web device receives iOS's version and modifies the record
+        const updatedRecord = { ...record, dayName: "Updated Day" };
+        const storage3 = { ...storage2, history: [updatedRecord] };
+        const versionsWeb = trackerWeb.updateVersions(storage2, storage3, {}, versionsIos, 2000);
+
+        // Web's version should have BOTH device counters
+        const historyVersions = versionsWeb.history as ICollectionVersions<IHistoryRecord>;
+        const recordVersion = historyVersions.items!["1"] as IVectorClock;
+
+        expect(recordVersion.vc.ios_xyz).to.equal(1); // ✓ Preserved from iOS
+        expect(recordVersion.vc.web_abc).to.equal(1); // ✓ Added by Web
+        expect(recordVersion.t).to.equal(2000);
+      });
+
+      it("should preserve deviceIds from newVersion for primitive values", () => {
+        const trackerWeb = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+        const trackerIos = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+        // iOS device changes currentProgramId
+        const storage1 = Storage.getDefault();
+        const storage2 = { ...storage1, currentProgramId: "program-1" };
+        const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
+
+        // Web device receives iOS's version and changes it again
+        const storage3 = { ...storage2, currentProgramId: "program-2" };
+        const versionsWeb = trackerWeb.updateVersions(storage2, storage3, {}, versionsIos, 2000);
+
+        // Web's version should have BOTH device counters
+        const version = versionsWeb.currentProgramId as IVectorClock;
+        expect(version.vc.ios_xyz).to.equal(1); // ✓ Preserved from iOS
+        expect(version.vc.web_abc).to.equal(1); // ✓ Added by Web
+        expect(version.t).to.equal(2000);
+      });
+
+      it("should preserve deviceIds through multiple syncs", () => {
+        const trackerWeb = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+        const trackerIos = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+        const trackerAndroid = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "android_def" });
+
+        // iOS makes first change
+        const storage1 = Storage.getDefault();
+        const storage2 = { ...storage1, currentProgramId: "program-1" };
+        const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
+
+        // Web receives iOS's change and makes another
+        const storage3 = { ...storage2, currentProgramId: "program-2" };
+        const versionsWeb = trackerWeb.updateVersions(storage2, storage3, {}, versionsIos, 2000);
+
+        // Android receives Web's change and makes another
+        const storage4 = { ...storage3, currentProgramId: "program-3" };
+        const versionsAndroid = trackerAndroid.updateVersions(storage3, storage4, {}, versionsWeb, 3000);
+
+        // Android's version should have ALL three device counters
+        const version = versionsAndroid.currentProgramId as IVectorClock;
+        expect(version.vc.ios_xyz).to.equal(1); // ✓ Preserved from iOS
+        expect(version.vc.web_abc).to.equal(1); // ✓ Preserved from Web
+        expect(version.vc.android_def).to.equal(1); // ✓ Added by Android
+        expect(version.t).to.equal(3000);
+      });
+    });
+
+    describe("field-by-field merge for controlled objects in collections", () => {
+      it("should merge controlled objects field-by-field in array collections, not take entire object", () => {
+        const trackerWeb = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+        const trackerIos = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+        // Initial state with a program
+        const storage1 = Storage.getDefault();
+        const program: IProgram = {
+          vtype: "program",
+          id: "test-program",
+          clonedAt: 1,
+          name: "Test Program",
+          exercises: [],
+          description: "",
+          url: "",
+          author: "",
+          isMultiweek: false,
+          tags: [],
+          days: [],
+          nextDay: 1,
+          weeks: [],
+        };
+        storage1.programs = [program];
+        const versions1 = trackerWeb.fillVersions(storage1, {}, 1000);
+
+        // iOS modifies only the 'name' field
+        const storage2 = ObjectUtils.clone(storage1);
+        storage2.programs[0].name = "Modified by iOS";
+        const versions2 = trackerIos.updateVersions(storage1, storage2, versions1, {}, 2000);
+
+        // Web modifies only the 'nextDay' field (concurrent change)
+        const storage3 = ObjectUtils.clone(storage1);
+        storage3.programs[0].nextDay = 2;
+        const versions3 = trackerWeb.updateVersions(storage1, storage3, versions1, {}, 2500);
+
+        // Extract iOS changes for sync
+        const versionDiff2 = trackerIos.diffVersions(versions1, versions2);
+        const extractedIos = trackerIos.extractByVersions(storage2, versionDiff2!);
+
+        // Merge iOS changes into Web's state
+        const mergedStorage = trackerWeb.mergeByVersions(storage3, versions3, versionDiff2!, extractedIos);
+
+        // CRITICAL: The merged program should have BOTH changes:
+        // - name from iOS (newer)
+        // - nextDay from Web (concurrent, but this is the local value)
+        expect(mergedStorage.programs[0].name).to.equal("Modified by iOS");
+        expect(mergedStorage.programs[0].nextDay).to.equal(2); // Should NOT be lost!
+
+        // Verify versions are properly merged
+        const mergedVersions = trackerWeb.mergeVersions(versions3, versionDiff2!);
+        const programVersions = (mergedVersions.programs as ICollectionVersions<unknown>).items![
+          "1"
+        ] as IVersions<unknown>;
+        expect((programVersions.name as IVectorClock).vc.ios_xyz).to.equal(1);
+        expect((programVersions.nextDay as IVectorClock).vc.web_abc).to.equal(2);
       });
     });
   });
