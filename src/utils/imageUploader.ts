@@ -115,7 +115,7 @@ export class ImageUploader {
         }
 
         const isPng = file.type === "image/png";
-        const outputType = isPng ? "image/png" : "image/jpeg";
+        const outputType = "image/png";
         const quality = isPng ? undefined : 0.95;
 
         canvas.toBlob(

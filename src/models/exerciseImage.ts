@@ -684,7 +684,9 @@ export namespace ExerciseImageUtils {
 
   export function existsCustom(type: IExerciseType, size: "small" | "large", settings?: ISettings): boolean {
     const customExercise = settings?.exercises?.[type.id];
-    return size === "small" ? !!customExercise?.smallImageUrl : !!customExercise?.largeImageUrl;
+    return size === "small"
+      ? !!customExercise?.smallImageUrl
+      : !!(customExercise?.largeImageUrl ?? customExercise?.smallImageUrl);
   }
 
   export function ogImageUrl(type: IExerciseType): string {
@@ -701,7 +703,9 @@ export namespace ExerciseImageUtils {
       return src;
     } else if (existsCustom(type, size, settings)) {
       const customExercise = settings?.exercises?.[type.id];
-      return size === "large" ? customExercise?.largeImageUrl : customExercise?.smallImageUrl;
+      return size === "large"
+        ? (customExercise?.largeImageUrl ?? customExercise?.smallImageUrl)
+        : customExercise?.smallImageUrl;
     } else {
       return undefined;
     }
