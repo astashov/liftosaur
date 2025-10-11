@@ -54,7 +54,7 @@ function setToDisplaySet(set: ISet, isNext: boolean, settings: ISettings): IDisp
       : completedOrRequiredWeight
         ? Weight.display(completedOrRequiredWeight, false)
         : undefined,
-    unit: set.weight?.unit ?? settings.units,
+    unit: completedOrRequiredWeight?.unit ?? settings.units,
     askWeight: set.askWeight,
     isCompleted: Reps.isCompletedSet(set),
     isRpeFailed: set.completedRpe != null && set.completedRpe > (set.rpe ?? 0),
