@@ -205,6 +205,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                       } else {
                         Progress.changeExercise(
                           props.dispatch,
+                          props.settings,
                           props.progress.id,
                           exercise.exerciseType,
                           exercisePickerState.entryIndex,

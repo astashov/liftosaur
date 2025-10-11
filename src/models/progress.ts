@@ -952,8 +952,31 @@ export namespace Progress {
     );
   }
 
+  export function isEligibleForInferredWeight(set: ISet): boolean {
+    return set.originalWeight == null && set.reps != null && set.rpe != null;
+  }
+
+  export function updateSetWeights(
+    entry: IHistoryEntry,
+    exerciseType: IExerciseType,
+    settings: ISettings
+  ): IHistoryEntry {
+    const newSets = entry.sets.map((set) => {
+      if ((Progress.isEligibleForInferredWeight(set) || Weight.isPct(set.originalWeight)) && !set.isCompleted) {
+        const originalWeight = set.originalWeight ?? Weight.rpePct(set.reps ?? 1, set.rpe ?? 10);
+        return {
+          ...set,
+          weight: Weight.evaluateWeight(originalWeight, exerciseType, settings),
+        };
+      }
+      return set;
+    });
+    return { ...entry, sets: newSets };
+  }
+
   export function changeExercise(
     dispatch: IDispatch,
+    settings: ISettings,
     progressId: number,
     exerciseType: IExerciseType,
     entryIndex: number,
@@ -968,6 +991,7 @@ export namespace Progress {
           .p("entries")
           .i(entryIndex)
           .recordModify((entry) => {
+            entry = Progress.updateSetWeights(entry, exerciseType, settings);
             return {
               ...entry,
               exercise: exerciseType,
