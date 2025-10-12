@@ -29,6 +29,93 @@ function getProductType(product: string): string {
   return "Unknown";
 }
 
+function isMonthlySubscription(productId: string): boolean {
+  return productId === "com.liftosaur.subscription.and_montly" || productId === "com.liftosaur.subscription.ios_montly";
+}
+
+function isYearlySubscription(productId: string): boolean {
+  return productId === "com.liftosaur.subscription.and_yearly" || productId === "com.liftosaur.subscription.ios_yearly";
+}
+
+interface IUserSubscriptionInfo {
+  userId: string;
+  lastPaymentTimestamp: number;
+  subscriptionType: "monthly" | "yearly";
+  productId: string;
+  expectedRenewalTimestamp: number;
+  wasTrialPayment: boolean;
+}
+
+function detectCancellations(paymentsData: IPaymentsDashboardData[]): {
+  cancellations: IUserSubscriptionInfo[];
+  totalCancellations: number;
+  monthlyCancellations: number;
+  yearlyCancellations: number;
+} {
+  const userSubscriptions = new Map<string, IUserSubscriptionInfo>();
+  const now = Date.now();
+
+  paymentsData.forEach((dayData) => {
+    dayData.payments.forEach((payment) => {
+      if (payment.paymentType === "refund") {
+        return;
+      }
+
+      const isMonthly = isMonthlySubscription(payment.productId);
+      const isYearly = isYearlySubscription(payment.productId);
+
+      if (!isMonthly && !isYearly) {
+        return;
+      }
+
+      const existing = userSubscriptions.get(payment.userId);
+      if (!existing || payment.timestamp > existing.lastPaymentTimestamp) {
+        const lastPaymentDate = new Date(payment.timestamp);
+        const expectedRenewalDate = new Date(lastPaymentDate);
+
+        if (payment.isFreeTrialPayment) {
+          expectedRenewalDate.setDate(expectedRenewalDate.getDate() + 14);
+        } else if (isMonthly) {
+          expectedRenewalDate.setMonth(expectedRenewalDate.getMonth() + 1);
+        } else {
+          expectedRenewalDate.setFullYear(expectedRenewalDate.getFullYear() + 1);
+        }
+
+        userSubscriptions.set(payment.userId, {
+          userId: payment.userId,
+          lastPaymentTimestamp: payment.timestamp,
+          subscriptionType: isMonthly ? "monthly" : "yearly",
+          productId: payment.productId,
+          expectedRenewalTimestamp: expectedRenewalDate.getTime(),
+          wasTrialPayment: payment.isFreeTrialPayment,
+        });
+      }
+    });
+  });
+
+  const cancellations: IUserSubscriptionInfo[] = [];
+  let monthlyCancellations = 0;
+  let yearlyCancellations = 0;
+
+  userSubscriptions.forEach((info) => {
+    if (info.expectedRenewalTimestamp < now) {
+      cancellations.push(info);
+      if (info.subscriptionType === "monthly") {
+        monthlyCancellations += 1;
+      } else {
+        yearlyCancellations += 1;
+      }
+    }
+  });
+
+  return {
+    cancellations,
+    totalCancellations: cancellations.length,
+    monthlyCancellations,
+    yearlyCancellations,
+  };
+}
+
 function formatCurrency(amount: number, currency?: string): string {
   const curr = currency || "USD";
   try {
@@ -110,11 +197,48 @@ function groupByMonth(dailyData: IPaymentsDashboardData[]): IPaymentsDashboardDa
     }));
 }
 
+function groupCancellationsByPeriod(
+  cancellations: IUserSubscriptionInfo[],
+  viewMode: "day" | "month"
+): Record<string, IUserSubscriptionInfo[]> {
+  const grouped: Record<string, IUserSubscriptionInfo[]> = {};
+
+  cancellations.forEach((cancellation) => {
+    const date = new Date(cancellation.expectedRenewalTimestamp);
+    let key: string;
+
+    if (viewMode === "month") {
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+      key = `${year}-${month}-01`;
+    } else {
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+      const day = String(date.getUTCDate()).padStart(2, "0");
+      key = `${year}-${month}-${day}`;
+    }
+
+    if (!grouped[key]) {
+      grouped[key] = [];
+    }
+    grouped[key].push(cancellation);
+  });
+
+  return grouped;
+}
+
 export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps): JSX.Element {
   const [viewMode, setViewMode] = useState<"day" | "month">("day");
   const currencyTotals: Record<string, { total: number; refunds: number }> = {};
   let totalUSD = 0;
   let refundsUSD = 0;
+
+  const cancellationData = detectCancellations(props.paymentsData);
+  const cancellationsByPeriod = groupCancellationsByPeriod(cancellationData.cancellations, viewMode);
+
+  const cancelledTrialUserIds = new Set(
+    cancellationData.cancellations.filter((c) => c.wasTrialPayment).map((c) => c.userId)
+  );
 
   const sortedDailyData = [...props.paymentsData].sort((a, b) => b.date.localeCompare(a.date));
   const groupedData = viewMode === "month" ? groupByMonth(props.paymentsData) : sortedDailyData;
@@ -206,6 +330,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
     const renewalCount = periodData.payments.filter((p) => p.paymentType === "renewal").length;
     const refundCount = periodData.payments.filter((p) => p.paymentType === "refund").length;
     const freeTrialCount = periodData.payments.filter((p) => p.isFreeTrialPayment).length;
+    const periodCancellations = cancellationsByPeriod[periodData.date] || [];
 
     return {
       date: periodData.date,
@@ -226,6 +351,8 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
       renewalCount,
       refundCount,
       freeTrialCount,
+      cancellationCount: periodCancellations.length,
+      cancellations: periodCancellations,
       payments: periodData.payments,
     };
   });
@@ -294,7 +421,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
 
       <div className="p-4 mb-8 bg-gray-100 rounded">
         <h3 className="mb-2 text-lg font-semibold">Summary</h3>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
           <div>
             <div className="text-sm text-gray-600">Total Revenue</div>
             <div>
@@ -360,6 +487,13 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
             <div className="text-xl font-bold text-blue-600">{totalRenewals}</div>
           </div>
           <div>
+            <div className="text-sm text-gray-600">Cancellations</div>
+            <div className="text-xl font-bold text-orange-600">{cancellationData.totalCancellations}</div>
+            <div className="text-xs text-gray-600">
+              Monthly: {cancellationData.monthlyCancellations} | Yearly: {cancellationData.yearlyCancellations}
+            </div>
+          </div>
+          <div>
             <div className="text-sm text-gray-600">Refunds</div>
             <div className="text-xl font-bold text-red-600">{totalRefunds}</div>
           </div>
@@ -408,6 +542,9 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                   )}
                 </span>
                 <span className="text-blue-600">Renewals: {periodData.renewalCount}</span>
+                {periodData.cancellationCount > 0 && (
+                  <span className="text-orange-600">Cancellations: {periodData.cancellationCount}</span>
+                )}
                 {periodData.refundCount > 0 && <span className="text-red-600">Refunds: {periodData.refundCount}</span>}
                 {periodData.freeTrialCount > 0 && (
                   <span className="text-purple-600">Free Trials: {periodData.freeTrialCount}</span>
@@ -506,7 +643,11 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     <td className="px-2 py-2">{getProductType(payment.productId)}</td>
                     <td className={`py-2 px-2 ${getPaymentTypeColor(payment.paymentType)}`}>
                       {payment.paymentType}
-                      {payment.isFreeTrialPayment && <span className="ml-1 text-purple-600">(trial)</span>}
+                      {payment.isFreeTrialPayment && (
+                        <span className="ml-1 text-purple-600">
+                          (trial{cancelledTrialUserIds.has(payment.userId) ? ", C" : ""})
+                        </span>
+                      )}
                     </td>
                     <td className="px-2 py-2">{payment.type}</td>
                     <td className="px-2 py-2">{payment.source}</td>
@@ -514,6 +655,38 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                       {formatCurrencyWithUSD(payment.amount - (payment.tax ?? 0), payment.currency)}
                       {payment.tax ? <span className="text-xs text-gray-500"> (+{payment.tax.toFixed(2)})</span> : null}
                     </td>
+                  </tr>
+                ))}
+                {periodData.cancellations.map((cancellation, idx) => (
+                  <tr
+                    key={`cancellation-${cancellation.userId}-${idx}`}
+                    className="bg-orange-50 border-b hover:bg-orange-100"
+                  >
+                    <td className="px-2 py-2">{DateUtils.formatUTCYYYYMMDD(cancellation.lastPaymentTimestamp)}</td>
+                    <td className="px-2 py-2">
+                      {viewMode === "month"
+                        ? DateUtils.formatUTCYYYYMMDDHHMM(cancellation.expectedRenewalTimestamp)
+                        : TimeUtils.formatUTCHHMM(cancellation.expectedRenewalTimestamp)}
+                    </td>
+                    <td className="px-2 py-2">
+                      <a
+                        href={`/dashboards/user/${cancellation.userId}?key=${props.apiKey}`}
+                        className="text-blue-600 hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {cancellation.userId}
+                      </a>
+                    </td>
+                    <td className="px-2 py-2 font-mono text-xs text-gray-400">-</td>
+                    <td className="px-2 py-2">{getProductType(cancellation.productId)}</td>
+                    <td className="px-2 py-2 text-orange-600">
+                      cancellation
+                      {cancellation.wasTrialPayment && <span className="ml-1 text-purple-600">(trial)</span>}
+                    </td>
+                    <td className="px-2 py-2 text-gray-400">-</td>
+                    <td className="px-2 py-2 text-gray-400">-</td>
+                    <td className="px-2 py-2 font-mono text-right text-gray-400">-</td>
                   </tr>
                 ))}
               </tbody>

@@ -4,7 +4,7 @@ import { HttpStreaming } from "./httpStreaming";
 export class ClaudeProvider implements ILLMProvider {
   constructor(
     private readonly apiKey: string,
-    private readonly model: string = "claude-sonnet-4-20250514"
+    private readonly model: string = "claude-sonnet-4-5-20250929"
   ) {}
 
   public async *generate(

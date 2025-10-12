@@ -118,4 +118,8 @@ export namespace StringUtils {
     const hash = Math.abs(hashCode(str));
     return (hash % 10000) / 10000;
   }
+
+  export function cleanJson(str: string): string {
+    return str.trim().replace(/^[\s\S]*?(\{[\s\S]*\})[\s\S]*?$/, "$1");
+  }
 }
