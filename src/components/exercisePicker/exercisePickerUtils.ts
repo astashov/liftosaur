@@ -53,7 +53,11 @@ export class ExercisePickerUtils {
     return [...(filters.type || []), ...(filters.muscles || [])];
   }
 
-  public static filterExercises(exercises: IExercise[], filters: IExercisePickerFilters): IExercise[] {
+  public static filterExercises(
+    exercises: IExercise[],
+    filters: IExercisePickerFilters,
+    settings: ISettings
+  ): IExercise[] {
     const allFilters = ExercisePickerUtils.getAllFilters(filters);
     if (allFilters.length === 0) {
       return exercises;
@@ -73,7 +77,9 @@ export class ExercisePickerUtils {
         result = result && SetUtils.containsAnyValues(new Set([exercise.equipment]), equipmentSet);
       }
       if (musclesSet.size > 0) {
-        const muscles = new Set(Exercise.targetMuscles(exercise, {}).concat(Exercise.synergistMuscles(exercise, {})));
+        const muscles = new Set(
+          Exercise.targetMuscles(exercise, settings).concat(Exercise.synergistMuscles(exercise, settings))
+        );
         result = result && SetUtils.containsAnyValues(muscles, musclesSet);
       }
       return result;
@@ -87,46 +93,37 @@ export class ExercisePickerUtils {
     });
   }
 
-  public static sortExercises(
-    exercises: IExercise[],
-    allCustomExercises: IAllCustomExercises,
-    state: IExercisePickerState
-  ): IExercise[] {
+  public static sortExercises(exercises: IExercise[], settings: ISettings, state: IExercisePickerState): IExercise[] {
     return CollectionUtils.sort(exercises, (a, b) => {
-      return ExercisePickerUtils.getSortRating(a, b, allCustomExercises, state);
+      return ExercisePickerUtils.getSortRating(a, b, settings, state);
     });
   }
 
   public static sortCustomExercises(
     customExercises: ICustomExercise[],
-    allCustomExercises: IAllCustomExercises,
+    settings: ISettings,
     state: IExercisePickerState
   ): ICustomExercise[] {
     return CollectionUtils.sort(customExercises, (aE, bE) => {
-      const a = Exercise.get(aE, allCustomExercises);
-      const b = Exercise.get(bE, allCustomExercises);
-      return ExercisePickerUtils.getSortRating(a, b, allCustomExercises, state);
+      const a = Exercise.get(aE, settings.exercises);
+      const b = Exercise.get(bE, settings.exercises);
+      return ExercisePickerUtils.getSortRating(a, b, settings, state);
     });
   }
 
-  private static getSortRating(
-    a: IExercise,
-    b: IExercise,
-    allCustomExercises: IAllCustomExercises,
-    state: IExercisePickerState
-  ): number {
+  private static getSortRating(a: IExercise, b: IExercise, settings: ISettings, state: IExercisePickerState): number {
     const filters = state.filters;
     const sort = state.sort;
     const currentExerciseType = state.exerciseType;
     const exerciseType = currentExerciseType;
     if (sort === "similar_muscles" && exerciseType) {
-      const aRating = Exercise.similarRating(exerciseType, a, allCustomExercises);
-      const bRating = Exercise.similarRating(exerciseType, b, allCustomExercises);
+      const aRating = Exercise.similarRating(exerciseType, a, settings);
+      const bRating = Exercise.similarRating(exerciseType, b, settings);
       return bRating - aRating;
     } else if ((filters.muscles || []).length > 0) {
       const filterMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroups(filters.muscles || []);
-      const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, allCustomExercises);
-      const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, allCustomExercises);
+      const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, settings);
+      const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, settings);
       if (
         aTargetMuscleGroups.some((m) => filterMuscleGroups.indexOf(m) !== -1) &&
         bTargetMuscleGroups.every((m) => filterMuscleGroups.indexOf(m) === -1)

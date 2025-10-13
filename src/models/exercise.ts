@@ -19,6 +19,7 @@ import {
   IAllEquipment,
   screenMuscles,
   IProgram,
+  IMuscleMultiplier,
 } from "../types";
 import { Muscle } from "./muscle";
 import { StringUtils } from "../utils/string";
@@ -3893,8 +3894,8 @@ export namespace Exercise {
     }
   }
 
-  export function targetMuscles(type: IExerciseType, customExercises: IAllCustomExercises): IMuscle[] {
-    const customExercise = customExercises[type.id];
+  export function defaultTargetMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
+    const customExercise = settings.exercises[type.id];
     if (customExercise) {
       return customExercise.meta.targetMuscles;
     } else {
@@ -3903,8 +3904,18 @@ export namespace Exercise {
     }
   }
 
-  export function targetMusclesGroups(type: IExerciseType, customExercises: IAllCustomExercises): IScreenMuscle[] {
-    const muscles = targetMuscles(type, customExercises);
+  export function targetMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
+    const muscleMultipliers = settings.exerciseData[Exercise.toKey(type)]?.muscleMultipliers;
+    if (muscleMultipliers) {
+      const muscles = muscleMultipliers.filter((m) => m.multiplier === 1);
+      return muscles.map((m) => m.muscle);
+    } else {
+      return defaultTargetMuscles(type, settings);
+    }
+  }
+
+  export function defaultTargetMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
+    const muscles = defaultTargetMuscles(type, settings);
     const allMuscleGroups = new Set<IScreenMuscle>();
     for (const muscle of muscles) {
       const muscleGroups = Muscle.getScreenMusclesFromMuscle(muscle);
@@ -3915,18 +3926,87 @@ export namespace Exercise {
     return Array.from(allMuscleGroups);
   }
 
-  export function synergistMuscles(type: IExerciseType, customExercises: IAllCustomExercises): IMuscle[] {
-    const customExercise = customExercises[type.id];
+  export function targetMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
+    const muscles = targetMuscles(type, settings);
+    const allMuscleGroups = new Set<IScreenMuscle>();
+    for (const muscle of muscles) {
+      const muscleGroups = Muscle.getScreenMusclesFromMuscle(muscle);
+      for (const muscleGroup of muscleGroups) {
+        allMuscleGroups.add(muscleGroup);
+      }
+    }
+    return Array.from(allMuscleGroups);
+  }
+
+  export function defaultSynergistMuscleMultipliers(type: IExerciseType, settings: ISettings): IMuscleMultiplier[] {
+    const customExercise = settings.exercises[type.id];
     if (customExercise) {
-      return customExercise.meta.synergistMuscles;
+      return customExercise.meta.synergistMuscles.map((m) => ({
+        muscle: m,
+        multiplier: settings.planner.synergistMultiplier,
+      }));
     } else {
       const meta = getMetadata(type.id);
-      return meta?.synergistMuscles != null ? meta.synergistMuscles : [];
+      return meta?.synergistMuscles != null
+        ? meta.synergistMuscles.map((m) => {
+            return { muscle: m, multiplier: settings.planner.synergistMultiplier };
+          })
+        : [];
     }
   }
 
-  export function synergistMusclesGroups(type: IExerciseType, customExercises: IAllCustomExercises): IScreenMuscle[] {
-    const muscles = synergistMuscles(type, customExercises);
+  export function defaultSynergistMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
+    return defaultSynergistMuscleMultipliers(type, settings).map((m) => m.muscle);
+  }
+
+  export function synergistMuscleMultipliers(type: IExerciseType, settings: ISettings): IMuscleMultiplier[] {
+    const muscleMultipliers = settings.exerciseData[Exercise.toKey(type)]?.muscleMultipliers;
+    if (muscleMultipliers) {
+      const muscles = muscleMultipliers.filter((m) => m.multiplier < 1);
+      return muscles;
+    } else {
+      return defaultSynergistMuscleMultipliers(type, settings);
+    }
+  }
+
+  export function synergistMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
+    const muscleMultipliers = settings.exerciseData[Exercise.toKey(type)]?.muscleMultipliers;
+    if (muscleMultipliers) {
+      const muscles = muscleMultipliers.filter((m) => m.multiplier < 1);
+      return muscles.map((m) => m.muscle);
+    } else {
+      return defaultSynergistMuscles(type, settings);
+    }
+  }
+
+  export function defaultSynergistMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
+    const muscles = defaultSynergistMuscles(type, settings);
+    const allMuscleGroups = new Set<IScreenMuscle>();
+    for (const muscle of muscles) {
+      const muscleGroups = Muscle.getScreenMusclesFromMuscle(muscle);
+      for (const muscleGroup of muscleGroups) {
+        allMuscleGroups.add(muscleGroup);
+      }
+    }
+    return Array.from(allMuscleGroups);
+  }
+
+  export function synergistMusclesGroupMultipliers(
+    type: IExerciseType,
+    settings: ISettings
+  ): Partial<Record<IScreenMuscle, number>> {
+    return synergistMuscleMultipliers(type, settings).reduce<Partial<Record<IScreenMuscle, number>>>((memo, m) => {
+      for (const muscleGroup of Muscle.getScreenMusclesFromMuscle(m.muscle)) {
+        if (memo[muscleGroup] == null || memo[muscleGroup] < m.multiplier) {
+          memo[muscleGroup] = m.multiplier;
+        }
+      }
+      return memo;
+    }, {});
+  }
+
+  export function synergistMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
+    const muscles = synergistMuscles(type, settings);
     const allMuscleGroups = new Set<IScreenMuscle>();
     for (const muscle of muscles) {
       const muscleGroups = Muscle.getScreenMusclesFromMuscle(muscle);
@@ -3970,11 +4050,11 @@ export namespace Exercise {
     return equipment;
   }
 
-  export function similarRating(current: IExerciseType, e: IExercise, customExercises: IAllCustomExercises): number {
-    const tm = Exercise.targetMuscles(current, customExercises);
-    const sm = Exercise.synergistMuscles(current, customExercises);
-    const etm = Exercise.targetMuscles(e, customExercises);
-    const esm = Exercise.synergistMuscles(e, customExercises);
+  export function similarRating(current: IExerciseType, e: IExercise, settings: ISettings): number {
+    const tm = Exercise.targetMuscles(current, settings);
+    const sm = Exercise.synergistMuscles(current, settings);
+    const etm = Exercise.targetMuscles(e, settings);
+    const esm = Exercise.synergistMuscles(e, settings);
     let rating = 0;
     if (e.id === current.id || (etm.length === 0 && esm.length === 0)) {
       rating = -Infinity;
@@ -4016,30 +4096,27 @@ export namespace Exercise {
     return rating;
   }
 
-  export function similar(type: IExerciseType, customExercises: IAllCustomExercises): [IExercise, number][] {
-    const tm = Exercise.targetMuscles(type, customExercises);
-    const sm = Exercise.synergistMuscles(type, customExercises);
+  export function similar(type: IExerciseType, settings: ISettings): [IExercise, number][] {
+    const tm = Exercise.targetMuscles(type, settings);
+    const sm = Exercise.synergistMuscles(type, settings);
     if (tm.length === 0 && sm.length === 0) {
       return [];
     }
-    const rated = Exercise.all(customExercises).map<[IExercise, number]>((e) => {
-      const rating = similarRating(type, e, customExercises);
+    const rated = Exercise.all(settings.exercises).map<[IExercise, number]>((e) => {
+      const rating = similarRating(type, e, settings);
       return [e, rating];
     });
     rated.sort((a, b) => b[1] - a[1]);
     return rated.filter(([, r]) => r > 0);
   }
 
-  export function sortedByScreenMuscle(
-    muscle: IScreenMuscle,
-    customExercises: IAllCustomExercises
-  ): [IExercise, number][] {
+  export function sortedByScreenMuscle(muscle: IScreenMuscle, settings: ISettings): [IExercise, number][] {
     const muscles = Muscle.getMusclesFromScreenMuscle(muscle);
 
-    const rated = Exercise.all(customExercises).map<[IExercise, number]>((e) => {
+    const rated = Exercise.all(settings.exercises).map<[IExercise, number]>((e) => {
       let rating = 0;
-      const tm = Exercise.targetMuscles(e, customExercises);
-      const sm = Exercise.synergistMuscles(e, customExercises);
+      const tm = Exercise.targetMuscles(e, settings);
+      const sm = Exercise.synergistMuscles(e, settings);
       for (const m of tm) {
         if (muscles.indexOf(m) !== -1) {
           rating += 100;
@@ -4226,8 +4303,8 @@ export namespace Exercise {
     return CollectionUtils.sort(allExercises, (a, b) => {
       const exerciseType = currentExerciseType;
       if (isSubstitute && exerciseType) {
-        const aRating = Exercise.similarRating(exerciseType, a, settings.exercises);
-        const bRating = Exercise.similarRating(exerciseType, b, settings.exercises);
+        const aRating = Exercise.similarRating(exerciseType, a, settings);
+        const bRating = Exercise.similarRating(exerciseType, b, settings);
         return bRating - aRating;
       } else if (
         filterTypes &&
@@ -4236,8 +4313,8 @@ export namespace Exercise {
           .some((t) => filterTypes.map((ft) => ft.toLowerCase()).indexOf(t) !== -1)
       ) {
         const lowercaseFilterTypes = filterTypes.map((t) => t.toLowerCase());
-        const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, settings.exercises);
-        const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, settings.exercises);
+        const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, settings);
+        const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, settings);
         if (
           aTargetMuscleGroups.some((m) => lowercaseFilterTypes.indexOf(m) !== -1) &&
           bTargetMuscleGroups.every((m) => lowercaseFilterTypes.indexOf(m) === -1)
@@ -4264,8 +4341,8 @@ export namespace Exercise {
   ): T[] {
     return allExercises.filter((e) => {
       const exercise = get(e, settings.exercises);
-      const targetMuscleGroups = Exercise.targetMusclesGroups(e, {}).map((m) => m.toLowerCase());
-      const synergistMuscleGroups = Exercise.synergistMusclesGroups(e, {}).map((m) => m.toLowerCase());
+      const targetMuscleGroups = Exercise.targetMusclesGroups(e, settings).map((m) => m.toLowerCase());
+      const synergistMuscleGroups = Exercise.synergistMusclesGroups(e, settings).map((m) => m.toLowerCase());
       return filterTypes
         .map((ft) => ft.toLowerCase())
         .every((ft) => {

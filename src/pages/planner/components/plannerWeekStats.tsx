@@ -17,12 +17,7 @@ export function PlannerWeekStats(props: IPlannerWeekStatsProps): JSX.Element {
   const { settings } = props;
 
   const evaluatedDays = props.evaluatedDays;
-  const setResults = PlannerStatsUtils.calculateSetResults(
-    evaluatedDays,
-    settings.exercises,
-    settings.planner.synergistMultiplier,
-    settings.units
-  );
+  const setResults = PlannerStatsUtils.calculateSetResults(evaluatedDays, settings);
 
   return (
     <div>

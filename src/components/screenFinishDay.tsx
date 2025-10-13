@@ -36,6 +36,7 @@ import { IconTiktok } from "./icons/iconTiktok";
 import { PersonalRecords } from "./personalRecords";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 import { ImagePreloader } from "../utils/imagePreloader";
+import { n } from "../utils/math";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -145,7 +146,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <></>
         )}
 
-        <div className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark">
+        <div data-cy="sets-per-muscle-group" className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark">
           <GroupHeader name="Sets per muscle group" />
           <div className="flex gap-4">
             {muscleGroupsGrouped.map((group) => {
@@ -154,7 +155,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                   {group.map(([mg, value]) => {
                     return (
                       <li>
-                        {StringUtils.capitalize(mg)}: <strong>{value}</strong>
+                        {StringUtils.capitalize(mg)}: <strong>{n(value)}</strong>
                       </li>
                     );
                   })}

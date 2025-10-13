@@ -233,11 +233,15 @@ export namespace Muscle {
 
     const id = Exercise.toKey(programExercise.exerciseType);
     const historyEntry = Program.nextHistoryEntry(program, dayData, programExercise, stats, settings);
-    const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType, settings.exercises);
-    const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType, settings.exercises);
+    const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType, settings);
+    const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType, settings);
     const screenTargetMuscles = Array.from(new Set(targetMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || [])));
     const screenSynergistMuscles = Array.from(
       new Set(synergistMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || []))
+    );
+    const synergistMuscleGroupToMultiplier = Exercise.synergistMusclesGroupMultipliers(
+      programExercise.exerciseType,
+      settings
     );
     for (const _set of historyEntry.sets) {
       for (const muscle of screenTargetMuscles) {
@@ -249,10 +253,12 @@ export namespace Muscle {
       }
       for (const muscle of screenSynergistMuscles) {
         screenMusclePoints[muscle] = screenMusclePoints[muscle] || 0;
-        screenMusclePoints[muscle]! += 30;
+        screenMusclePoints[muscle]! +=
+          (synergistMuscleGroupToMultiplier[muscle] ?? settings.planner.synergistMultiplier) * 100;
         exercisePoints[id] = exercisePoints[id] || {};
         exercisePoints[id]![muscle] = exercisePoints[id]![muscle] || 0;
-        exercisePoints[id]![muscle]! += 30;
+        exercisePoints[id]![muscle]! +=
+          (synergistMuscleGroupToMultiplier[muscle] ?? settings.planner.synergistMultiplier) * 100;
       }
     }
     return { screenMusclePoints, exercisePoints };
@@ -276,8 +282,12 @@ export namespace Muscle {
 
     const id = Exercise.toKey(programExercise.exerciseType);
     const historyEntry = Program.nextHistoryEntry(program, dayData, programExercise, stats, settings);
-    const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType, settings.exercises);
-    const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType, settings.exercises);
+    const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType, settings);
+    const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType, settings);
+    const synergistMuscleGroupToMultiplier = Exercise.synergistMusclesGroupMultipliers(
+      programExercise.exerciseType,
+      settings
+    );
     const screenTargetMuscles = Array.from(new Set(targetMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || [])));
     const screenSynergistMuscles = Array.from(
       new Set(synergistMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || []))
@@ -293,10 +303,12 @@ export namespace Muscle {
         }
         for (const muscle of screenSynergistMuscles) {
           screenMusclePoints.hypertrophy[muscle] = screenMusclePoints.hypertrophy[muscle] || 0;
-          screenMusclePoints.hypertrophy[muscle]! += 30;
+          screenMusclePoints.hypertrophy[muscle]! +=
+            100 * (synergistMuscleGroupToMultiplier[muscle] ?? settings.planner.synergistMultiplier);
           exercisePoints.hypertrophy[id] = exercisePoints.hypertrophy[id] || {};
           exercisePoints.hypertrophy[id]![muscle] = exercisePoints.hypertrophy[id]![muscle] || 0;
-          exercisePoints.hypertrophy[id]![muscle]! += 30;
+          exercisePoints.hypertrophy[id]![muscle]! +=
+            100 * (synergistMuscleGroupToMultiplier[muscle] ?? settings.planner.synergistMultiplier);
         }
       } else {
         for (const muscle of screenTargetMuscles) {
@@ -308,10 +320,12 @@ export namespace Muscle {
         }
         for (const muscle of screenSynergistMuscles) {
           screenMusclePoints.strength[muscle] = screenMusclePoints.strength[muscle] || 0;
-          screenMusclePoints.strength[muscle]! += 30;
+          screenMusclePoints.strength[muscle]! +=
+            100 * (synergistMuscleGroupToMultiplier[muscle] ?? settings.planner.synergistMultiplier);
           exercisePoints.strength[id] = exercisePoints.strength[id] || {};
           exercisePoints.strength[id]![muscle] = exercisePoints.strength[id]![muscle] || 0;
-          exercisePoints.strength[id]![muscle]! += 30;
+          exercisePoints.strength[id]![muscle]! +=
+            100 * (synergistMuscleGroupToMultiplier[muscle] ?? settings.planner.synergistMultiplier);
         }
       }
     }

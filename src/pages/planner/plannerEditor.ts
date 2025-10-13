@@ -24,6 +24,7 @@ import { IAllCustomExercises } from "../../types";
 import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
 import { ObjectUtils } from "../../utils/object";
 import { Tailwind } from "../../utils/tailwindConfig";
+import { Settings } from "../../models/settings";
 
 const buildHighlightStyle = (): HighlightStyle => {
   return HighlightStyle.define([
@@ -137,6 +138,7 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
             render: (completion) => {
               if (completion.type === "keyword") {
                 const customExercises = plannerEditor.args.customExercises || {};
+                const settings = { ...Settings.build(), exercises: customExercises };
                 const exercise = Exercise.findByNameAndEquipment(completion.label, customExercises);
                 if (exercise == null) {
                   return document.createElement("span");
@@ -153,13 +155,13 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
                 const description = document.createElement("div");
                 description.classList.add("exercise-completion-description");
 
-                const targetMuscles = Exercise.targetMuscles(exercise, customExercises);
+                const targetMuscles = Exercise.targetMuscles(exercise, settings);
                 const targetMusclesNode = buildInfoLine("Target Muscles: ", targetMuscles.join(", "));
 
-                const synergistMuscles = Exercise.synergistMuscles(exercise, customExercises);
+                const synergistMuscles = Exercise.synergistMuscles(exercise, settings);
                 const synergistMusclesNode = buildInfoLine("Synergist Muscles: ", synergistMuscles.join(", "));
 
-                const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, customExercises).map((w) =>
+                const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((w) =>
                   StringUtils.capitalize(w)
                 );
                 const targetMuscleGroupsNode = buildInfoLine("Target Muscle Groups: ", targetMuscleGroups.join(", "));
@@ -167,7 +169,7 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
 
                 const synergistMuscleGroupsNode = buildInfoLine(
                   "Synergist Muscle Groups: ",
-                  Exercise.synergistMusclesGroups(exercise, customExercises)
+                  Exercise.synergistMusclesGroups(exercise, settings)
                     .map((w) => StringUtils.capitalize(w))
                     .filter((w) => targetMuscleGroups.indexOf(w) === -1)
                     .join(", ")

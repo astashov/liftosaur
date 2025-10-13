@@ -1,7 +1,7 @@
 import { Exercise, IExercise } from "../../../models/exercise";
 import { IPlannerProgramExercise, IPlannerProgramExerciseRepRange, ISetResults, ISetSplit } from "./types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
-import { IAllCustomExercises, IScreenMuscle, IUnit } from "../../../types";
+import { IScreenMuscle, ISettings } from "../../../types";
 import { PlannerProgramExercise } from "./plannerProgramExercise";
 import { Weight } from "../../../models/weight";
 
@@ -31,14 +31,9 @@ export class PlannerStatsUtils {
       }, 0);
   }
 
-  public static calculateSetResults(
-    evaluatedDays: IPlannerEvalResult[],
-    customExercises: IAllCustomExercises,
-    synergistMultiplier: number,
-    unit: IUnit
-  ): ISetResults {
+  public static calculateSetResults(evaluatedDays: IPlannerEvalResult[], settings: ISettings): ISetResults {
     const results: ISetResults = {
-      volume: Weight.build(0, unit),
+      volume: Weight.build(0, settings.units),
       total: 0,
       strength: 0,
       hypertrophy: 0,
@@ -72,7 +67,7 @@ export class PlannerStatsUtils {
         if (plannerExercise.notused) {
           continue;
         }
-        const exercise = Exercise.findByName(plannerExercise.name, customExercises);
+        const exercise = Exercise.findByName(plannerExercise.name, settings.exercises);
         if (exercise == null) {
           continue;
         }
@@ -103,12 +98,17 @@ export class PlannerStatsUtils {
             if (exercise.types.indexOf("lower") !== -1) {
               add(results, "lower", repRange, dayIndex, exercise);
             }
-            const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, customExercises);
+            const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings);
+            const synergistMusclesGroupMultipliers = Exercise.synergistMusclesGroupMultipliers(exercise, settings);
             for (const muscle of targetMuscleGroups) {
+              const synergistMultiplier =
+                synergistMusclesGroupMultipliers[muscle] ?? settings.planner.synergistMultiplier;
               addMuscleGroup(results.muscleGroup, muscle, repRange, dayIndex, true, synergistMultiplier, exercise);
             }
-            for (const muscle of Exercise.synergistMusclesGroups(exercise, customExercises)) {
+            for (const muscle of Exercise.synergistMusclesGroups(exercise, settings)) {
               if (targetMuscleGroups.indexOf(muscle) === -1) {
+                const synergistMultiplier =
+                  synergistMusclesGroupMultipliers[muscle] ?? settings.planner.synergistMultiplier;
                 addMuscleGroup(results.muscleGroup, muscle, repRange, dayIndex, false, synergistMultiplier, exercise);
               }
             }

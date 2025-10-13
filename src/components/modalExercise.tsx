@@ -490,10 +490,8 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
 
 export function MuscleGroupsView(props: { exercise: IExercise; settings: ISettings }): JSX.Element {
   const { exercise, settings } = props;
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings.exercises).map((m) =>
-    StringUtils.capitalize(m)
-  );
-  const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings.exercises)
+  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((m) => StringUtils.capitalize(m));
+  const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings)
     .map((m) => StringUtils.capitalize(m))
     .filter((m) => targetMuscleGroups.indexOf(m) === -1);
 
@@ -529,12 +527,10 @@ function MuscleView(props: {
   settings: ISettings;
 }): JSX.Element {
   const { exercise, settings } = props;
-  const tms = props.currentExerciseType ? Exercise.targetMuscles(props.currentExerciseType, settings.exercises) : [];
-  const sms = props.currentExerciseType ? Exercise.synergistMuscles(props.currentExerciseType, settings.exercises) : [];
-  const targetMuscles = Exercise.targetMuscles(exercise, settings.exercises);
-  const synergistMuscles = Exercise.synergistMuscles(exercise, settings.exercises).filter(
-    (m) => targetMuscles.indexOf(m) === -1
-  );
+  const tms = props.currentExerciseType ? Exercise.targetMuscles(props.currentExerciseType, settings) : [];
+  const sms = props.currentExerciseType ? Exercise.synergistMuscles(props.currentExerciseType, settings) : [];
+  const targetMuscles = Exercise.targetMuscles(exercise, settings);
+  const synergistMuscles = Exercise.synergistMuscles(exercise, settings).filter((m) => targetMuscles.indexOf(m) === -1);
 
   const types = exercise.types.map((t) => StringUtils.capitalize(t));
 

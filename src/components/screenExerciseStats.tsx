@@ -6,7 +6,7 @@ import { History } from "../models/history";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
-import { Exercise } from "../models/exercise";
+import { Exercise, IExercise } from "../models/exercise";
 import { CollectionUtils } from "../utils/collection";
 import { lb } from "lens-shmens";
 import { ExerciseImage } from "./exerciseImage";
@@ -16,7 +16,6 @@ import { useRef, useState } from "preact/hooks";
 import { Locker } from "./locker";
 import { HelpExerciseStats } from "./help/helpExerciseStats";
 import { ExerciseDataSettings } from "./exerciseDataSettings";
-import { MuscleGroupsView } from "./modalExercise";
 import { LinkButton } from "./linkButton";
 import { Thunk } from "../ducks/thunks";
 import { Program } from "../models/program";
@@ -25,6 +24,8 @@ import { ExerciseHistory } from "./exerciseHistory";
 import { MarkdownEditorBorderless } from "./markdownEditorBorderless";
 import { GroupHeader } from "./groupHeader";
 import { BottomSheetCustomExercise } from "./bottomSheetCustomExercise";
+import { StringUtils } from "../utils/string";
+import { BottomSheetMusclesOverride } from "./bottomSheetMusclesOverride";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -52,6 +53,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     .addFn(History.collect1RMPersonalRecord(exerciseType, props.settings));
 
   const [showCustomExerciseModal, setShowCustomExerciseModal] = useState(false);
+  const [showOverrideMuscles, setShowOverrideMuscles] = useState<IExercise | undefined>(undefined);
 
   const [
     { maxTime: maxX, minTime: minX },
@@ -101,6 +103,16 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
               exercise={customExercise}
             />
           )}
+          {showOverrideMuscles != null && (
+            <BottomSheetMusclesOverride
+              helps={props.navCommon.helps}
+              isHidden={showOverrideMuscles == null}
+              exercise={showOverrideMuscles}
+              settings={props.settings}
+              onClose={() => setShowOverrideMuscles(undefined)}
+              dispatch={props.dispatch}
+            />
+          )}
         </>
       }
       footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
@@ -111,7 +123,11 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           {Exercise.isCustom(fullExercise.id, props.settings.exercises) ? "Custom exercise" : "Built-in exercise"}
         </div>
         <div className="py-2">
-          <MuscleGroupsView exercise={fullExercise} settings={props.settings} />
+          <MuscleGroupsView
+            exercise={fullExercise}
+            settings={props.settings}
+            onOverride={() => setShowOverrideMuscles(fullExercise)}
+          />
         </div>
         {Exercise.isCustom(fullExercise.id, props.settings.exercises) && (
           <div className="flex mb-2">
@@ -225,5 +241,60 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
         />
       </section>
     </Surface>
+  );
+}
+
+export function MuscleGroupsView(props: {
+  exercise: IExercise;
+  settings: ISettings;
+  onOverride: () => void;
+}): JSX.Element {
+  const { exercise, settings } = props;
+  const targetMuscles = Exercise.targetMuscles(exercise, settings);
+  const synergistMuscles = Exercise.synergistMuscleMultipliers(exercise, settings)
+    .filter((m) => targetMuscles.indexOf(m.muscle) === -1)
+    .map((m) => `${m.muscle}${m.multiplier !== settings.planner.synergistMultiplier ? `:${m.multiplier}` : ""}`);
+  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((m) => StringUtils.capitalize(m));
+  const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings)
+    .map((m) => StringUtils.capitalize(m))
+    .filter((m) => targetMuscleGroups.indexOf(m) === -1);
+  const [showMuscles, setShowMuscles] = useState(false);
+
+  const types = exercise.types.map((t) => StringUtils.capitalize(t));
+
+  return (
+    <div>
+      <div className="text-xs">
+        <LinkButton
+          data-cy="override-exercise-muscles"
+          name="override-exercise-muscles"
+          onClick={() => props.onOverride()}
+        >
+          Override Muscles
+        </LinkButton>
+      </div>
+      <div className="text-xs" onClick={() => setShowMuscles(!showMuscles)}>
+        {types.length > 0 && (
+          <div>
+            <span className="text-text-secondary">Type: </span>
+            <span className="font-bold">{types.join(", ")}</span>
+          </div>
+        )}
+        {targetMuscleGroups.length > 0 && (
+          <div>
+            <span className="text-text-secondary">Target: </span>
+            <span className="font-bold">{showMuscles ? targetMuscles.join(", ") : targetMuscleGroups.join(", ")}</span>
+          </div>
+        )}
+        {synergistMuscleGroups.length > 0 && (
+          <div>
+            <span className="text-text-secondary">Synergist: </span>
+            <span className="font-bold">
+              {showMuscles ? synergistMuscles.join(", ") : synergistMuscleGroups.join(", ")}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

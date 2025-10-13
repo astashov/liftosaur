@@ -428,8 +428,8 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             const largeImageUrl = customExercise
               ? customExercise.largeImageUrl
               : ExerciseImageUtils.url(exercise, "large");
-            const targetMuscles = ObjectUtils.clone(Exercise.targetMuscles(exercise, props.settings.exercises));
-            const synergistMuscles = ObjectUtils.clone(Exercise.synergistMuscles(exercise, props.settings.exercises));
+            const targetMuscles = ObjectUtils.clone(Exercise.targetMuscles(exercise, props.settings));
+            const synergistMuscles = ObjectUtils.clone(Exercise.synergistMuscles(exercise, props.settings));
             const types = ObjectUtils.clone(exercise.types);
             props.dispatch(
               [

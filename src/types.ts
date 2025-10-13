@@ -1138,12 +1138,22 @@ export const TGraphOptions = t.partial({
 });
 export type IGraphOptions = t.TypeOf<typeof TGraphOptions>;
 
+export const TMuscleMultiplier = t.type(
+  {
+    muscle: TMuscle,
+    multiplier: t.number,
+  },
+  "TMuscleMultiplier"
+);
+export type IMuscleMultiplier = t.TypeOf<typeof TMuscleMultiplier>;
+
 export const TExerciseDataValue = t.partial(
   {
     rm1: TWeight,
     rounding: t.number,
     equipment: dictionary(t.string, t.union([t.string, t.undefined])),
     notes: t.string,
+    muscleMultipliers: t.array(TMuscleMultiplier),
   },
   "TExerciseDataValue"
 );

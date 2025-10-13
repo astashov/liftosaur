@@ -2170,6 +2170,20 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20251013": {
+    title: <span>Override target/synergist muscles of exercises with custom synergist multipliers</span>,
+    body: (
+      <ul>
+        <li>
+          If you disagree with the built-in target/synergist muscles of some exercise, you can now override them! Go to
+          the Exercise Stats screen (e.g. from Me - Exercises), and tap on "Override Muscles" at the very top. You can
+          choose the muscles and the multiplier there. If it's <strong>1</strong> - it's a target muscle, if less than 1
+          - it's a synergist muscle. This will be taken into account in the week insights, in the week volume stats on
+          the Program screen, on the graphs, etc.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

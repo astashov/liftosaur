@@ -68,14 +68,13 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
   }
   const evaluatedWeek = props.evaluatedWeeks[props.weekIndex];
   const { exercise, evaluatedExercise } = result;
-  const customExercises = props.settings.exercises;
 
-  const targetMuscles = Exercise.targetMuscles(exercise, customExercises);
-  const synergeticMuscles = Exercise.synergistMuscles(exercise, customExercises);
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, customExercises).map((w) =>
+  const targetMuscles = Exercise.targetMuscles(exercise, props.settings);
+  const synergeticMuscles = Exercise.synergistMuscles(exercise, props.settings);
+  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, props.settings).map((w) =>
     StringUtils.capitalize(w)
   );
-  const synergeticMuscleGroups = Exercise.synergistMusclesGroups(exercise, customExercises)
+  const synergeticMuscleGroups = Exercise.synergistMusclesGroups(exercise, props.settings)
     .map((w) => StringUtils.capitalize(w))
     .filter((w) => targetMuscleGroups.indexOf(w) === -1);
 

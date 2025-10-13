@@ -35,7 +35,7 @@ export function selectInputOnFocus(e: Event): boolean | undefined {
 }
 
 export const Input2 = forwardRef((props: IProps, ref: Ref<HTMLInputElement>): JSX.Element => {
-  const { label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
+  const { label, changeHandler, errorMessage, patternMessage, className: otherClassName, ...otherProps } = props;
   const changeType = props.changeType || "onblur";
   const identifier = props.identifier;
   const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
@@ -99,7 +99,7 @@ export const Input2 = forwardRef((props: IProps, ref: Ref<HTMLInputElement>): JS
           onBlur={changeType === "onblur" ? onInputHandler : undefined}
           onInput={changeType === "oninput" ? onInputHandler : undefined}
           onFocus={selectInputOnFocus}
-          className={`flex-1 w-0 min-w-0 p-2 text-sm border rounded-md focus:outline-none bg-form-inputbg ${errorMessages.length > 0 ? "border-text-error" : "border-form-inputstroke"}`}
+          className={`flex-1 w-0 min-w-0 p-2 text-sm border rounded-md focus:outline-none bg-form-inputbg ${otherClassName} ${errorMessages.length > 0 ? "border-text-error" : "border-form-inputstroke"}`}
           {...otherProps}
         />
       </div>
