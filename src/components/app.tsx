@@ -277,6 +277,7 @@ export function AppView(props: IProps): JSX.Element | null {
 
   const navCommon: INavCommon = {
     screenStack: state.screenStack,
+    helps: state.storage.helps,
     loading: state.loading,
     currentProgram,
     allPrograms: state.storage.programs,

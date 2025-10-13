@@ -235,8 +235,9 @@ export namespace History {
       fn: (acc, hr) => {
         for (const entry of hr.entries) {
           const exercise = Exercise.get(entry.exercise, settings.exercises);
-          const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings.exercises);
-          const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings.exercises);
+          const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings);
+          const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings);
+          const synergistMuscleGroupToMultiplier = Exercise.synergistMusclesGroupMultipliers(exercise, settings);
           for (const muscleGroup of [...screenMuscles, "total"] as const) {
             let multiplier = 0;
             if (muscleGroup === "total") {
@@ -244,7 +245,7 @@ export namespace History {
             } else if (targetMuscleGroups.indexOf(muscleGroup) !== -1) {
               multiplier = 1;
             } else if (synergistMuscleGroups.indexOf(muscleGroup) !== -1) {
-              multiplier = 0.5;
+              multiplier = synergistMuscleGroupToMultiplier[muscleGroup] ?? settings.planner.synergistMultiplier;
             }
             if (multiplier === 0) {
               continue;
@@ -744,8 +745,8 @@ export namespace History {
             warmupSet.completedWeight?.unit ?? null,
             warmupSet.askWeight ? 1 : 0,
             warmupSet.timestamp != null ? new Date(warmupSet.timestamp || 0).toISOString() : null,
-            Exercise.targetMuscles(exercise, settings.exercises).join(","),
-            Exercise.synergistMuscles(exercise, settings.exercises).join(","),
+            Exercise.targetMuscles(exercise, settings).join(","),
+            Exercise.synergistMuscles(exercise, settings).join(","),
             entry.notes ?? "",
           ]);
         }
@@ -768,8 +769,8 @@ export namespace History {
             set.completedWeight?.unit ?? null,
             set.askWeight ? 1 : 0,
             set.timestamp != null ? new Date(set.timestamp || 0).toISOString() : null,
-            Exercise.targetMuscles(exercise, settings.exercises).join(","),
-            Exercise.synergistMuscles(exercise, settings.exercises).join(","),
+            Exercise.targetMuscles(exercise, settings).join(","),
+            Exercise.synergistMuscles(exercise, settings).join(","),
             entry.notes ?? "",
           ]);
         }

@@ -35,18 +35,8 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
   const isCurrentWeek =
     DateUtils.firstDayOfWeekTimestamp(new Date(), props.settings.startWeekFromMonday) === props.selectedFirstDayOfWeek;
 
-  const setResults = WeekInsightsUtils.calculateSetResults(
-    props.thisWeekHistory,
-    props.settings.exercises,
-    props.settings.planner.synergistMultiplier,
-    props.settings.units
-  );
-  const lastSetResults = WeekInsightsUtils.calculateSetResults(
-    props.lastWeekHistory,
-    props.settings.exercises,
-    props.settings.planner.synergistMultiplier,
-    props.settings.units
-  );
+  const setResults = WeekInsightsUtils.calculateSetResults(props.thisWeekHistory, props.settings);
+  const lastSetResults = WeekInsightsUtils.calculateSetResults(props.lastWeekHistory, props.settings);
   const numberOfPrs = History.getNumberOfPersonalRecords(props.thisWeekHistory, props.prs);
   const historyRecord = props.thisWeekHistory[0];
   if (!historyRecord) {
@@ -168,7 +158,7 @@ function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Element {
   const hasPersonalRecords = History.getNumberOfPersonalRecords(props.thisWeekHistory, props.prs) > 0;
 
   return (
-    <div className="pt-2 text-sm">
+    <div className="pt-2 text-sm" data-cy="week-insights-details">
       {hasPersonalRecords && (
         <div className="mb-4">
           <PersonalRecords historyRecords={props.thisWeekHistory} prs={props.prs} settings={props.settings} />

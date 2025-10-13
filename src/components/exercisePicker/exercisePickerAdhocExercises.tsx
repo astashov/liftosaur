@@ -146,7 +146,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
     exercisesList = exercisesList.filter((e) => props.settings.starredExercises?.[Exercise.toKey(e)]);
   }
   exercisesList = exercisesList.filter((e) => !e.isDeleted);
-  exercisesList = ExercisePickerUtils.sortCustomExercises(exercisesList, props.settings.exercises, props.state);
+  exercisesList = ExercisePickerUtils.sortCustomExercises(exercisesList, props.settings, props.state);
 
   return (
     <div className="py-2">
@@ -242,11 +242,11 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
   if (props.state.search) {
     exercises = Exercise.filterExercises(exercises, props.state.search);
   }
-  exercises = ExercisePickerUtils.filterExercises(exercises, props.state.filters);
+  exercises = ExercisePickerUtils.filterExercises(exercises, props.state.filters, props.settings);
   if (props.state.filters.isStarred) {
     exercises = exercises.filter((e) => props.settings.starredExercises?.[Exercise.toKey(e)]);
   }
-  exercises = ExercisePickerUtils.sortExercises(exercises, props.settings.exercises, props.state);
+  exercises = ExercisePickerUtils.sortExercises(exercises, props.settings, props.state);
   return (
     <div className="py-2">
       <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4">

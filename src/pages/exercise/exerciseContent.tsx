@@ -267,7 +267,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivEl
       <form data-cy="exercises-list" onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-background-default border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 mb-2 text-base leading-normal border border-gray-300 rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"
           type="text"
           value={filter}
           placeholder="Filter by name"
@@ -378,13 +378,14 @@ export interface IMuscleGroupsProps {
 }
 
 function MuscleGroups(props: IMuscleGroupsProps): JSX.Element {
+  const settings = Settings.build();
   const exercise = Exercise.get(props.exerciseType, {});
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, {}).map((m) => StringUtils.capitalize(m));
-  const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, {})
+  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((m) => StringUtils.capitalize(m));
+  const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings)
     .map((m) => StringUtils.capitalize(m))
     .filter((m) => targetMuscleGroups.indexOf(m) === -1);
-  const targetMuscles = Exercise.targetMuscles(exercise, {});
-  const synergistMuscles = Exercise.synergistMuscles(exercise, {}).filter((m) => targetMuscles.indexOf(m) === -1);
+  const targetMuscles = Exercise.targetMuscles(exercise, settings);
+  const synergistMuscles = Exercise.synergistMuscles(exercise, settings).filter((m) => targetMuscles.indexOf(m) === -1);
   const [selectedMuscle, setSelectedMuscle] = useState<[IMuscle, boolean] | undefined>(undefined);
 
   const types = exercise.types.map((t) => StringUtils.capitalize(t));

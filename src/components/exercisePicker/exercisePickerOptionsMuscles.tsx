@@ -4,7 +4,7 @@ import { Muscle } from "../../models/muscle";
 import { ObjectUtils } from "../../utils/object";
 import { StringUtils } from "../../utils/string";
 import { IFilterValue } from "./exercisePickerOptions";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { MuscleImage } from "../muscleImage";
 
 interface IProps {
   selectedValues: IMuscle[];
@@ -26,12 +26,6 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
     {} as Record<IScreenMuscle, Record<IMuscle, IFilterValue>>
   );
   const sortedGroupedMuscles = ObjectUtils.keys(groupedMuscles).sort(([a], [b]) => a.localeCompare(b));
-
-  const muscleColors = [
-    `--muscle-fill: ${Tailwind.semantic().background.default}`,
-    `--muscle-primary: ${Tailwind.semantic().icon.blue}`,
-    `--muscle-light: ${Tailwind.semantic().icon.light}`,
-  ];
 
   return (
     <div>
@@ -61,12 +55,7 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
                     onClick={() => props.onSelect(key)}
                   >
                     <div>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 61 48" width="61" height="48">
-                        <use
-                          href={`/images/svgs/muscles-combined.svg#${key.toLowerCase().replace(/ /g, "")}`}
-                          style={muscleColors.join(";")}
-                        />
-                      </svg>
+                      <MuscleImage muscle={key} size={61} />
                     </div>
                     <div className="flex-1">{value.label}</div>
                   </button>
