@@ -12,8 +12,12 @@ export function track(args: {
   if (typeof window === "undefined") {
     return;
   }
-  window.gtag("event", args.name || args.googlename, args.extra || {});
-  window.rdt("track", args.name || args.redditname || "", args.extra || {});
+  if (window.gtag) {
+    window.gtag("event", args.name || args.googlename, args.extra || {});
+  }
+  if (window.rdt) {
+    window.rdt("track", args.name || args.redditname || "", args.extra || {});
+  }
 }
 
 export function lg(
