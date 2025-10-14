@@ -72,8 +72,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
             dataLayer.push(arguments);
           }
           gtag("js", new Date());
-
-          gtag("config", "G-98XGEN6RQK");`,
+          gtag("config", "G-98XGEN6RQK", { 'anonymize_ip': true });`,
           }}
         />
         <meta property="og:title" content={props.ogTitle || props.title} />
