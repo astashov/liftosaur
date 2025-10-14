@@ -63,6 +63,19 @@ export function Page<T>(props: IProps<T>): JSX.Element {
             __html: `!function(w,d){if(!w.rdt){var p=w.rdt=function(){p.sendEvent?p.sendEvent.apply(p,arguments):p.callQueue.push(arguments)};p.callQueue=[];var t=d.createElement("script");t.src="https://www.redditstatic.com/ads/pixel.js",t.async=!0;var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}}(window,document);rdt('init','t2_hoob2');rdt('track', 'PageVisit');`,
           }}
         />
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-98XGEN6RQK"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag("js", new Date());
+
+          gtag("config", "G-98XGEN6RQK");`,
+          }}
+        />
         <meta property="og:title" content={props.ogTitle || props.title} />
         <meta property="og:description" content={props.ogDescription || props.description} />
         <meta property="fb:app_id" content="3448767138535273" />
