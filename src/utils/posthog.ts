@@ -3,6 +3,19 @@ import { SendMessage } from "./sendMessage";
 
 declare let __COMMIT_HASH__: string;
 
+export function track(args: {
+  name?: string;
+  redditname?: string;
+  googlename?: string;
+  extra?: Record<string, string | number>;
+}): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.gtag("event", args.name || args.googlename, args.extra || {});
+  window.rdt("track", args.name || args.redditname || "", args.extra || {});
+}
+
 export function lg(
   name: string,
   extra?: Record<string, string | number>,

@@ -50,6 +50,7 @@ import { ModalPlannerProgramRevisions } from "./modalPlannerProgramRevisions";
 import { Weight } from "../../models/weight";
 import { IconPicture } from "../../components/icons/iconPicture";
 import { ModalPlannerPictureExport } from "./components/modalPlannerPictureExport";
+import { track } from "../../utils/posthog";
 
 declare let __HOST__: string;
 
@@ -178,6 +179,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program) {
+        track({ name: "edit_program" });
         const exportProgram = Program.exportProgram(newState.current.program, settings);
         dispatch(
           lb<IPlannerState>().p("encodedProgram").record(JSON.stringify(exportProgram)),
@@ -506,6 +508,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 source={getCurrentSource() ?? (settings.affiliateEnabled ? props.account?.id : undefined)}
                 client={props.client}
                 encodedProgram={async () => {
+                  track({ name: "copy_link" });
                   const exportProgram = Program.exportProgram(program, settings);
                   const baseUrl = UrlUtils.build("/planner", window.location.href);
                   const encodedUrl = await Encoder.encodeIntoUrl(JSON.stringify(exportProgram), baseUrl.toString());

@@ -14,6 +14,7 @@ import { PlannerCodeBlock } from "../planner/components/plannerCodeBlock";
 import { PlannerEditorView } from "../planner/components/plannerEditorView";
 import { PlannerProgram } from "../planner/models/plannerProgram";
 import { IPlannerState } from "../planner/models/types";
+import { track } from "../../utils/posthog";
 
 export interface IMainContentProps {
   client: Window["fetch"];
@@ -517,6 +518,7 @@ function StoresLinks(): JSX.Element {
             href="https://apps.apple.com/app/apple-store/id1661880849?pt=126680920&mt=8"
             className="inline-block mt-2 overflow-hidden rounded-xl apple-store-link"
             style={{ width: "165px", height: "55px" }}
+            onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
           >
             <img
               src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1673481600"
@@ -531,6 +533,7 @@ function StoresLinks(): JSX.Element {
             target="_blank"
             className="google-play-link"
             href="https://play.google.com/store/apps/details?id=com.liftosaur.www.twa"
+            onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
           >
             <img
               alt="Get it on Google Play"
@@ -674,6 +677,7 @@ Bench Press / 3x8 100lb / progress: dp(5lb, 8, 12)`,
           error={evaluatedDay.success ? undefined : evaluatedDay.error}
           value={text}
           onChange={(e) => {
+            track({ name: "main_editor" });
             dispatch(lbDay.p("exerciseText").record(e), "Update exercise text");
           }}
           onBlur={() => {}}
@@ -709,14 +713,17 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
       settings={settings}
       progress={progress}
       onProgressChange={(newProgress) => {
+        track({ name: "main_playground" });
         setProgress(newProgress);
       }}
       onProgramChange={(newEvaluatedProgram) => {
+        track({ name: "main_playground" });
         const newProgram = Program.applyEvaluatedProgram(program, newEvaluatedProgram, settings);
         setProgram(newProgram);
         setProgress(Program.nextHistoryRecord(newProgram, settings, stats, 1));
       }}
       onSettingsChange={(newSettings) => {
+        track({ name: "main_playground" });
         setSettings(newSettings);
         setProgress(Program.nextHistoryRecord(program, newSettings, stats, 1));
       }}

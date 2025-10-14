@@ -12,6 +12,7 @@ import { IconGoogle } from "./icons/iconGoogle";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
+import { track } from "../utils/posthog";
 
 interface IAccountProps {
   account?: IAccount;
@@ -137,6 +138,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
               style={{ boxShadow: "0 1px 4px 0 rgba(0,0,0,0.1)" }}
               data-cy="menu-item-login"
               onClick={async () => {
+                track({ name: "SignUp" });
                 setIsLoading(true);
                 if (props.dispatch) {
                   props.dispatch(Thunk.googleSignIn(() => setIsLoading(false)));
@@ -169,6 +171,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
             <button
               className="flex items-center w-full px-4 py-3 mt-2 bg-black rounded-lg text-text-alwayswhite nm-sign-in-with-apple"
               onClick={async () => {
+                track({ name: "SignUp" });
                 setIsLoading(true);
                 if (props.dispatch) {
                   props.dispatch(Thunk.appleSignIn(() => setIsLoading(false)));

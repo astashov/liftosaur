@@ -3,6 +3,7 @@ import { Button } from "../../components/button";
 import { IconLink } from "../../components/icons/iconLink";
 import { IAccount } from "../../models/account";
 import { IconSpinner } from "../../components/icons/iconSpinner";
+import { track } from "../../utils/posthog";
 
 interface IPlannerBannerProps {
   account?: IAccount;
@@ -65,6 +66,7 @@ function LoggedOutGuideBanner(): JSX.Element {
             href="https://apps.apple.com/app/apple-store/id1661880849?pt=126680920&mt=8"
             target="_blank"
             style="display: inline-block; overflow: hidden; border-radius: 13px"
+            onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
           >
             <img
               className="w-32"
@@ -78,6 +80,7 @@ function LoggedOutGuideBanner(): JSX.Element {
           <a
             target="_blank"
             href="https://play.google.com/store/apps/details?id=com.liftosaur.www.twa&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1"
+            onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
           >
             <img
               className="w-40"
