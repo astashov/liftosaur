@@ -29,6 +29,7 @@ import JWT from "jsonwebtoken";
 import { DateUtils } from "../../src/utils/date";
 import * as path from "path";
 import { ICollectionVersions, VersionTracker } from "../../src/models/versionTracker";
+import { DebugDao } from "./debugDao";
 
 export const userTableNames = {
   dev: {
@@ -174,6 +175,7 @@ export class UserDao {
       }
       limitedUser = (await this.getLimitedById(limitedUser.id))!;
     }
+    const originalStorage = limitedUser.storage;
     limitedUser = await this.augmentLimitedUser(limitedUser, storageUpdate);
 
     const result = await Storage.get(fetch, limitedUser.storage);
@@ -289,15 +291,29 @@ export class UserDao {
     delete newStorage.history;
     delete newStorage.programs;
     delete newStorage.stats;
-    await Promise.all([
-      this.store({ ...limitedUser, storage: newStorage }),
-      historyUpdates,
-      historyDeletes,
-      programUpdates,
-      programDeletes,
-      statsDeletes,
-      statsUpdates,
-    ]);
+    try {
+      await Promise.all([
+        this.store({ ...limitedUser, storage: newStorage }),
+        historyUpdates,
+        historyDeletes,
+        programUpdates,
+        programDeletes,
+        statsDeletes,
+        statsUpdates,
+      ]);
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("Provided list of item keys contains duplicates")) {
+        const data = {
+          deviceId,
+          storageUpdate,
+          originalStorage,
+          augmentedUser: limitedUser,
+        };
+        const debugDao = new DebugDao(this.di);
+        await debugDao.store(limitedUser.id, JSON.stringify(data, null, 2));
+      }
+      throw e;
+    }
     return { data: { originalId, newStorage }, success: true };
   }
 

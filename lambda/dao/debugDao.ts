@@ -56,4 +56,14 @@ export class DebugDao {
       opts: { contentType: "text/plain" },
     });
   }
+
+  public async storeError(id: string, state: string): Promise<void> {
+    const env = Utils.getEnv();
+    await this.di.s3.putObject({
+      bucket: bucketNames[env].debug,
+      key: `errorinfo/${id}/${DateUtils.formatYYYYMMDDHHMM(Date.now())}`,
+      body: state,
+      opts: { contentType: "text/plain" },
+    });
+  }
 }
