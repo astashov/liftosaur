@@ -1584,13 +1584,15 @@ const getProgramDetailsHandler: RouteHandler<
 > = async ({ payload, match: { params } }) => {
   const { di } = payload;
   const result = await new ProgramDao(di).getAll();
+  const userAgent = getUserAgent(payload.event);
   if (result != null) {
     return {
       statusCode: 200,
       body: renderProgramDetailsHtml(
         result.map((p) => p.program),
         params.id,
-        di.fetch
+        di.fetch,
+        userAgent
       ),
       headers: { "content-type": "text/html" },
     };
@@ -1623,10 +1625,11 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const userResult = await getUserAccount(payload, { withBodyweight: true });
   const account = userResult.success ? userResult.data.account : undefined;
   const user = userResult.success ? userResult.data.user : undefined;
+  const userAgent = getUserAgent(payload.event);
 
   return {
     statusCode: 200,
-    body: renderPlannerHtml(di.fetch, initialProgram, account, user?.storage),
+    body: renderPlannerHtml(di.fetch, initialProgram, account, user?.storage, userAgent),
     headers: { "content-type": "text/html" },
   };
 };
@@ -1639,10 +1642,11 @@ const getMainHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getMa
   if (userResult.success) {
     ({ account } = userResult.data);
   }
+  const userAgent = payload.event.headers["user-agent"] || payload.event.headers["User-Agent"];
 
   return {
     statusCode: 200,
-    body: renderMainHtml(di.fetch, account),
+    body: renderMainHtml(di.fetch, account, userAgent),
     headers: { "content-type": "text/html" },
   };
 };

@@ -4,10 +4,12 @@ import { IconLink } from "../../components/icons/iconLink";
 import { IAccount } from "../../models/account";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { track } from "../../utils/posthog";
+import { Platform } from "../../utils/platform";
 
 interface IPlannerBannerProps {
   account?: IAccount;
   isBannerLoading: boolean;
+  userAgent?: string;
   onAddProgram: () => void;
 }
 
@@ -17,7 +19,7 @@ export function PlannerBanner(props: IPlannerBannerProps): JSX.Element {
       {props.account ? (
         <LoggedInGuideBanner isBannerLoading={props.isBannerLoading} onAddProgram={props.onAddProgram} />
       ) : (
-        <LoggedOutGuideBanner />
+        <LoggedOutGuideBanner userAgent={props.userAgent} />
       )}
     </div>
   );
@@ -45,7 +47,10 @@ function LoggedInGuideBanner(props: { onAddProgram: () => void; isBannerLoading:
   );
 }
 
-function LoggedOutGuideBanner(): JSX.Element {
+function LoggedOutGuideBanner(props: { userAgent?: string }): JSX.Element {
+  const isiOS = Platform.isiOS(props.userAgent);
+  const isAndroid = Platform.isAndroid(props.userAgent);
+  const isMobile = isiOS || isAndroid;
   return (
     <>
       <div className="flex-1">
@@ -61,33 +66,54 @@ function LoggedOutGuideBanner(): JSX.Element {
         </ul>
       </div>
       <div className="flex items-center mt-2 ml-4">
-        <div>
-          <a
-            href="https://apps.apple.com/app/apple-store/id1661880849?pt=126680920&mt=8"
-            target="_blank"
-            style="display: inline-block; overflow: hidden; border-radius: 13px"
-            onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
-          >
-            <img
-              className="w-32"
-              src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1673481600"
-              alt="Download on the App Store"
-              style="border-radius: 13px"
-            />
-          </a>
-        </div>
-        <div style={{ marginTop: "-6px" }}>
-          <a
-            target="_blank"
-            href="https://play.google.com/store/apps/details?id=com.liftosaur.www.twa&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1"
-            onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
-          >
-            <img
-              className="w-40"
-              alt="Get it on Google Play"
-              src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-            />
-          </a>
+        <div className="flex justify-center md:justify-start">
+          {!isMobile && (
+            <div style={{ marginTop: "-7px", marginLeft: "-7px" }}>
+              <img
+                src="/images/store-qr-code.png"
+                alt="QR code for app stores"
+                style={{ width: "90px", height: "90px" }}
+              />
+            </div>
+          )}
+          <div>
+            {(!isMobile || isiOS) && (
+              <div>
+                <a
+                  href="https://liftosaur.onelink.me/cG8a/aylyqael"
+                  className="inline-block overflow-hidden rounded-xl apple-store-link"
+                  style={{ width: "120px", height: "40px" }}
+                  onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
+                >
+                  <img
+                    src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1673481600"
+                    alt="Download on the App Store"
+                    style={{ width: "120px", height: "40px" }}
+                    className="rounded-xl"
+                  />
+                </a>
+              </div>
+            )}
+            {(!isMobile || isAndroid) && (
+              <div>
+                <a
+                  target="_blank"
+                  className="google-play-link"
+                  href="https://liftosaur.onelink.me/cG8a/aylyqael"
+                  onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
+                >
+                  <img
+                    alt="Get it on Google Play"
+                    src="/images/googleplay.png"
+                    style={{
+                      width: "120px",
+                      height: "35px",
+                    }}
+                  />
+                </a>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>

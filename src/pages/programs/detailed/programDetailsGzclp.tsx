@@ -18,6 +18,7 @@ export interface IProgramDetailsGzclpProps {
   program: IProgram;
   client: Window["fetch"];
   audio: IAudioInterface;
+  userAgent?: string;
 }
 
 export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Element {
@@ -228,7 +229,7 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
       </p>
       <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} />
       <div className="mt-8">
-        <ProgramDetailsUpsell />
+        <ProgramDetailsUpsell userAgent={props.userAgent} />
       </div>
     </section>
   );

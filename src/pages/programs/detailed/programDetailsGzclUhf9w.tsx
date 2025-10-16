@@ -18,6 +18,7 @@ export interface IProgramDetailsGzclUhf9wProps {
   program: IProgram;
   client: Window["fetch"];
   audio: IAudioInterface;
+  userAgent?: string;
 }
 
 export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): JSX.Element {
@@ -167,7 +168,7 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
       </p>
       <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} />
       <div className="mt-8">
-        <ProgramDetailsUpsell />
+        <ProgramDetailsUpsell userAgent={props.userAgent} />
       </div>
     </section>
   );

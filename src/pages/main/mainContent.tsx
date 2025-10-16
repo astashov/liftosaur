@@ -15,10 +15,12 @@ import { PlannerEditorView } from "../planner/components/plannerEditorView";
 import { PlannerProgram } from "../planner/models/plannerProgram";
 import { IPlannerState } from "../planner/models/types";
 import { track } from "../../utils/posthog";
+import { Platform } from "../../utils/platform";
 
 export interface IMainContentProps {
   client: Window["fetch"];
   account?: IAccount;
+  userAgent?: string;
 }
 
 export function MainContent(props: IMainContentProps): JSX.Element {
@@ -46,12 +48,12 @@ export function MainContent(props: IMainContentProps): JSX.Element {
     <div style={{ maxWidth: 1200 }} className="mx-auto">
       <div className="mx-4 md:mx-8">
         <TopNavMenu client={props.client} account={props.account} maxWidth={1200} current="/about" />
-        <Hero />
+        <Hero userAgent={props.userAgent} />
         <HowItWorks />
         <BuiltinPrograms />
         <Features />
-        <div className="mt-8 text-center">
-          <StoresLinks />
+        <div className="flex justify-center mt-8">
+          <StoresLinks userAgent={props.userAgent} />
         </div>
         <div className="pt-8 mt-16 border-t border-border-neutral">
           <FooterPage maxWidth={1200} withoutBg={true} account={props.account} />
@@ -61,7 +63,7 @@ export function MainContent(props: IMainContentProps): JSX.Element {
   );
 }
 
-function Hero(): JSX.Element {
+function Hero(props: { userAgent?: string }): JSX.Element {
   return (
     <div className="flex flex-col md:flex-row">
       <div style={{ flex: 2 }}>
@@ -90,7 +92,7 @@ function Hero(): JSX.Element {
             , that have helped thousands of lifters get bigger and stronger.
           </p>
           <div className="mb-8 text-center md:text-left">
-            <StoresLinks />
+            <StoresLinks userAgent={props.userAgent} />
           </div>
         </div>
       </div>
@@ -509,38 +511,59 @@ function Features(): JSX.Element {
   );
 }
 
-function StoresLinks(): JSX.Element {
+function StoresLinks(props: { userAgent?: string }): JSX.Element {
+  const isiOS = Platform.isiOS(props.userAgent);
+  const isAndroid = Platform.isAndroid(props.userAgent);
+  const isMobile = isiOS || isAndroid;
   return (
-    <div>
-      <div>
-        <div class="inline-block align-middle">
-          <a
-            href="https://apps.apple.com/app/apple-store/id1661880849?pt=126680920&mt=8"
-            className="inline-block mt-2 overflow-hidden rounded-xl apple-store-link"
-            style={{ width: "165px", height: "55px" }}
-            onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
-          >
+    <div className="text-center md:text-left">
+      <div className="flex justify-center md:justify-start">
+        {!isMobile && (
+          <div style={{ marginTop: "-7px", marginLeft: "-7px" }}>
             <img
-              src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1673481600"
-              alt="Download on the App Store"
-              style={{ width: "165px", height: "55px" }}
-              className="rounded-xl"
+              src="/images/store-qr-code.png"
+              alt="QR code for app stores"
+              style={{ width: "126px", height: "126px" }}
             />
-          </a>
-        </div>
-        <div class="inline-block align-middle">
-          <a
-            target="_blank"
-            className="google-play-link"
-            href="https://play.google.com/store/apps/details?id=com.liftosaur.www.twa"
-            onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
-          >
-            <img
-              alt="Get it on Google Play"
-              src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-              style={{ width: "13rem", height: "5rem" }}
-            />
-          </a>
+          </div>
+        )}
+        <div>
+          {(!isMobile || isiOS) && (
+            <div>
+              <a
+                href="https://liftosaur.onelink.me/cG8a/aylyqael"
+                className="inline-block overflow-hidden rounded-xl apple-store-link"
+                style={{ width: "165px", height: "55px" }}
+                onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
+              >
+                <img
+                  src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1673481600"
+                  alt="Download on the App Store"
+                  style={{ width: "165px", height: "55px" }}
+                  className="rounded-xl"
+                />
+              </a>
+            </div>
+          )}
+          {(!isMobile || isAndroid) && (
+            <div>
+              <a
+                target="_blank"
+                className="google-play-link"
+                href="https://liftosaur.onelink.me/cG8a/aylyqael"
+                onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
+              >
+                <img
+                  alt="Get it on Google Play"
+                  src="/images/googleplay.png"
+                  style={{
+                    width: "165px",
+                    height: "50px",
+                  }}
+                />
+              </a>
+            </div>
+          )}
         </div>
       </div>
       <div>

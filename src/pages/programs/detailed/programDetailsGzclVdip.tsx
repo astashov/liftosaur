@@ -17,6 +17,7 @@ export interface IProgramDetailsGzclVdipProps {
   program: IProgram;
   client: Window["fetch"];
   audio: IAudioInterface;
+  userAgent?: string;
 }
 
 export function ProgramDetailsGzclVdip(props: IProgramDetailsGzclVdipProps): JSX.Element {
@@ -124,7 +125,7 @@ export function ProgramDetailsGzclVdip(props: IProgramDetailsGzclVdipProps): JSX
       </p>
       <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} />
       <div className="mt-8">
-        <ProgramDetailsUpsell />
+        <ProgramDetailsUpsell userAgent={props.userAgent} />
       </div>
     </section>
   );

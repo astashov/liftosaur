@@ -4,6 +4,6 @@ import { MainHtml } from "../src/pages/main/mainHtml";
 
 import { renderPage } from "./render";
 
-export function renderMainHtml(client: Window["fetch"], account?: IAccount): string {
-  return renderPage(<MainHtml client={client} account={account} />);
+export function renderMainHtml(client: Window["fetch"], account?: IAccount, userAgent?: string): string {
+  return renderPage(<MainHtml client={client} account={account} userAgent={userAgent} />);
 }

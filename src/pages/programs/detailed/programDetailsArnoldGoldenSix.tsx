@@ -17,6 +17,7 @@ export interface IProgramDetailsArnoldGoldenSixProps {
   program: IProgram;
   client: Window["fetch"];
   audio: IAudioInterface;
+  userAgent?: string;
 }
 
 export function ProgramDetailsArnoldGoldenSix(props: IProgramDetailsArnoldGoldenSixProps): JSX.Element {
@@ -122,7 +123,7 @@ export function ProgramDetailsArnoldGoldenSix(props: IProgramDetailsArnoldGolden
       </p>
       <ProgramDetailsWorkoutPlayground program={program} settings={props.settings} />
       <div className="mt-8">
-        <ProgramDetailsUpsell />
+        <ProgramDetailsUpsell userAgent={props.userAgent} />
       </div>
     </section>
   );

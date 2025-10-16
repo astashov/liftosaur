@@ -28,6 +28,7 @@ interface IProgramPreviewPlaygroundProps {
   scrollableTabsProps?: Partial<IScrollableTabsProps>;
   stats: IStats;
   hasNavbar?: boolean;
+  onEngage?: () => void;
 }
 
 interface IProgramPreviewPlaygroundState {
@@ -64,7 +65,13 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
       };
     }),
   };
-  const [state, dispatch] = useLensReducer(initialState, {}, []);
+  const [state, dispatch] = useLensReducer(initialState, {}, [
+    (action, oldState, newState) => {
+      if (props.onEngage) {
+        props.onEngage();
+      }
+    },
+  ]);
   const evaluatedProgram = useMemo(() => {
     return Program.evaluate(state.program, state.settings);
   }, [state.program, state.settings]);

@@ -10,7 +10,8 @@ export function renderPlannerHtml(
   client: Window["fetch"],
   initialProgram?: IExportedProgram,
   account?: IAccount,
-  partialStorage?: IPartialStorage
+  partialStorage?: IPartialStorage,
+  userAgent?: string
 ): string {
   return renderPage(
     <PlannerHtml
@@ -19,6 +20,7 @@ export function renderPlannerHtml(
       account={account}
       partialStorage={partialStorage}
       revisions={[]}
+      userAgent={userAgent}
     />
   );
 }

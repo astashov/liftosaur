@@ -19,6 +19,7 @@ export interface IProgramDetailsJackedAndTanProps {
   program: IProgram;
   client: Window["fetch"];
   audio: IAudioInterface;
+  userAgent?: string;
 }
 
 export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanProps): JSX.Element {
@@ -200,7 +201,7 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
       </p>
       <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} />
       <div className="mt-8">
-        <ProgramDetailsUpsell />
+        <ProgramDetailsUpsell userAgent={props.userAgent} />
       </div>
     </section>
   );

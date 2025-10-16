@@ -19,6 +19,7 @@ export interface IProgramDetailsTheRipplerProps {
   program: IProgram;
   client: Window["fetch"];
   audio: IAudioInterface;
+  userAgent?: string;
 }
 
 export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps): JSX.Element {
@@ -159,7 +160,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
       </p>
       <ProgramDetailsWorkoutPlayground program={program} settings={props.settings} />
       <div className="mt-8">
-        <ProgramDetailsUpsell />
+        <ProgramDetailsUpsell userAgent={props.userAgent} />
       </div>
     </section>
   );

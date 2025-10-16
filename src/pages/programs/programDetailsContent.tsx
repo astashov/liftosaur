@@ -25,6 +25,7 @@ export interface IProgramDetailsContentProps {
   programs: IProgram[];
   client: Window["fetch"];
   audio: IAudioInterface;
+  userAgent?: string;
 }
 
 export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.Element {
@@ -43,6 +44,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   if (props.selectedProgramId === "arnoldgoldensix") {
     return (
       <ProgramDetailsArnoldGoldenSix
+        userAgent={props.userAgent}
         program={program}
         client={props.client}
         audio={props.audio}
@@ -52,6 +54,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   } else if (props.selectedProgramId === "gzcl-the-rippler") {
     return (
       <ProgramDetailsTheRippler
+        userAgent={props.userAgent}
         program={program}
         client={props.client}
         audio={props.audio}
@@ -61,6 +64,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   } else if (props.selectedProgramId === "gzclp") {
     return (
       <ProgramDetailsGzclp
+        userAgent={props.userAgent}
         program={program}
         client={props.client}
         audio={props.audio}
@@ -70,6 +74,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   } else if (props.selectedProgramId === "gzcl-jacked-and-tan-2") {
     return (
       <ProgramDetailsJackedAndTan
+        userAgent={props.userAgent}
         program={program}
         client={props.client}
         audio={props.audio}
@@ -79,6 +84,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   } else if (props.selectedProgramId === "gzcl-uhf-9-weeks") {
     return (
       <ProgramDetailsGzclUhf9w
+        userAgent={props.userAgent}
         program={program}
         client={props.client}
         audio={props.audio}
@@ -88,6 +94,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   } else if (props.selectedProgramId === "gzcl-general-gainz-burrito-but-big") {
     return (
       <ProgramDetailsGzclBurritoButBig
+        userAgent={props.userAgent}
         program={program}
         client={props.client}
         audio={props.audio}
@@ -97,6 +104,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   } else if (props.selectedProgramId === "gzcl-uhf-5-weeks") {
     return (
       <ProgramDetailsGzclUhf5w
+        userAgent={props.userAgent}
         program={program}
         client={props.client}
         audio={props.audio}
@@ -106,6 +114,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   } else if (props.selectedProgramId === "gzcl-vdip") {
     return (
       <ProgramDetailsGzclVdip
+        userAgent={props.userAgent}
         program={program}
         client={props.client}
         audio={props.audio}
@@ -115,6 +124,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   } else if (props.selectedProgramId === "gzcl-general-gainz") {
     return (
       <ProgramDetailsGzclGeneralGainz
+        userAgent={props.userAgent}
         program={program}
         client={props.client}
         audio={props.audio}

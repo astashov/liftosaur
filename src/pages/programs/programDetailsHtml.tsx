@@ -7,6 +7,7 @@ import { ProgramDetailsContent } from "./programDetailsContent";
 interface IProps {
   selectedProgramId: string;
   programs: IProgram[];
+  userAgent?: string;
   client: Window["fetch"];
 }
 
@@ -35,6 +36,7 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
       client={client}
     >
       <ProgramDetailsContent
+        userAgent={props.userAgent}
         programs={props.programs}
         selectedProgramId={props.selectedProgramId}
         client={props.client}

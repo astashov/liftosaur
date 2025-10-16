@@ -17,6 +17,7 @@ export interface IProgramDetailsGzclBurritoButBigProps {
   program: IProgram;
   client: Window["fetch"];
   audio: IAudioInterface;
+  userAgent?: string;
 }
 
 export function ProgramDetailsGzclBurritoButBig(props: IProgramDetailsGzclBurritoButBigProps): JSX.Element {
@@ -102,7 +103,7 @@ export function ProgramDetailsGzclBurritoButBig(props: IProgramDetailsGzclBurrit
       </p>
       <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} />
       <div className="mt-8">
-        <ProgramDetailsUpsell />
+        <ProgramDetailsUpsell userAgent={props.userAgent} />
       </div>
     </section>
   );

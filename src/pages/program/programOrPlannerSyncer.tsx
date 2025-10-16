@@ -8,6 +8,7 @@ import { PlannerContentSyncer } from "../planner/plannerContentSyncer";
 export interface IProgramOrPlannerSyncerProps {
   client: Window["fetch"];
   isMobile: boolean;
+  userAgent?: string;
   deviceId?: string;
   storage?: IStorage;
   account?: IAccount;

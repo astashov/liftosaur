@@ -7,7 +7,15 @@ import { renderPage } from "./render";
 export function renderProgramDetailsHtml(
   programs: IProgram[],
   selectedProgramId: string,
-  client: Window["fetch"]
+  client: Window["fetch"],
+  userAgent?: string
 ): string {
-  return renderPage(<ProgramDetailsHtml programs={programs} selectedProgramId={selectedProgramId} client={client} />);
+  return renderPage(
+    <ProgramDetailsHtml
+      programs={programs}
+      selectedProgramId={selectedProgramId}
+      client={client}
+      userAgent={userAgent}
+    />
+  );
 }

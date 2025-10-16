@@ -9,6 +9,7 @@ import { IExportedProgram } from "../../models/program";
 interface IProps {
   initialProgram?: IExportedProgram;
   account?: IAccount;
+  userAgent?: string;
   partialStorage?: IPartialStorage;
   client: Window["fetch"];
   revisions: string[];

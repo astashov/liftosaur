@@ -4,6 +4,7 @@ import { IProgram, ISettings, IUnit } from "../../../types";
 import { MenuItemValue } from "../../../components/menuItemEditable";
 import { ProgramPreviewPlayground } from "../../../components/preview/programPreviewPlayground";
 import { Stats } from "../../../models/stats";
+import { track } from "../../../utils/posthog";
 
 interface IPlaygroundProps {
   program: IProgram;
@@ -43,6 +44,9 @@ export const ProgramDetailsWorkoutPlayground = memo((props: IPlaygroundProps): J
         stats={Stats.getEmpty()}
         settings={settings}
         isPlayground={true}
+        onEngage={() => {
+          track({ name: "details_playground" });
+        }}
       />
     </div>
   );

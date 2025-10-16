@@ -6,6 +6,7 @@ import { MainContent } from "./mainContent";
 interface IProps {
   client: Window["fetch"];
   account?: IAccount;
+  userAgent?: string;
 }
 
 export function MainHtml(props: IProps): JSX.Element {

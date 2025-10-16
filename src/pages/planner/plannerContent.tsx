@@ -58,6 +58,7 @@ export interface IPlannerContentProps {
   client: Window["fetch"];
   source?: string;
   nextDay?: number;
+  userAgent?: string;
   initialProgram?: IExportedProgram;
   partialStorage?: IPartialStorage;
   deviceId?: string;
@@ -356,6 +357,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       {!props.shouldSync && (
         <div className="mx-auto" style={{ maxWidth }}>
           <PlannerBanner
+            userAgent={props.userAgent}
             isBannerLoading={isBannerLoading}
             account={props.account}
             onAddProgram={async () => {
