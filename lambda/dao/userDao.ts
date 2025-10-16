@@ -30,6 +30,7 @@ import { DateUtils } from "../../src/utils/date";
 import * as path from "path";
 import { ICollectionVersions, VersionTracker } from "../../src/models/versionTracker";
 import { DebugDao } from "./debugDao";
+import { EventDao } from "./eventDao";
 
 export const userTableNames = {
   dev: {
@@ -148,6 +149,27 @@ export class UserDao {
     if (storageUpdate.storage?.programs != null) {
       const programIds = storageUpdate.storage.programs.map((p) => p.id);
       programs = await this.getProgramsByUserId(limitedUser.id, { ids: programIds });
+    }
+    for (const program of programs || []) {
+      const storageUpdateProgram = storageUpdate.storage?.programs?.find((p) => p.id === program.id);
+      if (storageUpdateProgram && storageUpdateProgram.clonedAt !== program.clonedAt) {
+        const eventDao = new EventDao(this.di);
+        await eventDao.post({
+          type: "event",
+          name: "different-cloned-at",
+          userId: limitedUser.id,
+          commithash: process.env.COMMIT_HASH ?? "",
+          timestamp: Date.now(),
+          isMobile: false,
+          extra: {
+            programId: program.id,
+            programName: program.name,
+            serverClonedAt: `${program.clonedAt}`,
+            clientClonedAt: `${storageUpdateProgram.clonedAt}`,
+          },
+        });
+        // program.clonedAt = storageUpdateProgram.clonedAt;
+      }
     }
     return {
       ...limitedUser,
