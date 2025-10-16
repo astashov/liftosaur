@@ -51,6 +51,7 @@ function LoggedOutGuideBanner(props: { userAgent?: string }): JSX.Element {
   const isiOS = Platform.isiOS(props.userAgent);
   const isAndroid = Platform.isAndroid(props.userAgent);
   const isMobile = isiOS || isAndroid;
+  const onelink = Platform.onelink();
   return (
     <>
       <div className="flex-1">
@@ -80,7 +81,7 @@ function LoggedOutGuideBanner(props: { userAgent?: string }): JSX.Element {
             {(!isMobile || isiOS) && (
               <div>
                 <a
-                  href="https://liftosaur.onelink.me/cG8a/aylyqael"
+                  href={onelink}
                   className="inline-block overflow-hidden rounded-xl apple-store-link"
                   style={{ width: "120px", height: "40px" }}
                   onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
@@ -99,7 +100,7 @@ function LoggedOutGuideBanner(props: { userAgent?: string }): JSX.Element {
                 <a
                   target="_blank"
                   className="google-play-link"
-                  href="https://liftosaur.onelink.me/cG8a/aylyqael"
+                  href={onelink}
                   onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
                 >
                   <img

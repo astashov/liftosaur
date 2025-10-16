@@ -10,6 +10,7 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
   const isiOS = Platform.isiOS(props.userAgent);
   const isAndroid = Platform.isAndroid(props.userAgent);
   const isMobile = isiOS || isAndroid;
+  const onelink = Platform.onelink();
   return (
     <div className="flex flex-col items-center px-8 py-4 mx-4 mb-4 bg-yellow-100 border border-orange-400 rounded-lg sm:flex-row">
       <div className="flex-1">
@@ -40,7 +41,7 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
             {(!isMobile || isiOS) && (
               <div>
                 <a
-                  href="https://liftosaur.onelink.me/cG8a/aylyqael"
+                  href={onelink}
                   className="inline-block overflow-hidden rounded-xl apple-store-link"
                   style={{ width: "120px", height: "40px" }}
                   onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
@@ -59,7 +60,7 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
                 <a
                   target="_blank"
                   className="google-play-link"
-                  href="https://liftosaur.onelink.me/cG8a/aylyqael"
+                  href={onelink}
                   onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
                 >
                   <img
