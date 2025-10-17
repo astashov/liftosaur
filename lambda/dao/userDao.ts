@@ -148,11 +148,16 @@ export class UserDao {
     }
     if (storageUpdate.storage?.programs != null) {
       const programIds = Array.from(new Set(storageUpdate.storage.programs.map((p) => p.id)));
-      programs = await this.getProgramsByUserId(limitedUser.id, { ids: programIds });
-    }
-    for (const program of programs || []) {
-      const storageUpdateProgram = storageUpdate.storage?.programs?.find((p) => p.id === program.id);
-      if (storageUpdateProgram && storageUpdateProgram.clonedAt !== program.clonedAt) {
+      const storagePrograms = await this.getProgramsByUserId(limitedUser.id, { ids: programIds });
+      const clonedAts = storagePrograms.map((p) => p.clonedAt);
+      const allClonedAtsAreDifferent = new Set(clonedAts).size === clonedAts.length;
+      const allProgramsValid = storagePrograms.every((p) => {
+        const storageUpdateProgram = storageUpdate.storage?.programs?.find((sup) => sup.id === p.id);
+        return storageUpdateProgram && storageUpdateProgram.clonedAt === p.clonedAt;
+      });
+      if (allClonedAtsAreDifferent && allProgramsValid) {
+        programs = storagePrograms;
+      } else {
         const eventDao = new EventDao(this.di);
         await eventDao.post({
           type: "event",
@@ -161,14 +166,7 @@ export class UserDao {
           commithash: process.env.COMMIT_HASH ?? "",
           timestamp: Date.now(),
           isMobile: false,
-          extra: {
-            programId: program.id,
-            programName: program.name,
-            serverClonedAt: `${program.clonedAt}`,
-            clientClonedAt: `${storageUpdateProgram.clonedAt}`,
-          },
         });
-        program.clonedAt = storageUpdateProgram.clonedAt;
       }
     }
     return {
