@@ -426,6 +426,15 @@ export const allExercisesList: Record<IExerciseId, IExercise> = {
     startingWeightLb: { value: 0, unit: "lb" },
     startingWeightKg: { value: 0, unit: "kg" },
   },
+  farmersWalk: {
+    id: "farmersWalk",
+    name: "Farmers Walk",
+    defaultWarmup: 10,
+    defaultEquipment: "dumbbell",
+    types: ["upper"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
+  },
   flatKneeRaise: {
     id: "flatKneeRaise",
     name: "Flat Knee Raise",
@@ -1918,7 +1927,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
   },
   chestPress: {
     targetMuscles: ["Pectoralis Major Sternal Head"],
-    synergistMuscles: ["Biceps Brachii", "Deltoid Lateral", "Pectoralis Major Clavicular Head"],
+    synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
     bodyParts: ["Chest"],
     sortedEquipment: ["leverageMachine", "band"],
   },
@@ -2114,6 +2123,27 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     ],
     bodyParts: ["Shoulders"],
     sortedEquipment: ["band"],
+  },
+  farmersWalk: {
+    targetMuscles: [
+      "Wrist Flexors", 
+      "Trapezius Upper Fibers",
+      "Trapezius Middle Fibers", 
+      "Levator Scapulae", 
+      "Erector Spinae", 
+      "Rectus Abdominis",
+      "Obliques"
+    ],
+    synergistMuscles: [
+      "Gluteus Maximus", 
+      "Hamstrings", 
+      "Quadriceps", 
+      "Adductor Magnus", 
+      "Soleus", 
+      "Gastrocnemius"
+    ],
+    bodyParts: ["Forearms"],
+    sortedEquipment: ["dumbbell"],
   },
   flatKneeRaise: {
     targetMuscles: ["Iliopsoas"],
@@ -2945,7 +2975,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     targetMuscles: ["Deltoid Anterior"],
     synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior", "Triceps Brachii"],
     bodyParts: ["Shoulders"],
-    sortedEquipment: ["cable", "dumbbell", "leverageMachine", "band", "smith"],
+    sortedEquipment: ["cable", "dumbbell", "leverageMachine", "band", "smith", "kettlebell"],
   },
   shoulderPressParallelGrip: {
     targetMuscles: ["Deltoid Anterior"],
@@ -3162,7 +3192,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     targetMuscles: ["Gastrocnemius"],
     synergistMuscles: ["Soleus"],
     bodyParts: ["Calves"],
-    sortedEquipment: ["barbell", "dumbbell", "leverageMachine", "bodyweight", "cable"],
+    sortedEquipment: ["barbell", "dumbbell", "leverageMachine", "bodyweight", "cable", "smith"],
   },
   standingRow: {
     targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
@@ -3357,7 +3387,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Trapezius Middle Fibers",
     ],
     bodyParts: ["Shoulders"],
-    sortedEquipment: ["barbell", "cable", "dumbbell", "band"],
+    sortedEquipment: ["barbell", "cable", "dumbbell", "band", "ezbar"],
   },
   vUp: {
     targetMuscles: ["Iliopsoas", "Rectus Abdominis"],
