@@ -143,11 +143,11 @@ export class UserDao {
     let history = limitedUser.storage?.history;
     let programs = limitedUser.storage?.programs;
     if (storageUpdate.storage?.history != null) {
-      const historyIds = storageUpdate.storage.history.map((h) => h.id);
+      const historyIds = Array.from(new Set(storageUpdate.storage.history.map((h) => h.id)));
       history = await this.getHistoryByUserId(limitedUser.id, { ids: historyIds });
     }
     if (storageUpdate.storage?.programs != null) {
-      const programIds = storageUpdate.storage.programs.map((p) => p.id);
+      const programIds = Array.from(new Set(storageUpdate.storage.programs.map((p) => p.id)));
       programs = await this.getProgramsByUserId(limitedUser.id, { ids: programIds });
     }
     for (const program of programs || []) {
