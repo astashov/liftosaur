@@ -168,7 +168,7 @@ export class UserDao {
             clientClonedAt: `${storageUpdateProgram.clonedAt}`,
           },
         });
-        // program.clonedAt = storageUpdateProgram.clonedAt;
+        program.clonedAt = storageUpdateProgram.clonedAt;
       }
     }
     return {
