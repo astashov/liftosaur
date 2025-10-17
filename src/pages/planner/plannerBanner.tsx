@@ -5,6 +5,7 @@ import { IAccount } from "../../models/account";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { track } from "../../utils/posthog";
 import { Platform } from "../../utils/platform";
+import { Onelink } from "../../components/onelink";
 
 interface IPlannerBannerProps {
   account?: IAccount;
@@ -51,7 +52,6 @@ function LoggedOutGuideBanner(props: { userAgent?: string }): JSX.Element {
   const isiOS = Platform.isiOS(props.userAgent);
   const isAndroid = Platform.isAndroid(props.userAgent);
   const isMobile = isiOS || isAndroid;
-  const onelink = Platform.onelink();
   return (
     <>
       <div className="flex-1">
@@ -80,8 +80,7 @@ function LoggedOutGuideBanner(props: { userAgent?: string }): JSX.Element {
           <div>
             {(!isMobile || isiOS) && (
               <div>
-                <a
-                  href={onelink}
+                <Onelink
                   className="inline-block overflow-hidden rounded-xl apple-store-link"
                   style={{ width: "120px", height: "40px" }}
                   onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
@@ -92,15 +91,14 @@ function LoggedOutGuideBanner(props: { userAgent?: string }): JSX.Element {
                     style={{ width: "120px", height: "40px" }}
                     className="rounded-xl"
                   />
-                </a>
+                </Onelink>
               </div>
             )}
             {(!isMobile || isAndroid) && (
               <div>
-                <a
+                <Onelink
                   target="_blank"
                   className="google-play-link"
-                  href={onelink}
                   onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
                 >
                   <img
@@ -111,7 +109,7 @@ function LoggedOutGuideBanner(props: { userAgent?: string }): JSX.Element {
                       height: "35px",
                     }}
                   />
-                </a>
+                </Onelink>
               </div>
             )}
           </div>

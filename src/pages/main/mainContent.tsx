@@ -16,6 +16,7 @@ import { PlannerProgram } from "../planner/models/plannerProgram";
 import { IPlannerState } from "../planner/models/types";
 import { track } from "../../utils/posthog";
 import { Platform } from "../../utils/platform";
+import { Onelink } from "../../components/onelink";
 
 export interface IMainContentProps {
   client: Window["fetch"];
@@ -515,7 +516,6 @@ function StoresLinks(props: { userAgent?: string }): JSX.Element {
   const isiOS = Platform.isiOS(props.userAgent);
   const isAndroid = Platform.isAndroid(props.userAgent);
   const isMobile = isiOS || isAndroid;
-  const onelink = Platform.onelink();
   return (
     <div className="text-center md:text-left">
       <div className="flex justify-center md:justify-start">
@@ -531,8 +531,7 @@ function StoresLinks(props: { userAgent?: string }): JSX.Element {
         <div>
           {(!isMobile || isiOS) && (
             <div>
-              <a
-                href={onelink}
+              <Onelink
                 className="inline-block overflow-hidden rounded-xl apple-store-link"
                 style={{ width: "165px", height: "55px" }}
                 onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
@@ -543,15 +542,14 @@ function StoresLinks(props: { userAgent?: string }): JSX.Element {
                   style={{ width: "165px", height: "55px" }}
                   className="rounded-xl"
                 />
-              </a>
+              </Onelink>
             </div>
           )}
           {(!isMobile || isAndroid) && (
             <div>
-              <a
+              <Onelink
                 target="_blank"
                 className="google-play-link"
-                href={onelink}
                 onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
               >
                 <img
@@ -562,7 +560,7 @@ function StoresLinks(props: { userAgent?: string }): JSX.Element {
                     height: "50px",
                   }}
                 />
-              </a>
+              </Onelink>
             </div>
           )}
         </div>

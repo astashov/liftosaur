@@ -1,6 +1,7 @@
 import { h, JSX } from "preact";
 import { track } from "../../../utils/posthog";
 import { Platform } from "../../../utils/platform";
+import { Onelink } from "../../../components/onelink";
 
 interface IProgramDetailsUpsellProps {
   userAgent?: string;
@@ -10,7 +11,6 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
   const isiOS = Platform.isiOS(props.userAgent);
   const isAndroid = Platform.isAndroid(props.userAgent);
   const isMobile = isiOS || isAndroid;
-  const onelink = Platform.onelink();
   return (
     <div className="flex flex-col items-center px-8 py-4 mx-4 mb-4 bg-yellow-100 border border-orange-400 rounded-lg sm:flex-row">
       <div className="flex-1">
@@ -40,8 +40,7 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
           <div>
             {(!isMobile || isiOS) && (
               <div>
-                <a
-                  href={onelink}
+                <Onelink
                   className="inline-block overflow-hidden rounded-xl apple-store-link"
                   style={{ width: "120px", height: "40px" }}
                   onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
@@ -52,15 +51,14 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
                     style={{ width: "120px", height: "40px" }}
                     className="rounded-xl"
                   />
-                </a>
+                </Onelink>
               </div>
             )}
             {(!isMobile || isAndroid) && (
               <div>
-                <a
+                <Onelink
                   target="_blank"
                   className="google-play-link"
-                  href={onelink}
                   onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
                 >
                   <img
@@ -71,7 +69,7 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
                       height: "35px",
                     }}
                   />
-                </a>
+                </Onelink>
               </div>
             )}
           </div>
