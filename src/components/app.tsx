@@ -165,18 +165,35 @@ export function AppView(props: IProps): JSX.Element | null {
       } else if (event.data?.type === "goBack") {
         dispatch(Thunk.postevent("go-back"));
         dispatch(Thunk.pullScreen());
-        // } else if (event.data?.type === "setReferrer") {
-        //   dispatch(Thunk.postevent("set-referrer"));
-        //   updateState(
-        //     dispatch,
-        //     [
-        //       lb<IState>()
-        //         .p("storage")
-        //         .p("referrer")
-        //         .record(event.data?.data || undefined),
-        //     ],
-        //     "Set Referrer"
-        //   );
+      } else if (event.data?.type === "setReferrer") {
+        dispatch(Thunk.postevent("set-referrer", { referrer: event.data?.data }));
+        if (state.storage.referrer !== event.data?.data) {
+          updateState(
+            dispatch,
+            [
+              lb<IState>()
+                .p("storage")
+                .p("referrer")
+                .record(event.data?.data || undefined),
+            ],
+            "Set Referrer"
+          );
+        }
+      } else if (event.data?.type === "attribution") {
+        const json = JSON.stringify(event.data?.data || undefined);
+        dispatch(Thunk.postevent("set-attribution", { data: json }));
+        if (state.storage.attribution !== json) {
+          updateState(
+            dispatch,
+            [
+              lb<IState>()
+                .p("storage")
+                .p("attribution")
+                .record(JSON.stringify(event.data?.data || undefined)),
+            ],
+            "Set Attribution"
+          );
+        }
       } else if (event.data?.type === "requestedReview") {
         dispatch(Thunk.postevent("requested-review"));
         updateState(

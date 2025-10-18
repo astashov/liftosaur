@@ -1360,6 +1360,7 @@ export const TStorage = t.intersection(
       originalId: t.number,
       id: t.number,
       referrer: t.string,
+      attribution: t.string,
       _versions: t.unknown, // We use unknown because io-ts doesn't support recursive types well
     }),
   ],
