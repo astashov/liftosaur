@@ -233,7 +233,7 @@ export namespace Program {
       exercise: exercise,
       programExerciseId: programExercise.key,
       sets,
-      warmupSets: sets[0]?.weight != null ? Exercise.getWarmupSets(exercise, sets[0].weight, settings, warmupSets) : [],
+      warmupSets: Exercise.getWarmupSets(exercise, sets[0]?.weight, settings, warmupSets),
     };
     const newEntry = Progress.runUpdateScriptForEntry(
       entry,

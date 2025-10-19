@@ -3514,43 +3514,45 @@ export function warmupValues(units: IUnit): Partial<Record<number, IProgramExerc
   };
 }
 
-function warmup45(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
+function warmup45(weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
   return warmup(warmupValues(settings.units)[45] || [])(weight, settings, exerciseType);
 }
 
-function warmup95(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
+function warmup95(weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
   return warmup(warmupValues(settings.units)[95] || [])(weight, settings, exerciseType);
 }
 
-function warmup10(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
+function warmup10(weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
   return warmup(warmupValues(settings.units)[10] || [])(weight, settings, exerciseType);
 }
 
 function warmup(
   programExerciseWarmupSets: IProgramExerciseWarmupSet[],
   shouldSkipThreshold: boolean = false
-): (weight: IWeight, settings: ISettings, exerciseType?: IExerciseType) => ISet[] {
-  return (weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): ISet[] => {
+): (weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType) => ISet[] {
+  return (weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType): ISet[] => {
     return programExerciseWarmupSets.reduce<ISet[]>((memo, programExerciseWarmupSet) => {
-      if (shouldSkipThreshold || Weight.gt(weight, programExerciseWarmupSet.threshold)) {
+      if (shouldSkipThreshold || (weight != null && Weight.gt(weight, programExerciseWarmupSet.threshold))) {
         const value = programExerciseWarmupSet.value;
         const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
-        const warmupWeight = typeof value === "number" ? Weight.multiply(weight, value) : value;
-        const roundedWeight = Weight.roundConvertTo(warmupWeight, settings, unit, exerciseType);
-        memo.push({
-          id: UidFactory.generateUid(6),
-          reps: programExerciseWarmupSet.reps,
-          weight: roundedWeight,
-          originalWeight: warmupWeight,
-          isCompleted: false,
-        });
+        if (typeof value !== "number" || weight != null) {
+          const warmupWeight = typeof value === "number" ? Weight.multiply(weight!, value) : value;
+          const roundedWeight = Weight.roundConvertTo(warmupWeight, settings, unit, exerciseType);
+          memo.push({
+            id: UidFactory.generateUid(6),
+            reps: programExerciseWarmupSet.reps,
+            weight: roundedWeight,
+            originalWeight: warmupWeight,
+            isCompleted: false,
+          });
+        }
       }
       return memo;
     }, []);
   };
 }
 
-function warmupEmpty(weight: IWeight): ISet[] {
+function warmupEmpty(weight: IWeight | undefined): ISet[] {
   return [];
 }
 
@@ -3874,7 +3876,7 @@ export namespace Exercise {
 
   export function getWarmupSets(
     exercise: IExerciseType,
-    weight: IWeight,
+    weight: IWeight | undefined,
     settings: ISettings,
     programExerciseWarmupSets?: IProgramExerciseWarmupSet[]
   ): ISet[] {
