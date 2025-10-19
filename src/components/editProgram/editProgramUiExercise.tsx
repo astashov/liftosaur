@@ -210,6 +210,8 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
   const displayWarmupSets = PlannerProgramExercise.warmupSetsToDisplaySets(warmupSets);
   const reusingSets = plannerExercise.reuse?.fullName;
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
+  const supersetGroup = props.plannerExercise.superset?.name;
+  const supersetExercises = Program.getSupersetExercises(props.evaluatedProgram, props.plannerExercise);
 
   return (
     <div>
@@ -259,6 +261,25 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
               </div>
             </div>
           </div>
+          {supersetGroup && (
+            <div className="px-3 pb-2 text-xs">
+              Superset Group: <strong>{supersetGroup}</strong>
+              {supersetExercises.length > 0 && (
+                <span className="text-text-secondary">
+                  <span> (</span>
+                  {supersetExercises.map((ex, i) => {
+                    return (
+                      <>
+                        {i > 0 ? ", " : ""}
+                        <strong>{ex.name}</strong>
+                      </>
+                    );
+                  })}
+                  <span>)</span>
+                </span>
+              )}
+            </div>
+          )}
           <div className="px-3 pb-2 text-xs">
             <EditProgramUiProgress evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
           </div>

@@ -228,11 +228,12 @@ export namespace Program {
       });
     }
 
-    const entry = {
+    const entry: IHistoryEntry = {
       id: UidFactory.generateUid(6),
       exercise: exercise,
       programExerciseId: programExercise.key,
       sets,
+      superset: programExercise.superset?.name,
       warmupSets: Exercise.getWarmupSets(exercise, sets[0]?.weight, settings, warmupSets),
     };
     const newEntry = Progress.runUpdateScriptForEntry(
@@ -284,6 +285,9 @@ export namespace Program {
     const programDay = Program.getProgramDay(program, day);
     const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
     const sortedDayExercises = CollectionUtils.sortBy(dayExercises, "order");
+    const entries = sortedDayExercises.map((exercise) => {
+      return nextHistoryEntry(program, dayData, exercise, stats, settings);
+    });
     return {
       vtype: "history_record",
       id: 0,
@@ -297,10 +301,46 @@ export namespace Program {
       dayName: fullDayName,
       startTime: now,
       updatedAt: now,
-      entries: sortedDayExercises.map((exercise) => {
-        return nextHistoryEntry(program, dayData, exercise, stats, settings);
-      }),
+      entries,
     };
+  }
+
+  export function getSupersetGroups(
+    evaluatedProgram: IEvaluatedProgram,
+    dayData: IShortDayData,
+    excludeExercise?: IPlannerProgramExercise
+  ): Partial<Record<string, IPlannerProgramExerciseWithType[]>> {
+    const programDay = Program.getProgramDay(
+      evaluatedProgram,
+      Program.getDayNumber(evaluatedProgram, dayData.week, dayData.dayInWeek)
+    );
+    const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
+    const groups: Partial<Record<string, IPlannerProgramExerciseWithType[]>> = {};
+    for (const exercise of dayExercises) {
+      if (exercise.superset != null) {
+        if (!groups[exercise.superset.name]) {
+          groups[exercise.superset.name] = [];
+        }
+        if (exercise.key !== excludeExercise?.key) {
+          groups[exercise.superset.name]!.push(exercise);
+        }
+      }
+    }
+    return groups;
+  }
+
+  export function getSupersetExercises(
+    evalutedProgram: IEvaluatedProgram,
+    plannerExercise: IPlannerProgramExercise
+  ): IPlannerProgramExerciseWithType[] {
+    if (plannerExercise.superset == null) {
+      return [];
+    }
+    const dayData = plannerExercise.dayData;
+    const programDay = Program.getProgramDay(evalutedProgram, dayData.day);
+    const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
+    const result = dayExercises.filter((e) => e.superset?.name === plannerExercise.superset?.name);
+    return result;
   }
 
   export function runExerciseFinishDayScript(

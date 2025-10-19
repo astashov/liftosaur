@@ -592,6 +592,11 @@ export function buildCardsReducer(
           action.mode,
           !!hasUserPromptedVars
         );
+        const oldSet =
+          progress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
+        const newSet =
+          newProgress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
+        const didFinish = !oldSet.isCompleted && newSet.isCompleted;
         if (action.programExercise && !newProgress.ui?.amrapModal) {
           newProgress = Progress.runUpdateScript(
             newProgress,
@@ -607,6 +612,9 @@ export function buildCardsReducer(
 
         if (Progress.isFullyFinishedSet(newProgress)) {
           newProgress = Progress.stopTimer(newProgress);
+        }
+        if (didFinish) {
+          newProgress = Progress.maybeApplySuperset(newProgress, action.entryIndex, action.mode);
         }
         newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
         if (!action.isPlayground) {
@@ -661,6 +669,7 @@ export function buildCardsReducer(
         if (Progress.isFullyFinishedSet(newProgress)) {
           newProgress = Progress.stopTimer(newProgress);
         }
+        newProgress = Progress.maybeApplySuperset(newProgress, action.entryIndex, "workout");
         newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
         newProgress = Progress.startTimer(
           newProgress,

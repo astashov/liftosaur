@@ -14,10 +14,12 @@ import { LinkButton } from "../linkButton";
 import { useState } from "preact/hooks";
 import { EditProgramExerciseOrder } from "./editProgramExerciseOrder";
 import { ObjectUtils } from "../../utils/object";
+import { EditProgramExerciseSupersets } from "./editProgramExerciseSupersets";
 
 interface IEditProgramExerciseDayExerciseProps {
   plannerExercise: IPlannerProgramExercise;
   evaluatedProgram: IEvaluatedProgram;
+  showSupersets: boolean;
   showRepeat: boolean;
   showOrder: boolean;
   ui: IPlannerExerciseUi;
@@ -84,6 +86,14 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
             plannerDispatch={props.plannerDispatch}
           />
         </div>
+      )}
+      {props.showSupersets && (
+        <EditProgramExerciseSupersets
+          plannerExercise={plannerExercise}
+          evaluatedProgram={props.evaluatedProgram}
+          plannerDispatch={props.plannerDispatch}
+          settings={props.settings}
+        />
       )}
       {plannerExercise.descriptions.values.length > 0 && (
         <EditProgramExerciseReuseDescriptions

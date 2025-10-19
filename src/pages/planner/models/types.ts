@@ -56,6 +56,7 @@ export type IPlannerProgramExercise = {
   name: string;
   line: number;
   reuse?: IPlannerProgramReuse;
+  superset?: IPlannerProgramExerciseSuperset;
   notused?: boolean;
   evaluatedSetVariations: IPlannerProgramExerciseEvaluatedSetVariation[];
   setVariations: IPlannerProgramExerciseSetVariation[];
@@ -66,6 +67,7 @@ export type IPlannerProgramExercise = {
   update?: IProgramExerciseUpdate;
   points: {
     fullName: IPlannerSyntaxPointer;
+    supersetPoint?: IPlannerSyntaxPointer;
     reuseSetPoint?: IPlannerSyntaxPointer;
     progressPoint?: IPlannerSyntaxPointer;
     updatePoint?: IPlannerSyntaxPointer;
@@ -114,6 +116,10 @@ export interface IPlannerProgramExerciseWarmupSet {
   reps: number;
   percentage?: number;
   weight?: IWeight;
+}
+
+export interface IPlannerProgramExerciseSuperset {
+  name: string;
 }
 
 export type IPlannerProgramReuseSource = "specific" | "overall";

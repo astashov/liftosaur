@@ -54,6 +54,13 @@ export function ScreenTimers(props: IProps): JSX.Element {
           valueUnits="sec"
           onChange={onChange("workout")}
         />
+        <MenuItemEditable
+          name="Superset"
+          type="number"
+          value={props.timers.superset?.toString()}
+          valueUnits="sec"
+          onChange={onChange("superset")}
+        />
         {((SendMessage.isIos() && SendMessage.iosVersion() >= 10) ||
           (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 19)) && (
           <>

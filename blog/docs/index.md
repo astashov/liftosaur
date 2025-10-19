@@ -240,6 +240,31 @@ If you don't want warmups at all, you can specify `warmup: none`:
 Squat / 5x5 / warmup: none
 {% endplannercode %}
 
+### Supersets
+
+You can group exercises into supersets via `superset` section, like this:
+
+{% plannercode %}
+Squat / 3x8 / superset: A
+Deadlift / 3x8 / superset: A
+Bent Over Row / 3x8 / superset: A
+Bicep Curl / 3x8
+{% endplannercode %}
+
+That would group Squat, Deadlift and Bent Over Row into the **Superset A**. When you run the workout, after you complete a set of Squat, it'll switch to Deadlift, then to Bent Over Row, and then back to Squat for the second round, and so on.
+
+The syntax looks like `superset: GROUP_NAME`, where `GROUP_NAME` could be any string.
+By default they use superset default rest timer (which you can set up in Me -> Timers), but you can override it
+with per-set timers. For example:
+
+{% plannercode %}
+Squat / 3x8 / superset: A
+Deadlift / 3x8 / superset: A
+Bent Over Row / 3x8 180s / superset: A
+{% endplannercode %}
+
+If you have superset default rest timer set to 15s, then Squat and Deadlift would use 15s rest between sets, and Bent Over Row would use 180s rest.
+
 ### Progressive overload
 
 It's very important to incorporate progressive overload into your workouts - how you will increase sets, reps, weight, etc over time, to give stimulus for your muscles to grow. In Liftosaur, you can specify progressions for your exercises, and the app will automatically change weights/reps/etc based on the conditions you specify.

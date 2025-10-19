@@ -20,6 +20,7 @@ import { WorkoutExerciseUtils } from "../../utils/workoutExerciseUtils";
 import { Tailwind } from "../../utils/tailwindConfig";
 import { Equipment } from "../../models/equipment";
 import { GroupHeader } from "../groupHeader";
+import { Progress } from "../../models/progress";
 
 interface IProps {
   entry: IHistoryEntry;
@@ -157,6 +158,8 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
   const description = PlannerProgramExercise.currentDescription(programExercise);
   const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
   const exerciseNotes = Exercise.getNotes(props.entry.exercise, props.settings);
+  const supersetEntry = Progress.getNextSupersetEntry(props.progress.entries, props.entry);
+  const supersetExercise = supersetEntry ? Exercise.get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
   return (
     <div
@@ -185,6 +188,11 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
             <div data-cy="exercise-equipment" className="text-xs text-text-secondary">
               Equipment: <strong>{currentEquipmentName || "None"}</strong>
             </div>
+            {supersetExercise && (
+              <div data-cy="exercise-superset" className="text-xs text-text-secondary">
+                Supersets with: <strong>{Exercise.fullName(supersetExercise, props.settings)}</strong>
+              </div>
+            )}
           </div>
         </div>
         {exerciseNotes && (
@@ -204,6 +212,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
             isPlayground={true}
             day={dayData.day}
             isCurrentProgress={true}
+            progress={props.progress}
             program={props.program}
             programExercise={props.programExercise}
             stats={props.stats}

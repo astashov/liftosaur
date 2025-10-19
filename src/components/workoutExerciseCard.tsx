@@ -34,6 +34,7 @@ import { useMemo, useState } from "preact/hooks";
 import { Collector } from "../utils/collector";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { Nux } from "./nux";
+import { IconReorder } from "./icons/iconReorder";
 
 interface IWorkoutExerciseCardProps {
   entry: IHistoryEntry;
@@ -51,6 +52,7 @@ interface IWorkoutExerciseCardProps {
   showHelp?: boolean;
   helps: string[];
   otherStates?: IByExercise<IProgramState>;
+  setForceUpdateEntryIndex: () => void;
 }
 
 export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Element {
@@ -81,6 +83,8 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
   );
 
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
+  const supersetEntry = Progress.getNextSupersetEntry(props.progress.entries, props.entry);
+  const supersetExercise = supersetEntry ? Exercise.get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
   return (
     <section
@@ -128,6 +132,24 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 {currentEquipmentName || "None"}
               </LinkButton>
             </div>
+            {supersetExercise && (
+              <div data-cy="exercise-superset" className="text-sm text-text-secondary">
+                Supersets with:{" "}
+                <LinkButton
+                  name="exercise-superset-picker"
+                  data-cy="exercise-superset-picker"
+                  onClick={() => {
+                    updateProgress(
+                      props.dispatch,
+                      [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
+                      "change-superset"
+                    );
+                  }}
+                >
+                  {Exercise.fullName(supersetExercise, props.settings)}
+                </LinkButton>
+              </div>
+            )}
             {currentEquipmentNotes && (
               <div className="text-xs">
                 <Markdown value={currentEquipmentNotes} />
@@ -181,6 +203,24 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
+                  data-cy="exercise-superset"
+                  onClick={() => {
+                    setIsKebabMenuOpen(false);
+                    updateProgress(
+                      props.dispatch,
+                      [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
+                      "kebab-edit-superset"
+                    );
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div>
+                      <IconReorder size={18} />
+                    </div>
+                    <div>Edit Superset</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   data-cy="exercise-swap"
                   isTop={!programExercise || !programExerciseId}
                   onClick={() => {
@@ -225,7 +265,14 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                           .recordModify((entries) => {
                             setIsKebabMenuOpen(false);
                             if (confirm("Do you want to remove this exercise in this workout only?")) {
-                              return CollectionUtils.removeAt(entries, props.entryIndex);
+                              const entryIdToDelete = props.entry.id;
+                              const newEntries = CollectionUtils.removeAt(entries, props.entryIndex);
+                              for (const entry of newEntries) {
+                                if (entry.superset && entry.superset === entryIdToDelete) {
+                                  entry.superset = undefined;
+                                }
+                              }
+                              return newEntries;
                             } else {
                               return entries;
                             }
@@ -310,6 +357,8 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
           stats={props.stats}
           isPlayground={false}
           helps={props.helps}
+          progress={props.progress}
+          setForceUpdateEntryIndex={props.setForceUpdateEntryIndex}
           onStopShowingHint={() => {
             if (!props.helps.includes("swipeable-set")) {
               updateState(

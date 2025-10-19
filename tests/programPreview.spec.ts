@@ -36,6 +36,7 @@ test("Program Preview", async ({ page }) => {
     [1, 1, { amrap: { reps: 5 } }],
     page.getByTestId("preview-day-workout-a").first()
   );
+  await page.getByTestId("preview-day-workout-a").getByTestId(`workout-tab-bent-over-row`).nth(0).click();
   await expect(
     page
       .getByTestId("preview-day-workout-a")

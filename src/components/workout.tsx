@@ -120,7 +120,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
                     stats={props.stats}
                     history={props.history}
                     otherStates={props.program?.states}
-                    isSelected={entryIndex === (props.progress.ui?.currentEntryIndex ?? 0)}
+                    setForceUpdateEntryIndex={props.setForceUpdateEntryIndex}
                     entryIndex={entryIndex}
                     program={props.program}
                     programDay={props.programDay}
@@ -276,9 +276,10 @@ interface IWorkoutListOfExercisesProps {
 
 function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Element {
   const [enableReorder, setEnableReorder] = useState(false);
+  const colorToSupersetGroup = Progress.getColorToSupersetGroup(props.progress);
   return (
     <>
-      <div className="mr-2 leading-none text-right">
+      <div className="mr-2 leading-none text-right safe-area-inset-top-compensate">
         <LinkButton
           className="px-2 py-1 text-xs"
           name="reorder-workout-exercises"
@@ -287,93 +288,93 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
           {enableReorder ? "Finish Reordering" : "Reorder Exercises"}
         </LinkButton>
       </div>
-      <div
-        className="sticky left-0 z-30 py-1 border-b bg-background-default border-background-subtle"
-        style={{ top: "56px" }}
-      >
-        <Scroller>
-          <div className="flex items-center gap-1 px-4">
-            <DraggableList
-              isDisabled={!enableReorder}
-              hideBorders={true}
-              mode="horizontal"
-              onClick={props.onClick}
-              items={props.progress.entries}
-              element={(entry, entryIndex, handleTouchStart, onClick) => {
-                return (
-                  <WorkoutExerciseThumbnail
-                    onClick={() => {
-                      if (!enableReorder) {
-                        props.onClick(entryIndex);
-                      }
-                    }}
-                    handleTouchStart={handleTouchStart}
-                    shouldShowProgress={true}
-                    selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
-                    key={entryIndex}
-                    progress={props.progress}
-                    settings={props.settings}
-                    entry={entry}
-                    entryIndex={entryIndex}
-                  />
-                );
-              }}
-              onDragEnd={(startIndex, endIndex) => {
-                updateProgress(
-                  props.dispatch,
-                  [
-                    lb<IHistoryRecord>()
-                      .p("changes")
-                      .recordModify((changes) => {
-                        return Array.from(new Set([...(changes || []), "order"]));
-                      }),
-                    lb<IHistoryRecord>()
-                      .p("entries")
-                      .recordModify((entries) => {
-                        const newEntries = [...entries];
-                        const [entriesToMove] = newEntries.splice(startIndex, 1);
-                        newEntries.splice(endIndex, 0, entriesToMove);
-                        return newEntries;
-                      }),
-                  ],
-                  "drag-exercise-tab"
-                );
-                setTimeout(() => {
-                  props.onClick(endIndex);
-                }, 0);
-              }}
-            />
-            <button
-              name="add-exercise-to-workout"
-              data-cy="add-exercise-button"
-              className="p-2 nm-add-exercise-to-workout"
-              onClick={() => {
-                updateState(
-                  props.dispatch,
-                  [
-                    lb<IState>()
-                      .p("progress")
-                      .pi(props.progress.id)
-                      .pi("ui")
-                      .p("exercisePicker")
-                      .record({
-                        state: {
-                          mode: "workout",
-                          screenStack: ["exercisePicker"],
-                          sort: "name_asc",
-                          filters: {},
-                          selectedExercises: [],
-                        },
-                      }),
-                  ],
-                  "Open exercise picker"
-                );
-              }}
-            >
-              <IconPlus2 size={15} color={Tailwind.colors().lightgray[600]} />
-            </button>
-          </div>
-        </Scroller>
+      <div className="sticky left-0 z-30 safe-area-inset-top " style={{ top: "56px" }}>
+        <div className="py-1 border-b bg-background-default border-background-subtle">
+          <Scroller>
+            <div className="flex items-center gap-1 px-4">
+              <DraggableList
+                isDisabled={!enableReorder}
+                hideBorders={true}
+                mode="horizontal"
+                onClick={props.onClick}
+                items={props.progress.entries}
+                element={(entry, entryIndex, handleTouchStart, onClick) => {
+                  return (
+                    <WorkoutExerciseThumbnail
+                      colorToSupersetGroup={colorToSupersetGroup}
+                      onClick={() => {
+                        if (!enableReorder) {
+                          props.onClick(entryIndex);
+                        }
+                      }}
+                      handleTouchStart={handleTouchStart}
+                      shouldShowProgress={true}
+                      selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
+                      key={entryIndex}
+                      progress={props.progress}
+                      settings={props.settings}
+                      entry={entry}
+                      entryIndex={entryIndex}
+                    />
+                  );
+                }}
+                onDragEnd={(startIndex, endIndex) => {
+                  updateProgress(
+                    props.dispatch,
+                    [
+                      lb<IHistoryRecord>()
+                        .p("changes")
+                        .recordModify((changes) => {
+                          return Array.from(new Set([...(changes || []), "order"]));
+                        }),
+                      lb<IHistoryRecord>()
+                        .p("entries")
+                        .recordModify((entries) => {
+                          const newEntries = [...entries];
+                          const [entriesToMove] = newEntries.splice(startIndex, 1);
+                          newEntries.splice(endIndex, 0, entriesToMove);
+                          return newEntries;
+                        }),
+                    ],
+                    "drag-exercise-tab"
+                  );
+                  setTimeout(() => {
+                    props.onClick(endIndex);
+                  }, 0);
+                }}
+              />
+              <button
+                name="add-exercise-to-workout"
+                data-cy="add-exercise-button"
+                className="p-2 nm-add-exercise-to-workout"
+                onClick={() => {
+                  updateState(
+                    props.dispatch,
+                    [
+                      lb<IState>()
+                        .p("progress")
+                        .pi(props.progress.id)
+                        .pi("ui")
+                        .p("exercisePicker")
+                        .record({
+                          state: {
+                            mode: "workout",
+                            screenStack: ["exercisePicker"],
+                            sort: "name_asc",
+                            filters: {},
+                            selectedExercises: [],
+                          },
+                        }),
+                    ],
+                    "Open exercise picker"
+                  );
+                }}
+              >
+                <IconPlus2 size={15} color={Tailwind.colors().lightgray[600]} />
+              </button>
+            </div>
+          </Scroller>
+        </div>
       </div>
     </>
   );

@@ -13,7 +13,7 @@ interface IEditProgramExerciseOrderProps {
 
 export function EditProgramExerciseOrder(props: IEditProgramExerciseOrderProps): JSX.Element {
   return (
-    <div className="flex items-center mb-2">
+    <div className="flex items-center pb-2 border-b border-border-neutral">
       <span className="mr-2 text-sm">Forced order: </span>
       <InputNumber2
         name="edit-exercise-order"

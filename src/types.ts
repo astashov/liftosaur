@@ -501,6 +501,7 @@ export const THistoryEntry = t.intersection(
       notes: t.string,
       changed: t.boolean,
       isSuppressed: t.boolean,
+      superset: t.string,
       updatePrints: t.array(t.array(t.union([t.number, TWeight, TPercentage]))),
     }),
   ],
@@ -753,6 +754,7 @@ export const TProgressUi = t.partial(
     }),
     entryIndexEditMode: t.number,
     currentEntryIndex: t.number,
+    showSupersetPicker: THistoryEntry,
   },
   "TProgressUi"
 );
@@ -1090,6 +1092,7 @@ export const TSettingsTimers = t.intersection(
     }),
     t.partial({
       reminder: t.number,
+      superset: t.number,
     }),
   ],
   "TSettingsTimers"

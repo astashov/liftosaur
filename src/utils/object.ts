@@ -20,6 +20,10 @@ export namespace ObjectUtils {
     return ObjectUtils.keys(obj).map((key) => [key, obj[key]]);
   }
 
+  export function entriesNonnull<T extends {}>(obj: T): Array<[keyof T, NonNullable<T[keyof T]>]> {
+    return CollectionUtils.compact(ObjectUtils.keys(obj)).map((key) => [key, obj[key] as NonNullable<T[keyof T]>]);
+  }
+
   export function isEmpty<T extends {}>(obj: T): boolean {
     return ObjectUtils.keys(obj).length === 0;
   }

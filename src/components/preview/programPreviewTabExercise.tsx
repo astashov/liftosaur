@@ -25,6 +25,7 @@ import { Modal1RM } from "../modal1RM";
 import { ModalEquipment } from "../modalEquipment";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { GroupHeader } from "../groupHeader";
+import { Progress } from "../../models/progress";
 
 interface IProgramPreviewTabExerciseProps {
   entry: IHistoryEntry;
@@ -48,6 +49,8 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
   const currentEquipmentNotes = Equipment.getEquipmentDataForExerciseType(props.settings, exercise)?.notes;
   const exerciseNotes = Exercise.getNotes(props.entry.exercise, props.settings);
   const onerm = Exercise.onerm(exercise, props.settings);
+  const supersetEntry = Progress.getNextSupersetEntry(props.entries, props.entry);
+  const supersetExercise = supersetEntry ? Exercise.get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
   return (
     <div
@@ -121,6 +124,11 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
               >
                 {Weight.print(onerm)}
               </LinkButton>
+            </div>
+          )}
+          {supersetExercise && (
+            <div data-cy="exercise-superset" className="text-xs text-text-secondary">
+              Supersets with: <strong>{Exercise.fullName(supersetExercise, props.settings)}</strong>
             </div>
           )}
         </div>
