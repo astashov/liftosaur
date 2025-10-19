@@ -36,7 +36,7 @@ export function EditProgramExerciseRepeat(props: IEditProgramExerciseRepeatProps
   }
 
   return (
-    <label className="flex items-center mb-2">
+    <label className="flex items-center pb-2 border-b border-border-neutral">
       <span className="mr-2 text-sm">Repeat from week {repeatFrom} to week: </span>
       <select
         value={repeatTo}

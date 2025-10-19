@@ -2184,6 +2184,40 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
+  "20251026": {
+    title: <span>Add supersets</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can add exercises to superset groups, and within that group it will switch between exercises each time
+          you finish a workout set. E.g. if you have 3 exercises in a superset group, you'd do 1 set of the first
+          exercise, it'll switch to the seocond exercise, you finish a set there, it'll switch to the third exercise,
+          and then back to the first one again.
+        </li>
+        <li>
+          You can set those groups both in a program and in a workout. In a program, you can do it both in the text and
+          UI. In the text, it looks like this:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`Squat / 3x8 / superset: A
+Deadlift / 3x8 / superset: A
+Bent Over Row / 3x8 / superset: A`}
+            />
+          </div>
+          So, you add <strong>superset: GROUP_NAME</strong> to each exercise you want to be in a superset group.
+          GROUP_NAME could be any string, e.g. A, B, ChestDay1, etc.
+        </li>
+        <li>
+          There's a new timer setting for the rest timers within supersets - in Me -&gt; Timers. It takes precedence
+          over the default rest timer, but the per-set rest timers take precedence over both.
+        </li>
+        <li>
+          The supersets will be highlighted by a colored line on the bottom side of exercise thumbnails during workout,
+          as well as within the exercise card.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

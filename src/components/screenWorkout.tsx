@@ -29,6 +29,7 @@ import { Thunk } from "../ducks/thunks";
 import { BottomSheetExercisePicker } from "./exercisePicker/bottomSheetExercisePicker";
 import { ILensDispatch } from "../utils/useLensReducer";
 import { Settings } from "../models/settings";
+import { BottomSheetWorkoutSuperset } from "./bottomSheetWorkoutSuperset";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
@@ -91,6 +92,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
     }
   }, []);
   const exercisePickerState = progress.ui?.exercisePicker?.state;
+  const exerciseSuperset = progress.ui?.showSupersetPicker;
 
   if (progress != null) {
     return (
@@ -182,6 +184,9 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
                 )}
                 progress={progress}
+                onDone={() => {
+                  setForceUpdateEntryIndex(!forceUpdateEntryIndex);
+                }}
               />
             )}
             {dateModal != null && (
@@ -190,6 +195,39 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 dispatch={props.dispatch}
                 date={dateModal.date ?? ""}
                 time={dateModal.time ?? 0}
+              />
+            )}
+            {exerciseSuperset && (
+              <BottomSheetWorkoutSuperset
+                isHidden={exerciseSuperset == null}
+                onClose={() => {
+                  updateProgress(
+                    props.dispatch,
+                    [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
+                    "Close superset picker"
+                  );
+                }}
+                progress={progress}
+                entry={exerciseSuperset}
+                settings={props.settings}
+                onSelect={(selectedEntry) => {
+                  updateProgress(
+                    props.dispatch,
+                    [
+                      lb<IHistoryRecord>()
+                        .p("entries")
+                        .findBy("id", exerciseSuperset.id)
+                        .p("superset")
+                        .record(selectedEntry),
+                    ],
+                    "select-superset-entry"
+                  );
+                  updateProgress(
+                    props.dispatch,
+                    [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
+                    "Close superset picker"
+                  );
+                }}
               />
             )}
             {exercisePickerState && (

@@ -34,10 +34,11 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
     plannerExercise?.descriptions.reuse != null || (plannerExercise?.descriptions.values.length ?? 0) > 0;
   const [showRepeat, setShowRepeat] = useState((plannerExercise?.repeating.length ?? 0) > 0);
   const [showOrder, setShowOrder] = useState((plannerExercise?.order ?? 0) !== 0);
+  const [showSupersets, setShowSupersets] = useState(plannerExercise?.superset != null);
 
   return (
     <div
-      className="py-3 bg-background-default border rounded-2xl border-border-neutral"
+      className="py-3 border bg-background-default rounded-2xl border-border-neutral"
       data-cy={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
     >
       <div className="flex items-center gap-4 px-4 pb-2">
@@ -173,6 +174,27 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                 >
                   {plannerExercise.order !== 0 ? "Disable" : "Enable"} Forced Order
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  data-cy="edit-menu-exercise-toggle-supersets"
+                  onClick={() => {
+                    if (showSupersets) {
+                      EditProgramUiHelpers.changeCurrentInstanceExercise(
+                        props.plannerDispatch,
+                        plannerExercise,
+                        props.settings,
+                        (ex) => {
+                          ex.superset = undefined;
+                        }
+                      );
+                    }
+                    setShowSupersets(!showSupersets);
+                    setIsKebabMenuOpen(false);
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    {plannerExercise.superset != null ? "Disable" : "Enable"} Superset
+                  </div>
+                </DropdownMenuItem>
               </DropdownMenu>
             )}
           </div>
@@ -181,6 +203,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
       {plannerExercise ? (
         <EditProgramExerciseDayExercise
           ui={props.ui}
+          showSupersets={showSupersets}
           showRepeat={showRepeat}
           showOrder={showOrder}
           plannerExercise={plannerExercise}

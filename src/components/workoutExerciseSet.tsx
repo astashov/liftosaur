@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { ISettings, ISet, IExerciseType, ISubscription, IProgramState, IHistoryRecord } from "../types";
+import { ISettings, ISet, IExerciseType, ISubscription, IProgramState, IHistoryRecord, IHistoryEntry } from "../types";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { n } from "../utils/math";
 import { InputNumber2 } from "./inputNumber2";
@@ -32,6 +32,9 @@ interface IWorkoutExerciseSet {
   isNext?: boolean;
   subscription?: ISubscription;
   isPlayground: boolean;
+  progress: IHistoryRecord;
+  entry: IHistoryEntry;
+  setForceUpdateEntryIndex?: () => void;
   entryIndex: number;
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;
@@ -237,6 +240,11 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     isPlayground: props.isPlayground,
                     mode: props.type,
                   });
+                  if (props.type === "workout" && !props.set.isCompleted) {
+                    if (props.setForceUpdateEntryIndex) {
+                      props.setForceUpdateEntryIndex();
+                    }
+                  }
                 }}
               >
                 <IconCheckCircle

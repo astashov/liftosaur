@@ -465,6 +465,11 @@ export class ProgramToPlanner {
                   addedIdMap[key] = true;
                 }
 
+                const superset = evalExercise.superset?.name;
+                if (superset) {
+                  plannerExercise += ` / superset: ${superset}`;
+                }
+
                 const update = evalExercise.update;
                 if (
                   !addedUpdateMap[key] &&
