@@ -205,6 +205,7 @@ export type ICompleteSetAction = {
   setIndex: number;
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;
+  isPlayground: boolean;
   mode: IProgressMode;
 };
 
@@ -220,6 +221,7 @@ export type IStartProgramDayAction = {
 export type IChangeAMRAPAction = {
   type: "ChangeAMRAPAction";
   setIndex: number;
+  isPlayground: boolean;
   entryIndex: number;
   amrapValue?: number;
   rpeValue?: number;
@@ -606,16 +608,18 @@ export function buildCardsReducer(
         if (Progress.isFullyFinishedSet(newProgress)) {
           newProgress = Progress.stopTimer(newProgress);
         }
-        newProgress.intervals = History.resumeWorkout(newProgress, settings.timers.reminder);
-        newProgress = Progress.startTimer(
-          newProgress,
-          new Date().getTime(),
-          action.mode,
-          action.entryIndex,
-          action.setIndex,
-          settings,
-          subscription
-        );
+        newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
+        if (!action.isPlayground) {
+          newProgress = Progress.startTimer(
+            newProgress,
+            new Date().getTime(),
+            action.mode,
+            action.entryIndex,
+            action.setIndex,
+            settings,
+            subscription
+          );
+        }
         return newProgress;
       }
       case "ChangeAMRAPAction": {
@@ -657,7 +661,7 @@ export function buildCardsReducer(
         if (Progress.isFullyFinishedSet(newProgress)) {
           newProgress = Progress.stopTimer(newProgress);
         }
-        newProgress.intervals = History.resumeWorkout(newProgress, settings.timers.reminder);
+        newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
         newProgress = Progress.startTimer(
           newProgress,
           new Date().getTime(),

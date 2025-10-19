@@ -117,7 +117,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   progress={props.progress}
                   onPauseResume={() => {
                     if (History.isPaused(props.progress.intervals)) {
-                      History.resumeWorkoutAction(props.dispatch, props.settings);
+                      History.resumeWorkoutAction(props.dispatch, false, props.settings);
                     } else {
                       History.pauseWorkoutAction(props.dispatch);
                     }
@@ -173,6 +173,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
           <>
             {progress?.ui?.amrapModal && (
               <ModalAmrap
+                isPlayground={false}
                 settings={props.settings}
                 dispatch={props.dispatch}
                 programExercise={Program.getProgramExercise(

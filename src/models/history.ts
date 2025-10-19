@@ -811,7 +811,7 @@ export namespace History {
     }
   }
 
-  export function resumeWorkoutAction(dispatch: IDispatch, settings: ISettings): void {
+  export function resumeWorkoutAction(dispatch: IDispatch, isPlayground: boolean, settings: ISettings): void {
     updateState(
       dispatch,
       [
@@ -819,7 +819,7 @@ export namespace History {
           .p("progress")
           .pi(0)
           .recordModify((progress) => {
-            const intervals = resumeWorkout(progress, settings.timers.reminder);
+            const intervals = resumeWorkout(progress, isPlayground, settings.timers.reminder);
             return { ...progress, intervals };
           }),
       ],
@@ -831,9 +831,13 @@ export namespace History {
     return intervals ? intervals.length === 0 || intervals[intervals.length - 1][1] != null : false;
   }
 
-  export function resumeWorkout(historyRecord: IHistoryRecord, reminder?: number): IIntervals | undefined {
+  export function resumeWorkout(
+    historyRecord: IHistoryRecord,
+    isPlayground: boolean,
+    reminder?: number
+  ): IIntervals | undefined {
     const intervals = historyRecord.intervals;
-    if (Progress.isCurrent(historyRecord)) {
+    if (!isPlayground && Progress.isCurrent(historyRecord)) {
       SendMessage.toIosAndAndroid({ type: "resumeWorkout", reminder: `${reminder || 0}` });
     }
     if (isPaused(intervals)) {

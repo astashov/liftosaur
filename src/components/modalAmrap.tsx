@@ -17,6 +17,7 @@ import { IPlannerProgramExercise } from "../pages/planner/models/types";
 interface IModalAmrapProps {
   progress: IHistoryRecord;
   dispatch: IDispatch;
+  isPlayground: boolean;
   settings: ISettings;
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;
@@ -69,6 +70,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
       setIndex: setIndex,
       entryIndex: entryIndex,
       programExercise: props.programExercise,
+      isPlayground: props.isPlayground,
       otherStates: props.otherStates,
       isAmrap: isAmrap,
       logRpe: logRpe,

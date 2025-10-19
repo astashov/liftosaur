@@ -201,6 +201,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
         )}
         <section className="mt-1">
           <WorkoutExerciseAllSets
+            isPlayground={true}
             day={dayData.day}
             isCurrentProgress={true}
             program={props.program}

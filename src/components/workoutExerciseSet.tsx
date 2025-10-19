@@ -31,6 +31,7 @@ interface IWorkoutExerciseSet {
   onStopShowingHint?: () => void;
   isNext?: boolean;
   subscription?: ISubscription;
+  isPlayground: boolean;
   entryIndex: number;
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;
@@ -233,6 +234,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     entryIndex: props.entryIndex,
                     programExercise: props.programExercise,
                     otherStates: props.otherStates,
+                    isPlayground: props.isPlayground,
                     mode: props.type,
                   });
                 }}

@@ -308,6 +308,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
       <div className="mt-1">
         <WorkoutExerciseAllSets
           stats={props.stats}
+          isPlayground={false}
           helps={props.helps}
           onStopShowingHint={() => {
             if (!props.helps.includes("swipeable-set")) {

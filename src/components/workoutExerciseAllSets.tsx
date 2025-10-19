@@ -28,6 +28,7 @@ import { IEvaluatedProgram } from "../models/program";
 interface IWorkoutExerciseAllSets {
   day: number;
   isCurrentProgress: boolean;
+  isPlayground: boolean;
   exerciseType: IExerciseType;
   lbWarmupSets: LensBuilder<IHistoryRecord, ISet[], {}>;
   lbSets: LensBuilder<IHistoryRecord, ISet[], {}>;
@@ -94,6 +95,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             return (
               <WorkoutExerciseSet
                 isCurrentProgress={props.isCurrentProgress}
+                isPlayground={props.isPlayground}
                 type="warmup"
                 key={`warmup-${set.id}-${i}`}
                 day={props.day}
@@ -115,6 +117,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
           {sets.map((set, i) => {
             return (
               <WorkoutExerciseSet
+                isPlayground={props.isPlayground}
                 isCurrentProgress={props.isCurrentProgress}
                 type="workout"
                 key={`workout-${set.id}-${i}`}

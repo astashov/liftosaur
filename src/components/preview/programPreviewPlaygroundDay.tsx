@@ -115,6 +115,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
       )}
       {props.progress.ui?.amrapModal && (
         <ModalAmrap
+          isPlayground={true}
           progress={props.progress}
           dispatch={dispatch}
           settings={props.settings}
