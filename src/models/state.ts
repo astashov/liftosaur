@@ -95,6 +95,14 @@ export interface IOfferData {
   formattedPrice: string;
 }
 
+export interface IAttributionData {
+  isOrganic: boolean;
+  mediaSource: string;
+  campaign: string;
+  adSet: string;
+  ad: string;
+}
+
 export interface IState {
   user?: IUser;
   storage: IStorage;

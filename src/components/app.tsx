@@ -16,7 +16,7 @@ import { ScreenEquipment } from "./screenEquipment";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Progress } from "../models/progress";
-import { IEnv, INavCommon, IState, updateState } from "../models/state";
+import { IAttributionData, IEnv, INavCommon, IState, updateState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
@@ -165,34 +165,14 @@ export function AppView(props: IProps): JSX.Element | null {
       } else if (event.data?.type === "goBack") {
         dispatch(Thunk.postevent("go-back"));
         dispatch(Thunk.pullScreen());
-      } else if (event.data?.type === "setReferrer") {
-        dispatch(Thunk.postevent("set-referrer", { referrer: event.data?.data }));
-        if (state.storage.referrer !== event.data?.data) {
-          updateState(
-            dispatch,
-            [
-              lb<IState>()
-                .p("storage")
-                .p("referrer")
-                .record(event.data?.data || undefined),
-            ],
-            "Set Referrer"
-          );
-        }
       } else if (event.data?.type === "attribution") {
-        const json = JSON.stringify(event.data?.data || undefined);
-        dispatch(Thunk.postevent("set-attribution", { data: json }));
-        if (state.storage.attribution !== json) {
-          updateState(
-            dispatch,
-            [
-              lb<IState>()
-                .p("storage")
-                .p("attribution")
-                .record(JSON.stringify(event.data?.data || undefined)),
-            ],
-            "Set Attribution"
-          );
+        if (event.data?.data != null && !event.data?.data.isOrganic) {
+          const data = event.data?.data as IAttributionData;
+          const referrer = `${data.mediaSource}_${data.campaign}`;
+          if (state.storage.referrer !== referrer) {
+            dispatch(Thunk.postevent("set-referrer", { referrer }));
+            updateState(dispatch, [lb<IState>().p("storage").p("referrer").record(referrer)], "Set Referrer");
+          }
         }
       } else if (event.data?.type === "requestedReview") {
         dispatch(Thunk.postevent("requested-review"));
