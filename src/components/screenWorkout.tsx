@@ -182,6 +182,9 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
                 )}
                 progress={progress}
+                onDone={() => {
+                  setForceUpdateEntryIndex(!forceUpdateEntryIndex);
+                }}
               />
             )}
             {dateModal != null && (

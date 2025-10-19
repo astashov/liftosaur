@@ -20,6 +20,7 @@ import { Scroller } from "../scroller";
 import { WorkoutExerciseThumbnail } from "../workoutExerciseThumbnail";
 import { BottomSheetEditTarget } from "../bottomSheetEditTarget";
 import { updateProgress } from "../../models/state";
+import { Progress } from "../../models/progress";
 
 interface IProgramPreviewPlaygroundDayProps {
   program: IEvaluatedProgram;
@@ -204,12 +205,14 @@ interface IPreviewListOfExercisesProps {
 }
 
 function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Element {
+  const colorToSupersetGroup = Progress.getColorToSupersetGroup(props.progress);
   return (
     <Scroller>
       <div className="flex items-center gap-1 px-4">
         {props.progress.entries.map((entry, entryIndex) => {
           return (
             <WorkoutExerciseThumbnail
+              colorToSupersetGroup={colorToSupersetGroup}
               onClick={() => {
                 updateProgress(
                   props.dispatch,

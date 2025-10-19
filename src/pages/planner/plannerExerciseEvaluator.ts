@@ -15,6 +15,7 @@ import {
   IProgramExerciseProgress,
   IProgramExerciseUpdate,
   IProgramExerciseProgressType,
+  IPlannerProgramExerciseSuperset,
 } from "./models/types";
 import {
   IWeight,
@@ -643,6 +644,23 @@ export class PlannerExerciseEvaluator {
     }
   }
 
+  private evaluateSuperset(expr: SyntaxNode): { type: "superset"; data: IPlannerProgramExerciseSuperset } {
+    if (expr.type.name === PlannerNodeName.Superset) {
+      const exerciseNameNode = expr.getChild(PlannerNodeName.ExerciseName);
+      if (exerciseNameNode != null) {
+        const name = this.getValue(exerciseNameNode);
+        return {
+          type: "superset",
+          data: { name },
+        };
+      } else {
+        assert(PlannerNodeName.ExerciseName);
+      }
+    } else {
+      assert(PlannerNodeName.Superset);
+    }
+  }
+
   private evaluateProperty(
     expr: SyntaxNode,
     exerciseType?: IExerciseType
@@ -722,6 +740,7 @@ export class PlannerExerciseEvaluator {
     | { type: "id"; data: number[] }
     | { type: "reuse"; data: IPlannerProgramReuse }
     | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] }
+    | { type: "superset"; data: IPlannerProgramExerciseSuperset }
     | { type: "used"; data: "" } {
     if (expr.type.name === PlannerNodeName.ExerciseSection) {
       const reuseNode = expr.getChild(PlannerNodeName.ReuseSectionWithWeekDay);
@@ -735,6 +754,10 @@ export class PlannerExerciseEvaluator {
         if (sets.length > 0) {
           return { type: "sets", data: sets.map((set) => this.evaluateSet(set)), isCurrent };
         }
+      }
+      const superset = expr.getChild(PlannerNodeName.Superset);
+      if (superset != null) {
+        return this.evaluateSuperset(superset);
       }
       const property = expr.getChild(PlannerNodeName.ExerciseProperty);
       if (property != null) {
@@ -931,6 +954,7 @@ export class PlannerExerciseEvaluator {
       let tags: number[] = [];
       let progress: IProgramExerciseProgress | undefined;
       let update: IProgramExerciseUpdate | undefined;
+      let superset: IPlannerProgramExerciseSuperset | undefined;
       for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode, exercise ? { id: exercise.id, equipment } : undefined);
         if (section.type === "sets") {
@@ -949,6 +973,8 @@ export class PlannerExerciseEvaluator {
           reuse = section.data;
         } else if (section.type === "id") {
           tags = tags.concat(section.data);
+        } else if (section.type === "superset") {
+          superset = section.data;
         } else if (section.type === "used") {
           notused = true;
         } else {
@@ -1017,6 +1043,12 @@ export class PlannerExerciseEvaluator {
         .filter((n) => n)[0];
       const warmupPoint = warmupNode ? this.getPoint(warmupNode) : undefined;
 
+      const supersetNode = expr
+        .getChildren(PlannerNodeName.ExerciseSection)
+        .map((n) => n.getChild(PlannerNodeName.Superset))
+        .filter((n) => n)[0];
+      const supersetPoint = supersetNode ? this.getPoint(supersetNode) : undefined;
+
       const plannerExercise: IPlannerProgramExercise = {
         id: UidFactory.generateUid(8),
         key,
@@ -1029,6 +1061,7 @@ export class PlannerExerciseEvaluator {
         repeat,
         repeating: [...repeat],
         order,
+        superset,
         name,
         equipment,
         line,
@@ -1053,6 +1086,7 @@ export class PlannerExerciseEvaluator {
         },
         points: {
           fullName: fullNamePoint,
+          supersetPoint,
           reuseSetPoint,
           progressPoint,
           idPoint,

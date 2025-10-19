@@ -501,6 +501,7 @@ export const THistoryEntry = t.intersection(
       notes: t.string,
       changed: t.boolean,
       isSuppressed: t.boolean,
+      supersetId: t.string,
       updatePrints: t.array(t.array(t.union([t.number, TWeight, TPercentage]))),
     }),
   ],

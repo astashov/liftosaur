@@ -3,6 +3,7 @@ import { Weight } from "./weight";
 import { ISet, IHistoryRecord, IHistoryEntry, IWeight, IUnit } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { UidFactory } from "../utils/generator";
+import { Progress } from "./progress";
 
 export type IProgramReps = number;
 
@@ -135,6 +136,10 @@ export namespace Reps {
     return sets.length > 0 && sets.every((s) => isFinishedSet(s));
   }
 
+  export function isEmptyOrFinished(sets: ISet[]): boolean {
+    return sets.length === 0 || Reps.isFinished(sets);
+  }
+
   export function isFinishedSet(s: ISet): boolean {
     return !!s.isCompleted;
   }
@@ -187,7 +192,8 @@ export namespace Reps {
 
   export function findNextEntryAndSet(
     historyRecord: IHistoryRecord,
-    entryIndex: number
+    entryIndex: number,
+    mode: "workout" | "warmup"
   ):
     | {
         entry: IHistoryEntry;
@@ -198,18 +204,14 @@ export namespace Reps {
     if (entry == null) {
       return undefined;
     }
-
-    let nextSet = findNextSet(entry);
-    if (nextSet != null) {
-      return { entry, set: nextSet };
+    const nextEntry = Progress.getNextEntry(historyRecord, entry, mode);
+    if (nextEntry == null) {
+      return undefined;
     }
 
-    const nextEntry = historyRecord.entries.filter((e) => !Reps.isFinished(e.sets))[0];
-    if (nextEntry != null) {
-      nextSet = findNextSet(nextEntry);
-      if (nextSet) {
-        return { entry: nextEntry, set: nextSet };
-      }
+    const nextSet = findNextSet(nextEntry);
+    if (nextSet != null) {
+      return { entry: nextEntry, set: nextSet };
     }
 
     return undefined;

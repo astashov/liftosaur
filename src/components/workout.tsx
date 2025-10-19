@@ -120,7 +120,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
                     stats={props.stats}
                     history={props.history}
                     otherStates={props.program?.states}
-                    isSelected={entryIndex === (props.progress.ui?.currentEntryIndex ?? 0)}
+                    setForceUpdateEntryIndex={props.setForceUpdateEntryIndex}
                     entryIndex={entryIndex}
                     program={props.program}
                     programDay={props.programDay}
@@ -276,6 +276,7 @@ interface IWorkoutListOfExercisesProps {
 
 function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Element {
   const [enableReorder, setEnableReorder] = useState(false);
+  const colorToSupersetGroup = Progress.getColorToSupersetGroup(props.progress);
   return (
     <>
       <div className="mr-2 leading-none text-right">
@@ -302,6 +303,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
               element={(entry, entryIndex, handleTouchStart, onClick) => {
                 return (
                   <WorkoutExerciseThumbnail
+                    colorToSupersetGroup={colorToSupersetGroup}
                     onClick={() => {
                       if (!enableReorder) {
                         props.onClick(entryIndex);

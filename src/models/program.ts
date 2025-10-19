@@ -283,6 +283,19 @@ export namespace Program {
     const now = Date.now();
     const programDay = Program.getProgramDay(program, day);
     const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
+    const entries = dayExercises.map((exercise) => {
+      return nextHistoryEntry(program, dayData, exercise, stats, settings);
+    });
+    for (const entry of entries) {
+      const dayExercise = dayExercises.find((e) => e.key === entry.programExerciseId);
+      const supersetExercise = dayExercise?.superset?.exercise;
+      if (supersetExercise) {
+        const supersetEntry = entries.find((e) => e.programExerciseId === supersetExercise.key);
+        if (supersetEntry) {
+          entry.supersetId = supersetEntry.id;
+        }
+      }
+    }
     return {
       vtype: "history_record",
       id: 0,
@@ -296,9 +309,7 @@ export namespace Program {
       dayName: fullDayName,
       startTime: now,
       updatedAt: now,
-      entries: dayExercises.map((exercise) => {
-        return nextHistoryEntry(program, dayData, exercise, stats, settings);
-      }),
+      entries,
     };
   }
 

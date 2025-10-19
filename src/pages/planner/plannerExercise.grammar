@@ -8,11 +8,12 @@ EmptyExpression { linebreak }
 ExerciseName { NonSeparator+ }
 ExerciseSets { CurrentVariation? ExerciseSet ("," ExerciseSet)* }
 WarmupExerciseSets { (WarmupExerciseSet ("," WarmupExerciseSet)*) }
-ExerciseSection {  (ExerciseProperty | ExerciseSets | ReuseSectionWithWeekDay) ("\\" linebreak)? }
+ExerciseSection {  (ExerciseProperty | ExerciseSets | ReuseSectionWithWeekDay | Superset ) ("\\" linebreak)? }
 ReuseSectionWithWeekDay { ReuseSection WeekDay? }
 ReuseSection { "..." ExerciseName }
 ExerciseSet { (Rpe | Timer | SetPart | WeightWithPlus | PercentageWithPlus | SetLabel)+ }
 WarmupExerciseSet { (WarmupSetPart | Weight | Percentage)+ }
+Superset { SupersetKeyword ":" ExerciseName }
 ExerciseProperty { ExercisePropertyName ":" (FunctionExpression | WarmupExerciseSets | None ) }
 ExercisePropertyName { Keyword }
 None { @specialize<Keyword, "none"> }
@@ -48,11 +49,12 @@ WarmupSetPart { (Rep "x")? Rep }
 @skip { space }
 
 @tokens {
-  @precedence { Weight, Keyword }
+  @precedence { Weight, SupersetKeyword, Keyword }
   @precedence { Weight, Percentage, Float, Int }
   @precedence { Day, Week }
   @precedence { TripleLineComment, LineComment }
   @precedence { "\\", "[", "]", NonSeparator }
+  SupersetKeyword { "superset" }
   TripleLineComment { "///" ![\n]* linebreakOrEof }
   LineComment { "//" ![\n]* linebreakOrEof }
   Liftoscript { "{~" ![~]* "~}" }

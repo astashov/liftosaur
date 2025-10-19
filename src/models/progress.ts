@@ -462,7 +462,7 @@ export namespace Progress {
       let body = "Time to lift!";
       let subtitleHeader = "";
       let bodyHeader = "The rest is over";
-      const nextEntryAndSet = Reps.findNextEntryAndSet(progress, entryIndex);
+      const nextEntryAndSet = Reps.findNextEntryAndSet(progress, entryIndex, mode);
       if (nextEntryAndSet != null) {
         const { entry, set: aSet } = nextEntryAndSet;
         const exercise = Exercise.get(entry.exercise, settings.exercises);
@@ -482,6 +482,7 @@ export namespace Progress {
         }
       }
       const ignoreDoNotDisturb = settings.ignoreDoNotDisturb ? "true" : "false";
+      console.log("Send timer message", title, subtitleHeader, subtitle, bodyHeader, body);
       SendMessage.toIos({
         type: "startTimer",
         duration: timerForPush.toString(),
@@ -513,6 +514,63 @@ export namespace Progress {
       timerEntryIndex: entryIndex,
       timerSetIndex: setIndex,
     };
+  }
+
+  export function getNextEntry(
+    progress: IHistoryRecord,
+    entry: IHistoryEntry,
+    mode: "workout" | "warmup"
+  ): IHistoryEntry | undefined {
+    if (isFullyEmptyOrFinishedSet(progress)) {
+      return undefined;
+    }
+    const visitedAndFinished = new Set<IHistoryEntry>();
+    let currentEntry: IHistoryEntry | undefined = entry;
+    while (currentEntry != null) {
+      const index = progress.entries.findIndex((e) => e.id === currentEntry?.id);
+      if (mode === "workout" && currentEntry.supersetId != null && !visitedAndFinished.has(currentEntry)) {
+        currentEntry = progress.entries.find((e) => e.id === currentEntry?.supersetId);
+      } else if (Reps.isEmptyOrFinished(currentEntry.sets)) {
+        currentEntry = progress.entries[(index + 1) % progress.entries.length];
+      }
+      if (currentEntry == null) {
+        return undefined;
+      }
+      if (!Reps.isEmptyOrFinished(currentEntry.sets)) {
+        return currentEntry;
+      } else {
+        visitedAndFinished.add(currentEntry);
+      }
+    }
+    return undefined;
+  }
+
+  export function getNextEntryIndex(
+    progress: IHistoryRecord,
+    entry: IHistoryEntry,
+    mode: "workout" | "warmup"
+  ): number | undefined {
+    const nextEntry = getNextEntry(progress, entry, mode);
+    if (nextEntry != null) {
+      return progress.entries.findIndex((e) => e.id === nextEntry.id);
+    }
+    return undefined;
+  }
+
+  export function maybeApplySuperset(
+    progress: IHistoryRecord,
+    entryIndex: number,
+    mode: "workout" | "warmup"
+  ): IHistoryRecord {
+    if (!Progress.isCurrent(progress)) {
+      return progress;
+    }
+    const entry = progress.entries[entryIndex];
+    const nextEntryIndex = getNextEntryIndex(progress, entry, mode);
+    if (nextEntryIndex != null) {
+      return { ...progress, ui: { ...progress.ui, currentEntryIndex: nextEntryIndex } };
+    }
+    return progress;
   }
 
   export function stopTimer(progress: IHistoryRecord): IHistoryRecord {
@@ -554,6 +612,14 @@ export namespace Progress {
     return Reps.isFinished(entry.sets);
   }
 
+  export function isFullyEmptyOrFinishedSet(progress: IHistoryRecord): boolean {
+    return progress.entries.every((entry) => isEmptyOrFinishedSet(entry));
+  }
+
+  export function isEmptyOrFinishedSet(entry: IHistoryEntry): boolean {
+    return Reps.isEmptyOrFinished(entry.sets);
+  }
+
   export function hasLastUnfinishedSet(entry: IHistoryEntry): boolean {
     return entry.sets.filter((s) => !s.isCompleted).length === 1;
   }
@@ -579,6 +645,39 @@ export namespace Progress {
         dateModal: { date, time },
       },
     };
+  }
+
+  export function getColorToSupersetGroup(progress: IHistoryRecord): Partial<Record<string, IHistoryEntry[]>> {
+    const groups = getSupersetGroups(progress);
+    const colors = ["red", "blue", "green", "purple"];
+    let index = 0;
+    return groups.reduce<Partial<Record<string, IHistoryEntry[]>>>((memo, group) => {
+      const color = colors[index % colors.length];
+      memo[color] = group;
+      index += 1;
+      return memo;
+    }, {});
+  }
+
+  export function getSupersetGroups(progress: IHistoryRecord): IHistoryEntry[][] {
+    const groups: IHistoryEntry[][] = [];
+    for (const entry of progress.entries) {
+      if (entry.supersetId != null) {
+        let nextEntry: IHistoryEntry | undefined = entry;
+        let inGroup = groups.some((g) => g.some((e) => e.id === entry.id));
+        if (nextEntry != null && !inGroup) {
+          const group: IHistoryEntry[] = [];
+          while (nextEntry != null && !inGroup) {
+            group.push(nextEntry);
+            nextEntry = progress.entries.find((e) => entry.supersetId === e.id);
+            inGroup =
+              groups.some((g) => g.some((e) => e.id === nextEntry?.id)) || group.some((e) => e.id === nextEntry?.id);
+          }
+          groups.push(group);
+        }
+      }
+    }
+    return groups;
   }
 
   export function stop(

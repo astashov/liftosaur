@@ -51,6 +51,7 @@ interface IWorkoutExerciseCardProps {
   showHelp?: boolean;
   helps: string[];
   otherStates?: IByExercise<IProgramState>;
+  setForceUpdateEntryIndex: () => void;
 }
 
 export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Element {
@@ -310,6 +311,8 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
           stats={props.stats}
           isPlayground={false}
           helps={props.helps}
+          progress={props.progress}
+          setForceUpdateEntryIndex={props.setForceUpdateEntryIndex}
           onStopShowingHint={() => {
             if (!props.helps.includes("swipeable-set")) {
               updateState(

@@ -15,6 +15,7 @@
     "build:server": "webpack --config webpack.server.config.js",
     "build:dev": "webpack",
     "check": "tsc --noEmit",
+    "grammar:planner": "lezer-generator --output ./src/pages/planner/plannerExerciseParser.ts ./src/pages/planner/plannerExercise.grammar",
     "lint": "eslint . --ext .ts,.tsx --fix",
     "start": "npm run build:markdown && webpack-dev-server",
     "start:server": "npm run build:markdown && IS_DEV=true IS_LOCAL=true IMGPREFIX=lambda/ ts-node-dev --inspect --files --poll -T devserver.ts",

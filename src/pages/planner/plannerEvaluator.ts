@@ -413,6 +413,33 @@ export class PlannerEvaluator {
     exercise.evaluatedSetVariations = evaluatedSetVariations;
   }
 
+  private static fillSupersets(
+    exercise: IPlannerProgramExercise,
+    evaluatedWeeks: IPlannerEvalResult[][],
+    weekIndex: number,
+    dayInWeekIndex: number,
+    settings: ISettings
+  ): void {
+    if (exercise.superset != null) {
+      const name = exercise.superset.name;
+      const supersetExercise = this.findOriginalExercisesAtWeekDay(
+        settings,
+        name,
+        evaluatedWeeks,
+        weekIndex + 1,
+        dayInWeekIndex + 1
+      );
+      if (supersetExercise.length === 0) {
+        throw PlannerSyntaxError.fromPoint(
+          exercise.fullName,
+          `No such exercise ${name} at week: ${weekIndex + 1}, day: ${dayInWeekIndex + 1}`,
+          exercise.points.supersetPoint || exercise.points.fullName
+        );
+      }
+      exercise.superset.exercise = supersetExercise[0].exercise;
+    }
+  }
+
   private static fillDescriptions(
     exercise: IPlannerProgramExercise,
     evaluatedWeeks: IPlannerEvalResult[][],
@@ -662,6 +689,7 @@ export class PlannerEvaluator {
     metadata: IPlannerEvalMetadata
   ): void {
     this.iterateOverExercises(evaluatedWeeks, (weekIndex, dayInWeekIndex, dayIndex, exerciseIndex, exercise) => {
+      this.fillSupersets(exercise, evaluatedWeeks, weekIndex, dayInWeekIndex, settings);
       this.fillDescriptions(exercise, evaluatedWeeks, weekIndex, dayInWeekIndex);
       this.fillRepeats(exercise, evaluatedWeeks, dayInWeekIndex, metadata.byExerciseWeekDay);
       this.fillSingleProperties(exercise, metadata);

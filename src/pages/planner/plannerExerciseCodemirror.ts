@@ -39,6 +39,7 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
         };
         return result;
       }
+
       const reuseMatch = context.matchBefore(/\.\.\.[^\/]*/);
       if (reuseMatch) {
         const text = reuseMatch.text.replace("...", "");
@@ -51,6 +52,20 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
           validFor: /.*/,
         };
       }
+
+      // const supersetMatch = context.matchBefore(/superset:[^\/]*/);
+      // if (supersetMatch) {
+      //   const text = supersetMatch.text.replace(/superset:\s+/, "");
+      //   const exerciseFullNames = (plannerEditor.args.exerciseFullNames || []).filter((name) => {
+      //     return StringUtils.fuzzySearch(text.toLowerCase(), name.toLowerCase());
+      //   });
+      //   const offsetMatch = supersetMatch.text.match(/superset\/\s*/);
+      //   return {
+      //     from: reuseMatch.from + 3,
+      //     options: exerciseFullNames.map((prop) => ({ label: prop, type: "method" })),
+      //     validFor: /.*/,
+      //   };
+      // }
 
       const sectionMatch = context.matchBefore(/\/\s*\w+$/);
       if (sectionMatch) {

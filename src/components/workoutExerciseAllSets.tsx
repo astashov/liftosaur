@@ -32,6 +32,8 @@ interface IWorkoutExerciseAllSets {
   exerciseType: IExerciseType;
   lbWarmupSets: LensBuilder<IHistoryRecord, ISet[], {}>;
   lbSets: LensBuilder<IHistoryRecord, ISet[], {}>;
+  progress: IHistoryRecord;
+  setForceUpdateEntryIndex?: () => void;
   entry: IHistoryEntry;
   entryIndex: number;
   lastSets?: ISet[];
@@ -99,6 +101,9 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
                 type="warmup"
                 key={`warmup-${set.id}-${i}`}
                 day={props.day}
+                entry={props.entry}
+                progress={props.progress}
+                setForceUpdateEntryIndex={props.setForceUpdateEntryIndex}
                 exerciseType={props.exerciseType}
                 programExercise={props.programExercise}
                 otherStates={props.otherStates}
@@ -122,6 +127,9 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
                 type="workout"
                 key={`workout-${set.id}-${i}`}
                 onStopShowingHint={props.onStopShowingHint}
+                setForceUpdateEntryIndex={props.setForceUpdateEntryIndex}
+                progress={props.progress}
+                entry={props.entry}
                 helps={props.helps}
                 isNext={nextSetIndex - warmupSets.length === i}
                 programExercise={props.programExercise}
