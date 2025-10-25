@@ -181,7 +181,7 @@ export namespace Weight {
     if (equipmentData) {
       if (equipmentData.isFixed) {
         const items = CollectionUtils.sort(
-          equipmentData.fixed.filter((e) => e.unit === weight.unit),
+          equipmentData.fixed.filter((e) => e.unit === (equipmentData.unit ?? weight.unit)),
           (a, b) => Weight.compare(a, b)
         );
         const item = items.find((i) => Weight.gt(i, roundWeight));
@@ -211,7 +211,7 @@ export namespace Weight {
     if (equipmentData) {
       if (equipmentData.isFixed) {
         const items = CollectionUtils.sort(
-          equipmentData.fixed.filter((e) => e.unit === weight.unit),
+          equipmentData.fixed.filter((e) => e.unit === (equipmentData.unit ?? weight.unit)),
           (a, b) => Weight.compareReverse(a, b)
         );
         const item = items.find((i) => Weight.lt(i, roundWeight));
@@ -307,7 +307,7 @@ export namespace Weight {
     const inverted = allWeight.value < 0;
     if (equipmentData.isFixed) {
       const fixed = CollectionUtils.sort(
-        equipmentData.fixed.filter((w) => w.unit === units),
+        equipmentData.fixed.filter((w) => w.unit === (equipmentData.unit ?? units)),
         (a, b) => b.value - a.value
       );
       const weight = fixed.find((w) => Weight.lte(w, absAllWeight)) || fixed[fixed.length - 1] || absAllWeight;
