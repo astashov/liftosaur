@@ -239,6 +239,8 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
         return props.ui.exerciseUi.collapsed.has(`${e.key}-${props.weekIndex}-${props.dayIndex}`);
       })
     : false;
+  const usedExercises = evaluatedDay.success ? evaluatedDay.data.filter((d) => !d.notused) : [];
+  const notUsedExercises = evaluatedDay.success ? evaluatedDay.data.filter((d) => d.notused) : [];
   return (
     <div className="px-1">
       <div className="px-1">
@@ -301,12 +303,12 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
         {props.ui.mode === "ui" && props.isValidProgram && evaluatedDay.success ? (
           <div>
             <DraggableList
-              items={evaluatedDay.data}
+              items={usedExercises}
               mode="vertical"
               onDragEnd={(startIndex, endIndex) => {
                 props.plannerDispatch(
                   lbPlanner.recordModify((program) => {
-                    const fullName = evaluatedDay.data[startIndex].fullName;
+                    const fullName = usedExercises[startIndex].fullName;
                     return EditProgramUiHelpers.changeCurrentInstancePosition(
                       program,
                       props.dayData,
@@ -336,6 +338,19 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                 );
               }}
             />
+            {notUsedExercises.map((exercise, exerciseIndex) => (
+              <EditProgramUiExerciseView
+                ui={props.ui}
+                plannerExercise={exercise}
+                evaluatedProgram={props.evaluatedProgram}
+                dispatch={props.dispatch}
+                plannerDispatch={props.plannerDispatch}
+                weekIndex={props.weekIndex}
+                dayIndex={props.dayIndex}
+                exerciseIndex={exerciseIndex}
+                settings={props.settings}
+              />
+            ))}
             <div className="py-1">
               <Button
                 kind="lightgrayv3"

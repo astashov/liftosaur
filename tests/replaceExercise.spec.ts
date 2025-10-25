@@ -47,7 +47,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("editor-v2-perday-program").click();
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText("Squat / 3x8");
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    "Bent Over Row, Dumbbell[1-2] / 3x8 / update: custom() {~ weights = 5lb ~} / progress: custom() {~ weights = 5lb ~}"
+    "Bent Over Row, Dumbbell / 3x8 / update: custom() {~ weights = 5lb ~} / progress: custom() {~ weights = 5lb ~}"
   );
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(

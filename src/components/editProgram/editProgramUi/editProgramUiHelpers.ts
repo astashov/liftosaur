@@ -414,6 +414,7 @@ export class EditProgramUiHelpers {
         id: UidFactory.generateUid(8),
         dayData: dayData,
         repeat: [],
+        exerciseIndex: targetDay.exercises.length,
         repeating: [],
         order: 0,
         text: "",

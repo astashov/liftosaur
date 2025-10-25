@@ -42,6 +42,8 @@ import memoize from "micro-memoize";
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
   value: string;
+  exerciseIndex?: number;
+  notused?: boolean;
   order?: number;
   fullName?: string;
   repeat?: number[];
@@ -120,6 +122,7 @@ export class PlannerExerciseEvaluator {
   private dayData: Required<IDayData>;
   private readonly settings: ISettings;
   private weeks: IPlannerExerciseEvaluatorWeek[] = [];
+  private exerciseIndex: number = 0;
 
   private latestDescriptions: string[][] = [];
 
@@ -898,6 +901,7 @@ export class PlannerExerciseEvaluator {
         week: this.dayData.week,
         dayInWeek: (this.dayData.dayInWeek || 0) + 1,
       };
+      this.exerciseIndex = 0;
     } else if (expr.type.name === PlannerNodeName.LineComment) {
       const value = this.getValueTrim(expr).trim();
       this.addDescription(value);
@@ -1031,6 +1035,7 @@ export class PlannerExerciseEvaluator {
         order,
         name,
         equipment,
+        exerciseIndex: this.exerciseIndex,
         line,
         tags,
         notused: notused,
@@ -1063,6 +1068,9 @@ export class PlannerExerciseEvaluator {
       this.weeks[this.weeks.length - 1].days[this.weeks[this.weeks.length - 1].days.length - 1].exercises.push(
         plannerExercise
       );
+      if (!notused) {
+        this.exerciseIndex += 1;
+      }
     } else {
       this.error(`Unexpected node type ${expr.node.type.name}`, expr);
     }
@@ -1071,6 +1079,7 @@ export class PlannerExerciseEvaluator {
   private evaluateProgram(expr: SyntaxNode): IPlannerExerciseEvaluatorWeek[] {
     if (expr.type.name === PlannerNodeName.Program) {
       this.weeks = [];
+      this.exerciseIndex = 0;
       for (const child of CollectionUtils.compact(getChildren(expr))) {
         this.evaluateExercise(child);
       }
@@ -1189,6 +1198,7 @@ export class PlannerExerciseEvaluator {
     const result: IPlannerTopLineItem[] = [];
     let lastDescriptions: string[][] = [];
     let ongoingDescriptions = false;
+    let exerciseIndex = 0;
     for (const child of children) {
       if (child.type.name === PlannerNodeName.ExerciseExpression) {
         ongoingDescriptions = false;
@@ -1198,6 +1208,7 @@ export class PlannerExerciseEvaluator {
         const repeat = this.getRepeat(child);
         const repeatRanges = this.getRepeatRanges(repeat);
         const order = this.getOrder(child);
+        const isUsed = !this.getIsNotUsed(child);
         const sectionsNode = child.getChildren(PlannerNodeName.ExerciseSection);
         const sections = sectionsNode.map((section) => this.getValueTrim(section).trim()).join(" / ");
         const sectionsToReuse = sectionsNode
@@ -1220,13 +1231,18 @@ export class PlannerExerciseEvaluator {
           type: "exercise",
           fullName,
           order,
+          notused: !isUsed,
           value: key,
+          exerciseIndex,
           repeat,
           repeatRanges,
           descriptions: lastDescriptions.map((d) => d.join("\n")),
           sections,
           sectionsToReuse,
         });
+        if (isUsed) {
+          exerciseIndex += 1;
+        }
         lastDescriptions = [];
       } else if (child.type.name === PlannerNodeName.LineComment) {
         ongoingDescriptions = true;

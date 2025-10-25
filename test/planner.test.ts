@@ -252,7 +252,7 @@ Squat / 2x5
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
-Squat[1-3] / 2x5
+Squat[1-2] / 2x5
 
 
 # Week 2
@@ -262,7 +262,7 @@ Squat[1-3] / 2x5
 
 # Week 3
 ## Day 1
-
+Squat / 2x5
 
 
 `);
@@ -826,12 +826,13 @@ Bicep Curl[2-5] / 5x5
 ## Day 1
 tmp: Squat[1-5] / used: none / 2x5
 Squat[3,1-5] / ...tmp: Squat
-Bench Press[2,1-5] / ...tmp: Squat
+Bench Press[2] / ...tmp: Squat
 
 
 # Week 2
 ## Day 1
 Bicep Curl[2-5] / 5x5
+Bench Press[2,2-5] / ...tmp: Squat
 
 
 # Week 3

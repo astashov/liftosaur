@@ -57,14 +57,20 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
       className="my-1 overflow-hidden border bg-background-cardpurple rounded-xl border-border-cardpurple"
     >
       <div className="flex items-center">
-        <div className="p-2 cursor-move" style={{ touchAction: "none" }}>
-          <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
-            <IconHandle />
-          </span>
-        </div>
-        <div className="mr-2">
-          <SetNumber size="sm" setIndex={props.exerciseIndex} />
-        </div>
+        {props.handleTouchStart ? (
+          <>
+            <div className="p-2 cursor-move" style={{ touchAction: "none" }}>
+              <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
+                <IconHandle />
+              </span>
+            </div>
+            <div className="mr-2">
+              <SetNumber size="sm" setIndex={props.exerciseIndex} />
+            </div>
+          </>
+        ) : (
+          <div className="w-16" />
+        )}
         <div className="flex items-center flex-1 text-base font-bold" data-cy="planner-ui-exercise-name">
           <div>
             {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}

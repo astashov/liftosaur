@@ -5,7 +5,7 @@ export function SetNumber(props: { setIndex: number; size?: "md" | "sm" }): JSX.
     <div
       className={`flex items-center justify-center ${
         props.size === "sm" ? "w-5 h-5 font-bold text-xs" : "w-6 h-6 font-bold"
-      } border rounded-full border-border-neutral text-text-secondary`}
+      } border rounded-full border-border-prominent text-text-secondary`}
     >
       {props.setIndex + 1}
     </div>

@@ -283,6 +283,7 @@ export namespace Program {
     const now = Date.now();
     const programDay = Program.getProgramDay(program, day);
     const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
+    const sortedDayExercises = CollectionUtils.sortBy(dayExercises, "order");
     return {
       vtype: "history_record",
       id: 0,
@@ -296,7 +297,7 @@ export namespace Program {
       dayName: fullDayName,
       startTime: now,
       updatedAt: now,
-      entries: dayExercises.map((exercise) => {
+      entries: sortedDayExercises.map((exercise) => {
         return nextHistoryEntry(program, dayData, exercise, stats, settings);
       }),
     };
@@ -1199,8 +1200,8 @@ export namespace Program {
     const newDay: IEvaluatedProgramDay = {
       dayData: dayData,
       name: "Day 1",
-      exercises: record.entries.map((e) => {
-        return PlannerProgramExercise.createExerciseFromEntry(e, dayData, settings);
+      exercises: record.entries.map((e, i) => {
+        return PlannerProgramExercise.createExerciseFromEntry(e, dayData, settings, i);
       }),
     };
     evaluatedProgram.weeks[0].days[0] = newDay;
@@ -1224,8 +1225,8 @@ export namespace Program {
     const newDay: IEvaluatedProgramDay = {
       dayData: newDayData,
       name: `Day ${dayData.day + 1}`,
-      exercises: record.entries.map((e) => {
-        return PlannerProgramExercise.createExerciseFromEntry(e, newDayData, settings);
+      exercises: record.entries.map((e, i) => {
+        return PlannerProgramExercise.createExerciseFromEntry(e, newDayData, settings, i);
       }),
     };
     evaluatedProgram.weeks[dayData.week - 1].days.splice(dayData.dayInWeek, 0, newDay);

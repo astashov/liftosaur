@@ -692,7 +692,8 @@ if (completedReps >= reps && completedRPE <= RPE) {
   public static createExerciseFromEntry(
     entry: IHistoryEntry,
     dayData: Required<IDayData>,
-    settings: ISettings
+    settings: ISettings,
+    index: number
   ): IPlannerProgramExercise {
     const exerciseType = entry.exercise;
     const exercise = Exercise.get(exerciseType, settings.exercises);
@@ -735,6 +736,7 @@ if (completedReps >= reps && completedRPE <= RPE) {
       exerciseType,
       repeat: [],
       repeating: [],
+      exerciseIndex: index,
       order: 0,
       text: "",
       tags: [],

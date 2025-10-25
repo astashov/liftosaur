@@ -679,6 +679,19 @@ export class PlannerEvaluator {
         day: dayInWeekIndex + 1,
       });
     });
+    for (const week of evaluatedWeeks) {
+      for (const day of week) {
+        if (day.success) {
+          day.data.sort((ex1, ex2) => {
+            if (ex1.exerciseIndex === ex2.exerciseIndex) {
+              return (ex1.repeating[0] ?? 0) - (ex2.repeating[0] ?? 0);
+            } else {
+              return ex1.exerciseIndex - ex2.exerciseIndex;
+            }
+          });
+        }
+      }
+    }
 
     this.iterateOverExercises(evaluatedWeeks, (weekIndex, dayInWeekIndex, dayIndex, exerciseIndex, exercise) => {
       this.fillEvaluatedSetVariations(exercise);

@@ -45,6 +45,7 @@ export type IPlannerProgramExercise = {
   dayData: Required<IDayData>;
   exerciseType?: IExerciseType;
   label?: string;
+  exerciseIndex: number;
   repeat: number[];
   repeating: number[];
   order: number;

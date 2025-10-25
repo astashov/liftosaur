@@ -342,12 +342,18 @@ export class PlannerProgram {
             for (let repeatWeekIndex = weekIndex + 1; repeatWeekIndex < mapping.length; repeatWeekIndex += 1) {
               const repeatDay = mapping[repeatWeekIndex]?.[dayIndex];
               const repeatedExercises = (repeatDay || []).filter((e) => {
-                return (
-                  e.type === "exercise" &&
-                  e.value === line.value &&
-                  e.sectionsToReuse === line.sectionsToReuse &&
-                  ObjectUtils.isEqual(e.descriptions || [], line.descriptions || [])
-                );
+                if (
+                  e.type !== "exercise" ||
+                  e.value !== line.value ||
+                  e.sectionsToReuse !== line.sectionsToReuse ||
+                  e.exerciseIndex !== line.exerciseIndex ||
+                  !ObjectUtils.isEqual(e.descriptions || [], line.descriptions || [])
+                ) {
+                  return false;
+                }
+                const oldDay = evaluatedWeeks[repeatWeekIndex][dayIndex];
+                const oldExercise = oldDay.success ? oldDay.data.find((ex) => ex.key === e.value) : undefined;
+                return oldExercise?.repeating?.includes(weekIndex + 1);
               });
               for (const e of repeatedExercises) {
                 e.used = true;
@@ -482,6 +488,17 @@ export class PlannerProgram {
             }
           }
         }
+      }
+    }
+    for (const week of mapping) {
+      for (const day of week) {
+        day.sort((ex1, ex2) => {
+          if (ex1.exerciseIndex === ex2.exerciseIndex) {
+            return (ex1.repeat?.[0] ?? 0) - (ex2.repeat?.[0] ?? 0);
+          } else {
+            return (ex1.exerciseIndex ?? 0) - (ex2.exerciseIndex ?? 0);
+          }
+        });
       }
     }
     return mapping;
