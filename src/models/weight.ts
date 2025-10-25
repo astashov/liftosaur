@@ -176,56 +176,54 @@ export namespace Weight {
   }
 
   export function increment(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): IWeight {
-    const roundWeight = Weight.round(weight, settings, weight.unit, exerciseType);
     const equipmentData = Equipment.getEquipmentDataForExerciseType(settings, exerciseType);
     if (equipmentData) {
+      const unit = equipmentData.unit ?? weight.unit;
+      const roundWeight = Weight.round(weight, settings, unit, exerciseType);
       if (equipmentData.isFixed) {
         const items = CollectionUtils.sort(
-          equipmentData.fixed.filter((e) => e.unit === (equipmentData.unit ?? weight.unit)),
+          equipmentData.fixed.filter((e) => e.unit === unit),
           (a, b) => Weight.compare(a, b)
         );
         const item = items.find((i) => Weight.gt(i, roundWeight));
         return item ?? items[items.length - 1] ?? roundWeight;
       } else {
-        const smallestPlate = Weight.multiply(
-          Equipment.smallestPlate(equipmentData, weight.unit),
-          equipmentData.multiplier
-        );
+        const smallestPlate = Weight.multiply(Equipment.smallestPlate(equipmentData, unit), equipmentData.multiplier);
         let newWeight = roundWeight;
         let attempt = 0;
         do {
           newWeight = Weight.add(newWeight, smallestPlate);
           attempt += 1;
-        } while (attempt < 20 && Weight.eq(Weight.round(newWeight, settings, weight.unit, exerciseType), roundWeight));
+        } while (attempt < 20 && Weight.eq(Weight.round(newWeight, settings, unit, exerciseType), roundWeight));
         return newWeight;
       }
     } else {
+      const roundWeight = Weight.round(weight, settings, weight.unit, exerciseType);
       const rounding = exerciseType ? Exercise.defaultRounding(exerciseType, settings) : 1;
       return Weight.build(roundWeight.value + rounding, roundWeight.unit);
     }
   }
 
   export function decrement(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): IWeight {
-    const roundWeight = Weight.round(weight, settings, weight.unit, exerciseType);
     const equipmentData = exerciseType ? Equipment.getEquipmentDataForExerciseType(settings, exerciseType) : undefined;
     if (equipmentData) {
+      const unit = equipmentData.unit ?? weight.unit;
+      const roundWeight = Weight.round(weight, settings, unit, exerciseType);
       if (equipmentData.isFixed) {
         const items = CollectionUtils.sort(
-          equipmentData.fixed.filter((e) => e.unit === (equipmentData.unit ?? weight.unit)),
+          equipmentData.fixed.filter((e) => e.unit === unit),
           (a, b) => Weight.compareReverse(a, b)
         );
         const item = items.find((i) => Weight.lt(i, roundWeight));
         return item ?? items[items.length - 1] ?? roundWeight;
       } else {
-        const smallestPlate = Weight.multiply(
-          Equipment.smallestPlate(equipmentData, weight.unit),
-          equipmentData.multiplier
-        );
+        const smallestPlate = Weight.multiply(Equipment.smallestPlate(equipmentData, unit), equipmentData.multiplier);
         const subtracted = Weight.subtract(roundWeight, smallestPlate);
-        const newWeight = Weight.round(subtracted, settings, weight.unit, exerciseType);
+        const newWeight = Weight.round(subtracted, settings, unit, exerciseType);
         return Weight.build(newWeight.value, newWeight.unit);
       }
     } else {
+      const roundWeight = Weight.round(weight, settings, weight.unit, exerciseType);
       const rounding = exerciseType ? Exercise.defaultRounding(exerciseType, settings) : 1;
       return Weight.build(roundWeight.value - rounding, roundWeight.unit);
     }
