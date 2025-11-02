@@ -2184,7 +2184,7 @@ Squat / 3x8 100lb / ...main`}
       </ul>
     ),
   },
-  "20251102": {
+  "20251101": {
     title: <span>Add supersets</span>,
     body: (
       <ul>
