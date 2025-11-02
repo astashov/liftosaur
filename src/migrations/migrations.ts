@@ -298,4 +298,9 @@ export const migrations = {
     }
     return storage;
   },
+  "20251030203130_add_muscle_groups": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.muscleGroups = storage.settings.muscleGroups || { vtype: "muscle_groups_settings", data: {} };
+    return storage;
+  },
 };

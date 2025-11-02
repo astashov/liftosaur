@@ -1,9 +1,11 @@
 import { IEvaluatedProgram, IEvaluatedProgramDay, Program } from "./program";
 import { Exercise } from "./exercise";
 import { ObjectUtils } from "../utils/object";
-import { ISettings, IMuscle, IDayData, IScreenMuscle, IStats } from "../types";
+import { ISettings, IMuscle, IDayData, IScreenMuscle, IStats, screenMuscles, IMuscleGroupsSettings } from "../types";
 import { StringUtils } from "../utils/string";
 import { IPlannerProgramExerciseWithType } from "../pages/planner/models/types";
+import { SetUtils } from "../utils/setUtils";
+import { UidFactory } from "../utils/generator";
 
 export type IScreenMusclePointsColl = Partial<Record<IScreenMuscle, number>>;
 
@@ -149,12 +151,53 @@ export namespace Muscle {
     };
   }
 
-  export function getScreenMusclesFromMuscle(muscle: IMuscle): IScreenMuscle[] {
-    return muscleToScreenMuscleMapping[muscle];
+  export function getScreenMusclesFromMuscle(muscle: IMuscle, settings: ISettings): (IScreenMuscle | string)[] {
+    const availableMuscleGroups = getAvailableMuscleGroups(settings);
+    const matchingMuscleGroups = availableMuscleGroups.filter((mg) => {
+      const muscles = settings.muscleGroups.data[mg]?.muscles ?? screenMuscleToMuscleMapping[mg as IScreenMuscle] ?? [];
+      return muscles.includes(muscle);
+    });
+    return matchingMuscleGroups;
   }
 
-  export function getMusclesFromScreenMuscle(muscle: IScreenMuscle): IMuscle[] {
-    return screenMuscleToMuscleMapping[muscle];
+  export function getMuscleGroupName(muscleGroup: IScreenMuscle, settings: ISettings): string {
+    return settings.muscleGroups.data[muscleGroup]?.name ?? StringUtils.capitalize(muscleGroup);
+  }
+
+  export function isDefaultMuscles(muscleGroup: IScreenMuscle, muscles: IMuscle[]): boolean {
+    const defaultMuscles = screenMuscleToMuscleMapping[muscleGroup as IScreenMuscle] ?? [];
+    return SetUtils.areEqual(new Set(defaultMuscles), new Set(muscles));
+  }
+
+  export function getAvailableMuscleGroups(settings: ISettings): IScreenMuscle[] {
+    return [
+      ...screenMuscles.filter((sm) => !settings.muscleGroups.data[sm]?.isHidden),
+      ...Object.keys(settings.muscleGroups.data).filter((k) => !(screenMuscles as readonly string[]).includes(k)),
+    ];
+  }
+
+  export function getBuiltinMuscleGroups(): IScreenMuscle[] {
+    return screenMuscles;
+  }
+
+  export function getHiddenMuscleGroups(settings: ISettings): IScreenMuscle[] {
+    return [...screenMuscles.filter((sm) => settings.muscleGroups.data[sm]?.isHidden)];
+  }
+
+  export function getMusclesFromScreenMuscle(muscleGroup: IScreenMuscle | string, settings: ISettings): IMuscle[] {
+    const availableMuscleGroups = getAvailableMuscleGroups(settings);
+    if (!availableMuscleGroups.includes(muscleGroup)) {
+      return [];
+    }
+    return (
+      settings.muscleGroups.data[muscleGroup]?.muscles ??
+      screenMuscleToMuscleMapping[muscleGroup as IScreenMuscle] ??
+      []
+    );
+  }
+
+  export function isBuiltInMuscleGroup(muscleGroup: IScreenMuscle | string): boolean {
+    return (screenMuscles as readonly string[]).includes(muscleGroup);
   }
 
   export function getPointsForProgram(program: IEvaluatedProgram, stats: IStats, settings: ISettings): IPoints {
@@ -342,6 +385,59 @@ export namespace Muscle {
       memo[screenMuscle] = oldValue + newValue;
       return memo;
     }, {});
+  }
+
+  export function createMuscleGroup(muscleGroupSettings: IMuscleGroupsSettings, name: string): IMuscleGroupsSettings {
+    const id = UidFactory.generateUid(8);
+    return { ...muscleGroupSettings, data: { ...muscleGroupSettings.data, [id]: { name, muscles: [] } } };
+  }
+
+  export function updateMuscleGroup(
+    muscleGroupSettings: IMuscleGroupsSettings,
+    muscleGroup: IScreenMuscle,
+    muscles: IMuscle[]
+  ): IMuscleGroupsSettings {
+    const isDefault = Muscle.isDefaultMuscles(muscleGroup, muscles);
+    const newMuscleGroups = ObjectUtils.clone(muscleGroupSettings);
+    if (isDefault) {
+      delete newMuscleGroups.data[muscleGroup]?.muscles;
+    } else {
+      newMuscleGroups.data = newMuscleGroups.data || {};
+      newMuscleGroups.data[muscleGroup] = newMuscleGroups.data[muscleGroup] || {};
+      newMuscleGroups.data[muscleGroup].muscles = muscles;
+    }
+    return newMuscleGroups;
+  }
+
+  export function deleteMuscleGroup(
+    muscleGroupSettings: IMuscleGroupsSettings,
+    muscleGroup: IScreenMuscle
+  ): IMuscleGroupsSettings {
+    const isBuiltin = Muscle.isBuiltInMuscleGroup(muscleGroup);
+    if (isBuiltin) {
+      return {
+        ...muscleGroupSettings,
+        data: {
+          ...muscleGroupSettings.data,
+          [muscleGroup]: { ...muscleGroupSettings.data[muscleGroup], isHidden: true },
+        },
+      };
+    } else {
+      const newMuscleGroups = ObjectUtils.clone(muscleGroupSettings);
+      delete newMuscleGroups.data[muscleGroup];
+      return newMuscleGroups;
+    }
+  }
+
+  export function restoreMuscleGroup(
+    muscleGroupSettings: IMuscleGroupsSettings,
+    muscleGroup: IScreenMuscle
+  ): IMuscleGroupsSettings {
+    const newMuscleGroups = ObjectUtils.clone(muscleGroupSettings);
+    newMuscleGroups.data = newMuscleGroups.data || {};
+    newMuscleGroups.data[muscleGroup] = newMuscleGroups.data[muscleGroup] || {};
+    newMuscleGroups.data[muscleGroup].isHidden = false;
+    return newMuscleGroups;
   }
 
   function mergeExercisePoints(a: IExercisePointsColl, b: IExercisePointsColl): IExercisePointsColl {

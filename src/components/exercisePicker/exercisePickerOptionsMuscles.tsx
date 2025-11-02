@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { availableMuscles, IMuscle, IScreenMuscle } from "../../types";
+import { availableMuscles, IMuscle, IScreenMuscle, ISettings } from "../../types";
 import { Muscle } from "../../models/muscle";
 import { ObjectUtils } from "../../utils/object";
 import { StringUtils } from "../../utils/string";
@@ -8,23 +8,32 @@ import { MuscleImage } from "../muscleImage";
 
 interface IProps {
   selectedValues: IMuscle[];
+  dontGroup?: boolean;
+  settings: ISettings;
   onSelect: (muscle: IMuscle) => void;
 }
 
 export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
   const selectedValues = props.selectedValues;
-  const groupedMuscles = availableMuscles.reduce(
-    (memo, muscle) => {
-      const group = Muscle.getScreenMusclesFromMuscle(muscle)?.[0];
-      if (group != null) {
-        memo[group] = memo[group] || {};
-        const isSelected = selectedValues.includes(muscle);
-        memo[group][muscle] = { label: muscle, isSelected };
+  const groupedMuscles = props.dontGroup
+    ? {
+        muscles: availableMuscles.reduce<Record<string, { label: string; isSelected: boolean }>>((memo, muscle) => {
+          memo[muscle] = { label: muscle, isSelected: selectedValues.includes(muscle) };
+          return memo;
+        }, {}),
       }
-      return memo;
-    },
-    {} as Record<IScreenMuscle, Record<IMuscle, IFilterValue>>
-  );
+    : availableMuscles.reduce(
+        (memo, muscle) => {
+          const group = Muscle.getScreenMusclesFromMuscle(muscle, props.settings)?.[0];
+          if (group != null) {
+            memo[group] = memo[group] || {};
+            const isSelected = selectedValues.includes(muscle);
+            memo[group][muscle] = { label: muscle, isSelected };
+          }
+          return memo;
+        },
+        {} as Record<IScreenMuscle | string, Record<IMuscle, IFilterValue>>
+      );
   const sortedGroupedMuscles = ObjectUtils.keys(groupedMuscles).sort(([a], [b]) => a.localeCompare(b));
 
   return (
@@ -34,7 +43,7 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
         const sortedMuscles = ObjectUtils.keys(muscles).sort(([a], [b]) => a.localeCompare(b));
         return (
           <div className="mb-4">
-            <h3 className="mb-2 font-semibold">{StringUtils.capitalize(group)}</h3>
+            <h3 className="mb-2 font-semibold">{Muscle.getMuscleGroupName(group, props.settings)}</h3>
             <div className="grid grid-cols-2 gap-4 mt-2">
               {sortedMuscles.map((key) => {
                 const value = muscles[key];

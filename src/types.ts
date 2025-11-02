@@ -1163,7 +1163,7 @@ export const TExerciseDataValue = t.partial(
 export type IExerciseDataValue = t.TypeOf<typeof TExerciseDataValue>;
 export type IExerciseData = Partial<Record<string, IExerciseDataValue>>;
 
-export const screenMuscles = [
+export const screenMuscles: string[] = [
   "shoulders",
   "triceps",
   "back",
@@ -1175,16 +1175,21 @@ export const screenMuscles = [
   "biceps",
   "calves",
   "forearms",
-] as const;
+];
 
-export const TScreenMuscle = t.keyof(
-  screenMuscles.reduce<Record<IArrayElement<typeof screenMuscles>, null>>(
-    (memo, muscle) => {
-      memo[muscle] = null;
-      return memo;
-    },
-    {} as Record<IArrayElement<typeof screenMuscles>, null>
-  ),
+export const TScreenMuscle = t.union(
+  [
+    t.keyof(
+      screenMuscles.reduce<Record<IArrayElement<typeof screenMuscles>, null>>(
+        (memo, muscle) => {
+          memo[muscle] = null;
+          return memo;
+        },
+        {} as Record<IArrayElement<typeof screenMuscles>, null>
+      )
+    ),
+    t.string,
+  ],
   "TScreenMuscle"
 );
 export type IScreenMuscle = t.TypeOf<typeof TScreenMuscle>;
@@ -1245,6 +1250,19 @@ export const TGraphs = t.type({
   graphs: t.array(TGraph),
 });
 
+export const TMuscleGroupsSettings = t.type({
+  vtype: t.literal("muscle_groups_settings"),
+  data: t.dictionary(
+    t.string,
+    t.partial({
+      name: t.string,
+      isHidden: t.boolean,
+      muscles: t.array(TMuscle),
+    })
+  ),
+});
+export type IMuscleGroupsSettings = t.TypeOf<typeof TMuscleGroupsSettings>;
+
 export const TSettings = t.intersection(
   [
     t.interface({
@@ -1274,6 +1292,7 @@ export const TSettings = t.intersection(
       exerciseData: dictionary(t.string, TExerciseDataValue),
       planner: TPlannerSettings,
       workoutSettings: TWorkoutSettings,
+      muscleGroups: TMuscleGroupsSettings,
     }),
     t.partial({
       appleHealthSyncWorkout: t.boolean,
@@ -1377,7 +1396,7 @@ export type IPartialStorage = Omit<IStorage, "history" | "stats" | "programs"> &
   Partial<Pick<IStorage, "history" | "stats" | "programs">>;
 
 export type IProgramContentSettings = Partial<
-  Pick<ISettings, "units" | "planner"> & { timers: Partial<ISettings["timers"]> }
+  Pick<ISettings, "units" | "planner" | "muscleGroups"> & { timers: Partial<ISettings["timers"]> }
 >;
 
 export const TMuscleGeneratorResponse = t.type(
@@ -1419,6 +1438,7 @@ export const ATOMIC_TYPES = [
   "graphs",
   "subscription_receipt",
   "affiliate",
+  "muscle_groups_settings",
 ] as const;
 
 export type IAtomicType = (typeof ATOMIC_TYPES)[number];
@@ -1447,6 +1467,7 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   subscription_receipt: "id",
   graph: "id",
   graphs: "id",
+  muscle_groups_settings: "vtype",
 };
 
 // Dictionary fields - these are free-form key-value mappings that should use collection versioning

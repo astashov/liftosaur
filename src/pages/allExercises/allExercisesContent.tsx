@@ -4,9 +4,10 @@ import { ExerciseItem } from "../../components/modalExercise";
 import { Multiselect } from "../../components/multiselect";
 import { equipmentName, Exercise } from "../../models/exercise";
 import { Settings } from "../../models/settings";
-import { equipments, exerciseKinds, screenMuscles } from "../../types";
+import { equipments, exerciseKinds } from "../../types";
 import { StringUtils } from "../../utils/string";
 import { buildExerciseUrl } from "../exercise/exerciseContent";
+import { Muscle } from "../../models/muscle";
 
 export interface IAllExercisesContentProps {
   client: Window["fetch"];
@@ -21,7 +22,7 @@ export function AllExercisesContent(props: IAllExercisesContentProps): JSX.Eleme
   const filterOptions = [
     ...equipments.map((e) => equipmentName(e)),
     ...exerciseKinds.map(StringUtils.capitalize),
-    ...screenMuscles.map(StringUtils.capitalize),
+    ...Muscle.getAvailableMuscleGroups(settings).map((mg) => Muscle.getMuscleGroupName(mg, settings)),
   ];
 
   return (
@@ -30,7 +31,7 @@ export function AllExercisesContent(props: IAllExercisesContentProps): JSX.Eleme
       <form data-cy="exercises-list" onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-background-default border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 mb-2 text-base leading-normal border border-gray-300 rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"
           type="text"
           value={filter}
           placeholder="Filter by name"

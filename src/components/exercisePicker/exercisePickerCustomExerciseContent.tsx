@@ -200,6 +200,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
         </div>
         <div className="pt-2">
           <ExercisePickerCustomExerciseMuscles
+            settings={props.settings}
             name="target-muscles"
             bottomSheetTitle="Target Muscles"
             label={
@@ -224,6 +225,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
         </div>
         <div className="pt-2">
           <ExercisePickerCustomExerciseMuscles
+            settings={props.settings}
             name="synergist-muscles"
             bottomSheetTitle="Synergist Muscles"
             label={
@@ -516,6 +518,7 @@ interface IExercisePickerCustomExerciseMusclesProps {
   name: string;
   bottomSheetTitle: string;
   selectedMuscles: IMuscle[];
+  settings: ISettings;
   onSelect: (muscle: IMuscle) => void;
 }
 
@@ -539,7 +542,11 @@ function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExercis
             <h3 className="pt-6 pb-3 text-base font-semibold text-center">{props.bottomSheetTitle}</h3>
             <div className="flex-1 overflow-y-auto">
               <div className="pb-4">
-                <ExercisePickerOptionsMuscles selectedValues={props.selectedMuscles} onSelect={props.onSelect} />
+                <ExercisePickerOptionsMuscles
+                  selectedValues={props.selectedMuscles}
+                  onSelect={props.onSelect}
+                  settings={props.settings}
+                />
               </div>
             </div>
             <div className="py-2 bg-background-default">

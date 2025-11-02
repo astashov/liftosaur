@@ -219,7 +219,7 @@ export function MuscleGroupsView(props: {
           <span className="text-text-secondary">Target: </span>
           <span className="font-semibold">
             {targetMuscleGroups.map((m, i) => {
-              const muscles = Muscle.getMusclesFromScreenMuscle(m);
+              const muscles = Muscle.getMusclesFromScreenMuscle(m, props.settings);
               const doesContain = muscles.some((muscle) => tms.includes(muscle));
               return (
                 <span>
@@ -240,7 +240,7 @@ export function MuscleGroupsView(props: {
           <span className="text-text-secondary">Synergist: </span>
           <span className="font-semibold">
             {synergistMuscleGroups.map((m, i) => {
-              const muscles = Muscle.getMusclesFromScreenMuscle(m);
+              const muscles = Muscle.getMusclesFromScreenMuscle(m, props.settings);
               const doesContain = props.currentExerciseType && muscles.some((muscle) => sms.includes(muscle));
               return (
                 <span>

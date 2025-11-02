@@ -4,6 +4,7 @@ import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { PlannerProgramExercise } from "./plannerProgramExercise";
 import { Weight } from "../../../models/weight";
+import { Muscle } from "../../../models/muscle";
 
 type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup" | "volume">;
 
@@ -43,20 +44,17 @@ export class PlannerStatsUtils {
       push: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
       pull: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
       legs: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-      muscleGroup: {
-        shoulders: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        triceps: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        back: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        abs: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        glutes: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        hamstrings: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        quadriceps: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        chest: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        biceps: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        calves: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        forearms: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-      },
+      muscleGroup: {},
     };
+
+    for (const muscleGroup of Muscle.getAvailableMuscleGroups(settings)) {
+      results.muscleGroup[muscleGroup] = results.muscleGroup[muscleGroup] || {
+        strength: 0,
+        hypertrophy: 0,
+        frequency: {},
+        exercises: [],
+      };
+    }
 
     for (let dayIndex = 0; dayIndex < evaluatedDays.length; dayIndex += 1) {
       const day = evaluatedDays[dayIndex];
@@ -244,6 +242,7 @@ function addMuscleGroup(
 ): void {
   synergistMultiplier = synergistMultiplier ?? 0.5;
   let isStrength = false;
+  results[key] = results[key] || { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] };
   if ((repRange.maxrep ?? 0) < 8) {
     isStrength = true;
     results[key].strength += isTarget ? repRange.numberOfSets : repRange.numberOfSets * synergistMultiplier;

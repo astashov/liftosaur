@@ -9,7 +9,6 @@ import {
   ISettings,
   exerciseKinds,
   IExerciseKind,
-  screenMuscles,
   IExerciseType,
   equipments,
 } from "../types";
@@ -199,7 +198,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
   const filterOptions = [
     ...equipments.map((e) => equipmentName(e)),
     ...exerciseKinds.map(StringUtils.capitalize),
-    ...screenMuscles.map(StringUtils.capitalize),
+    ...Muscle.getAvailableMuscleGroups(props.settings).map((mg) => Muscle.getMuscleGroupName(mg, props.settings)),
   ];
   const initialFilterOptions = (props.initialFilterTypes || []).filter((ft) => filterOptions.indexOf(ft) !== -1);
   const [filterTypes, setFilterTypes] = useState<string[]>(initialFilterOptions);
@@ -209,7 +208,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
   }
   if (filterTypes && filterTypes.length > 0) {
     exercises = Exercise.filterExercisesByType(exercises, filterTypes, props.settings);
-    customExercises = Exercise.filterCustomExercisesByType(customExercises, filterTypes);
+    customExercises = Exercise.filterCustomExercisesByType(filterTypes, props.settings);
   }
 
   exercises = Exercise.sortExercises(exercises, props.isSubstitute, props.settings, filterTypes, props.exerciseType);
@@ -279,7 +278,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
                     </div>
                     <div className="flex-1 py-2 text-left">
                       <div>{e.name}</div>
-                      <CustomMuscleGroupsView exercise={e} />
+                      <CustomMuscleGroupsView exercise={e} settings={props.settings} />
                     </div>
                     <div>
                       <button
@@ -584,13 +583,19 @@ function MuscleView(props: {
   );
 }
 
-export function CustomMuscleGroupsView(props: { exercise: ICustomExercise }): JSX.Element {
+export function CustomMuscleGroupsView(props: { exercise: ICustomExercise; settings: ISettings }): JSX.Element {
   const { exercise } = props;
   const targetMuscleGroups = Array.from(
-    new Set(CollectionUtils.flat(exercise.meta.targetMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m))))
+    new Set(
+      CollectionUtils.flat(exercise.meta.targetMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m, props.settings)))
+    )
   ).map((m) => StringUtils.capitalize(m));
   const synergistMuscleGroups = Array.from(
-    new Set(CollectionUtils.flat(exercise.meta.synergistMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m))))
+    new Set(
+      CollectionUtils.flat(
+        exercise.meta.synergistMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m, props.settings))
+      )
+    )
   )
     .map((m) => StringUtils.capitalize(m))
     .filter((m) => targetMuscleGroups.indexOf(m) === -1);

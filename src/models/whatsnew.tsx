@@ -2218,6 +2218,25 @@ Bent Over Row / 3x8 / superset: A`}
       </ul>
     ),
   },
+  "20251103": {
+    title: <span>Added ability to customize muscle groups</span>,
+    body: (
+      <ul>
+        <li>
+          If you don't like the current split by muscle group, you can customize it now! Go to Me -&gt; Muscle Groups,
+          and you can hide built-in muscle groups, and create new ones.
+        </li>
+        <li>
+          For example, you may want to have Front/Side/Rear delts instead of just "Shoulders", or Upper/Lower Back
+          instead of just "Back".
+        </li>
+        <li>
+          You can also customize it through the "Planner Settings" modal (where you set up set ranges for muscle
+          groups), both inside of the app, and in the web editor.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

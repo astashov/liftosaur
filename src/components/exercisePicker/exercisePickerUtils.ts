@@ -13,7 +13,6 @@ import {
   IScreenMuscle,
   ISettings,
   IShortDayData,
-  screenMuscles,
 } from "../../types";
 import { ObjectUtils } from "../../utils/object";
 import { SetUtils } from "../../utils/setUtils";
@@ -25,23 +24,23 @@ import { CollectionUtils } from "../../utils/collection";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 
 export class ExercisePickerUtils {
-  public static getSelectedMuscleGroupNames(selectedValues: IMuscle[]): string[] {
-    const currentGroups = screenMuscles.filter((muscleGroup) => {
-      const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup);
+  public static getSelectedMuscleGroupNames(selectedValues: IMuscle[], settings: ISettings): string[] {
+    const currentGroups = Muscle.getAvailableMuscleGroups(settings).filter((muscleGroup) => {
+      const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup, settings);
       return muscles.every((muscle) => selectedValues.includes(muscle));
     });
     const currentMuscles = selectedValues.filter((muscle) => {
-      const group = Muscle.getScreenMusclesFromMuscle(muscle)?.[0];
+      const group = Muscle.getScreenMusclesFromMuscle(muscle, settings)?.[0];
       return group && !currentGroups.includes(group);
     });
     return [...currentGroups.map((g) => StringUtils.capitalize(g)), ...currentMuscles];
   }
 
-  public static getAllFilterNames(filters: IExercisePickerFilters): string[] {
+  public static getAllFilterNames(filters: IExercisePickerFilters, settings: ISettings): string[] {
     return [
       ...(filters.equipment || []).map((f) => equipmentName(f)),
       ...(filters.type || []).map((m) => StringUtils.capitalize(m)),
-      ...ExercisePickerUtils.getSelectedMuscleGroupNames(filters.muscles || []),
+      ...ExercisePickerUtils.getSelectedMuscleGroupNames(filters.muscles || [], settings),
     ];
   }
 
@@ -86,9 +85,9 @@ export class ExercisePickerUtils {
     });
   }
 
-  public static getSelectedMuscleGroups(selectedValues: IMuscle[]): IScreenMuscle[] {
-    return screenMuscles.filter((muscleGroup) => {
-      const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup);
+  public static getSelectedMuscleGroups(selectedValues: IMuscle[], settings: ISettings): IScreenMuscle[] {
+    return Muscle.getAvailableMuscleGroups(settings).filter((muscleGroup) => {
+      const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup, settings);
       return muscles.every((muscle) => selectedValues.includes(muscle));
     });
   }
@@ -121,7 +120,7 @@ export class ExercisePickerUtils {
       const bRating = Exercise.similarRating(exerciseType, b, settings);
       return bRating - aRating;
     } else if ((filters.muscles || []).length > 0) {
-      const filterMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroups(filters.muscles || []);
+      const filterMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroups(filters.muscles || [], settings);
       const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, settings);
       const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, settings);
       if (

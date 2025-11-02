@@ -7,6 +7,7 @@ import { GraphsPlugins } from "../utils/graphsPlugins";
 import { StringUtils } from "../utils/string";
 import { DateUtils } from "../utils/date";
 import { Tailwind } from "../utils/tailwindConfig";
+import { Muscle } from "../models/muscle";
 
 interface IGraphMuscleGroupProps {
   data: [number[], number[], number[]];
@@ -49,7 +50,7 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
     const dataMaxX = data[0]?.[data[0].length - 1] || new Date(0).getTime() / 1000;
     const dataMinX = Math.max(data[0]?.[0] || 0, dataMaxX - 365 * 24 * 60 * 60);
     const opts: UPlot.Options = {
-      title: `${StringUtils.capitalize(props.muscleGroup)} Weekly ${StringUtils.capitalize(props.selectedType)}`,
+      title: `${Muscle.getMuscleGroupName(props.muscleGroup, props.settings)} Weekly ${StringUtils.capitalize(props.selectedType)}`,
       class: "graph-muscle-group",
       width: rect.width,
       height: rect.height,

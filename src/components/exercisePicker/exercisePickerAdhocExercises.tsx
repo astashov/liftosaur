@@ -26,7 +26,7 @@ interface IProps {
 export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
   return (
     <div className="relative">
-      <SearchAndFilter dispatch={props.dispatch} state={props.state} />
+      <SearchAndFilter dispatch={props.dispatch} state={props.state} settings={props.settings} />
       <CustomExercises
         usedExerciseTypes={props.usedExerciseTypes}
         dispatch={props.dispatch}
@@ -48,11 +48,12 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
 
 interface ISearchAndFilterProps {
   dispatch: ILensDispatch<IExercisePickerState>;
+  settings: ISettings;
   state: IExercisePickerState;
 }
 
 function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
-  const filterNames = ExercisePickerUtils.getAllFilterNames(props.state.filters);
+  const filterNames = ExercisePickerUtils.getAllFilterNames(props.state.filters, props.settings);
   const isFiltered = filterNames.length > 0;
   return (
     <div className="my-1">

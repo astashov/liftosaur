@@ -18,19 +18,7 @@ export class WeekInsightsUtils {
       push: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
       pull: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
       legs: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-      muscleGroup: {
-        shoulders: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        triceps: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        back: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        abs: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        glutes: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        hamstrings: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        quadriceps: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        chest: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        biceps: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        calves: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-        forearms: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-      },
+      muscleGroup: {},
     };
 
     for (const record of historyRecords) {
@@ -149,6 +137,7 @@ function addMuscleGroup(
 ): void {
   synergistMultiplier = synergistMultiplier ?? 0.5;
   let isStrength = false;
+  results[key] = results[key] || { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] };
   if (completedReps < 8) {
     isStrength = true;
     results[key].strength += isTarget ? 1 : 1 * synergistMultiplier;

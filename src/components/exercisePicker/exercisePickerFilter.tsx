@@ -8,7 +8,6 @@ import {
   IExercisePickerState,
   IScreenMuscle,
   ISettings,
-  screenMuscles,
 } from "../../types";
 import { IconBack } from "../icons/iconBack";
 import { useState } from "preact/hooks";
@@ -25,7 +24,7 @@ import { Muscle } from "../../models/muscle";
 import { ExercisePickerUtils } from "./exercisePickerUtils";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
 import { ExercisePickerOptions } from "./exercisePickerOptions";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { MuscleGroupImage } from "../muscleGroupImage";
 
 interface IProps {
   settings: ISettings;
@@ -147,7 +146,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
             );
           }}
         />
-        <FilterMuscles dispatch={props.dispatch} state={props.state} />
+        <FilterMuscles dispatch={props.dispatch} state={props.state} settings={props.settings} />
       </div>
     </div>
   );
@@ -180,19 +179,14 @@ function Filter<T extends string>(props: IFilterProps<T>): JSX.Element {
 
 interface IFilterMusclesProps<T extends string> {
   dispatch: ILensDispatch<IExercisePickerState>;
+  settings: ISettings;
   state: IExercisePickerState;
 }
 
 function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Element {
   const selectedValues = props.state.filters?.muscles || [];
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
-  const selectedMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroupNames(selectedValues);
-
-  const muscleColors = [
-    `--muscle-fill: ${Tailwind.semantic().background.default}`,
-    `--muscle-primary: ${Tailwind.semantic().icon.blue}`,
-    `--muscle-light: ${Tailwind.semantic().icon.light}`,
-  ];
+  const selectedMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroupNames(selectedValues, props.settings);
 
   return (
     <div className="px-4 py-2 border-b border-background-subtle">
@@ -213,9 +207,11 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
             {
               label: "Muscle Groups",
               children: () => {
-                const muscleGroups = screenMuscles.reduce<Record<IScreenMuscle, IFilterValue>>(
+                const muscleGroups = Muscle.getAvailableMuscleGroups(props.settings).reduce<
+                  Record<IScreenMuscle, IFilterValue>
+                >(
                   (memo, muscleGroup) => {
-                    const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup);
+                    const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup, props.settings);
                     const isSelected = muscles.every((muscle) => selectedValues.includes(muscle));
                     memo[muscleGroup] = { label: StringUtils.capitalize(muscleGroup), isSelected };
                     return memo;
@@ -235,7 +231,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                                 .p("filters")
                                 .p("muscles")
                                 .recordModify((muscles) => {
-                                  const musclesOfMuscleGroup = Muscle.getMusclesFromScreenMuscle(key);
+                                  const musclesOfMuscleGroup = Muscle.getMusclesFromScreenMuscle(key, props.settings);
                                   const isIncluded = musclesOfMuscleGroup.some((m) => selectedValues.includes(m));
                                   if (isIncluded) {
                                     return muscles?.filter((muscle) => !musclesOfMuscleGroup.includes(muscle)) || [];
@@ -248,12 +244,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                           }}
                         >
                           <div>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 61 48" width="61" height="48">
-                              <use
-                                href={`/images/svgs/musclegroups-combined.svg#${key.toLowerCase().replace(/ /g, "")}`}
-                                style={muscleColors.join(";")}
-                              />
-                            </svg>
+                            <MuscleGroupImage muscleGroup={key} size={61} />
                           </div>
                           <div className="flex-1">{value.label}</div>
                         </button>
@@ -269,6 +260,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                 return (
                   <ExercisePickerOptionsMuscles
                     selectedValues={selectedValues}
+                    settings={props.settings}
                     onSelect={(key) => {
                       props.dispatch(
                         lb<IExercisePickerState>()

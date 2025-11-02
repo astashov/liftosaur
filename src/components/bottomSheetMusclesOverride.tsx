@@ -102,6 +102,10 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
                 </>
               </Nux>
               {musclesAndMultipliers.map((mm) => {
+                const muscleGroup = Muscle.getScreenMusclesFromMuscle(mm.muscle, props.settings)[0];
+                if (muscleGroup == null) {
+                  return null;
+                }
                 return (
                   <MenuItemWrapper name={`muscle-override-${StringUtils.dashcase(mm.muscle)}`}>
                     <div className="py-2">
@@ -112,7 +116,7 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
                         <div className="flex-1">
                           <div>{mm.muscle}</div>
                           <div className="text-xs text-text-secondary">
-                            {StringUtils.capitalize(Muscle.getScreenMusclesFromMuscle(mm.muscle).join(", "))}
+                            {Muscle.getMuscleGroupName(muscleGroup, props.settings)}
                           </div>
                         </div>
                         <div className="w-12">
@@ -202,6 +206,7 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
             <div className="flex-1 overflow-y-auto">
               <div className="pb-4">
                 <ExercisePickerOptionsMuscles
+                  settings={props.settings}
                   selectedValues={musclesAndMultipliers.map((mm) => mm.muscle)}
                   onSelect={(muscle) => {
                     setMusclesAndMultipliers((mms) => {

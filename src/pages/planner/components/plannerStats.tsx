@@ -1,7 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { IPlannerState, IPlannerUiFocusedExercise, ISetResults, ISetSplit } from "../models/types";
 import { ObjectUtils } from "../../../utils/object";
-import { StringUtils } from "../../../utils/string";
 import { PlannerWeekMuscles } from "./plannerWeekMuscles";
 import { IExerciseKind } from "../../../models/exercise";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -11,6 +10,7 @@ import { useState } from "preact/hooks";
 import { CollectionUtils } from "../../../utils/collection";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { n } from "../../../utils/math";
+import { Muscle } from "../../../models/muscle";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
@@ -94,7 +94,14 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
       {ObjectUtils.keys(setResults.muscleGroup).map((muscleGroup) => {
         return (
           <div>
-            {labelSet(StringUtils.capitalize(muscleGroup), showLink, [], [muscleGroup], dispatch, focusedExercise)}{" "}
+            {labelSet(
+              Muscle.getMuscleGroupName(muscleGroup, props.settings),
+              showLink,
+              [],
+              [muscleGroup],
+              dispatch,
+              focusedExercise
+            )}{" "}
             <PlannerSetSplit
               split={setResults.muscleGroup[muscleGroup]}
               settings={settings}

@@ -104,14 +104,18 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
                   const targetScreenMuscles = Array.from(
                     new Set(
                       CollectionUtils.flat(
-                        Exercise.targetMuscles(e, props.settings).map((t) => Muscle.getScreenMusclesFromMuscle(t))
+                        Exercise.targetMuscles(e, props.settings).map((t) =>
+                          Muscle.getScreenMusclesFromMuscle(t, props.settings)
+                        )
                       )
                     )
                   );
                   const synergistScreenMuscles = Array.from(
                     new Set(
                       CollectionUtils.flat(
-                        Exercise.synergistMuscles(e, props.settings).map((t) => Muscle.getScreenMusclesFromMuscle(t))
+                        Exercise.synergistMuscles(e, props.settings).map((t) =>
+                          Muscle.getScreenMusclesFromMuscle(t, props.settings)
+                        )
                       )
                     )
                   );

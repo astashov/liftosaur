@@ -18,7 +18,6 @@ import {
   graphMuscleGroupSelectedTypes,
   IGraphMuscleGroupSelectedType,
   IExerciseType,
-  screenMuscles,
 } from "../types";
 import { MenuItem } from "./menuItem";
 import { Stats } from "../models/stats";
@@ -29,6 +28,7 @@ import { lb } from "lens-shmens";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
 import { ExerciseImage } from "./exerciseImage";
 import { CollectionUtils } from "../utils/collection";
+import { Muscle } from "../models/muscle";
 
 interface IModalGraphsProps {
   isHidden: boolean;
@@ -65,7 +65,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   const statsPercentageKeys = ObjectUtils.keys(props.stats.percentage).filter(
     (k) => !usedStats.has(k) && (props.stats.percentage[k] || []).length > 0
   );
-  const availableMuscleGroups = [...screenMuscles, "total"].filter(
+  const availableMuscleGroups = [...Muscle.getAvailableMuscleGroups(props.settings), "total"].filter(
     (m) => !graphs.some((g) => g.type === "muscleGroup" && g.id === m)
   );
   const hasAvailableStats = statsLengthKeys.length > 0 || statsWeightKeys.length > 0 || statsPercentageKeys.length > 0;
@@ -192,7 +192,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                   {graph.type === "exercise" ? (
                     <ExercisePreview exerciseKey={graph.id} settings={props.settings} />
                   ) : graph.type === "muscleGroup" ? (
-                    <MuscleGroupPreview muscleGroup={graph.id} />
+                    <MuscleGroupPreview muscleGroup={graph.id} settings={props.settings} />
                   ) : (
                     <StatsPreview stats={graph.id} />
                   )}
@@ -237,7 +237,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                   className="flex w-full px-2 py-1 text-left border-b border-border-neutral"
                   onClick={() => EditGraphs.addMuscleGroupGraph(props.dispatch, muscleGroup)}
                 >
-                  <MuscleGroupPreview muscleGroup={muscleGroup} />
+                  <MuscleGroupPreview muscleGroup={muscleGroup} settings={props.settings} />
                 </section>
               );
             })}
@@ -303,11 +303,11 @@ function StatsPreview(props: { stats: IStatsKey }): JSX.Element {
   );
 }
 
-function MuscleGroupPreview(props: { muscleGroup: string }): JSX.Element {
+function MuscleGroupPreview(props: { muscleGroup: string; settings: ISettings }): JSX.Element {
   return (
     <Fragment>
       <div className="flex items-center flex-1 py-3 text-sm text-left">
-        {StringUtils.capitalize(props.muscleGroup)} Weekly Volume
+        {Muscle.getMuscleGroupName(props.muscleGroup, props.settings)} Weekly Volume
       </div>
     </Fragment>
   );

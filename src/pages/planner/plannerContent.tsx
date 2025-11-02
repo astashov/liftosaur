@@ -114,6 +114,7 @@ function getCurrentSource(): string | undefined {
 }
 
 export function PlannerContent(props: IPlannerContentProps): JSX.Element {
+  console.log(props.partialStorage?.settings.muscleGroups);
   const service = new Service(props.client);
   const initialDay: IPlannerProgramDay = {
     name: "Day 1",
@@ -142,11 +143,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     ...props.partialStorage?.settings?.exercises,
     ...props.initialProgram?.customExercises,
   };
-  initialSettings.timers.workout =
-    props.initialProgram?.settings?.timers?.workout ??
-    props.partialStorage?.settings?.timers.workout ??
-    initialSettings.timers.workout;
-  initialSettings.planner = props.initialProgram?.settings?.planner || initialSettings.planner;
+  initialSettings.timers.workout = props.partialStorage?.settings?.timers.workout ?? initialSettings.timers.workout;
+  initialSettings.planner = props.partialStorage?.settings?.planner || initialSettings.planner;
+  initialSettings.muscleGroups = props.partialStorage?.settings?.muscleGroups || initialSettings.muscleGroups;
   initialSettings.units = props.partialStorage?.settings?.units ?? initialSettings.units;
   initialSettings.exerciseData = props.partialStorage?.settings?.exerciseData ?? initialSettings.exerciseData;
 
@@ -441,6 +440,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   setIsLoading(true);
                   try {
                     const exportProgram = Program.exportProgram(state.current.program, settings);
+                    exportProgram.settings.muscleGroups = settings.muscleGroups;
                     await saveProgram(props.client, exportProgram, props.deviceId);
                     dispatch(
                       lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram),

@@ -3,7 +3,6 @@ import { IDispatch } from "../ducks/types";
 import { History } from "../models/history";
 import { Button } from "./button";
 import { ScreenActions } from "../actions/screenActions";
-import { StringUtils } from "../utils/string";
 import { Weight } from "../models/weight";
 import { useState } from "preact/hooks";
 import { Confetti } from "./confetti";
@@ -37,6 +36,7 @@ import { PersonalRecords } from "./personalRecords";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 import { ImagePreloader } from "../utils/imagePreloader";
 import { n } from "../utils/math";
+import { Muscle } from "../models/muscle";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -155,7 +155,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                   {group.map(([mg, value]) => {
                     return (
                       <li>
-                        {StringUtils.capitalize(mg)}: <strong>{n(value)}</strong>
+                        {Muscle.getMuscleGroupName(mg, props.settings)}: <strong>{n(value)}</strong>
                       </li>
                     );
                   })}

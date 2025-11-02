@@ -279,6 +279,10 @@ export namespace Settings {
       exercises: {},
       graphs: { graphs: [], vtype: "graphs" },
       planner: buildPlannerSettings(),
+      muscleGroups: {
+        vtype: "muscle_groups_settings",
+        data: {},
+      },
     };
   }
 
@@ -330,6 +334,7 @@ export namespace Settings {
         warmup: exportedProgram.settings.timers?.warmup || settings.timers.warmup,
       },
       planner: exportedProgram.settings.planner || settings.planner,
+      muscleGroups: exportedProgram.settings.muscleGroups || settings.muscleGroups,
     };
   }
 

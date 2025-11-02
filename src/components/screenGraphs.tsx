@@ -43,6 +43,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
     .addFn(History.collectMuscleGroups(props.settings))
     .addFn(History.collectProgramChangeTimes());
   const [muscleGroupsData, programChangeTimes] = historyCollector.run();
+  console.log(muscleGroupsData);
 
   if (hasBodyweight && isWithBodyweight) {
     bodyweightData = getWeightDataForGraph(props.stats.weight.weight || [], props.settings);
@@ -175,7 +176,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                 <GraphMuscleGroup
                   initialType={props.settings.graphsSettings.defaultMuscleGroupType}
                   programChangeTimes={isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined}
-                  data={muscleGroupsData[muscleGroup]}
+                  data={muscleGroupsData[muscleGroup] ?? [[], [], []]}
                   muscleGroup={muscleGroup}
                   settings={props.settings}
                 />

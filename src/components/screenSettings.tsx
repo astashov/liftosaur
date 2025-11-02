@@ -207,6 +207,11 @@ export function ScreenSettings(props: IProps): JSX.Element {
           shouldShowRightArrow={true}
         />
         <MenuItem
+          name="Muscle Groups"
+          onClick={() => props.dispatch(Thunk.pushScreen("muscleGroups"))}
+          shouldShowRightArrow={true}
+        />
+        <MenuItem
           name="Timers"
           onClick={() => props.dispatch(Thunk.pushScreen("timers"))}
           shouldShowRightArrow={true}

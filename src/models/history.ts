@@ -13,7 +13,6 @@ import {
   ISettings,
   IDayData,
   IScreenMuscle,
-  screenMuscles,
   IIntervals,
 } from "../types";
 import { ICollectorFn } from "../utils/collector";
@@ -28,6 +27,7 @@ import memoize from "micro-memoize";
 import { DateUtils } from "../utils/date";
 import { IEvaluatedProgram, Program } from "./program";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { Muscle } from "./muscle";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -238,7 +238,7 @@ export namespace History {
           const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings);
           const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings);
           const synergistMuscleGroupToMultiplier = Exercise.synergistMusclesGroupMultipliers(exercise, settings);
-          for (const muscleGroup of [...screenMuscles, "total"] as const) {
+          for (const muscleGroup of [...Muscle.getAvailableMuscleGroups(settings), "total"] as const) {
             let multiplier = 0;
             if (muscleGroup === "total") {
               multiplier = 1;
@@ -250,8 +250,9 @@ export namespace History {
             if (multiplier === 0) {
               continue;
             }
+            acc[muscleGroup] = acc[muscleGroup] || [[], [], []];
             const muscleGroupAcc = acc[muscleGroup];
-            const date = new Date(hr.id);
+            const date = new Date(hr.startTime);
             const lastTs = muscleGroupAcc[0][muscleGroupAcc[0]?.length - 1];
             const finishedSets = entry.sets.filter((s) => (s.completedReps || 0) > 0);
             if (lastTs == null) {
@@ -278,20 +279,7 @@ export namespace History {
         }
         return acc;
       },
-      initial: {
-        total: [[], [], []],
-        shoulders: [[], [], []],
-        triceps: [[], [], []],
-        back: [[], [], []],
-        abs: [[], [], []],
-        glutes: [[], [], []],
-        hamstrings: [[], [], []],
-        quadriceps: [[], [], []],
-        chest: [[], [], []],
-        biceps: [[], [], []],
-        calves: [[], [], []],
-        forearms: [[], [], []],
-      },
+      initial: {},
     };
   }
 

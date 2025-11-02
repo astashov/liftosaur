@@ -22,6 +22,7 @@ export type IScreenData =
   | { name: "graphs"; params?: Record<string, never> }
   | { name: "finishDay"; params?: Record<string, never> }
   | { name: "muscles"; params?: Record<string, never> }
+  | { name: "muscleGroups"; params?: Record<string, never> }
   | { name: "stats"; params?: Record<string, never> }
   | { name: "units"; params?: Record<string, never> }
   | { name: "appleHealth"; params?: Record<string, never> }
@@ -188,6 +189,9 @@ export namespace Screen {
       }
       case "muscles": {
         return "program";
+      }
+      case "muscleGroups": {
+        return "me";
       }
       case "stats": {
         return "me";

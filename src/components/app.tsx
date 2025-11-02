@@ -57,6 +57,7 @@ import { Screen1RM } from "./screen1RM";
 import { ScreenSetupEquipment } from "./screenSetupEquipment";
 import { Settings } from "../models/settings";
 import { AppContext } from "./appContext";
+import { ScreenMuscleGroups } from "./screenMuscleGroups";
 
 declare let Rollbar: RB;
 declare let __COMMIT_HASH__: string;
@@ -405,6 +406,8 @@ export function AppView(props: IProps): JSX.Element | null {
         stats={state.storage.stats}
       />
     );
+  } else if (Screen.currentName(state.screenStack) === "muscleGroups") {
+    content = <ScreenMuscleGroups navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />;
   } else if (Screen.currentName(state.screenStack) === "measurements") {
     content = (
       <ScreenMeasurements

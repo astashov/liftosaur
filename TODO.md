@@ -1,7 +1,4 @@
-- Push notif for the forgotten session
 - Use state vars for warmups
-- Custom exercise lists
-- Take custom timers into account
 - Import from Perseus
 - Graphs per reps
 - Copy plates for custom equipment from 'similar' equipment
@@ -9,8 +6,6 @@
 - Single vs double side weights (???)
 - Add rounding up/down/middle setting
 - Add reps/volume PR
-- Add a way to create "similar" exercise
-- Add estimated time for the next workout
 - Add 'Rhomboids' 
 * Add 'Goals'
 * Add default for dynamic double progression
@@ -35,10 +30,7 @@
 - Fix e1RM in PRs
 - Set variations when multi-week
 - Bug - swap exercise and changing weight returns exercise back
-- Made numberOfSets = 0 work in update blocks
-- Need to add lb to kg converter properly.
 - Muscles shown for historical workouts
-- Start workout timer AFTER the first set
 
 User debug page:
 - Programs, their version history

@@ -4,7 +4,7 @@ import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Equipment } from "../models/equipment";
 import { equipmentName, Exercise } from "../models/exercise";
-import { equipments, exerciseKinds, IExerciseType, IProgram, ISettings, IWeight, screenMuscles } from "../types";
+import { equipments, exerciseKinds, IExerciseType, IProgram, ISettings, IWeight } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
 import { ExerciseImage } from "./exerciseImage";
@@ -19,6 +19,7 @@ import { ObjectUtils } from "../utils/object";
 import { Settings } from "../models/settings";
 import { Program } from "../models/program";
 import { BottomSheetCustomExercise } from "./bottomSheetCustomExercise";
+import { Muscle } from "../models/muscle";
 
 interface IExercisesListProps {
   dispatch: IDispatch;
@@ -81,7 +82,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
   const filterOptions = [
     ...equipments.map((e) => equipmentName(e)),
     ...exerciseKinds.map(StringUtils.capitalize),
-    ...screenMuscles.map(StringUtils.capitalize),
+    ...Muscle.getAvailableMuscleGroups(props.settings).map((mg) => Muscle.getMuscleGroupName(mg, props.settings)),
   ];
 
   if (filter) {

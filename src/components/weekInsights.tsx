@@ -18,6 +18,7 @@ import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { DateUtils } from "../utils/date";
 import { Modal } from "./modal";
+import { Muscle } from "../models/muscle";
 
 interface IWeekInsightsProps {
   prs: IPersonalRecords;
@@ -220,7 +221,7 @@ function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Element {
           {ObjectUtils.keys(setResults.muscleGroup).map((muscleGroup) => {
             return (
               <div>
-                <span className="text-text-secondary">{StringUtils.capitalize(muscleGroup)}:</span>{" "}
+                <span className="text-text-secondary">{Muscle.getMuscleGroupName(muscleGroup, props.settings)}:</span>{" "}
                 <PlannerSetSplit
                   split={setResults.muscleGroup[muscleGroup]}
                   settings={props.settings}

@@ -5,7 +5,7 @@ import { ExerciseItem } from "../../components/modalExercise";
 import { Multiselect } from "../../components/multiselect";
 import { equipmentName, Exercise, IExercise } from "../../models/exercise";
 import { Settings } from "../../models/settings";
-import { equipments, exerciseKinds, IExerciseType, IMuscle, screenMuscles } from "../../types";
+import { equipments, exerciseKinds, IExerciseType, IMuscle } from "../../types";
 import { StringUtils } from "../../utils/string";
 import { muscleDescriptions } from "../../models/muscleDescriptions";
 import { Muscle } from "../../models/muscle";
@@ -255,7 +255,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivEl
   const filterOptions = [
     ...equipments.map((e) => equipmentName(e)),
     ...exerciseKinds.map(StringUtils.capitalize),
-    ...screenMuscles.map(StringUtils.capitalize),
+    ...Muscle.getAvailableMuscleGroups(settings).map((mg) => Muscle.getMuscleGroupName(mg, settings)),
   ];
 
   const selectedOptions = new Set(
