@@ -81,15 +81,16 @@ Overhead Press / 2x8 100lb / superset: A`
 
   await page.getByTestId("entry-squat").getByTestId("complete-set").nth(4).click();
   await page.getByTestId("entry-deadlift").getByTestId("complete-set").nth(3).click();
-  await expect(page.getByTestId("workout-tab-bicep-curl")).toHaveAttribute("data-is-selected", "true");
+  await expect(page.getByTestId("workout-tab-deadlift")).toHaveAttribute("data-is-selected", "true");
 
+  await page.getByTestId("workout-tab-bicep-curl").click();
   await page.getByTestId("entry-bicep-curl").getByTestId("complete-set").nth(0).click();
   await page.getByTestId("entry-bicep-curl").getByTestId("complete-set").nth(1).click();
   await page.getByTestId("entry-bicep-curl").getByTestId("complete-set").nth(2).click();
   await expect(page.getByTestId("workout-tab-bicep-curl")).toHaveAttribute("data-is-selected", "true");
 
   await page.getByTestId("entry-bicep-curl").getByTestId("complete-set").nth(3).click();
-  await expect(page.getByTestId("workout-tab-bench-press")).toHaveAttribute("data-is-selected", "true");
+  await expect(page.getByTestId("workout-tab-bicep-curl")).toHaveAttribute("data-is-selected", "true");
 
   await page.getByTestId("entry-bench-press").getByTestId("complete-set").nth(0).click();
   await page.getByTestId("entry-bench-press").getByTestId("complete-set").nth(1).click();

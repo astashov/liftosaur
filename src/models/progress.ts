@@ -536,7 +536,8 @@ export namespace Progress {
   export function getNextEntry(
     progress: IHistoryRecord,
     entry: IHistoryEntry,
-    mode: "workout" | "warmup"
+    mode: "workout" | "warmup",
+    shouldGoToNextEntry: boolean
   ): IHistoryEntry | undefined {
     if (isFullyEmptyOrFinishedSet(progress)) {
       return undefined;
@@ -546,7 +547,10 @@ export namespace Progress {
     let isInitial = true;
     const supersetGroups = getSupersetGroups(progress.entries);
     while (currentEntry != null) {
-      const index = progress.entries.findIndex((e) => e.id === currentEntry?.id);
+      let index = progress.entries.findIndex((e) => e.id != null && e.id === currentEntry?.id);
+      if (index === -1) {
+        index = progress.entries.findIndex((e) => e === currentEntry);
+      }
       const superset: string | undefined = currentEntry.superset;
       if (mode === "workout" && superset != null && !visitedAndFinished.has(currentEntry)) {
         const supersetGroup: IHistoryEntry[] = supersetGroups?.[superset] ?? [];
@@ -554,10 +558,18 @@ export namespace Progress {
           const supersetIndex = supersetGroup?.findIndex((e) => e.id === currentEntry?.id);
           currentEntry = supersetGroup[(supersetIndex + 1) % supersetGroup.length];
         } else {
-          currentEntry = progress.entries[(index + 1) % progress.entries.length];
+          if (shouldGoToNextEntry) {
+            currentEntry = progress.entries[(index + 1) % progress.entries.length];
+          } else {
+            return currentEntry;
+          }
         }
       } else if (Reps.isEmptyOrFinished(currentEntry.sets)) {
-        currentEntry = progress.entries[(index + 1) % progress.entries.length];
+        if (shouldGoToNextEntry) {
+          currentEntry = progress.entries[(index + 1) % progress.entries.length];
+        } else {
+          return undefined;
+        }
       }
       if (currentEntry == null) {
         return undefined;
@@ -577,9 +589,13 @@ export namespace Progress {
     entry: IHistoryEntry,
     mode: "workout" | "warmup"
   ): number | undefined {
-    const nextEntry = getNextEntry(progress, entry, mode);
+    const nextEntry = getNextEntry(progress, entry, mode, false);
     if (nextEntry != null) {
-      return progress.entries.findIndex((e) => e.id === nextEntry.id);
+      let index = progress.entries.findIndex((e) => e.id != null && e.id === nextEntry.id);
+      if (index === -1) {
+        index = progress.entries.findIndex((e) => e === nextEntry);
+      }
+      return index === -1 ? undefined : index;
     }
     return undefined;
   }
@@ -1224,6 +1240,7 @@ export namespace Progress {
       const firstWeight = newSets[0]?.weight;
 
       return {
+        id: UidFactory.generateUid(8),
         exercise: programExercise.exerciseType,
         programExerciseId: programExercise.key,
         sets: newSets,

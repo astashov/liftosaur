@@ -204,7 +204,7 @@ export namespace Reps {
     if (entry == null) {
       return undefined;
     }
-    const nextEntry = Progress.getNextEntry(historyRecord, entry, mode);
+    const nextEntry = Progress.getNextEntry(historyRecord, entry, mode, true);
     if (nextEntry == null) {
       return undefined;
     }

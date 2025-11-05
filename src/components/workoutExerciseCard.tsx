@@ -203,24 +203,6 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
-                  data-cy="exercise-superset"
-                  onClick={() => {
-                    setIsKebabMenuOpen(false);
-                    updateProgress(
-                      props.dispatch,
-                      [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
-                      "kebab-edit-superset"
-                    );
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <div>
-                      <IconReorder size={18} />
-                    </div>
-                    <div>Edit Superset</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem
                   data-cy="exercise-swap"
                   isTop={!programExercise || !programExerciseId}
                   onClick={() => {
@@ -252,6 +234,24 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                       <IconSwap size={18} />
                     </div>
                     <div>Swap Exercise</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  data-cy="exercise-superset"
+                  onClick={() => {
+                    setIsKebabMenuOpen(false);
+                    updateProgress(
+                      props.dispatch,
+                      [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
+                      "kebab-edit-superset"
+                    );
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div>
+                      <IconReorder size={18} />
+                    </div>
+                    <div>Edit Superset</div>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem
