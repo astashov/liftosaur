@@ -1098,14 +1098,18 @@ export namespace Progress {
     const newSets = entry.sets.map((set) => {
       if ((Progress.isEligibleForInferredWeight(set) || Weight.isPct(set.originalWeight)) && !set.isCompleted) {
         const originalWeight = set.originalWeight ?? Weight.rpePct(set.reps ?? 1, set.rpe ?? 10);
-        return {
-          ...set,
-          weight: Weight.evaluateWeight(originalWeight, exerciseType, settings),
-        };
+        const evaluatedWeight = Weight.evaluateWeight(originalWeight, exerciseType, settings);
+        const unit = Equipment.getUnitForExerciseType(settings, exerciseType) ?? settings.units;
+        const weight = Weight.roundConvertTo(evaluatedWeight, settings, unit, exerciseType);
+        return { ...set, weight };
       }
       return set;
     });
     return { ...entry, sets: newSets };
+  }
+
+  export function doesUse1RM(entry: IHistoryEntry): boolean {
+    return entry.sets.some((set) => (set.originalWeight == null ? set.rpe != null : Weight.isPct(set.originalWeight)));
   }
 
   export function changeExercise(

@@ -155,7 +155,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 <Markdown value={currentEquipmentNotes} />
               </div>
             )}
-            {programExercise && ProgramExercise.doesUse1RM(programExercise) && (
+            {((programExercise && ProgramExercise.doesUse1RM(programExercise)) || Progress.doesUse1RM(props.entry)) && (
               <div data-cy="exercise-rm1" className="text-sm text-text-secondary">
                 1RM:{" "}
                 <LinkButton
