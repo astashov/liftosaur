@@ -13,6 +13,7 @@ import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { PlannerKey } from "../plannerKey";
 import { IconExternalLink } from "../../../components/icons/iconExternalLink";
+import { ExerciseImageUtils } from "../../../models/exerciseImage";
 
 interface IPlannerExerciseStatsProps {
   settings: ISettings;
@@ -84,17 +85,21 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
   const volumeKey = JSON.stringify(volumeGraphData);
 
   return (
-    <div>
+    <div className="text-xs">
       <div className="flex mb-2">
         <div className="w-12 mr-4">
           <ExerciseImage exerciseType={exercise} size="small" />
         </div>
         <div className="flex-1">
           <h3 className="mb-2 text-lg font-bold">
-            <a href={Exercise.toExternalUrl(exercise)} target="_blank">
-              <span className="font-bold underline text-text-link">{evaluatedExercise.name}</span>{" "}
-              <IconExternalLink className="inline-block mb-1 ml-1" size={16} color="#607284" />
-            </a>
+            {ExerciseImageUtils.exists(exercise, "small") ? (
+              <a href={Exercise.toExternalUrl(exercise)} target="_blank">
+                <span className="font-bold underline text-text-link">{evaluatedExercise.name}</span>{" "}
+                <IconExternalLink className="inline-block mb-1 ml-1" size={16} color="#607284" />
+              </a>
+            ) : (
+              <span className="font-bold">{evaluatedExercise.name}</span>
+            )}
           </h3>
           {!props.hideSwap && (
             <div>
@@ -147,6 +152,19 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
         <span className="text-text-secondary">Synergist Muscles: </span>
         <span className="font-bold">{synergeticMuscles.join(", ")}</span>
       </div>
+      <div>
+        <LinkButton
+          name="edit-muscle-groups"
+          onClick={() => {
+            props.dispatch(
+              [lb<IPlannerState>().pi("ui").p("showMuscleGroupsOverride").record(exercise)],
+              "Edit muscle groups"
+            );
+          }}
+        >
+          Edit Exercise Muscles
+        </LinkButton>
+      </div>
       <div className="mt-1">
         <span className="text-text-secondary">Target Muscles Groups: </span>
         <span className="font-bold">{targetMuscleGroups.join(", ")}</span>
@@ -154,6 +172,16 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
       <div>
         <span className="text-text-secondary">Synergist Muscle Groups: </span>
         <span className="font-bold">{synergeticMuscleGroups.join(", ")}</span>
+      </div>
+      <div>
+        <LinkButton
+          name="edit-muscle-groups"
+          onClick={() => {
+            props.dispatch([lb<IPlannerState>().pi("ui").p("showEditMuscleGroups").record(true)], "Edit muscle groups");
+          }}
+        >
+          Edit Muscle Groups
+        </LinkButton>
       </div>
       {intensityGraphData[0].length > 1 && (
         <div style={{ marginTop: "-14px" }}>

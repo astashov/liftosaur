@@ -335,6 +335,7 @@ export namespace Settings {
       },
       planner: exportedProgram.settings.planner || settings.planner,
       muscleGroups: exportedProgram.settings.muscleGroups || settings.muscleGroups,
+      exerciseData: { ...exportedProgram.settings.exerciseData, ...settings.exerciseData },
     };
   }
 

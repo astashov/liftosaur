@@ -107,9 +107,16 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
             <BottomSheetMusclesOverride
               helps={props.navCommon.helps}
               isHidden={showOverrideMuscles == null}
-              exercise={showOverrideMuscles}
+              exerciseType={showOverrideMuscles}
               settings={props.settings}
               onClose={() => setShowOverrideMuscles(undefined)}
+              onNewExerciseData={(newExerciseData) => {
+                updateSettings(
+                  props.dispatch,
+                  lb<ISettings>().p("exerciseData").record(newExerciseData),
+                  "Update exercise muscle override"
+                );
+              }}
               dispatch={props.dispatch}
             />
           )}

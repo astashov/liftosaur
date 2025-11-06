@@ -8,12 +8,11 @@ import { ISettings, IUnit } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { Muscle } from "../../../models/muscle";
 import { LinkButton } from "../../../components/linkButton";
-import { useState } from "preact/hooks";
-import { BottomSheetOrModalMuscleGroupsContent } from "../../../components/bottomSheetOrModalMuscleGroupsContent";
 
 interface IModalPlannerSettingsProps {
   settings: ISettings;
   inApp: boolean;
+  onShowEditMuscleGroups: () => void;
   onNewSettings: (settings: ISettings) => void;
   onClose: () => void;
 }
@@ -52,7 +51,6 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
     allWeeklyFrequency = undefined;
   }
   const availableMuscleGroups = Muscle.getAvailableMuscleGroups(props.settings);
-  const [showEditMuscleGroups, setShowEditMuscleGroups] = useState<boolean>(false);
 
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
@@ -198,7 +196,7 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
             name="planner-settings-muscle-groups"
             onClick={(e) => {
               e.preventDefault();
-              setShowEditMuscleGroups(true);
+              props.onShowEditMuscleGroups();
             }}
           >
             Edit Muscle Groups
@@ -400,13 +398,6 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
           })}
         </ul>
       </form>
-      {showEditMuscleGroups && (
-        <BottomSheetOrModalMuscleGroupsContent
-          settings={props.settings}
-          onClose={() => setShowEditMuscleGroups(false)}
-          onNewSettings={props.onNewSettings}
-        />
-      )}
     </Modal>
   );
 }

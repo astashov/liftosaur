@@ -7,7 +7,7 @@ import { IconHelp } from "./icons/iconHelp";
 import { Tailwind } from "../utils/tailwindConfig";
 
 interface IProps {
-  dispatch: IDispatch;
+  dispatch?: IDispatch;
   id: string;
   helps: string[];
   className?: string;
@@ -29,26 +29,28 @@ export function Nux(props: IProps): JSX.Element | null {
         </div>
         {props.children}
       </div>
-      <div>
-        <button
-          className="p-2 nm-nux-close"
-          style={{ marginTop: "-0.5rem" }}
-          onClick={() => {
-            updateState(
-              dispatch,
-              [
-                lb<IState>()
-                  .p("storage")
-                  .p("helps")
-                  .recordModify((helps) => [...helps, props.id]),
-              ],
-              "Dismiss help tip"
-            );
-          }}
-        >
-          <IconClose2 size={12} />
-        </button>
-      </div>
+      {dispatch && (
+        <div>
+          <button
+            className="p-2 nm-nux-close"
+            style={{ marginTop: "-0.5rem" }}
+            onClick={() => {
+              updateState(
+                dispatch,
+                [
+                  lb<IState>()
+                    .p("storage")
+                    .p("helps")
+                    .recordModify((helps) => [...helps, props.id]),
+                ],
+                "Dismiss help tip"
+              );
+            }}
+          >
+            <IconClose2 size={12} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

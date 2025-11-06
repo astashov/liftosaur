@@ -1396,7 +1396,7 @@ export type IPartialStorage = Omit<IStorage, "history" | "stats" | "programs"> &
   Partial<Pick<IStorage, "history" | "stats" | "programs">>;
 
 export type IProgramContentSettings = Partial<
-  Pick<ISettings, "units" | "planner" | "muscleGroups"> & { timers: Partial<ISettings["timers"]> }
+  Pick<ISettings, "units" | "planner" | "muscleGroups" | "exerciseData"> & { timers: Partial<ISettings["timers"]> }
 >;
 
 export const TMuscleGeneratorResponse = t.type(

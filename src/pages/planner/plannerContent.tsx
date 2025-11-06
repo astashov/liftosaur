@@ -51,6 +51,8 @@ import { Weight } from "../../models/weight";
 import { IconPicture } from "../../components/icons/iconPicture";
 import { ModalPlannerPictureExport } from "./components/modalPlannerPictureExport";
 import { track } from "../../utils/posthog";
+import { BottomSheetOrModalMuscleGroupsContent } from "../../components/bottomSheetOrModalMuscleGroupsContent";
+import { BottomSheetMusclesOverride } from "../../components/bottomSheetMusclesOverride";
 
 declare let __HOST__: string;
 
@@ -147,7 +149,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   initialSettings.planner = props.partialStorage?.settings?.planner || initialSettings.planner;
   initialSettings.muscleGroups = props.partialStorage?.settings?.muscleGroups || initialSettings.muscleGroups;
   initialSettings.units = props.partialStorage?.settings?.units ?? initialSettings.units;
-  initialSettings.exerciseData = props.partialStorage?.settings?.exerciseData ?? initialSettings.exerciseData;
+  initialSettings.exerciseData = { ...props.partialStorage?.settings?.exerciseData, ...initialSettings.exerciseData };
 
   const [settings, setSettings] = useState(initialSettings);
   const [isBannerLoading, setIsBannerLoading] = useState(false);
@@ -441,6 +443,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   try {
                     const exportProgram = Program.exportProgram(state.current.program, settings);
                     exportProgram.settings.muscleGroups = settings.muscleGroups;
+                    exportProgram.settings.exerciseData = settings.exerciseData;
                     await saveProgram(props.client, exportProgram, props.deviceId);
                     dispatch(
                       lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram),
@@ -579,9 +582,29 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           inApp={false}
           onNewSettings={(newSettings) => setSettings(newSettings)}
           settings={settings}
+          onShowEditMuscleGroups={() => {
+            dispatch(lb<IPlannerState>().p("ui").p("showEditMuscleGroups").record(true), "Show muscle groups");
+          }}
           onClose={() =>
             dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false), "Close settings modal")
           }
+        />
+      )}
+      {state.ui.showMuscleGroupsOverride && (
+        <BottomSheetMusclesOverride
+          helps={[]}
+          isHidden={state.ui.showMuscleGroupsOverride == null}
+          exerciseType={state.ui.showMuscleGroupsOverride}
+          settings={settings}
+          onClose={() => {
+            dispatch(
+              lb<IPlannerState>().p("ui").p("showMuscleGroupsOverride").record(undefined),
+              "Close muscles override modal"
+            );
+          }}
+          onNewExerciseData={(newExerciseData) => {
+            setSettings(lf(settings).p("exerciseData").set(newExerciseData));
+          }}
         />
       )}
       {state.ui.showPreview && (
@@ -604,6 +627,15 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             }}
           />
         </Modal>
+      )}
+      {state.ui.showEditMuscleGroups && (
+        <BottomSheetOrModalMuscleGroupsContent
+          settings={settings}
+          onClose={() =>
+            dispatch(lb<IPlannerState>().p("ui").p("showEditMuscleGroups").record(false), "Close muscle groups")
+          }
+          onNewSettings={(newSettings) => setSettings(newSettings)}
+        />
       )}
       {modalExerciseUi && (
         <ModalExercise

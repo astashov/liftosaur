@@ -246,6 +246,8 @@ export interface IPlannerUi {
   showWeekStats?: number;
   showDayStats?: number;
   showExerciseStats?: boolean;
+  showEditMuscleGroups?: boolean;
+  showMuscleGroupsOverride?: IExerciseType;
   showPreview?: boolean;
   fullTextError?: PlannerSyntaxError;
   focusedDay?: IDayData & { key?: string };

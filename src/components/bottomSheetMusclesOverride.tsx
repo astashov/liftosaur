@@ -1,8 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Exercise, IExercise } from "../models/exercise";
-import { IMuscleMultiplier, ISettings } from "../types";
-import { BottomSheet } from "./bottomSheet";
+import { IExerciseType, IMuscleMultiplier, ISettings } from "../types";
 import { Button } from "./button";
 import { Nux } from "./nux";
 import { CollectionUtils } from "../utils/collection";
@@ -16,17 +15,17 @@ import { ExercisePickerOptionsMuscles } from "./exercisePicker/exercisePickerOpt
 import { LinkButton } from "./linkButton";
 import { Muscle } from "../models/muscle";
 import { Input2 } from "./input2";
-import { updateSettings } from "../models/state";
-import { lb } from "lens-shmens";
 import { ObjectUtils } from "../utils/object";
+import { BottomSheetOrModal } from "./bottomSheetOrModal";
 
 interface IBottomSheetMusclesOverrideProps {
-  exercise: IExercise;
+  exerciseType: IExerciseType;
   settings: ISettings;
   helps: string[];
   isHidden: boolean;
+  onNewExerciseData: (exerciseData: Partial<ISettings["exerciseData"]>) => void;
   onClose: () => void;
-  dispatch: IDispatch;
+  dispatch?: IDispatch;
 }
 
 function getMultiplierValue(multiplier: number | string | undefined): number {
@@ -62,14 +61,15 @@ function getInitialMusclesAndMultipliers(exercise: IExercise, settings: ISetting
 }
 
 export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverrideProps): JSX.Element {
+  const exercise = Exercise.get(props.exerciseType, props.settings.exercises);
   const [musclesAndMultipliers, setMusclesAndMultipliers] = useState(
-    getInitialMusclesAndMultipliers(props.exercise, props.settings)
+    getInitialMusclesAndMultipliers(exercise, props.settings)
   );
   const [showAddMuscle, setShowAddMuscle] = useState(false);
 
   return (
     <>
-      <BottomSheet shouldShowClose={true} onClose={props.onClose} isHidden={props.isHidden}>
+      <BottomSheetOrModal shouldShowClose={true} onClose={props.onClose} isHidden={props.isHidden}>
         <div className="flex flex-col h-full px-4 py-2" style={{ marginTop: "-0.5rem" }}>
           <div className="py-2">
             <h3 className="text-base font-semibold leading-none text-center">Override Muscles</h3>
@@ -86,21 +86,23 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
           </div>
           <div className="flex-1 overflow-y-auto">
             <div className="pb-4">
-              <Nux id="muscle-override-help" helps={props.helps} dispatch={props.dispatch}>
-                <>
-                  <span>
-                    Here you can override the muscles for this exercise. This affects how the volume / number of sets is
-                    calculated for this exercise.
-                  </span>
-                  <div>
-                    For each muscle, you can set a multiplier - from <strong>0</strong> to <strong>1</strong>. If it's 1
-                    - it's a <strong>target muscle</strong>, and we count each set as a full one when we calculate the
-                    volume. If it's less 1 - it's a <strong>synergist</strong> muscle, and we apply the specified
-                    multiplier to the number of sets.
-                  </div>
-                  <div>These multipliers takes precedence over the default target/synergist multiplier.</div>
-                </>
-              </Nux>
+              <div style={{ maxWidth: "40rem" }}>
+                <Nux id="muscle-override-help" helps={props.helps} dispatch={props.dispatch}>
+                  <>
+                    <span>
+                      Here you can override the muscles for this exercise. This affects how the volume / number of sets
+                      is calculated for this exercise.
+                    </span>
+                    <div>
+                      For each muscle, you can set a multiplier - from <strong>0</strong> to <strong>1</strong>. If it's
+                      1 - it's a <strong>target muscle</strong>, and we count each set as a full one when we calculate
+                      the volume. If it's less 1 - it's a <strong>synergist</strong> muscle, and we apply the specified
+                      multiplier to the number of sets.
+                    </div>
+                    <div>These multipliers takes precedence over the default target/synergist multiplier.</div>
+                  </>
+                </Nux>
+              </div>
               {musclesAndMultipliers.map((mm) => {
                 const muscleGroup = Muscle.getScreenMusclesFromMuscle(mm.muscle, props.settings)[0];
                 if (muscleGroup == null) {
@@ -168,29 +170,16 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
                   muscle: mm.muscle,
                   multiplier: getMultiplierValue(mm.multiplier),
                 }));
-                updateSettings(
-                  props.dispatch,
-                  lb<ISettings>()
-                    .p("exerciseData")
-                    .recordModify((exerciseData) => {
-                      if (
-                        ObjectUtils.isEqual(
-                          muscleMultipliers,
-                          getDefaultMusclesAndMultipliers(props.exercise, props.settings)
-                        )
-                      ) {
-                        const newExerciseData = ObjectUtils.clone(exerciseData);
-                        delete newExerciseData[Exercise.toKey(props.exercise)];
-                        return newExerciseData;
-                      } else {
-                        const ed = exerciseData[Exercise.toKey(props.exercise)] || {};
-                        ed.muscleMultipliers = muscleMultipliers;
-                        exerciseData[Exercise.toKey(props.exercise)] = ed;
-                        return exerciseData;
-                      }
-                    }),
-                  "Set custom muscle multipliers for " + props.exercise.name
-                );
+                const exerciseData = props.settings.exerciseData;
+                const newExerciseData = ObjectUtils.clone(exerciseData);
+                if (ObjectUtils.isEqual(muscleMultipliers, getDefaultMusclesAndMultipliers(exercise, props.settings))) {
+                  delete newExerciseData[Exercise.toKey(exercise)];
+                } else {
+                  const ed = newExerciseData[Exercise.toKey(exercise)] || {};
+                  ed.muscleMultipliers = muscleMultipliers;
+                  newExerciseData[Exercise.toKey(exercise)] = ed;
+                }
+                props.onNewExerciseData(newExerciseData);
                 props.onClose();
               }}
             >
@@ -198,9 +187,9 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
             </Button>
           </div>
         </div>
-      </BottomSheet>
+      </BottomSheetOrModal>
       {showAddMuscle && (
-        <BottomSheet shouldShowClose={true} onClose={() => setShowAddMuscle(false)} isHidden={!showAddMuscle}>
+        <BottomSheetOrModal shouldShowClose={true} onClose={() => setShowAddMuscle(false)} isHidden={!showAddMuscle}>
           <div className="flex flex-col h-full px-4 py-2" style={{ marginTop: "-0.5rem" }}>
             <h3 className="pt-2 pb-3 text-base font-semibold text-center">Toggle Muscles</h3>
             <div className="flex-1 overflow-y-auto">
@@ -237,7 +226,7 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
               </Button>
             </div>
           </div>
-        </BottomSheet>
+        </BottomSheetOrModal>
       )}
     </>
   );

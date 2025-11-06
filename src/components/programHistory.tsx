@@ -20,6 +20,7 @@ import { ObjectUtils } from "../utils/object";
 import { Progress } from "../models/progress";
 import { useGradualList } from "../utils/useGradualList";
 import { Program } from "../models/program";
+import { BottomSheetOrModalMuscleGroupsContent } from "./bottomSheetOrModalMuscleGroupsContent";
 
 interface IProps {
   program: IProgram;
@@ -183,6 +184,8 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     }
   }, [initialHistoryRecordId]);
 
+  const [showEditMuscleGroups, setShowEditMuscleGroups] = useState(false);
+
   return (
     <Surface
       ref={surfaceRef}
@@ -206,6 +209,19 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
       addons={
         <>
+          {showEditMuscleGroups && (
+            <BottomSheetOrModalMuscleGroupsContent
+              settings={props.settings}
+              onClose={() => setShowEditMuscleGroups(false)}
+              onNewSettings={(newSettings) => {
+                updateState(
+                  props.dispatch,
+                  [lb<IState>().p("storage").p("settings").record(newSettings)],
+                  "Update planner settings"
+                );
+              }}
+            />
+          )}
           <BottomSheetMonthCalendar
             prs={prs}
             firstDayOfWeeks={firstDayOfWeeks}
@@ -239,6 +255,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
                   "Update planner settings"
                 )
               }
+              onShowEditMuscleGroups={() => {
+                setShowEditMuscleGroups(true);
+              }}
               settings={props.settings}
               onClose={() => setShowPlannerSettings(false)}
             />

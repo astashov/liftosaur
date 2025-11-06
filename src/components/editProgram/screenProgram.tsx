@@ -45,6 +45,7 @@ import { EditProgramBottomSheetPicker } from "./editProgramBottomSheetPicker";
 import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { ProgramPreviewTab } from "../preview/programPreviewTab";
 import { Nux } from "../nux";
+import { BottomSheetOrModalMuscleGroupsContent } from "../bottomSheetOrModalMuscleGroupsContent";
 
 interface IProps {
   originalProgram: IProgram;
@@ -313,6 +314,12 @@ export function ScreenProgram(props: IProps): JSX.Element {
                   "Update planner settings"
                 )
               }
+              onShowEditMuscleGroups={() => {
+                plannerDispatch(
+                  lb<IPlannerState>().p("ui").p("showEditMuscleGroups").record(true),
+                  "Show muscle groups"
+                );
+              }}
               settings={props.settings}
               onClose={() =>
                 plannerDispatch(
@@ -320,6 +327,19 @@ export function ScreenProgram(props: IProps): JSX.Element {
                   "Close settings modal"
                 )
               }
+            />
+          )}
+          {ui.showEditMuscleGroups && (
+            <BottomSheetOrModalMuscleGroupsContent
+              settings={props.settings}
+              onClose={() => plannerDispatch(lbUi.p("showEditMuscleGroups").record(false), "Close muscle groups")}
+              onNewSettings={(newSettings) => {
+                updateState(
+                  props.dispatch,
+                  [lb<IState>().p("storage").p("settings").record(newSettings)],
+                  "Update planner settings"
+                );
+              }}
             />
           )}
           {ui.showExerciseStats && ui.focusedExercise && (
