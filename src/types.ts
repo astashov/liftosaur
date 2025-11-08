@@ -474,6 +474,8 @@ export const TSet = t.partial(
     timer: t.number,
     askWeight: t.boolean,
     isCompleted: t.boolean,
+    isUnilateral: t.boolean,
+    completedRepsLeft: t.number,
     completedReps: t.number,
     completedWeight: TWeight,
     completedRpe: t.number,
@@ -503,6 +505,7 @@ export const THistoryEntry = t.intersection(
       isSuppressed: t.boolean,
       superset: t.string,
       updatePrints: t.array(t.array(t.union([t.number, TWeight, TPercentage]))),
+      leftSets: t.array(TSet),
     }),
   ],
   "THistoryEntry"
@@ -1157,6 +1160,7 @@ export const TExerciseDataValue = t.partial(
     equipment: dictionary(t.string, t.union([t.string, t.undefined])),
     notes: t.string,
     muscleMultipliers: t.array(TMuscleMultiplier),
+    isUnilateral: t.boolean,
   },
   "TExerciseDataValue"
 );

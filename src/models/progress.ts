@@ -58,6 +58,7 @@ export interface IScriptBindings {
   RPE: (number | undefined)[];
   completedRPE: (number | undefined)[];
   completedReps: (number | undefined)[];
+  completedRepsLeft: (number | undefined)[];
   isCompleted: (0 | 1)[];
   w: (IWeight | undefined)[];
   r: (number | undefined)[];
@@ -239,6 +240,7 @@ export namespace Progress {
       logrpes: [],
       askweights: [],
       completedReps: [],
+      completedRepsLeft: [],
       completedRPE: [],
       isCompleted: [],
       timers: [],
@@ -276,6 +278,7 @@ export namespace Progress {
       bindings.reps.push(set.reps);
       bindings.minReps.push(set.minReps);
       bindings.completedReps.push(set.completedReps);
+      bindings.completedRepsLeft.push(set.completedRepsLeft);
       bindings.completedRPE.push(set.completedRpe);
       bindings.completedWeights.push(set.completedWeight);
       bindings.RPE.push(set.rpe);
@@ -815,7 +818,7 @@ export namespace Progress {
         "update"
       );
       runner.execute();
-      const newEntry = Progress.applyBindings(entry, bindings);
+      const newEntry = Progress.applyBindings(entry, bindings, settings);
       newEntry.state = { ...newEntry.state, ...state };
       if (fnContext.prints.length > 0) {
         newEntry.updatePrints = fnContext.prints;
@@ -894,7 +897,11 @@ export namespace Progress {
     return progress;
   }
 
-  export function applyBindings(oldEntry: IHistoryEntry, bindings: IScriptBindings): IHistoryEntry {
+  export function applyBindings(
+    oldEntry: IHistoryEntry,
+    bindings: IScriptBindings,
+    settings: ISettings
+  ): IHistoryEntry {
     const keys = [
       "RPE",
       "minReps",
@@ -914,6 +921,7 @@ export namespace Progress {
         if (entry.sets[i] == null) {
           entry.sets[i] = {
             id: UidFactory.generateUid(6),
+            isUnilateral: Exercise.getIsUnilateral(entry.exercise, settings),
             reps: 0,
             weight: Weight.build(0, "lb"),
             originalWeight: Weight.build(0, "lb"),
@@ -956,7 +964,14 @@ export namespace Progress {
     return entry;
   }
 
-  export function completeAmrapSet(progress: IHistoryRecord, entryIndex: number, setIndex: number): IHistoryRecord {
+  export function completeAmrapSet(
+    progress: IHistoryRecord,
+    entryIndex: number,
+    setIndex: number,
+    settings: ISettings
+  ): IHistoryRecord {
+    const entry = progress.entries[entryIndex];
+    const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
     return lf(progress)
       .p("entries")
       .i(entryIndex)
@@ -966,6 +981,7 @@ export namespace Progress {
         return {
           ...progressSet,
           timestamp: !progressSet.isCompleted ? Date.now() : progressSet.timestamp,
+          completedRepsLeft: isUnilateral ? (progressSet.completedRepsLeft ?? progressSet.reps) : undefined,
           completedReps: progressSet.completedReps ?? progressSet.reps,
           completedWeight: progressSet.completedWeight ?? progressSet.weight,
           isCompleted: !progressSet.isCompleted,
@@ -978,13 +994,17 @@ export namespace Progress {
     entryIndex: number,
     setIndex: number,
     mode: IProgressMode,
-    hasUserPromptedVars: boolean
+    hasUserPromptedVars: boolean,
+    settings: ISettings
   ): IHistoryRecord {
     const entry = progress.entries[entryIndex];
     const set = mode === "warmup" ? entry.warmupSets[setIndex] : entry.sets[setIndex];
     const shouldLogRpe = !!set?.logRpe;
     const shouldPromptUserVars = hasUserPromptedVars && Progress.hasLastUnfinishedSet(entry);
-    const isAmrap = set?.completedReps == null && (!!set?.isAmrap || set.reps == null);
+    const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
+    const isAmrap =
+      (set?.completedReps == null || (isUnilateral && set?.completedRepsLeft == null)) &&
+      (!!set?.isAmrap || set.reps == null);
     const shouldAskWeight = set?.completedWeight == null && (!!set?.askWeight || set.weight == null);
     if (mode === "warmup") {
       return lf(progress)
@@ -996,6 +1016,7 @@ export namespace Progress {
           return {
             ...progressSet,
             timestamp: !progressSet.isCompleted ? Date.now() : progressSet.timestamp,
+            completedRepsLeft: isUnilateral ? (progressSet.completedRepsLeft ?? progressSet.reps) : undefined,
             completedReps: progressSet.completedReps ?? progressSet.reps,
             completedWeight: progressSet.completedWeight ?? progressSet.weight,
             isCompleted: !progressSet.isCompleted,
@@ -1014,7 +1035,7 @@ export namespace Progress {
       };
       return { ...progress, ui: { ...progress.ui, ...amrapUi } };
     } else {
-      return completeAmrapSet(progress, entryIndex, setIndex);
+      return completeAmrapSet(progress, entryIndex, setIndex, settings);
     }
   }
 
@@ -1030,6 +1051,15 @@ export namespace Progress {
     if (progress.ui?.amrapModal != null) {
       const { entryIndex, setIndex } = progress.ui.amrapModal;
       return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedReps").set(value);
+    } else {
+      return progress;
+    }
+  }
+
+  export function updateAmrapRepsLeftInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
+    if (progress.ui?.amrapModal != null) {
+      const { entryIndex, setIndex } = progress.ui.amrapModal;
+      return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedRepsLeft").set(value);
     } else {
       return progress;
     }
@@ -1202,6 +1232,7 @@ export namespace Progress {
             reps: programSet.maxrep,
             minReps: programSet.minrep,
             rpe: programSet.rpe,
+            isUnilateral: Exercise.getIsUnilateral(programExercise.exerciseType, settings),
             originalWeight,
             weight,
             isAmrap: programSet.isAmrap,
@@ -1234,6 +1265,7 @@ export namespace Progress {
           reps: set.maxrep,
           minReps: set.minrep,
           originalWeight: set.weight,
+          isUnilateral: Exercise.getIsUnilateral(programExercise.exerciseType, settings),
           weight,
           rpe: set.rpe,
           logRpe: set.logRpe,

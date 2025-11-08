@@ -10,12 +10,13 @@ import { IState, updateState } from "../models/state";
 import { lb } from "lens-shmens";
 import { CollectionUtils } from "../utils/collection";
 import RB from "rollbar";
-import { ICustomExercise, IHistoryRecord } from "../types";
+import { ICustomExercise, IHistoryRecord, ISettings } from "../types";
 
 declare let Rollbar: RB;
 
 interface IProps {
   isHidden: boolean;
+  settings: ISettings;
   onClose: () => void;
   dispatch: IDispatch;
 }
@@ -25,7 +26,7 @@ export function ModalImportFromOtherApps(props: IProps): JSX.Element {
     let historyRecords: IHistoryRecord[];
     let customExercises: Record<string, ICustomExercise>;
     try {
-      const result = ImportFromHevy.convertHevyCsvToHistoryRecords(contents);
+      const result = ImportFromHevy.convertHevyCsvToHistoryRecords(contents, props.settings);
       historyRecords = result.historyRecords;
       customExercises = result.customExercises;
     } catch (error) {

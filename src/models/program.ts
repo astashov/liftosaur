@@ -216,6 +216,7 @@ export namespace Program {
         reps: programSet.maxrep,
         minReps,
         weight,
+        isUnilateral: Exercise.getIsUnilateral(exercise, settings),
         rpe: programSet.rpe,
         timer: programSet.timer,
         logRpe: programSet.logRpe,

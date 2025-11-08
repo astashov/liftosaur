@@ -56,6 +56,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
             warmupSets: [],
             sets: [
               {
+                isUnilateral: Exercise.getIsUnilateral(exerciseType, settings),
                 originalWeight: Weight.build(0, settings.units),
                 weight: Weight.build(0, settings.units),
                 reps: 0,

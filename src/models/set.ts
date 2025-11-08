@@ -20,10 +20,10 @@ export namespace Reps {
     }
   }
 
-  export function addSet(sets: ISet[], unit: IUnit, lastSet?: ISet, isWarmup?: boolean): ISet[] {
+  export function addSet(sets: ISet[], isUnilateral: boolean, lastSet?: ISet, isWarmup?: boolean): ISet[] {
     lastSet = sets[sets.length - 1] || lastSet;
     if (lastSet == null) {
-      lastSet = newSet(unit);
+      lastSet = newSet(isUnilateral);
     } else {
       if (isWarmup) {
         lastSet = {
@@ -38,6 +38,7 @@ export namespace Reps {
           weight: lastSet.weight ?? lastSet.completedWeight,
           originalWeight: lastSet.originalWeight ?? lastSet.weight ?? lastSet.completedWeight,
           completedReps: undefined,
+          completedRepsLeft: undefined,
           completedWeight: undefined,
           completedRpe: undefined,
         };
@@ -59,7 +60,9 @@ export namespace Reps {
   }
 
   export function displayCompletedReps(set: ISet): string {
-    return set.completedReps != null ? `${set.completedReps}` : "-";
+    return set.completedReps != null
+      ? `${set.completedRepsLeft != null ? `${set.completedRepsLeft}/` : ""}${set.completedReps}`
+      : "-";
   }
 
   export function areSameReps(sets: ISet[], isNext: boolean): boolean {
@@ -77,11 +80,12 @@ export namespace Reps {
     return sets.every((s) => !s.isCompleted);
   }
 
-  export function newSet(unit: IUnit): ISet {
+  export function newSet(isUnilateral: boolean): ISet {
     return {
       id: UidFactory.generateUid(6),
       originalWeight: undefined,
       weight: undefined,
+      isUnilateral,
       reps: undefined,
       isAmrap: false,
       askWeight: false,
@@ -145,7 +149,7 @@ export namespace Reps {
   }
 
   export function toKey(set: ISet): string {
-    return `${Weight.printNull(set.weight)}-${Weight.printNull(set.completedWeight)}-${set.reps}-${set.minReps}-${set.isAmrap}-${set.rpe}-${set.askWeight}-${set.completedReps}-${set.completedRpe}-${set.isCompleted}`;
+    return `${Weight.printNull(set.weight)}-${Weight.printNull(set.completedWeight)}-${set.reps}-${set.minReps}-${set.isAmrap}-${set.rpe}-${set.askWeight}-${set.completedReps}-${set.completedRepsLeft}-${set.completedRpe}-${set.isCompleted}`;
   }
 
   export function isInRangeCompleted(sets: ISet[]): boolean {
@@ -159,6 +163,30 @@ export namespace Reps {
     };
   }
 
+  export function maxUnilateralCompletedReps(set: ISet): number | undefined {
+    if (set.isUnilateral) {
+      return Math.max(set.completedReps ?? 0, set.completedRepsLeft ?? 0);
+    } else {
+      return set.completedReps;
+    }
+  }
+
+  export function avgUnilateralCompletedReps(set: ISet): number | undefined {
+    if (set.isUnilateral) {
+      return Math.round(((set.completedReps ?? 0) + (set.completedRepsLeft ?? 0)) / 2);
+    } else {
+      return set.completedReps;
+    }
+  }
+
+  export function setVolume(set: ISet, unit: IUnit): IWeight {
+    const totalReps =
+      set.isUnilateral || set.completedRepsLeft != null
+        ? (set.completedReps ?? 0) + (set.completedRepsLeft ?? 0)
+        : (set.completedReps ?? 0);
+    return Weight.multiply(set.completedWeight ?? set.weight ?? Weight.build(0, unit), totalReps);
+  }
+
   export function group(sets: ISet[], isNext?: boolean): ISet[][] {
     return sets.reduce<ISet[][]>(
       (memo, set) => {
@@ -170,6 +198,7 @@ export namespace Reps {
             last.reps !== set.reps ||
             last.minReps !== set.minReps ||
             last.completedReps !== set.completedReps ||
+            last.completedRepsLeft !== set.completedRepsLeft ||
             !Weight.eqNull(last.completedWeight, set.completedWeight) ||
             last.askWeight !== set.askWeight ||
             (isNext && last.isAmrap !== set.isAmrap) ||
@@ -219,14 +248,7 @@ export namespace Reps {
 
   export function volume(sets: ISet[], unit: IUnit): IWeight {
     return Weight.convertTo(
-      sets.reduce(
-        (memo, set) =>
-          Weight.add(
-            memo,
-            Weight.multiply(set.completedWeight ?? set.weight ?? Weight.build(0, unit), set.completedReps ?? 0)
-          ),
-        Weight.build(0, unit)
-      ),
+      sets.reduce((memo, set) => Weight.add(memo, Reps.setVolume(set, unit)), Weight.build(0, unit)),
       unit
     );
   }

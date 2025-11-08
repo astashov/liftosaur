@@ -53,6 +53,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const shouldUseTouch = isMobile && !isPlaywright;
   const borderClass = ` border-b ${WorkoutExerciseUtils.getBorderColor100([props.set], false)}`;
   const hasEdit = props.type === "workout";
+  const isUnilateral = Exercise.getIsUnilateral(props.exerciseType, props.settings);
 
   return (
     <SwipeableRow
@@ -101,7 +102,57 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
             />
           </div>
           <div className={`${borderClass} table-cell py-2 align-middle`}>
-            <div className="flex justify-center text-center">
+            {isUnilateral && (
+              <div className="flex items-center justify-center mb-1 text-center">
+                <div className="w-4 text-xs text-text-secondary">L:</div>
+                <InputNumber2
+                  tabIndex={
+                    props.day * 10000 +
+                    props.entryIndex * 100 +
+                    props.setIndex * 4 +
+                    1 +
+                    (props.type === "warmup" ? 0 : 100)
+                  }
+                  width={3.5}
+                  data-cy="left-reps-value"
+                  name="set-left-reps"
+                  onInput={(value) => {
+                    if (value != null && !isNaN(value) && value >= 0) {
+                      updateProgress(
+                        props.dispatch,
+                        [
+                          props.lbSet.recordModify((s) => {
+                            const newSet = { ...s, completedRepsLeft: Math.round(value) };
+                            return newSet;
+                          }),
+                        ],
+                        "input-left-reps"
+                      );
+                    }
+                  }}
+                  onBlur={(value) => {
+                    updateProgress(
+                      props.dispatch,
+                      [
+                        props.lbSet.recordModify((s) => {
+                          const newSet = { ...s, completedRepsLeft: value };
+                          return newSet;
+                        }),
+                      ],
+                      "blur-left-reps"
+                    );
+                  }}
+                  placeholder={placeholderReps}
+                  initialValue={set.reps}
+                  value={set.completedRepsLeft != null ? set.completedRepsLeft : undefined}
+                  min={0}
+                  max={9999}
+                  step={1}
+                />
+              </div>
+            )}
+            <div className="flex items-center justify-center text-center">
+              {isUnilateral && <div className="w-4 text-xs text-text-secondary">R:</div>}
               <InputNumber2
                 tabIndex={
                   props.day * 10000 +
@@ -266,7 +317,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     close();
                     EditProgressEntry.showEditSetModal(
                       props.dispatch,
-                      props.settings.units,
+                      props.settings,
                       props.type === "warmup",
                       props.entryIndex,
                       props.setIndex,
@@ -556,7 +607,7 @@ function WorkoutExerciseE1RMSet(props: IWorkoutExerciseE1RMSetProps): JSX.Elemen
   const set = props.set;
   const isCompleted = !!set.isCompleted;
   const weight = set.completedWeight ?? set.weight ?? set.originalWeight;
-  const reps = set.completedReps ?? set.reps;
+  const reps = Reps.avgUnilateralCompletedReps(set) ?? set.reps;
   const rpe = set.completedRpe ?? set.rpe ?? 10;
   if (weight == null || Weight.isPct(weight) || reps == null) {
     return <span className="text-sm break-all">Unknown</span>;

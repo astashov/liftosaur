@@ -13,6 +13,7 @@ import { MathUtils } from "../utils/math";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { Exercise } from "../models/exercise";
 
 interface IModalAmrapProps {
   progress: IHistoryRecord;
@@ -30,7 +31,12 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const entryIndex = amrapModal?.entryIndex || 0;
   const setIndex = amrapModal?.setIndex || 0;
   const entry = progress.entries[entryIndex];
+  const isUnilateral = Exercise.getIsUnilateral(entry?.exercise || props.programExercise?.exerciseType, props.settings);
+
   const initialReps = entry?.sets[setIndex]?.completedReps ?? entry?.sets[setIndex]?.reps;
+  const initialRepsLeft = isUnilateral
+    ? (entry?.sets[setIndex]?.completedRepsLeft ?? entry?.sets[setIndex]?.reps)
+    : undefined;
   const initialRpe = entry?.sets[setIndex]?.completedRpe ?? entry?.sets[setIndex]?.rpe;
   const initialWeight = entry?.sets[setIndex]?.weight;
 
@@ -40,6 +46,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const userVars = !!amrapModal?.userVars;
 
   const [repsInputValue, setRepsInputValue] = useState<number | undefined>(initialReps);
+  const [repsLeftInputValue, setRepsLeftInputValue] = useState<number | undefined>(initialRepsLeft);
   const [weightInputValue, setWeightInputValue] = useState<IWeight | IPercentage | undefined>(initialWeight);
   const [rpeInputValue, setRpeInputValue] = useState<number | undefined>(initialRpe);
 
@@ -58,6 +65,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
 
   function onDone(
     amrapValue?: number,
+    amrapLeftValue?: number,
     rpeValue?: number,
     weightValue?: IWeight,
     userVarValues: Record<string, number | IWeight | IPercentage> = {}
@@ -65,6 +73,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
     props.dispatch({
       type: "ChangeAMRAPAction",
       amrapValue: amrapValue != null ? MathUtils.round(amrapValue, 1) : undefined,
+      amrapLeftValue: amrapLeftValue != null ? MathUtils.round(amrapLeftValue, 1) : undefined,
       rpeValue: rpeValue != null ? MathUtils.round(rpeValue, 0.5) : undefined,
       weightValue,
       setIndex: setIndex,
@@ -86,18 +95,35 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
     <Modal maxWidth="480px" isHidden={!amrapModal} isFullWidth={true} shouldShowClose={true} onClose={() => onDone()}>
       <form className="mx-1 my-4" onSubmit={(e) => e.preventDefault()}>
         {isAmrap && (
-          <div className="mb-2">
-            <InputNumber
-              label="Completed reps"
-              value={repsInputValue ?? 0}
-              data-cy="modal-amrap-input"
-              data-name="modal-input-autofocus"
-              min={0}
-              step={1}
-              onUpdate={(newValue) => {
-                setRepsInputValue(newValue);
-              }}
-            />
+          <div>
+            {isUnilateral && (
+              <div className="mb-2">
+                <InputNumber
+                  label="Completed reps (left)"
+                  value={repsLeftInputValue ?? 0}
+                  data-cy="modal-amrap-left-input"
+                  data-name="modal-input-left-autofocus"
+                  min={0}
+                  step={1}
+                  onUpdate={(newValue) => {
+                    setRepsLeftInputValue(newValue);
+                  }}
+                />
+              </div>
+            )}
+            <div className="mb-2">
+              <InputNumber
+                label={isUnilateral ? "Completed reps (right)" : "Completed reps"}
+                value={repsInputValue ?? 0}
+                data-cy="modal-amrap-input"
+                data-name="modal-input-autofocus"
+                min={0}
+                step={1}
+                onUpdate={(newValue) => {
+                  setRepsInputValue(newValue);
+                }}
+              />
+            </div>
           </div>
         )}
         {askWeight && (
@@ -170,6 +196,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
             onClick={(e) => {
               e.preventDefault();
               const amrapValue = isAmrap ? (repsInputValue ?? 0) : undefined;
+              const amrapLeftValue = isAmrap && isUnilateral ? (repsLeftInputValue ?? 0) : undefined;
               const rpeValue = logRpe ? rpeInputValue : undefined;
               const weightOrPctValue = askWeight
                 ? (weightInputValue ?? Weight.build(0, props.settings.units))
@@ -179,7 +206,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
                   ? Weight.build(weightOrPctValue.value, props.settings.units)
                   : weightOrPctValue;
 
-              onDone(amrapValue, rpeValue, weightValue, userVarInputValues);
+              onDone(amrapValue, amrapLeftValue, rpeValue, weightValue, userVarInputValues);
             }}
           >
             Done

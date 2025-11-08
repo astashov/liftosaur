@@ -1,4 +1,5 @@
 import { Exercise, IExercise } from "../models/exercise";
+import { Reps } from "../models/set";
 import { Weight } from "../models/weight";
 import { ISetResults, ISetSplit } from "../pages/planner/models/types";
 import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";
@@ -31,13 +32,7 @@ export class WeekInsightsUtils {
         for (const set of entry.sets) {
           const completedReps = set.completedReps || 0;
           if (completedReps > 0) {
-            results.volume = Weight.add(
-              results.volume,
-              Weight.multiply(
-                set.completedWeight ?? set.weight ?? Weight.build(0, settings.units),
-                set.completedReps || 0
-              )
-            );
+            results.volume = Weight.add(results.volume, Reps.setVolume(set, settings.units));
             results.total += 1;
             if (completedReps < 8) {
               results.strength += 1;

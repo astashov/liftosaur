@@ -34,6 +34,7 @@ export namespace ParserTestUtils {
     askweights: [0, 0, 0],
     timers: [0, 0, 0],
     completedReps: [1, 2, 3],
+    completedRepsLeft: [0, 0, 0],
     completedRPE: [0, 0, 0],
     w: [
       { value: 40, unit: "lb" },
@@ -74,6 +75,7 @@ export namespace ParserTestUtils {
       reps,
       minReps: reps,
       RPE: reps.map(() => 0),
+      completedRepsLeft: reps.map(() => 0),
       completedRPE: reps.map(() => 0),
       amraps: reps.map(() => 0),
       logrpes: reps.map(() => 0),

@@ -24,6 +24,7 @@ import { Equipment } from "../models/equipment";
 import { IconSwapSmall } from "./icons/iconSwapSmall";
 import { ProgressStateChanges } from "./progressStateChanges";
 import { IEvaluatedProgram } from "../models/program";
+import { Exercise } from "../models/exercise";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -181,9 +182,10 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             className={`${buttonBgColor} w-full py-2 text-xs font-semibold text-center rounded-md text-text-link`}
             data-cy="add-warmup-set"
             onClick={() => {
+              const isUnilateral = Exercise.getIsUnilateral(props.exerciseType, props.settings);
               updateProgress(
                 props.dispatch,
-                [props.lbWarmupSets.recordModify((s) => Reps.addSet(s, props.settings.units, undefined, true))],
+                [props.lbWarmupSets.recordModify((s) => Reps.addSet(s, isUnilateral, undefined, true))],
                 "add-warmupset"
               );
             }}
@@ -199,15 +201,12 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             className={`${buttonBgColor} w-full py-2 text-xs font-semibold text-center rounded-md text-text-link`}
             data-cy="add-workout-set"
             onClick={() => {
+              const isUnilateral = Exercise.getIsUnilateral(props.exerciseType, props.settings);
               updateProgress(
                 props.dispatch,
                 [
                   props.lbSets.recordModify((s) =>
-                    Reps.addSet(
-                      s,
-                      props.settings.units,
-                      props.lastSets ? props.lastSets[props.lastSets.length - 1] : undefined
-                    )
+                    Reps.addSet(s, isUnilateral, props.lastSets ? props.lastSets[props.lastSets.length - 1] : undefined)
                   ),
                 ],
                 "add-set"

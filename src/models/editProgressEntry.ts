@@ -1,14 +1,15 @@
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
-import { ISet, IHistoryRecord, IExerciseType, IUnit } from "../types";
+import { ISet, IHistoryRecord, IExerciseType, ISettings } from "../types";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { ObjectUtils } from "../utils/object";
 import { Reps } from "./set";
+import { Exercise } from "./exercise";
 
 export namespace EditProgressEntry {
   export function showEditSetModal(
     dispatch: IDispatch,
-    unit: IUnit,
+    settings: ISettings,
     isWarmup: boolean,
     entryIndex: number,
     setIndex?: number,
@@ -16,6 +17,7 @@ export namespace EditProgressEntry {
     exerciseType?: IExerciseType,
     set?: ISet
   ): void {
+    const isUnilateral = exerciseType ? Exercise.getIsUnilateral(exerciseType, settings) : false;
     dispatch({
       type: "UpdateProgress",
       lensRecordings: [
@@ -24,7 +26,7 @@ export namespace EditProgressEntry {
           .p("editSetModal")
           .record({
             programExerciseId: programExercise?.key,
-            set: set ? ObjectUtils.clone(set) : Reps.newSet(unit),
+            set: set ? ObjectUtils.clone(set) : Reps.newSet(isUnilateral),
             isWarmup,
             entryIndex,
             setIndex,

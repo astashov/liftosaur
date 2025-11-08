@@ -94,6 +94,7 @@ export namespace History {
             ? Program.getProgramExerciseForKeyAndDay(program, day, entry.programExerciseId)
             : undefined;
         if (Progress.isCurrent(progress)) {
+          const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
           entry = {
             ...entry,
             updatePrints: undefined,
@@ -101,6 +102,7 @@ export namespace History {
               return {
                 ...set,
                 completedReps: set.isCompleted ? set.completedReps : undefined,
+                completedRepsLeft: isUnilateral && set.isCompleted ? set.completedRepsLeft : undefined,
                 completedRpe: set.isCompleted ? set.completedRpe : undefined,
                 completedWeight: set.isCompleted ? set.completedWeight : undefined,
               };
@@ -158,12 +160,12 @@ export namespace History {
         const weightDiff = Weight.compare(
           Weight.getOneRepMax(
             b.completedWeight ?? b.weight ?? Weight.build(0, "lb"),
-            b.completedReps || 0,
+            Reps.avgUnilateralCompletedReps(b) || 0,
             b.completedRpe ?? b.rpe ?? 10
           ),
           Weight.getOneRepMax(
             a.completedWeight ?? a.weight ?? Weight.build(0, "lb"),
-            a.completedReps || 0,
+            Reps.avgUnilateralCompletedReps(a) || 0,
             a.completedRpe ?? a.rpe ?? 10
           )
         );
@@ -489,7 +491,7 @@ export namespace History {
           const thisMax1RM = thisMax1RMSet
             ? Weight.getOneRepMax(
                 thisMax1RMSet.completedWeight ?? thisMax1RMSet.weight ?? Weight.build(0, "lb"),
-                thisMax1RMSet.completedReps || 0,
+                Reps.avgUnilateralCompletedReps(thisMax1RMSet) || 0,
                 thisMax1RMSet.completedRpe ?? thisMax1RMSet.rpe
               )
             : undefined;
@@ -497,7 +499,7 @@ export namespace History {
           const lastMax1RM = lastMax1RMSet
             ? Weight.getOneRepMax(
                 lastMax1RMSet.completedWeight ?? lastMax1RMSet.weight ?? Weight.build(0, "lb"),
-                lastMax1RMSet?.completedReps || 0,
+                lastMax1RMSet ? Reps.avgUnilateralCompletedReps(lastMax1RMSet) || 0 : 0,
                 lastMax1RMSet.completedRpe ?? lastMax1RMSet.rpe
               )
             : undefined;
@@ -583,14 +585,7 @@ export namespace History {
   export function totalEntryWeight(entry: IHistoryEntry, unit: IUnit): IWeight {
     return entry.sets
       .filter((s) => (s.completedReps || 0) > 0)
-      .reduce(
-        (memo, set) =>
-          Weight.add(
-            memo,
-            Weight.multiply(set.completedWeight ?? set.weight ?? Weight.build(0, unit), set.completedReps || 0)
-          ),
-        Weight.build(0, unit)
-      );
+      .reduce((memo, set) => Weight.add(memo, Reps.setVolume(set, unit)), Weight.build(0, unit));
   }
 
   export function totalEntryReps(entry: IHistoryEntry): number {

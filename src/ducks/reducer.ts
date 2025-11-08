@@ -224,6 +224,7 @@ export type IChangeAMRAPAction = {
   isPlayground: boolean;
   entryIndex: number;
   amrapValue?: number;
+  amrapLeftValue?: number;
   rpeValue?: number;
   weightValue?: IWeight;
   isAmrap?: boolean;
@@ -590,7 +591,8 @@ export function buildCardsReducer(
           action.entryIndex,
           action.setIndex,
           action.mode,
-          !!hasUserPromptedVars
+          !!hasUserPromptedVars,
+          settings
         );
         const oldSet =
           progress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
@@ -634,6 +636,7 @@ export function buildCardsReducer(
         let newProgress = { ...progress };
         if (
           action.amrapValue == null &&
+          action.amrapLeftValue == null &&
           action.rpeValue == null &&
           action.weightValue == null &&
           ObjectUtils.keys(action.userVars || {}).length === 0
@@ -642,6 +645,9 @@ export function buildCardsReducer(
         }
         if (action.amrapValue != null) {
           newProgress = Progress.updateAmrapRepsInExercise(newProgress, action.amrapValue);
+        }
+        if (action.amrapLeftValue != null) {
+          newProgress = Progress.updateAmrapRepsLeftInExercise(newProgress, action.amrapLeftValue);
         }
         if (action.logRpe) {
           newProgress = Progress.updateRpeInExercise(newProgress, action.rpeValue);
@@ -653,7 +659,7 @@ export function buildCardsReducer(
         if (ObjectUtils.keys(action.userVars || {}).length > 0 && programExerciseId != null) {
           newProgress = Progress.updateUserPromptedStateVars(newProgress, programExerciseId, action.userVars || {});
         }
-        newProgress = Progress.completeAmrapSet(newProgress, action.entryIndex, action.setIndex);
+        newProgress = Progress.completeAmrapSet(newProgress, action.entryIndex, action.setIndex, settings);
         if (action.programExercise) {
           newProgress = Progress.runUpdateScript(
             newProgress,

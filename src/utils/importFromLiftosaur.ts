@@ -1,4 +1,12 @@
-import { IHistoryRecord, ICustomExercise, ISettings, IHistoryEntry, availableMuscles, IMuscle } from "../types";
+import {
+  IHistoryRecord,
+  ICustomExercise,
+  ISettings,
+  IHistoryEntry,
+  availableMuscles,
+  IMuscle,
+  IExerciseType,
+} from "../types";
 import Papa from "papaparse";
 import { CollectionUtils } from "./collection";
 import { ObjectUtils } from "./object";
@@ -127,9 +135,11 @@ export class ImportFromLiftosaur {
 
         const rawWarmupSets = rawSets.filter((set) => set.isWarmupSet === "1");
         const rawWorkoutSets = rawSets.filter((set) => set.isWarmupSet !== "1");
+        const exerciseType: IExerciseType = { id: exerciseId, equipment: exerciseEquipment };
+        const isUnilateral = Exercise.getIsUnilateral(exerciseType, settings);
 
         const entry: IHistoryEntry = {
-          exercise: { id: exerciseId, equipment: exerciseEquipment },
+          exercise: exerciseType,
           warmupSets: rawWarmupSets.map((set) => {
             const weight =
               set.weightValue && set.weightUnit
@@ -147,6 +157,8 @@ export class ImportFromLiftosaur {
               isAmrap: set.isAmrap === "1",
               rpe: set.rpe ? getNumber(set.rpe) : undefined,
               completedRpe: completedRpe,
+              completedRepsLeft: isUnilateral ? completedReps : undefined,
+              isUnilateral,
               logRpe: set.logRpe === "1",
               weight: weight,
               originalWeight: weight,
@@ -173,9 +185,11 @@ export class ImportFromLiftosaur {
               completedReps: completedReps,
               isAmrap: set.isAmrap === "1",
               rpe: set.rpe ? getNumber(set.rpe) : undefined,
+              completedRepsLeft: isUnilateral ? completedReps : undefined,
               completedRpe: completedRpe,
               logRpe: set.logRpe === "1",
               weight: weight,
+              isUnilateral,
               originalWeight: weight,
               completedWeight: completedWeight,
               askWeight: set.askWeight === "1",

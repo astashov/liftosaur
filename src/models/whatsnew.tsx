@@ -2237,6 +2237,22 @@ Bent Over Row / 3x8 / superset: A`}
       </ul>
     ),
   },
+  "20251109": {
+    title: <span>Added unilateral exercise support</span>,
+    body: (
+      <ul>
+        <li>
+          For unilateral exercises (like one-arm dumbbell rows, bicep curls, bulgarian split squats, etc) you can now
+          specify reps per side. It's enabled by default for built-in unilateral exercises, but you can override it on
+          the Exercise Stats screen, via "Is Unilateral" checkbox.
+        </li>
+        <li>
+          The volume is calculated by summing up reps from both sides. The e1RM is calculated by taking the average from
+          reps of both sides.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

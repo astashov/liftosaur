@@ -1,4 +1,4 @@
-import { IHistoryRecord, ICustomExercise } from "../types";
+import { IHistoryRecord, ICustomExercise, ISettings } from "../types";
 import Papa from "papaparse";
 import { CollectionUtils } from "./collection";
 import { ObjectUtils } from "./object";
@@ -313,7 +313,10 @@ interface IHevyStruct {
 }
 
 export class ImportFromHevy {
-  public static convertHevyCsvToHistoryRecords(hevyCsvRaw: string): {
+  public static convertHevyCsvToHistoryRecords(
+    hevyCsvRaw: string,
+    settings: ISettings
+  ): {
     historyRecords: IHistoryRecord[];
     customExercises: Record<string, ICustomExercise>;
   } {
@@ -400,6 +403,7 @@ export class ImportFromHevy {
           exerciseId = exercise.id;
         }
         const [, equipment] = exerciseNameAndEquipment;
+        const isUnilateral = Exercise.getIsUnilateral({ id: exerciseId, equipment: equipment }, settings);
         return {
           exercise: { id: exerciseId, equipment: equipment },
           warmupSets: record.warmupSets.map((set) => ({
@@ -411,6 +415,8 @@ export class ImportFromHevy {
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             reps: set.reps ?? 1,
             completedReps: set.reps ?? 1,
+            completedRepsLeft: isUnilateral ? set.reps : 1,
+            isUnilateral,
             isCompleted: true,
             isAmrap: false,
             timestamp: startTs,
@@ -424,8 +430,10 @@ export class ImportFromHevy {
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             reps: set.reps ?? 1,
             completedReps: set.reps ?? 1,
+            completedRepsLeft: isUnilateral ? set.reps : 1,
             isAmrap: false,
             timestamp: startTs,
+            isUnilateral,
             isCompleted: true,
           })),
           notes: record.exercise_notes,

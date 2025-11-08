@@ -102,7 +102,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <div className="text-sm text-text-secondary">{record.programName}</div>
           <div className="text-base">{record.dayName}</div>
         </section>
-        <div className="px-4 pt-2 pb-3 rounded-lg bg-background-purpledark">
+        <div className="px-4 pt-2 pb-3 rounded-lg bg-background-purpledark" data-cy="totals-summary">
           <GroupHeader name="Totals" />
           <div className="flex gap-2">
             <ul className="flex-1">
@@ -127,7 +127,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
 
         {startedEntries.length > 0 ? (
           <>
-            <div className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark">
+            <div className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark" data-cy="completed-exercises">
               <GroupHeader name="Exercises" />
               {startedEntries.map((entry, i) => {
                 return (

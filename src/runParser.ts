@@ -34,6 +34,7 @@ const bindings: IScriptBindings = {
   timers: [0, 0, 0],
   completedRPE: [0, 0, 0],
   completedReps: [1, 2, 3],
+  completedRepsLeft: [0, 0, 0],
   isCompleted: [1, 1, 1],
   w: [
     { value: 40, unit: "lb" },

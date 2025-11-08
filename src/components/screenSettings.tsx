@@ -72,6 +72,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
       addons={
         <>
           <ModalImportFromOtherApps
+            settings={props.settings}
             dispatch={props.dispatch}
             isHidden={!showImportFromOtherAppsModal}
             onClose={() => setShowImportFromOtherAppsModal(false)}

@@ -2,7 +2,7 @@ import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Exercise, equipmentName, IExercise } from "../models/exercise";
-import { updateState, IState } from "../models/state";
+import { updateState, IState, updateSettings } from "../models/state";
 import { Weight } from "../models/weight";
 import { ISettings } from "../types";
 import { ObjectUtils } from "../utils/object";
@@ -75,6 +75,19 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
           />
         );
       })}
+      <MenuItemEditable
+        type="boolean"
+        name="Is Unilateral"
+        value={Exercise.getIsUnilateral(fullExercise, props.settings) ? "true" : "false"}
+        onChange={(value) => {
+          const isUnilateral = value === "true";
+          updateSettings(
+            props.dispatch,
+            lb<ISettings>().p("exerciseData").pi(Exercise.toKey(fullExercise)).p("isUnilateral").record(isUnilateral),
+            "Set exercise unilateral setting"
+          );
+        }}
+      />
       {props.show1RM && (
         <ExerciseRM
           name="1 Rep Max"
