@@ -7,9 +7,11 @@ import { IDI } from "../utils/di";
 export const eventsTableNames = {
   dev: {
     events: "lftEventsDev",
+    eventsNameIndex: "lftEventsNameDev",
   },
   prod: {
     events: "lftEvents",
+    eventsNameIndex: "lftEventsName",
   },
 } as const;
 
@@ -82,22 +84,17 @@ export class EventDao {
 
   public async scanByNames(names: string[], timestamp: number): Promise<IEventPayload[]> {
     const env = Utils.getEnv();
-    const indexName = env === "dev" ? "lftEventsNameDev" : "lftEventsName";
-
-    // Query each event name using the GSI
     const allEvents = await Promise.all(
       names.map((name) =>
         this.di.dynamo.query<IEventPayload>({
           tableName: eventsTableNames[env].events,
-          indexName,
+          indexName: eventsTableNames[env].eventsNameIndex,
           expression: "#name = :name AND #timestamp > :timestamp",
           attrs: { "#name": "name", "#timestamp": "timestamp" },
           values: { ":name": name, ":timestamp": timestamp },
         })
       )
     );
-
-    // Flatten the results
     return allEvents.flat();
   }
 }

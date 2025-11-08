@@ -68,7 +68,12 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
   const sets = props.entry.sets;
   const buttonBgColor = WorkoutExerciseUtils.getBgColor100(sets, false);
   const nextSetIndex = [...warmupSets, ...sets].findIndex((s) => !Reps.isFinishedSet(s));
-  const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
+  const exerciseUnit =
+    sets[0]?.completedWeight?.unit ??
+    sets[0]?.weight?.unit ??
+    warmupSets[0]?.completedWeight?.unit ??
+    warmupSets[0]?.weight?.unit ??
+    Equipment.getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
   const targetLabel = getTargetColumnLabel(props.settings.workoutSettings.targetType);
   const lbEntry = lb<IHistoryRecord>().p("entries").i(props.entryIndex);
 
