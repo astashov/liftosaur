@@ -59,6 +59,14 @@ export class LogDao {
     });
   }
 
+  public async getFirstEventTimestamp(userId: string): Promise<number | undefined> {
+    const event = await this.di.dynamo.get<ILogDao>({
+      tableName: logTableNames[Utils.getEnv()].logs,
+      key: { userId, action: "ls-initialize-user" },
+    });
+    return event?.ts || undefined;
+  }
+
   public async getFinishWorkoutForUsers(userIds: string[]): Promise<ILogDao[]> {
     const env = Utils.getEnv();
     return this.di.dynamo.batchGet<ILogDao>({

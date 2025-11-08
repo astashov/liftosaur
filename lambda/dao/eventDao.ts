@@ -80,23 +80,24 @@ export class EventDao {
     });
   }
 
-  public scanByNames(names: string[], timestamp: number): Promise<IEventPayload[]> {
+  public async scanByNames(names: string[], timestamp: number): Promise<IEventPayload[]> {
     const env = Utils.getEnv();
-    const placeholders = names.map((_, index) => `:name${index}`).join(", ");
-    const values = names.reduce<Record<string, string | number>>(
-      (acc, name, index) => {
-        acc[`:name${index}`] = name;
-        return acc;
-      },
-      {} as Record<string, string>
-    );
-    values[":timestamp"] = timestamp;
+    const indexName = env === "dev" ? "lftEventsNameDev" : "lftEventsName";
 
-    return this.di.dynamo.scan<IEventPayload>({
-      tableName: eventsTableNames[env].events,
-      filterExpression: `#name IN (${placeholders}) AND #timestamp > :timestamp`,
-      names: { "#name": "name", "#timestamp": "timestamp" },
-      values,
-    });
+    // Query each event name using the GSI
+    const allEvents = await Promise.all(
+      names.map((name) =>
+        this.di.dynamo.query<IEventPayload>({
+          tableName: eventsTableNames[env].events,
+          indexName,
+          expression: "#name = :name AND #timestamp > :timestamp",
+          attrs: { "#name": "name", "#timestamp": "timestamp" },
+          values: { ":name": name, ":timestamp": timestamp },
+        })
+      )
+    );
+
+    // Flatten the results
+    return allEvents.flat();
   }
 }

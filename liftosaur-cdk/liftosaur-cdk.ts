@@ -206,6 +206,12 @@ export class LiftosaurCdkStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
     });
+    eventsTable.addGlobalSecondaryIndex({
+      indexName: `lftEventsName${suffix}`,
+      partitionKey: { name: "name", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
 
     const aiLogsTable = new dynamodb.Table(this, `LftAiLogs${suffix}`, {
       tableName: `lftAiLogs${suffix}`,
