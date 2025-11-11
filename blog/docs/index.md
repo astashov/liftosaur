@@ -697,6 +697,7 @@ This is the list of available variables you can get values from in your `progres
 - `completedWeights[n]` or `cw[n]` - completed weight of an N set. N starts from 1.
 - `reps[n]` or `r[n]` - number of reps for an N set.
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
+- `completedRepsLeft[n]` - number of completed reps for the left side for unilateral exercises for an N set.
 - `RPE[n]` - if exercise has RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise has RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
 - `timers[n]` - if the exercise sets have explicit timer set up - value of that timer
@@ -910,6 +911,7 @@ So, the list of variables you can get values from is pretty much the same:
 - `completedWeights`
 - `reps`
 - `completedReps`
+- `completedRepsLeft`
 - `RPE`
 - `completedRPE`
 - `rm1`
@@ -1189,6 +1191,7 @@ You cannot assign values to them, but you can use their values. They are:
 - `completedWeights[n]` - completed weight of an N set. N starts from 1.
 - `reps[n]` or `r[n]` - number of reps for an N set.
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
+- `completedRepsLeft[n]` - number of completed reps for a left side for unilateral exercises for an N set.
 - `RPE[n]` - if exercise has RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise has RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
 - `rm1` - 1 Rep Max of a current exercise. You can set it in the Exercise Stats section (if you tap on exercise name on the workout screen)
@@ -1288,7 +1291,7 @@ state.reps = round(2.7);
 
 #### `sum`
 
-It sums all the numbers or weights. Use it with `completedReps`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+It sums all the numbers or weights. Use it with `completedReps`, `completedRepsLeft`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
 
 ```javascript
 if (sum(completedReps) >= 15) {
@@ -1298,7 +1301,7 @@ if (sum(completedReps) >= 15) {
 
 #### `min`
 
-Finds the minimum number or weight in an array. Use it with `completedReps`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Finds the minimum number or weight in an array. Use it with `completedReps`, `completedRepsLeft`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
 
 ```javascript
 state.minWeight = min(weights);
@@ -1306,7 +1309,7 @@ state.minWeight = min(weights);
 
 #### `max`
 
-Finds the maximum number or weight in an array. Use it with `completedReps`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Finds the maximum number or weight in an array. Use it with `completedReps`, `completedRepsLeft`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
 
 ```javascript
 state.maxCompletedReps = max(completedReps);

@@ -47,7 +47,7 @@ export class EventDao {
       const env = Utils.getEnv();
       await this.di.dynamo.put({
         tableName: eventsTableNames[env].events,
-        item: { ...event, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 14 },
+        item: { ...event, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 },
       });
     } catch (e) {
       console.error("Error posting event", e);
@@ -58,7 +58,7 @@ export class EventDao {
     const env = Utils.getEnv();
     await this.di.dynamo.batchPut({
       tableName: eventsTableNames[env].events,
-      items: events,
+      items: events.map((event) => ({ ...event, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 })),
     });
   }
 
