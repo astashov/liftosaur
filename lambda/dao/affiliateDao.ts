@@ -5,6 +5,7 @@ import { IPaymentDao, PaymentDao } from "./paymentDao";
 import { LogDao } from "./logDao";
 import { CollectionUtils } from "../../src/utils/collection";
 import { IAffiliateData } from "../../src/pages/affiliateDashboard/affiliateDashboardContent";
+import { PriceUtils } from "../../src/utils/price";
 
 const tableNames = {
   dev: {
@@ -161,6 +162,11 @@ export class AffiliateDao {
     return users;
   }
 
+  private getDollarAmount(payment: IPaymentDao): number {
+    const conversion = PriceUtils.exchangeRate(payment.amount, payment.currency || "USD");
+    return conversion.success ? conversion.value : 0;
+  }
+
   private async calculateUserRevenue(
     userId: string,
     affiliateTimestamp: number,
@@ -178,9 +184,14 @@ export class AffiliateDao {
         p.paymentType !== "refund"
     );
 
-    const userTotalRevenue = eligiblePayments.reduce((sum, p) => sum + (p.amount || 0), 0) * 0.2;
+    const userTotalRevenue =
+      eligiblePayments.reduce((sum, p) => {
+        return sum + this.getDollarAmount(p);
+      }, 0) * 0.2;
     const userMonthlyRevenue =
-      eligiblePayments.filter((p) => p.timestamp >= currentMonthTs).reduce((sum, p) => sum + (p.amount || 0), 0) * 0.2;
+      eligiblePayments
+        .filter((p) => p.timestamp >= currentMonthTs)
+        .reduce((sum, p) => sum + this.getDollarAmount(p), 0) * 0.2;
 
     return { userTotalRevenue, userMonthlyRevenue, eligiblePayments };
   }
@@ -196,7 +207,7 @@ export class AffiliateDao {
       if (!paymentsPerMonth[monthKey]) {
         paymentsPerMonth[monthKey] = { revenue: 0, count: 0 };
       }
-      paymentsPerMonth[monthKey].revenue += (payment.amount || 0) * 0.2;
+      paymentsPerMonth[monthKey].revenue += this.getDollarAmount(payment) * 0.2;
       paymentsPerMonth[monthKey].count += 1;
     });
 
