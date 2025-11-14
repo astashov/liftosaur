@@ -303,6 +303,7 @@ export namespace Program {
       startTime: now,
       updatedAt: now,
       entries,
+      ui: {},
     };
   }
 
