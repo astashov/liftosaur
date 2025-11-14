@@ -1,26 +1,9 @@
 import { h, JSX, Fragment } from "preact";
-import { Reps } from "../models/set";
-import { Weight } from "../models/weight";
+import { IDisplaySet, Reps } from "../models/set";
 import { ISet, ISettings } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
 import { IHistoryEntryPersonalRecords } from "../models/history";
-
-export interface IDisplaySet {
-  dimReps?: boolean;
-  dimRpe?: boolean;
-  dimWeight?: boolean;
-  dimTimer?: boolean;
-  reps: string;
-  weight?: string;
-  rpe?: string;
-  askWeight?: boolean;
-  unit?: string;
-  isCompleted?: boolean;
-  isRpeFailed?: boolean;
-  isInRange?: boolean;
-  timer?: number;
-}
 
 function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
   return (
@@ -42,31 +25,11 @@ interface IHistoryRecordSetsProps {
   prs?: IHistoryEntryPersonalRecords;
 }
 
-function setToDisplaySet(set: ISet, isNext: boolean, settings: ISettings): IDisplaySet {
-  const completedOrRequiredWeight = set.completedWeight ?? set.weight;
-  return {
-    reps: isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set),
-    rpe: set.completedRpe?.toString() ?? set.rpe?.toString(),
-    weight: isNext
-      ? set.weight && set.originalWeight
-        ? Weight.display(set.weight, false)
-        : undefined
-      : completedOrRequiredWeight
-        ? Weight.display(completedOrRequiredWeight, false)
-        : undefined,
-    unit: completedOrRequiredWeight?.unit ?? settings.units,
-    askWeight: set.askWeight,
-    isCompleted: Reps.isCompletedSet(set),
-    isRpeFailed: set.completedRpe != null && set.completedRpe > (set.rpe ?? 0),
-    isInRange: set.minReps != null ? set.completedReps != null && set.completedReps >= set.minReps : undefined,
-  };
-}
-
 export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Element {
   const { sets, isNext } = props;
   const groups = Reps.group(sets, isNext);
   const displayGroups = groups.map((g) => {
-    return g.map((set) => setToDisplaySet(set, isNext, props.settings));
+    return g.map((set) => Reps.setToDisplaySet(set, isNext, props.settings));
   });
   return (
     <div className="text-sm text-right">
@@ -104,7 +67,7 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
       if (!prset) {
         return undefined;
       }
-      const displayPrSet = setToDisplaySet(prset, isNext, props.settings);
+      const displayPrSet = Reps.setToDisplaySet(prset, isNext, props.settings);
       return isSameDisplaySet(set, displayPrSet)
         ? k === "max1RMSet"
           ? "e1RM"

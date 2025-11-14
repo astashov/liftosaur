@@ -1,6 +1,6 @@
 import { CollectionUtils } from "../utils/collection";
 import { Weight } from "./weight";
-import { ISet, IHistoryRecord, IHistoryEntry, IWeight, IUnit } from "../types";
+import { ISet, IHistoryRecord, IHistoryEntry, IWeight, IUnit, ISettings } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { UidFactory } from "../utils/generator";
 import { Progress } from "./progress";
@@ -8,6 +8,22 @@ import { Progress } from "./progress";
 export type IProgramReps = number;
 
 export type ISetsStatus = "success" | "in-range" | "failed" | "not-finished";
+
+export interface IDisplaySet {
+  dimReps?: boolean;
+  dimRpe?: boolean;
+  dimWeight?: boolean;
+  dimTimer?: boolean;
+  reps: string;
+  weight?: string;
+  rpe?: string;
+  askWeight?: boolean;
+  unit?: string;
+  isCompleted?: boolean;
+  isRpeFailed?: boolean;
+  isInRange?: boolean;
+  timer?: number;
+}
 
 export namespace Reps {
   export function display(sets: ISet[], isNext: boolean = false): string {
@@ -18,6 +34,26 @@ export namespace Reps {
       const groups = CollectionUtils.inGroupsOf(5, arr);
       return groups.map((g) => g.join("/")).join("/ ");
     }
+  }
+
+  export function setToDisplaySet(set: ISet, isNext: boolean, settings: ISettings): IDisplaySet {
+    const completedOrRequiredWeight = set.completedWeight ?? set.weight;
+    return {
+      reps: isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set),
+      rpe: set.completedRpe?.toString() ?? set.rpe?.toString(),
+      weight: isNext
+        ? set.weight && set.originalWeight
+          ? Weight.display(set.weight, false)
+          : undefined
+        : completedOrRequiredWeight
+          ? Weight.display(completedOrRequiredWeight, false)
+          : undefined,
+      unit: completedOrRequiredWeight?.unit ?? settings.units,
+      askWeight: set.askWeight,
+      isCompleted: Reps.isCompletedSet(set),
+      isRpeFailed: set.completedRpe != null && set.completedRpe > (set.rpe ?? 0),
+      isInRange: set.minReps != null ? set.completedReps != null && set.completedReps >= set.minReps : undefined,
+    };
   }
 
   export function addSet(sets: ISet[], isUnilateral: boolean, lastSet?: ISet, isWarmup?: boolean): ISet[] {
@@ -217,6 +253,10 @@ export namespace Reps {
 
   export function findNextSet(entry: IHistoryEntry): ISet | undefined {
     return [...entry.warmupSets, ...entry.sets].filter((s) => !s.isCompleted)[0];
+  }
+
+  export function findNextSetIndex(entry: IHistoryEntry): number {
+    return [...entry.warmupSets, ...entry.sets].findIndex((s) => !s.isCompleted);
   }
 
   export function findNextEntryAndSet(

@@ -40,6 +40,7 @@ import { IScreenStack, Screen } from "./screen";
 import { UidFactory } from "../utils/generator";
 import { ProgramSet } from "./programSet";
 import { Stats } from "./stats";
+import { LiveActivityManager } from "../utils/liveActivityManager";
 
 export interface IScriptBindings {
   day: number;
@@ -509,6 +510,7 @@ export namespace Progress {
         ignoreDoNotDisturb,
       });
     }
+    LiveActivityManager.updateLiveActivity(progress, entry, settings);
     return {
       ...progress,
       timerSince: timestamp,
