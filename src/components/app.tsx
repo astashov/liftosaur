@@ -187,6 +187,30 @@ export function AppView(props: IProps): JSX.Element | null {
           ],
           "Add review request"
         );
+      } else if (event.data?.type === "completeSet") {
+        SendMessage.print("Main app: Received completeSet message");
+        dispatch(Thunk.completeSetExternal());
+      } else if (event.data.type === "adjustRestTimer") {
+        const action = event.data.action as "increase" | "decrease";
+        const progress = stateRef.current.progress[0];
+        if (progress == null) {
+          SendMessage.print("Main app: No active workout to adjust rest timer");
+          return;
+        }
+        const { timer, timerSince } = progress;
+        SendMessage.print(`Main app: ${action === "increase" ? "Increasing" : "Decreasing"} rest timer by 15 seconds`);
+        SendMessage.print(`Main app: Current timer: ${timer}, since: ${timerSince}`);
+        if (timer == null || timerSince == null) {
+          return;
+        }
+        Progress.updateTimer(
+          dispatch,
+          progress,
+          action === "increase" ? timer + 15 : timer - 15,
+          timerSince,
+          stateRef.current.storage.settings,
+          stateRef.current.storage.subscription
+        );
       }
     });
     const userId = state.user?.id || state.storage.tempUserId;
@@ -614,7 +638,12 @@ export function AppView(props: IProps): JSX.Element | null {
       />
       <AppContext.Provider value={{ service, isApp: true }}>{content}</AppContext.Provider>
       {progress && screensWithoutTimer.indexOf(Screen.currentName(state.screenStack)) === -1 && (
-        <RestTimer progress={progress} dispatch={dispatch} />
+        <RestTimer
+          progress={progress}
+          dispatch={dispatch}
+          settings={state.storage.settings}
+          subscription={state.storage.subscription}
+        />
       )}
       <Notification dispatch={dispatch} notification={state.notification} />
       {shouldShowWhatsNew && state.storage.whatsNew != null && (

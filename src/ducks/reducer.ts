@@ -207,6 +207,7 @@ export type ICompleteSetAction = {
   otherStates?: IByExercise<IProgramState>;
   isPlayground: boolean;
   mode: IProgressMode;
+  forceUpdateEntryIndex: boolean;
 };
 
 export type IFinishProgramDayAction = {
@@ -618,7 +619,13 @@ export function buildCardsReducer(
         if (didFinish) {
           newProgress = Progress.maybeApplySuperset(newProgress, action.entryIndex, action.mode);
         }
-        newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
+        newProgress.intervals = History.resumeWorkout(
+          newProgress,
+          settings,
+          action.isPlayground,
+          subscription,
+          settings.timers.reminder
+        );
         if (!action.isPlayground) {
           newProgress = Progress.startTimer(
             newProgress,
@@ -629,6 +636,12 @@ export function buildCardsReducer(
             settings,
             subscription
           );
+        }
+        if (action.forceUpdateEntryIndex) {
+          newProgress = {
+            ...newProgress,
+            ui: { ...newProgress.ui, forceUpdateEntryIndex: !newProgress.ui?.forceUpdateEntryIndex },
+          };
         }
         return newProgress;
       }
@@ -676,7 +689,13 @@ export function buildCardsReducer(
           newProgress = Progress.stopTimer(newProgress);
         }
         newProgress = Progress.maybeApplySuperset(newProgress, action.entryIndex, "workout");
-        newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
+        newProgress.intervals = History.resumeWorkout(
+          newProgress,
+          settings,
+          action.isPlayground,
+          subscription,
+          settings.timers.reminder
+        );
         newProgress = Progress.startTimer(
           newProgress,
           new Date().getTime(),

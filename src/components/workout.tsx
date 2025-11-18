@@ -36,8 +36,6 @@ interface IWorkoutViewProps {
   isTimerShown: boolean;
   subscription: ISubscription;
   settings: ISettings;
-  forceUpdateEntryIndex: boolean;
-  setForceUpdateEntryIndex: () => void;
   dispatch: IDispatch;
 }
 
@@ -46,6 +44,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
   const description = props.programDay?.description;
   const screensRef = useRef<HTMLDivElement>();
   const [isConvertToProgramShown, setIsConvertToProgramShown] = useState(false);
+  const forceUpdateEntryIndex = !!props.progress.ui?.forceUpdateEntryIndex;
 
   useEffect(() => {
     ImagePreloader.preload(ImagePreloader.dynohappy);
@@ -63,7 +62,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
       left: (props.progress.ui?.currentEntryIndex ?? 0) * window.innerWidth,
       behavior: "instant",
     });
-  }, [props.forceUpdateEntryIndex]);
+  }, [forceUpdateEntryIndex]);
 
   return (
     <section className="pb-8">
@@ -83,10 +82,15 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         onClick={(entryIndex) => {
           updateProgress(
             props.dispatch,
-            lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex),
+            [
+              lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex),
+              lb<IHistoryRecord>()
+                .pi("ui")
+                .p("forceUpdateEntryIndex")
+                .recordModify((v) => !v),
+            ],
             "click-exercise-tab"
           );
-          props.setForceUpdateEntryIndex();
         }}
       />
       {selectedEntry != null && (
@@ -120,7 +124,6 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
                     stats={props.stats}
                     history={props.history}
                     otherStates={props.program?.states}
-                    setForceUpdateEntryIndex={props.setForceUpdateEntryIndex}
                     entryIndex={entryIndex}
                     program={props.program}
                     programDay={props.programDay}

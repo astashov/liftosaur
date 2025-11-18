@@ -34,7 +34,6 @@ interface IWorkoutExerciseSet {
   isPlayground: boolean;
   progress: IHistoryRecord;
   entry: IHistoryEntry;
-  setForceUpdateEntryIndex?: () => void;
   entryIndex: number;
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;
@@ -290,12 +289,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     otherStates: props.otherStates,
                     isPlayground: props.isPlayground,
                     mode: props.type,
+                    forceUpdateEntryIndex: props.type === "workout" && !props.set.isCompleted,
                   });
-                  if (props.type === "workout" && !props.set.isCompleted) {
-                    if (props.setForceUpdateEntryIndex) {
-                      props.setForceUpdateEntryIndex();
-                    }
-                  }
                 }}
               >
                 <IconCheckCircle

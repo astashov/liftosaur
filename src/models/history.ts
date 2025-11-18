@@ -14,6 +14,7 @@ import {
   IDayData,
   IScreenMuscle,
   IIntervals,
+  ISubscription,
 } from "../types";
 import { ICollectorFn } from "../utils/collector";
 import { Reps } from "./set";
@@ -29,6 +30,7 @@ import { IEvaluatedProgram, Program } from "./program";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { Muscle } from "./muscle";
 import { UidFactory } from "../utils/generator";
+import { LiveActivityManager } from "../utils/liveActivityManager";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -796,7 +798,12 @@ export namespace History {
     }
   }
 
-  export function resumeWorkoutAction(dispatch: IDispatch, isPlayground: boolean, settings: ISettings): void {
+  export function resumeWorkoutAction(
+    dispatch: IDispatch,
+    isPlayground: boolean,
+    settings: ISettings,
+    subscription: ISubscription
+  ): void {
     updateState(
       dispatch,
       [
@@ -804,7 +811,7 @@ export namespace History {
           .p("progress")
           .pi(0)
           .recordModify((progress) => {
-            const intervals = resumeWorkout(progress, isPlayground, settings.timers.reminder);
+            const intervals = resumeWorkout(progress, settings, isPlayground, subscription, settings.timers.reminder);
             return { ...progress, intervals };
           }),
       ],
@@ -818,12 +825,16 @@ export namespace History {
 
   export function resumeWorkout(
     historyRecord: IHistoryRecord,
+    settings: ISettings,
     isPlayground: boolean,
+    subscription?: ISubscription,
     reminder?: number
   ): IIntervals | undefined {
     const intervals = historyRecord.intervals;
     if (!isPlayground && Progress.isCurrent(historyRecord)) {
       SendMessage.toIosAndAndroid({ type: "resumeWorkout", reminder: `${reminder || 0}` });
+      const entry = historyRecord.entries[0];
+      LiveActivityManager.updateLiveActivity(historyRecord, entry, settings, subscription);
     }
     if (isPaused(intervals)) {
       const newIntervals = intervals ? ObjectUtils.clone(intervals) : [];

@@ -271,6 +271,7 @@ function completeRepsActions(program: IProgram, progress: IHistoryRecord, reps: 
           programExercise,
           mode: "workout",
           isPlayground: false,
+          forceUpdateEntryIndex: false,
         });
         setActions.push({
           type: "ChangeAMRAPAction",
@@ -293,6 +294,7 @@ function completeRepsActions(program: IProgram, progress: IHistoryRecord, reps: 
             programExercise,
             isPlayground: false,
             mode: "workout",
+            forceUpdateEntryIndex: false,
           });
         }
       }

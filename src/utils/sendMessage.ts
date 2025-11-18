@@ -29,6 +29,10 @@ export namespace SendMessage {
     return parseInt(window.lftAndroidAppVersion || "0", 10);
   }
 
+  export function print(message: string): void {
+    toIosAndAndroid({ type: "print", value: message });
+  }
+
   export function androidVersion(): number {
     return parseInt(window.lftAndroidVersion?.toString() || "0", 10);
   }

@@ -65,7 +65,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const dateModal = progress.ui?.dateModal;
   const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, progress.day) : undefined;
-  const [forceUpdateEntryIndex, setForceUpdateEntryIndex] = useState(false);
 
   useEffect(() => {
     if (progress.entries.length === 0) {
@@ -119,7 +118,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   progress={props.progress}
                   onPauseResume={() => {
                     if (History.isPaused(props.progress.intervals)) {
-                      History.resumeWorkoutAction(props.dispatch, false, props.settings);
+                      History.resumeWorkoutAction(props.dispatch, false, props.settings, props.subscription);
                     } else {
                       History.pauseWorkoutAction(props.dispatch);
                     }
@@ -185,7 +184,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 )}
                 progress={progress}
                 onDone={() => {
-                  setForceUpdateEntryIndex(!forceUpdateEntryIndex);
+                  Progress.forceUpdateEntryIndex(props.dispatch);
                 }}
               />
             )}
@@ -297,7 +296,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                     "Close exercise picker"
                   );
                   setTimeout(() => {
-                    setForceUpdateEntryIndex(!forceUpdateEntryIndex);
+                    Progress.forceUpdateEntryIndex(props.dispatch);
                     document
                       .querySelector(`[data-name=workout-exercise-tab-${progress.entries.length}]`)
                       ?.scrollIntoView({
@@ -403,8 +402,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
           setIsShareShown={setIsShareShown}
           stats={props.navCommon.stats}
           allPrograms={props.allPrograms}
-          forceUpdateEntryIndex={forceUpdateEntryIndex}
-          setForceUpdateEntryIndex={() => setForceUpdateEntryIndex(!forceUpdateEntryIndex)}
           subscription={props.subscription}
           history={props.history}
           helps={props.helps}

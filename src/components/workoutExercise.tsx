@@ -34,7 +34,6 @@ interface IWorkoutExerciseProps {
   settings: ISettings;
   dispatch: IDispatch;
   hidePlatesCalculator?: boolean;
-  setForceUpdateEntryIndex: () => void;
 }
 
 export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
@@ -76,7 +75,6 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
         programDay={props.programDay}
         otherStates={props.otherStates}
         progress={props.progress}
-        setForceUpdateEntryIndex={props.setForceUpdateEntryIndex}
         showHelp={props.showHelp}
         helps={props.helps}
         subscription={props.subscription}

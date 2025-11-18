@@ -40,6 +40,7 @@ import { IScreenStack, Screen } from "./screen";
 import { UidFactory } from "../utils/generator";
 import { ProgramSet } from "./programSet";
 import { Stats } from "./stats";
+import { LiveActivityManager } from "../utils/liveActivityManager";
 
 export interface IScriptBindings {
   day: number;
@@ -509,7 +510,7 @@ export namespace Progress {
         ignoreDoNotDisturb,
       });
     }
-    return {
+    const newProgress = {
       ...progress,
       timerSince: timestamp,
       timer,
@@ -517,6 +518,8 @@ export namespace Progress {
       timerEntryIndex: entryIndex,
       timerSetIndex: setIndex,
     };
+    LiveActivityManager.updateLiveActivity(newProgress, entry, settings);
+    return newProgress;
   }
 
   export function getNextSupersetEntry(entries: IHistoryEntry[], entry: IHistoryEntry): IHistoryEntry | undefined {
@@ -601,6 +604,44 @@ export namespace Progress {
       return index === -1 ? undefined : index;
     }
     return undefined;
+  }
+
+  export function updateTimer(
+    dispatch: IDispatch,
+    progress: IHistoryRecord,
+    newTimer: number,
+    timerSince: number,
+    settings: ISettings,
+    subscription: ISubscription
+  ): void {
+    const timerForPush = newTimer - Math.round((Date.now() - timerSince) / 1000);
+    if (timerForPush > 0) {
+      dispatch({
+        type: "StartTimer",
+        entryIndex: progress.timerEntryIndex || 0,
+        setIndex: progress.timerSetIndex || 0,
+        mode: progress.timerMode || "workout",
+        timestamp: progress.timerSince || Date.now(),
+        timer: newTimer,
+      });
+    } else {
+      SendMessage.toIos({ type: "stopTimer" });
+      SendMessage.toAndroid({ type: "stopTimer" });
+      updateState(
+        dispatch,
+        [lb<IState>().p("progress").pi(progress.id).p("timer").record(Math.max(0, newTimer))],
+        "Update timer"
+      );
+      const entry = progress.entries[progress.timerEntryIndex || 0];
+      if (entry) {
+        LiveActivityManager.updateLiveActivity(
+          { ...progress, timer: Math.max(0, newTimer) },
+          entry,
+          settings,
+          subscription
+        );
+      }
+    }
   }
 
   export function maybeApplySuperset(
@@ -989,6 +1030,24 @@ export namespace Progress {
       });
   }
 
+  export function shouldShowAmrapModal(
+    entry: IHistoryEntry,
+    setIndex: number,
+    mode: IProgressMode,
+    hasUserPromptedVars: boolean,
+    settings: ISettings
+  ): boolean {
+    const set = mode === "warmup" ? entry.warmupSets[setIndex] : entry.sets[setIndex];
+    const shouldLogRpe = !!set?.logRpe;
+    const shouldPromptUserVars = hasUserPromptedVars && Progress.hasLastUnfinishedSet(entry);
+    const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
+    const isAmrap =
+      (set?.completedReps == null || (isUnilateral && set?.completedRepsLeft == null)) &&
+      (!!set?.isAmrap || set.reps == null);
+    const shouldAskWeight = set?.completedWeight == null && (!!set?.askWeight || set.weight == null);
+    return !set.isCompleted && (shouldLogRpe || shouldPromptUserVars || isAmrap || shouldAskWeight);
+  }
+
   export function completeSet(
     progress: IHistoryRecord,
     entryIndex: number,
@@ -1022,7 +1081,7 @@ export namespace Progress {
             isCompleted: !progressSet.isCompleted,
           };
         });
-    } else if (!set.isCompleted && (shouldLogRpe || shouldPromptUserVars || isAmrap || shouldAskWeight)) {
+    } else if (Progress.shouldShowAmrapModal(entry, setIndex, mode, hasUserPromptedVars, settings)) {
       const amrapUi: IProgressUi = {
         amrapModal: {
           entryIndex,
@@ -1314,5 +1373,18 @@ export namespace Progress {
     });
 
     return { ...progress, entries: newEntries };
+  }
+
+  export function forceUpdateEntryIndex(dispatch: IDispatch): void {
+    updateProgress(
+      dispatch,
+      [
+        lb<IHistoryRecord>()
+          .pi("ui")
+          .p("forceUpdateEntryIndex")
+          .recordModify((v) => !v),
+      ],
+      "Force update entry index"
+    );
   }
 }

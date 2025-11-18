@@ -3,38 +3,16 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { TimeUtils } from "../utils/time";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
-import { IState, updateState } from "../models/state";
 import { IconTrash } from "./icons/iconTrash";
 import { IconBack } from "./icons/iconBack";
-import { lb } from "lens-shmens";
-import { SendMessage } from "../utils/sendMessage";
-import { IHistoryRecord } from "../types";
+import { IHistoryRecord, ISettings, ISubscription } from "../types";
+import { Progress } from "../models/progress";
 
 interface IProps {
   progress: IHistoryRecord;
   dispatch: IDispatch;
-}
-
-function updateTimer(dispatch: IDispatch, progress: IHistoryRecord, newTimer: number, timerSince: number): void {
-  const timerForPush = newTimer - Math.round((Date.now() - timerSince) / 1000);
-  if (timerForPush > 0) {
-    dispatch({
-      type: "StartTimer",
-      entryIndex: progress.timerEntryIndex || 0,
-      setIndex: progress.timerSetIndex || 0,
-      mode: progress.timerMode || "workout",
-      timestamp: progress.timerSince || Date.now(),
-      timer: newTimer,
-    });
-  } else {
-    SendMessage.toIos({ type: "stopTimer" });
-    SendMessage.toAndroid({ type: "stopTimer" });
-    updateState(
-      dispatch,
-      [lb<IState>().p("progress").pi(progress.id).p("timer").record(Math.max(0, newTimer))],
-      "Update timer"
-    );
-  }
+  subscription: ISubscription;
+  settings: ISettings;
 }
 
 export function RestTimer(props: IProps): JSX.Element | null {
@@ -86,7 +64,9 @@ export function RestTimer(props: IProps): JSX.Element | null {
             data-cy="rest-timer-minus"
             className="relative w-10 m-2 text-center nm-rest-timer-minus"
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
-            onClick={() => updateTimer(props.dispatch, progress, timer - 15, timerSince)}
+            onClick={() =>
+              Progress.updateTimer(props.dispatch, progress, timer - 15, timerSince, props.settings, props.subscription)
+            }
           >
             <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
             <span className="font-bold">-15s</span>
@@ -125,7 +105,9 @@ export function RestTimer(props: IProps): JSX.Element | null {
             data-cy="rest-timer-plus"
             className="relative w-10 m-2 text-center nm-rest-timer-plus"
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
-            onClick={() => updateTimer(props.dispatch, progress, timer + 15, timerSince)}
+            onClick={() =>
+              Progress.updateTimer(props.dispatch, progress, timer + 15, timerSince, props.settings, props.subscription)
+            }
           >
             <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
             <span className="font-bold">+15s</span>

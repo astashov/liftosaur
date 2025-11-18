@@ -12,7 +12,7 @@ import {
 } from "./types";
 import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../plannerExerciseEvaluator";
 import { ObjectUtils } from "../../../utils/object";
-import { IDisplaySet, groupDisplaySets } from "../../../components/historyRecordSets";
+import { groupDisplaySets } from "../../../components/historyRecordSets";
 import { Weight } from "../../../models/weight";
 import {
   IDayData,
@@ -31,6 +31,7 @@ import { UidFactory } from "../../../utils/generator";
 import { PlannerKey } from "../plannerKey";
 import { CollectionUtils } from "../../../utils/collection";
 import { IEither } from "../../../utils/types";
+import { IDisplaySet } from "../../../models/set";
 
 export type ILinearProgressionType = {
   type: "linear";
