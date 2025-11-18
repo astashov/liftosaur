@@ -801,6 +801,8 @@ export namespace History {
   export function resumeWorkoutAction(
     dispatch: IDispatch,
     isPlayground: boolean,
+    entryIndex: number,
+    mode: "workout" | "warmup",
     settings: ISettings,
     subscription: ISubscription
   ): void {
@@ -811,7 +813,15 @@ export namespace History {
           .p("progress")
           .pi(0)
           .recordModify((progress) => {
-            const intervals = resumeWorkout(progress, settings, isPlayground, subscription, settings.timers.reminder);
+            const intervals = resumeWorkout(
+              progress,
+              settings,
+              isPlayground,
+              entryIndex,
+              mode,
+              subscription,
+              settings.timers.reminder
+            );
             return { ...progress, intervals };
           }),
       ],
@@ -827,14 +837,16 @@ export namespace History {
     historyRecord: IHistoryRecord,
     settings: ISettings,
     isPlayground: boolean,
+    entryIndex: number,
+    mode: "workout" | "warmup",
     subscription?: ISubscription,
     reminder?: number
   ): IIntervals | undefined {
     const intervals = historyRecord.intervals;
     if (!isPlayground && Progress.isCurrent(historyRecord)) {
       SendMessage.toIosAndAndroid({ type: "resumeWorkout", reminder: `${reminder || 0}` });
-      const entry = historyRecord.entries[0];
-      LiveActivityManager.updateLiveActivity(historyRecord, entry, settings, subscription);
+      const entry = historyRecord.entries[entryIndex ?? 0];
+      LiveActivityManager.updateLiveActivity(historyRecord, entry, mode, settings, subscription);
     }
     if (isPaused(intervals)) {
       const newIntervals = intervals ? ObjectUtils.clone(intervals) : [];

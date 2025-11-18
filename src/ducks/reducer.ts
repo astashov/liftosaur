@@ -619,13 +619,6 @@ export function buildCardsReducer(
         if (didFinish) {
           newProgress = Progress.maybeApplySuperset(newProgress, action.entryIndex, action.mode);
         }
-        newProgress.intervals = History.resumeWorkout(
-          newProgress,
-          settings,
-          action.isPlayground,
-          subscription,
-          settings.timers.reminder
-        );
         if (!action.isPlayground) {
           newProgress = Progress.startTimer(
             newProgress,
@@ -634,9 +627,19 @@ export function buildCardsReducer(
             action.entryIndex,
             action.setIndex,
             settings,
+            false,
             subscription
           );
         }
+        newProgress.intervals = History.resumeWorkout(
+          newProgress,
+          settings,
+          action.isPlayground,
+          action.entryIndex,
+          action.mode,
+          subscription,
+          settings.timers.reminder
+        );
         if (action.forceUpdateEntryIndex) {
           newProgress = {
             ...newProgress,
@@ -689,13 +692,6 @@ export function buildCardsReducer(
           newProgress = Progress.stopTimer(newProgress);
         }
         newProgress = Progress.maybeApplySuperset(newProgress, action.entryIndex, "workout");
-        newProgress.intervals = History.resumeWorkout(
-          newProgress,
-          settings,
-          action.isPlayground,
-          subscription,
-          settings.timers.reminder
-        );
         newProgress = Progress.startTimer(
           newProgress,
           new Date().getTime(),
@@ -703,7 +699,17 @@ export function buildCardsReducer(
           action.entryIndex,
           action.setIndex,
           settings,
+          false,
           subscription
+        );
+        newProgress.intervals = History.resumeWorkout(
+          newProgress,
+          settings,
+          action.isPlayground,
+          action.entryIndex,
+          "workout",
+          subscription,
+          settings.timers.reminder
         );
         return { ...newProgress, ui: { ...newProgress.ui, amrapModal: undefined } };
       }
@@ -915,6 +921,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           action.entryIndex,
           action.setIndex,
           state.storage.settings,
+          true,
           state.storage.subscription,
           action.timer,
           true

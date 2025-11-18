@@ -20,6 +20,8 @@ interface ILiveActivityEntry {
   completedSets: ISetsStatus[];
   canCompleteFromLiveActivity: boolean;
   isWarmup: boolean;
+  entryIndex: number;
+  setIndex: number;
 
   exerciseImageUrl?: string;
   targetReps?: string;
@@ -83,6 +85,8 @@ export class LiveActivityManager {
       exerciseImageUrl,
       currentSet: setIndex + 1,
       totalSets: allSets.length,
+      entryIndex: progress.entries.indexOf(entry),
+      setIndex,
       completedSets: allSets.map((s) => Reps.setsStatus([s])),
       targetReps: nextSet.reps ? `${n(nextSet.reps)}${nextSet.isAmrap ? "+" : ""}` : undefined,
       targetWeight: nextSet.weight ? `${Weight.print(nextSet.weight)}${nextSet.askWeight ? "+" : ""}` : undefined,
@@ -103,13 +107,14 @@ export class LiveActivityManager {
   public static updateLiveActivity(
     progress: IHistoryRecord,
     entry: IHistoryEntry,
+    mode: "workout" | "warmup",
     settings: ISettings,
     subscription?: ISubscription
   ): void {
     if (!subscription || !Subscriptions.hasSubscription(subscription)) {
       return;
     }
-    const nextEntry = Progress.getNextEntry(progress, entry, "workout", true);
+    const nextEntry = Progress.getNextEntry(progress, entry, mode, true);
     const liveActivityEntry = nextEntry ? this.getLiveActivityEntry(progress, nextEntry, settings) : undefined;
     const attributes: ILiveActivityState = {
       workoutStartTimestamp: progress.startTime,

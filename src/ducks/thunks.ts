@@ -39,7 +39,6 @@ import { Weight } from "../models/weight";
 import { EditProgram } from "../models/editProgram";
 import { ICollectionVersions } from "../models/versionTracker";
 import { DeviceId } from "../utils/deviceId";
-import { Reps } from "../models/set";
 
 declare let Rollbar: RB;
 
@@ -423,38 +422,30 @@ export namespace Thunk {
     };
   }
 
-  export function completeSetExternal(): IThunk {
+  export function completeSetExternal(entryIndex: number, setIndex: number): IThunk {
     return async (dispatch, getState, env) => {
       const state = getState();
       const progress = state.progress[0];
       if (!progress) {
         return;
       }
-      const currentEntryIndex = progress.ui?.currentEntryIndex ?? 0;
-      const currentEntry = progress.entries[currentEntryIndex];
-      if (!currentEntry) {
-        return;
-      }
-      const nextEntry = Progress.getNextEntry(progress, currentEntry, "workout", true);
-      if (!nextEntry) {
-        return;
-      }
-      const nextEntryIndex = progress.entries.indexOf(nextEntry);
-      let nextSetIndex = Reps.findNextSetIndex(nextEntry);
-      const isWarmup = nextSetIndex < nextEntry.warmupSets.length;
+      const entry = progress.entries[entryIndex];
+      const isWarmup = setIndex < entry.warmupSets.length;
       if (!isWarmup) {
-        nextSetIndex -= nextEntry.warmupSets.length;
+        setIndex -= entry.warmupSets.length;
       }
+      SendMessage.print(`CS: entryIndex: ${entryIndex}`);
+      SendMessage.print(`CS: setIndex: ${setIndex}`);
       const program = Program.getFullProgram(state, progress.programId);
       const evaluatedProgram = program ? Program.evaluate(program, state.storage.settings) : undefined;
       const programExercise = evaluatedProgram
-        ? Program.getProgramExercise(progress.day, evaluatedProgram, nextEntry.programExerciseId)
+        ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
         : undefined;
 
       dispatch({
         type: "CompleteSetAction",
-        setIndex: nextSetIndex,
-        entryIndex: nextEntryIndex,
+        setIndex: setIndex,
+        entryIndex: entryIndex,
         programExercise: programExercise,
         otherStates: evaluatedProgram?.states,
         isPlayground: false,

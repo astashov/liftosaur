@@ -30,6 +30,7 @@ import { BottomSheetExercisePicker } from "./exercisePicker/bottomSheetExerciseP
 import { ILensDispatch } from "../utils/useLensReducer";
 import { Settings } from "../models/settings";
 import { BottomSheetWorkoutSuperset } from "./bottomSheetWorkoutSuperset";
+import { Reps } from "../models/set";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
@@ -118,7 +119,18 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   progress={props.progress}
                   onPauseResume={() => {
                     if (History.isPaused(props.progress.intervals)) {
-                      History.resumeWorkoutAction(props.dispatch, false, props.settings, props.subscription);
+                      const currentEntryIndex = props.progress.ui?.currentEntryIndex || 0;
+                      const currentEntry = props.progress.entries[currentEntryIndex];
+                      const setIndex = currentEntry ? Reps.findNextSetIndex(currentEntry) : 0;
+                      const isWarmup = currentEntry && setIndex < currentEntry.warmupSets.length;
+                      History.resumeWorkoutAction(
+                        props.dispatch,
+                        false,
+                        currentEntryIndex,
+                        isWarmup ? "warmup" : "workout",
+                        props.settings,
+                        props.subscription
+                      );
                     } else {
                       History.pauseWorkoutAction(props.dispatch);
                     }

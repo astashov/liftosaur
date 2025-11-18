@@ -432,6 +432,7 @@ export namespace Progress {
     entryIndex: number,
     setIndex: number,
     settings: ISettings,
+    shouldUpdateLiveActivity: boolean,
     subscription?: ISubscription,
     timer?: number,
     isAdjusting?: boolean
@@ -518,7 +519,9 @@ export namespace Progress {
       timerEntryIndex: entryIndex,
       timerSetIndex: setIndex,
     };
-    LiveActivityManager.updateLiveActivity(newProgress, entry, settings);
+    if (shouldUpdateLiveActivity) {
+      LiveActivityManager.updateLiveActivity(newProgress, entry, mode, settings, subscription);
+    }
     return newProgress;
   }
 
@@ -637,6 +640,7 @@ export namespace Progress {
         LiveActivityManager.updateLiveActivity(
           { ...progress, timer: Math.max(0, newTimer) },
           entry,
+          progress.timerMode || "workout",
           settings,
           subscription
         );

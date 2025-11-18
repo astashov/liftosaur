@@ -189,7 +189,9 @@ export function AppView(props: IProps): JSX.Element | null {
         );
       } else if (event.data?.type === "completeSet") {
         SendMessage.print("Main app: Received completeSet message");
-        dispatch(Thunk.completeSetExternal());
+        const entryIndex = event.data.entryIndex as number;
+        const setIndex = event.data.setIndex as number;
+        dispatch(Thunk.completeSetExternal(entryIndex, setIndex));
       } else if (event.data.type === "adjustRestTimer") {
         const action = event.data.action as "increase" | "decrease";
         const progress = stateRef.current.progress[0];
