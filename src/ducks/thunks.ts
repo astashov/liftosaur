@@ -434,8 +434,7 @@ export namespace Thunk {
       if (!isWarmup) {
         setIndex -= entry.warmupSets.length;
       }
-      SendMessage.print(`CS: entryIndex: ${entryIndex}`);
-      SendMessage.print(`CS: setIndex: ${setIndex}`);
+      SendMessage.print(`Main App: complete set entryIndex: ${entryIndex}, setIndex: ${setIndex}`);
       const program = Program.getFullProgram(state, progress.programId);
       const evaluatedProgram = program ? Program.evaluate(program, state.storage.settings) : undefined;
       const programExercise = evaluatedProgram

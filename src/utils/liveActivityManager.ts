@@ -127,7 +127,9 @@ export class LiveActivityManager {
             }
           : undefined,
     };
-    console.log(attributes);
+    SendMessage.print(
+      `Main App: Updating live activity for ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex})`
+    );
     SendMessage.toIos({ type: "updateLiveActivity", data: JSON.stringify(attributes) });
   }
 }
