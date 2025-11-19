@@ -7,6 +7,7 @@ import { DateUtils } from "../utils/date";
 import { ObjectUtils } from "../utils/object";
 import { Button } from "./button";
 import { Modal } from "./modal";
+import { SendMessage } from "../utils/sendMessage";
 
 interface IModalDebugProps {
   onClose: () => void;
@@ -48,6 +49,11 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
       <div className="mt-4 text-center">
         <Button name="send-debug-info" kind="purple" onClick={() => props.dispatch(Thunk.postDebug())}>
           Send Debug Info
+        </Button>
+      </div>
+      <div className="mt-4 text-center">
+        <Button name="share-device-logs" kind="purple" onClick={() => SendMessage.toIos({ type: "shareLog" })}>
+          Share device logs
         </Button>
       </div>
     </Modal>
