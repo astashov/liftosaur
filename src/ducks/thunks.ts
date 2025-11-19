@@ -39,6 +39,7 @@ import { Weight } from "../models/weight";
 import { EditProgram } from "../models/editProgram";
 import { ICollectionVersions } from "../models/versionTracker";
 import { DeviceId } from "../utils/deviceId";
+import { LiveActivityManager } from "../utils/liveActivityManager";
 
 declare let Rollbar: RB;
 
@@ -440,6 +441,19 @@ export namespace Thunk {
       const programExercise = evaluatedProgram
         ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
         : undefined;
+
+      const set = isWarmup ? entry.warmupSets[setIndex] : entry.sets[setIndex];
+      if (set.isCompleted) {
+        SendMessage.print(`Main App: Set already completed, refreshing live activity`);
+        LiveActivityManager.updateLiveActivity(
+          progress,
+          entry,
+          isWarmup ? "warmup" : "workout",
+          state.storage.settings,
+          state.storage.subscription
+        );
+        return;
+      }
 
       dispatch({
         type: "CompleteSetAction",

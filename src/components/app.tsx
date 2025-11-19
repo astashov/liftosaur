@@ -134,6 +134,15 @@ export function AppView(props: IProps): JSX.Element | null {
         }
       }
     });
+    // window.addEventListener("keypress", (e) => {
+    //   if (e.key === "r") {
+    //     const progress = stateRef.current.progress[0];
+    //     const currentEntryIndex = progress?.ui?.currentEntryIndex ?? 0;
+    //     const currentEntry = progress?.entries[currentEntryIndex];
+    //     const setIndex = currentEntry ? Reps.findNextSetIndex(currentEntry) : 0;
+    //     window.postMessage({ type: "completeSet", entryIndex: currentEntryIndex, setIndex }, "*");
+    //   }
+    // });
     window.addEventListener("message", (event) => {
       if (event.data?.type === "setAppleReceipt") {
         dispatch(Thunk.setAppleReceipt(event.data.receipt));

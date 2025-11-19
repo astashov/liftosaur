@@ -78,7 +78,11 @@ export class LiveActivityManager {
       settings
     );
 
-    const currentReps = nextSet.completedReps ?? nextSet.reps;
+    const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
+    const currentReps =
+      isUnilateral && nextSet.completedRepsLeft != null
+        ? `${nextSet.completedRepsLeft}/${nextSet.completedReps ?? nextSet.reps ?? 0}`
+        : (nextSet.completedReps ?? nextSet.reps);
     const currentWeight = nextSet.completedWeight ?? nextSet.weight;
     const state: ILiveActivityEntry = {
       exerciseName: Exercise.fullName(exercise, settings),
