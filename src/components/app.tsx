@@ -58,6 +58,8 @@ import { ScreenSetupEquipment } from "./screenSetupEquipment";
 import { Settings } from "../models/settings";
 import { AppContext } from "./appContext";
 import { ScreenMuscleGroups } from "./screenMuscleGroups";
+import { LiveActivityManager } from "../utils/liveActivityManager";
+import { Reps } from "../models/set";
 
 declare let Rollbar: RB;
 declare let __COMMIT_HASH__: string;
@@ -203,6 +205,8 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.completeSetExternal(entryIndex, setIndex));
       } else if (event.data.type === "adjustRestTimer") {
         const action = event.data.action as "increase" | "decrease";
+        const incomingRestTimer = event.data.restTimer as number;
+        const incomingRestTimerSince = event.data.restTimerSince as number;
         const progress = stateRef.current.progress[0];
         if (progress == null) {
           SendMessage.print("Main app: No active workout to adjust rest timer");
@@ -214,14 +218,30 @@ export function AppView(props: IProps): JSX.Element | null {
         if (timer == null || timerSince == null) {
           return;
         }
-        Progress.updateTimer(
-          dispatch,
-          progress,
-          action === "increase" ? timer + 15 : timer - 15,
-          timerSince,
-          stateRef.current.storage.settings,
-          stateRef.current.storage.subscription
-        );
+        if (incomingRestTimer !== timer || incomingRestTimerSince !== timerSince) {
+          SendMessage.print(
+            `Main app: Incoming rest timer data does not match current state, refreshing live activity. ${incomingRestTimer} != ${timer} || ${incomingRestTimerSince} != ${timerSince}`
+          );
+          const entry = progress.entries[progress.ui?.currentEntryIndex || 0];
+          const nextSetIndex = Reps.findNextSetIndex(entry);
+          const isWarmup = nextSetIndex < entry.warmupSets.length;
+          LiveActivityManager.updateLiveActivity(
+            progress,
+            entry,
+            isWarmup ? "warmup" : "workout",
+            stateRef.current.storage.settings,
+            stateRef.current.storage.subscription
+          );
+        } else {
+          Progress.updateTimer(
+            dispatch,
+            progress,
+            action === "increase" ? timer + 15 : timer - 15,
+            timerSince,
+            stateRef.current.storage.settings,
+            stateRef.current.storage.subscription
+          );
+        }
       }
     });
     const userId = state.user?.id || state.storage.tempUserId;
