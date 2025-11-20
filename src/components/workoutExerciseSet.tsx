@@ -290,6 +290,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     isPlayground: props.isPlayground,
                     mode: props.type,
                     forceUpdateEntryIndex: props.type === "workout" && !props.set.isCompleted,
+                    isExternal: false,
                   });
                 }}
               >
