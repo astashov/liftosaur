@@ -103,11 +103,25 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
               const windowWidth = window.innerWidth;
               const selectedIndex = Math.floor((scrollLeft + windowWidth / 2) / windowWidth);
               if (selectedIndex !== (props.progress.ui?.currentEntryIndex ?? 0)) {
-                updateProgress(
-                  props.dispatch,
-                  lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(selectedIndex),
-                  "scroll-exercise-tab"
-                );
+                if (!props.progress.ui?.isExternal) {
+                  updateProgress(
+                    props.dispatch,
+                    lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(selectedIndex),
+                    "scroll-exercise-tab"
+                  );
+                } else {
+                  updateProgress(
+                    props.dispatch,
+                    [
+                      lb<IHistoryRecord>().pi("ui").p("isExternal").record(false),
+                      lb<IHistoryRecord>()
+                        .pi("ui")
+                        .p("forceUpdateEntryIndex")
+                        .recordModify((v) => !v),
+                    ],
+                    "scroll-exercise-tab-external"
+                  );
+                }
               }
             }}
             style={{

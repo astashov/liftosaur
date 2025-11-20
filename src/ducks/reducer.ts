@@ -208,6 +208,7 @@ export type ICompleteSetAction = {
   isPlayground: boolean;
   mode: IProgressMode;
   forceUpdateEntryIndex: boolean;
+  isExternal: boolean;
 };
 
 export type IFinishProgramDayAction = {
@@ -644,6 +645,12 @@ export function buildCardsReducer(
           newProgress = {
             ...newProgress,
             ui: { ...newProgress.ui, forceUpdateEntryIndex: !newProgress.ui?.forceUpdateEntryIndex },
+          };
+        }
+        if (action.isExternal) {
+          newProgress = {
+            ...newProgress,
+            ui: { ...newProgress.ui, isExternal: true },
           };
         }
         return newProgress;

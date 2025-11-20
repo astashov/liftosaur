@@ -759,6 +759,7 @@ export const TProgressUi = t.partial(
     currentEntryIndex: t.number,
     showSupersetPicker: THistoryEntry,
     forceUpdateEntryIndex: t.boolean,
+    isExternal: t.boolean,
   },
   "TProgressUi"
 );

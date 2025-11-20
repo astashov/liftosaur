@@ -817,7 +817,7 @@ export namespace Progress {
   }
 
   export function setProgress(state: IState, progress: IHistoryRecord): IState {
-    return lf(state).p("progress").p(getProgressId(state.screenStack)).set(progress);
+    return lf(state).p("progress").p(progress.id).set(progress);
   }
 
   export function runUpdateScriptForEntry(

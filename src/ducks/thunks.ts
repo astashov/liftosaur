@@ -464,6 +464,7 @@ export namespace Thunk {
         isPlayground: false,
         mode: isWarmup ? "warmup" : "workout",
         forceUpdateEntryIndex: true,
+        isExternal: true,
       });
     };
   }
