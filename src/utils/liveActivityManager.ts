@@ -13,11 +13,16 @@ import { UrlUtils } from "./url";
 
 declare const __HOST__: string;
 
+interface ILiveActivitySet {
+  status: ISetsStatus;
+  isWarmup: boolean;
+}
+
 interface ILiveActivityEntry {
   exerciseName: string;
   currentSet: number;
   totalSets: number;
-  completedSets: ISetsStatus[];
+  completedSets: ILiveActivitySet[];
   canCompleteFromLiveActivity: boolean;
   isWarmup: boolean;
   entryIndex: number;
@@ -91,7 +96,10 @@ export class LiveActivityManager {
       totalSets: allSets.length,
       entryIndex: progress.entries.indexOf(entry),
       setIndex,
-      completedSets: allSets.map((s) => Reps.setsStatus([s])),
+      completedSets: allSets.map((s, i) => ({
+        status: Reps.setsStatus([s]),
+        isWarmup: i < entry.warmupSets.length,
+      })),
       targetReps: nextSet.reps ? `${n(nextSet.reps)}${nextSet.isAmrap ? "+" : ""}` : undefined,
       targetWeight: nextSet.weight ? `${Weight.print(nextSet.weight)}${nextSet.askWeight ? "+" : ""}` : undefined,
       targetRPE: nextSet.rpe != null ? `${n(nextSet.rpe)}${nextSet.logRpe ? "+" : ""}` : undefined,
