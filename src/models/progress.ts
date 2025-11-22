@@ -40,7 +40,7 @@ import { IScreenStack, Screen } from "./screen";
 import { UidFactory } from "../utils/generator";
 import { ProgramSet } from "./programSet";
 import { Stats } from "./stats";
-import { LiveActivityManager } from "../utils/liveActivityManager";
+import { Thunk } from "../ducks/thunks";
 
 export interface IScriptBindings {
   day: number;
@@ -432,7 +432,6 @@ export namespace Progress {
     entryIndex: number,
     setIndex: number,
     settings: ISettings,
-    shouldUpdateLiveActivity: boolean,
     subscription?: ISubscription,
     timer?: number,
     isAdjusting?: boolean
@@ -519,9 +518,6 @@ export namespace Progress {
       timerEntryIndex: entryIndex,
       timerSetIndex: setIndex,
     };
-    if (shouldUpdateLiveActivity) {
-      LiveActivityManager.updateLiveActivity(newProgress, entry, mode, settings, subscription);
-    }
     return newProgress;
   }
 
@@ -614,8 +610,9 @@ export namespace Progress {
     progress: IHistoryRecord,
     newTimer: number,
     timerSince: number,
-    settings: ISettings,
-    subscription: ISubscription
+    liveActivityEntryIndex: number | undefined,
+    liveActivitySetIndex: number | undefined,
+    skipLiveActivityUpdate: boolean
   ): void {
     const timerForPush = newTimer - Math.round((Date.now() - timerSince) / 1000);
     if (timerForPush > 0) {
@@ -627,6 +624,16 @@ export namespace Progress {
         timestamp: progress.timerSince || Date.now(),
         timer: newTimer,
       });
+      if (!skipLiveActivityUpdate) {
+        dispatch(
+          Thunk.updateLiveActivity(
+            liveActivityEntryIndex,
+            liveActivitySetIndex,
+            newTimer,
+            progress.timerSince || Date.now()
+          )
+        );
+      }
     } else {
       SendMessage.toIos({ type: "stopTimer" });
       SendMessage.toAndroid({ type: "stopTimer" });
@@ -635,14 +642,14 @@ export namespace Progress {
         [lb<IState>().p("progress").pi(progress.id).p("timer").record(Math.max(0, newTimer))],
         "Update timer"
       );
-      const entry = progress.entries[progress.timerEntryIndex || 0];
-      if (entry) {
-        LiveActivityManager.updateLiveActivity(
-          { ...progress, timer: Math.max(0, newTimer) },
-          entry,
-          progress.timerMode || "workout",
-          settings,
-          subscription
+      if (!skipLiveActivityUpdate) {
+        dispatch(
+          Thunk.updateLiveActivity(
+            liveActivityEntryIndex,
+            liveActivitySetIndex,
+            Math.max(0, newTimer),
+            progress.timerSince || Date.now()
+          )
         );
       }
     }

@@ -1,11 +1,11 @@
 import { Exercise } from "../models/exercise";
 import { ExerciseImageUtils } from "../models/exerciseImage";
-import { IEvaluatedProgram, Program } from "../models/program";
 import { ProgramExercise } from "../models/programExercise";
 import { Progress } from "../models/progress";
 import { ISetsStatus, Reps } from "../models/set";
 import { Weight } from "../models/weight";
-import { IHistoryEntry, IHistoryRecord, ISettings, ISubscription } from "../types";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { n } from "./math";
 import { SendMessage } from "./sendMessage";
 import { Subscriptions } from "./subscriptions";
@@ -52,28 +52,32 @@ interface ILiveActivityState {
 export class LiveActivityManager {
   private static getLiveActivityEntry(
     progress: IHistoryRecord,
-    entry: IHistoryEntry,
-    settings: ISettings,
-    program?: IEvaluatedProgram
+    entryIndex: number | undefined,
+    setIndex: number | undefined,
+    programExercise: IPlannerProgramExercise | undefined,
+    settings: ISettings
   ): ILiveActivityEntry | undefined {
+    if (entryIndex == null || setIndex == null) {
+      return undefined;
+    }
+    const entry = progress.entries[entryIndex];
+    if (!entry) {
+      return undefined;
+    }
     const exercise = Exercise.get(entry.exercise, settings.exercises);
     const allSets = [...entry.warmupSets, ...entry.sets];
-    const setIndex = Reps.findNextSetIndex(entry);
-    const nextSet = Reps.findNextSet(entry);
-    if (setIndex === -1 || !nextSet) {
+    const set = allSets[setIndex];
+    if (setIndex === -1 || !set) {
       return undefined;
     }
     const isNextSetWarmup = setIndex < entry.warmupSets.length;
-    const plates = nextSet.weight
-      ? Weight.calculatePlates(nextSet.weight, settings, nextSet.weight?.unit || settings.units, entry.exercise)
+    const plates = set.weight
+      ? Weight.calculatePlates(set.weight, settings, set.weight?.unit || settings.units, entry.exercise)
       : undefined;
     let exerciseImageUrl = ExerciseImageUtils.url(exercise, "small", settings);
     if (exerciseImageUrl) {
       exerciseImageUrl = UrlUtils.build(exerciseImageUrl, __HOST__)?.toString();
     }
-    const programExercise = program
-      ? Program.getProgramExercise(progress.day, program, entry.programExerciseId)
-      : undefined;
     const hasUserPromptedVars = !!(programExercise && ProgramExercise.hasUserPromptedVars(programExercise));
     const canCompleteFromLiveActivity = !Progress.shouldShowAmrapModal(
       entry,
@@ -85,10 +89,10 @@ export class LiveActivityManager {
 
     const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
     const currentReps =
-      isUnilateral && nextSet.completedRepsLeft != null
-        ? `${nextSet.completedRepsLeft}/${nextSet.completedReps ?? nextSet.reps ?? 0}`
-        : (nextSet.completedReps ?? nextSet.reps);
-    const currentWeight = nextSet.completedWeight ?? nextSet.weight;
+      isUnilateral && set.completedRepsLeft != null
+        ? `${set.completedRepsLeft}/${set.completedReps ?? set.reps ?? 0}`
+        : (set.completedReps ?? set.reps);
+    const currentWeight = set.completedWeight ?? set.weight;
     const state: ILiveActivityEntry = {
       exerciseName: Exercise.fullName(exercise, settings),
       exerciseImageUrl,
@@ -100,10 +104,10 @@ export class LiveActivityManager {
         status: Reps.setsStatus([s]),
         isWarmup: i < entry.warmupSets.length,
       })),
-      targetReps: nextSet.reps ? `${n(nextSet.reps)}${nextSet.isAmrap ? "+" : ""}` : undefined,
-      targetWeight: nextSet.weight ? `${Weight.print(nextSet.weight)}${nextSet.askWeight ? "+" : ""}` : undefined,
-      targetRPE: nextSet.rpe != null ? `${n(nextSet.rpe)}${nextSet.logRpe ? "+" : ""}` : undefined,
-      targetTimer: nextSet.timer != null ? nextSet.timer.toString() : undefined,
+      targetReps: set.reps ? `${n(set.reps)}${set.isAmrap ? "+" : ""}` : undefined,
+      targetWeight: set.weight ? `${Weight.print(set.weight)}${set.askWeight ? "+" : ""}` : undefined,
+      targetRPE: set.rpe != null ? `${n(set.rpe)}${set.logRpe ? "+" : ""}` : undefined,
+      targetTimer: set.timer != null ? set.timer.toString() : undefined,
       plates:
         (plates?.plates || []).length > 0
           ? Weight.formatOneSide(settings, plates?.plates || [], entry.exercise)
@@ -118,24 +122,26 @@ export class LiveActivityManager {
 
   public static updateLiveActivity(
     progress: IHistoryRecord,
-    entry: IHistoryEntry,
-    mode: "workout" | "warmup",
+    entryIndex: number | undefined,
+    setIndex: number | undefined,
+    restTimer: number | undefined,
+    restTimerSince: number | undefined,
+    programExercise: IPlannerProgramExercise | undefined,
     settings: ISettings,
     subscription?: ISubscription
   ): void {
     if (!subscription || !Subscriptions.hasSubscription(subscription)) {
       return;
     }
-    const nextEntry = Progress.getNextEntry(progress, entry, mode, true);
-    const liveActivityEntry = nextEntry ? this.getLiveActivityEntry(progress, nextEntry, settings) : undefined;
+    const liveActivityEntry = this.getLiveActivityEntry(progress, entryIndex, setIndex, programExercise, settings);
     const attributes: ILiveActivityState = {
       workoutStartTimestamp: progress.startTime,
       historyEntryState: liveActivityEntry,
       restTimer:
         progress.timerSince != null && progress.timer != null
           ? {
-              restTimerSince: progress.timerSince,
-              restTimer: progress.timer,
+              restTimerSince: restTimerSince ?? progress.timerSince,
+              restTimer: restTimer ?? progress.timer,
             }
           : undefined,
     };
@@ -143,5 +149,32 @@ export class LiveActivityManager {
       `Main App: Updating live activity for ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex})`
     );
     SendMessage.toIos({ type: "updateLiveActivity", data: JSON.stringify(attributes) });
+  }
+
+  public static updateLiveActivityForNextEntry(
+    progress: IHistoryRecord,
+    entryIndex: number,
+    mode: "workout" | "warmup",
+    programExercise: IPlannerProgramExercise | undefined,
+    settings: ISettings,
+    subscription?: ISubscription
+  ): void {
+    const currentEntry = progress.entries[entryIndex];
+    if (!currentEntry) {
+      return;
+    }
+    const nextEntry = Progress.getNextEntry(progress, currentEntry, mode, true);
+    const nextEntryIndex = nextEntry ? progress.entries.indexOf(nextEntry) : undefined;
+    const nextSetIndex = nextEntry ? Reps.findNextSetIndex(nextEntry) : undefined;
+    this.updateLiveActivity(
+      progress,
+      nextEntryIndex,
+      nextSetIndex,
+      progress.timer,
+      progress.timerSince,
+      programExercise,
+      settings,
+      subscription
+    );
   }
 }

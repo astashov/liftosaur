@@ -58,8 +58,6 @@ import { ScreenSetupEquipment } from "./screenSetupEquipment";
 import { Settings } from "../models/settings";
 import { AppContext } from "./appContext";
 import { ScreenMuscleGroups } from "./screenMuscleGroups";
-import { LiveActivityManager } from "../utils/liveActivityManager";
-import { Reps } from "../models/set";
 
 declare let Rollbar: RB;
 declare let __COMMIT_HASH__: string;
@@ -202,12 +200,17 @@ export function AppView(props: IProps): JSX.Element | null {
         SendMessage.print("Main app: Received completeSet message");
         const entryIndex = event.data.entryIndex as number;
         const setIndex = event.data.setIndex as number;
-        dispatch(Thunk.completeSetExternal(entryIndex, setIndex));
+        const restTimer = event.data.restTimer as number;
+        const restTimerSince = event.data.restTimerSince as number;
+        dispatch(Thunk.completeSetExternal(entryIndex, setIndex, restTimer, restTimerSince));
       } else if (event.data.type === "adjustRestTimer") {
         const action = event.data.action as "increase" | "decrease";
         const incomingRestTimer = event.data.restTimer as number;
         const incomingRestTimerSince = event.data.restTimerSince as number;
+        const entryIndex = event.data.entryIndex as number;
+        const setIndex = event.data.setIndex as number;
         const progress = stateRef.current.progress[0];
+        const skipLiveActivityUpdate = !!event.data.skipLiveActivityUpdate;
         if (progress == null) {
           SendMessage.print("Main app: No active workout to adjust rest timer");
           return;
@@ -222,24 +225,18 @@ export function AppView(props: IProps): JSX.Element | null {
           SendMessage.print(
             `Main app: Incoming rest timer data does not match current state, refreshing live activity. ${incomingRestTimer} != ${timer} || ${incomingRestTimerSince} != ${timerSince}`
           );
-          const entry = progress.entries[progress.ui?.currentEntryIndex || 0];
-          const nextSetIndex = Reps.findNextSetIndex(entry);
-          const isWarmup = nextSetIndex < entry.warmupSets.length;
-          LiveActivityManager.updateLiveActivity(
-            progress,
-            entry,
-            isWarmup ? "warmup" : "workout",
-            stateRef.current.storage.settings,
-            stateRef.current.storage.subscription
-          );
+          if (!skipLiveActivityUpdate) {
+            dispatch(Thunk.updateLiveActivity(entryIndex, setIndex, timer, timerSince));
+          }
         } else {
           Progress.updateTimer(
             dispatch,
             progress,
             action === "increase" ? timer + 15 : timer - 15,
             timerSince,
-            stateRef.current.storage.settings,
-            stateRef.current.storage.subscription
+            entryIndex,
+            setIndex,
+            skipLiveActivityUpdate
           );
         }
       }

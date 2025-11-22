@@ -88,6 +88,8 @@ describe("sync", () => {
     // @ts-ignore
     global.__API_HOST__ = "https://www.liftosaur.com";
     // @ts-ignore
+    global.__HOST__ = "https://www.liftosaur.com";
+    // @ts-ignore
     global.__ENV__ = "prod";
     // @ts-ignore
     global.__FULL_COMMIT_HASH__ = "abc123";

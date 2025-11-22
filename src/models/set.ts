@@ -286,6 +286,30 @@ export namespace Reps {
     return undefined;
   }
 
+  export function findNextEntryAndSetIndex(
+    historyRecord: IHistoryRecord,
+    entryIndex: number,
+    mode: "workout" | "warmup"
+  ):
+    | {
+        entryIndex: number;
+        setIndex: number;
+      }
+    | undefined {
+    const entry = historyRecord.entries[entryIndex];
+    if (entry == null) {
+      return undefined;
+    }
+    const nextEntry = Progress.getNextEntry(historyRecord, entry, mode, true);
+    if (nextEntry == null) {
+      return undefined;
+    }
+
+    const nextSet = findNextSetIndex(nextEntry);
+
+    return { entryIndex: historyRecord.entries.indexOf(nextEntry), setIndex: nextSet };
+  }
+
   export function volume(sets: ISet[], unit: IUnit): IWeight {
     return Weight.convertTo(
       sets.reduce((memo, set) => Weight.add(memo, Reps.setVolume(set, unit)), Weight.build(0, unit)),

@@ -423,7 +423,44 @@ export namespace Thunk {
     };
   }
 
-  export function completeSetExternal(entryIndex: number, setIndex: number): IThunk {
+  export function updateLiveActivity(
+    entryIndex: number | undefined,
+    setIndex: number | undefined,
+    restTimer: number | undefined,
+    restTimerSince: number | undefined
+  ): IThunk {
+    return async (dispatch, getState, env) => {
+      const state = getState();
+      const progress = state.progress[0];
+      if (!progress) {
+        return;
+      }
+      const entry = entryIndex != null ? progress.entries[entryIndex] : undefined;
+      const program = Program.getProgram(state, progress.programId);
+      const evaluatedProgram = program ? Program.evaluate(program, state.storage.settings) : undefined;
+      const programExercise =
+        evaluatedProgram && entry
+          ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+          : undefined;
+      LiveActivityManager.updateLiveActivity(
+        progress,
+        entryIndex,
+        setIndex,
+        restTimer,
+        restTimerSince,
+        programExercise,
+        state.storage.settings,
+        state.storage.subscription
+      );
+    };
+  }
+
+  export function completeSetExternal(
+    entryIndex: number,
+    setIndex: number,
+    restTimer: number,
+    restTimerSince: number
+  ): IThunk {
     return async (dispatch, getState, env) => {
       const state = getState();
       const progress = state.progress[0];
@@ -432,8 +469,9 @@ export namespace Thunk {
       }
       const entry = progress.entries[entryIndex];
       const isWarmup = setIndex < entry.warmupSets.length;
+      let adjustedSetIndex = setIndex;
       if (!isWarmup) {
-        setIndex -= entry.warmupSets.length;
+        adjustedSetIndex -= entry.warmupSets.length;
       }
       SendMessage.print(`Main App: complete set entryIndex: ${entryIndex}, setIndex: ${setIndex}`);
       const program = Program.getFullProgram(state, progress.programId);
@@ -442,16 +480,10 @@ export namespace Thunk {
         ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
         : undefined;
 
-      const set = isWarmup ? entry.warmupSets[setIndex] : entry.sets[setIndex];
+      const set = isWarmup ? entry.warmupSets[adjustedSetIndex] : entry.sets[adjustedSetIndex];
       if (set.isCompleted) {
         SendMessage.print(`Main App: Set already completed, refreshing live activity`);
-        LiveActivityManager.updateLiveActivity(
-          progress,
-          entry,
-          isWarmup ? "warmup" : "workout",
-          state.storage.settings,
-          state.storage.subscription
-        );
+        dispatch(Thunk.updateLiveActivity(entryIndex, setIndex, restTimer, restTimerSince));
         return;
       }
 

@@ -49,3 +49,16 @@ User debug page:
 - Pop out the buttons on the choose program screen more
 - Pop out the NUXes more
 - Progress looks weird if tried to pick reuse set that reuses something else
+
+
+
+* Update live acitivity:
+  - Resume workout
+  - Change rest timer
+* Stop live activity
+  - pause timer
+
+
+
+
+  

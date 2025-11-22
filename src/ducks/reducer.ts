@@ -46,6 +46,7 @@ import { lg } from "../utils/posthog";
 import { Equipment } from "../models/equipment";
 import { Stats } from "../models/stats";
 import { Weight } from "../models/weight";
+import { LiveActivityManager } from "../utils/liveActivityManager";
 
 declare let __COMMIT_HASH__: string;
 
@@ -628,18 +629,17 @@ export function buildCardsReducer(
             action.entryIndex,
             action.setIndex,
             settings,
-            false,
             subscription
           );
         }
-        newProgress.intervals = History.resumeWorkout(
+        newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
+        LiveActivityManager.updateLiveActivityForNextEntry(
           newProgress,
-          settings,
-          action.isPlayground,
           action.entryIndex,
           action.mode,
-          subscription,
-          settings.timers.reminder
+          action.programExercise,
+          settings,
+          subscription
         );
         if (action.forceUpdateEntryIndex) {
           newProgress = {
@@ -706,17 +706,16 @@ export function buildCardsReducer(
           action.entryIndex,
           action.setIndex,
           settings,
-          false,
           subscription
         );
-        newProgress.intervals = History.resumeWorkout(
+        newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
+        LiveActivityManager.updateLiveActivityForNextEntry(
           newProgress,
-          settings,
-          action.isPlayground,
           action.entryIndex,
           "workout",
-          subscription,
-          settings.timers.reminder
+          action.programExercise,
+          settings,
+          subscription
         );
         return { ...newProgress, ui: { ...newProgress.ui, amrapModal: undefined } };
       }
@@ -928,7 +927,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           action.entryIndex,
           action.setIndex,
           state.storage.settings,
-          true,
           state.storage.subscription,
           action.timer,
           true

@@ -7,6 +7,7 @@ import { IconTrash } from "./icons/iconTrash";
 import { IconBack } from "./icons/iconBack";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { Progress } from "../models/progress";
+import { Reps } from "../models/set";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -54,6 +55,10 @@ export function RestTimer(props: IProps): JSX.Element | null {
     const isTimeOut = timeDifference > timer * 1000;
     const className = isTimeOut ? "bg-background-darkred" : "bg-background-darkgray";
     const totalColor = isTimeOut ? "text-white" : "text-gray-300";
+    const nextEntryAndSetIndex =
+      progress.timerEntryIndex != null && progress.timerMode != null
+        ? Reps.findNextEntryAndSetIndex(progress, progress.timerEntryIndex, progress.timerMode)
+        : undefined;
     return isExpanded ? (
       <div className="fixed z-30 safe-area-inset-bottom " style={{ left: "1rem", right: "1rem", bottom: "5rem" }}>
         <div
@@ -65,7 +70,15 @@ export function RestTimer(props: IProps): JSX.Element | null {
             className="relative w-10 m-2 text-center nm-rest-timer-minus"
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() =>
-              Progress.updateTimer(props.dispatch, progress, timer - 15, timerSince, props.settings, props.subscription)
+              Progress.updateTimer(
+                props.dispatch,
+                progress,
+                timer - 15,
+                timerSince,
+                nextEntryAndSetIndex?.entryIndex,
+                nextEntryAndSetIndex?.setIndex,
+                false
+              )
             }
           >
             <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
@@ -106,7 +119,15 @@ export function RestTimer(props: IProps): JSX.Element | null {
             className="relative w-10 m-2 text-center nm-rest-timer-plus"
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() =>
-              Progress.updateTimer(props.dispatch, progress, timer + 15, timerSince, props.settings, props.subscription)
+              Progress.updateTimer(
+                props.dispatch,
+                progress,
+                timer + 15,
+                timerSince,
+                nextEntryAndSetIndex?.entryIndex,
+                nextEntryAndSetIndex?.setIndex,
+                false
+              )
             }
           >
             <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
