@@ -489,7 +489,7 @@ export namespace Thunk {
 
       dispatch({
         type: "CompleteSetAction",
-        setIndex: setIndex,
+        setIndex: adjustedSetIndex,
         entryIndex: entryIndex,
         programExercise: programExercise,
         otherStates: evaluatedProgram?.states,
