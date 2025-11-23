@@ -8,7 +8,7 @@ import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { n } from "./math";
 import { SendMessage } from "./sendMessage";
-// import { Subscriptions } from "./subscriptions";
+import { Subscriptions } from "./subscriptions";
 import { UrlUtils } from "./url";
 
 declare const __HOST__: string;
@@ -130,9 +130,9 @@ export class LiveActivityManager {
     settings: ISettings,
     subscription?: ISubscription
   ): void {
-    // if (!subscription || !Subscriptions.hasSubscription(subscription)) {
-    //   return;
-    // }
+    if (!subscription || !Subscriptions.hasSubscription(subscription)) {
+      return;
+    }
     const liveActivityEntry = this.getLiveActivityEntry(progress, entryIndex, setIndex, programExercise, settings);
     const attributes: ILiveActivityState = {
       workoutStartTimestamp: progress.startTime,
