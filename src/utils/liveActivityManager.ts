@@ -8,7 +8,7 @@ import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { n } from "./math";
 import { SendMessage } from "./sendMessage";
-import { Subscriptions } from "./subscriptions";
+// import { Subscriptions } from "./subscriptions";
 import { UrlUtils } from "./url";
 
 declare const __HOST__: string;
@@ -148,7 +148,7 @@ export class LiveActivityManager {
     SendMessage.print(
       `Main App: Updating live activity for ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex})`
     );
-    SendMessage.toIos({ type: "updateLiveActivity", data: JSON.stringify(attributes) });
+    SendMessage.toIosAndAndroid({ type: "updateLiveActivity", data: JSON.stringify(attributes) });
   }
 
   public static updateLiveActivityForNextEntry(
