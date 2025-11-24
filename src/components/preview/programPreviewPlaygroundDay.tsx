@@ -49,8 +49,6 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
     [props.settings, props.progress]
   );
 
-  console.log(props.progress.entries[0].sets[0]);
-
   const editModalProgramExerciseId = props.progress.ui?.editModal?.programExerciseId;
   const editModalProgramExercise = editModalProgramExerciseId
     ? Program.getProgramExercise(props.day, props.program, editModalProgramExerciseId)
