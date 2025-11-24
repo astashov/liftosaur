@@ -2253,6 +2253,24 @@ Bent Over Row / 3x8 / superset: A`}
       </ul>
     ),
   },
+  "20251123": {
+    title: <span>Added Live Activity / Dynamic Island on iOS</span>,
+    body: (
+      <ul>
+        <li>
+          On the lock screen, it'll show Live Activity, with the timer, next exercise, set, reps, weights, plates, etc.
+        </li>
+        <li>You can adjust the rest timer from there, or complete a set.</li>
+        <li>
+          There's also rest timer in the <strong>dynamic island</strong>, and if you long press it - it'll expand into
+          the same info as in the live activity.
+        </li>
+        <li>
+          It's a <strong>Premium feature</strong>, so you'd need to have Premium subscription to use it.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
