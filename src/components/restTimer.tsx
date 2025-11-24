@@ -8,6 +8,7 @@ import { IconBack } from "./icons/iconBack";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { Progress } from "../models/progress";
 import { Reps } from "../models/set";
+import { SendMessage } from "../utils/sendMessage";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -35,7 +36,12 @@ export function RestTimer(props: IProps): JSX.Element | null {
       }, 1000);
       const timeDifference = Date.now() - timerSince;
       if (timer != null && timeDifference > timer * 1000 && !sentNotification.current) {
-        props.dispatch(Thunk.playAudioNotification());
+        if (!progress.ui?.nativeNotificationScheduled) {
+          SendMessage.print(`Main app: Playing web app notification`);
+          props.dispatch(Thunk.playAudioNotification());
+        } else {
+          SendMessage.print(`Main app: Not playing web app notification`);
+        }
         sentNotification.current = true;
       }
       if (prevProps.current.progress.timerSince !== props.progress.timerSince) {

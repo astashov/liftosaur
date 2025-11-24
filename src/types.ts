@@ -760,6 +760,7 @@ export const TProgressUi = t.partial(
     showSupersetPicker: THistoryEntry,
     forceUpdateEntryIndex: t.boolean,
     isExternal: t.boolean,
+    nativeNotificationScheduled: t.boolean,
   },
   "TProgressUi"
 );

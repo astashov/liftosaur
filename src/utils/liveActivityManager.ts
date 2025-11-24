@@ -47,6 +47,7 @@ interface ILiveActivityState {
   restTimer?: ILiveActivityRest;
   historyEntryState?: ILiveActivityEntry;
   workoutStartTimestamp: number;
+  ignoreDoNotDisturb: boolean;
 }
 
 export class LiveActivityManager {
@@ -130,7 +131,7 @@ export class LiveActivityManager {
     settings: ISettings,
     subscription?: ISubscription
   ): void {
-    if (!subscription || !Subscriptions.hasSubscription(subscription)) {
+    if (SendMessage.isIos() && (!subscription || !Subscriptions.hasSubscription(subscription))) {
       return;
     }
     const liveActivityEntry = this.getLiveActivityEntry(progress, entryIndex, setIndex, programExercise, settings);
@@ -144,6 +145,7 @@ export class LiveActivityManager {
               restTimer: restTimer ?? progress.timer,
             }
           : undefined,
+      ignoreDoNotDisturb: !!settings.ignoreDoNotDisturb,
     };
     SendMessage.print(
       `Main App: Updating live activity for ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex})`

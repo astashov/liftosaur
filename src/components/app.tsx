@@ -239,6 +239,15 @@ export function AppView(props: IProps): JSX.Element | null {
             skipLiveActivityUpdate
           );
         }
+      } else if (event.data?.type === "timerScheduled") {
+        if (stateRef.current.progress[0]?.ui) {
+          SendMessage.print(`Main app: Marking native notification as scheduled`);
+          updateState(
+            dispatch,
+            [lb<IState>().p("progress").pi(0).pi("ui").p("nativeNotificationScheduled").record(true)],
+            "Set native notification scheduled"
+          );
+        }
       }
     });
     const userId = state.user?.id || state.storage.tempUserId;

@@ -487,6 +487,9 @@ export namespace Progress {
         }
       }
       const ignoreDoNotDisturb = settings.ignoreDoNotDisturb ? "true" : "false";
+      const vibration = settings.vibration ? "true" : "false";
+      const volume = settings.volume.toString();
+      SendMessage.print(`Scheduling timer notification, volume: ${volume}`);
       SendMessage.toIos({
         type: "startTimer",
         duration: timerForPush.toString(),
@@ -497,10 +500,12 @@ export namespace Progress {
         bodyHeader,
         body,
         ignoreDoNotDisturb,
+        vibration,
+        volume,
       });
       SendMessage.toAndroid({
         type: "startTimer",
-        duration: timer.toString(),
+        duration: timerForPush.toString(),
         mode,
         title,
         subtitleHeader,
@@ -508,15 +513,18 @@ export namespace Progress {
         bodyHeader,
         body,
         ignoreDoNotDisturb,
+        vibration,
+        volume,
       });
     }
-    const newProgress = {
+    const newProgress: IHistoryRecord = {
       ...progress,
       timerSince: timestamp,
       timer,
       timerMode: mode,
       timerEntryIndex: entryIndex,
       timerSetIndex: setIndex,
+      ui: { ...progress.ui, nativeNotificationScheduled: undefined },
     };
     return newProgress;
   }
@@ -639,7 +647,21 @@ export namespace Progress {
       SendMessage.toAndroid({ type: "stopTimer" });
       updateState(
         dispatch,
-        [lb<IState>().p("progress").pi(progress.id).p("timer").record(Math.max(0, newTimer))],
+        [
+          lb<IState>().p("progress").pi(progress.id).p("timer").record(Math.max(0, newTimer)),
+          lb<IState>()
+            .p("progress")
+            .pi(progress.id)
+            .recordModify((record) => {
+              return {
+                ...record,
+                ui: {
+                  ...record.ui,
+                  nativeNotificationScheduled: undefined,
+                },
+              };
+            }),
+        ],
         "Update timer"
       );
       if (!skipLiveActivityUpdate) {
