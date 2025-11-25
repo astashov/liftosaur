@@ -131,7 +131,7 @@ export class LiveActivityManager {
     settings: ISettings,
     subscription?: ISubscription
   ): void {
-    if (SendMessage.isIos() && (!subscription || !Subscriptions.hasSubscription(subscription))) {
+    if (!subscription || !Subscriptions.hasSubscription(subscription)) {
       return;
     }
     const liveActivityEntry = this.getLiveActivityEntry(progress, entryIndex, setIndex, programExercise, settings);

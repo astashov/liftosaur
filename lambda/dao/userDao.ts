@@ -1031,9 +1031,9 @@ export class UserDao {
     ]);
   }
 
-  public async getAllLimited(): Promise<ILimitedUserDao[]> {
+  public async getAllLimited(args: { limit?: number } = {}): Promise<ILimitedUserDao[]> {
     const env = Utils.getEnv();
-    return this.di.dynamo.scan({ tableName: userTableNames[env].users });
+    return this.di.dynamo.scan({ tableName: userTableNames[env].users, limit: args.limit });
   }
 
   public async getAll(): Promise<IUserDao[]> {

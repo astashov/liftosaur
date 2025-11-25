@@ -18,6 +18,7 @@ export interface IDynamoUtil {
     filterExpression?: string;
     names?: Record<string, DynamoDB.DocumentClient.AttributeName>;
     values?: Partial<Record<string, number | string | string[]>>;
+    limit?: number;
   }): Promise<T[]>;
   streamingQuery<T>(args: {
     tableName: string;
@@ -118,6 +119,7 @@ export class DynamoUtil implements IDynamoUtil {
     filterExpression?: string;
     names?: Record<string, DynamoDB.DocumentClient.AttributeName>;
     values?: Partial<Record<string, number | string | string[]>>;
+    limit?: number;
   }): Promise<T[]> {
     const startTime = Date.now();
     try {
@@ -128,8 +130,9 @@ export class DynamoUtil implements IDynamoUtil {
           FilterExpression: args.filterExpression,
           ExpressionAttributeNames: args.names,
           ExpressionAttributeValues: args.values,
+          Limit: args.limit,
         });
-      });
+      }, args.limit);
       this.log.log(`Dynamo scan: ${args.tableName} - `, args.tableName, ` - ${Date.now() - startTime}ms`);
       return result;
     } catch (e) {
