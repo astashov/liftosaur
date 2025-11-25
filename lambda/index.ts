@@ -1049,12 +1049,12 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     const applePromoSigner = new ApplePromotionalOfferSigner(di);
     const monthlyOffer = await applePromoSigner.generateSignature(
       data.apple.monthly.offerId,
-      currentUserId || "",
+      "liftosaur",
       data.apple.monthly.productId
     );
     const yearlyOffer = await applePromoSigner.generateSignature(
       data.apple.yearly.offerId,
-      currentUserId || "",
+      "liftosaur",
       data.apple.yearly.productId
     );
     return ResponseUtils.json(200, event, {
