@@ -58,6 +58,7 @@ import { ScreenSetupEquipment } from "./screenSetupEquipment";
 import { Settings } from "../models/settings";
 import { AppContext } from "./appContext";
 import { ScreenMuscleGroups } from "./screenMuscleGroups";
+import { ModalThanks25 } from "./modalThanks25";
 
 declare let Rollbar: RB;
 declare let __COMMIT_HASH__: string;
@@ -335,7 +336,9 @@ export function AppView(props: IProps): JSX.Element | null {
     state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
 
   const navCommon: INavCommon = {
+    subscription: state.storage.subscription,
     screenStack: state.screenStack,
+    doesHaveWorkouts: state.storage.history.length > 0,
     helps: state.storage.helps,
     loading: state.loading,
     currentProgram,
@@ -357,6 +360,7 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.currentName(state.screenStack) === "subscription") {
     content = (
       <ScreenSubscription
+        history={state.storage.history}
         prices={state.prices}
         offers={state.offers}
         appleOffer={state.appleOffer}
@@ -661,6 +665,11 @@ export function AppView(props: IProps): JSX.Element | null {
   const progress = Progress.getProgress(state);
   const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
   const screensWithoutTimer: IScreen[] = ["subscription"];
+  const isEligibleForThanks25 = Subscriptions.isEligibleForThanksgivingPromo(
+    state.storage.history.length > 0,
+    state.storage.subscription
+  );
+  const helps = state.storage.helps;
   return (
     <Fragment>
       <style
@@ -685,6 +694,23 @@ export function AppView(props: IProps): JSX.Element | null {
       <Notification dispatch={dispatch} notification={state.notification} />
       {shouldShowWhatsNew && state.storage.whatsNew != null && (
         <ModalWhatsnew lastDateStr={state.storage.whatsNew} onClose={() => WhatsNew.updateStorage(dispatch)} />
+      )}
+      {isEligibleForThanks25 && !helps.includes("thanks25") && (
+        <ModalThanks25
+          dispatch={dispatch}
+          onClose={() => {
+            updateState(
+              dispatch,
+              [
+                lb<IState>()
+                  .p("storage")
+                  .p("helps")
+                  .recordModify((help) => [...help, "thanks25"]),
+              ],
+              "Dismiss Thanksgiving 25% modal"
+            );
+          }}
+        />
       )}
       {state.errors.corruptedstorage != null && (
         <ModalCorruptedState

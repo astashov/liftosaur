@@ -22,13 +22,14 @@ import { IconBell } from "./icons/iconBell";
 import { lb } from "lens-shmens";
 import { IconSpinner } from "./icons/iconSpinner";
 import { InternalLink } from "../internalLink";
-import { ISubscription } from "../types";
+import { IHistoryRecord, ISubscription } from "../types";
 import { Thunk } from "../ducks/thunks";
 import { ModalCoupon } from "./modalCoupon";
 import { IconClose } from "./icons/iconClose";
 import { ObjectUtils } from "../utils/object";
 import { lg } from "../utils/posthog";
 import { IconW } from "./icons/iconW";
+import { Subscriptions } from "../utils/subscriptions";
 
 interface IProps {
   prices?: Partial<Record<string, string>>;
@@ -37,6 +38,7 @@ interface IProps {
   appleOffer?: IAppleOffer;
   googleOffer?: IGoogleOffer;
   subscriptionLoading?: ISubscriptionLoading;
+  history: IHistoryRecord[];
   dispatch: IDispatch;
   navCommon: INavCommon;
 }
@@ -67,6 +69,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
         return o.offerId === props.appleOffer?.yearly?.offerId || o.offerId === props.googleOffer?.yearly?.offerId;
       });
   }
+  const isEligibleForThanks25 = Subscriptions.isEligibleForThanksgivingPromo(
+    props.history.length > 0,
+    props.subscription
+  );
+  const hasOffer = monthlyOffer || yearlyOffer;
 
   return (
     <Surface
@@ -182,14 +189,48 @@ export function ScreenSubscription(props: IProps): JSX.Element {
       ]}
     >
       <section className="flex flex-col flex-1 px-4">
-        <div
-          className="pt-16 mb-2 bg-no-repeat"
-          style={{
-            backgroundImage: "url(/images/logo.svg)",
-            backgroundPosition: "top center",
-            backgroundSize: "4rem",
-          }}
-        ></div>
+        {isEligibleForThanks25 ? (
+          <div className="flex items-center gap-4 p-2 mb-4 border rounded-lg bg-background-cardyellow border-border-cardyellow">
+            <div className="flex-2">
+              <img
+                src="/images/thanks25.png"
+                className="inline-block"
+                style={{ width: "100%", maxWidth: "300px" }}
+                alt="Thanksgiving 2025!"
+              />
+            </div>
+            <div className="flex-3">
+              <div className="mb-2">
+                <div>
+                  <span className="text-sm font-bold text-orange-600">30%</span> off
+                </div>
+                <div className="text-xs">first year of subscription</div>
+              </div>
+              <div className="mb-2">
+                <div className="text-sm">
+                  <strong>Code: </strong>
+                  <span className="font-bold text-text-purple">THANKS25</span>
+                </div>
+                <div className="text-xs text-text-secondary">Valid 25 Nov - 3 Dec 25</div>
+              </div>
+              <div>
+                <div className="text-xs">
+                  Applicable to <span className="font-bold text-text-purple">monthly</span> and{" "}
+                  <span className="font-bold text-text-purple">yearly</span> subscriptions.
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div
+            className="pt-16 mb-2 bg-no-repeat"
+            style={{
+              backgroundImage: "url(/images/logo.svg)",
+              backgroundPosition: "top center",
+              backgroundSize: "4rem",
+            }}
+          ></div>
+        )}
         <p className="mb-4 text-sm">
           While you can use Liftosaur for free, there're some features on Liftosaur that require premium access:
         </p>
@@ -221,8 +262,8 @@ export function ScreenSubscription(props: IProps): JSX.Element {
         </ul>
         <p className="mb-4 text-xs text-text-secondary">
           You can get monthly or yearly subscription (and you'll be charged for a month or year every month or year
-          after initial 14 days free trial period) or lifetime - one-time payment, that gives access to those features
-          without recurring charges in the future.
+          {!hasOffer ? "after initial 14 days free trial period" : ""}) or lifetime - one-time payment, that gives
+          access to those features without recurring charges in the future.
         </p>
         <p className="mb-4 text-xs text-text-secondary">
           You can cancel subscriptions any time via Google Play or App Store subscriptions management.
@@ -251,7 +292,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               <div>
                 <div className="flex flex-row">
                   <div className="flex-1 px-2 text-center">
-                    <div className="text-xs text-text-secondary">Includes free 14 days trial</div>
+                    {!hasOffer && <div className="text-xs text-text-secondary">Includes free 14 days trial</div>}
                     <Button
                       style={{ padding: "0.75rem 0.5rem" }}
                       name="subscription-monthly"
@@ -297,7 +338,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                     </Button>
                   </div>
                   <div className="flex-1 px-2 text-center">
-                    <div className="text-xs text-text-secondary">Includes free 14 days trial</div>
+                    {!hasOffer && <div className="text-xs text-text-secondary">Includes free 14 days trial</div>}
                     <Button
                       name="subscription-yearly"
                       style={{ padding: "0.75rem 0.5rem" }}

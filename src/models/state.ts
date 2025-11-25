@@ -14,6 +14,7 @@ import {
   IExerciseType,
   IEquipment,
   IStats,
+  ISubscription,
 } from "../types";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
@@ -30,8 +31,10 @@ export interface INotification {
 }
 
 export interface INavCommon {
+  subscription: ISubscription;
   loading: ILoading;
   helps: string[];
+  doesHaveWorkouts: boolean;
   userId?: string;
   screenStack: IScreenStack;
   currentProgram?: IProgram;

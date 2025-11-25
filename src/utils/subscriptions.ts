@@ -17,6 +17,20 @@ export namespace Subscriptions {
     return hasApple || hasGoogle;
   }
 
+  export function isEligibleForThanksgivingPromo(doesHaveWorkouts: boolean, subscription: ISubscription): boolean {
+    if (!doesHaveWorkouts) {
+      return false;
+    }
+    if (Subscriptions.hasSubscription(subscription)) {
+      return false;
+    }
+    const today = new Date();
+    if ((today.getMonth() === 10 && today.getDate() >= 25) || (today.getMonth() === 11 && today.getDate() <= 3)) {
+      return true;
+    }
+    return false;
+  }
+
   export function listOfSubscriptions(subscription: ISubscription): string[] {
     const arr: string[] = [];
     if ((subscription.apple || []).length > 0) {

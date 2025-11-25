@@ -14,6 +14,7 @@ import { INavCommon } from "../models/state";
 import { IconBarbell2 } from "./icons/iconBarbell2";
 import { ObjectUtils } from "../utils/object";
 import { Program } from "../models/program";
+import { Subscriptions } from "../utils/subscriptions";
 
 interface IFooterProps {
   dispatch: IDispatch;
@@ -106,8 +107,34 @@ export function Footer2View(props: IFooterProps): JSX.Element {
             <FooterButton
               name="graphs"
               screen={screen}
-              icon={(isActive) => <IconGraphs color={isActive ? activeColor : inactiveColor} />}
-              text="Graphs"
+              icon={(isActive) => {
+                if (
+                  Subscriptions.isEligibleForThanksgivingPromo(
+                    props.navCommon.doesHaveWorkouts,
+                    props.navCommon.subscription
+                  )
+                ) {
+                  return (
+                    <div className="inline-block w-full text-center">
+                      <img
+                        src="/images/turkeyicon.png"
+                        className="inline-block"
+                        style={{ width: "24px", height: "24px" }}
+                      />
+                    </div>
+                  );
+                } else {
+                  return <IconGraphs color={isActive ? activeColor : inactiveColor} />;
+                }
+              }}
+              text={
+                Subscriptions.isEligibleForThanksgivingPromo(
+                  props.navCommon.doesHaveWorkouts,
+                  props.navCommon.subscription
+                )
+                  ? "Promo"
+                  : "Graphs"
+              }
               onClick={() => props.dispatch(Thunk.pushScreen("graphs", undefined, true))}
             />
             <FooterButton
