@@ -2271,6 +2271,24 @@ Bent Over Row / 3x8 / superset: A`}
       </ul>
     ),
   },
+  "20251125": {
+    title: <span>Added Live Updates on Android</span>,
+    body: (
+      <ul>
+        <li>
+          Similarly to iOS, there's now Live Updates notification on the lock screen, with the timer, next exercise,
+          set, reps, weights, plates, etc.
+        </li>
+        <li>You can adjust the rest timer from there, or complete a set.</li>
+        <li>
+          There's also rest timer in the little chip near the clock, which is shown if you're currently in another app.
+        </li>
+        <li>
+          It's a <strong>Premium feature</strong>, so you'd need to have Premium subscription to use it.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
