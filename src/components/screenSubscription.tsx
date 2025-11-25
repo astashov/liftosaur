@@ -426,7 +426,13 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               <div className="flex-1 text-center">
                 <LinkButton
                   name="redeem-coupon"
-                  onClick={() => setIsRedeemShown(true)}
+                  onClick={() => {
+                    if (SendMessage.isIos()) {
+                      SendMessage.toIos({ type: "redeemCoupon" });
+                    } else {
+                      setIsRedeemShown(true);
+                    }
+                  }}
                   className="pt-2 font-bold text-center"
                 >
                   Redeem coupon

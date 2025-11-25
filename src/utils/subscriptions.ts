@@ -6,7 +6,6 @@ import { ISubscription } from "../types";
 import { UidFactory } from "./generator";
 import { CollectionUtils } from "./collection";
 import { Thunk } from "../ducks/thunks";
-import { SendMessage } from "./sendMessage";
 
 export namespace Subscriptions {
   export function hasSubscription(subscription: ISubscription): boolean {
@@ -23,9 +22,6 @@ export namespace Subscriptions {
       return false;
     }
     if (Subscriptions.hasSubscription(subscription)) {
-      return false;
-    }
-    if (SendMessage.isIos()) {
       return false;
     }
     const today = new Date();
