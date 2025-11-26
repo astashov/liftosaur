@@ -207,10 +207,23 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 <div className="text-xs">first year of subscription</div>
               </div>
               <div className="mb-2">
-                <div className="text-sm">
-                  <strong>Code: </strong>
-                  <span className="font-bold text-text-purple">THANKS25</span>
-                </div>
+                {SendMessage.isIos() ? (
+                  <div>
+                    <div className="text-sm">
+                      <strong>Monthly Code: </strong>
+                      <span className="font-bold text-text-purple">THANKS25</span>
+                    </div>
+                    <div className="text-sm">
+                      <strong>Yearly Code: </strong>
+                      <span className="font-bold text-text-purple">THANKS25Y</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm">
+                    <strong>Code: </strong>
+                    <span className="font-bold text-text-purple">THANKS25</span>
+                  </div>
+                )}
                 <div className="text-xs text-text-secondary">Valid 25 Nov - 3 Dec 25</div>
               </div>
               <div>

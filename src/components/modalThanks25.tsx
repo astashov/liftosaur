@@ -4,6 +4,7 @@ import { IDispatch } from "../ducks/types";
 import { Button } from "./button";
 import { Thunk } from "../ducks/thunks";
 import { useEffect } from "preact/hooks";
+import { SendMessage } from "../utils/sendMessage";
 
 interface IModalThanks25Props {
   dispatch: IDispatch;
@@ -33,10 +34,23 @@ export function ModalThanks25(props: IModalThanks25Props): JSX.Element {
             <div>first year of subscription</div>
           </div>
           <div className="mb-4">
-            <div className="text-xl">
-              <strong>Code: </strong>
-              <span className="font-bold text-text-purple">THANKS25</span>
-            </div>
+            {SendMessage.isIos() ? (
+              <div>
+                <div className="text-sm">
+                  <strong>Monthly Code: </strong>
+                  <span className="font-bold text-text-purple">THANKS25</span>
+                </div>
+                <div className="text-sm">
+                  <strong>Yearly Code: </strong>
+                  <span className="font-bold text-text-purple">THANKS25Y</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm">
+                <strong>Code: </strong>
+                <span className="font-bold text-text-purple">THANKS25</span>
+              </div>
+            )}
             <div className="text-sm text-text-secondary">Valid 25 Nov - 3 Dec 25</div>
           </div>
           <div className="mb-4">
