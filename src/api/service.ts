@@ -53,6 +53,7 @@ type IRedeemCouponError =
   | "not_authorized"
   | "coupon_not_found"
   | "coupon_already_claimed"
+  | "wrong_platform"
   | "coupon_disabled"
   | "unknown";
 

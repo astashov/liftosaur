@@ -1143,6 +1143,10 @@ export namespace Thunk {
             alert("This coupon is already claimed.");
             break;
           }
+          case "wrong_platform": {
+            alert("This coupon could only be activated on Android or iOS.");
+            break;
+          }
           default: {
             alert("Failed to claim the coupon.");
             break;

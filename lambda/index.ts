@@ -1075,6 +1075,9 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     };
     return ResponseUtils.json(200, event, { affiliate: coupon.affiliate, data: { googleOffer } });
   }
+  if (data) {
+    return ResponseUtils.json(400, event, { error: "wrong_platform" });
+  }
 
   if (currentUserId == null) {
     return ResponseUtils.json(401, event, { error: "not_authorized" });
