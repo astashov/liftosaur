@@ -18,6 +18,7 @@ export interface IAppleTransactionInfo {
   price?: number;
   currency?: string;
   offerDiscountType?: "FREE_TRIAL" | "PAY_UP_FRONT" | "PAY_AS_YOU_GO";
+  offerIdentifier?: string;
 }
 
 interface IApplePayloadData {
@@ -126,6 +127,7 @@ export class AppleWebhookHandler {
         paymentType,
         isFreeTrialPayment: transactionInfo.offerDiscountType === "FREE_TRIAL",
         subscriptionStartTimestamp: transactionInfo.originalPurchaseDate,
+        offerIdentifier: transactionInfo.offerIdentifier,
       });
 
       this.di.log.log(

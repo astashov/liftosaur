@@ -185,6 +185,7 @@ export class GoogleWebhookHandler {
       let timestamp = Date.now();
       let isFreeTrialPayment = false;
       let subscriptionStartTimestamp: number | undefined = undefined;
+      let offerIdentifier: string | undefined = undefined;
 
       const paymentDao = new PaymentDao(this.di);
       if (await paymentDao.doesExist(purchaseToken)) {
@@ -209,6 +210,7 @@ export class GoogleWebhookHandler {
           timestamp = Date.now();
           subscriptionStartTimestamp =
             purchaseDetails.startTimeMillis != null ? Number(purchaseDetails.startTimeMillis) : undefined;
+          offerIdentifier = purchaseDetails.promotionCode;
 
           // Check if it's a free trial using paymentState (2 = free trial) or intro price
           if (purchaseDetails.paymentState === 2) {
@@ -266,6 +268,7 @@ export class GoogleWebhookHandler {
         paymentType,
         isFreeTrialPayment,
         subscriptionStartTimestamp,
+        offerIdentifier,
       });
 
       this.di.log.log(

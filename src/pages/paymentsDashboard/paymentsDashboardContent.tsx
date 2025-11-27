@@ -613,6 +613,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                   <th className="px-2 py-2 text-left">Type</th>
                   <th className="px-2 py-2 text-left">Platform</th>
                   <th className="px-2 py-2 text-left">Source</th>
+                  <th className="px-2 py-2 text-left">Offer</th>
                   <th className="px-2 py-2 text-right">Amount</th>
                 </tr>
               </thead>
@@ -651,6 +652,9 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     </td>
                     <td className="px-2 py-2">{payment.type}</td>
                     <td className="px-2 py-2">{payment.source}</td>
+                    <td className="px-2 py-2 font-mono text-xs text-purple-600">
+                      {payment.offerIdentifier || "-"}
+                    </td>
                     <td className="px-2 py-2 font-mono text-right">
                       {formatCurrencyWithUSD(payment.amount - (payment.tax ?? 0), payment.currency)}
                       {payment.tax ? <span className="text-xs text-gray-500"> (+{payment.tax.toFixed(2)})</span> : null}
@@ -684,6 +688,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                       cancellation
                       {cancellation.wasTrialPayment && <span className="ml-1 text-purple-600">(trial)</span>}
                     </td>
+                    <td className="px-2 py-2 text-gray-400">-</td>
                     <td className="px-2 py-2 text-gray-400">-</td>
                     <td className="px-2 py-2 text-gray-400">-</td>
                     <td className="px-2 py-2 font-mono text-right text-gray-400">-</td>

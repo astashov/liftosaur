@@ -24,6 +24,7 @@ export interface IPaymentDao {
   paymentType: "purchase" | "renewal" | "refund";
   isFreeTrialPayment: boolean;
   subscriptionStartTimestamp?: number;
+  offerIdentifier?: string;
 }
 
 export class PaymentDao {
