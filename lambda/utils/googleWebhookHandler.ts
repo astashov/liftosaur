@@ -4,6 +4,7 @@ import { UserDao } from "../dao/userDao";
 import { Subscriptions } from "./subscriptions";
 import { GoogleJWTVerifier } from "./googleJwtVerifier";
 import { convertGooglePriceToNumber } from "./googlePaymentProcessor";
+import { AffiliateDao } from "../dao/affiliateDao";
 
 export interface IGooglePubSubMessage {
   message: {
@@ -252,6 +253,15 @@ export class GoogleWebhookHandler {
       if (!userId) {
         this.di.log.log(`Google webhook: No user found for original transaction ID ${originalTransactionId}`);
         return;
+      }
+
+      if (!offerIdentifier) {
+        const affiliateDao = new AffiliateDao(this.di);
+        const affiliates = await affiliateDao.getAffiliatesForUser(userId);
+        const couponAffiliate = affiliates.find((a) => a.type === "coupon");
+        if (couponAffiliate) {
+          offerIdentifier = couponAffiliate.affiliateId;
+        }
       }
 
       await paymentDao.addIfNotExists({
