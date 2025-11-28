@@ -535,7 +535,7 @@ export namespace Program {
     settings: ISettings
   ): { program: IProgram; exerciseData: IExerciseData } {
     const exerciseData: IExerciseData = {};
-    const newEvaluatedProgram = Program.evaluate(program, settings);
+    const newEvaluatedProgram = Program.forceEvaluate(program, settings);
     const dayData = Progress.getDayData(progress);
     const programDay = Program.getProgramDay(newEvaluatedProgram, progress.day);
     if (!programDay) {
@@ -740,85 +740,82 @@ export namespace Program {
     return exercise;
   }
 
-  export const evaluate = memoize(
-    (program: IProgram, settings: ISettings): IEvaluatedProgram => {
-      const planner = program.planner;
-      if (!planner) {
-        return {
-          type: "evaluatedProgram",
-          id: program.id,
-          planner: {
-            vtype: "planner",
-            name: program.name,
-            weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
-          },
-          name: program.name,
-          errors: [],
-          nextDay: program.nextDay,
-          weeks: [
-            {
-              name: "Week 1",
-              days: [
-                {
-                  name: "Day 1",
-                  dayData: { day: 1, week: 1, dayInWeek: 1 },
-                  exercises: [],
-                },
-              ],
-            },
-          ],
-          states: {},
-        };
-      }
-      const { evaluatedWeeks } = PlannerEvaluator.evaluate(program.planner!, settings);
-      let dayNum = 0;
-      const errors: IEvaluatedProgramError[] = [];
-      const weeks = planner.weeks.map((week, weekIndex) => {
-        const evaluatedWeek = evaluatedWeeks[weekIndex];
-        const days = week.days.map((day, dayInWeekIndex) => {
-          dayNum += 1;
-          const evaluatedDay = evaluatedWeek[dayInWeekIndex];
-          const dayData = {
-            day: dayNum,
-            week: weekIndex + 1,
-            dayInWeek: dayInWeekIndex + 1,
-          };
-          const evaluatedExercises = CollectionUtils.sortBy(evaluatedDay.success ? evaluatedDay.data : [], "order");
-          if (!evaluatedDay.success) {
-            errors.push({ error: evaluatedDay.error, dayData });
-          }
-          return {
-            name: day.name,
-            description: day.description,
-            dayData,
-            exercises: evaluatedExercises,
-          };
-        });
-        return { name: week.name, description: week.description, days };
-      });
-      const states: IByTag<IProgramState> = {};
-      PP.iterate(evaluatedWeeks, (exercise) => {
-        for (const tag of exercise.tags) {
-          states[tag] = { ...states[tag], ...PlannerProgramExercise.getState(exercise) };
-        }
-      });
-      const result: IEvaluatedProgram = {
+  export const evaluate = memoize(forceEvaluate, { maxSize: 10 });
+
+  export function forceEvaluate(program: IProgram, settings: ISettings): IEvaluatedProgram {
+    const planner = program.planner;
+    if (!planner) {
+      return {
         type: "evaluatedProgram",
         id: program.id,
-        errors,
-        planner,
+        planner: {
+          vtype: "planner",
+          name: program.name,
+          weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
+        },
         name: program.name,
+        errors: [],
         nextDay: program.nextDay,
-        weeks: weeks,
-        states,
+        weeks: [
+          {
+            name: "Week 1",
+            days: [
+              {
+                name: "Day 1",
+                dayData: { day: 1, week: 1, dayInWeek: 1 },
+                exercises: [],
+              },
+            ],
+          },
+        ],
+        states: {},
       };
-      // console.log("Program text", PlannerProgram.generateFullText(program.planner?.weeks || []));
-      return result;
-    },
-    {
-      maxSize: 10,
     }
-  );
+    const { evaluatedWeeks } = PlannerEvaluator.forceEvaluate(program.planner!, settings);
+    let dayNum = 0;
+    const errors: IEvaluatedProgramError[] = [];
+    const weeks = planner.weeks.map((week, weekIndex) => {
+      const evaluatedWeek = evaluatedWeeks[weekIndex];
+      const days = week.days.map((day, dayInWeekIndex) => {
+        dayNum += 1;
+        const evaluatedDay = evaluatedWeek[dayInWeekIndex];
+        const dayData = {
+          day: dayNum,
+          week: weekIndex + 1,
+          dayInWeek: dayInWeekIndex + 1,
+        };
+        const evaluatedExercises = CollectionUtils.sortBy(evaluatedDay.success ? evaluatedDay.data : [], "order");
+        if (!evaluatedDay.success) {
+          errors.push({ error: evaluatedDay.error, dayData });
+        }
+        return {
+          name: day.name,
+          description: day.description,
+          dayData,
+          exercises: evaluatedExercises,
+        };
+      });
+      return { name: week.name, description: week.description, days };
+    });
+    const states: IByTag<IProgramState> = {};
+    PP.iterate(evaluatedWeeks, (exercise) => {
+      for (const tag of exercise.tags) {
+        states[tag] = { ...states[tag], ...PlannerProgramExercise.getState(exercise) };
+      }
+    });
+    const result: IEvaluatedProgram = {
+      type: "evaluatedProgram",
+      id: program.id,
+      errors,
+      planner,
+      name: program.name,
+      nextDay: program.nextDay,
+      weeks: weeks,
+      states,
+    };
+    // console.log("Program text", PlannerProgram.generateFullText(program.planner?.weeks || []));
+    return result;
+  }
 
   export function getNumberOfExerciseInstances(program: IEvaluatedProgram, exerciseKey: string): number {
     let count = 0;

@@ -774,31 +774,30 @@ export class PlannerEvaluator {
     return originalExercises;
   }
 
-  public static evaluate = memoize(
-    (
-      plannerProgram: IPlannerProgram,
-      settings: ISettings
-    ): {
-      evaluatedWeeks: IPlannerEvalResult[][];
-      exerciseFullNames: string[];
-    } => {
-      const { evaluatedWeeks, metadata } = PlannerEvaluator.getPerDayEvaluatedWeeks(plannerProgram, settings);
-      PlannerEvaluator.postProcess(evaluatedWeeks, settings, metadata);
-      return { evaluatedWeeks, exerciseFullNames: Array.from(metadata.fullNames) };
+  public static forceEvaluate = (
+    plannerProgram: IPlannerProgram,
+    settings: ISettings
+  ): {
+    evaluatedWeeks: IPlannerEvalResult[][];
+    exerciseFullNames: string[];
+  } => {
+    const { evaluatedWeeks, metadata } = PlannerEvaluator.getPerDayEvaluatedWeeks(plannerProgram, settings);
+    PlannerEvaluator.postProcess(evaluatedWeeks, settings, metadata);
+    return { evaluatedWeeks, exerciseFullNames: Array.from(metadata.fullNames) };
+  };
+
+  public static evaluate = memoize(this.forceEvaluate, {
+    maxSize: 10,
+    isEqual: (a: IPlannerProgram | ISettings, b: IPlannerProgram | ISettings) => {
+      if ("weeks" in a && "weeks" in b) {
+        const aText = PlannerProgram.generateFullText(a.weeks);
+        const bText = PlannerProgram.generateFullText(b.weeks);
+        return aText === bText;
+      } else {
+        return a === b;
+      }
     },
-    {
-      maxSize: 10,
-      isEqual: (a: IPlannerProgram | ISettings, b: IPlannerProgram | ISettings) => {
-        if ("weeks" in a && "weeks" in b) {
-          const aText = PlannerProgram.generateFullText(a.weeks);
-          const bText = PlannerProgram.generateFullText(b.weeks);
-          return aText === bText;
-        } else {
-          return a === b;
-        }
-      },
-    }
-  );
+  });
 
   public static evaluateFull(
     fullProgramText: string,

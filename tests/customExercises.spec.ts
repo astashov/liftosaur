@@ -72,7 +72,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
   await page.waitForTimeout(200);
 
-  await page.getByTestId("footer-program").click({ force: true });
+  await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("edit-exercise").click();
   await page.getByTestId("edit-program-exercise-change").click();
