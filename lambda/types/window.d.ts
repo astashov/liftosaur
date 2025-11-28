@@ -61,6 +61,7 @@ interface Window {
   onYouTubeIframeAPIReady?: () => void;
   YT: typeof YT;
   tempUserId?: string;
+  state?: IState;
 }
 
 declare namespace YT {

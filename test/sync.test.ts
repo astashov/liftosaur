@@ -116,7 +116,8 @@ describe("sync", () => {
 
     expect(log.logs.filter((l) => l === "Fetch: Safe update")).to.length(3);
     expect(log.logs.filter((l) => l === "Fetch: Merging update")).to.length(1);
-    expect(mockReducer.state.storage.currentProgramId).to.equal(basicBeginnerProgram.id);
+    const programId = mockReducer.state.storage.programs.find((p) => p.name === basicBeginnerProgram.name)?.id;
+    expect(mockReducer.state.storage.currentProgramId).to.equal(programId);
     expect(mockReducer.state.storage.programs).to.length(1);
     expect(mockReducer.state.storage.history).to.length(1);
 

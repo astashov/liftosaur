@@ -408,21 +408,6 @@ export namespace Thunk {
     };
   }
 
-  export function cloneAndSelectProgram(id: string): IThunk {
-    return async (dispatch, getState, env) => {
-      const program = CollectionUtils.findBy(getState().programs, "id", id);
-      if (program != null) {
-        Program.cloneProgram(dispatch, program, getState().storage.settings);
-        const clonedProgram = CollectionUtils.findBy(getState().storage.programs, "id", id);
-        if (clonedProgram) {
-          updateState(dispatch, [lb<IState>().p("screenStack").record([])], "Clear screen stack");
-          Program.selectProgram(dispatch, clonedProgram.id);
-          dispatch(Thunk.startProgramDay());
-        }
-      }
-    };
-  }
-
   export function updateLiveActivity(
     entryIndex: number | undefined,
     setIndex: number | undefined,

@@ -666,6 +666,7 @@ export namespace Program {
   }
 
   export function cloneProgram(dispatch: IDispatch, program: IProgram, settings: ISettings): void {
+    const newProgramId = UidFactory.generateUid(8);
     updateState(
       dispatch,
       [
@@ -673,25 +674,13 @@ export namespace Program {
           .p("storage")
           .p("programs")
           .recordModify((programs) => {
-            const newProgram = { ...program, clonedAt: Date.now() };
+            const newProgram = { ...program, clonedAt: Date.now(), id: newProgramId };
             if (newProgram.planner) {
               newProgram.planner = PlannerProgram.switchToUnit(newProgram.planner, settings);
             }
-            if (programs.some((p) => p.id === program.id)) {
-              if (
-                confirm(
-                  "You already have this program cloned. Do you want to override? All your modifications of this program will be lost."
-                )
-              ) {
-                return programs.map((p) => (p.id === newProgram.id ? newProgram : p));
-              } else {
-                return programs;
-              }
-            } else {
-              return [...programs, newProgram];
-            }
+            return [...programs, newProgram];
           }),
-        lb<IState>().p("storage").p("currentProgramId").record(program.id),
+        lb<IState>().p("storage").p("currentProgramId").record(newProgramId),
       ],
       "Clone program"
     );
