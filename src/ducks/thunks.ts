@@ -1313,7 +1313,18 @@ async function handleLogin(
       }
       storage.tempUserId = result.user_id;
       storage.email = result.email;
+      if (result.is_new_user && oldUserId) {
+        try {
+          await service.postDebug(oldUserId, JSON.stringify(window.state || {}), {
+            new_userid: result.user_id,
+            email: result.email,
+          });
+        } catch (e) {
+          console.error("Failed to upload debug data for old user", e);
+        }
+      }
       if (oldUserId === result.user_id) {
+        console.log("Login - same user");
         dispatch(Thunk.postevent("login-same-user"));
         updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(storage)], "Set last synced on login");
         dispatch({ type: "Login", email: result.email, userId: result.user_id });
@@ -1321,10 +1332,11 @@ async function handleLogin(
           updateState(
             dispatch,
             [lb<IState>().p("storage").p("subscription").p("key").record(result.key)],
-            "Set subscription from login"
+            "Set subscription key from login"
           );
         }
       } else {
+        console.log("Login - different user");
         dispatch(Thunk.postevent("login-different-user"));
         storage.subscription.key = result.key;
         const newState = await getInitialState(client, { storage, deviceId: await DeviceId.get() });
@@ -1337,7 +1349,7 @@ async function handleLogin(
       updateState(
         dispatch,
         [lb<IState>().p("storage").p("subscription").p("key").record(result.key)],
-        "Set subscription from Apple"
+        "Set subscription free user key"
       );
     }
   } catch (error) {

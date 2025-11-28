@@ -546,6 +546,7 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
           storage: user.storage,
           email: user.email,
           user_id: user.id,
+          is_new_user: false,
           key,
         },
         setCookie ? { "set-cookie": setCookie } : undefined
@@ -607,10 +608,12 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         const userDao = new UserDao(di);
         let user = await userDao.getByAppleId(result.sub, { historyLimit: historylimit });
         let userId = user?.id;
+        let isNewUser = false;
 
         if (userId == null) {
           userId = (id as string) || UidFactory.generateUid(12);
           user = UserDao.build(userId, email, { appleId: result.sub });
+          isNewUser = true;
           await userDao.store(user);
         }
 
@@ -619,6 +622,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
           email: email,
           user_id: userId,
           storage: user!.storage,
+          is_new_user: isNewUser,
         };
 
         return {
@@ -680,10 +684,12 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   const userDao = new UserDao(di);
   let user = await userDao.getByGoogleId(openIdJson.sub, { historyLimit: historylimit });
   let userId = user?.id;
+  let isNewUser = false;
 
   if (userId == null) {
     userId = (id as string) || UidFactory.generateUid(12);
     user = UserDao.build(userId, openIdJson.email, { googleId: openIdJson.sub });
+    isNewUser = true;
     await userDao.store(user);
   }
 
@@ -692,6 +698,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
     email: openIdJson.email,
     user_id: userId,
     storage: user!.storage,
+    is_new_user: isNewUser,
   };
 
   return {

@@ -11,6 +11,7 @@ export interface IGetStorageResponse {
   email: string;
   storage: IStorage;
   user_id: string;
+  is_new_user: boolean;
   key?: string;
 }
 
@@ -143,7 +144,7 @@ export class Service {
       alreadyFetchedHistory: json.storage.history,
       historyLimit: historylimit,
     });
-    return { email: json.email, storage: json.storage, user_id: json.user_id };
+    return { email: json.email, storage: json.storage, user_id: json.user_id, is_new_user: json.is_new_user };
   }
 
   public async getAllHistoryRecords(args: {
@@ -199,7 +200,7 @@ export class Service {
       alreadyFetchedHistory: json.storage.history,
       historyLimit: historylimit,
     });
-    return { email: json.email, storage: json.storage, user_id: json.user_id };
+    return { email: json.email, storage: json.storage, user_id: json.user_id, is_new_user: json.is_new_user };
   }
 
   public async signout(): Promise<void> {
@@ -416,7 +417,13 @@ export class Service {
       alreadyFetchedHistory: json.storage.history,
       historyLimit: historylimit,
     });
-    return { email: json.email, storage: json.storage, user_id: json.user_id, key: json.key };
+    return {
+      email: json.email,
+      storage: json.storage,
+      user_id: json.user_id,
+      key: json.key,
+      is_new_user: json.is_new_user,
+    };
   }
 
   public async getExceptionData(id: string): Promise<string | undefined> {
