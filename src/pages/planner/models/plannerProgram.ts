@@ -448,7 +448,22 @@ export class PlannerProgram {
         }
       }
     }
-
+    for (const week of groupedTopLine) {
+      for (const day of week) {
+        day.sort((group1, group2) => {
+          const ex1 = group1.find((l) => l.type === "exercise");
+          const ex2 = group2.find((l) => l.type === "exercise");
+          if (ex1 == null || ex2 == null) {
+            return 0;
+          }
+          if (ex1.exerciseIndex === ex2.exerciseIndex) {
+            return (ex1.repeat?.[0] ?? 0) - (ex2.repeat?.[0] ?? 0);
+          } else {
+            return (ex1.exerciseIndex ?? 0) - (ex2.exerciseIndex ?? 0);
+          }
+        });
+      }
+    }
     return groupedTopLine;
   }
 
@@ -488,17 +503,6 @@ export class PlannerProgram {
             }
           }
         }
-      }
-    }
-    for (const week of mapping) {
-      for (const day of week) {
-        day.sort((ex1, ex2) => {
-          if (ex1.exerciseIndex === ex2.exerciseIndex) {
-            return (ex1.repeat?.[0] ?? 0) - (ex2.repeat?.[0] ?? 0);
-          } else {
-            return (ex1.exerciseIndex ?? 0) - (ex2.exerciseIndex ?? 0);
-          }
-        });
       }
     }
     return mapping;

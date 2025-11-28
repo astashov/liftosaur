@@ -28,7 +28,9 @@
 - Pop out the NUXes more
 - Progress looks weird if tried to pick reuse set that reuses something else
 
-
+* Fix the bug with the cached playground program affecting real program
+* Add backing up the current storage before signing up
+* Add syncing and storing progress on the server
 
 
 

@@ -433,9 +433,11 @@ export class ProgramToPlanner {
                     plannerExercise += ` / ${overriddenGlobals.join(" ")}`;
                   }
                 } else {
-                  plannerExercise += variations
-                    .map((v, i) => this.variationToString(v, globals, i, evalExercise))
-                    .join(" / ");
+                  if (evalExercise.setVariations.length > 0) {
+                    plannerExercise += variations
+                      .map((v, i) => this.variationToString(v, globals, i, evalExercise))
+                      .join(" / ");
+                  }
 
                   const globalsStr: string[] = [];
                   if (globals.weight != null) {
