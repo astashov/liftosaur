@@ -2,7 +2,7 @@ import { Exercise } from "./exercise";
 import { Reps } from "./set";
 import { Weight } from "./weight";
 import { DateUtils } from "../utils/date";
-import { lf, lb } from "lens-shmens";
+import { lf, lb, LensBuilder } from "lens-shmens";
 import { ObjectUtils } from "../utils/object";
 import { IDispatch } from "../ducks/types";
 import { ScriptRunner } from "../parser";
@@ -648,10 +648,10 @@ export namespace Progress {
       updateState(
         dispatch,
         [
-          lb<IState>().p("progress").pi(progress.id).p("timer").record(Math.max(0, newTimer)),
+          lb<IState>().p("storage").pi("progress").p("timer").record(Math.max(0, newTimer)),
           lb<IState>()
-            .p("progress")
-            .pi(progress.id)
+            .p("storage")
+            .pi("progress")
             .recordModify((record) => {
               return {
                 ...record,
@@ -841,12 +841,29 @@ export namespace Progress {
     return 0;
   }
 
-  export function getProgress(state: Pick<IState, "screenStack" | "progress">): IHistoryRecord | undefined {
-    return state.progress[getProgressId(state.screenStack)];
+  export function lbProgress(progressId: number): LensBuilder<IState, IHistoryRecord, {}> {
+    if (progressId === 0) {
+      return lb<IState>().p("storage").pi("progress");
+    } else {
+      return lb<IState>().pi("progress").pi(progressId);
+    }
+  }
+
+  export function getProgress(state: Pick<IState, "screenStack" | "storage">): IHistoryRecord | undefined {
+    const progressId = getProgressId(state.screenStack);
+    if (progressId === 0) {
+      return state.storage.progress;
+    } else {
+      return (state as IState).progress[progressId];
+    }
   }
 
   export function setProgress(state: IState, progress: IHistoryRecord): IState {
-    return lf(state).p("progress").p(progress.id).set(progress);
+    if (progress.id === 0) {
+      return lf(state).p("storage").p("progress").set(progress);
+    } else {
+      return lf(state).pi("progress").p(progress.id).set(progress);
+    }
   }
 
   export function runUpdateScriptForEntry(
@@ -994,6 +1011,7 @@ export namespace Progress {
       for (let i = 0; i < bindings[key].length; i += 1) {
         if (entry.sets[i] == null) {
           entry.sets[i] = {
+            vtype: "set",
             id: UidFactory.generateUid(6),
             isUnilateral: Exercise.getIsUnilateral(entry.exercise, settings),
             reps: 0,
@@ -1245,9 +1263,7 @@ export namespace Progress {
     updateState(
       dispatch,
       [
-        lb<IState>()
-          .p("progress")
-          .pi(progressId)
+        Progress.lbProgress(progressId)
           .p("entries")
           .i(entryIndex)
           .recordModify((entry) => {
@@ -1272,22 +1288,13 @@ export namespace Progress {
   ): void {
     updateState(
       dispatch,
-      [
-        lb<IState>()
-          .p("progress")
-          .pi(progressId)
-          .p("entries")
-          .i(entryIndex)
-          .p("exercise")
-          .p("equipment")
-          .record(equipment),
-      ],
+      [Progress.lbProgress(progressId).p("entries").i(entryIndex).p("exercise").p("equipment").record(equipment)],
       "Change equipment"
     );
   }
 
   export function editNotes(dispatch: IDispatch, progressId: number, notes: string): void {
-    updateState(dispatch, [lb<IState>().p("progress").pi(progressId).p("notes").record(notes)], "Edit workout notes");
+    updateState(dispatch, [Progress.lbProgress(progressId).p("notes").record(notes)], "Edit workout notes");
   }
 
   export function getDayData(progress: IHistoryRecord): IDayData {
@@ -1321,6 +1328,7 @@ export namespace Progress {
           const weight = ProgramSet.getEvaluatedWeight(programSet, programExercise.exerciseType, settings);
           newSets.push({
             ...progressSet,
+            vtype: "set",
             reps: programSet.maxrep,
             minReps: programSet.minrep,
             rpe: programSet.rpe,
@@ -1354,6 +1362,7 @@ export namespace Progress {
       const newSets = sets.map((set) => {
         const weight = ProgramSet.getEvaluatedWeight(set, programExercise.exerciseType, settings);
         return {
+          vtype: "set" as const,
           reps: set.maxrep,
           minReps: set.minrep,
           originalWeight: set.weight,
@@ -1368,6 +1377,7 @@ export namespace Progress {
       const firstWeight = newSets[0]?.weight;
 
       return {
+        vtype: "history_entry",
         id: UidFactory.generateUid(8),
         exercise: programExercise.exerciseType,
         programExerciseId: programExercise.key,

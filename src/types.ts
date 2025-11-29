@@ -459,28 +459,33 @@ export type IPercentageUnit = t.TypeOf<typeof TPercentageUnit>;
 export const TPercentage = t.type({ value: t.number, unit: TPercentageUnit }, "TPercentage");
 export type IPercentage = t.TypeOf<typeof TPercentage>;
 
-export const TSet = t.partial(
-  {
-    reps: t.number,
-    originalWeight: t.union([TWeight, TPercentage]),
-    weight: TWeight,
-    id: t.string,
-    minReps: t.number,
-    rpe: t.number,
-    logRpe: t.boolean,
-    timestamp: t.number,
-    isAmrap: t.boolean,
-    label: t.string,
-    timer: t.number,
-    askWeight: t.boolean,
-    isCompleted: t.boolean,
-    isUnilateral: t.boolean,
-    completedRepsLeft: t.number,
-    completedReps: t.number,
-    completedWeight: TWeight,
-    completedRpe: t.number,
-    programSetIndex: t.number,
-  },
+export const TSet = t.intersection(
+  [
+    t.interface({
+      vtype: t.literal("set"),
+    }),
+    t.partial({
+      reps: t.number,
+      originalWeight: t.union([TWeight, TPercentage]),
+      weight: TWeight,
+      id: t.string,
+      minReps: t.number,
+      rpe: t.number,
+      logRpe: t.boolean,
+      timestamp: t.number,
+      isAmrap: t.boolean,
+      label: t.string,
+      timer: t.number,
+      askWeight: t.boolean,
+      isCompleted: t.boolean,
+      isUnilateral: t.boolean,
+      completedRepsLeft: t.number,
+      completedReps: t.number,
+      completedWeight: TWeight,
+      completedRpe: t.number,
+      programSetIndex: t.number,
+    }),
+  ],
   "TSet"
 );
 export type ISet = t.TypeOf<typeof TSet>;
@@ -491,6 +496,7 @@ export type IProgramState = t.TypeOf<typeof TProgramState>;
 export const THistoryEntry = t.intersection(
   [
     t.interface({
+      vtype: t.literal("history_entry"),
       exercise: TExerciseType,
       sets: t.array(TSet),
       warmupSets: t.array(TSet),
@@ -505,7 +511,6 @@ export const THistoryEntry = t.intersection(
       isSuppressed: t.boolean,
       superset: t.string,
       updatePrints: t.array(t.array(t.union([t.number, TWeight, TPercentage]))),
-      leftSets: t.array(TSet),
     }),
   ],
   "THistoryEntry"
@@ -715,6 +720,8 @@ export type IExercisePickerState = t.TypeOf<typeof TExercisePickerState>;
 
 export const TProgressUi = t.partial(
   {
+    vtype: t.literal("progress_ui"),
+    id: t.string,
     amrapModal: t.intersection([
       t.interface({
         entryIndex: t.number,
@@ -793,37 +800,42 @@ export const THistoryRecordChange = t.keyof(
 );
 export type IHistoryRecordChange = t.TypeOf<typeof THistoryRecordChange>;
 
+const historyRecordRequiredFields = {
+  // ISO8601, like 2020-02-29T18:02:05+00:00
+  date: t.string,
+  programId: t.string,
+  programName: t.string,
+  day: t.number,
+  dayName: t.string,
+  entries: t.array(THistoryEntry),
+  startTime: t.number,
+  id: t.number,
+};
+const historyRecordOptionalFields = {
+  endTime: t.number,
+  week: t.number,
+  dayInWeek: t.number,
+  ui: TProgressUi,
+  intervals: TIntervals,
+  deletedProgramExercises: dictionary(t.string, t.boolean),
+  userPromptedStateVars: dictionary(t.string, TProgramState),
+  changes: t.array(THistoryRecordChange),
+  timerSince: t.number,
+  timerMode: TProgressMode,
+  timer: t.number,
+  timerEntryIndex: t.number,
+  timerSetIndex: t.number,
+  notes: t.string,
+  updatedAt: t.number,
+};
+
 export const THistoryRecord = t.intersection(
   [
     t.interface({
-      vtype: t.literal("history_record"),
-      // ISO8601, like 2020-02-29T18:02:05+00:00
-      date: t.string,
-      programId: t.string,
-      programName: t.string,
-      day: t.number,
-      dayName: t.string,
-      entries: t.array(THistoryEntry),
-      startTime: t.number,
-      id: t.number,
+      vtype: t.union([t.literal("history_record"), t.literal("progress")]),
+      ...historyRecordRequiredFields,
     }),
-    t.partial({
-      endTime: t.number,
-      week: t.number,
-      dayInWeek: t.number,
-      ui: TProgressUi,
-      intervals: TIntervals,
-      deletedProgramExercises: dictionary(t.string, t.boolean),
-      userPromptedStateVars: dictionary(t.string, TProgramState),
-      changes: t.array(THistoryRecordChange),
-      timerSince: t.number,
-      timerMode: TProgressMode,
-      timer: t.number,
-      timerEntryIndex: t.number,
-      timerSetIndex: t.number,
-      notes: t.string,
-      updatedAt: t.number,
-    }),
+    t.partial(historyRecordOptionalFields),
   ],
   "THistoryRecord"
 );
@@ -1386,6 +1398,7 @@ export const TStorage = t.intersection(
       whatsNew: t.union([t.string, t.undefined]),
     }),
     t.partial({
+      progress: THistoryRecord,
       originalId: t.number,
       id: t.number,
       referrer: t.string,
@@ -1437,6 +1450,8 @@ export type IDaySetData = {
 // Atomic types - these are versioned as a whole unit
 export const ATOMIC_TYPES = [
   "history_record",
+  "progress_ui",
+  "set",
   "equipment_data",
   "custom_exercise",
   "planner",
@@ -1451,7 +1466,7 @@ export const ATOMIC_TYPES = [
 export type IAtomicType = (typeof ATOMIC_TYPES)[number];
 
 // Controlled types - these have specific fields that are versioned
-export const CONTROLLED_TYPES = ["program", "gym"] as const;
+export const CONTROLLED_TYPES = ["program", "gym", "progress", "history_entry"] as const;
 
 export type IControlledType = (typeof CONTROLLED_TYPES)[number];
 
@@ -1459,6 +1474,34 @@ export type IControlledType = (typeof CONTROLLED_TYPES)[number];
 export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
   program: ["name", "nextDay", "planner"] as const,
   gym: ["name", "equipment"] as const,
+  progress: [
+    "entries",
+    "endTime",
+    "ui",
+    "intervals",
+    "notes",
+    "deletedProgramExercises",
+    "userPromptedStateVars",
+    "updatedAt",
+    "changes",
+    "timerSince",
+    "timerMode",
+    "timer",
+    "timerEntryIndex",
+    "timerSetIndex",
+  ] as const,
+  history_entry: [
+    "sets",
+    "warmupSets",
+    "isSuppressed",
+    "programExerciseId",
+    "state",
+    "vars",
+    "notes",
+    "changed",
+    "superset",
+    "updatePrints",
+  ] as const,
 };
 
 // Define id field for each type
@@ -1466,6 +1509,10 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   affiliate: "id",
   program: "clonedAt",
   history_record: "id",
+  set: "id",
+  progress_ui: "id",
+  history_entry: "id",
+  progress: "id",
   gym: "id",
   custom_exercise: "id",
   stat: "timestamp",

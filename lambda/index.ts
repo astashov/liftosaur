@@ -304,7 +304,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
         if (result.success) {
           di.log.log("New original id", result.data.originalId);
           const [storageId] = await Promise.all([
-            storageDao.store(limitedUser.id, result.data.newStorage),
+            storageDao.store(limitedUser.id, result.data.newStorage, storageUpdate?.storage),
             userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
           ]);
           if (storageId) {
@@ -346,7 +346,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
             }
           }
           const [storageId] = await Promise.all([
-            storageDao.store(limitedUser.id, storage),
+            storageDao.store(limitedUser.id, storage, storageUpdate?.storage),
             userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
           ]);
           if (key) {
@@ -426,7 +426,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
         if (result.success) {
           di.log.log("New original id", result.data);
           const [storageId] = await Promise.all([
-            storageDao.store(limitedUser.id, result.data.newStorage),
+            storageDao.store(limitedUser.id, result.data.newStorage, undefined),
             userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
           ]);
           if (storageId) {
@@ -462,7 +462,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
           const fullUser = (await userDao.getById(userId, { historyLimit: historylimit }))!;
           const storage = fullUser.storage;
           const [storageId] = await Promise.all([
-            storageDao.store(limitedUser.id, storage),
+            storageDao.store(limitedUser.id, storage, undefined),
             userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
           ]);
           if (key) {

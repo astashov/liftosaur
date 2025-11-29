@@ -405,8 +405,10 @@ export class ImportFromHevy {
         const [, equipment] = exerciseNameAndEquipment;
         const isUnilateral = Exercise.getIsUnilateral({ id: exerciseId, equipment: equipment }, settings);
         return {
+          vtype: "history_entry" as const,
           exercise: { id: exerciseId, equipment: equipment },
           warmupSets: record.warmupSets.map((set) => ({
+            vtype: "set" as const,
             originalWeight:
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             weight:
@@ -422,6 +424,7 @@ export class ImportFromHevy {
             timestamp: startTs,
           })),
           sets: record.sets.map((set) => ({
+            vtype: "set" as const,
             weight:
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             originalWeight:

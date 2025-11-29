@@ -11,7 +11,6 @@ import {
   IUnit,
   IWeight,
   ISettings,
-  IDayData,
   IScreenMuscle,
   IIntervals,
 } from "../types";
@@ -51,24 +50,9 @@ export interface IHistoryEntryPersonalRecords {
 }
 
 export namespace History {
-  export function buildFromEntry(entry: IHistoryEntry, dayData: IDayData): IHistoryRecord {
-    return {
-      vtype: "history_record",
-      id: 0,
-      date: new Date().toISOString(),
-      programId: "",
-      programName: "",
-      day: dayData.day,
-      week: dayData.week,
-      dayInWeek: dayData.dayInWeek,
-      dayName: dayData.day.toString(),
-      startTime: Date.now(),
-      entries: [entry],
-    };
-  }
-
   export function createCustomEntry(exerciseType: IExerciseType): IHistoryEntry {
     return {
+      vtype: "history_entry",
       id: UidFactory.generateUid(8),
       exercise: exerciseType,
       sets: [],
@@ -120,6 +104,7 @@ export namespace History {
         }
         return entry;
       }),
+      vtype: "history_record",
       id: Progress.isCurrent(progress) ? endTime : progress.id,
       updatedAt: updatedAt,
       timerSince: undefined,
@@ -766,14 +751,14 @@ export namespace History {
   }
 
   export function pauseWorkoutAction(dispatch: IDispatch): void {
-    const lensGetters = { progress: lb<IState>().p("progress").pi(0).get() };
+    const lensGetters = { progress: lb<IState>().p("storage").pi("progress").get() };
     SendMessage.toIosAndAndroid({ type: "pauseWorkout" });
     updateState(
       dispatch,
       [
         lbu<IState, typeof lensGetters>(lensGetters)
-          .p("progress")
-          .pi(0)
+          .p("storage")
+          .pi("progress")
           .p("intervals")
           .recordModify((intervals, getters) => pauseWorkout(getters.progress.intervals)),
       ],
@@ -801,8 +786,8 @@ export namespace History {
       dispatch,
       [
         lb<IState>()
-          .p("progress")
-          .pi(0)
+          .p("storage")
+          .pi("progress")
           .recordModify((progress) => {
             const intervals = resumeWorkout(progress, isPlayground, settings.timers.reminder);
             return { ...progress, intervals };

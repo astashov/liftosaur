@@ -212,6 +212,7 @@ export namespace Program {
         programSet.minrep != null && programSet.minrep !== programSet.maxrep ? programSet.minrep : undefined;
       const weight = ProgramSet.getEvaluatedWeight(programSet, programExercise.exerciseType, settings);
       sets.push({
+        vtype: "set",
         id: UidFactory.generateUid(6),
         reps: programSet.maxrep,
         minReps,
@@ -230,6 +231,7 @@ export namespace Program {
     }
 
     const entry: IHistoryEntry = {
+      vtype: "history_entry",
       id: UidFactory.generateUid(6),
       exercise: exercise,
       programExerciseId: programExercise.key,
@@ -290,7 +292,7 @@ export namespace Program {
       return nextHistoryEntry(program, dayData, exercise, stats, settings);
     });
     return {
-      vtype: "history_record",
+      vtype: "progress",
       id: 0,
       date: new Date().toISOString(),
       programId: program.id,
