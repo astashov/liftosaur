@@ -3538,6 +3538,7 @@ function warmup(
           const warmupWeight = typeof value === "number" ? Weight.multiply(weight!, value) : value;
           const roundedWeight = Weight.roundConvertTo(warmupWeight, settings, unit, exerciseType);
           memo.push({
+            vtype: "set",
             id: UidFactory.generateUid(6),
             reps: programExerciseWarmupSet.reps,
             isUnilateral: exerciseType ? Exercise.getIsUnilateral(exerciseType, settings) : false,

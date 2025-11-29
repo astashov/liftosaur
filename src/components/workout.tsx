@@ -51,7 +51,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
     if (props.program && Program.isEmpty(props.program) && props.progress.entries.length === 0) {
       updateState(
         props.dispatch,
-        [lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("exercisePicker").record({})],
+        [Progress.lbProgress(props.progress.id).pi("ui").p("exercisePicker").record({})],
         "Open exercise picker on empty program"
       );
     }
@@ -368,9 +368,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
                   updateState(
                     props.dispatch,
                     [
-                      lb<IState>()
-                        .p("progress")
-                        .pi(props.progress.id)
+                      Progress.lbProgress(props.progress.id)
                         .pi("ui")
                         .p("exercisePicker")
                         .record({

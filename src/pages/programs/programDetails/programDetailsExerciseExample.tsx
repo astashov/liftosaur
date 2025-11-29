@@ -52,10 +52,12 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
       const entry: IHistoryEntry = programExercise
         ? Program.nextHistoryEntry(props.program, programDay.dayData, programExercise, Stats.getEmpty(), settings)
         : {
+            vtype: "history_entry",
             exercise: exerciseType,
             warmupSets: [],
             sets: [
               {
+                vtype: "set",
                 isUnilateral: Exercise.getIsUnilateral(exerciseType, settings),
                 originalWeight: Weight.build(0, settings.units),
                 weight: Weight.build(0, settings.units),

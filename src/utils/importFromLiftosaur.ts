@@ -139,6 +139,7 @@ export class ImportFromLiftosaur {
         const isUnilateral = Exercise.getIsUnilateral(exerciseType, settings);
 
         const entry: IHistoryEntry = {
+          vtype: "history_entry",
           exercise: exerciseType,
           warmupSets: rawWarmupSets.map((set) => {
             const weight =
@@ -152,6 +153,7 @@ export class ImportFromLiftosaur {
                 : undefined;
             const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
             return {
+              vtype: "set",
               reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
               completedReps: completedReps,
               isAmrap: set.isAmrap === "1",
@@ -181,6 +183,7 @@ export class ImportFromLiftosaur {
                 : undefined;
             const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
             return {
+              vtype: "set",
               reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
               completedReps: completedReps,
               isAmrap: set.isAmrap === "1",

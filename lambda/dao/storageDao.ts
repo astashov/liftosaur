@@ -1,4 +1,4 @@
-import { IPartialStorage } from "../../src/types";
+import { IPartialStorage, IStorage } from "../../src/types";
 import { Utils } from "../utils";
 import { IDI } from "../utils/di";
 import { UidFactory } from "../utils/generator";
@@ -36,8 +36,19 @@ export class StorageDao {
     }
   }
 
-  public async store(userid: string, storage?: IPartialStorage): Promise<string | undefined> {
+  public async store(
+    userid: string,
+    storage: IPartialStorage | undefined,
+    storageUpdateStorage: Partial<IStorage> | undefined
+  ): Promise<string | undefined> {
     if (!storage) {
+      return undefined;
+    }
+    if (
+      storageUpdateStorage &&
+      Object.keys(storageUpdateStorage).length === 1 &&
+      storageUpdateStorage.progress != null
+    ) {
       return undefined;
     }
     const env = Utils.getEnv();

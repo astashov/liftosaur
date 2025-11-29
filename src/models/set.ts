@@ -118,6 +118,7 @@ export namespace Reps {
 
   export function newSet(isUnilateral: boolean): ISet {
     return {
+      vtype: "set",
       id: UidFactory.generateUid(6),
       originalWeight: undefined,
       weight: undefined,

@@ -123,10 +123,15 @@ export async function getInitialState(
 
     const finalLastSyncedStorage: IStorage | undefined = storage.lastSyncedStorage;
 
-    const isProgressValid =
-      storage.progress != null
-        ? Storage.validateAndReport(storage.progress, THistoryRecord, "progress").success
-        : false;
+    // Handle migration from old localStorage format where progress was stored separately
+    // Now progress is stored in storage.progress
+    const oldProgress = (storage as { progress?: IHistoryRecord }).progress;
+    if (oldProgress != null && finalStorage.progress == null) {
+      const isProgressValid = Storage.validateAndReport(oldProgress, THistoryRecord, "progress").success;
+      if (isProgressValid) {
+        finalStorage = { ...finalStorage, progress: oldProgress };
+      }
+    }
 
     const screenStack: IScreenStack = finalStorage.currentProgramId
       ? [{ name: "main" }]
@@ -136,7 +141,7 @@ export async function getInitialState(
     return {
       storage: finalStorage,
       lastSyncedStorage: finalLastSyncedStorage,
-      progress: isProgressValid ? { 0: storage.progress } : {},
+      progress: {},
       notification,
       loading: { items: {} },
       programs: [basicBeginnerProgram],
@@ -338,7 +343,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      const progress = newState.progress[0];
+      const progress = newState.storage.progress;
       if (progress != null) {
         const oldProgram = Program.getProgram(oldState, progress.programId);
         const newProgram = Program.getProgram(newState, progress.programId);
@@ -406,7 +411,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      const progress = newState.progress[0];
+      const progress = newState.storage.progress;
       if (progress != null) {
         const oldExerciseData = oldState.storage.settings.exerciseData;
         const newExerciseData = newState.storage.settings.exerciseData;
@@ -433,7 +438,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      const progress = newState.progress[0];
+      const progress = newState.storage.progress;
       if (progress != null) {
         const oldEquipment = Equipment.getCurrentGym(oldState.storage.settings).equipment;
         const newEquipment = Equipment.getCurrentGym(newState.storage.settings).equipment;
@@ -542,7 +547,6 @@ export const reducerWrapper =
             const localStorage: ILocalStorage = {
               storage: newState2.storage,
               lastSyncedStorage: newState2.lastSyncedStorage,
-              progress: newState2.progress[0],
             };
             await IndexedDBUtils.set("current_account", userId);
             await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
@@ -558,15 +562,12 @@ function newStorageApproach(oldState: IState, newState: IState, isStorageChanged
     window.tempUserId = newState.storage.tempUserId;
     (window as any).state = newState;
     const isLocalStorageChanged =
-      isStorageChanged ||
-      Storage.isChanged(oldState.lastSyncedStorage, newState.lastSyncedStorage) ||
-      Progress.isChanged(oldState.progress[0], newState.progress[0]);
+      isStorageChanged || Storage.isChanged(oldState.lastSyncedStorage, newState.lastSyncedStorage);
     if (isLocalStorageChanged && newState.errors.corruptedstorage == null) {
       const userId = newState.user?.id || newState.storage.tempUserId;
       const localStorage: ILocalStorage = {
         storage: newState.storage,
         lastSyncedStorage: newState.lastSyncedStorage,
-        progress: newState.progress[0],
       };
       Promise.all([
         IndexedDBUtils.set("current_account", userId),
@@ -774,7 +775,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       )(Progress.getProgress(state)!, action)
     );
   } else if (action.type === "StartProgramDayAction") {
-    const progress = state.progress[0];
+    const progress = state.storage.progress;
     if (progress != null) {
       return {
         ...state,
@@ -787,7 +788,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         return {
           ...state,
           screenStack: pushScreen(state.screenStack, "progress", { id: 0 }, true),
-          progress: { ...state.progress, 0: newProgress },
+          storage: { ...state.storage, progress: newProgress },
         };
       } else {
         alert("No currently selected program");
@@ -846,9 +847,10 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
             ...state.storage.settings,
             exerciseData: newSettingsExerciseData,
           },
+          ...(Progress.isCurrent(progress) ? { progress: undefined } : {}),
         },
         screenStack: Progress.isCurrent(progress) ? [{ name: "finishDay" }] : Screen.pull(state.screenStack),
-        progress: Progress.stop(state.progress, progress.id),
+        progress: Progress.isCurrent(progress) ? state.progress : Progress.stop(state.progress, progress.id),
       };
     }
   } else if (action.type === "ChangeDate") {
@@ -860,6 +862,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     return {
       ...state,
       screenStack: pushScreen(state.screenStack, "main", undefined, true),
+      storage: Progress.isCurrent(progress) ? { ...state.storage, progress: undefined } : state.storage,
       progress: Progress.isCurrent(progress)
         ? state.progress
         : Progress.stop(state.progress, Progress.getProgressId(state.screenStack)),
@@ -877,6 +880,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         storage: {
           ...state.storage,
           history,
+          ...(Progress.isCurrent(progress) ? { progress: undefined } : {}),
           _versions: !Progress.isCurrent(progress)
             ? {
                 ...state.storage._versions,
@@ -890,7 +894,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
               }
             : state.storage._versions,
         },
-        progress: Progress.stop(state.progress, progress.id),
+        progress: Progress.isCurrent(progress) ? state.progress : Progress.stop(state.progress, progress.id),
       };
     } else {
       return state;
@@ -963,7 +967,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return newState;
     }, state);
   } else if (action.type === "ApplyProgramChangesToProgress") {
-    const progress = state.progress[0];
+    const progress = state.storage.progress;
     if (progress != null) {
       const program = Program.evaluate(Program.getProgram(state, progress.programId)!, state.storage.settings);
       let newProgress = Progress.applyProgramDay(
@@ -984,7 +988,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
 
       return {
         ...state,
-        progress: { ...state.progress, 0: newProgress },
+        storage: { ...state.storage, progress: newProgress },
       };
     } else {
       return state;
