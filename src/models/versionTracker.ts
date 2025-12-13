@@ -264,6 +264,19 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     return result;
   }
 
+  /**
+   * Compares old and new objects and updates the version tree to reflect changes.
+   * For each changed field, creates a new version timestamp. Handles atomic types
+   * (versioned as a whole), controlled types (only specific fields versioned),
+   * collections (arrays/dictionaries with item-level tracking), and nested objects.
+   *
+   * @param oldObj The previous state of the object
+   * @param newObj The new state of the object
+   * @param currentVersions The existing version tree to update
+   * @param newVersions Incoming versions from another source (used to preserve vector clocks during merges)
+   * @param timestamp The timestamp to assign to changed fields
+   * @returns Updated version tree reflecting all changes
+   */
   public updateVersions<T extends Record<string, unknown>>(
     oldObj: T,
     newObj: T,

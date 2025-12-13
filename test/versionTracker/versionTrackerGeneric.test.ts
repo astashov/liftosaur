@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "mocha";
 import { expect } from "chai";
-import { VersionTracker, IVersions, IVersionTypes } from "../src/models/versionTracker";
+import { VersionTracker, IVersions, IVersionTypes } from "../../src/models/versionTracker";
 
 interface ICustomObject {
   name: string;
