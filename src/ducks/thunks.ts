@@ -1299,7 +1299,6 @@ async function handleLogin(
         }
       }
       if (oldUserId === result.user_id) {
-        console.log("Login - same user");
         dispatch(Thunk.postevent("login-same-user"));
         updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(storage)], "Set last synced on login");
         dispatch({ type: "Login", email: result.email, userId: result.user_id });
@@ -1311,7 +1310,6 @@ async function handleLogin(
           );
         }
       } else {
-        console.log("Login - different user");
         dispatch(Thunk.postevent("login-different-user"));
         storage.subscription.key = result.key;
         const newState = await getInitialState(client, { storage, deviceId: await DeviceId.get() });

@@ -4,9 +4,22 @@ import { ObjectUtils } from "../../src/utils/object";
 import { UrlUtils } from "../../src/utils/url";
 import JWT from "jsonwebtoken";
 
+interface IMockRequest {
+  url: string;
+  body: Record<string, unknown>;
+}
+
+export interface IMockFetchLog {
+  request: IMockRequest;
+  response: Record<string, unknown>;
+}
+
 export class MockFetch {
   public handler: IHandler | undefined;
-  constructor(public readonly userId: string) {}
+  constructor(
+    public readonly userId: string,
+    public readonly logs: IMockFetchLog[]
+  ) {}
 
   public fetch: Window["fetch"] = async (urlStr, options) => {
     const session = JWT.sign({ userId: this.userId }, "cookieSecret");
@@ -34,6 +47,10 @@ export class MockFetch {
       resource: "",
     };
     const response = await this.handler(request, { getRemainingTimeInMillis: () => 10000 });
+    this.logs.push({
+      request: { url: url.href, body: body ? JSON.parse(body as string) : {} },
+      response: response.body ? JSON.parse(response.body) : {},
+    });
     return {
       ok: response.statusCode === 200,
       bytes: async () => new Uint8Array(0),

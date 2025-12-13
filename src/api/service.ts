@@ -253,7 +253,6 @@ export class Service {
       historylimit: 20,
       deviceId: args.deviceId,
     });
-    console.log(JSON.parse(body));
     const compressedBody = await Encoder.encode(body);
     const payload = JSON.stringify({ data: compressedBody });
     const result = await this.client(url.toString(), {
