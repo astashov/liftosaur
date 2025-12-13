@@ -39,7 +39,7 @@ Version Tracker
 * mergeVersions - in applySafeSync2 and mergeStorage (dirty response, on the client)
 * mergeByVersions - in applySafeSync2 and mergeStorage (dirty response, on the client)
 
-
+* updateVersions -> getStorageUpdate -> applySafeSync2 -> mergeStorage
 
 
 
