@@ -127,7 +127,7 @@ describe("updateVersions", () => {
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
-      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions.items!["2"]).to.deep.equal({
         name: timestamp,
         nextDay: timestamp,
@@ -170,7 +170,7 @@ describe("updateVersions", () => {
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
-      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions.items!["1"]).to.deep.equal({
         name: timestamp,
       });
@@ -214,7 +214,7 @@ describe("updateVersions", () => {
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
-      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions).to.deep.equal({
         items: {},
         deleted: { "2": timestamp },
@@ -251,7 +251,7 @@ describe("updateVersions", () => {
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
-      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions).to.deep.equal({
         items: {},
         deleted: { "1": timestamp },
@@ -359,7 +359,7 @@ describe("updateVersions", () => {
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
-      const historyVersions = versions.history as ICollectionVersions<IHistoryRecord>;
+      const historyVersions = versions.history as ICollectionVersions;
       expect(historyVersions.items!["1"]).to.equal(timestamp);
     });
 
@@ -402,7 +402,7 @@ describe("updateVersions", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
-      const exerciseVersions = settingsVersions.exercises as ICollectionVersions<ICustomExercise>;
+      const exerciseVersions = settingsVersions.exercises as ICollectionVersions;
       expect(exerciseVersions.items!.custom1).to.equal(timestamp);
     });
   });
@@ -445,7 +445,7 @@ describe("updateVersions", () => {
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
-      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      const programVersions = versions.programs as ICollectionVersions;
       const itemVersion = programVersions!.items!["1"] as IVersions<IProgram>;
 
       expect(itemVersion).to.deep.equal({
@@ -497,7 +497,7 @@ describe("updateVersions", () => {
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
-      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      const programVersions = versions.programs as ICollectionVersions;
       const itemVersion = programVersions!.items!["1"] as IVersions<IProgram>;
 
       expect(itemVersion).to.deep.equal({
@@ -543,7 +543,7 @@ describe("updateVersions", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const settings = versions.settings as IVersions<typeof oldStorage.settings>;
-      const gymVersions = settings.gyms as ICollectionVersions<IGym>;
+      const gymVersions = settings.gyms as ICollectionVersions;
       expect(gymVersions.items!.gym2).to.deep.equal({
         name: timestamp,
         equipment: timestamp,
@@ -601,7 +601,7 @@ describe("updateVersions", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
-      const exerciseVersions = settingsVersions.exercises as ICollectionVersions<ICustomExercise>;
+      const exerciseVersions = settingsVersions.exercises as ICollectionVersions;
       expect(exerciseVersions.items).to.deep.equal({
         custom2: timestamp,
       });
@@ -647,7 +647,7 @@ describe("updateVersions", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
-      const exerciseVersions = settingsVersions.exercises as ICollectionVersions<ICustomExercise>;
+      const exerciseVersions = settingsVersions.exercises as ICollectionVersions;
       expect(exerciseVersions).to.deep.equal({
         items: {},
         deleted: { ex2: timestamp },
@@ -688,7 +688,7 @@ describe("updateVersions", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
-      const exerciseVersions = settingsVersions.exercises as ICollectionVersions<ICustomExercise>;
+      const exerciseVersions = settingsVersions.exercises as ICollectionVersions;
       expect(exerciseVersions).to.deep.equal({
         items: {},
         deleted: { custom1: timestamp },
@@ -743,7 +743,7 @@ describe("updateVersions", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const settings = versions.settings as IVersions<typeof oldStorage.settings>;
-      const gymVersions = settings?.gyms as ICollectionVersions<IGym>;
+      const gymVersions = settings?.gyms as ICollectionVersions;
       expect(gymVersions.items!.gym1).to.deep.equal({
         equipment: timestamp,
       });
@@ -812,7 +812,7 @@ describe("updateVersions", () => {
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
       const settings = versions.settings as IVersions<typeof oldStorage.settings>;
-      const gymVersions = settings?.gyms as ICollectionVersions<IGym>;
+      const gymVersions = settings?.gyms as ICollectionVersions;
 
       expect(gymVersions.items!.gym1).to.deep.equal({
         name: timestamp,
@@ -987,7 +987,7 @@ describe("updateVersions", () => {
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, oldStorage._versions!, {}, timestamp);
 
-      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions).to.deep.equal({
         items: {
           "1": { name: timestamp, nextDay: timestamp },
@@ -1033,7 +1033,7 @@ describe("updateVersions", () => {
       const timestamp = 1000;
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
-      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions).to.deep.equal({
         items: {},
         deleted: {
@@ -1070,7 +1070,7 @@ describe("updateVersions", () => {
       const timestamp2 = 2000;
       const versions2 = versionTracker.updateVersions(newStorage, storageWithEmptyDict, versions1, {}, timestamp2);
 
-      const exercisesVersions = (versions2.settings as IVersions<any>).exerciseData as ICollectionVersions<any>;
+      const exercisesVersions = (versions2.settings as IVersions<any>).exerciseData as ICollectionVersions;
       expect(exercisesVersions).to.deep.equal({
         items: {},
         deleted: {
@@ -1162,7 +1162,7 @@ describe("updateVersions", () => {
         const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
         const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
-        const exerciseVersions = settingsVersions.exercises as unknown as ICollectionVersions<ICustomExercise>;
+        const exerciseVersions = settingsVersions.exercises as unknown as ICollectionVersions;
         expect(exerciseVersions.items!.ex1).to.equal(timestamp);
       });
     });

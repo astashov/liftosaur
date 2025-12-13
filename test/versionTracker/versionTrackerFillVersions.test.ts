@@ -88,7 +88,7 @@ describe("fillVersions", () => {
     const timestamp = 2000;
 
     const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
-    const programVersions = filled.programs as ICollectionVersions<IProgram>;
+    const programVersions = filled.programs as ICollectionVersions;
 
     expect(programVersions.items!["1"]).to.deep.equal({
       name: 1000, // Existing preserved (missing fields not added since partial versions exist)
@@ -140,7 +140,7 @@ describe("fillVersions", () => {
     const timestamp = 2000;
 
     const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
-    const exerciseVersions = (filled.settings as any).exercises as ICollectionVersions<ICustomExercise>;
+    const exerciseVersions = (filled.settings as any).exercises as ICollectionVersions;
 
     expect(exerciseVersions.items!.ex1).to.equal(1000); // Existing preserved
     expect(exerciseVersions.items!.ex2).to.equal(timestamp); // Missing added
@@ -173,7 +173,7 @@ describe("fillVersions", () => {
     const timestamp = 2000;
 
     const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
-    const historyVersions = filled.history as ICollectionVersions<IHistoryRecord>;
+    const historyVersions = filled.history as ICollectionVersions;
 
     expect(historyVersions.items!["123"]).to.equal(timestamp); // Atomic object gets single timestamp
   });
@@ -214,7 +214,7 @@ describe("fillVersions", () => {
     const timestamp = 2000;
 
     const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
-    const gymVersions = (filled.settings as any).gyms as ICollectionVersions<IGym>;
+    const gymVersions = (filled.settings as any).gyms as ICollectionVersions;
 
     expect(gymVersions.items!.gym1).to.deep.equal({
       name: 1000, // Existing preserved (missing fields not added since partial versions exist)
@@ -352,7 +352,7 @@ describe("fillVersions", () => {
     const timestamp = 2000;
 
     const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
-    const programVersions = filled.programs as ICollectionVersions<IProgram>;
+    const programVersions = filled.programs as ICollectionVersions;
 
     expect(programVersions.deleted).to.deep.equal({ prog2: 1500 }); // Deleted preserved
     expect(programVersions.items!["1"]).to.deep.equal({
@@ -394,7 +394,7 @@ describe("fillVersions", () => {
     const timestamp = 2000;
 
     const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
-    const programVersions = filled.programs as ICollectionVersions<IProgram>;
+    const programVersions = filled.programs as ICollectionVersions;
 
     expect(programVersions.deleted).to.deep.equal({ 4: 1500 });
     expect(programVersions.items).to.deep.equal({

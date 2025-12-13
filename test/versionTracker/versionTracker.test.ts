@@ -4,6 +4,7 @@ import { expect } from "chai";
 import {
   VersionTracker,
   IVersions,
+  IVersionsObject,
   ICollectionVersions,
   IVersionTypes,
   IVectorClock,
@@ -165,8 +166,9 @@ describe("VersionTracker", () => {
       expect((merged.age as any).t).to.equal(1000);
 
       // email: only in diff, should use diff
-      expect((merged.email as any).vc).to.deep.equal({ ios_xyz: 1 });
-      expect((merged.email as any).t).to.equal(1500);
+      const mergedAny = merged as any;
+      expect(mergedAny.email.vc).to.deep.equal({ ios_xyz: 1 });
+      expect(mergedAny.email.t).to.equal(1500);
     });
 
     it("should use plain timestamps for deletions even with deviceId", () => {
@@ -201,7 +203,7 @@ describe("VersionTracker", () => {
       const timestamp = 1000;
       const versions = trackerWithDevice.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
-      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      const programVersions = versions.programs as ICollectionVersions;
       // Deletion should be plain timestamp, not vector clock
       expect(programVersions.deleted!["1"]).to.equal(timestamp);
       expect(typeof programVersions.deleted!["1"]).to.equal("number");
@@ -281,7 +283,7 @@ describe("VersionTracker", () => {
       const timestamp = 1000;
       const versions = trackerWithDevice.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
-      const programVersions = versions.programs as ICollectionVersions<IProgram>;
+      const programVersions = versions.programs as ICollectionVersions;
       const itemVersion = programVersions.items!["1"] as any;
 
       expect(itemVersion.name).to.be.an("object");
@@ -411,7 +413,7 @@ describe("VersionTracker", () => {
         const versionsWeb = trackerWeb.updateVersions(storage2, storage3, {}, versionsIos, 2000);
 
         // Web's version should have BOTH device counters
-        const programVersions = versionsWeb.programs as ICollectionVersions<IProgram>;
+        const programVersions = versionsWeb.programs as ICollectionVersions;
         const nameVersion = (programVersions.items!["1"] as any).name;
 
         expect(nameVersion.vc.ios_xyz).to.equal(1); // ✓ Preserved from iOS
@@ -465,7 +467,7 @@ describe("VersionTracker", () => {
 
         // Web's version should have BOTH device counters
         const settingsVersions = versionsWeb.settings as any;
-        const exercisesVersions = settingsVersions.exercises as ICollectionVersions<any>;
+        const exercisesVersions = settingsVersions.exercises as ICollectionVersions;
         const customExVersion = exercisesVersions.items!["custom-ex"] as IVectorClock;
 
         // Should preserve ios_xyz and add web_abc
@@ -533,7 +535,7 @@ describe("VersionTracker", () => {
         const versionsWeb = trackerWeb.updateVersions(storage2, storage3, {}, versionsIos, 2000);
 
         // Web's version should have BOTH device counters
-        const programVersions = versionsWeb.programs as ICollectionVersions<IProgram>;
+        const programVersions = versionsWeb.programs as ICollectionVersions;
         const nameVersion = (programVersions.items!["1"] as any).name as IVectorClock;
 
         expect(nameVersion.vc.ios_xyz).to.equal(1); // ✓ Preserved from iOS
@@ -569,7 +571,7 @@ describe("VersionTracker", () => {
         const versionsWeb = trackerWeb.updateVersions(storage2, storage3, {}, versionsIos, 2000);
 
         // Web's version should have BOTH device counters
-        const historyVersions = versionsWeb.history as ICollectionVersions<IHistoryRecord>;
+        const historyVersions = versionsWeb.history as ICollectionVersions;
         const recordVersion = historyVersions.items!["1"] as IVectorClock;
 
         expect(recordVersion.vc.ios_xyz).to.equal(1); // ✓ Preserved from iOS
@@ -674,9 +676,7 @@ describe("VersionTracker", () => {
 
         // Verify versions are properly merged
         const mergedVersions = trackerWeb.mergeVersions(versions3, versionDiff2!);
-        const programVersions = (mergedVersions.programs as ICollectionVersions<unknown>).items![
-          "1"
-        ] as IVersions<unknown>;
+        const programVersions = (mergedVersions.programs as ICollectionVersions).items!["1"] as IVersionsObject;
         expect((programVersions.name as IVectorClock).vc.ios_xyz).to.equal(1);
         expect((programVersions.nextDay as IVectorClock).vc.web_abc).to.equal(2);
       });

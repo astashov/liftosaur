@@ -9,7 +9,7 @@ import { UidFactory } from "./utils/generator";
 import { Utils } from "./utils";
 import { ApplePromotionalOfferSigner } from "./utils/applePromotionalOfferSigner";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IPartialStorage, IProgram, IStorage } from "../src/types";
+import { IPartialStorage, IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -871,9 +871,9 @@ const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
         ? {
             ...user.storage._versions,
             programs: {
-              ...c<ICollectionVersions<IProgram[]>>(user.storage._versions?.programs || {}),
+              ...c<ICollectionVersions>(user.storage._versions?.programs || {}),
               deleted: {
-                ...c<ICollectionVersions<IProgram[]>>(user.storage._versions?.programs || {}).deleted,
+                ...c<ICollectionVersions>(user.storage._versions?.programs || {}).deleted,
                 [program.clonedAt]: Date.now(),
               },
             },
