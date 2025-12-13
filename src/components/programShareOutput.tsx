@@ -4,7 +4,7 @@ import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { StringUtils } from "../utils/string";
 import { ExerciseImage } from "./exerciseImage";
 import { equipmentName, Exercise } from "../models/exercise";
-import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
+import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerProgramExerciseSet } from "../pages/planner/models/types";
 import { Markdown } from "./markdown";
@@ -101,11 +101,17 @@ export const ProgramShareOutput = forwardRef(
         <div className="p-2 bg-background-subtle" ref={contentRef} style={{ width: "max-content" }}>
           {props.program.weeks.map((week, weekIndex) => {
             let dayInWeekIndex = 0;
-            const visibleDays = week.days.filter((day) => {
-              const result = options.daysToShow.includes(dayIndex);
-              dayIndex += 1;
-              return result;
-            });
+            const visibleDays = CollectionUtils.compact(
+              week.days.map((day) => {
+                const shouldInclude = options.daysToShow.includes(dayIndex);
+                let result = undefined;
+                if (shouldInclude) {
+                  result = { day, dayIndex };
+                }
+                dayIndex += 1;
+                return result;
+              })
+            );
             const groupedDays = CollectionUtils.inGroupsOf(options.columns, visibleDays);
             return (
               <div style={{ width: "max-content" }}>
@@ -122,18 +128,17 @@ export const ProgramShareOutput = forwardRef(
                   return (
                     <div className="flex gap-2">
                       {days.map((day) => {
-                        const evaluatedDay = evaluatedWeeks[weekIndex][dayInWeekIndex];
-                        if (!evaluatedDay.success) {
+                        const evaluatedDay = findDayInEvaluatedWeeks(evaluatedWeeks, day.dayIndex);
+                        if (evaluatedDay == null) {
                           return <div />;
                         }
-                        const data = evaluatedDay.data;
                         const item = (
                           <div className="mt-2" style={{ width: "24rem" }}>
                             <Workout
                               isMultiweek={props.program.weeks.length > 1}
                               week={week}
-                              day={day}
-                              exercises={data.filter((e) => !e.notused)}
+                              day={day.day}
+                              exercises={evaluatedDay.filter((e) => !e.notused)}
                               settings={props.settings}
                               options={props.options}
                             />
@@ -162,6 +167,24 @@ export const ProgramShareOutput = forwardRef(
     );
   }
 );
+
+function findDayInEvaluatedWeeks(
+  evaluatedWeeks: IPlannerEvalResult[][],
+  dayIndex: number
+): IPlannerProgramExercise[] | undefined {
+  let currentDayIndex = 0;
+  for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex++) {
+    const week = evaluatedWeeks[weekIndex];
+    for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex++) {
+      const day = week[dayInWeekIndex];
+      if (currentDayIndex === dayIndex) {
+        return day.success ? day.data : undefined;
+      }
+      currentDayIndex += 1;
+    }
+  }
+  return undefined;
+}
 
 interface IWorkoutProps {
   options: IProgramShareOutputOptions;

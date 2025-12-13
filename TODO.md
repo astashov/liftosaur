@@ -31,6 +31,14 @@
 * Add syncing and storing progress on the server
 
 
+Version Tracker
+* fillVersions - create initial storage._versions, during sync2 (getStorageUpdate) and applySafeSync2 (in lambda/sync)
+* updateVersions - on each storage update, updating storage._versions
+* diffVersions - during getStorageUpdate get the diff between lastSyncedStorage, we use it for extractByVersions
+* extractByVersions - during getStorageUpdate, extract only changed data to send to the client
+* mergeVersions - in applySafeSync2 and mergeStorage (dirty response, on the client)
+* mergeByVersions - in applySafeSync2 and mergeStorage (dirty response, on the client)
+
 
 
 
