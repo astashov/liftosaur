@@ -881,9 +881,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
             ? {
                 ...state.storage._versions,
                 history: {
-                  ...c<ICollectionVersions<IHistoryRecord[]>>(state.storage._versions?.history || {}),
+                  ...c<ICollectionVersions>(state.storage._versions?.history || {}),
                   deleted: {
-                    ...c<ICollectionVersions<IHistoryRecord[]>>(state.storage._versions?.history || {}).deleted,
+                    ...c<ICollectionVersions>(state.storage._versions?.history || {}).deleted,
                     [progress.id]: Date.now(),
                   },
                 },

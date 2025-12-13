@@ -228,7 +228,7 @@ export class UserDao {
     };
     const newStorage = Storage.fillVersions(preNewStorage);
 
-    const versionsHistory = newStorage._versions?.history as ICollectionVersions<IHistoryRecord[]> | undefined;
+    const versionsHistory = newStorage._versions?.history as ICollectionVersions | undefined;
     const deletedVersionsHistory = ObjectUtils.keys(versionsHistory?.deleted || {}).map((v) => Number(v));
     const historyDeletes = this.di.dynamo.batchDelete({
       tableName: userTableNames[env].historyRecords,
@@ -244,7 +244,7 @@ export class UserDao {
         })),
     });
 
-    const versionsPrograms = newStorage._versions?.programs as ICollectionVersions<IProgram[]> | undefined;
+    const versionsPrograms = newStorage._versions?.programs as ICollectionVersions | undefined;
     const deletedVersionsPrograms = ObjectUtils.keys(versionsPrograms?.deleted || {}).map((v) => Number(v));
     const userPrograms = deletedVersionsPrograms.length > 0 ? await this.getProgramsByUserId(limitedUser.id) : [];
     const programIdsToDelete = userPrograms
@@ -262,7 +262,7 @@ export class UserDao {
         .map((record) => ({ ...record, userId: limitedUser.id })),
     });
 
-    const versionsStats = storageUpdate.versions?.stats as ICollectionVersions<IStats> | undefined;
+    const versionsStats = storageUpdate.versions?.stats as ICollectionVersions | undefined;
     const deletedVersionsStats = ObjectUtils.keys(versionsStats?.deleted || {}).map((v) => Number(v));
     const stats = storageUpdate.storage?.stats! || {};
     const statsDb: IStatDb[] = [];

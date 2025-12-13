@@ -307,11 +307,11 @@ export namespace Thunk {
 
   function getDeletedStats(state: IState): number[] {
     let deleted: string[] = [];
-    const versionStats = state.storage._versions?.stats as Record<string, Record<string, ICollectionVersions<unknown>>>;
-    for (const type of ObjectUtils.keys(versionStats || {})) {
-      for (const statType of ObjectUtils.keys(versionStats[type] || {})) {
+    const versionStats = state.storage._versions?.stats as Record<string, Record<string, ICollectionVersions>>;
+    for (const type of Object.keys(versionStats || {})) {
+      for (const statType of Object.keys(versionStats[type] || {})) {
         const stats = versionStats[type][statType];
-        deleted = deleted.concat(ObjectUtils.keys(stats.deleted || {}));
+        deleted = deleted.concat(Object.keys(stats.deleted || {}));
       }
     }
     return deleted.map(Number);

@@ -224,7 +224,6 @@ describe("sync", () => {
     let threw = false;
     let msg = "";
     global.alert = (m) => (msg = m);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.window = { alert: global.alert } as any;
     try {
       await mockReducer.run([Thunk.sync2({ force: true })]);
