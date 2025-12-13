@@ -114,6 +114,8 @@ export interface IVersionTypes<TAtomicType extends string, TControlledType exten
 }
 
 export class VersionTracker<TAtomicType extends string, TControlledType extends string> {
+  private static readonly NUKEDELETED_THRESHOLD = 3;
+
   private readonly versionTypes: IVersionTypes<TAtomicType, TControlledType>;
   private readonly deviceId?: string;
 
@@ -264,6 +266,33 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     return result;
   }
 
+  private ensureCollectionVersions(
+    version: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined
+  ): ICollectionVersions<unknown> {
+    if (
+      version &&
+      typeof version === "object" &&
+      ("items" in version || "deleted" in version)
+    ) {
+      return version as ICollectionVersions<unknown>;
+    }
+    return { items: {}, deleted: {} };
+  }
+
+  private incrementNukedeleted(
+    collection: ICollectionVersions<unknown>
+  ): ICollectionVersions<unknown> {
+    if (collection.nukedeleted == null) {
+      return collection;
+    }
+    const next = collection.nukedeleted + 1;
+    if (next > VersionTracker.NUKEDELETED_THRESHOLD) {
+      const { nukedeleted, ...rest } = collection;
+      return rest;
+    }
+    return { ...collection, nukedeleted: next };
+  }
+
   /**
    * Compares old and new objects and updates the version tree to reflect changes.
    * For each changed field, creates a new version timestamp. Handles atomic types
@@ -296,22 +325,20 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         continue;
       }
 
-      if (oldValue != null || (oldValue == null && newValue != null)) {
-        const updatedVersion = this.updateFieldVersion(
-          oldObj,
-          newObj,
-          currentVersions,
-          newVersions,
-          oldValue,
-          newValue,
-          versions[field],
-          newVersions[field],
-          timestamp,
-          field as string
-        );
-        if (updatedVersion !== undefined) {
-          (versions as any)[field] = updatedVersion;
-        }
+      const updatedVersion = this.updateFieldVersion(
+        oldObj,
+        newObj,
+        currentVersions,
+        newVersions,
+        oldValue,
+        newValue,
+        versions[field],
+        newVersions[field],
+        timestamp,
+        field as string
+      );
+      if (updatedVersion !== undefined) {
+        (versions as any)[field] = updatedVersion;
       }
     }
 
@@ -336,74 +363,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
         Array.isArray(oldValue) && oldValue.some((item: unknown) => this.getId(item) !== undefined);
 
       if (hasTrackableItems || oldHasTrackableItems) {
-        let collectionVersions = currentVersion as ICollectionVersions<unknown> | undefined;
-        if (
-          !collectionVersions ||
-          typeof collectionVersions !== "object" ||
-          !("items" in collectionVersions || "deleted" in collectionVersions)
-        ) {
-          collectionVersions = { items: {}, deleted: {} } as ICollectionVersions<unknown>;
-        }
-        const items = collectionVersions.items || {};
-        if (collectionVersions.nukedeleted != null) {
-          collectionVersions = { ...collectionVersions, nukedeleted: collectionVersions.nukedeleted + 1 };
-          if ((collectionVersions.nukedeleted ?? 0) > 3) {
-            delete collectionVersions.nukedeleted;
-          }
-        }
-
-        if (Array.isArray(oldValue)) {
-          for (const oldItem of oldValue) {
-            const oldItemId = this.getId(oldItem);
-            if (oldItemId && !newValue.some((item) => this.getId(item) === oldItemId)) {
-              collectionVersions.deleted = collectionVersions.deleted || {};
-              collectionVersions.deleted[oldItemId] = timestamp;
-              delete items[oldItemId];
-            }
-          }
-        }
-
-        for (const item of newValue) {
-          const itemId = this.getId(item);
-          if (itemId) {
-            const oldItem = Array.isArray(oldValue)
-              ? oldValue.find((o: unknown) => this.getId(o) === itemId)
-              : undefined;
-
-            if (!ObjectUtils.isEqual(oldItem, item)) {
-              // Extract incoming version from newVersion and merge with current version
-              // to preserve all deviceIds from both sources
-              const newCollectionVersion = newVersion as ICollectionVersions<unknown> | undefined;
-              const newItemVersion = newCollectionVersion?.items?.[itemId];
-              const mergedItemVersion = this.mergeVersionField(
-                items[itemId],
-                newItemVersion,
-                `${path}.items.${itemId}`
-              );
-
-              const itemVersion = this.getItemVersion(
-                oldItem,
-                item,
-                mergedItemVersion as IFieldVersion | IVersions<unknown> | undefined,
-                timestamp
-              );
-              if (itemVersion !== undefined) {
-                items[itemId] = itemVersion;
-              }
-            }
-
-            if (collectionVersions.deleted && itemId in collectionVersions.deleted) {
-              delete collectionVersions.deleted[itemId];
-            }
-          }
-        }
-
-        const hasChanges =
-          Object.keys(items).length > 0 ||
-          (collectionVersions.deleted && Object.keys(collectionVersions.deleted).length > 0);
-
-        const compactedCollection = this.applyCompaction(collectionVersions, path, timestamp);
-        return hasChanges || currentVersion ? compactedCollection : undefined;
+        return this.updateArrayCollectionVersion(oldValue, newValue, currentVersion, newVersion, timestamp, path);
       } else {
         // Merge with incoming version to preserve all deviceIds
         const mergedVersion = this.mergeVersionField(
@@ -415,66 +375,14 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       }
     } else if (typeof newValue === "object" && newValue !== null) {
       if (this.versionTypes.dictionaryFields.includes(path)) {
-        let collectionVersions = currentVersion as ICollectionVersions<unknown> | undefined;
-        if (
-          !collectionVersions ||
-          typeof collectionVersions !== "object" ||
-          !("items" in collectionVersions || "deleted" in collectionVersions)
-        ) {
-          collectionVersions = { items: {}, deleted: {} } as ICollectionVersions<unknown>;
-        }
-        const items = (collectionVersions.items as ICollectionVersions<unknown>["items"]) || {};
-        if (collectionVersions.nukedeleted != null) {
-          collectionVersions = { ...collectionVersions, nukedeleted: collectionVersions.nukedeleted + 1 };
-          if ((collectionVersions.nukedeleted ?? 0) > 3) {
-            delete collectionVersions.nukedeleted;
-          }
-        }
-
-        const oldDict = oldValue as Record<string, unknown> | undefined;
-        const newDict = newValue as Record<string, unknown>;
-
-        if (oldDict) {
-          for (const key of ObjectUtils.keys(oldDict)) {
-            if (!(key in newDict)) {
-              collectionVersions.deleted = collectionVersions.deleted || {};
-              collectionVersions.deleted[key] = timestamp;
-              delete items[key];
-            }
-          }
-        }
-
-        for (const [key, item] of Object.entries(newDict)) {
-          const oldItem = oldDict?.[key];
-          if (oldItem !== item) {
-            // Extract incoming version from newVersion and merge with current version
-            // to preserve all deviceIds from both sources
-            const newCollectionVersion = newVersion as ICollectionVersions<unknown> | undefined;
-            const newItemVersion = newCollectionVersion?.items?.[key];
-            const mergedItemVersion = this.mergeVersionField(items[key], newItemVersion, `${path}.items.${key}`);
-
-            const itemVersion = this.getItemVersion(
-              oldItem,
-              item,
-              mergedItemVersion as IFieldVersion | IVersions<unknown> | undefined,
-              timestamp
-            );
-            if (itemVersion !== undefined) {
-              items[key] = itemVersion;
-            }
-          }
-
-          if (collectionVersions.deleted && key in collectionVersions.deleted) {
-            delete collectionVersions.deleted[key];
-          }
-        }
-
-        const hasChanges =
-          Object.keys(items).length > 0 ||
-          (collectionVersions.deleted && Object.keys(collectionVersions.deleted).length > 0);
-
-        const compactedCollection = this.applyCompaction(collectionVersions, path, timestamp);
-        return hasChanges || currentVersion ? compactedCollection : undefined;
+        return this.updateDictionaryCollectionVersion(
+          oldValue,
+          newValue as Record<string, unknown>,
+          currentVersion,
+          newVersion,
+          timestamp,
+          path
+        );
       } else if (this.isControlledType(newValue)) {
         // Merge with incoming version to preserve all deviceIds from both sources
         const mergedVersion = this.mergeVersionField(currentVersion, newVersion, path);
@@ -517,6 +425,123 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       );
       return this.createVersion(timestamp, mergedVersion as IFieldVersion | undefined);
     }
+  }
+
+  private updateArrayCollectionVersion(
+    oldValue: unknown,
+    newValue: unknown[],
+    currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
+    newVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
+    timestamp: number,
+    path: string
+  ): ICollectionVersions<unknown> | undefined {
+    let collectionVersions = this.incrementNukedeleted(this.ensureCollectionVersions(currentVersion));
+    const items = collectionVersions.items || {};
+
+    if (Array.isArray(oldValue)) {
+      for (const oldItem of oldValue) {
+        const oldItemId = this.getId(oldItem);
+        if (oldItemId && !newValue.some((item) => this.getId(item) === oldItemId)) {
+          collectionVersions.deleted = collectionVersions.deleted || {};
+          collectionVersions.deleted[oldItemId] = timestamp;
+          delete items[oldItemId];
+        }
+      }
+    }
+
+    for (const item of newValue) {
+      const itemId = this.getId(item);
+      if (itemId) {
+        const oldItem = Array.isArray(oldValue)
+          ? oldValue.find((o: unknown) => this.getId(o) === itemId)
+          : undefined;
+
+        if (!ObjectUtils.isEqual(oldItem as Record<string, unknown>, item as Record<string, unknown>)) {
+          const newCollectionVersion = newVersion as ICollectionVersions<unknown> | undefined;
+          const newItemVersion = newCollectionVersion?.items?.[itemId];
+          const mergedItemVersion = this.mergeVersionField(
+            items[itemId],
+            newItemVersion,
+            `${path}.items.${itemId}`
+          );
+
+          const itemVersion = this.getItemVersion(
+            oldItem,
+            item,
+            mergedItemVersion as IFieldVersion | IVersions<unknown> | undefined,
+            timestamp
+          );
+          if (itemVersion !== undefined) {
+            items[itemId] = itemVersion;
+          }
+        }
+
+        if (collectionVersions.deleted && itemId in collectionVersions.deleted) {
+          delete collectionVersions.deleted[itemId];
+        }
+      }
+    }
+
+    const hasChanges =
+      Object.keys(items).length > 0 ||
+      (collectionVersions.deleted && Object.keys(collectionVersions.deleted).length > 0);
+
+    const compactedCollection = this.applyCompaction(collectionVersions, path, timestamp);
+    return hasChanges || currentVersion ? compactedCollection : undefined;
+  }
+
+  private updateDictionaryCollectionVersion(
+    oldValue: unknown,
+    newValue: Record<string, unknown>,
+    currentVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
+    newVersion: IVersions<unknown> | ICollectionVersions<unknown> | IFieldVersion | undefined,
+    timestamp: number,
+    path: string
+  ): ICollectionVersions<unknown> | undefined {
+    let collectionVersions = this.incrementNukedeleted(this.ensureCollectionVersions(currentVersion));
+    const items = (collectionVersions.items as ICollectionVersions<unknown>["items"]) || {};
+
+    const oldDict = oldValue as Record<string, unknown> | undefined;
+
+    if (oldDict) {
+      for (const key of ObjectUtils.keys(oldDict)) {
+        if (!(key in newValue)) {
+          collectionVersions.deleted = collectionVersions.deleted || {};
+          collectionVersions.deleted[key] = timestamp;
+          delete items[key];
+        }
+      }
+    }
+
+    for (const [key, item] of Object.entries(newValue)) {
+      const oldItem = oldDict?.[key];
+      if (oldItem !== item) {
+        const newCollectionVersion = newVersion as ICollectionVersions<unknown> | undefined;
+        const newItemVersion = newCollectionVersion?.items?.[key];
+        const mergedItemVersion = this.mergeVersionField(items[key], newItemVersion, `${path}.items.${key}`);
+
+        const itemVersion = this.getItemVersion(
+          oldItem,
+          item,
+          mergedItemVersion as IFieldVersion | IVersions<unknown> | undefined,
+          timestamp
+        );
+        if (itemVersion !== undefined) {
+          items[key] = itemVersion;
+        }
+      }
+
+      if (collectionVersions.deleted && key in collectionVersions.deleted) {
+        delete collectionVersions.deleted[key];
+      }
+    }
+
+    const hasChanges =
+      Object.keys(items).length > 0 ||
+      (collectionVersions.deleted && Object.keys(collectionVersions.deleted).length > 0);
+
+    const compactedCollection = this.applyCompaction(collectionVersions, path, timestamp);
+    return hasChanges || currentVersion ? compactedCollection : undefined;
   }
 
   private getItemVersion(
@@ -686,15 +711,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       const hasTrackableItems = value.some((item) => this.getId(item) !== undefined);
 
       if (hasTrackableItems) {
-        let collectionVersions = currentVersion as ICollectionVersions<unknown> | undefined;
-        if (
-          !collectionVersions ||
-          typeof collectionVersions !== "object" ||
-          !("items" in collectionVersions || "deleted" in collectionVersions)
-        ) {
-          collectionVersions = { items: {}, deleted: {} };
-        }
-
+        const collectionVersions = this.ensureCollectionVersions(currentVersion);
         const items = { ...(collectionVersions.items || {}) };
 
         for (const item of value) {
@@ -729,15 +746,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
       }
     } else if (typeof value === "object" && value !== null) {
       if (this.versionTypes.dictionaryFields.includes(path)) {
-        let collectionVersions = currentVersion as ICollectionVersions<unknown> | undefined;
-        if (
-          !collectionVersions ||
-          typeof collectionVersions !== "object" ||
-          !("items" in collectionVersions || "deleted" in collectionVersions)
-        ) {
-          collectionVersions = { items: {}, deleted: {} };
-        }
-
+        const collectionVersions = this.ensureCollectionVersions(currentVersion);
         const items = { ...(collectionVersions.items || {}) };
         const dictValue = value as Record<string, unknown>;
 
@@ -1406,7 +1415,7 @@ export class VersionTracker<TAtomicType extends string, TControlledType extends 
     const result: ICollectionVersions<unknown> = {
       items: { ...(fullCollection?.items || {}) },
       deleted: nukedeleted != null ? {} : { ...(fullCollection?.deleted || {}), ...(diffCollection?.deleted || {}) },
-      ...(nukedeleted != null && nukedeleted < 3 ? { nukedeleted: nukedeleted + 1 } : {}),
+      ...(nukedeleted != null && nukedeleted < VersionTracker.NUKEDELETED_THRESHOLD ? { nukedeleted: nukedeleted + 1 } : {}),
     };
 
     for (const id in diffCollection.items) {
