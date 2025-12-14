@@ -211,7 +211,6 @@ export class GoogleWebhookHandler {
           timestamp = Date.now();
           subscriptionStartTimestamp =
             purchaseDetails.startTimeMillis != null ? Number(purchaseDetails.startTimeMillis) : undefined;
-          offerIdentifier = purchaseDetails.promotionCode;
 
           // Check if it's a free trial using paymentState (2 = free trial) or intro price
           if (purchaseDetails.paymentState === 2) {
@@ -224,13 +223,16 @@ export class GoogleWebhookHandler {
           if (purchaseDetails.orderId) {
             this.di.log.log(`Google webhook: Fetching order info for subscription ${productId}`);
             const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
-            this.di.log.log("Google webhook: Subscription Order Info", orderInfo);
+            this.di.log.log("Google webhook: Subscription Order Info", JSON.stringify(orderInfo, null, 2));
             if (orderInfo && orderInfo.total) {
               amount = convertGooglePriceToNumber(orderInfo.total);
               currency = orderInfo.total.currencyCode || currency;
             }
             if (orderInfo && orderInfo.tax) {
               tax = convertGooglePriceToNumber(orderInfo.tax);
+            }
+            if (orderInfo?.lineItems?.[0]?.subscriptionDetails?.offerId) {
+              offerIdentifier = orderInfo.lineItems[0].subscriptionDetails.offerId;
             }
           }
         } else if (purchaseDetails.kind === "androidpublisher#productPurchase") {

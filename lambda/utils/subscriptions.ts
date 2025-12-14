@@ -68,6 +68,13 @@ interface IGoogleOrderInfo {
     nanos?: number;
     currencyCode?: string;
   };
+  lineItems?: Array<{
+    productId?: string;
+    subscriptionDetails?: {
+      basePlanId?: string;
+      offerId?: string;
+    };
+  }>;
 }
 
 interface IVerifyGoogleSubscriptionTokenSuccess {

@@ -59,6 +59,7 @@ export class GooglePaymentProcessor {
       let currency = "USD";
       let originalTransactionId = token;
       let purchaseTime: number | undefined = undefined;
+      let offerIdentifier: string | undefined = undefined;
 
       if (
         googleJson.kind === "androidpublisher#subscriptionPurchase" &&
@@ -91,7 +92,7 @@ export class GooglePaymentProcessor {
         if (googleJson.orderId) {
           this.di.log.log(`Google verification: Fetching order info for subscription ${productId}`);
           const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
-          this.di.log.log("Google verification: Subscription Order Info", orderInfo);
+          this.di.log.log("Google verification: Subscription Order Info", JSON.stringify(orderInfo, null, 2));
           purchaseTime =
             purchaseTime == null
               ? orderInfo?.createTime
@@ -107,11 +108,14 @@ export class GooglePaymentProcessor {
           if (orderInfo && orderInfo.tax) {
             tax = convertGooglePriceToNumber(orderInfo.tax);
           }
+          if (orderInfo?.lineItems?.[0]?.subscriptionDetails?.offerId) {
+            offerIdentifier = orderInfo.lineItems[0].subscriptionDetails.offerId;
+          }
         }
       } else if (googleJson.kind === "androidpublisher#productPurchase") {
         this.di.log.log(`Google verification: Fetching order info for product ${productId}`);
         const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
-        this.di.log.log("Google verification: Order Info", orderInfo);
+        this.di.log.log("Google verification: Order Info", JSON.stringify(orderInfo, null, 2));
         purchaseTime = googleJson.purchaseTimeMillis != null ? Number(googleJson.purchaseTimeMillis) : purchaseTime;
         if (orderInfo && orderInfo.total) {
           amount = convertGooglePriceToNumber(orderInfo.total);
@@ -156,6 +160,7 @@ export class GooglePaymentProcessor {
             : "purchase",
         isFreeTrialPayment,
         subscriptionStartTimestamp: purchaseTime,
+        offerIdentifier,
       });
 
       this.di.log.log(
