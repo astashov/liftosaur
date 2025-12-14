@@ -652,9 +652,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     </td>
                     <td className="px-2 py-2">{payment.type}</td>
                     <td className="px-2 py-2">{payment.source}</td>
-                    <td className="px-2 py-2 font-mono text-xs text-purple-600">
-                      {payment.offerIdentifier || "-"}
-                    </td>
+                    <td className="px-2 py-2 font-mono text-xs text-purple-600">{payment.offerIdentifier || "-"}</td>
                     <td className="px-2 py-2 font-mono text-right">
                       {formatCurrencyWithUSD(payment.amount - (payment.tax ?? 0), payment.currency)}
                       {payment.tax ? <span className="text-xs text-gray-500"> (+{payment.tax.toFixed(2)})</span> : null}
