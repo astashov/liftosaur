@@ -21,7 +21,7 @@ export class VersionTrackerDiffVersions {
       const newVersion = newVersions[key];
 
       const fieldDiff = this.diffFieldVersion(oldVersion, newVersion);
-      if (fieldDiff !== undefined) {
+      if (fieldDiff != null) {
         diff[key] = fieldDiff;
         hasChanges = true;
       }

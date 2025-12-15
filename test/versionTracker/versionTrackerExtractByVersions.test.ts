@@ -50,7 +50,7 @@ describe("extractByVersions", () => {
     });
   });
 
-  it("should extract entire controlled object when controlled field is in versions", () => {
+  it("should extract controlled object with only changed controlled fields", () => {
     const program: IProgram = {
       vtype: "program",
       id: "prog1",
@@ -80,8 +80,11 @@ describe("extractByVersions", () => {
     };
 
     const extracted = versionTracker.extractByVersions(obj, versions);
+    // nextDay is a controlled field but not in versions, so it's excluded
+    // All non-controlled fields are included
+    const { nextDay, ...expectedProgram } = program;
     expect(extracted).to.deep.equal({
-      programs: [program],
+      programs: [expectedProgram],
     });
   });
 
@@ -194,14 +197,15 @@ describe("extractByVersions", () => {
     };
 
     const extracted = versionTracker.extractByVersions(obj, versions);
+    // nextDay is a controlled field but not in versions, so it's excluded
     expect((extracted as any).programs[0]).to.include({
       vtype: "program",
       id: "prog1",
       clonedAt: 1,
       name: "Program 1",
       description: "Desc 1",
-      nextDay: 1,
     });
+    expect((extracted as any).programs[0]).to.not.have.property("nextDay");
   });
 
   it("should return empty object when no fields match versions", () => {
