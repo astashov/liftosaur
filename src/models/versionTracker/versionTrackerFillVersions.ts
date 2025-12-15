@@ -185,15 +185,9 @@ export class VersionTrackerFillVersions<TAtomicType extends string, TControlledT
     return Object.keys(result).length > 0 ? result : undefined;
   }
 
-  private fillControlledFieldVersion(
-    value: unknown,
-    timestamp: number,
-    path: string
-  ): IVersionValue | undefined {
+  private fillControlledFieldVersion(value: unknown, timestamp: number, path: string): IVersionValue | undefined {
     if (Array.isArray(value)) {
-      const hasTrackableItems = value.some(
-        (item) => VersionTrackerUtils.getId(item, this.versionTypes) !== undefined
-      );
+      const hasTrackableItems = value.some((item) => VersionTrackerUtils.getId(item, this.versionTypes) !== undefined);
       if (hasTrackableItems) {
         const items: Record<string, IVersionsObject | IFieldVersion> = {};
         for (const item of value) {

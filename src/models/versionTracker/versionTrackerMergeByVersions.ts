@@ -89,16 +89,34 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
           if (field in diffVersion) {
             const diffFieldVersion = diffVersion[field];
             const fullFieldVersion = fullVersionObj?.[field];
+            const fullFieldValue = VersionTrackerUtils.isRecord(fullValue) ? fullValue[field] : undefined;
+            const extractedFieldValue = extractedValue[field];
 
             if (isFieldVersion(diffFieldVersion)) {
               if (fullFieldVersion === undefined || !isFieldVersion(fullFieldVersion)) {
-                mergedItem[field] = extractedValue[field];
+                mergedItem[field] = extractedFieldValue;
               } else {
                 const comparison = VersionTrackerUtils.compareVersions(diffFieldVersion, fullFieldVersion);
                 if (comparison === "a_newer" || comparison === "concurrent") {
-                  mergedItem[field] = extractedValue[field];
+                  mergedItem[field] = extractedFieldValue;
                 }
               }
+            } else if (isCollectionVersions(diffFieldVersion)) {
+              const fullCollection = isCollectionVersions(fullFieldVersion) ? fullFieldVersion : undefined;
+              mergedItem[field] = this.mergeCollectionByVersion(
+                fullFieldValue,
+                fullCollection,
+                diffFieldVersion,
+                extractedFieldValue
+              );
+            } else if (isVersionsObject(diffFieldVersion) && VersionTrackerUtils.isRecord(extractedFieldValue)) {
+              mergedItem[field] = this.mergeFieldByVersion(
+                fullFieldValue,
+                fullFieldVersion,
+                diffFieldVersion,
+                extractedFieldValue,
+                `${path}.${field}`
+              );
             }
           }
         }

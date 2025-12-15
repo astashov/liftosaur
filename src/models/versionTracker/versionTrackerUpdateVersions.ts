@@ -168,11 +168,7 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
           const newCollectionVersion = isCollectionVersions(newVersion) ? newVersion : undefined;
           const newItemVersion = newCollectionVersion?.items?.[itemId];
           const itemPath = `${path}.items.${itemId}`;
-          const mergedItemVersion = this.mergeVersions.mergeVersionField(
-            items[itemId],
-            newItemVersion,
-            itemPath
-          );
+          const mergedItemVersion = this.mergeVersions.mergeVersionField(items[itemId], newItemVersion, itemPath);
 
           const itemVersion = this.getItemVersion(oldItem, item, mergedItemVersion, timestamp, itemPath);
           if (itemVersion !== undefined) {
@@ -230,11 +226,7 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
         const newCollectionVersion = isCollectionVersions(newVersion) ? newVersion : undefined;
         const newItemVersion = newCollectionVersion?.items?.[key];
         const itemPath = `${path}.items.${key}`;
-        const mergedItemVersion = this.mergeVersions.mergeVersionField(
-          items[key],
-          newItemVersion,
-          itemPath
-        );
+        const mergedItemVersion = this.mergeVersions.mergeVersionField(items[key], newItemVersion, itemPath);
 
         const itemVersion = this.getItemVersion(oldItem, item, mergedItemVersion, timestamp, itemPath);
         if (itemVersion !== undefined) {
