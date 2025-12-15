@@ -14,6 +14,7 @@ import { Encoder } from "../src/utils/encoder";
 import { NodeEncoder } from "../lambda/utils/nodeEncoder";
 import { SyncTestUtils } from "./utils/syncTestUtils";
 import { CollectionUtils } from "../src/utils/collection";
+import { cl } from "./utils/testUtils";
 
 describe("sync", () => {
   let sandbox: sinon.SinonSandbox;
@@ -37,8 +38,9 @@ describe("sync", () => {
       ts += 1;
       return ts;
     });
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    sandbox.stub(Encoder, "encode").callsFake(NodeEncoder.encode);
+    sandbox.stub(Encoder, "encode").callsFake((...args) => {
+      return NodeEncoder.encode(...args);
+    });
   });
 
   afterEach(() => {
@@ -186,11 +188,11 @@ describe("sync", () => {
             .filter((r) => r.request.url.includes("api/sync2"))
             .map(
               async (r) =>
-                JSON.parse(await Encoder.decode((r.request.body as { data: any }).data)).storageUpdate.storage
+                JSON.parse(await NodeEncoder.decode((r.request.body as { data: any }).data)).storageUpdate.storage
             )
         )
       );
-      console.log(sync2Logs.map((s) => s.progress?.entries[0].sets.map((set: any) => set.isCompleted)));
+      cl(sync2Logs.map((s) => s.progress?.entries));
       console.log(mockReducer.state.storage.progress?.entries[0].sets.map((set) => set.isCompleted));
     });
   });
