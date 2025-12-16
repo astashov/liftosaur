@@ -8,6 +8,7 @@ import {
   IVersions,
   isFieldVersion,
   isCollectionVersions,
+  isIdVersion,
 } from "./types";
 import { VersionTrackerUtils } from "./utils";
 
@@ -167,8 +168,20 @@ export class VersionTrackerFillVersions<TAtomicType extends string, TControlledT
     const fieldVersions = VersionTrackerUtils.ensureVersionsObject(currentVersion);
 
     const result: IVersionsObject = { ...fieldVersions };
-    if (Object.keys(result).length !== 0) {
-      return fieldVersions;
+
+    // Fill ID version if not present
+    const idField = VersionTrackerUtils.getIdFieldName(value.vtype, this.versionTypes);
+    if (idField && !isIdVersion(result[idField])) {
+      const idValue = VersionTrackerUtils.getIdValue(value, this.versionTypes);
+      if (idValue != null) {
+        result[idField] = VersionTrackerUtils.createIdVersion(timestamp, idValue, undefined, this.deviceId);
+      }
+    }
+
+    // If we already have controlled field versions (besides ID), return existing
+    const existingFields = Object.keys(result).filter((k) => k !== idField);
+    if (existingFields.length > 0) {
+      return result;
     }
 
     for (const controlledField of controlledFields) {

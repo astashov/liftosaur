@@ -80,10 +80,35 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
 
     if (isVersionsObject(diffVersion) && VersionTrackerUtils.isRecord(extractedValue)) {
       if (VersionTrackerUtils.isControlledType(extractedValue, this.versionTypes)) {
+        const fullVersionObj = isVersionsObject(fullVersion) ? fullVersion : undefined;
+        const diffVersionObj = diffVersion;
+
+        // Get ID versions from both full and diff to determine the winner
+        const fullIdVersion = VersionTrackerUtils.getIdVersionFromVersions(
+          extractedValue.vtype,
+          fullVersionObj,
+          this.versionTypes
+        );
+        const diffIdVersion = VersionTrackerUtils.getIdVersionFromVersions(
+          extractedValue.vtype,
+          diffVersionObj,
+          this.versionTypes
+        );
+
+        // If both have ID versions with different values, determine which one wins
+        if (fullIdVersion && diffIdVersion && fullIdVersion.value !== diffIdVersion.value) {
+          const winner = VersionTrackerUtils.pickWinningIdVersion(fullIdVersion, diffIdVersion);
+          if (winner === fullIdVersion) {
+            // Full wins - keep full value, ignore extracted
+            return fullValue;
+          }
+          // Diff wins - use extracted value entirely (it's a different object)
+          return extractedValue;
+        }
+
         const controlledFields = this.versionTypes.controlledFields[extractedValue.vtype] || [];
 
         const mergedItem: Record<string, unknown> = VersionTrackerUtils.isRecord(fullValue) ? { ...fullValue } : {};
-        const fullVersionObj = isVersionsObject(fullVersion) ? fullVersion : undefined;
 
         for (const field of controlledFields) {
           if (field in diffVersion) {

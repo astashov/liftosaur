@@ -3,6 +3,10 @@ export interface IVectorClock {
   t: number;
 }
 
+export interface IIdVersion extends IVectorClock {
+  value: string;
+}
+
 export type IFieldVersion = number | IVectorClock;
 
 export interface IVersionsObject {
@@ -34,6 +38,10 @@ export interface IVersionTypes<TAtomicType extends string, TControlledType exten
 
 export function isVectorClock(v: unknown): v is IVectorClock {
   return typeof v === "object" && v !== null && "vc" in v && "t" in v;
+}
+
+export function isIdVersion(v: unknown): v is IIdVersion {
+  return isVectorClock(v) && "value" in v && typeof (v as IIdVersion).value === "string";
 }
 
 export function isFieldVersion(v: unknown): v is IFieldVersion {

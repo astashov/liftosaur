@@ -9,6 +9,7 @@ import {
   ICollectionVersions,
   isFieldVersion,
   isCollectionVersions,
+  isIdVersion,
 } from "./types";
 import { VersionTrackerUtils } from "./utils";
 import { VersionTrackerMergeVersions } from "./versionTrackerMergeVersions";
@@ -280,6 +281,20 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
     const controlledFields = this.versionTypes.controlledFields[newValue.vtype] || [];
     const fieldVersions: IVersionsObject = VersionTrackerUtils.ensureVersionsObject(currentVersion);
     let hasChanges = false;
+
+    // Always include ID field version for controlled types
+    const idField = VersionTrackerUtils.getIdFieldName(newValue.vtype, this.versionTypes);
+    if (idField) {
+      const idValue = VersionTrackerUtils.getIdValue(newValue, this.versionTypes);
+      if (idValue != null) {
+        const currentIdVersion = isIdVersion(fieldVersions[idField]) ? fieldVersions[idField] : undefined;
+        // Only update if ID changed or no version exists
+        if (!currentIdVersion || currentIdVersion.value !== idValue) {
+          fieldVersions[idField] = VersionTrackerUtils.createIdVersion(timestamp, idValue, currentIdVersion, this.deviceId);
+          hasChanges = true;
+        }
+      }
+    }
 
     for (const controlledField of controlledFields) {
       const oldFieldValue =

@@ -1512,7 +1512,7 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   set: "id",
   progress_ui: "id",
   history_entry: "id",
-  progress: "id",
+  progress: "startTime",
   gym: "id",
   custom_exercise: "id",
   stat: "timestamp",

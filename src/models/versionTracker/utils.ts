@@ -4,11 +4,13 @@ import {
   ITypedObject,
   IFieldVersion,
   IVectorClock,
+  IIdVersion,
   IVersionsObject,
   IVersionValue,
   IVersions,
   ICollectionVersions,
   isVectorClock,
+  isIdVersion,
   isCollectionVersions,
   isVersionsObject,
 } from "./types";
@@ -221,5 +223,80 @@ export class VersionTrackerUtils {
     }
 
     return result;
+  }
+
+  public static getIdFieldName<TAtomicType extends string, TControlledType extends string>(
+    vtype: TControlledType,
+    versionTypes: IVersionTypes<TAtomicType, TControlledType>
+  ): string | undefined {
+    return versionTypes.typeIdMapping[vtype];
+  }
+
+  public static createIdVersion(
+    timestamp: number,
+    value: string,
+    currentVersion: IIdVersion | undefined,
+    deviceId?: string
+  ): IIdVersion {
+    if (!deviceId) {
+      return {
+        vc: currentVersion?.vc || {},
+        t: timestamp,
+        value,
+      };
+    }
+
+    const current = currentVersion ? { vc: currentVersion.vc, t: currentVersion.t } : { vc: {}, t: 0 };
+    const newClock = { ...current.vc };
+    newClock[deviceId] = (newClock[deviceId] || 0) + 1;
+
+    return {
+      vc: newClock,
+      t: timestamp,
+      value,
+    };
+  }
+
+  public static pickWinningIdVersion(a: IIdVersion, b: IIdVersion): IIdVersion {
+    const comparison = VersionTrackerUtils.compareVersions(a, b);
+    if (comparison === "a_newer") {
+      return a;
+    }
+    if (comparison === "b_newer") {
+      return b;
+    }
+    // For concurrent or equal, use timestamp as tiebreaker
+    return a.t >= b.t ? a : b;
+  }
+
+  public static getIdValue<TAtomicType extends string, TControlledType extends string>(
+    obj: unknown,
+    versionTypes: IVersionTypes<TAtomicType, TControlledType>
+  ): string | undefined {
+    if (!VersionTrackerUtils.isControlledType(obj, versionTypes)) {
+      return undefined;
+    }
+    const idField = versionTypes.typeIdMapping[obj.vtype];
+    if (!idField || !(idField in obj)) {
+      return undefined;
+    }
+    const id = obj[idField];
+    return id != null ? String(id) : undefined;
+  }
+
+  public static getIdVersionFromVersions<TAtomicType extends string, TControlledType extends string>(
+    vtype: TControlledType,
+    versions: IVersionsObject | undefined,
+    versionTypes: IVersionTypes<TAtomicType, TControlledType>
+  ): IIdVersion | undefined {
+    if (!versions) {
+      return undefined;
+    }
+    const idField = versionTypes.typeIdMapping[vtype];
+    if (!idField) {
+      return undefined;
+    }
+    const idVersion = versions[idField];
+    return isIdVersion(idVersion) ? idVersion : undefined;
   }
 }
