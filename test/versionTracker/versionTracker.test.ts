@@ -915,4 +915,296 @@ describe("VersionTracker", () => {
       expect(googleDeleted["current-receipt"]).to.equal(now);
     });
   });
+
+  describe("controlled type ID conflict resolution", () => {
+    it("should generate ID version for controlled types in updateVersions", () => {
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "device1" });
+      const oldStorage = Storage.getDefault();
+      const newStorage = {
+        ...oldStorage,
+        progress: {
+          vtype: "progress" as const,
+          startTime: 1000,
+          entries: [],
+          date: "2024-01-01",
+          programId: "program1",
+          programName: "Test Program",
+          day: 1,
+          dayName: "Day 1",
+          id: 1,
+        },
+      };
+
+      const versions = tracker.updateVersions(oldStorage, newStorage, {}, {}, 2000);
+
+      // Check that startTime (ID field) has an ID version with value
+      const progressVersions = versions.progress as IVersionsObject;
+      expect(progressVersions).to.not.be.undefined;
+      expect(progressVersions.startTime).to.be.an("object");
+      expect((progressVersions.startTime as any).value).to.equal("1000");
+      expect((progressVersions.startTime as any).vc).to.deep.equal({ device1: 1 });
+    });
+
+    it("should fill ID version for controlled types in fillVersions", () => {
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "device1" });
+      const storage = {
+        ...Storage.getDefault(),
+        progress: {
+          vtype: "progress" as const,
+          startTime: 1000,
+          entries: [],
+          date: "2024-01-01",
+          programId: "program1",
+          programName: "Test Program",
+          day: 1,
+          dayName: "Day 1",
+          id: 1,
+        },
+      };
+
+      const versions = tracker.fillVersions(storage, {}, 2000);
+
+      // Check that startTime (ID field) has an ID version with value
+      const progressVersions = versions.progress as IVersionsObject;
+      expect(progressVersions).to.not.be.undefined;
+      expect(progressVersions.startTime).to.be.an("object");
+      expect((progressVersions.startTime as any).value).to.equal("1000");
+    });
+
+    it("should pick newer ID version in mergeVersions when IDs differ", () => {
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES);
+
+      // Device A has progress with startTime=1000, created at t=1500
+      const deviceAVersions = {
+        progress: {
+          startTime: { vc: {}, t: 1500, value: "1000" },
+          entries: { items: {} },
+        },
+      } as any;
+
+      // Device B has progress with startTime=2000, created at t=2500 (newer)
+      const deviceBVersions = {
+        progress: {
+          startTime: { vc: {}, t: 2500, value: "2000" },
+          entries: { items: {} },
+        },
+      } as any;
+
+      // Merge B into A - B should win because it's newer
+      const merged = tracker.mergeVersions(deviceAVersions, deviceBVersions) as any;
+      const progressVersions = merged.progress as IVersionsObject;
+
+      expect((progressVersions.startTime as any).value).to.equal("2000");
+      expect((progressVersions.startTime as any).t).to.equal(2500);
+    });
+
+    it("should keep older ID version in mergeVersions when diff is older", () => {
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES);
+
+      // Device A has progress with startTime=1000, created at t=2500 (newer)
+      const deviceAVersions = {
+        progress: {
+          startTime: { vc: {}, t: 2500, value: "1000" },
+          entries: { items: {} },
+        },
+      } as any;
+
+      // Device B has progress with startTime=2000, created at t=1500 (older)
+      const deviceBVersions = {
+        progress: {
+          startTime: { vc: {}, t: 1500, value: "2000" },
+          entries: { items: {} },
+        },
+      } as any;
+
+      // Merge B into A - A should win because it's newer
+      const merged = tracker.mergeVersions(deviceAVersions, deviceBVersions) as any;
+      const progressVersions = merged.progress as IVersionsObject;
+
+      expect((progressVersions.startTime as any).value).to.equal("1000");
+      expect((progressVersions.startTime as any).t).to.equal(2500);
+    });
+
+    it("should discard losing variant in mergeByVersions when IDs differ", () => {
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES);
+
+      // Full object (Device A's progress)
+      const fullObj = {
+        ...Storage.getDefault(),
+        progress: {
+          vtype: "progress" as const,
+          startTime: 1000,
+          entries: [{ id: "entry-a", vtype: "history_entry" as const }],
+          date: "2024-01-01",
+          programId: "program1",
+          programName: "Test Program",
+          day: 1,
+          dayName: "Day 1",
+          id: 1,
+        },
+      };
+
+      // Full versions (after mergeVersions - A wins because t=2500 > t=1500)
+      const fullVersions = {
+        progress: {
+          startTime: { vc: {}, t: 2500, value: "1000" },
+          entries: { items: { "entry-a": { vc: {}, t: 2500 } } },
+        },
+      } as any;
+
+      // Diff versions from B
+      const diffVersions = {
+        progress: {
+          startTime: { vc: {}, t: 1500, value: "2000" },
+          entries: { items: { "entry-b": { vc: {}, t: 1500 } } },
+        },
+      } as any;
+
+      // Extracted object from B
+      const extractedObj = {
+        progress: {
+          vtype: "progress" as const,
+          startTime: 2000,
+          entries: [{ id: "entry-b", vtype: "history_entry" as const }],
+          date: "2024-01-02",
+          programId: "program2",
+          programName: "Another Program",
+          day: 2,
+          dayName: "Day 2",
+          id: 2,
+        },
+      };
+
+      // Merge - since A's ID won, B's progress should be discarded
+      const merged = tracker.mergeByVersions(fullObj, fullVersions, diffVersions, extractedObj);
+
+      // A's progress should be preserved, B's entries should NOT be merged
+      expect(merged.progress.startTime).to.equal(1000);
+      expect(merged.progress.entries).to.have.lengthOf(1);
+      expect((merged.progress.entries[0] as any).id).to.equal("entry-a");
+    });
+
+    it("should accept winning variant in mergeByVersions when diff ID wins", () => {
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES);
+
+      // Full object (Device A's progress)
+      const fullObj = {
+        ...Storage.getDefault(),
+        progress: {
+          vtype: "progress" as const,
+          startTime: 1000,
+          entries: [{ id: "entry-a", vtype: "history_entry" as const }],
+          date: "2024-01-01",
+          programId: "program1",
+          programName: "Test Program",
+          day: 1,
+          dayName: "Day 1",
+          id: 1,
+        },
+      };
+
+      // Full versions (Device A's local versions - has A's ID with older timestamp)
+      const fullVersions = {
+        progress: {
+          startTime: { vc: {}, t: 1500, value: "1000" },
+          entries: { items: { "entry-a": { vc: {}, t: 1500 } } },
+        },
+      } as any;
+
+      // Diff versions from B (has B's ID with newer timestamp - B wins)
+      const diffVersions = {
+        progress: {
+          startTime: { vc: {}, t: 2500, value: "2000" },
+          entries: { items: { "entry-b": { vc: {}, t: 2500 } } },
+        },
+      } as any;
+
+      // Extracted object from B (full object, not just diff)
+      const extractedObj = {
+        progress: {
+          vtype: "progress" as const,
+          startTime: 2000,
+          entries: [{ id: "entry-b", vtype: "history_entry" as const }],
+          date: "2024-01-02",
+          programId: "program2",
+          programName: "Another Program",
+          day: 2,
+          dayName: "Day 2",
+          id: 2,
+        },
+      };
+
+      // Merge - since B's ID won (t=2500 > t=1500), B's progress should be accepted entirely
+      const merged = tracker.mergeByVersions(fullObj, fullVersions, diffVersions, extractedObj);
+
+      // B's progress should be used entirely
+      expect(merged.progress.startTime).to.equal(2000);
+      expect(merged.progress.programName).to.equal("Another Program");
+    });
+
+    it("should merge controlled fields normally when IDs match", () => {
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES);
+
+      // Full object (Device A's progress)
+      const fullObj = {
+        ...Storage.getDefault(),
+        progress: {
+          vtype: "progress" as const,
+          startTime: 1000,
+          entries: [{ id: "entry-a", vtype: "history_entry" as const }],
+          date: "2024-01-01",
+          programId: "program1",
+          programName: "Test Program",
+          day: 1,
+          dayName: "Day 1",
+          id: 1,
+          notes: "Note A",
+        },
+      };
+
+      // Full versions - same startTime value
+      const fullVersions = {
+        progress: {
+          startTime: { vc: {}, t: 1500, value: "1000" },
+          entries: { items: { "entry-a": { vc: {}, t: 1500 } } },
+          notes: { vc: {}, t: 1500 },
+        },
+      } as any;
+
+      // Diff versions - same startTime but newer notes
+      const diffVersions = {
+        progress: {
+          startTime: { vc: {}, t: 1500, value: "1000" },
+          entries: { items: { "entry-b": { vc: {}, t: 2500 } } },
+          notes: { vc: {}, t: 2500 },
+        },
+      } as any;
+
+      // Extracted object
+      const extractedObj = {
+        progress: {
+          vtype: "progress" as const,
+          startTime: 1000,
+          entries: [{ id: "entry-b", vtype: "history_entry" as const }],
+          date: "2024-01-01",
+          programId: "program1",
+          programName: "Test Program",
+          day: 1,
+          dayName: "Day 1",
+          id: 1,
+          notes: "Note B",
+        },
+      };
+
+      // Merge - since IDs match, fields should be merged
+      const merged = tracker.mergeByVersions(fullObj, fullVersions, diffVersions, extractedObj);
+
+      // ID stays the same
+      expect(merged.progress.startTime).to.equal(1000);
+      // Notes from B wins (newer)
+      expect(merged.progress.notes).to.equal("Note B");
+      // Entries from both should be present
+      expect(merged.progress.entries).to.have.lengthOf(2);
+    });
+  });
 });

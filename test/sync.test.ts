@@ -182,6 +182,7 @@ describe("sync", () => {
         )
       );
       await SyncTestUtils.startWorkout(mockReducer2);
+      console.log("6");
       await mockReducer2.run(
         SyncTestUtils.completeRepsActions(
           mockReducer.state.storage.programs.find((p) => p.id === mockReducer.state.storage.currentProgramId)!,
@@ -189,6 +190,7 @@ describe("sync", () => {
           [[3, 4]]
         )
       );
+      console.log("7");
       cl(
         mockReducer.state.storage.progress?.entries.map((e) => e.sets.map((s) => `${[s.completedReps, s.isCompleted]}`))
       );
