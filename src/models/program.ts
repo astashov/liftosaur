@@ -198,6 +198,7 @@ export namespace Program {
   export function nextHistoryEntry(
     program: IEvaluatedProgram,
     dayData: IDayData,
+    index: number,
     programExercise: IPlannerProgramExerciseWithType,
     stats: IStats,
     settings: ISettings
@@ -215,6 +216,7 @@ export namespace Program {
         vtype: "set",
         id: UidFactory.generateUid(6),
         reps: programSet.maxrep,
+        index: i,
         minReps,
         weight,
         isUnilateral: Exercise.getIsUnilateral(exercise, settings),
@@ -233,6 +235,7 @@ export namespace Program {
     const entry: IHistoryEntry = {
       vtype: "history_entry",
       id: UidFactory.generateUid(6),
+      index,
       exercise: exercise,
       programExerciseId: programExercise.key,
       sets,
@@ -288,8 +291,8 @@ export namespace Program {
     const programDay = Program.getProgramDay(program, day);
     const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
     const sortedDayExercises = CollectionUtils.sortBy(dayExercises, "order");
-    const entries = sortedDayExercises.map((exercise) => {
-      return nextHistoryEntry(program, dayData, exercise, stats, settings);
+    const entries = sortedDayExercises.map((exercise, i) => {
+      return nextHistoryEntry(program, dayData, i, exercise, stats, settings);
     });
     return {
       vtype: "progress",

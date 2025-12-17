@@ -8,10 +8,12 @@ describe("History", () => {
     it("returns the set with the highest completed reps", () => {
       const entry: IHistoryEntry = {
         vtype: "history_entry",
+        index: 0,
         exercise: { id: "squat" },
         sets: [
           {
             vtype: "set",
+            index: 0,
             reps: 10,
             completedReps: 10,
             weight: { value: 10, unit: "kg" },
@@ -20,6 +22,7 @@ describe("History", () => {
           },
           {
             vtype: "set",
+            index: 1,
             reps: 5,
             completedReps: 5,
             isUnilateral: false,
@@ -28,6 +31,7 @@ describe("History", () => {
           },
           {
             vtype: "set",
+            index: 2,
             reps: 5,
             completedReps: 6,
             isAmrap: true,

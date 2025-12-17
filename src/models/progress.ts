@@ -1013,6 +1013,7 @@ export namespace Progress {
           entry.sets[i] = {
             vtype: "set",
             id: UidFactory.generateUid(6),
+            index: i,
             isUnilateral: Exercise.getIsUnilateral(entry.exercise, settings),
             reps: 0,
             weight: Weight.build(0, "lb"),
@@ -1219,7 +1220,7 @@ export namespace Progress {
         lb<IHistoryRecord>()
           .p("entries")
           .recordModify((entries) => {
-            return [...entries, History.createCustomEntry(exerciseType)];
+            return [...entries, History.createCustomEntry(exerciseType, numberOfEntries)];
           }),
       ],
       "add-exercise"
@@ -1307,6 +1308,7 @@ export namespace Progress {
 
   export function applyProgramExercise(
     progressEntry: IHistoryEntry | undefined,
+    index: number,
     programExercise: IPlannerProgramExerciseWithType,
     settings: ISettings,
     forceWarmupSets?: boolean
@@ -1329,6 +1331,7 @@ export namespace Progress {
           newSets.push({
             ...progressSet,
             vtype: "set",
+            index: newSets.length,
             reps: programSet.maxrep,
             minReps: programSet.minrep,
             rpe: programSet.rpe,
@@ -1359,10 +1362,11 @@ export namespace Progress {
         sets: newSets,
       };
     } else {
-      const newSets = sets.map((set) => {
+      const newSets = sets.map((set, i) => {
         const weight = ProgramSet.getEvaluatedWeight(set, programExercise.exerciseType, settings);
         return {
           vtype: "set" as const,
+          index: i,
           reps: set.maxrep,
           minReps: set.minrep,
           originalWeight: set.weight,
@@ -1378,6 +1382,7 @@ export namespace Progress {
 
       return {
         vtype: "history_entry",
+        index,
         id: UidFactory.generateUid(8),
         exercise: programExercise.exerciseType,
         programExerciseId: programExercise.key,
@@ -1401,7 +1406,7 @@ export namespace Progress {
     if (!programDay) {
       return progress;
     }
-    const newEntries = progress.entries.map((entry) => {
+    const newEntries = progress.entries.map((entry, index) => {
       if (entry.programExerciseId == null) {
         return entry;
       }
@@ -1412,7 +1417,7 @@ export namespace Progress {
       if (!programExercise) {
         return entry;
       }
-      return applyProgramExercise(entry, programExercise, settings, false);
+      return applyProgramExercise(entry, index, programExercise, settings, false);
     });
 
     return { ...progress, entries: newEntries };

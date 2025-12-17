@@ -26,7 +26,7 @@ export namespace EditProgressEntry {
           .p("editSetModal")
           .record({
             programExerciseId: programExercise?.key,
-            set: set ? ObjectUtils.clone(set) : Reps.newSet(isUnilateral),
+            set: set ? ObjectUtils.clone(set) : Reps.newSet(isUnilateral, setIndex ?? 0),
             isWarmup,
             entryIndex,
             setIndex,

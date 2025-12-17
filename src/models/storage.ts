@@ -231,6 +231,10 @@ export namespace Storage {
       originalId: Math.max(newOriginalId ?? 0, oldOriginalId ?? 0),
       _versions: updatedVersions,
     };
+    updatedStorage.progress?.entries?.sort((a, b) => a.index - b.index);
+    for (const entries of updatedStorage.progress?.entries || []) {
+      entries.sets.sort((a, b) => a.index - b.index);
+    }
     return updatedStorage;
   }
 

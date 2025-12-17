@@ -221,6 +221,10 @@ export class UserDao {
       storageUpdate.versions || {},
       storageUpdate.storage || {}
     );
+    mergedStorage.progress?.entries?.sort((a, b) => a.index - b.index);
+    for (const entries of mergedStorage.progress?.entries || []) {
+      entries.sets.sort((a, b) => a.index - b.index);
+    }
     const preNewStorage: IPartialStorage = {
       ...mergedStorage,
       originalId,
