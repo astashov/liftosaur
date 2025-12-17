@@ -275,7 +275,7 @@ export namespace Muscle {
     const exercisePoints: IExercisePointsColl = {};
 
     const id = Exercise.toKey(programExercise.exerciseType);
-    const historyEntry = Program.nextHistoryEntry(program, dayData, programExercise, stats, settings);
+    const historyEntry = Program.nextHistoryEntry(program, dayData, 0, programExercise, stats, settings);
     const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType, settings);
     const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType, settings);
     const screenTargetMuscles = Array.from(new Set(targetMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || [])));
@@ -324,7 +324,7 @@ export namespace Muscle {
     };
 
     const id = Exercise.toKey(programExercise.exerciseType);
-    const historyEntry = Program.nextHistoryEntry(program, dayData, programExercise, stats, settings);
+    const historyEntry = Program.nextHistoryEntry(program, dayData, 0, programExercise, stats, settings);
     const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType, settings);
     const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType, settings);
     const synergistMuscleGroupToMultiplier = Exercise.synergistMusclesGroupMultipliers(

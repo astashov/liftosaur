@@ -85,7 +85,6 @@ import { ClaudeProvider } from "./utils/llms/claude";
 import { MuscleGenerator } from "./utils/muscleGenerator";
 import { LlmMuscles } from "./utils/llms/llmMuscles";
 import { AiMuscleCacheDao } from "./dao/aiMuscleCacheDao";
-import { cl } from "../test/utils/testUtils";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -296,7 +295,6 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
   if (userId != null) {
     const userDao = new UserDao(di);
     const limitedUser = await userDao.getLimitedById(userId);
-    cl(limitedUser?.storage?.progress?.entries?.[0]);
     if (limitedUser != null) {
       di.log.log(`Server oid: ${limitedUser.storage.originalId}, update oid: ${storageUpdate.originalId}`);
       if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
@@ -333,7 +331,6 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
           return response(400, { type: "error", error: result.error, key });
         }
       } else {
-        console.log("Merging update");
         di.log.log("Fetch: Merging update");
         di.log.log(JSON.stringify(storageUpdate, null, 2));
         storageUpdate.originalId = Date.now();

@@ -50,10 +50,11 @@ export interface IHistoryEntryPersonalRecords {
 }
 
 export namespace History {
-  export function createCustomEntry(exerciseType: IExerciseType): IHistoryEntry {
+  export function createCustomEntry(exerciseType: IExerciseType, index: number): IHistoryEntry {
     return {
       vtype: "history_entry",
       id: UidFactory.generateUid(8),
+      index,
       exercise: exerciseType,
       sets: [],
       warmupSets: [],

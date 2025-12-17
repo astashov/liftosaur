@@ -13,7 +13,6 @@ import { EditStats } from "../src/models/editStats";
 import { Encoder } from "../src/utils/encoder";
 import { NodeEncoder } from "../lambda/utils/nodeEncoder";
 import { SyncTestUtils } from "./utils/syncTestUtils";
-import { CollectionUtils } from "../src/utils/collection";
 import { cl } from "./utils/testUtils";
 
 describe("sync", () => {
@@ -169,46 +168,28 @@ describe("sync", () => {
   });
 
   describe("progress", () => {
-    it.only("syncs progress updates properly", async () => {
-      const { mockReducer, fetchLogs, env } = await SyncTestUtils.initTheApp();
-      // const mockFetch = env.service.client as unknown as MockFetch;
+    it("starting progress on 2 devices independently picks latest workout", async () => {
+      const { mockReducer, env } = await SyncTestUtils.initTheApp();
       const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
       await SyncTestUtils.startWorkout(mockReducer);
-      await mockReducer.run(
-        SyncTestUtils.completeRepsActions(
-          mockReducer.state.storage.programs.find((p) => p.id === mockReducer.state.storage.currentProgramId)!,
-          mockReducer.state.storage.progress!,
-          [[5, 5, 5]]
-        )
-      );
+      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
       await SyncTestUtils.startWorkout(mockReducer2);
-      console.log("6");
+      await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[3, 4]]));
+      await mockReducer.run([Thunk.sync2({ force: true })]);
+      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
+      await mockReducer2.run([Thunk.sync2({ force: true })]);
       await mockReducer2.run(
-        SyncTestUtils.completeRepsActions(
-          mockReducer.state.storage.programs.find((p) => p.id === mockReducer.state.storage.currentProgramId)!,
-          mockReducer.state.storage.progress!,
-          [[3, 4]]
-        )
-      );
-      console.log("7");
-      cl(
-        mockReducer.state.storage.progress?.entries.map((e) => e.sets.map((s) => `${[s.completedReps, s.isCompleted]}`))
+        SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [undefined, 4, 3], [3, 3]])
       );
       await mockReducer.run([Thunk.sync2({ force: true })]);
-      const sync2Logs = CollectionUtils.compact(
-        await Promise.all(
-          fetchLogs
-            .filter((r) => r.request.url.includes("api/sync2"))
-            .map(
-              async (r) =>
-                JSON.parse(await NodeEncoder.decode((r.request.body as { data: any }).data)).storageUpdate.storage
-            )
-        )
+      const completedSets = mockReducer.state.storage.progress?.entries.map((e) =>
+        e.sets.map((s) => `${[s.completedReps, s.isCompleted]}`)
       );
-      // cl(sync2Logs.map((s) => s.progress?.entries));
-      cl(
-        mockReducer.state.storage.progress?.entries.map((e) => e.sets.map((s) => `${[s.completedReps, s.isCompleted]}`))
-      );
+      expect(completedSets).to.eql([
+        ["3,true", "4,true", ",false"],
+        ["2,true", "4,false", "3,true"],
+        ["3,true", "3,true", ",false"],
+      ]);
     });
   });
 });

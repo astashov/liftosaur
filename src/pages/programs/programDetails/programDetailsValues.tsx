@@ -22,6 +22,7 @@ export const RepsAndWeight = memo((props: IRepsWeightsProps): JSX.Element => {
     const isUnilateral = Exercise.getIsUnilateral(props.programExercise.exerciseType, props.settings);
     return {
       vtype: "set",
+      index: i,
       reps: set.maxrep,
       minReps,
       weight,

@@ -463,6 +463,7 @@ export const TSet = t.intersection(
   [
     t.interface({
       vtype: t.literal("set"),
+      index: t.number,
     }),
     t.partial({
       reps: t.number,
@@ -500,6 +501,7 @@ export const THistoryEntry = t.intersection(
       exercise: TExerciseType,
       sets: t.array(TSet),
       warmupSets: t.array(TSet),
+      index: t.number,
     }),
     t.partial({
       id: t.string,

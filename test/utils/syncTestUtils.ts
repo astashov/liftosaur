@@ -17,6 +17,7 @@ import { IMockDI, buildMockDi } from "./mockDi";
 import { IMockFetchLog, MockFetch } from "./mockFetch";
 import { MockLogUtil } from "./mockLogUtil";
 import { MockReducer } from "./mockReducer";
+import { lb } from "lens-shmens";
 
 export class SyncTestUtils {
   public static mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
@@ -59,13 +60,26 @@ export class SyncTestUtils {
     ]);
   }
 
-  public static completeRepsActions(program: IProgram, progress: IHistoryRecord, reps: number[][]): IAction[] {
+  public static completeCurrentProgramRepsActions(state: IState, reps: (number | undefined)[][]): IAction[] {
+    const program = state.storage.programs.find((p) => p.id === state.storage.currentProgramId)!;
+    const progress = state.storage.progress!;
+    return this.completeRepsActions(program, progress, reps);
+  }
+
+  public static completeRepsActions(
+    program: IProgram,
+    progress: IHistoryRecord,
+    reps: (number | undefined)[][]
+  ): IAction[] {
     const evaluatedProgram = Program.evaluate(program, Settings.build());
     const setActions: IAction[] = [];
     for (let entryIndex = 0; entryIndex < reps.length; entryIndex += 1) {
       const entrySets = reps[entryIndex];
       for (let setIndex = 0; setIndex < entrySets.length; setIndex += 1) {
         const r = entrySets[setIndex];
+        if (r == null) {
+          continue;
+        }
         const entry = progress.entries[entryIndex];
         const set = entry.sets[setIndex];
         const programExercise = Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId);
@@ -93,18 +107,23 @@ export class SyncTestUtils {
             programExercise: programExercise,
           });
         } else {
-          for (let i = set.reps ?? 0; i >= r; i -= 1) {
-            setActions.push({
-              type: "CompleteSetAction",
-              entryIndex,
-              setIndex,
-              programExercise,
-              isPlayground: false,
-              mode: "workout",
-              forceUpdateEntryIndex: false,
-              isExternal: false,
-            });
-          }
+          setActions.push({
+            type: "UpdateProgress",
+            lensRecordings: [
+              lb<IHistoryRecord>().p("entries").i(entryIndex).p("sets").i(setIndex).p("completedReps").record(r),
+            ],
+            desc: `Set completed reps to ${r}`,
+          });
+          setActions.push({
+            type: "CompleteSetAction",
+            entryIndex,
+            setIndex,
+            programExercise,
+            isPlayground: false,
+            mode: "workout",
+            forceUpdateEntryIndex: false,
+            isExternal: false,
+          });
         }
       }
     }
