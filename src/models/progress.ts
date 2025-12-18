@@ -1383,7 +1383,7 @@ export namespace Progress {
       return {
         vtype: "history_entry",
         index,
-        id: UidFactory.generateUid(8),
+        id: Progress.getEntryId(programExercise.exerciseType, programExercise.label),
         exercise: programExercise.exerciseType,
         programExerciseId: programExercise.key,
         sets: newSets,
@@ -1393,6 +1393,10 @@ export namespace Progress {
             : [],
       };
     }
+  }
+
+  export function getEntryId(exerciseType: IExerciseType, label?: string): string {
+    return CollectionUtils.compact([label, Exercise.toKey(exerciseType)]).join("_");
   }
 
   export function applyProgramDay(

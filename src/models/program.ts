@@ -234,7 +234,7 @@ export namespace Program {
 
     const entry: IHistoryEntry = {
       vtype: "history_entry",
-      id: UidFactory.generateUid(6),
+      id: Progress.getEntryId(exercise, programExercise.label),
       index,
       exercise: exercise,
       programExerciseId: programExercise.key,

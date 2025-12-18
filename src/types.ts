@@ -1511,7 +1511,7 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   affiliate: "id",
   program: "clonedAt",
   history_record: "id",
-  set: "id",
+  set: "index",
   progress_ui: "id",
   history_entry: "id",
   progress: "startTime",

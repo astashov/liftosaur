@@ -6,7 +6,6 @@ import { Thunk } from "../src/ducks/thunks";
 import { basicBeginnerProgram } from "../src/programs/basicBeginnerProgram";
 import { IHistoryRecord, ISettings } from "../src/types";
 import { userTableNames, IUserDao } from "../lambda/dao/userDao";
-import { ObjectUtils } from "../src/utils/object";
 import { lb } from "lens-shmens";
 import sinon from "sinon";
 import { EditStats } from "../src/models/editStats";
@@ -47,7 +46,7 @@ describe("sync", () => {
   });
 
   it("properly runs appendable safe syncs", async () => {
-    const { di, mockReducer, log } = await SyncTestUtils.initTheAppAndRecordWorkout();
+    const { di, mockReducer, log } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
 
     // With progress being tracked as part of storage, there will be more safe updates
     expect(log.logs.filter((l) => l === "Fetch: Safe update").length).to.be.greaterThan(0);
@@ -62,8 +61,8 @@ describe("sync", () => {
   });
 
   it("merge history and settings update", async () => {
-    const { mockReducer, log, env, di } = await SyncTestUtils.initTheAppAndRecordWorkout();
-    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
+    const { mockReducer, log, env, di } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
     await SyncTestUtils.logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],
@@ -90,19 +89,22 @@ describe("sync", () => {
     expect(filteredLogs.filter((l) => l === "Fetch: Safe update").length).to.be.greaterThan(0);
   });
 
-  it("merge 2 history updates", async () => {
-    const { mockReducer, log, env, di } = await SyncTestUtils.initTheAppAndRecordWorkout();
-    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
+  it.only("merge 2 history updates", async () => {
+    const { mockReducer, log, env, di } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
+    console.log("A");
     await SyncTestUtils.logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],
       [5, 5, 5],
     ]);
+    console.log("B");
     await SyncTestUtils.logWorkout(mockReducer, basicBeginnerProgram, [
       [5, 4, 3],
       [5, 4, 3],
       [5, 4, 3],
     ]);
+    console.log("C");
     const dbHistoryRecords = await di.dynamo.scan<IHistoryRecord>({ tableName: userTableNames.prod.historyRecords });
     expect(dbHistoryRecords.length).to.equal(3);
 
@@ -113,8 +115,8 @@ describe("sync", () => {
   });
 
   it("deletes the stats properly during merging", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheAppAndRecordWorkout();
-    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
+    const { mockReducer, env } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
     await SyncTestUtils.logStat(mockReducer2, 100);
     await SyncTestUtils.logStat(mockReducer, 120);
     await SyncTestUtils.logStat(mockReducer2, 130);
@@ -141,8 +143,8 @@ describe("sync", () => {
   });
 
   it("cancels sync if not the latest version", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheAppAndRecordWorkout();
-    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
+    const { mockReducer, env } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
     await SyncTestUtils.logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],
@@ -169,8 +171,8 @@ describe("sync", () => {
 
   describe("progress", () => {
     it("starting progress on 2 devices independently picks latest workout", async () => {
-      const { mockReducer, env } = await SyncTestUtils.initTheApp();
-      const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
+      const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+      const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
       await SyncTestUtils.startWorkout(mockReducer);
       await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
       await SyncTestUtils.startWorkout(mockReducer2);

@@ -27,7 +27,6 @@ import { DateUtils } from "../utils/date";
 import { IEvaluatedProgram, Program } from "./program";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { Muscle } from "./muscle";
-import { UidFactory } from "../utils/generator";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -53,7 +52,7 @@ export namespace History {
   export function createCustomEntry(exerciseType: IExerciseType, index: number): IHistoryEntry {
     return {
       vtype: "history_entry",
-      id: UidFactory.generateUid(8),
+      id: Progress.getEntryId(exerciseType),
       index,
       exercise: exerciseType,
       sets: [],
