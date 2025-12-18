@@ -5,6 +5,7 @@ import { ObjectUtils } from "./object";
 import { Exercise } from "../models/exercise";
 import { Weight } from "../models/weight";
 import { UidFactory } from "./generator";
+import { Progress } from "../models/progress";
 
 const exerciseMapping: Partial<Record<string, [string, string | undefined]>> = {
   "21s Bicep Curl": ["Bicep Curl", "barbell"],
@@ -406,6 +407,7 @@ export class ImportFromHevy {
         const isUnilateral = Exercise.getIsUnilateral({ id: exerciseId, equipment: equipment }, settings);
         return {
           vtype: "history_entry" as const,
+          id: Progress.getEntryId({ id: exerciseId, equipment }, UidFactory.generateUid(3)),
           exercise: { id: exerciseId, equipment: equipment },
           index,
           warmupSets: record.warmupSets.map((set, i) => ({

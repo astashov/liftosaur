@@ -130,7 +130,7 @@ export class SyncTestUtils {
     return setActions;
   }
 
-  public static async initTheApp(): Promise<{
+  public static async initTheApp(deviceId: string): Promise<{
     di: IMockDI;
     log: MockLogUtil;
     fetchLogs: IMockFetchLog[];
@@ -159,7 +159,7 @@ export class SyncTestUtils {
     const queue = new AsyncQueue();
     const env: IEnv = { service, audio: new MockAudioInterface(), queue };
     const url = UrlUtils.build("https://www.liftosaur.com");
-    const initialState = await getInitialState(fetch, { url, storage: aStorage, deviceId: "web_123" });
+    const initialState = await getInitialState(fetch, { url, storage: aStorage, deviceId });
     const mockReducer = MockReducer.build(initialState, env);
     await mockReducer.run([Thunk.fetchInitial(), Thunk.sync2({ force: true })]);
 
@@ -169,14 +169,14 @@ export class SyncTestUtils {
     return { di, fetchLogs, log, mockReducer, env };
   }
 
-  public static async initTheAppAndRecordWorkout(): Promise<{
+  public static async initTheAppAndRecordWorkout(deviceId: string): Promise<{
     di: IMockDI;
     log: MockLogUtil;
     mockReducer: MockReducer<IState, IAction, IEnv>;
     env: IEnv;
     fetchLogs: IMockFetchLog[];
   }> {
-    const { di, log, mockReducer, env, fetchLogs } = await this.initTheApp();
+    const { di, log, mockReducer, env, fetchLogs } = await this.initTheApp(deviceId);
     await this.logWorkout(mockReducer, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],

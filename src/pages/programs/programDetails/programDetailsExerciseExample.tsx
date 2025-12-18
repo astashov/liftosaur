@@ -13,6 +13,7 @@ import { PP } from "../../../models/pp";
 import { CollectionUtils } from "../../../utils/collection";
 import { PlannerProgramExercise } from "../../planner/models/plannerProgramExercise";
 import { Stats } from "../../../models/stats";
+import { Progress } from "../../../models/progress";
 
 export interface IProgramDetailsExerciseExampleProps {
   settings: ISettings;
@@ -60,6 +61,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
           )
         : {
             vtype: "history_entry",
+            id: Progress.getEntryId(exerciseType, programExercise),
             exercise: exerciseType,
             index: weekIndex,
             warmupSets: [],

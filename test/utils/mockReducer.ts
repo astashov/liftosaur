@@ -4,6 +4,7 @@ import { Storage } from "../../src/models/storage";
 import { Thunk } from "../../src/ducks/thunks";
 import { IGThunk, IReducerOnIGAction } from "../../src/ducks/types";
 import { IEnv, IState } from "../../src/models/state";
+import { ObjectUtils } from "../../src/utils/object";
 
 export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> {
   public state: TState;
@@ -26,6 +27,14 @@ export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> 
         }
       },
     ]);
+  }
+
+  public static clone(
+    mockReducer: MockReducer<IState, IAction, IEnv>,
+    deviceId: string,
+    env: IEnv
+  ): MockReducer<IState, IAction, IEnv> {
+    return MockReducer.build(ObjectUtils.clone({ ...mockReducer.state, deviceId }), env);
   }
 
   private readonly getState = (): TState => {
