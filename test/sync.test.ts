@@ -12,7 +12,6 @@ import { EditStats } from "../src/models/editStats";
 import { Encoder } from "../src/utils/encoder";
 import { NodeEncoder } from "../lambda/utils/nodeEncoder";
 import { SyncTestUtils } from "./utils/syncTestUtils";
-import { cl } from "./utils/testUtils";
 
 describe("sync", () => {
   let sandbox: sinon.SinonSandbox;
@@ -89,22 +88,19 @@ describe("sync", () => {
     expect(filteredLogs.filter((l) => l === "Fetch: Safe update").length).to.be.greaterThan(0);
   });
 
-  it.only("merge 2 history updates", async () => {
+  it("merge 2 history updates", async () => {
     const { mockReducer, log, env, di } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
-    console.log("A");
     await SyncTestUtils.logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],
       [5, 5, 5],
     ]);
-    console.log("B");
     await SyncTestUtils.logWorkout(mockReducer, basicBeginnerProgram, [
       [5, 4, 3],
       [5, 4, 3],
       [5, 4, 3],
     ]);
-    console.log("C");
     const dbHistoryRecords = await di.dynamo.scan<IHistoryRecord>({ tableName: userTableNames.prod.historyRecords });
     expect(dbHistoryRecords.length).to.equal(3);
 
