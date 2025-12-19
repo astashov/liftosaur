@@ -37,6 +37,17 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         if (mergedValue !== undefined) {
           result[key] = mergedValue;
         }
+      } else if (isFieldVersion(diffVersion)) {
+        // extractedValue is undefined but we have a version update
+        // This means the field was explicitly deleted/set to undefined
+        if (fullVersion === undefined || !isFieldVersion(fullVersion)) {
+          delete result[key];
+        } else {
+          const comparison = VersionTrackerUtils.compareVersions(diffVersion, fullVersion);
+          if (comparison === "a_newer" || comparison === "concurrent") {
+            delete result[key];
+          }
+        }
       }
     }
 
@@ -107,8 +118,16 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         }
 
         const controlledFields = this.versionTypes.controlledFields[extractedValue.vtype] || [];
+        const controlledFieldSet = new Set(controlledFields);
 
         const mergedItem: Record<string, unknown> = VersionTrackerUtils.isRecord(fullValue) ? { ...fullValue } : {};
+
+        // Copy non-controlled fields from extractedValue if they don't exist in mergedItem
+        for (const field in extractedValue) {
+          if (!controlledFieldSet.has(field) && !(field in mergedItem)) {
+            mergedItem[field] = extractedValue[field];
+          }
+        }
 
         for (const field of controlledFields) {
           if (field in diffVersion) {

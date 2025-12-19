@@ -91,12 +91,14 @@ describe("fillVersions", () => {
     const programVersions = filled.programs as ICollectionVersions;
 
     expect(programVersions.items!["1"]).to.deep.equal({
-      name: 1000, // Existing preserved (missing fields not added since partial versions exist)
+      name: 1000,
+      clonedAt: { t: timestamp, value: "1", vc: {} },
     });
     expect(programVersions.items!["2"]).to.deep.equal({
       name: timestamp,
       nextDay: timestamp,
-    }); // Missing added for controlled fields
+      clonedAt: { t: timestamp, value: "2", vc: {} },
+    });
   });
 
   it("should handle dictionary fields", () => {
@@ -217,7 +219,8 @@ describe("fillVersions", () => {
     const gymVersions = (filled.settings as any).gyms as ICollectionVersions;
 
     expect(gymVersions.items!.gym1).to.deep.equal({
-      name: 1000, // Existing preserved (missing fields not added since partial versions exist)
+      name: 1000,
+      id: { t: timestamp, value: "gym1", vc: {} },
     });
   });
 
@@ -354,10 +357,11 @@ describe("fillVersions", () => {
     const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
     const programVersions = filled.programs as ICollectionVersions;
 
-    expect(programVersions.deleted).to.deep.equal({ prog2: 1500 }); // Deleted preserved
+    expect(programVersions.deleted).to.deep.equal({ prog2: 1500 });
     expect(programVersions.items!["1"]).to.deep.equal({
       name: timestamp,
       nextDay: timestamp,
+      clonedAt: { t: timestamp, value: "1", vc: {} },
     });
   });
 
@@ -401,6 +405,7 @@ describe("fillVersions", () => {
       1: {
         name: 2000,
         nextDay: 2000,
+        clonedAt: { t: timestamp, value: "1", vc: {} },
       },
       2: { name: 2000 },
       3: 3000,

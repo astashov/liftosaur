@@ -131,6 +131,7 @@ describe("updateVersions", () => {
       expect(programVersions.items!["2"]).to.deep.equal({
         name: timestamp,
         nextDay: timestamp,
+        clonedAt: { t: timestamp, value: "2", vc: {} },
       });
     });
 
@@ -173,6 +174,7 @@ describe("updateVersions", () => {
       const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions.items!["1"]).to.deep.equal({
         name: timestamp,
+        clonedAt: { t: timestamp, value: "1", vc: {} },
       });
     });
 
@@ -450,6 +452,7 @@ describe("updateVersions", () => {
 
       expect(itemVersion).to.deep.equal({
         name: timestamp,
+        clonedAt: { t: timestamp, value: "1", vc: {} },
       });
     });
 
@@ -504,6 +507,7 @@ describe("updateVersions", () => {
         name: timestamp,
         nextDay: timestamp,
         planner: timestamp,
+        clonedAt: { t: timestamp, value: "1", vc: {} },
       });
     });
 
@@ -547,6 +551,7 @@ describe("updateVersions", () => {
       expect(gymVersions.items!.gym2).to.deep.equal({
         name: timestamp,
         equipment: timestamp,
+        id: { t: timestamp, value: "gym2", vc: {} },
       });
     });
   });
@@ -746,6 +751,7 @@ describe("updateVersions", () => {
       const gymVersions = settings?.gyms as ICollectionVersions;
       expect(gymVersions.items!.gym1).to.deep.equal({
         equipment: timestamp,
+        id: { t: timestamp, value: "gym1", vc: {} },
       });
     });
   });
@@ -817,6 +823,7 @@ describe("updateVersions", () => {
       expect(gymVersions.items!.gym1).to.deep.equal({
         name: timestamp,
         equipment: timestamp,
+        id: { t: timestamp, value: "gym1", vc: {} },
       });
     });
   });
@@ -901,7 +908,16 @@ describe("updateVersions", () => {
 
       const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
 
-      expect(versions).to.deep.equal({});
+      expect(versions).to.deep.equal({
+        programs: {
+          items: {
+            "1": {
+              clonedAt: { t: timestamp, value: "1", vc: {} },
+            },
+          },
+          deleted: {},
+        },
+      });
     });
 
     it("should include field when at least one nested item changed", () => {
@@ -990,7 +1006,11 @@ describe("updateVersions", () => {
       const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions).to.deep.equal({
         items: {
-          "1": { name: timestamp, nextDay: timestamp },
+          "1": {
+            name: timestamp,
+            nextDay: timestamp,
+            clonedAt: { t: timestamp, value: "1", vc: {} },
+          },
         },
         deleted: {},
       });
