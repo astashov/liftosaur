@@ -62,7 +62,7 @@ export class MockDynamoUtil implements IDynamoUtil {
     values = values.filter(
       this.buildCondition({ filterExpression: args.expression, attrs: args.attrs, values: args.values })
     );
-    return Promise.resolve(values);
+    return Promise.resolve(ObjectUtils.clone(values));
   }
 
   public async scan<T>(args: {
@@ -74,12 +74,17 @@ export class MockDynamoUtil implements IDynamoUtil {
     if (args.filterExpression) {
       values = values.filter(this.buildCondition({ filterExpression: args.filterExpression, values: args.values }));
     }
-    return Promise.resolve(values);
+    return Promise.resolve(ObjectUtils.clone(values));
+  }
+
+  private getKey(key: DynamoDB.DocumentClient.Key): string {
+    const keys = ObjectUtils.keys(key).sort();
+    return JSON.stringify(key, keys);
   }
 
   public async get<T>(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<T | undefined> {
-    const value = this.data[args.tableName]?.[JSON.stringify(args.key)] as T | undefined;
-    return value;
+    const value = this.data[args.tableName]?.[this.getKey(args.key)] as T | undefined;
+    return ObjectUtils.clone(value);
   }
 
   public async put(args: { tableName: string; item: DynamoDB.DocumentClient.PutItemInputAttributeMap }): Promise<void> {
@@ -87,7 +92,7 @@ export class MockDynamoUtil implements IDynamoUtil {
     if (keyNames) {
       const key = keyNames.reduce((memo, k) => ({ ...memo, [k]: args.item[k] }), {});
       this.data[args.tableName] = this.data[args.tableName] || {};
-      this.data[args.tableName][JSON.stringify(key)] = args.item;
+      this.data[args.tableName][this.getKey(key)] = args.item;
     } else {
       throw new Error(`MockDynamo: Missing put key mapping for ${args.tableName}`);
     }
@@ -103,7 +108,7 @@ export class MockDynamoUtil implements IDynamoUtil {
     if (keyNames) {
       const key = keyNames.reduce((memo, k) => ({ ...memo, [k]: args.item[k] }), {});
       this.data[args.tableName] = this.data[args.tableName] || {};
-      this.data[args.tableName][JSON.stringify(key)] = args.item;
+      this.data[args.tableName][this.getKey(key)] = args.item;
       return Promise.resolve(true);
     } else {
       throw new Error(`MockDynamo: Missing put key mapping for ${args.tableName}`);
@@ -121,7 +126,7 @@ export class MockDynamoUtil implements IDynamoUtil {
   }
 
   public async remove(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<void> {
-    const key = JSON.stringify(args.key);
+    const key = this.getKey(args.key);
     delete this.data[args.tableName]?.[key];
   }
 

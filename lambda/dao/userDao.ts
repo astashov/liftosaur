@@ -197,50 +197,9 @@ export class UserDao {
     }
     const originalStorage = limitedUser.storage;
     limitedUser = await this.augmentLimitedUser(limitedUser, storageUpdate);
-    // if (storageUpdate.storage?.progress != null) {
-    //   cl(
-    //     "update",
-    //     storageUpdate.storage?.progress?.startTime,
-    //     storageUpdate.storage?.progress?.entries?.map((e) => ({
-    //       index: e.index,
-    //       entryId: e.id,
-    //       sets: e.sets.map((s) =>
-    //         JSON.stringify({ index: s.index, isCompleted: s.isCompleted, completedReps: s.completedReps })
-    //       ),
-    //       warmupSets: e.warmupSets?.map((s) =>
-    //         JSON.stringify({
-    //           index: s.index,
-    //           isCompleted: s.isCompleted,
-    //           completedReps: s.completedReps,
-    //         })
-    //       ),
-    //     })),
-    //     storageUpdate.versions?.progress
-    //   );
-    // } else {
-    //   cl(storageUpdate);
-    // }
 
     const result = await Storage.get(fetch, limitedUser.storage);
     if (!result.success) {
-      // cl(
-      //   limitedUser.storage.progress?.startTime,
-      //   limitedUser.storage.progress?.entries.map((e) => ({
-      //     index: e.index,
-      //     entryId: e.id,
-      //     sets: e.sets.map((s) =>
-      //       JSON.stringify({ index: s.index, isCompleted: s.isCompleted, completedReps: s.completedReps })
-      //     ),
-      //     warmupSets: e.warmupSets?.map((s) =>
-      //       JSON.stringify({
-      //         index: s.index,
-      //         isCompleted: s.isCompleted,
-      //         completedReps: s.completedReps,
-      //       })
-      //     ),
-      //   }))
-      // );
-      // cl(result.error);
       return { success: false, error: "corrupted_server_storage" };
     }
     const { _versions, ...limitedUserStorage } = result.data;
@@ -272,24 +231,6 @@ export class UserDao {
       _versions: newVersions,
     };
     const newStorage = Storage.fillVersions(preNewStorage);
-    // cl(
-    //   "new storage",
-    //   newStorage?.progress?.startTime,
-    //   newStorage?.progress?.entries?.map((e) => ({
-    //     index: e.index,
-    //     entryId: e.id,
-    //     sets: e.sets.map((s) =>
-    //       JSON.stringify({ index: s.index, isCompleted: s.isCompleted, completedReps: s.completedReps })
-    //     ),
-    //     warmupSets: e.warmupSets?.map((s) =>
-    //       JSON.stringify({
-    //         index: s.index,
-    //         isCompleted: s.isCompleted,
-    //         completedReps: s.completedReps,
-    //       })
-    //     ),
-    //   }))
-    // );
 
     const versionsHistory = newStorage._versions?.history as ICollectionVersions | undefined;
     const deletedVersionsHistory = ObjectUtils.keys(versionsHistory?.deleted || {}).map((v) => Number(v));

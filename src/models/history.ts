@@ -105,7 +105,7 @@ export namespace History {
         return entry;
       }),
       vtype: "history_record",
-      id: Progress.isCurrent(progress) ? endTime : progress.id,
+      id: Progress.isCurrent(progress) ? progress.startTime : progress.id,
       updatedAt: updatedAt,
       timerSince: undefined,
       timerMode: undefined,

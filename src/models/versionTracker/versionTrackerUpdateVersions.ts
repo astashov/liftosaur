@@ -290,7 +290,12 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
         const currentIdVersion = isIdVersion(fieldVersions[idField]) ? fieldVersions[idField] : undefined;
         // Only update if ID changed or no version exists
         if (!currentIdVersion || currentIdVersion.value !== idValue) {
-          fieldVersions[idField] = VersionTrackerUtils.createIdVersion(timestamp, idValue, currentIdVersion, this.deviceId);
+          fieldVersions[idField] = VersionTrackerUtils.createIdVersion(
+            timestamp,
+            idValue,
+            currentIdVersion,
+            this.deviceId
+          );
           hasChanges = true;
         }
       }

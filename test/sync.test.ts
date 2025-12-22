@@ -189,5 +189,64 @@ describe("sync", () => {
         ["3,true", "3,true", ",false"],
       ]);
     });
+
+    it("finishing 2 progress without network should resolve in single workout", async () => {
+      const { mockReducer, env, mockFetch } = await SyncTestUtils.initTheApp("web_123");
+      const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
+      await SyncTestUtils.startWorkout(mockReducer);
+      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+      await SyncTestUtils.startWorkout(mockReducer2);
+      await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[3, 4, 3]]));
+      await mockReducer.run([Thunk.sync2({ force: true })]);
+      mockFetch.hasConnection = false;
+      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
+      await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [1, 1]]));
+      await SyncTestUtils.finishWorkout(mockReducer);
+      await SyncTestUtils.finishWorkout(mockReducer2);
+      mockFetch.hasConnection = true;
+      await mockReducer.run([Thunk.sync2({ force: true })]);
+      await mockReducer2.run([Thunk.sync2({ force: true })]);
+      await mockReducer.run([Thunk.sync2({ force: true })]);
+      const historyIds1 = mockReducer.state.storage.history.map((h) => h.startTime);
+      const historyIds2 = mockReducer2.state.storage.history.map((h) => h.startTime);
+      expect(historyIds1.length).to.equal(1);
+      expect(historyIds2.length).to.equal(1);
+      const completedSets1 = mockReducer.state.storage.history[0].entries.map((e) => ({
+        name: e.exercise.id,
+        sets: e.sets.map((s) => [s.completedReps, s.isCompleted]),
+      }));
+      const completedSets2 = mockReducer2.state.storage.history[0].entries.map((e) => ({
+        name: e.exercise.id,
+        sets: e.sets.map((s) => [s.completedReps, s.isCompleted]),
+      }));
+      const expectedSets = [
+        {
+          name: "bentOverRow",
+          sets: [
+            [3, true],
+            [4, true],
+            [3, true],
+          ],
+        },
+        {
+          name: "benchPress",
+          sets: [
+            [1, true],
+            [1, true],
+            [undefined, false],
+          ],
+        },
+        {
+          name: "squat",
+          sets: [
+            [undefined, false],
+            [undefined, false],
+            [undefined, false],
+          ],
+        },
+      ];
+      expect(completedSets1).to.eql(expectedSets);
+      expect(completedSets2).to.eql(expectedSets);
+    });
   });
 });
