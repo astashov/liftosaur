@@ -133,7 +133,7 @@ export class SyncTestUtils {
   public static async initTheApp(deviceId: string): Promise<{
     di: IMockDI;
     log: MockLogUtil;
-    fetchLogs: IMockFetchLog[];
+    mockFetch: MockFetch;
     mockReducer: MockReducer<IState, IAction, IEnv>;
     env: IEnv;
   }> {
@@ -166,22 +166,22 @@ export class SyncTestUtils {
     await mockReducer.run([
       this.mockDispatch((ds) => Program.cloneProgram(ds, basicBeginnerProgram, initialState.storage.settings)),
     ]);
-    return { di, fetchLogs, log, mockReducer, env };
+    return { di, mockFetch, log, mockReducer, env };
   }
 
   public static async initTheAppAndRecordWorkout(deviceId: string): Promise<{
     di: IMockDI;
     log: MockLogUtil;
+    mockFetch: MockFetch;
     mockReducer: MockReducer<IState, IAction, IEnv>;
     env: IEnv;
-    fetchLogs: IMockFetchLog[];
   }> {
-    const { di, log, mockReducer, env, fetchLogs } = await this.initTheApp(deviceId);
-    await this.logWorkout(mockReducer, basicBeginnerProgram, [
+    const result = await this.initTheApp(deviceId);
+    await this.logWorkout(result.mockReducer, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],
       [5, 5, 5],
     ]);
-    return { di, log, mockReducer, env, fetchLogs };
+    return result;
   }
 }
