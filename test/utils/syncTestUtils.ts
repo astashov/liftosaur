@@ -18,6 +18,7 @@ import { IMockFetchLog, MockFetch } from "./mockFetch";
 import { MockLogUtil } from "./mockLogUtil";
 import { MockReducer } from "./mockReducer";
 import { lb } from "lens-shmens";
+import { Progress } from "../../src/models/progress";
 
 export class SyncTestUtils {
   public static mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
@@ -46,7 +47,7 @@ export class SyncTestUtils {
     reps: number[][]
   ): Promise<void> {
     await this.startWorkout(mockReducer);
-    await mockReducer.run([...this.completeRepsActions(program, mockReducer.state.storage.progress!, reps)]);
+    await mockReducer.run([...this.completeRepsActions(program, Progress.getProgress(mockReducer.state)!, reps)]);
     await this.finishWorkout(mockReducer);
   }
 
@@ -62,7 +63,7 @@ export class SyncTestUtils {
 
   public static completeCurrentProgramRepsActions(state: IState, reps: (number | undefined)[][]): IAction[] {
     const program = state.storage.programs.find((p) => p.id === state.storage.currentProgramId)!;
-    const progress = state.storage.progress!;
+    const progress = Progress.getProgress(state)!;
     return this.completeRepsActions(program, progress, reps);
   }
 

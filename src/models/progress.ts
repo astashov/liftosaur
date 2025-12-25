@@ -648,10 +648,11 @@ export namespace Progress {
       updateState(
         dispatch,
         [
-          lb<IState>().p("storage").pi("progress").p("timer").record(Math.max(0, newTimer)),
+          lb<IState>().p("storage").pi("progress").i(0).p("timer").record(Math.max(0, newTimer)),
           lb<IState>()
             .p("storage")
             .pi("progress")
+            .i(0)
             .recordModify((record) => {
               return {
                 ...record,
@@ -841,9 +842,9 @@ export namespace Progress {
     return 0;
   }
 
-  export function lbProgress(progressId: number): LensBuilder<IState, IHistoryRecord, {}> {
-    if (progressId === 0) {
-      return lb<IState>().p("storage").pi("progress");
+  export function lbProgress(progressId?: number): LensBuilder<IState, IHistoryRecord, {}> {
+    if (progressId == null || progressId === 0) {
+      return lb<IState>().p("storage").pi("progress").i(0);
     } else {
       return lb<IState>().pi("progress").pi(progressId);
     }
@@ -852,7 +853,7 @@ export namespace Progress {
   export function getProgress(state: Pick<IState, "screenStack" | "storage">): IHistoryRecord | undefined {
     const progressId = getProgressId(state.screenStack);
     if (progressId === 0) {
-      return state.storage.progress;
+      return state.storage.progress?.[0];
     } else {
       return (state as IState).progress[progressId];
     }
@@ -860,7 +861,7 @@ export namespace Progress {
 
   export function setProgress(state: IState, progress: IHistoryRecord): IState {
     if (progress.id === 0) {
-      return lf(state).p("storage").p("progress").set(progress);
+      return lf(state).p("storage").p("progress").set([progress]);
     } else {
       return lf(state).pi("progress").p(progress.id).set(progress);
     }

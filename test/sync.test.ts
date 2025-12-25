@@ -12,6 +12,7 @@ import { EditStats } from "../src/models/editStats";
 import { Encoder } from "../src/utils/encoder";
 import { NodeEncoder } from "../lambda/utils/nodeEncoder";
 import { SyncTestUtils } from "./utils/syncTestUtils";
+import { Progress } from "../src/models/progress";
 
 describe("sync", () => {
   let sandbox: sinon.SinonSandbox;
@@ -180,7 +181,7 @@ describe("sync", () => {
         SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [undefined, 4, 3], [3, 3]])
       );
       await mockReducer.run([Thunk.sync2({ force: true })]);
-      const completedSets = mockReducer.state.storage.progress?.entries.map((e) =>
+      const completedSets = Progress.getProgress(mockReducer.state)?.entries.map((e) =>
         e.sets.map((s) => `${[s.completedReps, s.isCompleted]}`)
       );
       expect(completedSets).to.eql([
