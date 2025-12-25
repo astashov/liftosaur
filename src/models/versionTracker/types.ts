@@ -34,6 +34,7 @@ export interface IVersionTypes<TAtomicType extends string, TControlledType exten
   controlledFields: Record<TControlledType, readonly string[]>;
   dictionaryFields: readonly string[];
   compactionThresholds?: Record<string, number>;
+  typeValidators?: Partial<Record<TControlledType, { is: (u: unknown) => boolean }>>;
 }
 
 export function isVectorClock(v: unknown): v is IVectorClock {

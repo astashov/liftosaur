@@ -759,8 +759,9 @@ export namespace History {
         lbu<IState, typeof lensGetters>(lensGetters)
           .p("storage")
           .pi("progress")
+          .i(0)
           .p("intervals")
-          .recordModify((intervals, getters) => pauseWorkout(getters.progress.intervals)),
+          .recordModify((intervals, getters) => pauseWorkout(getters.progress[0].intervals)),
       ],
       "Pause workout"
     );
@@ -785,13 +786,10 @@ export namespace History {
     updateState(
       dispatch,
       [
-        lb<IState>()
-          .p("storage")
-          .pi("progress")
-          .recordModify((progress) => {
-            const intervals = resumeWorkout(progress, isPlayground, settings.timers.reminder);
-            return { ...progress, intervals };
-          }),
+        Progress.lbProgress().recordModify((progress) => {
+          const intervals = resumeWorkout(progress, isPlayground, settings.timers.reminder);
+          return { ...progress, intervals };
+        }),
       ],
       "Resume workout"
     );

@@ -416,7 +416,7 @@ export namespace Thunk {
   ): IThunk {
     return async (dispatch, getState, env) => {
       const state = getState();
-      const progress = state.storage.progress;
+      const progress = Progress.getProgress(state);
       if (!progress) {
         return;
       }
@@ -448,7 +448,7 @@ export namespace Thunk {
   ): IThunk {
     return async (dispatch, getState, env) => {
       const state = getState();
-      const progress = state.storage.progress;
+      const progress = Progress.getProgress(state);
       if (!progress) {
         return;
       }
@@ -525,14 +525,14 @@ export namespace Thunk {
   export function startProgramDay(programId?: string): IThunk {
     return async (dispatch, getState) => {
       const state = getState();
-      const progress = state.storage.progress;
+      const progress = Progress.getProgress(state);
       if (progress != null) {
         dispatch(Thunk.pushScreen("progress", { id: progress.id }, true));
       } else if (state.storage.currentProgramId != null) {
         const program = Program.getProgram(state, programId ?? state.storage.currentProgramId);
         if (program != null) {
           const newProgress = Program.nextHistoryRecord(program, state.storage.settings, state.storage.stats);
-          updateState(dispatch, [lb<IState>().p("storage").p("progress").record(newProgress)], "Create new progress");
+          updateState(dispatch, [lb<IState>().p("storage").p("progress").record([newProgress])], "Create new progress");
           dispatch(Thunk.pushScreen("progress", { id: newProgress.id }, true));
         } else {
           alert("No currently selected program");

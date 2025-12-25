@@ -165,6 +165,12 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
           }
         }
 
+        // Validate merged controlled type - if invalid, revert to fullValue
+        const validator = this.versionTypes.typeValidators?.[extractedValue.vtype];
+        if (validator && !validator.is(mergedItem)) {
+          return fullValue;
+        }
+
         return mergedItem;
       }
 

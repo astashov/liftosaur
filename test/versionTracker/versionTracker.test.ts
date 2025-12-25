@@ -11,7 +11,7 @@ import {
 } from "../../src/models/versionTracker";
 import { IAtomicType, IControlledType, ISubscriptionReceipt, STORAGE_VERSION_TYPES } from "../../src/types";
 import { Storage } from "../../src/models/storage";
-import { IStorage, IProgram, IHistoryRecord, ICustomExercise } from "../../src/types";
+import { IStorage, IProgram, IHistoryRecord, ICustomExercise, IHistoryEntry } from "../../src/types";
 import { ObjectUtils } from "../../src/utils/object";
 
 describe("VersionTracker", () => {
@@ -922,27 +922,33 @@ describe("VersionTracker", () => {
       const oldStorage = Storage.getDefault();
       const newStorage = {
         ...oldStorage,
-        progress: {
-          vtype: "progress" as const,
-          startTime: 1000,
-          entries: [],
-          date: "2024-01-01",
-          programId: "program1",
-          programName: "Test Program",
-          day: 1,
-          dayName: "Day 1",
-          id: 1,
-        },
+        progress: [
+          {
+            vtype: "progress" as const,
+            startTime: 1000,
+            entries: [],
+            date: "2024-01-01",
+            programId: "program1",
+            programName: "Test Program",
+            day: 1,
+            dayName: "Day 1",
+            id: 1,
+          },
+        ],
       };
 
       const versions = tracker.updateVersions(oldStorage, newStorage, {}, {}, 2000);
 
       // Check that startTime (ID field) has an ID version with value
-      const progressVersions = versions.progress as IVersionsObject;
+      // progress is now a collection, so versions are in items[id]
+      const progressVersions = versions.progress as ICollectionVersions;
       expect(progressVersions).to.not.be.undefined;
-      expect(progressVersions.startTime).to.be.an("object");
-      expect((progressVersions.startTime as any).value).to.equal("1000");
-      expect((progressVersions.startTime as any).vc).to.deep.equal({ device1: 1 });
+      expect(progressVersions.items).to.not.be.undefined;
+      const itemVersions = progressVersions.items!["1000"] as IVersionsObject;
+      expect(itemVersions).to.not.be.undefined;
+      expect(itemVersions.startTime).to.be.an("object");
+      expect((itemVersions.startTime as any).value).to.equal("1000");
+      expect((itemVersions.startTime as any).vc).to.deep.equal({ device1: 1 });
     });
 
     it("should fill ID version for controlled types in fillVersions", () => {
@@ -1145,66 +1151,99 @@ describe("VersionTracker", () => {
     it("should merge controlled fields normally when IDs match", () => {
       const tracker = new VersionTracker(STORAGE_VERSION_TYPES);
 
-      // Full object (Device A's progress)
-      const fullObj = {
-        ...Storage.getDefault(),
-        progress: {
-          vtype: "progress" as const,
-          startTime: 1000,
-          entries: [{ id: "entry-a", vtype: "history_entry" as const }],
-          date: "2024-01-01",
-          programId: "program1",
-          programName: "Test Program",
-          day: 1,
-          dayName: "Day 1",
-          id: 1,
-          notes: "Note A",
-        },
+      // Valid entry structure with required fields
+      const validEntryA: IHistoryEntry = {
+        id: "entry-a",
+        vtype: "history_entry",
+        exercise: { id: "squat" },
+        sets: [{ vtype: "set", index: 0, reps: 5, weight: { value: 100, unit: "kg" } }],
+        warmupSets: [],
+        index: 0,
       };
 
-      // Full versions - same startTime value
+      const validEntryB: IHistoryEntry = {
+        id: "entry-b",
+        vtype: "history_entry",
+        exercise: { id: "benchPress" },
+        sets: [{ vtype: "set", index: 0, reps: 8, weight: { value: 60, unit: "kg" } }],
+        warmupSets: [],
+        index: 1,
+      };
+
+      // Full object (Device A's progress) - now an array
+      const fullObj = {
+        ...Storage.getDefault(),
+        progress: [
+          {
+            vtype: "progress" as const,
+            startTime: 1000,
+            entries: [validEntryA],
+            date: "2024-01-01",
+            programId: "program1",
+            programName: "Test Program",
+            day: 1,
+            dayName: "Day 1",
+            id: 1,
+            notes: "Note A",
+          },
+        ],
+      };
+
+      // Full versions - now collection structure with items
       const fullVersions = {
         progress: {
-          startTime: { vc: {}, t: 1500, value: "1000" },
-          entries: { items: { "entry-a": { vc: {}, t: 1500 } } },
-          notes: { vc: {}, t: 1500 },
+          items: {
+            "1000": {
+              startTime: { vc: {}, t: 1500, value: "1000" },
+              entries: { items: { "entry-a": { vc: {}, t: 1500 } } },
+              notes: { vc: {}, t: 1500 },
+            },
+          },
+          deleted: {},
         },
       } as any;
 
       // Diff versions - same startTime but newer notes
       const diffVersions = {
         progress: {
-          startTime: { vc: {}, t: 1500, value: "1000" },
-          entries: { items: { "entry-b": { vc: {}, t: 2500 } } },
-          notes: { vc: {}, t: 2500 },
+          items: {
+            "1000": {
+              startTime: { vc: {}, t: 1500, value: "1000" },
+              entries: { items: { "entry-b": { vc: {}, t: 2500 } } },
+              notes: { vc: {}, t: 2500 },
+            },
+          },
+          deleted: {},
         },
       } as any;
 
-      // Extracted object
+      // Extracted object - now an array
       const extractedObj = {
-        progress: {
-          vtype: "progress" as const,
-          startTime: 1000,
-          entries: [{ id: "entry-b", vtype: "history_entry" as const }],
-          date: "2024-01-01",
-          programId: "program1",
-          programName: "Test Program",
-          day: 1,
-          dayName: "Day 1",
-          id: 1,
-          notes: "Note B",
-        },
+        progress: [
+          {
+            vtype: "progress" as const,
+            startTime: 1000,
+            entries: [validEntryB],
+            date: "2024-01-01",
+            programId: "program1",
+            programName: "Test Program",
+            day: 1,
+            dayName: "Day 1",
+            id: 1,
+            notes: "Note B",
+          },
+        ],
       };
 
       // Merge - since IDs match, fields should be merged
       const merged = tracker.mergeByVersions(fullObj, fullVersions, diffVersions, extractedObj);
 
       // ID stays the same
-      expect(merged.progress.startTime).to.equal(1000);
+      expect(merged.progress[0].startTime).to.equal(1000);
       // Notes from B wins (newer)
-      expect(merged.progress.notes).to.equal("Note B");
+      expect(merged.progress[0].notes).to.equal("Note B");
       // Entries from both should be present
-      expect(merged.progress.entries).to.have.lengthOf(2);
+      expect(merged.progress[0].entries).to.have.lengthOf(2);
     });
   });
 });

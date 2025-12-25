@@ -1398,9 +1398,9 @@ export const TStorage = t.intersection(
       affiliates: dictionary(t.string, TAffiliateData),
       subscription: TSubscription,
       whatsNew: t.union([t.string, t.undefined]),
+      progress: t.array(THistoryRecord),
     }),
     t.partial({
-      progress: THistoryRecord,
       originalId: t.number,
       id: t.number,
       referrer: t.string,
@@ -1547,5 +1547,8 @@ export const STORAGE_VERSION_TYPES: IVersionTypes<IAtomicType, IControlledType> 
   compactionThresholds: {
     "subscription.apple": 14 * 24 * 60 * 60 * 1000, // 14 days
     "subscription.google": 14 * 24 * 60 * 60 * 1000, // 14 days
+  },
+  typeValidators: {
+    progress: THistoryRecord,
   },
 } as const;
