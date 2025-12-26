@@ -31,7 +31,6 @@ import * as path from "path";
 import { ICollectionVersions, VersionTracker } from "../../src/models/versionTracker";
 import { DebugDao } from "./debugDao";
 import { EventDao } from "./eventDao";
-import { cl } from "../../test/utils/testUtils";
 
 export const userTableNames = {
   dev: {
@@ -215,43 +214,43 @@ export class UserDao {
     }
     const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
     const originalId = Date.now();
-    cl("storageUpdate", {
-      startTime: storageUpdate.storage?.progress?.[0]?.startTime,
-      entries: storageUpdate.storage?.progress?.[0]?.entries?.map((e) => ({
-        index: e.index,
-        id: e.exercise.id,
-        sets: e.sets?.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
-        warmupSets: e.warmupSets?.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
-      })),
-    });
-    cl("limitedUserStorage", {
-      startTime: limitedUserStorage?.progress?.[0]?.startTime,
-      entries: limitedUserStorage?.progress?.[0]?.entries?.map((e) => ({
-        index: e.index,
-        id: e.exercise.id,
-        sets: e.sets?.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
-        warmupSets: e.warmupSets?.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
-      })),
-    });
-    cl("Old Versions", (_versions || {}).progress);
-    cl("Storage Update Versions", storageUpdate.versions?.progress);
+    // cl("storageUpdate", {
+    //   startTime: storageUpdate.storage?.progress?.[0]?.startTime,
+    //   entries: storageUpdate.storage?.progress?.[0]?.entries?.map((e) => ({
+    //     index: e.index,
+    //     id: e.exercise.id,
+    //     sets: e.sets?.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
+    //     warmupSets: e.warmupSets?.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
+    //   })),
+    // });
+    // cl("limitedUserStorage", {
+    //   startTime: limitedUserStorage?.progress?.[0]?.startTime,
+    //   entries: limitedUserStorage?.progress?.[0]?.entries?.map((e) => ({
+    //     index: e.index,
+    //     id: e.exercise.id,
+    //     sets: e.sets?.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
+    //     warmupSets: e.warmupSets?.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
+    //   })),
+    // });
+    // cl("Old Versions", (_versions || {}).progress);
+    // cl("Storage Update Versions", storageUpdate.versions?.progress);
     const newVersions = versionTracker.mergeVersions(_versions || {}, storageUpdate.versions || {});
-    cl("New Versions", newVersions.progress);
+    // cl("New Versions", newVersions.progress);
     const mergedStorage = versionTracker.mergeByVersions(
       limitedUserStorage,
       _versions || {},
       storageUpdate.versions || {},
       storageUpdate.storage || {}
     );
-    cl("mergedStorage.progress", {
-      startTime: mergedStorage.progress?.[0]?.startTime,
-      entries: mergedStorage.progress?.[0]?.entries?.map((e) => ({
-        index: e.index,
-        id: e.exercise.id,
-        sets: e.sets.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
-        warmupSets: e.warmupSets.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
-      })),
-    });
+    // cl("mergedStorage.progress", {
+    //   startTime: mergedStorage.progress?.[0]?.startTime,
+    //   entries: mergedStorage.progress?.[0]?.entries?.map((e) => ({
+    //     index: e.index,
+    //     id: e.exercise.id,
+    //     sets: e.sets.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
+    //     warmupSets: e.warmupSets.map((s) => [s.index, s.completedReps, s.isCompleted].join(", ")).join(" | "),
+    //   })),
+    // });
     // Normalize: keep only the latest progress (by startTime) if multiple exist
     if (mergedStorage.progress && mergedStorage.progress.length > 1) {
       mergedStorage.progress.sort((a, b) => b.startTime - a.startTime);
