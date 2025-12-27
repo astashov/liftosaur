@@ -32,6 +32,7 @@ export interface IVersionTypes<TAtomicType extends string, TControlledType exten
   controlledTypes: readonly TControlledType[];
   typeIdMapping: Record<TAtomicType | TControlledType, string>;
   controlledFields: Record<TControlledType, readonly string[]>;
+  excludedFields?: Partial<Record<TControlledType, readonly string[]>>;
   dictionaryFields: readonly string[];
   compactionThresholds?: Record<string, number>;
   typeValidators?: Partial<Record<TControlledType, { is: (u: unknown) => boolean }>>;

@@ -60,11 +60,17 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
     const vtype = value.vtype as TControlledType;
     const controlledFields = this.versionTypes.controlledFields[vtype] || [];
     const controlledFieldsSet = new Set(controlledFields);
+    const excludedFields = this.versionTypes.excludedFields?.[vtype] || [];
+    const excludedFieldsSet = new Set(excludedFields);
 
     const result: Record<string, unknown> = {};
     let hasChanges = false;
 
     for (const key of Object.keys(value)) {
+      if (excludedFieldsSet.has(key)) {
+        continue;
+      }
+
       const fieldValue = value[key];
       const fieldVersion = version[key];
 
