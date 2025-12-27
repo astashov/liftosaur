@@ -230,7 +230,7 @@ export namespace Thunk {
           updateState(
             dispatch,
             [
-              lb<IState>().p("lastSyncedStorage").record(newStorage),
+              lb<IState>().p("lastSyncedStorage").record(result.storage),
               lb<IState>().p("storage").record(newStorage),
               lb<IState>().p("storage").p("subscription").p("key").record(result.key),
             ],
