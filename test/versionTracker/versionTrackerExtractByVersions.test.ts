@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "mocha";
 import { expect } from "chai";
-import { IVersions, VersionTracker } from "../../src/models/versionTracker";
+import { IVersions, IVersionTypes, VersionTracker } from "../../src/models/versionTracker";
 import { STORAGE_VERSION_TYPES, IProgram, IHistoryRecord } from "../../src/types";
 
 describe("extractByVersions", () => {
@@ -251,6 +251,130 @@ describe("extractByVersions", () => {
     const extracted = versionTracker.extractByVersions(obj, versions);
     expect(extracted).to.deep.equal({
       history: [historyRecord],
+    });
+  });
+
+  describe("excludedFields", () => {
+    it("should exclude fields specified in excludedFields from extraction", () => {
+      const progress = {
+        vtype: "progress" as const,
+        startTime: 1000,
+        entries: [],
+        date: "2024-01-01",
+        programId: "program1",
+        programName: "Test Program",
+        dayName: "Day 1",
+        day: 1,
+        endTime: 0,
+        ui: { someUiState: true, collapsed: [1, 2, 3] },
+      };
+
+      const obj = {
+        progress: [progress],
+      };
+
+      const versions: IVersions<any> = {
+        progress: {
+          items: {
+            1000: {
+              startTime: { vc: { device1: 1 }, t: 1000, value: "1000" },
+              entries: 1000,
+            },
+          },
+        },
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+      expect(extracted).to.have.property("progress");
+      expect((extracted as any).progress).to.have.lengthOf(1);
+      expect((extracted as any).progress[0]).to.not.have.property("ui");
+      expect((extracted as any).progress[0]).to.have.property("vtype", "progress");
+      expect((extracted as any).progress[0]).to.have.property("startTime", 1000);
+    });
+
+    it("should exclude fields even when they have complex values", () => {
+      const progress = {
+        vtype: "progress" as const,
+        startTime: 2000,
+        entries: [],
+        date: "2024-01-01",
+        programId: "program1",
+        programName: "Test Program",
+        dayName: "Day 1",
+        day: 1,
+        endTime: 0,
+        ui: {
+          deeply: { nested: { ui: { state: "value" } } },
+          arrays: [1, 2, 3],
+        },
+      };
+
+      const obj = {
+        progress: [progress],
+      };
+
+      const versions: IVersions<any> = {
+        progress: {
+          items: {
+            2000: {
+              startTime: { vc: { device1: 1 }, t: 2000, value: "2000" },
+              entries: 2000,
+            },
+          },
+        },
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+      expect((extracted as any).progress[0]).to.not.have.property("ui");
+    });
+
+    it("should work with custom excludedFields configuration", () => {
+      const customVersionTypes: IVersionTypes<"custom_atomic", "custom_controlled"> = {
+        atomicTypes: ["custom_atomic"],
+        controlledTypes: ["custom_controlled"],
+        typeIdMapping: {
+          custom_atomic: "id",
+          custom_controlled: "id",
+        },
+        controlledFields: {
+          custom_controlled: ["name", "value"],
+        },
+        excludedFields: {
+          custom_controlled: ["localState"],
+        },
+        dictionaryFields: [],
+      };
+
+      const tracker = new VersionTracker(customVersionTypes);
+
+      const obj = {
+        items: [
+          {
+            vtype: "custom_controlled" as const,
+            id: "item1",
+            name: "Test Item",
+            value: 42,
+            description: "Some description",
+            localState: { editing: true, tempValue: "draft" },
+          },
+        ],
+      };
+
+      const versions: IVersions<any> = {
+        items: {
+          items: {
+            item1: {
+              id: { vc: { device1: 1 }, t: 1000, value: "item1" },
+              name: 1000,
+            },
+          },
+        },
+      };
+
+      const extracted = tracker.extractByVersions(obj, versions);
+      expect((extracted as any).items[0]).to.not.have.property("localState");
+      expect((extracted as any).items[0]).to.have.property("name", "Test Item");
+      expect((extracted as any).items[0]).to.have.property("description", "Some description");
     });
   });
 });

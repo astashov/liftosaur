@@ -1479,7 +1479,6 @@ export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
   progress: [
     "entries",
     "endTime",
-    "ui",
     "intervals",
     "notes",
     "deletedProgramExercises",
@@ -1537,12 +1536,18 @@ export const DICTIONARY_FIELDS = [
 
 export type IDictionaryFieldPath = (typeof DICTIONARY_FIELDS)[number];
 
+// Fields excluded from syncing (local-only UI state)
+export const EXCLUDED_FIELDS: Partial<Record<IControlledType, readonly string[]>> = {
+  progress: ["ui"] as const,
+};
+
 // Storage-specific version configuration
 export const STORAGE_VERSION_TYPES: IVersionTypes<IAtomicType, IControlledType> = {
   atomicTypes: ATOMIC_TYPES,
   controlledTypes: CONTROLLED_TYPES,
   typeIdMapping: TYPE_ID_MAPPING,
   controlledFields: CONTROLLED_FIELDS,
+  excludedFields: EXCLUDED_FIELDS,
   dictionaryFields: DICTIONARY_FIELDS,
   compactionThresholds: {
     "subscription.apple": 14 * 24 * 60 * 60 * 1000, // 14 days
