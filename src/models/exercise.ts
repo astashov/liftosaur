@@ -1676,7 +1676,7 @@ const nameToIdMapping = ObjectUtils.keys(allExercisesList).reduce<Partial<Record
 
 export const metadata: Record<IExerciseId, IMetaExercises> = {
   abWheel: {
-    targetMuscles: ["Iliopsoas"],
+    targetMuscles: ["Iliopsoas", "Rectus Abdominis"],
     synergistMuscles: [
       "Adductor Brevis",
       "Adductor Longus",
@@ -1686,6 +1686,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Pectoralis Major Sternal Head",
       "Sartorius",
       "Teres Major",
+      "Triceps Brachii"
     ],
     bodyParts: ["Back"],
     sortedEquipment: ["bodyweight"],
