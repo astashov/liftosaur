@@ -46,7 +46,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 
-  await page.getByTestId("footer-program").click({ force: true });
+  await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("edit-exercise").click();
   await page.getByTestId("add-set").click();
@@ -107,7 +107,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
   await page.waitForTimeout(200);
 
-  await page.getByTestId("footer-program").click({ force: true });
+  await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-week-muscles").click();
   await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Shoulders: 2");
