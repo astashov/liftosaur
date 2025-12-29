@@ -37,6 +37,17 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         if (mergedValue !== undefined) {
           result[key] = mergedValue;
         }
+      } else if (isFieldVersion(diffVersion)) {
+        // extractedValue is undefined but we have a version update
+        // This means the field was explicitly deleted/set to undefined
+        if (fullVersion === undefined || !isFieldVersion(fullVersion)) {
+          delete result[key];
+        } else {
+          const comparison = VersionTrackerUtils.compareVersions(diffVersion, fullVersion);
+          if (comparison === "a_newer" || comparison === "concurrent") {
+            delete result[key];
+          }
+        }
       }
     }
 
@@ -80,27 +91,84 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
 
     if (isVersionsObject(diffVersion) && VersionTrackerUtils.isRecord(extractedValue)) {
       if (VersionTrackerUtils.isControlledType(extractedValue, this.versionTypes)) {
+        const fullVersionObj = isVersionsObject(fullVersion) ? fullVersion : undefined;
+        const diffVersionObj = diffVersion;
+
+        // Get ID versions from both full and diff to determine the winner
+        const fullIdVersion = VersionTrackerUtils.getIdVersionFromVersions(
+          extractedValue.vtype,
+          fullVersionObj,
+          this.versionTypes
+        );
+        const diffIdVersion = VersionTrackerUtils.getIdVersionFromVersions(
+          extractedValue.vtype,
+          diffVersionObj,
+          this.versionTypes
+        );
+
+        // If both have ID versions with different values, determine which one wins
+        if (fullIdVersion && diffIdVersion && fullIdVersion.value !== diffIdVersion.value) {
+          const winner = VersionTrackerUtils.pickWinningIdVersion(fullIdVersion, diffIdVersion);
+          if (winner === fullIdVersion) {
+            // Full wins - keep full value, ignore extracted
+            return fullValue;
+          }
+          // Diff wins - use extracted value entirely (it's a different object)
+          return extractedValue;
+        }
+
         const controlledFields = this.versionTypes.controlledFields[extractedValue.vtype] || [];
+        const controlledFieldSet = new Set(controlledFields);
 
         const mergedItem: Record<string, unknown> = VersionTrackerUtils.isRecord(fullValue) ? { ...fullValue } : {};
-        const fullVersionObj = isVersionsObject(fullVersion) ? fullVersion : undefined;
+
+        // Copy non-controlled fields from extractedValue if they don't exist in mergedItem
+        for (const field in extractedValue) {
+          if (!controlledFieldSet.has(field) && !(field in mergedItem)) {
+            mergedItem[field] = extractedValue[field];
+          }
+        }
 
         for (const field of controlledFields) {
           if (field in diffVersion) {
             const diffFieldVersion = diffVersion[field];
             const fullFieldVersion = fullVersionObj?.[field];
+            const fullFieldValue = VersionTrackerUtils.isRecord(fullValue) ? fullValue[field] : undefined;
+            const extractedFieldValue = extractedValue[field];
 
             if (isFieldVersion(diffFieldVersion)) {
               if (fullFieldVersion === undefined || !isFieldVersion(fullFieldVersion)) {
-                mergedItem[field] = extractedValue[field];
+                mergedItem[field] = extractedFieldValue;
               } else {
                 const comparison = VersionTrackerUtils.compareVersions(diffFieldVersion, fullFieldVersion);
                 if (comparison === "a_newer" || comparison === "concurrent") {
-                  mergedItem[field] = extractedValue[field];
+                  mergedItem[field] = extractedFieldValue;
                 }
               }
+            } else if (isCollectionVersions(diffFieldVersion)) {
+              const fullCollection = isCollectionVersions(fullFieldVersion) ? fullFieldVersion : undefined;
+              mergedItem[field] = this.mergeCollectionByVersion(
+                fullFieldValue,
+                fullCollection,
+                diffFieldVersion,
+                extractedFieldValue
+              );
+            } else if (isVersionsObject(diffFieldVersion) && VersionTrackerUtils.isRecord(extractedFieldValue)) {
+              mergedItem[field] = this.mergeFieldByVersion(
+                fullFieldValue,
+                fullFieldVersion,
+                diffFieldVersion,
+                extractedFieldValue,
+                `${path}.${field}`
+              );
             }
           }
+        }
+
+        // Validate merged controlled type - if invalid, revert to fullValue
+        const validator = this.versionTypes.typeValidators?.[extractedValue.vtype];
+        if (validator && !validator.is(mergedItem)) {
+          return fullValue;
         }
 
         return mergedItem;

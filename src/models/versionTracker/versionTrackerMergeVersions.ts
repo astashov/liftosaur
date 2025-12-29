@@ -8,6 +8,8 @@ import {
   isFieldVersion,
   isCollectionVersions,
   isVersionsObject,
+  isIdVersion,
+  IIdVersion,
 } from "./types";
 import { VersionTrackerUtils } from "./utils";
 
@@ -61,6 +63,23 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
 
     if (isVersionsObject(diffVersion)) {
       const fullObj = VersionTrackerUtils.ensureVersionsObject(fullVersion);
+
+      // Check if both have ID versions (controlled types with different identities)
+      const fullIdVersion = this.findIdVersion(fullObj);
+      const diffIdVersion = this.findIdVersion(diffVersion);
+
+      if (fullIdVersion && diffIdVersion && fullIdVersion.value !== diffIdVersion.value) {
+        // Different controlled objects - pick winner by timestamp
+        const winner = VersionTrackerUtils.pickWinningIdVersion(fullIdVersion, diffIdVersion);
+        if (winner === diffIdVersion) {
+          // diff wins - use diff versions entirely
+          return diffVersion;
+        } else {
+          // full wins - keep full versions
+          return fullObj;
+        }
+      }
+
       const result: IVersionsObject = { ...fullObj };
 
       for (const key in diffVersion) {
@@ -74,6 +93,16 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
     }
 
     return diffVersion;
+  }
+
+  private findIdVersion(versions: IVersionsObject): IIdVersion | undefined {
+    for (const key in versions) {
+      const value = versions[key];
+      if (isIdVersion(value)) {
+        return value;
+      }
+    }
+    return undefined;
   }
 
   private mergeCollectionVersions(

@@ -8,6 +8,7 @@ import {
   IVersions,
   isFieldVersion,
   isCollectionVersions,
+  isIdVersion,
 } from "./types";
 import { VersionTrackerUtils } from "./utils";
 
@@ -64,18 +65,20 @@ export class VersionTrackerFillVersions<TAtomicType extends string, TControlledT
         for (const item of value) {
           const itemId = VersionTrackerUtils.getId(item, this.versionTypes);
           if (itemId && !(itemId in items)) {
-            const itemVersion = this.getInitialItemVersion(item, timestamp);
+            const itemPath = `${path}.items.${itemId}`;
+            const itemVersion = this.getInitialItemVersion(item, timestamp, itemPath);
             if (itemVersion !== undefined) {
               items[itemId] = itemVersion;
             }
           } else if (itemId && items[itemId] && !isFieldVersion(items[itemId])) {
+            const itemPath = `${path}.items.${itemId}`;
             if (VersionTrackerUtils.isControlledType(item, this.versionTypes)) {
-              const filledItemVersion = this.fillControlledObjectVersion(item, items[itemId], timestamp);
+              const filledItemVersion = this.fillControlledObjectVersion(item, items[itemId], timestamp, itemPath);
               if (filledItemVersion !== undefined) {
                 items[itemId] = filledItemVersion;
               }
             } else {
-              const filledItemVersion = this.fillFieldVersion(item, items[itemId], timestamp, `${path}[${itemId}]`);
+              const filledItemVersion = this.fillFieldVersion(item, items[itemId], timestamp, itemPath);
               if (filledItemVersion !== undefined && !isCollectionVersions(filledItemVersion)) {
                 items[itemId] = filledItemVersion;
               }
@@ -97,18 +100,20 @@ export class VersionTrackerFillVersions<TAtomicType extends string, TControlledT
 
         for (const [key, item] of Object.entries(dictValue)) {
           if (!(key in items)) {
-            const itemVersion = this.getInitialItemVersion(item, timestamp);
+            const itemPath = `${path}.items.${key}`;
+            const itemVersion = this.getInitialItemVersion(item, timestamp, itemPath);
             if (itemVersion !== undefined) {
               items[key] = itemVersion;
             }
           } else if (items[key] && !isFieldVersion(items[key])) {
+            const itemPath = `${path}.items.${key}`;
             if (VersionTrackerUtils.isControlledType(item, this.versionTypes)) {
-              const filledItemVersion = this.fillControlledObjectVersion(item, items[key], timestamp);
+              const filledItemVersion = this.fillControlledObjectVersion(item, items[key], timestamp, itemPath);
               if (filledItemVersion !== undefined) {
                 items[key] = filledItemVersion;
               }
             } else {
-              const filledItemVersion = this.fillFieldVersion(item, items[key], timestamp, `${path}.${key}`);
+              const filledItemVersion = this.fillFieldVersion(item, items[key], timestamp, itemPath);
               if (filledItemVersion !== undefined && !isCollectionVersions(filledItemVersion)) {
                 items[key] = filledItemVersion;
               }
@@ -118,7 +123,7 @@ export class VersionTrackerFillVersions<TAtomicType extends string, TControlledT
 
         return { ...collectionVersions, items };
       } else if (VersionTrackerUtils.isControlledType(value, this.versionTypes)) {
-        return this.fillControlledObjectVersion(value, currentVersion, timestamp);
+        return this.fillControlledObjectVersion(value, currentVersion, timestamp, path);
       } else if (VersionTrackerUtils.isAtomicType(value, this.versionTypes)) {
         return currentVersion !== undefined ? currentVersion : timestamp;
       } else {
@@ -137,13 +142,17 @@ export class VersionTrackerFillVersions<TAtomicType extends string, TControlledT
     }
   }
 
-  private getInitialItemVersion(item: unknown, timestamp: number): IVersionsObject | IFieldVersion | undefined {
+  private getInitialItemVersion(
+    item: unknown,
+    timestamp: number,
+    path: string = ""
+  ): IVersionsObject | IFieldVersion | undefined {
     if (VersionTrackerUtils.isAtomicType(item, this.versionTypes)) {
       return VersionTrackerUtils.createVersion(timestamp, undefined, this.deviceId);
     } else if (VersionTrackerUtils.isControlledType(item, this.versionTypes)) {
-      return this.fillControlledObjectVersion(item, undefined, timestamp);
+      return this.fillControlledObjectVersion(item, undefined, timestamp, path);
     } else if (VersionTrackerUtils.isRecord(item)) {
-      return this.fillNestedVersions(item, {}, timestamp, "");
+      return this.fillNestedVersions(item, {}, timestamp, path);
     } else {
       return VersionTrackerUtils.createVersion(timestamp, undefined, this.deviceId);
     }
@@ -152,24 +161,83 @@ export class VersionTrackerFillVersions<TAtomicType extends string, TControlledT
   private fillControlledObjectVersion(
     value: ITypedObject<TControlledType>,
     currentVersion: IVersionValue | undefined,
-    timestamp: number
+    timestamp: number,
+    path: string
   ): IVersionsObject | undefined {
     const controlledFields = this.versionTypes.controlledFields[value.vtype] || [];
     const fieldVersions = VersionTrackerUtils.ensureVersionsObject(currentVersion);
 
     const result: IVersionsObject = { ...fieldVersions };
-    if (Object.keys(result).length !== 0) {
-      return fieldVersions;
+
+    // Fill ID version if not present
+    const idField = VersionTrackerUtils.getIdFieldName(value.vtype, this.versionTypes);
+    if (idField && !isIdVersion(result[idField])) {
+      const idValue = VersionTrackerUtils.getIdValue(value, this.versionTypes);
+      if (idValue != null) {
+        result[idField] = VersionTrackerUtils.createIdVersion(timestamp, idValue, undefined, this.deviceId);
+      }
+    }
+
+    // If we already have controlled field versions (besides ID), return existing
+    const existingFields = Object.keys(result).filter((k) => k !== idField);
+    if (existingFields.length > 0) {
+      return result;
     }
 
     for (const controlledField of controlledFields) {
       const fieldValue = value[controlledField];
       if (fieldValue != null && !(controlledField in result)) {
-        result[controlledField] = VersionTrackerUtils.createVersion(timestamp, undefined, this.deviceId);
+        const fieldPath = path ? `${path}.${controlledField}` : controlledField;
+        const filledVersion = this.fillControlledFieldVersion(fieldValue, timestamp, fieldPath);
+        if (filledVersion != null) {
+          result[controlledField] = filledVersion;
+        }
       }
     }
 
     return Object.keys(result).length > 0 ? result : undefined;
+  }
+
+  private fillControlledFieldVersion(value: unknown, timestamp: number, path: string): IVersionValue | undefined {
+    if (Array.isArray(value)) {
+      const hasTrackableItems = value.some((item) => VersionTrackerUtils.getId(item, this.versionTypes) !== undefined);
+      if (hasTrackableItems) {
+        const items: Record<string, IVersionsObject | IFieldVersion> = {};
+        for (const item of value) {
+          const itemId = VersionTrackerUtils.getId(item, this.versionTypes);
+          if (itemId) {
+            const itemPath = `${path}.items.${itemId}`;
+            const itemVersion = this.getInitialItemVersion(item, timestamp, itemPath);
+            if (itemVersion != null) {
+              items[itemId] = itemVersion;
+            }
+          }
+        }
+        return { items };
+      }
+    }
+
+    if (VersionTrackerUtils.isRecord(value)) {
+      if (this.versionTypes.dictionaryFields.includes(path)) {
+        const items: Record<string, IVersionsObject | IFieldVersion> = {};
+        for (const [key, item] of Object.entries(value)) {
+          const itemPath = `${path}.items.${key}`;
+          const itemVersion = this.getInitialItemVersion(item, timestamp, itemPath);
+          if (itemVersion != null) {
+            items[key] = itemVersion;
+          }
+        }
+        return { items };
+      }
+      if (VersionTrackerUtils.isControlledType(value, this.versionTypes)) {
+        return this.fillControlledObjectVersion(value, undefined, timestamp, path);
+      }
+      if (VersionTrackerUtils.isAtomicType(value, this.versionTypes)) {
+        return VersionTrackerUtils.createVersion(timestamp, undefined, this.deviceId);
+      }
+    }
+
+    return VersionTrackerUtils.createVersion(timestamp, undefined, this.deviceId);
   }
 
   private fillNestedVersions(

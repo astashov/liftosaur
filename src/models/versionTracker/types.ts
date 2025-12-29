@@ -3,6 +3,10 @@ export interface IVectorClock {
   t: number;
 }
 
+export interface IIdVersion extends IVectorClock {
+  value: string;
+}
+
 export type IFieldVersion = number | IVectorClock;
 
 export interface IVersionsObject {
@@ -28,12 +32,18 @@ export interface IVersionTypes<TAtomicType extends string, TControlledType exten
   controlledTypes: readonly TControlledType[];
   typeIdMapping: Record<TAtomicType | TControlledType, string>;
   controlledFields: Record<TControlledType, readonly string[]>;
+  excludedFields?: Partial<Record<TControlledType, readonly string[]>>;
   dictionaryFields: readonly string[];
   compactionThresholds?: Record<string, number>;
+  typeValidators?: Partial<Record<TControlledType, { is: (u: unknown) => boolean }>>;
 }
 
 export function isVectorClock(v: unknown): v is IVectorClock {
   return typeof v === "object" && v !== null && "vc" in v && "t" in v;
+}
+
+export function isIdVersion(v: unknown): v is IIdVersion {
+  return isVectorClock(v) && "value" in v && typeof (v as IIdVersion).value === "string";
 }
 
 export function isFieldVersion(v: unknown): v is IFieldVersion {

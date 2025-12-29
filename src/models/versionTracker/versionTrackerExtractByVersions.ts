@@ -3,6 +3,7 @@ import {
   IVersionTypes,
   IVersions,
   IVersionValue,
+  IVersionsObject,
   ICollectionVersions,
   isFieldVersion,
   isCollectionVersions,
@@ -46,20 +47,47 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
 
     if (isVersionsObject(version) && VersionTrackerUtils.isRecord(value)) {
       if (VersionTrackerUtils.isControlledType(value, this.versionTypes)) {
-        const controlledFields = this.versionTypes.controlledFields[value.vtype] || [];
-
-        const hasControlledFieldChange = controlledFields.some((field) => field in version);
-
-        if (hasControlledFieldChange) {
-          return value;
-        }
-        return undefined;
+        return this.extractControlledTypeByVersion(value, version);
       }
 
       return this.run(value, version);
     }
 
     return value;
+  }
+
+  private extractControlledTypeByVersion(value: Record<string, unknown>, version: IVersionsObject): unknown {
+    const vtype = value.vtype as TControlledType;
+    const controlledFields = this.versionTypes.controlledFields[vtype] || [];
+    const controlledFieldsSet = new Set(controlledFields);
+    const excludedFields = this.versionTypes.excludedFields?.[vtype] || [];
+    const excludedFieldsSet = new Set(excludedFields);
+
+    const result: Record<string, unknown> = {};
+    let hasChanges = false;
+
+    for (const key of Object.keys(value)) {
+      if (excludedFieldsSet.has(key)) {
+        continue;
+      }
+
+      const fieldValue = value[key];
+      const fieldVersion = version[key];
+
+      if (controlledFieldsSet.has(key)) {
+        if (fieldVersion != null) {
+          const extractedValue = this.extractFieldByVersion(fieldValue, fieldVersion);
+          if (extractedValue != null) {
+            result[key] = extractedValue;
+            hasChanges = true;
+          }
+        }
+      } else {
+        result[key] = fieldValue;
+      }
+    }
+
+    return hasChanges ? result : undefined;
   }
 
   private extractCollectionByVersion(value: unknown, collectionVersion: ICollectionVersions): unknown {
@@ -69,10 +97,22 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
         Object.keys(collectionVersion.deleted || {}).length > 0;
 
       if (hasChanges) {
-        const result = value.filter((item) => {
+        const result: unknown[] = [];
+
+        for (const item of value) {
           const itemId = VersionTrackerUtils.getId(item, this.versionTypes);
-          return itemId && itemId in (collectionVersion.items || {});
-        });
+          if (itemId && itemId in (collectionVersion.items || {})) {
+            const itemVersion = collectionVersion.items![itemId];
+            if (typeof itemVersion === "object" && VersionTrackerUtils.isRecord(item)) {
+              const extracted = this.extractFieldByVersion(item, itemVersion);
+              if (extracted != null) {
+                result.push(extracted);
+              }
+            } else {
+              result.push(item);
+            }
+          }
+        }
 
         return result.length > 0 ? result : undefined;
       }
@@ -88,7 +128,7 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
 
           if (typeof itemVersion === "object" && VersionTrackerUtils.isRecord(itemValue)) {
             const extracted = this.extractFieldByVersion(itemValue, itemVersion);
-            if (extracted !== undefined) {
+            if (extracted != null) {
               result[key] = extracted;
               hasChanges = true;
             }
