@@ -303,4 +303,13 @@ export const migrations = {
     storage.settings.muscleGroups = storage.settings.muscleGroups || { vtype: "muscle_groups_settings", data: {} };
     return storage;
   },
+  "20251230101232_fix_gym_names": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const gym of storage.settings.gyms || []) {
+      if (gym.name == null) {
+        gym.name = "Main";
+      }
+    }
+    return storage;
+  },
 };
