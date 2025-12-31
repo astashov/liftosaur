@@ -10,7 +10,6 @@ import { ILensRecordingPayload, lb, LensBuilder, lf } from "lens-shmens";
 import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors, updateState } from "../models/state";
 import { UidFactory } from "../utils/generator";
 import {
-  THistoryRecord,
   IStorage,
   IWeight,
   IProgressMode,
@@ -123,10 +122,7 @@ export async function getInitialState(
 
     const finalLastSyncedStorage: IStorage | undefined = storage.lastSyncedStorage;
 
-    const isProgressValid =
-      storage.progress != null
-        ? Storage.validateAndReport(storage.progress, THistoryRecord, "progress").success
-        : false;
+    const progressResult = storage.progress != null ? await Progress.migrate(client, storage.progress) : undefined;
 
     const screenStack: IScreenStack = finalStorage.currentProgramId
       ? [{ name: "main" }]
@@ -136,7 +132,7 @@ export async function getInitialState(
     return {
       storage: finalStorage,
       lastSyncedStorage: finalLastSyncedStorage,
-      progress: isProgressValid ? { 0: storage.progress } : {},
+      progress: progressResult?.success ? { 0: progressResult.data } : {},
       notification,
       loading: { items: {} },
       programs: [basicBeginnerProgram],
@@ -473,6 +469,25 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
         }, 200);
       }
     },
+    (dispatch, action, oldState, newState) => {
+      const oldProgress = Progress.getProgress(oldState);
+      const newProgress = Progress.getProgress(newState);
+      if (oldProgress !== newProgress && newProgress != null) {
+        console.log("Enforcing set and entry indexes");
+        for (let entryIndex = 0; entryIndex < newProgress.entries.length; entryIndex++) {
+          const entry = newProgress.entries[entryIndex];
+          entry.index = entryIndex;
+          for (let setIndex = 0; setIndex < entry.warmupSets.length; setIndex++) {
+            const set = entry.warmupSets[setIndex];
+            set.index = setIndex;
+          }
+          for (let setIndex = 0; setIndex < entry.sets.length; setIndex++) {
+            const set = entry.sets[setIndex];
+            set.index = setIndex;
+          }
+        }
+      }
+    },
   ];
 }
 
@@ -507,6 +522,18 @@ export const reducerWrapper =
       }
     }
     let newState = reducer(state, action);
+    console.log(
+      newState.progress?.[0]?.entries?.map((e) => {
+        return [
+          e.index,
+          ": (",
+          e.warmupSets.map((s) => s.index).join("|"),
+          "), (",
+          e.sets.map((s) => s.index).join("|"),
+          ")",
+        ].join("");
+      })
+    );
     const isMergingStorage =
       "type" in action && action.type === "UpdateState" && action.desc === "Merge synced storage";
     const isStorageChanged = !isMergingStorage && Storage.isChanged(state.storage, newState.storage);

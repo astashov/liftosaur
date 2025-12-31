@@ -350,6 +350,10 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
                           const newEntries = [...entries];
                           const [entriesToMove] = newEntries.splice(startIndex, 1);
                           newEntries.splice(endIndex, 0, entriesToMove);
+                          for (let index = 0; index < newEntries.length; index++) {
+                            const entry = newEntries[index];
+                            entry.index = index;
+                          }
                           return newEntries;
                         }),
                     ],

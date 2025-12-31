@@ -50,12 +50,16 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
         CollectionUtils.findBy(dayExercises, "key", props.programExerciseKey)
       );
       const entry: IHistoryEntry = programExercise
-        ? Program.nextHistoryEntry(props.program, programDay.dayData, programExercise, Stats.getEmpty(), settings)
+        ? Program.nextHistoryEntry(props.program, programDay.dayData, 0, programExercise, Stats.getEmpty(), settings)
         : {
+            vtype: "history_entry",
+            index: 0,
             exercise: exerciseType,
             warmupSets: [],
             sets: [
               {
+                vtype: "set",
+                index: 0,
                 isUnilateral: Exercise.getIsUnilateral(exerciseType, settings),
                 originalWeight: Weight.build(0, settings.units),
                 weight: Weight.build(0, settings.units),

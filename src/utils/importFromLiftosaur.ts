@@ -102,7 +102,7 @@ export class ImportFromLiftosaur {
     const customExercises: Record<string, ICustomExercise> = {};
     const historyRecords = CollectionUtils.compact(ObjectUtils.values(groupedRecords)).map((records) => {
       const rawEntries = CollectionUtils.compact(ObjectUtils.values(CollectionUtils.groupByKey(records, "exercise")));
-      const entries = rawEntries.map((rawSets) => {
+      const entries = rawEntries.map((rawSets, index) => {
         const firstSet = rawSets[0];
         const exerciseName = firstSet.exercise || "Unknown";
         const exercise = Exercise.findByNameAndEquipment(exerciseName, settings.exercises);
@@ -139,8 +139,10 @@ export class ImportFromLiftosaur {
         const isUnilateral = Exercise.getIsUnilateral(exerciseType, settings);
 
         const entry: IHistoryEntry = {
+          vtype: "history_entry",
           exercise: exerciseType,
-          warmupSets: rawWarmupSets.map((set) => {
+          index,
+          warmupSets: rawWarmupSets.map((set, i) => {
             const weight =
               set.weightValue && set.weightUnit
                 ? Weight.build(getNumber(set.weightValue), getUnit(set.weightUnit))
@@ -152,6 +154,8 @@ export class ImportFromLiftosaur {
                 : undefined;
             const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
             return {
+              vtype: "set",
+              index: i,
               reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
               completedReps: completedReps,
               isAmrap: set.isAmrap === "1",
@@ -169,7 +173,7 @@ export class ImportFromLiftosaur {
               isCompleted: completedReps != null || completedWeight != null || completedRpe != null,
             };
           }),
-          sets: rawWorkoutSets.map((set) => {
+          sets: rawWorkoutSets.map((set, i) => {
             const weight =
               set.weightValue && set.weightUnit
                 ? Weight.build(getNumber(set.weightValue), getUnit(set.weightUnit))
@@ -181,6 +185,8 @@ export class ImportFromLiftosaur {
                 : undefined;
             const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
             return {
+              vtype: "set",
+              index: i,
               reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
               completedReps: completedReps,
               isAmrap: set.isAmrap === "1",

@@ -270,24 +270,35 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                         exercise.dayInWeek
                       );
                       if (programExercise && programExercise.exerciseType) {
-                        const nextHistoryEntry = Program.nextHistoryEntry(
-                          evaluatedCurrentProgram,
-                          Program.getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
-                          { ...programExercise, exerciseType: exercise.exerciseType },
-                          props.stats,
-                          props.settings
-                        );
                         if (exercisePickerState.entryIndex == null) {
                           updateProgress(
                             dispatch,
                             [
                               lb<IHistoryRecord>()
                                 .p("entries")
-                                .recordModify((entries) => [...entries, nextHistoryEntry]),
+                                .recordModify((entries) => {
+                                  const nextHistoryEntry = Program.nextHistoryEntry(
+                                    evaluatedCurrentProgram,
+                                    Program.getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
+                                    entries.length,
+                                    { ...programExercise, exerciseType: exercise.exerciseType },
+                                    props.stats,
+                                    props.settings
+                                  );
+                                  return [...entries, nextHistoryEntry];
+                                }),
                             ],
                             "add-exercise"
                           );
                         } else {
+                          const nextHistoryEntry = Program.nextHistoryEntry(
+                            evaluatedCurrentProgram,
+                            Program.getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
+                            exercisePickerState.entryIndex,
+                            { ...programExercise, exerciseType: exercise.exerciseType },
+                            props.stats,
+                            props.settings
+                          );
                           updateProgress(
                             dispatch,
                             [

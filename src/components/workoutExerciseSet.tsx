@@ -337,6 +337,10 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     [
                       props.lbSets.recordModify((s) => {
                         const newSets = CollectionUtils.removeAt(s, props.setIndex);
+                        for (let setIndex = 0; setIndex < newSets.length; setIndex += 1) {
+                          const newSet = newSets[setIndex];
+                          newSet.index = setIndex;
+                        }
                         return newSets;
                       }),
                     ],

@@ -372,7 +372,7 @@ export class ImportFromHevy {
       try {
         endTs = new Date(hevyWorkout.end_time).getTime();
       } catch (_) {}
-      const entries = hevyWorkout.exercises.map((record) => {
+      const entries = hevyWorkout.exercises.map((record, index) => {
         let exerciseNameAndEquipment = exerciseMapping[record.exercise_title];
         let exerciseId: string;
         if (!exerciseNameAndEquipment) {
@@ -405,8 +405,12 @@ export class ImportFromHevy {
         const [, equipment] = exerciseNameAndEquipment;
         const isUnilateral = Exercise.getIsUnilateral({ id: exerciseId, equipment: equipment }, settings);
         return {
+          vtype: "history_entry" as const,
+          index: 0,
           exercise: { id: exerciseId, equipment: equipment },
-          warmupSets: record.warmupSets.map((set) => ({
+          warmupSets: record.warmupSets.map((set, i) => ({
+            vtype: "set" as const,
+            index: i,
             originalWeight:
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             weight:
@@ -421,7 +425,9 @@ export class ImportFromHevy {
             isAmrap: false,
             timestamp: startTs,
           })),
-          sets: record.sets.map((set) => ({
+          sets: record.sets.map((set, i) => ({
+            vtype: "set" as const,
+            index: i,
             weight:
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             originalWeight:

@@ -2,6 +2,7 @@ import { Exercise } from "./exercise";
 import { Reps } from "./set";
 import { Weight } from "./weight";
 import { DateUtils } from "../utils/date";
+import { Storage } from "./storage";
 import { lf, lb } from "lens-shmens";
 import { ObjectUtils } from "../utils/object";
 import { IDispatch } from "../ducks/types";
@@ -41,6 +42,7 @@ import { UidFactory } from "../utils/generator";
 import { ProgramSet } from "./programSet";
 import { Stats } from "./stats";
 import { Thunk } from "../ducks/thunks";
+import { IEither } from "../utils/types";
 
 export interface IScriptBindings {
   day: number;
@@ -994,6 +996,8 @@ export namespace Progress {
       for (let i = 0; i < bindings[key].length; i += 1) {
         if (entry.sets[i] == null) {
           entry.sets[i] = {
+            vtype: "set",
+            index: i,
             id: UidFactory.generateUid(6),
             isUnilateral: Exercise.getIsUnilateral(entry.exercise, settings),
             reps: 0,
@@ -1201,7 +1205,7 @@ export namespace Progress {
         lb<IHistoryRecord>()
           .p("entries")
           .recordModify((entries) => {
-            return [...entries, History.createCustomEntry(exerciseType)];
+            return [...entries, History.createCustomEntry(exerciseType, entries.length)];
           }),
       ],
       "add-exercise"
@@ -1300,6 +1304,7 @@ export namespace Progress {
 
   export function applyProgramExercise(
     progressEntry: IHistoryEntry | undefined,
+    index: number,
     programExercise: IPlannerProgramExerciseWithType,
     settings: ISettings,
     forceWarmupSets?: boolean
@@ -1321,6 +1326,8 @@ export namespace Progress {
           const weight = ProgramSet.getEvaluatedWeight(programSet, programExercise.exerciseType, settings);
           newSets.push({
             ...progressSet,
+            vtype: "set",
+            index: i,
             reps: programSet.maxrep,
             minReps: programSet.minrep,
             rpe: programSet.rpe,
@@ -1351,9 +1358,11 @@ export namespace Progress {
         sets: newSets,
       };
     } else {
-      const newSets = sets.map((set) => {
+      const newSets = sets.map((set, i) => {
         const weight = ProgramSet.getEvaluatedWeight(set, programExercise.exerciseType, settings);
         return {
+          vtype: "set" as const,
+          index: i,
           reps: set.maxrep,
           minReps: set.minrep,
           originalWeight: set.weight,
@@ -1369,6 +1378,8 @@ export namespace Progress {
 
       return {
         id: UidFactory.generateUid(8),
+        vtype: "history_entry",
+        index,
         exercise: programExercise.exerciseType,
         programExerciseId: programExercise.key,
         sets: newSets,
@@ -1377,6 +1388,20 @@ export namespace Progress {
             ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
             : [],
       };
+    }
+  }
+
+  export async function migrate(
+    client: Window["fetch"],
+    progress: IHistoryRecord
+  ): Promise<IEither<IHistoryRecord, string[]>> {
+    const storage = Storage.getDefault();
+    storage.history = [progress];
+    const result = await Storage.get(client, storage, true);
+    if (result.success) {
+      return { success: true, data: result.data.history[0] };
+    } else {
+      return result;
     }
   }
 
@@ -1391,7 +1416,7 @@ export namespace Progress {
     if (!programDay) {
       return progress;
     }
-    const newEntries = progress.entries.map((entry) => {
+    const newEntries = progress.entries.map((entry, index) => {
       if (entry.programExerciseId == null) {
         return entry;
       }
@@ -1402,7 +1427,7 @@ export namespace Progress {
       if (!programExercise) {
         return entry;
       }
-      return applyProgramExercise(entry, programExercise, settings, false);
+      return applyProgramExercise(entry, index, programExercise, settings, false);
     });
 
     return { ...progress, entries: newEntries };

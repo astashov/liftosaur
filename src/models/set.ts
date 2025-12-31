@@ -59,17 +59,19 @@ export namespace Reps {
   export function addSet(sets: ISet[], isUnilateral: boolean, lastSet?: ISet, isWarmup?: boolean): ISet[] {
     lastSet = sets[sets.length - 1] || lastSet;
     if (lastSet == null) {
-      lastSet = newSet(isUnilateral);
+      lastSet = newSet(isUnilateral, 0);
     } else {
       if (isWarmup) {
         lastSet = {
           ...ObjectUtils.clone(lastSet),
+          index: sets.length,
           reps: lastSet.completedReps ?? lastSet.reps,
           weight: lastSet.completedWeight ?? lastSet.weight,
         };
       } else {
         lastSet = {
           ...ObjectUtils.clone(lastSet),
+          index: sets.length,
           reps: lastSet.reps ?? lastSet.completedReps,
           weight: lastSet.weight ?? lastSet.completedWeight,
           originalWeight: lastSet.originalWeight ?? lastSet.weight ?? lastSet.completedWeight,
@@ -116,8 +118,10 @@ export namespace Reps {
     return sets.every((s) => !s.isCompleted);
   }
 
-  export function newSet(isUnilateral: boolean): ISet {
+  export function newSet(isUnilateral: boolean, index: number): ISet {
     return {
+      vtype: "set",
+      index,
       id: UidFactory.generateUid(6),
       originalWeight: undefined,
       weight: undefined,

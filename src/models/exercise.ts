@@ -3530,7 +3530,7 @@ function warmup(
   shouldSkipThreshold: boolean = false
 ): (weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType) => ISet[] {
   return (weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType): ISet[] => {
-    return programExerciseWarmupSets.reduce<ISet[]>((memo, programExerciseWarmupSet) => {
+    return programExerciseWarmupSets.reduce<ISet[]>((memo, programExerciseWarmupSet, index) => {
       if (shouldSkipThreshold || (weight != null && Weight.gt(weight, programExerciseWarmupSet.threshold))) {
         const value = programExerciseWarmupSet.value;
         const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
@@ -3538,6 +3538,8 @@ function warmup(
           const warmupWeight = typeof value === "number" ? Weight.multiply(weight!, value) : value;
           const roundedWeight = Weight.roundConvertTo(warmupWeight, settings, unit, exerciseType);
           memo.push({
+            vtype: "set",
+            index,
             id: UidFactory.generateUid(6),
             reps: programExerciseWarmupSet.reps,
             isUnilateral: exerciseType ? Exercise.getIsUnilateral(exerciseType, settings) : false,

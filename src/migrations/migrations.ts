@@ -312,4 +312,34 @@ export const migrations = {
     }
     return storage;
   },
+  "20251231182918_add_vtypes_and_indexes_to_entries_and_sets": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const record of storage.history) {
+      record.vtype = record.vtype || "history_record";
+      const progressUi = record.ui;
+      if (progressUi) {
+        progressUi.vtype = progressUi.vtype || "progress_ui";
+        progressUi.id = UidFactory.generateUid(8);
+      }
+      for (let entryIndex = 0; entryIndex < record.entries.length; entryIndex++) {
+        const entry = record.entries[entryIndex];
+        entry.vtype = entry.vtype || "history_entry";
+        entry.index = entry.index ?? entryIndex;
+        for (let setIndex = 0; setIndex < entry.sets.length; setIndex++) {
+          const set = entry.sets[setIndex];
+          set.vtype = set.vtype || "set";
+          set.index = set.index ?? setIndex;
+        }
+        for (let setIndex = 0; setIndex < entry.warmupSets.length; setIndex++) {
+          const set = entry.warmupSets[setIndex];
+          set.vtype = set.vtype || "set";
+          set.index = set.index ?? setIndex;
+        }
+      }
+    }
+    return storage;
+  },
 };

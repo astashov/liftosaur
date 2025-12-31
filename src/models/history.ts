@@ -67,8 +67,10 @@ export namespace History {
     };
   }
 
-  export function createCustomEntry(exerciseType: IExerciseType): IHistoryEntry {
+  export function createCustomEntry(exerciseType: IExerciseType, index: number): IHistoryEntry {
     return {
+      vtype: "history_entry",
+      index,
       id: UidFactory.generateUid(8),
       exercise: exerciseType,
       sets: [],
