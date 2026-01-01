@@ -357,7 +357,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
     const rule = new aws_events.Rule(this, `LftStatsLambdaRule${suffix}`, {
       schedule: aws_events.Schedule.cron({
-        minute: "55",
+        minute: "50",
         hour: "23",
         month: "*",
         weekDay: "*",
