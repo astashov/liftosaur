@@ -26,6 +26,7 @@ import { GroupHeader } from "./groupHeader";
 import { BottomSheetCustomExercise } from "./bottomSheetCustomExercise";
 import { StringUtils } from "../utils/string";
 import { BottomSheetMusclesOverride } from "./bottomSheetMusclesOverride";
+import { Muscle } from "../models/muscle";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -261,9 +262,11 @@ export function MuscleGroupsView(props: {
   const synergistMuscles = Exercise.synergistMuscleMultipliers(exercise, settings)
     .filter((m) => targetMuscles.indexOf(m.muscle) === -1)
     .map((m) => `${m.muscle}${m.multiplier !== settings.planner.synergistMultiplier ? `:${m.multiplier}` : ""}`);
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((m) => StringUtils.capitalize(m));
+  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((m) =>
+    Muscle.getMuscleGroupName(m, settings)
+  );
   const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings)
-    .map((m) => StringUtils.capitalize(m))
+    .map((m) => Muscle.getMuscleGroupName(m, settings))
     .filter((m) => targetMuscleGroups.indexOf(m) === -1);
   const [showMuscles, setShowMuscles] = useState(false);
 
