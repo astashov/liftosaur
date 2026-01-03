@@ -549,24 +549,31 @@ export class PlannerProgramExercise {
           failures: args[4] ? parseInt(args[4], 10) : (decrement?.value ?? 0) > 0 ? 1 : 0,
           failureCounter: args[5] ? parseInt(args[5], 10) : 0,
         };
-        const script = `if (completedReps >= reps && completedRPE <= RPE) {
-    state.successCounter += 1
-    if (state.successCounter >= state.successes) {
-      weights += state.increment
-      state.successCounter = 0
+        const script = `for (var.i in completedReps) {
+  if (weights[var.i] == 0 && completedWeights[var.i] != 0) {
+    weights[var.i] = completedWeights[var.i]
+  }
+}
+if (completedReps >= reps && completedRPE <= RPE) {
+  state.successCounter += 1
+  if (state.successCounter >= state.successes) {
+    for (var.i in completedReps) {
+      weights[var.i] = completedWeights[var.i] + state.increment
+    }
+    state.successCounter = 0
+    state.failureCounter = 0
+  }
+}
+if (state.decrement > 0 && state.failures > 0) {
+  if (!(completedReps >= minReps && completedRPE <= RPE)) {
+    state.failureCounter += 1
+    if (state.failureCounter >= state.failures) {
+      weights -= state.decrement
       state.failureCounter = 0
+      state.successCounter = 0
     }
   }
-  if (state.decrement > 0 && state.failures > 0) {
-    if (!(completedReps >= minReps && completedRPE <= RPE)) {
-      state.failureCounter += 1
-      if (state.failureCounter >= state.failures) {
-        weights -= state.decrement
-        state.failureCounter = 0
-        state.successCounter = 0
-      }
-    }
-  }`;
+}`;
         return {
           success: true,
           data: {
@@ -585,12 +592,19 @@ export class PlannerProgramExercise {
           maxReps: args[2] ? parseInt(args[2], 10) : 0,
         };
         const script = `
+for (var.i in completedReps) {
+  if (weights[var.i] == 0 && completedWeights[var.i] != 0) {
+    weights[var.i] = completedWeights[var.i]
+  }
+}
 if (completedReps >= reps && completedRPE <= RPE) {
   if (reps[ns] < state.maxReps) {
     reps += 1
   } else {
     reps = state.minReps
-    weights += state.increment
+    for (var.i in completedReps) {
+      weights[var.i] = completedWeights[var.i] + state.increment
+    }
   }
 }`;
         return {
@@ -609,9 +623,16 @@ if (completedReps >= reps && completedRPE <= RPE) {
           reps: args[0] ? parseInt(args[0], 10) : 0,
           increment: increment ?? Weight.build(0, "lb"),
         };
-        const script = `if (sum(completedReps) >= state.reps) {
-        weights += state.increment
-      }`;
+        const script = `for (var.i in completedReps) {
+  if (weights[var.i] == 0 && completedWeights[var.i] != 0) {
+    weights[var.i] = completedWeights[var.i]
+  }
+}
+if (sum(completedReps) >= state.reps) {
+  for (var.i in completedReps) {
+    weights[var.i] = completedWeights[var.i] + state.increment
+  }
+}`;
         return {
           success: true,
           data: {

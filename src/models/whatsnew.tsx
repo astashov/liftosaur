@@ -2289,6 +2289,29 @@ Bent Over Row / 3x8 / superset: A`}
       </ul>
     ),
   },
+  "20260103": {
+    title: <span>Changes in progress: lp() and dp() behavior</span>,
+    body: (
+      <ul>
+        <li>
+          If you omit the weight in the program initially, like this:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock script={`Squat / 3x8 / progress: lp(5lb)`} />
+          </div>
+          the <strong>lp</strong> and <strong>dp</strong> behave weird. They consider the program weight as 0lb, add 5lb
+          to it, and the program weight becomes 5lb. But user may entered e.g. 100lb there for each set, and then they
+          see 5lb as the weight next time, and got confused.
+        </li>
+        <li>
+          To address that, there're 2 breaking changes in lp/dp built-in progressions:
+          <ul className="pl-4 list-disc">
+            <li>If the weight wasn't specified in the program, it'll set the completed weights to the program.</li>
+            <li>It will increment based on the completed weight, not the target weight in the program from now on.</li>
+          </ul>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
