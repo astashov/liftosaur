@@ -321,22 +321,23 @@ export namespace Settings {
   }
 
   export function applyExportedProgram(settings: ISettings, exportedProgram: IExportedProgram): ISettings {
-    return {
+    const result = {
       ...settings,
       exercises: {
         ...settings.exercises,
         ...exportedProgram.customExercises,
       },
-      units: exportedProgram.settings.units || settings.units,
+      units: settings.units || exportedProgram.settings.units,
       timers: {
         ...settings.timers,
-        workout: exportedProgram.settings.timers?.workout || settings.timers.workout,
-        warmup: exportedProgram.settings.timers?.warmup || settings.timers.warmup,
+        workout: settings.timers.workout || exportedProgram.settings.timers?.workout,
+        warmup: settings.timers.warmup || exportedProgram.settings.timers?.warmup,
       },
-      planner: exportedProgram.settings.planner || settings.planner,
-      muscleGroups: exportedProgram.settings.muscleGroups || settings.muscleGroups,
-      exerciseData: { ...exportedProgram.settings.exerciseData, ...settings.exerciseData },
+      planner: settings.planner || exportedProgram.settings.planner,
+      muscleGroups: settings.muscleGroups || exportedProgram.settings.muscleGroups,
+      exerciseData: { ...settings.exerciseData, ...exportedProgram.settings.exerciseData },
     };
+    return result;
   }
 
   export function activeCustomExercises(settings: ISettings): IAllCustomExercises {

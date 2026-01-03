@@ -116,7 +116,6 @@ function getCurrentSource(): string | undefined {
 }
 
 export function PlannerContent(props: IPlannerContentProps): JSX.Element {
-  console.log(props.partialStorage?.settings.muscleGroups);
   const service = new Service(props.client);
   const initialDay: IPlannerProgramDay = {
     name: "Day 1",
