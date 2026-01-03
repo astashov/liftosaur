@@ -6,12 +6,12 @@ export namespace CSV {
           .map((value) => {
             let shouldWrapIntoQuotes = false;
             if (typeof value === "string") {
-              if (value.indexOf(",") !== -1) {
+              if (value.indexOf(",") !== -1 || value.indexOf("\n") !== -1 || value.indexOf("\r") !== -1) {
                 shouldWrapIntoQuotes = true;
               }
               if (value.indexOf('"') !== -1) {
                 shouldWrapIntoQuotes = true;
-                value = value.replace(/"/g, '\\"');
+                value = value.replace(/"/g, '""');
               }
               if (shouldWrapIntoQuotes) {
                 value = `"${value}"`;
