@@ -473,7 +473,6 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       const oldProgress = Progress.getProgress(oldState);
       const newProgress = Progress.getProgress(newState);
       if (oldProgress !== newProgress && newProgress != null) {
-        console.log("Enforcing set and entry indexes");
         for (let entryIndex = 0; entryIndex < newProgress.entries.length; entryIndex++) {
           const entry = newProgress.entries[entryIndex];
           entry.index = entryIndex;
@@ -522,18 +521,6 @@ export const reducerWrapper =
       }
     }
     let newState = reducer(state, action);
-    console.log(
-      newState.progress?.[0]?.entries?.map((e) => {
-        return [
-          e.index,
-          ": (",
-          e.warmupSets.map((s) => s.index).join("|"),
-          "), (",
-          e.sets.map((s) => s.index).join("|"),
-          ")",
-        ].join("");
-      })
-    );
     const isMergingStorage =
       "type" in action && action.type === "UpdateState" && action.desc === "Merge synced storage";
     const isStorageChanged = !isMergingStorage && Storage.isChanged(state.storage, newState.storage);

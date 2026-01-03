@@ -164,6 +164,7 @@ export namespace Reps {
   export function isInRangeCompletedSet(set: ISet): boolean {
     if (set.completedReps != null && set.completedWeight != null) {
       return (
+        !!set.isCompleted &&
         (set.weight == null || Weight.gte(set.completedWeight, set.weight)) &&
         (set.minReps != null ? set.completedReps >= set.minReps : set.reps == null || set.completedReps >= set.reps)
       );

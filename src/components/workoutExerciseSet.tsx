@@ -503,7 +503,7 @@ function RpeWeightHint(props: IRpeWeightHintProps): JSX.Element {
         @{props.rpe}
       </span>{" "}
       - <span className="font-bold text-text-primary">{n(multiplier * 100, 0)}%</span> of 1RM -{" "}
-      <span className="font-bold text-text-primary">{weight.value}</span>
+      <span className="font-bold text-text-primary">{n(weight.value)}</span>
       <span>{weight.unit}</span>
     </div>
   );
