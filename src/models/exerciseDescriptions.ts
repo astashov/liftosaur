@@ -1252,7 +1252,7 @@ export const exerciseDescriptions: Record<string, { content: string; video: stri
   sidecrunch_cable: {
     content:
       "**Setup:**\n1. Attach a single handle to the low pulley on a cable machine.\n2. Stand perpendicular to the machine, grasping the handle with the hand closest to the machine.\n\n**Execution:**\n1. Position your feet shoulder-width apart, knees slightly bent.\n2. Pull the cable handle over your shoulder, keeping your arm extended but not locked.\n3. Brace your core and tilt your torso away from the machine.\n4. Initiate the crunch by bending your torso to the side, bringing your elbow towards your hip.\n5. Contract your obliques at the bottom of the movement, ensuring your motion is controlled.\n6. Slowly return to the starting position, maintaining tension in your core.\n\n**Tips:**\n- Focus on using your obliques rather than momentum.\n- Keep movements smooth and deliberate.\n- Ensure your hips remain stable throughout the exercise.",
-    video: "hph0qDyyk2I",
+    video: "xUulEXD1AQc",
   },
   sidehipabductor_barbell: {
     content:
