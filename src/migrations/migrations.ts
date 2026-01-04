@@ -342,4 +342,9 @@ export const migrations = {
     }
     return storage;
   },
+  "20260103180023_add_progress_array": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.progress = storage.progress || [];
+    return storage;
+  },
 };

@@ -13,6 +13,8 @@ import { ObjectUtils } from "./object";
 import { Exercise } from "../models/exercise";
 import { Weight } from "../models/weight";
 import { StringUtils } from "./string";
+import { Progress } from "../models/progress";
+import { UidFactory } from "./generator";
 
 interface ILiftosaurRecord {
   workoutDateTime: string;
@@ -140,6 +142,7 @@ export class ImportFromLiftosaur {
 
         const entry: IHistoryEntry = {
           vtype: "history_entry",
+          id: Progress.getEntryId(exerciseType, UidFactory.generateUid(3)),
           exercise: exerciseType,
           index,
           warmupSets: rawWarmupSets.map((set, i) => {

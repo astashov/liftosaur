@@ -463,9 +463,9 @@ export const TSet = t.intersection(
   [
     t.interface({
       vtype: t.literal("set"),
+      index: t.number,
     }),
     t.partial({
-      index: t.number,
       reps: t.number,
       originalWeight: t.union([TWeight, TPercentage]),
       weight: TWeight,
@@ -501,9 +501,9 @@ export const THistoryEntry = t.intersection(
       exercise: TExerciseType,
       sets: t.array(TSet),
       warmupSets: t.array(TSet),
+      index: t.number,
     }),
     t.partial({
-      index: t.number,
       id: t.string,
       programExerciseId: t.string,
       state: TProgramState,
@@ -802,37 +802,42 @@ export const THistoryRecordChange = t.keyof(
 );
 export type IHistoryRecordChange = t.TypeOf<typeof THistoryRecordChange>;
 
+const historyRecordRequiredFields = {
+  // ISO8601, like 2020-02-29T18:02:05+00:00
+  date: t.string,
+  programId: t.string,
+  programName: t.string,
+  day: t.number,
+  dayName: t.string,
+  entries: t.array(THistoryEntry),
+  startTime: t.number,
+  id: t.number,
+};
+const historyRecordOptionalFields = {
+  endTime: t.number,
+  week: t.number,
+  dayInWeek: t.number,
+  ui: TProgressUi,
+  intervals: TIntervals,
+  deletedProgramExercises: dictionary(t.string, t.boolean),
+  userPromptedStateVars: dictionary(t.string, TProgramState),
+  changes: t.array(THistoryRecordChange),
+  timerSince: t.number,
+  timerMode: TProgressMode,
+  timer: t.number,
+  timerEntryIndex: t.number,
+  timerSetIndex: t.number,
+  notes: t.string,
+  updatedAt: t.number,
+};
+
 export const THistoryRecord = t.intersection(
   [
     t.interface({
       vtype: t.union([t.literal("history_record"), t.literal("progress")]),
-      // ISO8601, like 2020-02-29T18:02:05+00:00
-      date: t.string,
-      programId: t.string,
-      programName: t.string,
-      day: t.number,
-      dayName: t.string,
-      entries: t.array(THistoryEntry),
-      startTime: t.number,
-      id: t.number,
+      ...historyRecordRequiredFields,
     }),
-    t.partial({
-      endTime: t.number,
-      week: t.number,
-      dayInWeek: t.number,
-      ui: TProgressUi,
-      intervals: TIntervals,
-      deletedProgramExercises: dictionary(t.string, t.boolean),
-      userPromptedStateVars: dictionary(t.string, TProgramState),
-      changes: t.array(THistoryRecordChange),
-      timerSince: t.number,
-      timerMode: TProgressMode,
-      timer: t.number,
-      timerEntryIndex: t.number,
-      timerSetIndex: t.number,
-      notes: t.string,
-      updatedAt: t.number,
-    }),
+    t.partial(historyRecordOptionalFields),
   ],
   "THistoryRecord"
 );
@@ -1393,6 +1398,7 @@ export const TStorage = t.intersection(
       affiliates: dictionary(t.string, TAffiliateData),
       subscription: TSubscription,
       whatsNew: t.union([t.string, t.undefined]),
+      progress: t.array(THistoryRecord),
     }),
     t.partial({
       originalId: t.number,
@@ -1507,7 +1513,7 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   set: "index",
   progress_ui: "id",
   history_entry: "id",
-  progress: "id",
+  progress: "startTime",
   gym: "id",
   custom_exercise: "id",
   stat: "timestamp",
@@ -1549,8 +1555,5 @@ export const STORAGE_VERSION_TYPES: IVersionTypes<IAtomicType, IControlledType> 
   },
   typeValidators: {
     progress: THistoryRecord,
-    gym: TGym,
-    program: TProgram,
-    history_entry: THistoryEntry,
   },
 } as const;

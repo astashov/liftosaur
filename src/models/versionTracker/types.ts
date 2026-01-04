@@ -7,7 +7,7 @@ export interface IIdVersion extends IVectorClock {
   value: string;
 }
 
-export type IFieldVersion = number | IVectorClock;
+export type IFieldVersion = number | IVectorClock | IIdVersion;
 
 export interface IVersionsObject {
   [key: string]: IVersionValue | undefined;

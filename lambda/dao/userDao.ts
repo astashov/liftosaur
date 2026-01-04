@@ -221,6 +221,14 @@ export class UserDao {
       storageUpdate.versions || {},
       storageUpdate.storage || {}
     );
+    if (mergedStorage.progress && mergedStorage.progress.length > 1) {
+      mergedStorage.progress.sort((a, b) => b.startTime - a.startTime);
+      mergedStorage.progress = [mergedStorage.progress[0]];
+    }
+    mergedStorage.progress?.[0]?.entries?.sort((a, b) => a.index - b.index);
+    for (const entries of mergedStorage.progress?.[0]?.entries || []) {
+      entries.sets.sort((a, b) => a.index - b.index);
+    }
     const preNewStorage: IPartialStorage = {
       ...mergedStorage,
       originalId,
@@ -461,6 +469,10 @@ export class UserDao {
       filterExpression: "email = :email",
       values: { ":email": email },
     });
+    console.log(
+      "users",
+      users.map((u) => u.id)
+    );
     return users[0];
   }
 
@@ -472,6 +484,7 @@ export class UserDao {
       appleId: opts.appleId,
       createdAt: Date.now(),
       storage: {
+        progress: [],
         deletedHistory: [],
         deletedPrograms: [],
         deletedStats: [],

@@ -7,9 +7,9 @@ describe("History", () => {
   describe(".getMaxSet()", () => {
     it("returns the set with the highest completed reps", () => {
       const entry: IHistoryEntry = {
-        exercise: { id: "squat" },
         vtype: "history_entry",
         index: 0,
+        exercise: { id: "squat" },
         sets: [
           {
             vtype: "set",

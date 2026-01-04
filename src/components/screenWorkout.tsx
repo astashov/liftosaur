@@ -5,7 +5,7 @@ import { buildCustomDispatch, IDispatch } from "../ducks/types";
 import { Program } from "../models/program";
 import { History } from "../models/history";
 import { Progress } from "../models/progress";
-import { INavCommon, IState, updateProgress, updateState } from "../models/state";
+import { INavCommon, updateProgress, updateState } from "../models/state";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
 import { Footer2View } from "./footer2";
@@ -51,7 +51,7 @@ function buildExercisePickerDispatch(
   originalDispatch: IDispatch,
   progressId: number
 ): ILensDispatch<IExercisePickerState> {
-  const prefix = lb<IState>().pi("progress").pi(progressId).pi("ui").pi("exercisePicker").pi("state");
+  const prefix = Progress.lbProgress(progressId).pi("ui").pi("exercisePicker").pi("state");
   return buildCustomDispatch(originalDispatch, prefix);
 }
 
@@ -72,9 +72,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
       updateState(
         props.dispatch,
         [
-          lb<IState>()
-            .p("progress")
-            .pi(progress.id)
+          Progress.lbProgress(progress.id)
             .pi("ui")
             .p("exercisePicker")
             .record({
@@ -315,7 +313,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   }
                   updateState(
                     props.dispatch,
-                    [lb<IState>().p("progress").pi(progress.id).pi("ui").p("exercisePicker").record(undefined)],
+                    [Progress.lbProgress(progress.id).pi("ui").p("exercisePicker").record(undefined)],
                     "Close exercise picker"
                   );
                   setTimeout(() => {
@@ -346,7 +344,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 onClose={() => {
                   updateState(
                     props.dispatch,
-                    [lb<IState>().p("progress").pi(progress.id).pi("ui").p("exercisePicker").record(undefined)],
+                    [Progress.lbProgress(progress.id).pi("ui").p("exercisePicker").record(undefined)],
                     "Close exercise picker"
                   );
                 }}
@@ -373,7 +371,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 onClose={() => {
                   updateState(
                     props.dispatch,
-                    [lb<IState>().p("progress").pi(progress.id).pi("ui").p("equipmentModal").record(undefined)],
+                    [Progress.lbProgress(progress.id).pi("ui").p("equipmentModal").record(undefined)],
                     "Close equipment modal"
                   );
                 }}
@@ -388,7 +386,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 onClose={() => {
                   updateState(
                     props.dispatch,
-                    [lb<IState>().p("progress").pi(progress.id).pi("ui").p("rm1Modal").record(undefined)],
+                    [Progress.lbProgress(progress.id).pi("ui").p("rm1Modal").record(undefined)],
                     "Close 1RM modal"
                   );
                 }}

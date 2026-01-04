@@ -230,7 +230,7 @@ export namespace Thunk {
           updateState(
             dispatch,
             [
-              lb<IState>().p("lastSyncedStorage").record(newStorage),
+              lb<IState>().p("lastSyncedStorage").record(result.storage),
               lb<IState>().p("storage").record(newStorage),
               lb<IState>().p("storage").p("subscription").p("key").record(result.key),
             ],
@@ -416,7 +416,7 @@ export namespace Thunk {
   ): IThunk {
     return async (dispatch, getState, env) => {
       const state = getState();
-      const progress = state.progress[0];
+      const progress = Progress.getProgress(state);
       if (!progress) {
         return;
       }
@@ -448,7 +448,7 @@ export namespace Thunk {
   ): IThunk {
     return async (dispatch, getState, env) => {
       const state = getState();
-      const progress = state.progress[0];
+      const progress = Progress.getProgress(state);
       if (!progress) {
         return;
       }
@@ -525,24 +525,14 @@ export namespace Thunk {
   export function startProgramDay(programId?: string): IThunk {
     return async (dispatch, getState) => {
       const state = getState();
-      const progress = state.progress[0];
+      const progress = Progress.getProgress(state);
       if (progress != null) {
         dispatch(Thunk.pushScreen("progress", { id: progress.id }, true));
       } else if (state.storage.currentProgramId != null) {
         const program = Program.getProgram(state, programId ?? state.storage.currentProgramId);
         if (program != null) {
           const newProgress = Program.nextHistoryRecord(program, state.storage.settings, state.storage.stats);
-          updateState(
-            dispatch,
-            [
-              lb<IState>()
-                .p("progress")
-                .recordModify((progresses) => {
-                  return { ...progresses, [newProgress.id]: newProgress };
-                }),
-            ],
-            "Create new progress"
-          );
+          updateState(dispatch, [lb<IState>().p("storage").p("progress").record([newProgress])], "Create new progress");
           dispatch(Thunk.pushScreen("progress", { id: newProgress.id }, true));
         } else {
           alert("No currently selected program");
@@ -688,7 +678,7 @@ export namespace Thunk {
         dispatch,
         [
           lb<IState>()
-            .p("progress")
+            .pi("progress")
             .recordModify((progresses) => Progress.stop(progresses, progress.id)),
         ],
         "Stop workout progress"
@@ -1309,7 +1299,6 @@ async function handleLogin(
         }
       }
       if (oldUserId === result.user_id) {
-        console.log("Login - same user");
         dispatch(Thunk.postevent("login-same-user"));
         updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(storage)], "Set last synced on login");
         dispatch({ type: "Login", email: result.email, userId: result.user_id });
@@ -1321,7 +1310,6 @@ async function handleLogin(
           );
         }
       } else {
-        console.log("Login - different user");
         dispatch(Thunk.postevent("login-different-user"));
         storage.subscription.key = result.key;
         const newState = await getInitialState(client, { storage, deviceId: await DeviceId.get() });

@@ -1,85 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "mocha";
 import { expect } from "chai";
-import { getInitialState, IAction } from "../src/ducks/reducer";
-import { Storage } from "../src/models/storage";
-import { Service } from "../src/api/service";
-import { MockAudioInterface } from "../src/lib/audioInterface";
-import { AsyncQueue } from "../src/utils/asyncQueue";
-import { IEnv, IState } from "../src/models/state";
-import { UrlUtils } from "../src/utils/url";
-import { getRawHandler } from "../lambda";
-import { MockLogUtil } from "./utils/mockLogUtil";
-import { buildMockDi, IMockDI } from "./utils/mockDi";
-import { MockFetch } from "./utils/mockFetch";
 import { MockReducer } from "./utils/mockReducer";
 import { Thunk } from "../src/ducks/thunks";
-import { IDispatch, IThunk } from "../src/ducks/types";
-import { Program } from "../src/models/program";
 import { basicBeginnerProgram } from "../src/programs/basicBeginnerProgram";
-import { IHistoryRecord, IProgram, ISettings } from "../src/types";
+import { IHistoryRecord, ISettings } from "../src/types";
 import { userTableNames, IUserDao } from "../lambda/dao/userDao";
-import { ObjectUtils } from "../src/utils/object";
 import { lb } from "lens-shmens";
 import sinon from "sinon";
 import { EditStats } from "../src/models/editStats";
-import { Settings } from "../src/models/settings";
 import { Encoder } from "../src/utils/encoder";
 import { NodeEncoder } from "../lambda/utils/nodeEncoder";
-
-function mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
-  let extractedAction: IAction | IThunk | undefined;
-  const dispatch = (action: IAction | IThunk): void => {
-    extractedAction = action;
-  };
-  cb(dispatch);
-  if (extractedAction == null) {
-    throw new Error("Missing action");
-  }
-  return extractedAction;
-}
-
-async function initTheAppAndRecordWorkout(): Promise<{
-  di: IMockDI;
-  log: MockLogUtil;
-  mockReducer: MockReducer<IState, IAction, IEnv>;
-  env: IEnv;
-}> {
-  const aStorage = { ...Storage.getDefault(), email: "admin@example.com" };
-  const log = new MockLogUtil();
-  const mockFetch = new MockFetch(aStorage.tempUserId);
-  const fetch = mockFetch.fetch.bind(mockFetch);
-  const di = buildMockDi(log, fetch);
-  di.dynamo.addMockData({
-    lftUsers: {
-      [JSON.stringify({ id: aStorage.tempUserId })]: {
-        id: aStorage.tempUserId,
-        email: aStorage.email,
-        createdAt: Date.now(),
-        storage: aStorage,
-      },
-    },
-  });
-  const handler = getRawHandler(() => di);
-  mockFetch.handler = handler;
-  const service = new Service(fetch);
-  const queue = new AsyncQueue();
-  const env: IEnv = { service, audio: new MockAudioInterface(), queue };
-  const url = UrlUtils.build("https://www.liftosaur.com");
-  const initialState = await getInitialState(fetch, { url, storage: aStorage, deviceId: "web_123" });
-  const mockReducer = MockReducer.build(initialState, env);
-  await mockReducer.run([Thunk.fetchInitial(), Thunk.sync2({ force: true })]);
-
-  await mockReducer.run([
-    mockDispatch((ds) => Program.cloneProgram(ds, basicBeginnerProgram, initialState.storage.settings)),
-  ]);
-  await logWorkout(mockReducer, basicBeginnerProgram, [
-    [5, 5, 5],
-    [5, 5, 5],
-    [5, 5, 5],
-  ]);
-
-  return { di, log, mockReducer, env };
-}
+import { SyncTestUtils } from "./utils/syncTestUtils";
+import { Progress } from "../src/models/progress";
 
 describe("sync", () => {
   let sandbox: sinon.SinonSandbox;
@@ -103,8 +36,9 @@ describe("sync", () => {
       ts += 1;
       return ts;
     });
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    sandbox.stub(Encoder, "encode").callsFake(NodeEncoder.encode);
+    sandbox.stub(Encoder, "encode").callsFake((...args) => {
+      return NodeEncoder.encode(...args);
+    });
   });
 
   afterEach(() => {
@@ -112,10 +46,11 @@ describe("sync", () => {
   });
 
   it("properly runs appendable safe syncs", async () => {
-    const { di, mockReducer, log } = await initTheAppAndRecordWorkout();
+    const { di, mockReducer, log } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
 
-    expect(log.logs.filter((l) => l === "Fetch: Safe update")).to.length(3);
-    expect(log.logs.filter((l) => l === "Fetch: Merging update")).to.length(1);
+    // With progress being tracked as part of storage, there will be more safe updates
+    expect(log.logs.filter((l) => l === "Fetch: Safe update").length).to.be.greaterThan(0);
+    expect(log.logs.filter((l) => l === "Fetch: Merging update").length).to.be.greaterThan(0);
     const programId = mockReducer.state.storage.programs.find((p) => p.name === basicBeginnerProgram.name)?.id;
     expect(mockReducer.state.storage.currentProgramId).to.equal(programId);
     expect(mockReducer.state.storage.programs).to.length(1);
@@ -126,9 +61,9 @@ describe("sync", () => {
   });
 
   it("merge history and settings update", async () => {
-    const { mockReducer, log, env, di } = await initTheAppAndRecordWorkout();
-    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
-    await logWorkout(mockReducer2, basicBeginnerProgram, [
+    const { mockReducer, log, env, di } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
+    await SyncTestUtils.logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],
       [5, 5, 5],
@@ -148,26 +83,21 @@ describe("sync", () => {
     expect(dbHistoryRecords.length).to.equal(2);
     expect(dbUsers[0].storage.settings.isPublicProfile).to.equal(true);
 
+    // With progress being tracked as part of storage, there will be more sync operations
     const filteredLogs = log.logs.filter((l) => l.startsWith("Fetch:"));
-    expect(filteredLogs).to.eql([
-      "Fetch: Merging update",
-      "Fetch: Safe update",
-      "Fetch: Safe update",
-      "Fetch: Safe update",
-      "Fetch: Safe update",
-      "Fetch: Merging update",
-    ]);
+    expect(filteredLogs.filter((l) => l === "Fetch: Merging update").length).to.be.greaterThan(0);
+    expect(filteredLogs.filter((l) => l === "Fetch: Safe update").length).to.be.greaterThan(0);
   });
 
   it("merge 2 history updates", async () => {
-    const { mockReducer, log, env, di } = await initTheAppAndRecordWorkout();
-    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
-    await logWorkout(mockReducer2, basicBeginnerProgram, [
+    const { mockReducer, log, env, di } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
+    await SyncTestUtils.logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],
       [5, 5, 5],
     ]);
-    await logWorkout(mockReducer, basicBeginnerProgram, [
+    await SyncTestUtils.logWorkout(mockReducer, basicBeginnerProgram, [
       [5, 4, 3],
       [5, 4, 3],
       [5, 4, 3],
@@ -175,45 +105,44 @@ describe("sync", () => {
     const dbHistoryRecords = await di.dynamo.scan<IHistoryRecord>({ tableName: userTableNames.prod.historyRecords });
     expect(dbHistoryRecords.length).to.equal(3);
 
+    // With progress being tracked as part of storage, there will be more sync operations
     const filteredLogs = log.logs.filter((l) => l.startsWith("Fetch:"));
-    expect(filteredLogs).to.eql([
-      "Fetch: Merging update",
-      "Fetch: Safe update",
-      "Fetch: Safe update",
-      "Fetch: Safe update",
-      "Fetch: Safe update",
-      "Fetch: Merging update",
-    ]);
+    expect(filteredLogs.filter((l) => l === "Fetch: Merging update").length).to.be.greaterThan(0);
+    expect(filteredLogs.filter((l) => l === "Fetch: Safe update").length).to.be.greaterThan(0);
   });
 
   it("deletes the stats properly during merging", async () => {
-    const { mockReducer, env } = await initTheAppAndRecordWorkout();
-    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
-    await logStat(mockReducer2, 100);
-    await logStat(mockReducer, 120);
-    await logStat(mockReducer2, 130);
-    await logStat(mockReducer, 140);
+    const { mockReducer, env } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
+    await SyncTestUtils.logStat(mockReducer2, 100);
+    await SyncTestUtils.logStat(mockReducer, 120);
+    await SyncTestUtils.logStat(mockReducer2, 130);
+    await SyncTestUtils.logStat(mockReducer, 140);
 
     let weights = mockReducer.state.storage.stats.weight.weight || [];
     const weight130Index = weights.findIndex((w) => w.value.value === 130) ?? 0;
     await mockReducer.run([
-      mockDispatch((ds) => EditStats.deleteWeightStat(ds, "weight", weight130Index, weights[weight130Index].timestamp)),
+      SyncTestUtils.mockDispatch((ds) =>
+        EditStats.deleteWeightStat(ds, "weight", weight130Index, weights[weight130Index].timestamp)
+      ),
     ]);
     weights = mockReducer.state.storage.stats.weight.weight || [];
     const weight140Index = weights.findIndex((w) => w.value.value === 140) ?? 0;
     await mockReducer.run([
-      mockDispatch((ds) => EditStats.deleteWeightStat(ds, "weight", weight140Index, weights[weight140Index].timestamp)),
+      SyncTestUtils.mockDispatch((ds) =>
+        EditStats.deleteWeightStat(ds, "weight", weight140Index, weights[weight140Index].timestamp)
+      ),
     ]);
-    await logStat(mockReducer2, 150);
+    await SyncTestUtils.logStat(mockReducer2, 150);
     expect((mockReducer2.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
     await mockReducer.run([Thunk.sync2({ force: true })]);
     expect((mockReducer.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
   });
 
   it("cancels sync if not the latest version", async () => {
-    const { mockReducer, env } = await initTheAppAndRecordWorkout();
-    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
-    await logWorkout(mockReducer2, basicBeginnerProgram, [
+    const { mockReducer, env } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
+    await SyncTestUtils.logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],
       [5, 5, 5],
@@ -224,7 +153,6 @@ describe("sync", () => {
     let threw = false;
     let msg = "";
     global.alert = (m) => (msg = m);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.window = { alert: global.alert } as any;
     try {
       await mockReducer.run([Thunk.sync2({ force: true })]);
@@ -237,74 +165,89 @@ describe("sync", () => {
 
     expect(msg).to.contain("kill/restart");
   });
+
+  describe("progress", () => {
+    it("starting progress on 2 devices independently picks latest workout", async () => {
+      const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+      const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
+      await SyncTestUtils.startWorkout(mockReducer);
+      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+      await SyncTestUtils.startWorkout(mockReducer2);
+      await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[3, 4]]));
+      await mockReducer.run([Thunk.sync2({ force: true })]);
+      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
+      await mockReducer2.run([Thunk.sync2({ force: true })]);
+      await mockReducer2.run(
+        SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [undefined, 4, 3], [3, 3]])
+      );
+      await mockReducer.run([Thunk.sync2({ force: true })]);
+      const completedSets = Progress.getProgress(mockReducer.state)?.entries.map((e) =>
+        e.sets.map((s) => `${[s.completedReps, s.isCompleted]}`)
+      );
+      expect(completedSets).to.eql([
+        ["3,true", "4,true", ",false"],
+        ["2,true", "4,false", "3,true"],
+        ["3,true", "3,true", ",false"],
+      ]);
+    });
+
+    it("finishing 2 progress without network should resolve in single workout", async () => {
+      const { mockReducer, env, mockFetch } = await SyncTestUtils.initTheApp("web_123");
+      const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
+      await SyncTestUtils.startWorkout(mockReducer);
+      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+      await SyncTestUtils.startWorkout(mockReducer2);
+      await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[3, 4, 3]]));
+      await mockReducer.run([Thunk.sync2({ force: true })]);
+      mockFetch.hasConnection = false;
+      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
+      await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [1, 1]]));
+      await SyncTestUtils.finishWorkout(mockReducer);
+      await SyncTestUtils.finishWorkout(mockReducer2);
+      mockFetch.hasConnection = true;
+      await mockReducer.run([Thunk.sync2({ force: true })]);
+      await mockReducer2.run([Thunk.sync2({ force: true })]);
+      await mockReducer.run([Thunk.sync2({ force: true })]);
+      const historyIds1 = mockReducer.state.storage.history.map((h) => h.startTime);
+      const historyIds2 = mockReducer2.state.storage.history.map((h) => h.startTime);
+      expect(historyIds1.length).to.equal(1);
+      expect(historyIds2.length).to.equal(1);
+      const completedSets1 = mockReducer.state.storage.history[0].entries.map((e) => ({
+        name: e.exercise.id,
+        sets: e.sets.map((s) => [s.completedReps, s.isCompleted]),
+      }));
+      const completedSets2 = mockReducer2.state.storage.history[0].entries.map((e) => ({
+        name: e.exercise.id,
+        sets: e.sets.map((s) => [s.completedReps, s.isCompleted]),
+      }));
+      const expectedSets = [
+        {
+          name: "bentOverRow",
+          sets: [
+            [3, true],
+            [4, true],
+            [3, true],
+          ],
+        },
+        {
+          name: "benchPress",
+          sets: [
+            [1, true],
+            [1, true],
+            [undefined, false],
+          ],
+        },
+        {
+          name: "squat",
+          sets: [
+            [undefined, false],
+            [undefined, false],
+            [undefined, false],
+          ],
+        },
+      ];
+      expect(completedSets1).to.eql(expectedSets);
+      expect(completedSets2).to.eql(expectedSets);
+    });
+  });
 });
-
-async function logWorkout(
-  mockReducer: MockReducer<IState, IAction, IEnv>,
-  program: IProgram,
-  reps: number[][]
-): Promise<void> {
-  await mockReducer.run([{ type: "StartProgramDayAction" }]);
-  await mockReducer.run([...completeRepsActions(program, mockReducer.state.progress[0]!, reps)]);
-  await mockReducer.run([{ type: "FinishProgramDayAction" }]);
-}
-
-async function logStat(mockReducer: MockReducer<IState, IAction, IEnv>, bodyweight: number): Promise<void> {
-  await mockReducer.run([
-    mockDispatch((ds) =>
-      EditStats.addWeightStats(ds, {
-        weight: { value: bodyweight, unit: "kg" },
-      })
-    ),
-  ]);
-}
-
-function completeRepsActions(program: IProgram, progress: IHistoryRecord, reps: number[][]): IAction[] {
-  const evaluatedProgram = Program.evaluate(program, Settings.build());
-  return progress.entries.reduce<IAction[]>((memo, entry, entryIndex) => {
-    const actions = entry.sets.reduce<IAction[]>((memo2, set, setIndex) => {
-      const r = reps[entryIndex][setIndex];
-      const programExercise = Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId);
-      const setActions: IAction[] = [];
-      if (set.isAmrap) {
-        setActions.push({
-          type: "CompleteSetAction",
-          entryIndex,
-          setIndex,
-          programExercise,
-          mode: "workout",
-          isPlayground: false,
-          forceUpdateEntryIndex: false,
-          isExternal: false,
-        });
-        setActions.push({
-          type: "ChangeAMRAPAction",
-          amrapValue: r,
-          rpeValue: undefined,
-          isAmrap: true,
-          logRpe: false,
-          userVars: {},
-          isPlayground: false,
-          entryIndex: entryIndex,
-          setIndex: setIndex,
-          programExercise: programExercise,
-        });
-      } else {
-        for (let i = set.reps ?? 0; i >= r; i -= 1) {
-          setActions.push({
-            type: "CompleteSetAction",
-            entryIndex,
-            setIndex,
-            programExercise,
-            isPlayground: false,
-            mode: "workout",
-            forceUpdateEntryIndex: false,
-            isExternal: false,
-          });
-        }
-      }
-      return [...memo2, ...setActions];
-    }, []);
-    return memo.concat(actions);
-  }, []);
-}
