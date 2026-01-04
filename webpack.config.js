@@ -12,8 +12,45 @@ const fullCommitHash = require("child_process").execSync("git rev-parse HEAD").t
 const localapi = `https://${localapidomain}.liftosaur.com:3000/`;
 const local = `https://${localdomain}.liftosaur.com:8080/`;
 
-// Export a function. Accept the base config as the only param.
-module.exports = {
+const watchConfig = {
+  entry: "./src/watch/index.ts",
+  output: {
+    filename: "watch-bundle.js",
+    path: path.resolve(__dirname, "dist"),
+    library: {
+      name: "Liftosaur",
+      type: "var",
+    },
+  },
+  devtool: false,
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: [
+          {
+            loader: "ts-loader",
+            options: {
+              transpileOnly: true,
+              configFile: "tsconfig.json",
+            },
+          },
+        ],
+      },
+    ],
+  },
+  resolve: {
+    extensions: [".ts", ".tsx", ".js"],
+  },
+  plugins: [
+    new DefinePlugin({
+      window: "globalThis",
+    }),
+  ],
+  mode: process.env.NODE_ENV === "production" ? "production" : "development",
+};
+
+const mainConfig = {
   entry: {
     main: ["./src/main.tsx", "./src/index.css"],
     login: ["./src/login.tsx", "./src/index.css"],
@@ -394,3 +431,5 @@ module.exports = {
     },
   },
 };
+
+module.exports = [mainConfig, watchConfig];
