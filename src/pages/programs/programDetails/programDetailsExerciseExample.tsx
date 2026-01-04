@@ -13,6 +13,7 @@ import { PP } from "../../../models/pp";
 import { CollectionUtils } from "../../../utils/collection";
 import { PlannerProgramExercise } from "../../planner/models/plannerProgramExercise";
 import { Stats } from "../../../models/stats";
+import { Progress } from "../../../models/progress";
 
 export interface IProgramDetailsExerciseExampleProps {
   settings: ISettings;
@@ -50,11 +51,19 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
         CollectionUtils.findBy(dayExercises, "key", props.programExerciseKey)
       );
       const entry: IHistoryEntry = programExercise
-        ? Program.nextHistoryEntry(props.program, programDay.dayData, 0, programExercise, Stats.getEmpty(), settings)
+        ? Program.nextHistoryEntry(
+            props.program,
+            programDay.dayData,
+            weekIndex,
+            programExercise,
+            Stats.getEmpty(),
+            settings
+          )
         : {
             vtype: "history_entry",
-            index: 0,
+            id: Progress.getEntryId(exerciseType, programExercise),
             exercise: exerciseType,
+            index: weekIndex,
             warmupSets: [],
             sets: [
               {

@@ -145,7 +145,6 @@ export interface IState {
 
 export interface ILocalStorage {
   storage?: IStorage;
-  progress?: IHistoryRecord;
   lastSyncedStorage?: IStorage;
   editDay?: IProgramDay;
 }

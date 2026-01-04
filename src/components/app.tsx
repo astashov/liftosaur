@@ -210,7 +210,7 @@ export function AppView(props: IProps): JSX.Element | null {
         const incomingRestTimerSince = event.data.restTimerSince as number;
         const entryIndex = event.data.entryIndex as number;
         const setIndex = event.data.setIndex as number;
-        const progress = stateRef.current.progress[0];
+        const progress = stateRef.current.storage.progress[0];
         const skipLiveActivityUpdate = !!event.data.skipLiveActivityUpdate;
         if (progress == null) {
           SendMessage.print("Main app: No active workout to adjust rest timer");
@@ -241,11 +241,11 @@ export function AppView(props: IProps): JSX.Element | null {
           );
         }
       } else if (event.data?.type === "timerScheduled") {
-        if (stateRef.current.progress[0]?.ui) {
+        if (Progress.getProgress(stateRef.current)?.ui) {
           SendMessage.print(`Main app: Marking native notification as scheduled`);
           updateState(
             dispatch,
-            [lb<IState>().p("progress").pi(0).pi("ui").p("nativeNotificationScheduled").record(true)],
+            [Progress.lbProgress().pi("ui").p("nativeNotificationScheduled").record(true)],
             "Set native notification scheduled"
           );
         }
@@ -344,7 +344,7 @@ export function AppView(props: IProps): JSX.Element | null {
     currentProgram,
     allPrograms: state.storage.programs,
     settings: state.storage.settings,
-    progress: state.progress[0],
+    progress: Progress.getCurrentProgress(state),
     stats: state.storage.stats,
     userId: state.user?.id,
   };
@@ -380,17 +380,17 @@ export function AppView(props: IProps): JSX.Element | null {
         navCommon={navCommon}
         settings={state.storage.settings}
         dispatch={dispatch}
-        progress={state.progress[0]}
+        progress={Progress.getProgress(state)}
         programs={state.programs || []}
         customPrograms={state.storage.programs || []}
-        editProgramId={state.progress[0]?.programId}
+        editProgramId={Progress.getProgress(state)?.programId}
       />
     );
   } else if (Screen.currentName(state.screenStack) === "main") {
     if (currentProgram != null) {
       content = (
         <ProgramHistoryView
-          progress={state.progress[0]}
+          progress={Progress.getProgress(state)}
           navCommon={navCommon}
           program={currentProgram}
           settings={state.storage.settings}
@@ -594,7 +594,7 @@ export function AppView(props: IProps): JSX.Element | null {
     const plannerState = screenData.name === "editProgram" ? screenData.params?.plannerState : undefined;
     const editProgram = Program.getProgram(
       state,
-      plannerState ? plannerState.current.program.id : state.progress[0]?.programId
+      plannerState ? plannerState.current.program.id : Progress.getProgress(state)?.programId
     );
     content = (
       <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>

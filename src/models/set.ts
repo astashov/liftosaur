@@ -64,14 +64,12 @@ export namespace Reps {
       if (isWarmup) {
         lastSet = {
           ...ObjectUtils.clone(lastSet),
-          index: sets.length,
           reps: lastSet.completedReps ?? lastSet.reps,
           weight: lastSet.completedWeight ?? lastSet.weight,
         };
       } else {
         lastSet = {
           ...ObjectUtils.clone(lastSet),
-          index: sets.length,
           reps: lastSet.reps ?? lastSet.completedReps,
           weight: lastSet.weight ?? lastSet.completedWeight,
           originalWeight: lastSet.originalWeight ?? lastSet.weight ?? lastSet.completedWeight,
@@ -164,7 +162,6 @@ export namespace Reps {
   export function isInRangeCompletedSet(set: ISet): boolean {
     if (set.completedReps != null && set.completedWeight != null) {
       return (
-        !!set.isCompleted &&
         (set.weight == null || Weight.gte(set.completedWeight, set.weight)) &&
         (set.minReps != null ? set.completedReps >= set.minReps : set.reps == null || set.completedReps >= set.reps)
       );

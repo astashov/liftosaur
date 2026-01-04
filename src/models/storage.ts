@@ -107,6 +107,7 @@ export namespace Storage {
       deletedStats: [],
       tempUserId: UidFactory.generateUid(10),
       affiliates: {},
+      progress: [],
       stats: {
         weight: { weight: [] },
         length: {
@@ -231,6 +232,10 @@ export namespace Storage {
       originalId: Math.max(newOriginalId ?? 0, oldOriginalId ?? 0),
       _versions: updatedVersions,
     };
+    updatedStorage.progress?.[0]?.entries?.sort((a, b) => a.index - b.index);
+    for (const entries of updatedStorage.progress?.[0]?.entries || []) {
+      entries.sets.sort((a, b) => a.index - b.index);
+    }
     return updatedStorage;
   }
 

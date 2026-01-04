@@ -1,9 +1,10 @@
 import { Reducer } from "preact/hooks";
 import { IAction, reducerWrapper } from "../../src/ducks/reducer";
 import { Storage } from "../../src/models/storage";
-import { Thunk } from "../../src/ducks/thunks";
+import { NoRetryError, Thunk } from "../../src/ducks/thunks";
 import { IGThunk, IReducerOnIGAction } from "../../src/ducks/types";
 import { IEnv, IState } from "../../src/models/state";
+import { ObjectUtils } from "../../src/utils/object";
 
 export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> {
   public state: TState;
@@ -22,10 +23,26 @@ export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> 
     return new MockReducer(reducerWrapper(true), state, env, [
       async (dispatch, action, oldState, newState) => {
         if (Storage.isChanged(oldState.storage, newState.storage)) {
-          await dispatch(Thunk.sync2());
+          try {
+            await dispatch(Thunk.sync2());
+          } catch (e) {
+            if (e instanceof NoRetryError && e.message === "Network Error") {
+              // Ignore
+            } else {
+              throw e;
+            }
+          }
         }
       },
     ]);
+  }
+
+  public static clone(
+    mockReducer: MockReducer<IState, IAction, IEnv>,
+    deviceId: string,
+    env: IEnv
+  ): MockReducer<IState, IAction, IEnv> {
+    return MockReducer.build(ObjectUtils.clone({ ...mockReducer.state, deviceId }), env);
   }
 
   private readonly getState = (): TState => {

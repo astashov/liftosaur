@@ -11,7 +11,6 @@ import {
   IUnit,
   IWeight,
   ISettings,
-  IDayData,
   IScreenMuscle,
   IIntervals,
 } from "../types";
@@ -28,7 +27,6 @@ import { DateUtils } from "../utils/date";
 import { IEvaluatedProgram, Program } from "./program";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { Muscle } from "./muscle";
-import { UidFactory } from "../utils/generator";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -51,27 +49,11 @@ export interface IHistoryEntryPersonalRecords {
 }
 
 export namespace History {
-  export function buildFromEntry(entry: IHistoryEntry, dayData: IDayData): IHistoryRecord {
-    return {
-      vtype: "history_record",
-      id: 0,
-      date: new Date().toISOString(),
-      programId: "",
-      programName: "",
-      day: dayData.day,
-      week: dayData.week,
-      dayInWeek: dayData.dayInWeek,
-      dayName: dayData.day.toString(),
-      startTime: Date.now(),
-      entries: [entry],
-    };
-  }
-
   export function createCustomEntry(exerciseType: IExerciseType, index: number): IHistoryEntry {
     return {
       vtype: "history_entry",
+      id: Progress.getEntryId(exerciseType),
       index,
-      id: UidFactory.generateUid(8),
       exercise: exerciseType,
       sets: [],
       warmupSets: [],
@@ -122,7 +104,8 @@ export namespace History {
         }
         return entry;
       }),
-      id: Progress.isCurrent(progress) ? endTime : progress.id,
+      vtype: "history_record",
+      id: Progress.isCurrent(progress) ? progress.startTime : progress.id,
       updatedAt: updatedAt,
       timerSince: undefined,
       timerMode: undefined,
@@ -768,16 +751,17 @@ export namespace History {
   }
 
   export function pauseWorkoutAction(dispatch: IDispatch): void {
-    const lensGetters = { progress: lb<IState>().p("progress").pi(0).get() };
+    const lensGetters = { progress: lb<IState>().p("storage").pi("progress").get() };
     SendMessage.toIosAndAndroid({ type: "pauseWorkout" });
     updateState(
       dispatch,
       [
         lbu<IState, typeof lensGetters>(lensGetters)
-          .p("progress")
-          .pi(0)
+          .p("storage")
+          .pi("progress")
+          .i(0)
           .p("intervals")
-          .recordModify((intervals, getters) => pauseWorkout(getters.progress.intervals)),
+          .recordModify((intervals, getters) => pauseWorkout(getters.progress[0].intervals)),
       ],
       "Pause workout"
     );
@@ -802,13 +786,10 @@ export namespace History {
     updateState(
       dispatch,
       [
-        lb<IState>()
-          .p("progress")
-          .pi(0)
-          .recordModify((progress) => {
-            const intervals = resumeWorkout(progress, isPlayground, settings.timers.reminder);
-            return { ...progress, intervals };
-          }),
+        Progress.lbProgress().recordModify((progress) => {
+          const intervals = resumeWorkout(progress, isPlayground, settings.timers.reminder);
+          return { ...progress, intervals };
+        }),
       ],
       "Resume workout"
     );
