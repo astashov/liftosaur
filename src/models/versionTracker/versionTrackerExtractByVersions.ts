@@ -78,35 +78,36 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
   }
 
   private extractCollectionByVersion(value: unknown, collectionVersion: ICollectionVersions): unknown {
+    const hasItemChanges = Object.keys(collectionVersion.items || {}).length > 0;
+    const hasDeletions = Object.keys(collectionVersion.deleted || {}).length > 0;
+    const hasChanges = hasItemChanges || hasDeletions;
+
+    if (!hasChanges) {
+      return undefined;
+    }
+
     if (Array.isArray(value)) {
-      const hasChanges =
-        Object.keys(collectionVersion.items || {}).length > 0 ||
-        Object.keys(collectionVersion.deleted || {}).length > 0;
+      const result: unknown[] = [];
 
-      if (hasChanges) {
-        const result: unknown[] = [];
-
-        for (const item of value) {
-          const itemId = VersionTrackerUtils.getId(item, this.versionTypes);
-          if (itemId && itemId in (collectionVersion.items || {})) {
-            const itemVersion = collectionVersion.items![itemId];
-            if (typeof itemVersion === "object" && VersionTrackerUtils.isRecord(item)) {
-              const extracted = this.extractFieldByVersion(item, itemVersion);
-              if (extracted != null) {
-                result.push(extracted);
-              }
-            } else {
-              result.push(item);
+      for (const item of value) {
+        const itemId = VersionTrackerUtils.getId(item, this.versionTypes);
+        if (itemId && itemId in (collectionVersion.items || {})) {
+          const itemVersion = collectionVersion.items![itemId];
+          if (typeof itemVersion === "object" && VersionTrackerUtils.isRecord(item)) {
+            const extracted = this.extractFieldByVersion(item, itemVersion);
+            if (extracted != null) {
+              result.push(extracted);
             }
+          } else {
+            result.push(item);
           }
         }
-
-        return result.length > 0 ? result : undefined;
       }
-      return undefined;
+
+      // Return the array even if empty - deletions are still changes
+      return result;
     } else if (VersionTrackerUtils.isRecord(value)) {
       const result: Record<string, unknown> = {};
-      let hasChanges = false;
 
       for (const key in collectionVersion.items) {
         if (key in value) {
@@ -117,16 +118,15 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
             const extracted = this.extractFieldByVersion(itemValue, itemVersion);
             if (extracted != null) {
               result[key] = extracted;
-              hasChanges = true;
             }
           } else {
             result[key] = itemValue;
-            hasChanges = true;
           }
         }
       }
 
-      return hasChanges ? result : undefined;
+      // Return the object even if empty - deletions are still changes
+      return result;
     }
 
     return undefined;

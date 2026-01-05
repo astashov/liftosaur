@@ -11,7 +11,7 @@ import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
 import { ObjectUtils } from "../utils/object";
 import { DateUtils } from "../utils/date";
-import { IStorageUpdate } from "../utils/sync";
+import { IStorageUpdate, IStorageUpdate2 } from "../utils/sync";
 import { IStorage, TStorage, IPartialStorage, STORAGE_VERSION_TYPES } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { IVersions, VersionTracker } from "./versionTracker";
@@ -236,6 +236,36 @@ export namespace Storage {
     for (const entries of updatedStorage.progress?.[0]?.entries || []) {
       entries.sets.sort((a, b) => a.index - b.index);
     }
+    return updatedStorage;
+  }
+
+  export function applyStorageUpdate2(storage: IStorage, update: IStorageUpdate2, deviceId?: string): IStorage {
+    if (!update.storage || Object.keys(update.storage).length === 0) {
+      return storage;
+    }
+
+    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
+    const currentVersions = storage._versions || {};
+    const incomingVersions = update.versions || {};
+
+    const mergedVersions = versionTracker.mergeVersions(currentVersions, incomingVersions);
+    const mergedStorage = versionTracker.mergeByVersions(
+      storage,
+      currentVersions,
+      incomingVersions,
+      update.storage as Partial<IStorage>
+    );
+
+    const updatedStorage: IStorage = {
+      ...mergedStorage,
+      _versions: mergedVersions,
+    };
+
+    updatedStorage.progress?.[0]?.entries?.sort((a, b) => a.index - b.index);
+    for (const entries of updatedStorage.progress?.[0]?.entries || []) {
+      entries.sets.sort((a, b) => a.index - b.index);
+    }
+
     return updatedStorage;
   }
 

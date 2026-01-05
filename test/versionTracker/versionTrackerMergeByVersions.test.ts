@@ -346,6 +346,140 @@ describe("mergeByVersions", () => {
     });
   });
 
+  describe("deletion-only collections", () => {
+    it("should delete all items when receiving empty array with deletions", () => {
+      const prog1 = { vtype: "program", id: "prog1", clonedAt: 1, name: "Program 1" };
+      const prog2 = { vtype: "program", id: "prog2", clonedAt: 2, name: "Program 2" };
+
+      const fullObj = {
+        programs: [prog1, prog2],
+      };
+
+      const fullVersions: IVersions<any> = {
+        programs: {
+          items: {
+            "1": 1000,
+            "2": 2000,
+          },
+        },
+      };
+
+      // All items deleted, no new items
+      const versionDiff: IVersions<any> = {
+        programs: {
+          items: {},
+          deleted: {
+            "1": 5000,
+            "2": 5000,
+          },
+        },
+      };
+
+      // Empty array from extractByVersions (deletion-only case)
+      const extractedObj = {
+        programs: [],
+      };
+
+      const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
+
+      expect(merged.programs).to.deep.equal([]);
+    });
+
+    it("should delete all items when receiving empty object with deletions (dictionary)", () => {
+      const fullObj = {
+        settings: {
+          exercises: {
+            "bench-press": { rm1: 100 },
+            squat: { rm1: 150 },
+          },
+        },
+      };
+
+      const fullVersions: IVersions<any> = {
+        settings: {
+          exercises: {
+            items: {
+              "bench-press": 1000,
+              squat: 2000,
+            },
+          },
+        },
+      };
+
+      // All items deleted
+      const versionDiff: IVersions<any> = {
+        settings: {
+          exercises: {
+            items: {},
+            deleted: {
+              "bench-press": 5000,
+              squat: 5000,
+            },
+          },
+        },
+      };
+
+      // Empty object from extractByVersions
+      const extractedObj = {
+        settings: {
+          exercises: {},
+        },
+      };
+
+      const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
+
+      expect(merged.settings.exercises).to.deep.equal({});
+    });
+
+    it("should clear progress when workout is discarded (real-world scenario)", () => {
+      const progress = {
+        vtype: "progress",
+        id: 1000,
+        startTime: 1000,
+        entries: [{ exercise: "bench" }],
+        date: "2024-01-01",
+        programId: "program1",
+        programName: "Test Program",
+        dayName: "Day 1",
+        day: 1,
+      };
+
+      const fullObj = {
+        progress: [progress],
+      };
+
+      const fullVersions: IVersions<any> = {
+        progress: {
+          items: {
+            "1000": {
+              startTime: { vc: { device1: 1 }, t: 1000, value: "1000" },
+              entries: 1000,
+            },
+          },
+        },
+      };
+
+      // Progress deleted (workout discarded)
+      const versionDiff: IVersions<any> = {
+        progress: {
+          items: {},
+          deleted: {
+            "1000": 5000,
+          },
+        },
+      };
+
+      // Empty array from extractByVersions
+      const extractedObj = {
+        progress: [],
+      };
+
+      const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
+
+      expect(merged.progress).to.deep.equal([]);
+    });
+  });
+
   it("should handle atomic objects in collections", () => {
     const record1: IHistoryRecord = {
       vtype: "history_record",
