@@ -46,9 +46,22 @@ function getHeaders(event: APIGatewayProxyEventV2): Record<string, string> {
 }
 
 async function getCurrentUserId(event: APIGatewayProxyEventV2, di: IDI): Promise<string | undefined> {
-  const cookies = Cookie.parse(event.headers.Cookie || event.headers.cookie || "");
   const userDao = new UserDao(di);
-  return userDao.getCurrentUserIdFromCookie(cookies);
+
+  // Try cookies first (web/iOS web view)
+  const cookies = Cookie.parse(event.headers.Cookie || event.headers.cookie || "");
+  let userId = await userDao.getCurrentUserIdFromCookie(cookies);
+
+  if (!userId) {
+    // Try Authorization header (Apple Watch)
+    const authHeader = event.headers["Authorization"] || event.headers["authorization"];
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      userId = await userDao.getUserIdFromToken(token);
+    }
+  }
+
+  return userId;
 }
 
 async function getUserAccount(
