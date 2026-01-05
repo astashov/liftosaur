@@ -118,20 +118,25 @@ export class UserDao {
   }
 
   public async getCurrentUserIdFromCookie(cookies: { [key: string]: string }): Promise<string | undefined> {
-    const cookieSecret = await this.di.secrets.getCookieSecret();
     if (cookies.session) {
-      let isValid = false;
-      try {
-        isValid = !!JWT.verify(cookies.session, cookieSecret);
-      } catch (e) {
-        if (!(e instanceof Error) || e.constructor.name !== "JsonWebTokenError") {
-          throw e;
-        }
+      return this.getUserIdFromToken(cookies.session);
+    }
+    return undefined;
+  }
+
+  public async getUserIdFromToken(token: string): Promise<string | undefined> {
+    const cookieSecret = await this.di.secrets.getCookieSecret();
+    let isValid = false;
+    try {
+      isValid = !!JWT.verify(token, cookieSecret);
+    } catch (e) {
+      if (!(e instanceof Error) || e.constructor.name !== "JsonWebTokenError") {
+        throw e;
       }
-      if (isValid) {
-        const session = JWT.decode(cookies.session) as Record<string, string>;
-        return session.userId;
-      }
+    }
+    if (isValid) {
+      const session = JWT.decode(token) as Record<string, string>;
+      return session.userId;
     }
     return undefined;
   }
