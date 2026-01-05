@@ -386,7 +386,7 @@ export namespace Progress {
       print: (...fnArgs) => {
         fnArgs.pop();
         const context = fnArgs.pop() as IScriptFnContext;
-        const args = [...fnArgs] as (number | IWeight | IPercentage)[];
+        const args = [...fnArgs.flat()] as (number | IWeight | IPercentage)[];
         context.prints = context.prints || [];
         context.prints.push(args);
         return args[0];
