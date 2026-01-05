@@ -249,6 +249,10 @@ export function AppView(props: IProps): JSX.Element | null {
             "Set native notification scheduled"
           );
         }
+      } else if (event.data?.type === "watchStorageUpdate") {
+        const updateJson = event.data.update as string;
+        const deviceId = event.data.deviceId as string;
+        dispatch(Thunk.handleWatchStorageUpdate(updateJson, deviceId));
       }
     });
     const userId = state.user?.id || state.storage.tempUserId;

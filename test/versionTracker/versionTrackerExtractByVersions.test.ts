@@ -253,6 +253,110 @@ describe("extractByVersions", () => {
     });
   });
 
+  describe("deletion-only collections", () => {
+    it("should return empty array when collection has only deletions (no item changes)", () => {
+      const prog1: IProgram = {
+        vtype: "program",
+        id: "prog1",
+        name: "Program 1",
+        description: "",
+        url: "",
+        author: "",
+        nextDay: 1,
+        clonedAt: 1,
+        days: [],
+        weeks: [],
+        exercises: [],
+        isMultiweek: false,
+        tags: [],
+      };
+
+      const obj = {
+        programs: [prog1],
+      };
+
+      // Only deletions, no item changes
+      const versions: IVersions<any> = {
+        programs: {
+          items: {},
+          deleted: {
+            "1": 5000,
+          },
+        },
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+
+      // Should return empty array, not undefined
+      expect(extracted).to.have.property("programs");
+      expect(extracted.programs).to.deep.equal([]);
+    });
+
+    it("should return empty object when dictionary has only deletions (no item changes)", () => {
+      const obj = {
+        settings: {
+          exercises: {
+            "bench-press": { rm1: 100, notes: "Good form" },
+          },
+        },
+      };
+
+      // Only deletions, no item changes
+      const versions: IVersions<any> = {
+        settings: {
+          exercises: {
+            items: {},
+            deleted: {
+              "bench-press": 5000,
+            },
+          },
+        },
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+
+      // Should return empty object, not undefined
+      expect(extracted).to.have.property("settings");
+      expect(extracted.settings).to.have.property("exercises");
+      expect(extracted.settings.exercises).to.deep.equal({});
+    });
+
+    it("should return empty array when all items in progress are deleted", () => {
+      const progress = {
+        vtype: "progress" as const,
+        id: 1000,
+        startTime: 1000,
+        entries: [],
+        date: "2024-01-01",
+        programId: "program1",
+        programName: "Test Program",
+        dayName: "Day 1",
+        day: 1,
+        endTime: 0,
+      };
+
+      const obj = {
+        progress: [progress],
+      };
+
+      // Progress item deleted (e.g., workout discarded)
+      const versions: IVersions<any> = {
+        progress: {
+          items: {},
+          deleted: {
+            "1000": 5000,
+          },
+        },
+      };
+
+      const extracted = versionTracker.extractByVersions(obj, versions);
+
+      // Should return empty array for progress
+      expect(extracted).to.have.property("progress");
+      expect(extracted.progress).to.deep.equal([]);
+    });
+  });
+
   describe("excludedFields", () => {
     it("should exclude fields specified in excludedFields from extraction", () => {
       const progress = {

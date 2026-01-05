@@ -39,6 +39,7 @@ import { Weight } from "../models/weight";
 import { EditProgram } from "../models/editProgram";
 import { ICollectionVersions } from "../models/versionTracker";
 import { DeviceId } from "../utils/deviceId";
+import { IStorageUpdate2 } from "../utils/sync";
 import { LiveActivityManager } from "../utils/liveActivityManager";
 
 declare let Rollbar: RB;
@@ -491,6 +492,28 @@ export namespace Thunk {
       if (getState().adminKey == null) {
         const settings = getState().storage.settings;
         env.audio.play(settings.volume, !!settings.vibration);
+      }
+    };
+  }
+
+  export function handleWatchStorageUpdate(updateJson: string, watchDeviceId: string): IThunk {
+    return async (dispatch, getState) => {
+      try {
+        const update: IStorageUpdate2 = JSON.parse(updateJson);
+        const state = getState();
+
+        console.log("handleWatchStorageUpdate: applying update from device", watchDeviceId);
+
+        const newStorage = Storage.applyStorageUpdate2(state.storage, update, state.deviceId);
+
+        if (newStorage !== state.storage) {
+          updateState(dispatch, [lb<IState>().p("storage").record(newStorage)], "Apply watch storage update");
+          console.log("handleWatchStorageUpdate: successfully applied watch update");
+        } else {
+          console.log("handleWatchStorageUpdate: no changes to apply");
+        }
+      } catch (error) {
+        console.error("handleWatchStorageUpdate: failed to process update", error);
       }
     };
   }
