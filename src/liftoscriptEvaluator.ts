@@ -452,7 +452,7 @@ export class LiftoscriptEvaluator {
 
     const ns = oldNumberOfSets - 1;
     for (let i = 0; i < evaluatedValue; i += 1) {
-      if (this.bindings.weights[i] == null) {
+      if (i > ns) {
         this.bindings.weights[i] = Weight.build(
           this.bindings.weights[ns]?.value ?? 0,
           this.bindings.weights[ns]?.unit || "lb"

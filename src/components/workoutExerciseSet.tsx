@@ -406,7 +406,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
               )}
               {aSet.reps != null && aSet.weight != null && <span className="text-text-secondary"> × </span>}
               <span>
-                {aSet.originalWeight && (
+                {aSet.originalWeight && aSet.weight && (
                   <span
                     className={isDiffWeight ? "line-through text-text-secondary" : "font-semibold text-syntax-weight"}
                   >
