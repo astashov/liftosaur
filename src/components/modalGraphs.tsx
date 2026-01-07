@@ -156,6 +156,23 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
             )
           }
         />
+        {settings.graphsSettings.isWithOneRm && (
+          <MenuItemEditable
+            type="boolean"
+            name="Use explicit 1RM when available"
+            value={settings.graphsSettings.useExplicitRm1 ? "true" : "false"}
+            onChange={(v) =>
+              updateSettings(
+                props.dispatch,
+                lb<ISettings>()
+                  .p("graphsSettings")
+                  .p("useExplicitRm1")
+                  .record(v === "true"),
+                "Toggle explicit 1RM"
+              )
+            }
+          />
+        )}
         <MenuItemEditable
           type="boolean"
           name="Add program lines to graphs"
