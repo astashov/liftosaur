@@ -65,7 +65,7 @@ function getData(
         let onerm = null;
         if (isWithOneRm) {
           const explicitRm1 = entry.vars?.rm1;
-          if (settings.graphsSettings.useExplicitRm1 && explicitRm1 != null && Weight.is(explicitRm1)) {
+          if (settings.graphsSettings.useExplicitRm1 && Weight.is(explicitRm1)) {
             onerm = Weight.convertTo(explicitRm1, settings.units).value;
           } else {
             const set = maxe1RMSet || maxSet;
