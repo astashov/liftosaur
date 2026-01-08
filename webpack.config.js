@@ -14,13 +14,10 @@ const local = `https://${localdomain}.liftosaur.com:8080/`;
 
 const watchConfig = {
   entry: "./src/watch/index.ts",
+  target: "node",
   output: {
     filename: "watch-bundle.js",
     path: path.resolve(__dirname, "dist"),
-    library: {
-      name: "Liftosaur",
-      type: "var",
-    },
   },
   devtool: false,
   module: {
