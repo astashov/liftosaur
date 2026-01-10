@@ -288,9 +288,16 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
 }) => {
   const { event, di } = payload;
   const setCookie: string | undefined = undefined;
-  const compressedBodyJson = getBodyJson(event);
-  const bodyJsonStr = await NodeEncoder.decode(compressedBodyJson.data);
-  const bodyJson = JSON.parse(bodyJsonStr);
+  const rawBodyJson = getBodyJson(event);
+
+  // Support both compressed (with data field) and uncompressed payloads
+  let bodyJson: Record<string, unknown>;
+  if (rawBodyJson.data && typeof rawBodyJson.data === "string") {
+    const bodyJsonStr = await NodeEncoder.decode(rawBodyJson.data);
+    bodyJson = JSON.parse(bodyJsonStr);
+  } else {
+    bodyJson = rawBodyJson;
+  }
   const deviceId = bodyJson.deviceId as string | undefined;
   const timestamp = bodyJson.timestamp || Date.now();
   const storageUpdate = bodyJson.storageUpdate as IStorageUpdate2;

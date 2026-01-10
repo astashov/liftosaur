@@ -157,6 +157,7 @@ export namespace Thunk {
         await env.service.signout();
         dispatch({ type: "Logout" });
         updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(undefined)], "Clear last sync on logout");
+        SendMessage.toIos({ type: "authChanged" });
       }
       if (cb) {
         cb();
@@ -1341,6 +1342,7 @@ async function handleLogin(
         dispatch({ type: "ReplaceState", state: newState });
       }
       dispatch(Thunk.fetchInitial());
+      SendMessage.toIos({ type: "authChanged" });
     } else if (result.key) {
       updateState(
         dispatch,
