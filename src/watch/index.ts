@@ -4,6 +4,7 @@ import { Storage } from "../models/storage";
 import { Sync, IStorageUpdate2 } from "../utils/sync";
 import { IStorage, ISet, IWeight, IHistoryRecord, ISettings } from "../types";
 import { IEither } from "../utils/types";
+import { getLatestMigrationVersion } from "../migrations/migrations";
 
 export interface IWatchHistoryRecord {
   dayName: string;
@@ -182,6 +183,10 @@ class LiftosaurWatch {
     } catch (e) {
       return JSON.stringify({ error: String(e) });
     }
+  }
+
+  public static getLatestMigrationVersion(): string {
+    return getLatestMigrationVersion();
   }
 }
 
