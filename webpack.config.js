@@ -218,6 +218,12 @@ module.exports = {
       index: false, // specify to enable root proxying
     },
     static: path.join(__dirname, "dist"),
+    historyApiFallback: {
+      rewrites: [
+        { from: /^\/app$/, to: '/app/index.html' },
+        { from: /^\/app\//, to: '/app/index.html' },
+      ],
+    },
     compress: true,
     https:
       process.env.NODE_ENV === "production"

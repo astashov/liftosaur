@@ -139,7 +139,10 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
           </option>
         </select>
       </div>
-      <GraphExerciseContent key={selectedType} {...{ ...props, selectedType }} />
+      <GraphExerciseContent
+        key={`${selectedType}-${props.isWithOneRm}-${props.isWithProgramLines}-${props.isSameXAxis}-${props.settings.graphsSettings.useExplicitRm1}`}
+        {...{ ...props, selectedType }}
+      />
     </div>
   );
 }
