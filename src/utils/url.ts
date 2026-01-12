@@ -1,4 +1,8 @@
 import { IEither } from "./types";
+import { URLPolyfill } from "./urlPolyfill";
+
+// Check if native URL is available (not available in QuickJS on watchOS)
+const URLConstructor: typeof URL = typeof URL !== "undefined" ? URL : (URLPolyfill as unknown as typeof URL);
 
 export class UrlUtils {
   public static build(url: string, base?: string | URL): URL {
@@ -6,7 +10,7 @@ export class UrlUtils {
       base = base.toString().replace("liftosaur://", "https://");
     }
     try {
-      return new URL(url, base);
+      return new URLConstructor(url, base);
     } catch (e) {
       let json: string | undefined;
       try {

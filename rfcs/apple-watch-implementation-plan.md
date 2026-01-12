@@ -344,33 +344,38 @@ Phone receives watch updates and:
 
 ## Server API
 
-### Existing Endpoint
+### Endpoint
 
-The watch uses the same `/api/sync` endpoint as the phone:
+The watch uses `/api/sync2` endpoint with Bearer token authentication:
 
 ```typescript
-POST /api/sync
+POST /api/sync2
+Authorization: Bearer <jwt_token>
+
 {
-  tempUserId: string,
   deviceId: string,  // "watch-xyz"
+  timestamp: number,
   storageUpdate: {
-    version: number,
-    originalId?: number,
+    version: string,      // Migration version like "20240720152051_fix_null_entries"
+    originalId?: number,  // For fast-path consecutive updates check
     versions?: IVersions<IStorage>,
     storage?: Partial<IStorage>
   }
 }
 
 Response:
-| { type: "clean", new_original_id: number, key: string, email: string, user_id: string }
-| { type: "dirty", storage: IStorage, key: string, email: string, user_id: string }
-| { type: "error", error: string, key: string }
+| { type: "clean" }
+| { type: "dirty", storage: IStorage }
+| { type: "error", error: string }
 ```
 
-### Watch-Specific Considerations
+### Watch-Specific Implementation
 
-- Watch may have limited connectivity - server should handle partial/resumed syncs
-- Authentication: Watch needs access to user's auth token (transferred from phone during setup)
+- **Authentication**: Bearer token transferred from phone via WatchConnectivity
+- **Uncompressed payloads**: Server accepts both compressed (with `data` field) and uncompressed JSON
+- **Version matching**: Watch sends correct migration version via `getLatestMigrationVersion()` from JS bundle
+- **originalId**: Included for fast-path check on consecutive updates from same device
+- **Fallback**: If server unreachable, changes queued locally and synced when connectivity restored
 
 ## Implementation Phases
 
@@ -389,17 +394,17 @@ Response:
 - [ ] Implement rest timer
 - [ ] Execute Liftoscript on set/workout completion
 
-### Phase 3: Sync
-- [ ] Implement VersionTracker in watch bundle
-- [ ] Server sync (watch ↔ server direct)
-- [ ] Offline queue and retry logic
-- [ ] Sync status indicator
+### Phase 3: Sync ✅ COMPLETE
+- [x] Implement VersionTracker in watch bundle (prepareSync/mergeStorage via JS engine)
+- [x] Server sync (watch ↔ server direct) - fetchStorageFromServer(), syncViaServer()
+- [x] Offline queue and retry logic (pending updates queue in UserDefaults)
+- [x] Sync status indicator (syncStatus @Published property)
 
-### Phase 4: Phone Integration
+### Phase 4: Phone Integration ✅ COMPLETE
 - [x] WatchConnectivity setup (basic)
-- [ ] Phone ↔ watch real-time sync (bidirectional)
+- [x] Phone ↔ watch real-time sync (bidirectional)
 - [ ] Phone UI showing watch workout progress
-- [ ] Initial setup flow (auth token transfer)
+- [x] Initial setup flow (auth token transfer)
 
 ### Phase 5: Polish
 - [ ] Error handling and recovery
@@ -410,17 +415,21 @@ Response:
 
 ## Open Questions
 
-1. **Auth flow**: How does watch get authenticated? Transfer token from phone during initial setup?
+1. **Auth flow**: ✅ RESOLVED - Token transferred from phone via WatchConnectivity. Phone sends auth on:
+   - WCSession activation
+   - Reachability change (phone app comes to foreground)
+   - Web app login/logout (via `authChanged` postMessage → iOS → watch)
+   - Watch also requests auth when phone becomes reachable
+   - `clearAuth` message sent when user logs out on phone
 
 2. **Program updates**: If user edits program on phone mid-workout, how to handle on watch?
    - Option A: Lock phone editing during watch workout
    - Option B: Merge changes (may cause confusion)
+   - Current: Option B - vector clocks handle merging
 
-3. **Which storage fields on watch?**: Full IStorage or minimal subset?
-   - Minimal: current program, current workout, settings subset
-   - Full: easier sync but more memory
+3. **Which storage fields on watch?**: ✅ RESOLVED - Full IStorage for easier sync. Memory usage is acceptable.
 
-4. **Cellular watch support**: Direct server sync when phone not nearby?
+4. **Cellular watch support**: ✅ RESOLVED - Yes! Watch syncs directly with server using Bearer token auth when authenticated. Works independently of phone connectivity.
 
 ## File Structure
 
@@ -459,7 +468,9 @@ LiftosauriOS/
             ├── LiftosaurEngine.swift   // QuickJS wrapper
             ├── WorkoutManager.swift    // Workout state
             ├── WatchCacheManager.swift // Bundle loading
-            └── WatchConnectivityManager.swift  // Receives storage from phone
+            ├── WatchConnectivityManager.swift  // Receives storage/auth from phone
+            ├── WatchSyncManager.swift  // Server sync, pending updates queue
+            └── AuthManager.swift       // JWT token storage and validation
 
 liftosaur/                              // Main web project
 └── src/
@@ -485,3 +496,11 @@ liftosaur/                              // Main web project
 4. **Storage format wrapper** - iOS app sends `{"storage": {...}, "progress": {...}}` but watch needs just the inner storage. Extract on the watch side.
 
 5. **WatchConnectivity reliability** - Use multiple methods (`updateApplicationContext` + `transferUserInfo`) for reliable delivery. Check `receivedApplicationContext` after activation, not during init.
+
+6. **isReachable is transient** - `WCSession.isReachable` only returns true when the paired iOS app is in the foreground. Use computed property checking live value, not cached @Published property.
+
+7. **Auth sync timing** - Don't request auth/storage in `session(_:activationDidCompleteWith:)` - WCSession may not be fully ready. Use `sessionReachabilityDidChange` callback instead.
+
+8. **3-way sync architecture** - Watch syncs to both phone (via WatchConnectivity) and server (direct HTTP). Always sync to server when authenticated; phone sync is secondary. This ensures data safety even with poor gym connectivity.
+
+9. **Migration version required** - Server sync requires correct migration version string (not just `1`). Use `getLatestMigrationVersion()` from JS bundle to get the proper version.
