@@ -42,6 +42,14 @@ const watchConfig = {
   plugins: [
     new DefinePlugin({
       window: "globalThis",
+      __HOST__: JSON.stringify(
+        process.env.NODE_ENV === "production"
+          ? process.env.STAGE
+            ? "https://stage.liftosaur.com"
+            : "https://www.liftosaur.com"
+          : local
+      ),
+      __ENV__: JSON.stringify(process.env.NODE_ENV === "production" ? "production" : "development"),
     }),
   ],
   mode: process.env.NODE_ENV === "production" ? "production" : "development",

@@ -1,10 +1,28 @@
 import { Program } from "../models/program";
 import { Exercise } from "../models/exercise";
 import { Storage } from "../models/storage";
+import { Reps } from "../models/set";
 import { Sync, IStorageUpdate2 } from "../utils/sync";
-import { IStorage, ISet, IWeight, IHistoryRecord, ISettings } from "../types";
+import {
+  IStorage,
+  ISet,
+  IWeight,
+  IHistoryRecord,
+  ISettings,
+  IExerciseType,
+  IPercentage,
+  IProgressMode,
+  IProgramState,
+} from "../types";
 import { IEither } from "../utils/types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
+import { ExerciseImageUtils } from "../models/exerciseImage";
+import { Weight } from "../models/weight";
+import { Progress } from "../models/progress";
+import { Equipment } from "../models/equipment";
+import { ProgramExercise } from "../models/programExercise";
+import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { ObjectUtils } from "../utils/object";
 
 export interface IWatchHistoryRecord {
   dayName: string;
@@ -14,7 +32,43 @@ export interface IWatchHistoryRecord {
 
 export interface IWatchHistoryEntry {
   name: string;
+  imageUrl?: string;
   sets: IWatchSet[];
+}
+
+export type IWatchSetStatus = "success" | "in-range" | "failed" | "not-finished";
+
+export interface IWatchUserPromptedStateVar {
+  name: string;
+  value: number;
+  unit?: "lb" | "kg" | "%";
+}
+
+export interface IWatchAmrapModal {
+  entryIndex: number;
+  setIndex: number;
+  isAmrap: boolean;
+  logRpe: boolean;
+  askWeight: boolean;
+  hasUserVars: boolean;
+  isUnilateral: boolean;
+  // Initial values for the fields
+  initialReps?: number;
+  initialRepsLeft?: number;
+  initialWeight?: number;
+  weightUnit: "lb" | "kg";
+  initialRpe?: number;
+  // User prompted state variables
+  userPromptedVars: IWatchUserPromptedStateVar[];
+}
+
+export interface IWatchRestTimer {
+  timerSince: number;
+  timer: number;
+}
+
+export interface IWatchCompleteSetResult {
+  amrapModal?: IWatchAmrapModal;
 }
 
 export interface IWatchSet {
@@ -22,6 +76,7 @@ export interface IWatchSet {
   reps?: number;
   minReps?: number;
   weight?: IWeight;
+  originalWeight?: IWeight | IPercentage;
   isAmrap?: boolean;
   rpe?: number;
   timer?: number;
@@ -29,23 +84,37 @@ export interface IWatchSet {
   isCompleted?: boolean;
   completedReps?: number;
   completedWeight?: IWeight;
+  status: IWatchSetStatus;
+  plates?: string;
+  isWarmup: boolean;
 }
 
-function setToWatchSet(set: ISet): IWatchSet {
+function setToWatchSet(set: ISet, exerciseType: IExerciseType, settings: ISettings, isWarmup: boolean): IWatchSet {
+  let plates: string | undefined;
+  const weight = set.weight;
+  if (weight) {
+    const unit = weight.unit;
+    const { plates: platesArr } = Weight.calculatePlates(weight, settings, unit, exerciseType);
+    if (platesArr.length > 0) {
+      plates = Weight.formatOneSide(settings, platesArr, exerciseType);
+    }
+  }
   return {
     index: set.index,
     reps: set.reps,
     minReps: set.minReps,
-    weight: set.weight ? { value: set.weight.value, unit: set.weight.unit } : undefined,
+    weight: set.weight,
+    originalWeight: set.originalWeight,
     isAmrap: set.isAmrap,
     rpe: set.rpe,
     timer: set.timer,
     label: set.label,
     isCompleted: set.isCompleted,
     completedReps: set.completedReps,
-    completedWeight: set.completedWeight
-      ? { value: set.completedWeight.value, unit: set.completedWeight.unit }
-      : undefined,
+    completedWeight: set.completedWeight,
+    status: Reps.setsStatus([set]),
+    plates,
+    isWarmup,
   };
 }
 
@@ -92,9 +161,13 @@ class LiftosaurWatch {
   ): IWatchHistoryRecord {
     const exercises: IWatchHistoryEntry[] = historyRecord.entries.map((entry) => {
       const exercise = Exercise.get(entry.exercise, settings.exercises);
+      const imageUrl = ExerciseImageUtils.url(entry.exercise, "small", settings);
+      const warmupSets = (entry.warmupSets || []).map((set) => setToWatchSet(set, entry.exercise, settings, true));
+      const workoutSets = entry.sets.map((set) => setToWatchSet(set, entry.exercise, settings, false));
       return {
         name: exercise.name,
-        sets: entry.sets.map((set) => setToWatchSet(set)),
+        imageUrl,
+        sets: [...warmupSets, ...workoutSets],
       };
     });
     return {
@@ -187,6 +260,352 @@ class LiftosaurWatch {
 
   public static getLatestMigrationVersion(): string {
     return getLatestMigrationVersion();
+  }
+
+  public static completeSet(storageJson: string, deviceId: string, entryIndex: number, globalSetIndex: number): string {
+    return this.modifyStorage(storageJson, deviceId, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+      const entry = progress.entries[entryIndex];
+      if (!entry) {
+        return { success: false, error: "Entry not found" };
+      }
+
+      // Derive mode and adjusted setIndex from global setIndex
+      const warmupSetsCount = (entry.warmupSets || []).length;
+      const isWarmup = globalSetIndex < warmupSetsCount;
+      const mode: IProgressMode = isWarmup ? "warmup" : "workout";
+      const setIndex = isWarmup ? globalSetIndex : globalSetIndex - warmupSetsCount;
+
+      const program = Program.getCurrentProgram(storage);
+      const evaluatedProgram = program ? Program.evaluate(program, storage.settings) : undefined;
+      const programExercise = evaluatedProgram
+        ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+        : undefined;
+      const newProgress = Progress.completeSetAction(
+        storage.settings,
+        storage.stats,
+        progress,
+        {
+          type: "CompleteSetAction",
+          entryIndex,
+          setIndex,
+          mode,
+          programExercise,
+          forceUpdateEntryIndex: false,
+          isExternal: true,
+          isPlayground: false,
+        },
+        storage.subscription
+      );
+      const newStorage: IStorage = {
+        ...storage,
+        progress: [newProgress],
+      };
+      return { success: true, data: newStorage };
+    });
+  }
+
+  private static modifySet(
+    storageJson: string,
+    deviceId: string,
+    entryIndex: number,
+    globalSetIndex: number,
+    modifier: (set: ISet, context: { settings: ISettings; exerciseType: IExerciseType }) => ISet
+  ): string {
+    return this.modifyStorage(storageJson, deviceId, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+      const entry = progress.entries[entryIndex];
+      if (!entry) {
+        return { success: false, error: "Entry not found" };
+      }
+
+      const warmupSetsCount = (entry.warmupSets || []).length;
+      const isWarmup = globalSetIndex < warmupSetsCount;
+      const setIndex = isWarmup ? globalSetIndex : globalSetIndex - warmupSetsCount;
+      const setsKey = isWarmup ? "warmupSets" : "sets";
+
+      const sets = entry[setsKey];
+      if (!sets || setIndex >= sets.length) {
+        return { success: false, error: "Set not found" };
+      }
+
+      const newSets = [...sets];
+      newSets[setIndex] = modifier(newSets[setIndex], { settings: storage.settings, exerciseType: entry.exercise });
+
+      const newEntries = [...progress.entries];
+      newEntries[entryIndex] = { ...entry, [setsKey]: newSets };
+
+      const newProgress = { ...progress, entries: newEntries };
+      const newStorage: IStorage = { ...storage, progress: [newProgress] };
+      return { success: true, data: newStorage };
+    });
+  }
+
+  public static updateSetReps(
+    storageJson: string,
+    deviceId: string,
+    entryIndex: number,
+    globalSetIndex: number,
+    reps: number
+  ): string {
+    return this.modifySet(storageJson, deviceId, entryIndex, globalSetIndex, (set) => ({
+      ...set,
+      completedReps: reps,
+    }));
+  }
+
+  public static updateSetWeight(
+    storageJson: string,
+    deviceId: string,
+    entryIndex: number,
+    globalSetIndex: number,
+    weightValue: number
+  ): string {
+    return this.modifySet(storageJson, deviceId, entryIndex, globalSetIndex, (set, { settings, exerciseType }) => {
+      const unit =
+        set.completedWeight?.unit ?? set.weight?.unit ?? Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
+      return {
+        ...set,
+        completedWeight: { value: weightValue, unit },
+      };
+    });
+  }
+
+  public static getNextEntryAndSetIndex(storageJson: string, entryIndex: number): string {
+    return this.getStorage<{ entryIndex: number; setIndex: number } | undefined>(storageJson, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+
+      // First try to find next warmup set, then workout set
+      // findNextEntryAndSetIndex already returns global setIndex
+      const warmupResult = Reps.findNextEntryAndSetIndex(progress, entryIndex, "warmup");
+      if (warmupResult) {
+        return { success: true, data: warmupResult };
+      }
+
+      const workoutResult = Reps.findNextEntryAndSetIndex(progress, entryIndex, "workout");
+      return { success: true, data: workoutResult };
+    });
+  }
+
+  public static getValidWeights(
+    storageJson: string,
+    entryIndex: number,
+    currentWeightValue: number,
+    unit: string,
+    countUp: number,
+    countDown: number
+  ): string {
+    return this.getStorage<{ weights: number[]; currentIndex: number }>(storageJson, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+      const entry = progress.entries[entryIndex];
+      if (!entry) {
+        return { success: false, error: "Entry not found" };
+      }
+
+      const exerciseType = entry.exercise;
+      const settings = storage.settings;
+      const currentWeight: IWeight = { value: currentWeightValue, unit: unit as "lb" | "kg" };
+
+      const weightsUp: number[] = [];
+      const weightsDown: number[] = [];
+
+      // Generate weights going up
+      let w = currentWeight;
+      for (let i = 0; i < countUp; i++) {
+        const nextW = Weight.increment(w, settings, exerciseType);
+        if (nextW.value === w.value) break;
+        weightsUp.push(nextW.value);
+        w = nextW;
+      }
+
+      // Generate weights going down
+      w = currentWeight;
+      for (let i = 0; i < countDown; i++) {
+        const prevW = Weight.decrement(w, settings, exerciseType);
+        if (prevW.value === w.value || prevW.value <= 0) break;
+        weightsDown.unshift(prevW.value);
+        w = prevW;
+      }
+
+      // Combine: [...down, current, ...up]
+      const weights = [...weightsDown, currentWeight.value, ...weightsUp];
+      const currentIndex = weightsDown.length;
+
+      return { success: true, data: { weights, currentIndex } };
+    });
+  }
+
+  public static getAmrapModal(storageJson: string): string {
+    return this.getStorage<IWatchAmrapModal | undefined>(storageJson, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: true, data: undefined };
+      }
+
+      const modalData = progress.ui?.amrapModal;
+      if (!modalData) {
+        return { success: true, data: undefined };
+      }
+
+      const entry = progress.entries[modalData.entryIndex];
+      if (!entry) {
+        return { success: true, data: undefined };
+      }
+
+      const set = entry.sets[modalData.setIndex];
+      if (!set) {
+        return { success: true, data: undefined };
+      }
+
+      const settings = storage.settings;
+      const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
+      const weightUnit = set.weight?.unit ?? Equipment.getUnitOrDefaultForExerciseType(settings, entry.exercise);
+
+      // Build user prompted vars if needed
+      const userPromptedVars: IWatchUserPromptedStateVar[] = [];
+      if (modalData.userVars) {
+        const program = Program.getCurrentProgram(storage);
+        const evaluatedProgram = program ? Program.evaluate(program, settings) : undefined;
+        const programExercise = evaluatedProgram
+          ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+          : undefined;
+
+        if (programExercise) {
+          const stateMetadata = PlannerProgramExercise.getStateMetadata(programExercise) || {};
+          const state = PlannerProgramExercise.getState(programExercise);
+          for (const key of ObjectUtils.keys(stateMetadata)) {
+            if (stateMetadata[key]?.userPrompted) {
+              const value = state[key];
+              if (typeof value === "number") {
+                userPromptedVars.push({ name: key, value });
+              } else if (Weight.is(value)) {
+                userPromptedVars.push({ name: key, value: value.value, unit: value.unit });
+              } else if (Weight.isPct(value)) {
+                userPromptedVars.push({ name: key, value: value.value, unit: "%" });
+              }
+            }
+          }
+        }
+      }
+
+      const modal: IWatchAmrapModal = {
+        entryIndex: modalData.entryIndex,
+        setIndex: modalData.setIndex,
+        isAmrap: !!modalData.isAmrap,
+        logRpe: !!modalData.logRpe,
+        askWeight: !!modalData.askWeight,
+        hasUserVars: !!modalData.userVars,
+        isUnilateral,
+        initialReps: set.completedReps ?? set.reps,
+        initialRepsLeft: isUnilateral ? (set.completedRepsLeft ?? set.reps) : undefined,
+        initialWeight: set.completedWeight?.value ?? set.weight?.value,
+        weightUnit,
+        initialRpe: set.completedRpe ?? set.rpe,
+        userPromptedVars,
+      };
+
+      return { success: true, data: modal };
+    });
+  }
+
+  public static completeSetWithAmrap(
+    storageJson: string,
+    deviceId: string,
+    completedReps?: number,
+    completedRepsLeft?: number,
+    completedWeight?: number,
+    completedRpe?: number,
+    userPromptedVarsJson?: string
+  ): string {
+    return this.modifyStorage(storageJson, deviceId, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+
+      const modalData = progress.ui?.amrapModal;
+      if (!modalData) {
+        return { success: false, error: "No amrap modal data" };
+      }
+
+      const { entryIndex, setIndex } = modalData;
+      const entry = progress.entries[entryIndex];
+      if (!entry) {
+        return { success: false, error: "Entry not found" };
+      }
+
+      const settings = storage.settings;
+      const set = entry.sets[setIndex];
+      if (!set) {
+        return { success: false, error: "Set not found" };
+      }
+
+      // Get program exercise for running update script
+      const program = Program.getCurrentProgram(storage);
+      const evaluatedProgram = program ? Program.evaluate(program, settings) : undefined;
+      const programExercise = evaluatedProgram
+        ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+        : undefined;
+
+      // Build the action similar to ChangeAMRAPAction
+      let weightValue: IWeight | undefined;
+      if (completedWeight != null) {
+        const weightUnit = set.weight?.unit ?? Equipment.getUnitOrDefaultForExerciseType(settings, entry.exercise);
+        weightValue = { value: completedWeight, unit: weightUnit };
+      }
+
+      // Parse user vars if provided
+      let userVars: IProgramState | undefined;
+      if (userPromptedVarsJson) {
+        try {
+          userVars = JSON.parse(userPromptedVarsJson) as IProgramState;
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+
+      // Use Progress.changeAmrapAction which handles all the logic
+      const newProgress = Progress.changeAmrapAction(
+        settings,
+        storage.stats,
+        progress,
+        {
+          type: "ChangeAMRAPAction",
+          entryIndex,
+          setIndex,
+          isPlayground: false,
+          amrapValue: completedReps,
+          amrapLeftValue: completedRepsLeft,
+          rpeValue: completedRpe,
+          weightValue,
+          isAmrap: modalData.isAmrap,
+          logRpe: modalData.logRpe,
+          askWeight: modalData.askWeight,
+          programExercise,
+          otherStates: {},
+          userVars,
+        },
+        storage.subscription
+      );
+
+      const newStorage: IStorage = {
+        ...storage,
+        progress: [newProgress],
+      };
+      return { success: true, data: newStorage };
+    });
   }
 }
 

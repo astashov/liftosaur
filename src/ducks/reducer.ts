@@ -24,7 +24,6 @@ import {
 import { IndexedDBUtils } from "../utils/indexeddb";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { LogUtils } from "../utils/log";
-import { ProgramExercise } from "../models/programExercise";
 import { Service } from "../api/service";
 import { unrunMigrations } from "../migrations/runner";
 import { ObjectUtils } from "../utils/object";
@@ -588,137 +587,12 @@ export function buildCardsReducer(
   return (progress, action): IHistoryRecord => {
     switch (action.type) {
       case "CompleteSetAction": {
-        const hasUserPromptedVars =
-          action.programExercise && ProgramExercise.hasUserPromptedVars(action.programExercise);
-        let newProgress = Progress.completeSet(
-          progress,
-          action.entryIndex,
-          action.setIndex,
-          action.mode,
-          !!hasUserPromptedVars,
-          settings
-        );
-        const oldSet =
-          progress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
-        const newSet =
-          newProgress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
-        const didFinish = !oldSet.isCompleted && newSet.isCompleted;
-        if (action.programExercise && !newProgress.ui?.amrapModal) {
-          newProgress = Progress.runUpdateScript(
-            newProgress,
-            action.programExercise,
-            action.otherStates || {},
-            action.entryIndex,
-            action.setIndex,
-            action.mode,
-            settings,
-            stats
-          );
-        }
-
-        if (Progress.isFullyFinishedSet(newProgress)) {
-          newProgress = Progress.stopTimer(newProgress);
-        }
-        if (didFinish) {
-          newProgress = Progress.maybeApplySuperset(newProgress, action.entryIndex, action.mode);
-        }
-        if (!action.isPlayground) {
-          newProgress = Progress.startTimer(
-            newProgress,
-            new Date().getTime(),
-            action.mode,
-            action.entryIndex,
-            action.setIndex,
-            settings,
-            subscription
-          );
-        }
-        newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
-        LiveActivityManager.updateLiveActivityForNextEntry(
-          newProgress,
-          action.entryIndex,
-          action.mode,
-          action.programExercise,
-          settings,
-          subscription
-        );
-        if (action.forceUpdateEntryIndex) {
-          newProgress = {
-            ...newProgress,
-            ui: { ...newProgress.ui, forceUpdateEntryIndex: !newProgress.ui?.forceUpdateEntryIndex },
-          };
-        }
-        if (action.isExternal) {
-          newProgress = {
-            ...newProgress,
-            ui: { ...newProgress.ui, isExternal: true },
-          };
-        }
+        const newProgress = Progress.completeSetAction(settings, stats, progress, action, subscription);
         return newProgress;
       }
       case "ChangeAMRAPAction": {
-        let newProgress = { ...progress };
-        if (
-          action.amrapValue == null &&
-          action.amrapLeftValue == null &&
-          action.rpeValue == null &&
-          action.weightValue == null &&
-          ObjectUtils.keys(action.userVars || {}).length === 0
-        ) {
-          return { ...newProgress, ui: { ...newProgress.ui, amrapModal: undefined } };
-        }
-        if (action.amrapValue != null) {
-          newProgress = Progress.updateAmrapRepsInExercise(newProgress, action.amrapValue);
-        }
-        if (action.amrapLeftValue != null) {
-          newProgress = Progress.updateAmrapRepsLeftInExercise(newProgress, action.amrapLeftValue);
-        }
-        if (action.logRpe) {
-          newProgress = Progress.updateRpeInExercise(newProgress, action.rpeValue);
-        }
-        if (action.weightValue != null) {
-          newProgress = Progress.updateWeightInExercise(newProgress, action.weightValue);
-        }
-        const programExerciseId = action.programExercise?.key;
-        if (ObjectUtils.keys(action.userVars || {}).length > 0 && programExerciseId != null) {
-          newProgress = Progress.updateUserPromptedStateVars(newProgress, programExerciseId, action.userVars || {});
-        }
-        newProgress = Progress.completeAmrapSet(newProgress, action.entryIndex, action.setIndex, settings);
-        if (action.programExercise) {
-          newProgress = Progress.runUpdateScript(
-            newProgress,
-            action.programExercise,
-            action.otherStates || {},
-            action.entryIndex,
-            action.setIndex,
-            "workout",
-            settings,
-            stats
-          );
-        }
-        if (Progress.isFullyFinishedSet(newProgress)) {
-          newProgress = Progress.stopTimer(newProgress);
-        }
-        newProgress = Progress.maybeApplySuperset(newProgress, action.entryIndex, "workout");
-        newProgress = Progress.startTimer(
-          newProgress,
-          new Date().getTime(),
-          "workout",
-          action.entryIndex,
-          action.setIndex,
-          settings,
-          subscription
-        );
-        newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
-        LiveActivityManager.updateLiveActivityForNextEntry(
-          newProgress,
-          action.entryIndex,
-          "workout",
-          action.programExercise,
-          settings,
-          subscription
-        );
-        return { ...newProgress, ui: { ...newProgress.ui, amrapModal: undefined } };
+        const newProgress = Progress.changeAmrapAction(settings, stats, progress, action, subscription);
+        return newProgress;
       }
       case "UpdateProgress": {
         return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);
