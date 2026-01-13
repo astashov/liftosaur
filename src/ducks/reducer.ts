@@ -45,7 +45,6 @@ import { lg } from "../utils/posthog";
 import { Equipment } from "../models/equipment";
 import { Stats } from "../models/stats";
 import { Weight } from "../models/weight";
-import { LiveActivityManager } from "../utils/liveActivityManager";
 
 declare let __COMMIT_HASH__: string;
 

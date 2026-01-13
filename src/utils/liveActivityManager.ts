@@ -1,11 +1,12 @@
 import { Exercise } from "../models/exercise";
 import { ExerciseImageUtils } from "../models/exerciseImage";
+import { Program } from "../models/program";
 import { ProgramExercise } from "../models/programExercise";
 import { Progress } from "../models/progress";
 import { ISetsStatus, Reps } from "../models/set";
 import { Weight } from "../models/weight";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
-import { IHistoryRecord, ISettings, ISubscription } from "../types";
+import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { n } from "./math";
 import { SendMessage } from "./sendMessage";
 import { Subscriptions } from "./subscriptions";
@@ -119,6 +120,34 @@ export class LiveActivityManager {
       canCompleteFromLiveActivity,
     };
     return state;
+  }
+
+  public static updateProgressLiveActivity(
+    program: IProgram,
+    progress: IHistoryRecord,
+    settings: ISettings,
+    subscription: ISubscription | undefined,
+    entryIndex: number | undefined,
+    setIndex: number | undefined,
+    restTimer: number | undefined,
+    restTimerSince: number | undefined
+  ): void {
+    const entry = entryIndex != null ? progress.entries[entryIndex] : undefined;
+    const evaluatedProgram = program ? Program.evaluate(program, settings) : undefined;
+    const programExercise =
+      evaluatedProgram && entry
+        ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+        : undefined;
+    LiveActivityManager.updateLiveActivity(
+      progress,
+      entryIndex,
+      setIndex,
+      restTimer,
+      restTimerSince,
+      programExercise,
+      settings,
+      subscription
+    );
   }
 
   public static updateLiveActivity(

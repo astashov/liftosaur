@@ -25,6 +25,7 @@ import {
   IExerciseDataValue,
   IUnit,
   IStats,
+  IProgram,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { Subscriptions } from "../utils/subscriptions";
@@ -40,7 +41,6 @@ import { IScreenStack, Screen } from "./screen";
 import { UidFactory } from "../utils/generator";
 import { ProgramSet } from "./programSet";
 import { Stats } from "./stats";
-import { Thunk } from "../ducks/thunks";
 import { IChangeAMRAPAction, ICompleteSetAction } from "../ducks/reducer";
 import { LiveActivityManager } from "../utils/liveActivityManager";
 import { ProgramExercise } from "./programExercise";
@@ -625,67 +625,66 @@ export namespace Progress {
   }
 
   export function updateTimer(
-    dispatch: IDispatch,
     progress: IHistoryRecord,
+    program: IProgram,
     newTimer: number,
     timerSince: number,
     liveActivityEntryIndex: number | undefined,
     liveActivitySetIndex: number | undefined,
-    skipLiveActivityUpdate: boolean
-  ): void {
+    skipLiveActivityUpdate: boolean,
+    settings: ISettings,
+    subscription: ISubscription | undefined
+  ): IHistoryRecord {
     const timerForPush = newTimer - Math.round((Date.now() - timerSince) / 1000);
     if (timerForPush > 0) {
-      dispatch({
-        type: "StartTimer",
-        entryIndex: progress.timerEntryIndex || 0,
-        setIndex: progress.timerSetIndex || 0,
-        mode: progress.timerMode || "workout",
-        timestamp: progress.timerSince || Date.now(),
-        timer: newTimer,
-      });
+      const newProgress = Progress.startTimer(
+        progress,
+        progress.timerSince || Date.now(),
+        progress.timerMode || "workout",
+        progress.timerEntryIndex || 0,
+        progress.timerSetIndex || 0,
+        settings,
+        subscription,
+        newTimer,
+        true
+      );
       if (!skipLiveActivityUpdate) {
-        dispatch(
-          Thunk.updateLiveActivity(
-            liveActivityEntryIndex,
-            liveActivitySetIndex,
-            newTimer,
-            progress.timerSince || Date.now()
-          )
+        LiveActivityManager.updateProgressLiveActivity(
+          program,
+          progress,
+          settings,
+          subscription,
+          liveActivityEntryIndex,
+          liveActivitySetIndex,
+          newTimer,
+          progress.timerSince || Date.now()
         );
       }
+      return newProgress;
     } else {
       SendMessage.toIos({ type: "stopTimer" });
       SendMessage.toAndroid({ type: "stopTimer" });
-      updateState(
-        dispatch,
-        [
-          lb<IState>().p("storage").pi("progress").i(0).p("timer").record(Math.max(0, newTimer)),
-          lb<IState>()
-            .p("storage")
-            .pi("progress")
-            .i(0)
-            .recordModify((record) => {
-              return {
-                ...record,
-                ui: {
-                  ...record.ui,
-                  nativeNotificationScheduled: undefined,
-                },
-              };
-            }),
-        ],
-        "Update timer"
-      );
+      const newProgress = {
+        ...progress,
+        timer: Math.max(0, newTimer),
+        ui: {
+          ...progress.ui,
+          nativeNotificationScheduled: undefined,
+        },
+      };
       if (!skipLiveActivityUpdate) {
-        dispatch(
-          Thunk.updateLiveActivity(
-            liveActivityEntryIndex,
-            liveActivitySetIndex,
-            Math.max(0, newTimer),
-            progress.timerSince || Date.now()
-          )
+        LiveActivityManager.updateProgressLiveActivity(
+          program,
+          progress,
+          settings,
+          subscription,
+          liveActivityEntryIndex,
+          liveActivitySetIndex,
+          Math.max(0, newTimer),
+          progress.timerSince || Date.now()
         );
       }
+      return newProgress;
     }
   }
 
@@ -708,12 +707,27 @@ export namespace Progress {
   export function stopTimer(progress: IHistoryRecord): IHistoryRecord {
     SendMessage.toIos({ type: "stopTimer" });
     SendMessage.toAndroid({ type: "stopTimer" });
+    return stopTimerPure(progress);
+  }
+
+  export function stopTimerPure(progress: IHistoryRecord): IHistoryRecord {
     return {
       ...progress,
       timerSince: undefined,
       timerMode: undefined,
+      timer: undefined,
       timerSetIndex: undefined,
       timerEntryIndex: undefined,
+    };
+  }
+
+  export function setTimerValue(progress: IHistoryRecord, newTimer: number): IHistoryRecord {
+    if (progress.timerSince == null) {
+      return progress;
+    }
+    return {
+      ...progress,
+      timer: Math.max(0, newTimer),
     };
   }
 

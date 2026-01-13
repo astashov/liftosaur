@@ -5,8 +5,8 @@ import { IGetStorageResponse, IPostSyncResponse, Service } from "../api/service"
 import { lb } from "lens-shmens";
 import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
-import { IEnv, IState, updateState } from "../models/state";
-import { IProgram, IStorage, IExerciseType, ISettings, IDayData } from "../types";
+import { IEnv, IState, updateProgress, updateState } from "../models/state";
+import { IProgram, IStorage, IExerciseType, ISettings, IDayData, IHistoryRecord } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ImportExporter } from "../lib/importexporter";
 import { Storage } from "../models/storage";
@@ -410,6 +410,37 @@ export namespace Thunk {
     };
   }
 
+  export function updateTimer(
+    newTimer: number,
+    entryIndex: number | undefined,
+    setIndex: number | undefined,
+    skipLiveActivityUpdate: boolean
+  ): IThunk {
+    return async (dispatch, getState, env) => {
+      const state = getState();
+      const progress = Progress.getProgress(state);
+      if (!progress) {
+        return;
+      }
+      const program = Program.getProgram(state, progress.programId);
+      if (!program) {
+        return;
+      }
+      const newProgress = Progress.updateTimer(
+        progress,
+        program,
+        newTimer,
+        progress.timerSince || Date.now(),
+        entryIndex,
+        setIndex,
+        !!skipLiveActivityUpdate,
+        state.storage.settings,
+        state.storage.subscription
+      );
+      updateProgress(dispatch, lb<IHistoryRecord>().record(newProgress), "Update rest timer");
+    };
+  }
+
   export function updateLiveActivity(
     entryIndex: number | undefined,
     setIndex: number | undefined,
@@ -422,22 +453,19 @@ export namespace Thunk {
       if (!progress) {
         return;
       }
-      const entry = entryIndex != null ? progress.entries[entryIndex] : undefined;
       const program = Program.getProgram(state, progress.programId);
-      const evaluatedProgram = program ? Program.evaluate(program, state.storage.settings) : undefined;
-      const programExercise =
-        evaluatedProgram && entry
-          ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
-          : undefined;
-      LiveActivityManager.updateLiveActivity(
+      if (!program) {
+        return;
+      }
+      LiveActivityManager.updateProgressLiveActivity(
+        program,
         progress,
+        state.storage.settings,
+        state.storage.subscription,
         entryIndex,
         setIndex,
         restTimer,
-        restTimerSince,
-        programExercise,
-        state.storage.settings,
-        state.storage.subscription
+        restTimerSince
       );
     };
   }

@@ -20,7 +20,6 @@ import { ExerciseImageUtils } from "../models/exerciseImage";
 import { Weight } from "../models/weight";
 import { Progress } from "../models/progress";
 import { Equipment } from "../models/equipment";
-import { ProgramExercise } from "../models/programExercise";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { ObjectUtils } from "../utils/object";
 
@@ -369,7 +368,9 @@ class LiftosaurWatch {
   ): string {
     return this.modifySet(storageJson, deviceId, entryIndex, globalSetIndex, (set, { settings, exerciseType }) => {
       const unit =
-        set.completedWeight?.unit ?? set.weight?.unit ?? Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
+        set.completedWeight?.unit ??
+        set.weight?.unit ??
+        Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
       return {
         ...set,
         completedWeight: { value: weightValue, unit },
@@ -425,7 +426,9 @@ class LiftosaurWatch {
       let w = currentWeight;
       for (let i = 0; i < countUp; i++) {
         const nextW = Weight.increment(w, settings, exerciseType);
-        if (nextW.value === w.value) break;
+        if (nextW.value === w.value) {
+          break;
+        }
         weightsUp.push(nextW.value);
         w = nextW;
       }
@@ -434,7 +437,9 @@ class LiftosaurWatch {
       w = currentWeight;
       for (let i = 0; i < countDown; i++) {
         const prevW = Weight.decrement(w, settings, exerciseType);
-        if (prevW.value === w.value || prevW.value <= 0) break;
+        if (prevW.value === w.value || prevW.value <= 0) {
+          break;
+        }
         weightsDown.unshift(prevW.value);
         w = prevW;
       }
@@ -604,6 +609,73 @@ class LiftosaurWatch {
         ...storage,
         progress: [newProgress],
       };
+      return { success: true, data: newStorage };
+    });
+  }
+
+  public static getRestTimer(storageJson: string): string {
+    return this.getStorage<IWatchRestTimer | undefined>(storageJson, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: true, data: undefined };
+      }
+
+      if (progress.timerSince == null || progress.timer == null) {
+        return { success: true, data: undefined };
+      }
+
+      return {
+        success: true,
+        data: {
+          timerSince: progress.timerSince,
+          timer: progress.timer,
+        },
+      };
+    });
+  }
+
+  public static adjustRestTimer(storageJson: string, deviceId: string, adjustment: number): string {
+    return this.modifyStorage(storageJson, deviceId, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+
+      if (progress.timerSince == null || progress.timer == null) {
+        return { success: false, error: "No active timer" };
+      }
+
+      const program = Program.getCurrentProgram(storage);
+      if (!program) {
+        return { success: false, error: "No current program" };
+      }
+
+      const newTimer = progress.timer + adjustment;
+      const newProgress = Progress.updateTimer(
+        progress,
+        program,
+        newTimer,
+        progress.timerSince,
+        undefined,
+        undefined,
+        true,
+        storage.settings,
+        storage.subscription
+      );
+      const newStorage: IStorage = { ...storage, progress: [newProgress] };
+      return { success: true, data: newStorage };
+    });
+  }
+
+  public static stopRestTimer(storageJson: string, deviceId: string): string {
+    return this.modifyStorage(storageJson, deviceId, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+
+      const newProgress = Progress.stopTimerPure(progress);
+      const newStorage: IStorage = { ...storage, progress: [newProgress] };
       return { success: true, data: newStorage };
     });
   }

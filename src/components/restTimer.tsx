@@ -6,7 +6,6 @@ import { Thunk } from "../ducks/thunks";
 import { IconTrash } from "./icons/iconTrash";
 import { IconBack } from "./icons/iconBack";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
-import { Progress } from "../models/progress";
 import { Reps } from "../models/set";
 import { SendMessage } from "../utils/sendMessage";
 
@@ -76,14 +75,8 @@ export function RestTimer(props: IProps): JSX.Element | null {
             className="relative w-10 m-2 text-center nm-rest-timer-minus"
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() =>
-              Progress.updateTimer(
-                props.dispatch,
-                progress,
-                timer - 15,
-                timerSince,
-                nextEntryAndSetIndex?.entryIndex,
-                nextEntryAndSetIndex?.setIndex,
-                false
+              props.dispatch(
+                Thunk.updateTimer(timer - 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
               )
             }
           >
@@ -125,14 +118,8 @@ export function RestTimer(props: IProps): JSX.Element | null {
             className="relative w-10 m-2 text-center nm-rest-timer-plus"
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() =>
-              Progress.updateTimer(
-                props.dispatch,
-                progress,
-                timer + 15,
-                timerSince,
-                nextEntryAndSetIndex?.entryIndex,
-                nextEntryAndSetIndex?.setIndex,
-                false
+              props.dispatch(
+                Thunk.updateTimer(timer + 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
               )
             }
           >

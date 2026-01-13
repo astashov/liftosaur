@@ -130,7 +130,7 @@ async function getCurrentUserId(event: APIGatewayProxyEvent, di: IDI): Promise<s
 
   if (!userId) {
     // Try Authorization header (Apple Watch)
-    const authHeader = event.headers["Authorization"] || event.headers["authorization"];
+    const authHeader = event.headers.Authorization || event.headers.authorization;
     if (authHeader?.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
       userId = await userDao.getUserIdFromToken(token);
@@ -299,7 +299,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
     bodyJson = rawBodyJson;
   }
   const deviceId = bodyJson.deviceId as string | undefined;
-  const timestamp = bodyJson.timestamp || Date.now();
+  const timestamp: number = (bodyJson.timestamp as number) || Date.now();
   const storageUpdate = bodyJson.storageUpdate as IStorageUpdate2;
   const historylimit = bodyJson.historylimit as number | undefined;
   const userId = await getCurrentUserId(event, di);
