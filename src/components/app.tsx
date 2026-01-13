@@ -230,14 +230,13 @@ export function AppView(props: IProps): JSX.Element | null {
             dispatch(Thunk.updateLiveActivity(entryIndex, setIndex, timer, timerSince));
           }
         } else {
-          Progress.updateTimer(
-            dispatch,
-            progress,
-            action === "increase" ? timer + 15 : timer - 15,
-            timerSince,
-            entryIndex,
-            setIndex,
-            skipLiveActivityUpdate
+          dispatch(
+            Thunk.updateTimer(
+              action === "increase" ? timer + 15 : Math.max(0, timer - 15),
+              entryIndex,
+              setIndex,
+              skipLiveActivityUpdate
+            )
           );
         }
       } else if (event.data?.type === "timerScheduled") {
