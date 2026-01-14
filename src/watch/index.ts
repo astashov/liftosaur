@@ -117,7 +117,18 @@ function setToWatchSet(set: ISet, exerciseType: IExerciseType, settings: ISettin
   };
 }
 
-function parseStorageSync(storageJson: string): IEither<IStorage, string[]> {
+// Cache validated storage to avoid re-parsing/validating on every call
+let cachedStorage: IStorage | null = null;
+let cachedStorageVersion: number = 0; // Incremented on each mutation
+
+function parseStorageSync(storageJson: string, forceRevalidate: boolean = false): IEither<IStorage, string[]> {
+  // If we have cached storage from a recent mutation, use it directly
+  // The version check ensures we use cache only for our own mutations
+  if (cachedStorage !== null && !forceRevalidate) {
+    console.log(`[PERF] using cached storage (version ${cachedStorageVersion})`);
+    return { success: true, data: cachedStorage };
+  }
+
   const parseStart = Date.now();
   const data = JSON.parse(storageJson);
   console.log(`[PERF] JSON.parse took ${Date.now() - parseStart}ms`);
@@ -125,7 +136,18 @@ function parseStorageSync(storageJson: string): IEither<IStorage, string[]> {
   const validateStart = Date.now();
   const result = Storage.validateStorage(data);
   console.log(`[PERF] validateStorage took ${Date.now() - validateStart}ms`);
+
+  if (result.success) {
+    cachedStorage = result.data;
+    cachedStorageVersion += 1;
+  }
   return result;
+}
+
+// Called when storage is updated from external source (phone sync, server)
+function invalidateStorageCache(): void {
+  cachedStorage = null;
+  console.log(`[PERF] storage cache invalidated`);
 }
 
 class LiftosaurWatch {
@@ -168,6 +190,9 @@ class LiftosaurWatch {
       const newVersions = Storage.updateVersions(storage, newStorage, deviceId);
       console.log(`[PERF] updateVersions took ${Date.now() - versionsStart}ms`);
       newStorage._versions = newVersions;
+      // Update cache with the new storage so next call doesn't need to re-validate
+      cachedStorage = newStorage;
+      cachedStorageVersion += 1;
       return { success: true, data: newStorage };
     });
   }
@@ -269,6 +294,10 @@ class LiftosaurWatch {
       const currentStorage = JSON.parse(currentStorageJson) as IStorage;
       const incomingStorage = JSON.parse(incomingStorageJson) as IStorage;
       const merged = Storage.mergeStorage(currentStorage, incomingStorage, deviceId);
+      // Update cache with merged result so next operation doesn't need to re-validate
+      cachedStorage = merged;
+      cachedStorageVersion += 1;
+      console.log(`[PERF] mergeStorage updated cache (version ${cachedStorageVersion})`);
       return JSON.stringify(merged);
     } catch (e) {
       return JSON.stringify({ error: String(e) });
@@ -696,6 +725,12 @@ class LiftosaurWatch {
       const newStorage: IStorage = { ...storage, progress: [newProgress] };
       return { success: true, data: newStorage };
     });
+  }
+
+  // Called when storage is updated from external source (phone sync, server)
+  // Forces next operation to re-parse and re-validate from the new storageJson
+  public static invalidateStorageCache(): void {
+    invalidateStorageCache();
   }
 }
 
