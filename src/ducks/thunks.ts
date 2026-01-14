@@ -531,18 +531,18 @@ export namespace Thunk {
         const update: IStorageUpdate2 = JSON.parse(updateJson);
         const state = getState();
 
-        console.log("handleWatchStorageUpdate: applying update from device", watchDeviceId);
+        SendMessage.print(`handleWatchStorageUpdate: applying update from device, ${watchDeviceId}`);
 
         const newStorage = Storage.applyStorageUpdate2(state.storage, update, state.deviceId);
 
         if (newStorage !== state.storage) {
           updateState(dispatch, [lb<IState>().p("storage").record(newStorage)], "Apply watch storage update");
-          console.log("handleWatchStorageUpdate: successfully applied watch update");
+          SendMessage.print("handleWatchStorageUpdate: successfully applied watch update");
         } else {
-          console.log("handleWatchStorageUpdate: no changes to apply");
+          SendMessage.print("handleWatchStorageUpdate: no changes to apply");
         }
       } catch (error) {
-        console.error("handleWatchStorageUpdate: failed to process update", error);
+        SendMessage.print(`handleWatchStorageUpdate: failed to process update: ${error}`);
       }
     };
   }
