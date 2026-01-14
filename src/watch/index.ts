@@ -118,20 +118,34 @@ function setToWatchSet(set: ISet, exerciseType: IExerciseType, settings: ISettin
 }
 
 function parseStorageSync(storageJson: string): IEither<IStorage, string[]> {
+  const parseStart = Date.now();
   const data = JSON.parse(storageJson);
+  console.log(`[PERF] JSON.parse took ${Date.now() - parseStart}ms`);
   // For watch, skip migrations and just validate
-  return Storage.validateStorage(data);
+  const validateStart = Date.now();
+  const result = Storage.validateStorage(data);
+  console.log(`[PERF] validateStorage took ${Date.now() - validateStart}ms`);
+  return result;
 }
 
 class LiftosaurWatch {
   private static getStorage<T>(storageJson: string, cb: (storage: IStorage) => IEither<T, string>): string {
     try {
+      const totalStart = Date.now();
+      const parseStart = Date.now();
       const result = parseStorageSync(storageJson);
+      console.log(`[PERF] parseStorageSync took ${Date.now() - parseStart}ms`);
       if (!result.success) {
         return JSON.stringify({ success: false, error: result.error.join(", ") });
       }
+      const cbStart = Date.now();
       const newStorageResult = cb(result.data);
-      return JSON.stringify(newStorageResult);
+      console.log(`[PERF] callback took ${Date.now() - cbStart}ms`);
+      const stringifyStart = Date.now();
+      const jsonResult = JSON.stringify(newStorageResult);
+      console.log(`[PERF] JSON.stringify took ${Date.now() - stringifyStart}ms`);
+      console.log(`[PERF] getStorage total took ${Date.now() - totalStart}ms`);
+      return jsonResult;
     } catch (error) {
       return JSON.stringify({ success: false, error: String(error) });
     }
@@ -143,12 +157,16 @@ class LiftosaurWatch {
     cb: (storage: IStorage) => IEither<IStorage, string>
   ): string {
     return this.getStorage<IStorage>(storageJson, (storage) => {
+      const cbStart = Date.now();
       const newStorageResult = cb(storage);
+      console.log(`[PERF] modifyStorage callback took ${Date.now() - cbStart}ms`);
       if (!newStorageResult.success) {
         return { success: false, error: newStorageResult.error };
       }
       const newStorage = newStorageResult.data;
+      const versionsStart = Date.now();
       const newVersions = Storage.updateVersions(storage, newStorage, deviceId);
+      console.log(`[PERF] updateVersions took ${Date.now() - versionsStart}ms`);
       newStorage._versions = newVersions;
       return { success: true, data: newStorage };
     });
