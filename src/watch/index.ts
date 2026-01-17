@@ -14,6 +14,7 @@ import {
   IPercentage,
   IProgressMode,
   IProgramState,
+  IScreenMuscle,
 } from "../types";
 import { IEither } from "../utils/types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
@@ -23,6 +24,9 @@ import { Progress } from "../models/progress";
 import { Equipment } from "../models/equipment";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { ObjectUtils } from "../utils/object";
+import { Collector } from "../utils/collector";
+import { Muscle } from "../models/muscle";
+import { SendMessage } from "../utils/sendMessage";
 
 export interface IWatchHistoryRecord {
   dayName: string;
@@ -93,6 +97,41 @@ export interface IWatchSet {
   status: IWatchSetStatus;
   plates?: string;
   isWarmup: boolean;
+}
+
+export interface IWatchFinishWorkoutSummary {
+  dayName: string;
+  programName: string;
+  timeMs: number;
+  volume: IWeight;
+  totalSets: number;
+  totalReps: number;
+  exercises: IWatchHistoryEntry[];
+  muscleGroups: IWatchMuscleGroup[];
+  personalRecords: IWatchPersonalRecords;
+}
+
+export interface IWatchMuscleGroup {
+  name: string;
+  sets: number;
+}
+
+export interface IWatchPersonalRecords {
+  maxWeight: IWatchMaxWeightRecord[];
+  estimated1RM: IWatchEstimated1RMRecord[];
+}
+
+export interface IWatchMaxWeightRecord {
+  exerciseName: string;
+  weight: IWeight;
+  reps: number;
+}
+
+export interface IWatchEstimated1RMRecord {
+  exerciseName: string;
+  value: IWeight;
+  reps: number;
+  weight: IWeight;
 }
 
 function setToWatchSet(set: ISet, exerciseType: IExerciseType, settings: ISettings, isWarmup: boolean): IWatchSet {
@@ -204,26 +243,74 @@ class LiftosaurWatch {
     });
   }
 
+  private static convertHistoryEntryToWatchEntry(
+    entry: { exercise: IExerciseType; warmupSets?: ISet[]; sets: ISet[] },
+    settings: ISettings
+  ): IWatchHistoryEntry {
+    const exercise = Exercise.get(entry.exercise, settings.exercises);
+    const imageUrl = ExerciseImageUtils.url(entry.exercise, "small", settings);
+    const warmupSets = (entry.warmupSets || []).map((set) => setToWatchSet(set, entry.exercise, settings, true));
+    const workoutSets = entry.sets.map((set) => setToWatchSet(set, entry.exercise, settings, false));
+    return {
+      name: exercise.name,
+      imageUrl,
+      sets: [...warmupSets, ...workoutSets],
+    };
+  }
+
   private static convertHistoryRecordToWatchHistoryRecord(
     historyRecord: IHistoryRecord,
     settings: ISettings
   ): IWatchHistoryRecord {
-    const exercises: IWatchHistoryEntry[] = historyRecord.entries.map((entry) => {
-      const exercise = Exercise.get(entry.exercise, settings.exercises);
-      const imageUrl = ExerciseImageUtils.url(entry.exercise, "small", settings);
-      const warmupSets = (entry.warmupSets || []).map((set) => setToWatchSet(set, entry.exercise, settings, true));
-      const workoutSets = entry.sets.map((set) => setToWatchSet(set, entry.exercise, settings, false));
-      return {
-        name: exercise.name,
-        imageUrl,
-        sets: [...warmupSets, ...workoutSets],
-      };
-    });
+    const exercises: IWatchHistoryEntry[] = historyRecord.entries.map((entry) =>
+      this.convertHistoryEntryToWatchEntry(entry, settings)
+    );
     return {
       dayName: historyRecord.dayName,
       programName: historyRecord.programName,
       exercises,
     };
+  }
+
+  private static convertPrsToWatchPrs(
+    history: IHistoryRecord[],
+    recordId: number,
+    settings: ISettings
+  ): IWatchPersonalRecords {
+    const allPrs = History.getPersonalRecords(history);
+    const recordPrs = allPrs[recordId] || {};
+    const maxWeight: IWatchMaxWeightRecord[] = [];
+    const estimated1RM: IWatchEstimated1RMRecord[] = [];
+
+    for (const key of ObjectUtils.keys(recordPrs)) {
+      const pr = recordPrs[key];
+      if (!pr) {
+        continue;
+      }
+
+      const exerciseType = Exercise.fromKey(key);
+      const exercise = Exercise.get(exerciseType, settings.exercises);
+
+      if (pr.maxWeightSet) {
+        const weight = pr.maxWeightSet.completedWeight || pr.maxWeightSet.weight;
+        const reps = pr.maxWeightSet.completedReps || pr.maxWeightSet.reps || 0;
+        if (weight && reps > 0) {
+          maxWeight.push({ exerciseName: exercise.name, weight, reps });
+        }
+      }
+
+      if (pr.max1RMSet) {
+        const set = pr.max1RMSet;
+        const weight = set.completedWeight || set.weight;
+        const reps = Reps.avgUnilateralCompletedReps(set) || 0;
+        if (weight && reps > 0) {
+          const value = Weight.getOneRepMax(weight, reps, set.completedRpe || set.rpe);
+          estimated1RM.push({ exerciseName: exercise.name, value, reps, weight });
+        }
+      }
+    }
+
+    return { maxWeight, estimated1RM };
   }
 
   public static getNextHistoryRecord(storageJson: string): string {
@@ -800,6 +887,89 @@ class LiftosaurWatch {
         return { success: true, data: newStorage };
       }
       return { success: true, data: storage };
+    });
+  }
+
+  public static getFinishWorkoutSummary(storageJson: string): string {
+    return this.getStorage<IWatchFinishWorkoutSummary | undefined>(storageJson, (storage) => {
+      const history = storage.history;
+      if (history.length === 0) {
+        return { success: true, data: undefined };
+      }
+
+      const record = history[0];
+      const settings = storage.settings;
+
+      // Calculate stats using History helpers
+      const timeMs = History.workoutTime(record);
+      const volume = History.totalRecordWeight(record, settings.units);
+      const totalSets = History.totalRecordSets(record);
+      const totalReps = History.totalRecordReps(record);
+
+      // Convert started entries to watch format
+      const startedEntries = History.getStartedEntries(record);
+      const exercises = startedEntries.map((entry) => this.convertHistoryEntryToWatchEntry(entry, settings));
+
+      // Calculate muscle groups using History.collectMuscleGroups
+      const historyCollector = Collector.build([record]).addFn(History.collectMuscleGroups(settings));
+      const [muscleGroupsData] = historyCollector.run();
+      const muscleGroups: IWatchMuscleGroup[] = [];
+      for (const mg of ObjectUtils.keys(muscleGroupsData) as IScreenMuscle[]) {
+        if (mg !== "total") {
+          const values = muscleGroupsData[mg];
+          const sets = values[2][0];
+          if (sets > 0) {
+            muscleGroups.push({
+              name: Muscle.getMuscleGroupName(mg, settings),
+              sets: Math.round(sets * 10) / 10,
+            });
+          }
+        }
+      }
+      muscleGroups.sort((a, b) => b.sets - a.sets);
+
+      // Calculate personal records
+      const personalRecords = this.convertPrsToWatchPrs(history, record.id, settings);
+
+      return {
+        success: true,
+        data: {
+          dayName: record.dayName,
+          programName: record.programName,
+          timeMs,
+          volume,
+          totalSets,
+          totalReps,
+          exercises,
+          muscleGroups,
+          personalRecords,
+        },
+      };
+    });
+  }
+
+  public static finishWorkoutContinue(storageJson: string): string {
+    return this.getStorage<{ sent: boolean }>(storageJson, (storage) => {
+      const history = storage.history;
+      if (history.length === 0) {
+        return { success: true, data: { sent: false } };
+      }
+
+      const record = history[0];
+      const settings = storage.settings;
+
+      const healthSync = !!settings.appleHealthSyncWorkout;
+      const calories = History.calories(record);
+      const intervals = record.intervals || [[record.startTime, record.endTime || Date.now()]];
+
+      SendMessage.toIos({
+        type: "finishWorkout",
+        healthSync: healthSync ? "true" : "false",
+        calories: `${calories}`,
+        intervals: JSON.stringify(intervals),
+      });
+
+      return { success: true, data: { sent: true } };
     });
   }
 
