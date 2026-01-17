@@ -282,6 +282,15 @@ export namespace Program {
     dayIndex?: number
   ): IHistoryRecord {
     const program = Program.evaluate(aProgram, settings);
+    return nextHistoryRecordFromEvaluated(program, settings, stats, dayIndex);
+  }
+
+  export function nextHistoryRecordFromEvaluated(
+    program: IEvaluatedProgram,
+    settings: ISettings,
+    stats: IStats,
+    dayIndex?: number
+  ): IHistoryRecord {
     const day = Math.max(1, Math.min(numberOfDays(program), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
     const dayData = getDayData(program, day);
     const { week, dayInWeek } = dayData;

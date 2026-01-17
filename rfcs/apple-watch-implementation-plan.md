@@ -2,7 +2,11 @@
 
 ## Overview
 
-Build an autonomous Apple Watch app for Liftosaur that can complete workouts independently, execute Liftoscript progression logic, and sync with phone/server using the existing VersionTracker infrastructure.
+**Status: ~90% Complete - Production Ready for Core Workflow**
+
+An autonomous Apple Watch app for Liftosaur that can complete workouts independently, execute Liftoscript progression logic, and sync with phone/server using the existing VersionTracker infrastructure.
+
+The core workflow (start workout → log sets → finish → sync) is fully functional. Remaining work is primarily polish and edge case handling.
 
 ## Architecture
 
@@ -271,40 +275,50 @@ struct ExerciseEntry: Codable {
 
 ## Watch App Features
 
-### MVP Scope
+### MVP Scope ✅ ALL COMPLETE
 
 1. **Start Workout**
    - Fetch current program day from storage
    - Display exercise list with sets
+   - Home screen with workout preview and exercise thumbnails
 
 2. **Log Sets**
-   - Tap to complete set (uses programmed reps)
-   - Long press to enter actual reps
-   - Weight display (from program)
-   - Rest timer after set completion
+   - Crown-controlled reps input (scroll to adjust)
+   - Crown-controlled weight picker (valid plate increments only)
+   - Checkmark button to complete set
+   - Rest timer auto-triggered after set completion
+   - AMRAP modal for reps/weight/RPE/custom variables
 
 3. **Exercise Navigation**
-   - Swipe between exercises
-   - See completion status
-   - Skip exercise option
+   - Swipe vertically between exercises
+   - Swipe horizontally between sets within an exercise
+   - Crown rotation to navigate exercises
+   - Visual completion status (dot indicators per set)
+   - Auto-advance to next incomplete set
+   - Discard workout option
 
 4. **Finish Workout**
    - Execute Liftoscript finish day script
    - Save to history
-   - Sync to server
+   - Comprehensive summary: time, volume, sets, reps
+   - Exercise breakdown with completion status
+   - Muscle group distribution
+   - Personal records display (max weight, estimated 1RM)
 
 5. **Offline Support**
    - Full workout completion without connectivity
-   - Queue changes for later sync
+   - Queue changes for later sync (pending updates in UserDefaults)
    - Visual indicator of sync status
+   - Direct server sync when authenticated (cellular watch support)
 
 ### Future Scope
 
-- Edit weights mid-workout
+- Phone UI showing watch workout progress
 - Superset support
 - Workout notes
 - Historical workout viewing
 - Complications for next workout
+- Advanced battery/memory optimization
 
 ## WatchConnectivity (Phone ↔ Watch)
 
@@ -386,13 +400,15 @@ Response:
 - [x] Set up watch app project structure
 - [x] WatchConnectivity for phone → watch storage sync
 
-### Phase 2: Core Workout (IN PROGRESS)
+### Phase 2: Core Workout ✅ COMPLETE
 - [x] Implement workout state storage (UserDefaults)
 - [x] Build home view with workout preview
-- [ ] Build exercise list UI
-- [ ] Build set logging UI
-- [ ] Implement rest timer
-- [ ] Execute Liftoscript on set/workout completion
+- [x] Build exercise list UI (WorkoutExercisesScreen with swipeable cards)
+- [x] Build set logging UI (ExerciseScreen with crown-controlled reps/weight inputs)
+- [x] Implement rest timer (RestTimerScreen with +/-15s adjustments)
+- [x] Execute Liftoscript on set/workout completion (completeSet, finishWorkout)
+- [x] AMRAP modal with reps/weight/RPE/custom variables (AmrapModalView)
+- [x] Finish workout summary screen (FinishWorkoutScreen with PRs, volume, muscle breakdown)
 
 ### Phase 3: Sync ✅ COMPLETE
 - [x] Implement VersionTracker in watch bundle (prepareSync/mergeStorage via JS engine)
@@ -403,15 +419,16 @@ Response:
 ### Phase 4: Phone Integration ✅ COMPLETE
 - [x] WatchConnectivity setup (basic)
 - [x] Phone ↔ watch real-time sync (bidirectional)
-- [ ] Phone UI showing watch workout progress
 - [x] Initial setup flow (auth token transfer)
+- [ ] Phone UI showing watch workout progress (moved to Future Scope)
 
-### Phase 5: Polish
-- [ ] Error handling and recovery
-- [ ] Memory optimization
-- [ ] Battery optimization
+### Phase 5: Polish (PARTIAL)
+- [x] Haptic feedback (crown rotation, button clicks)
+- [x] Basic error handling with user-visible messages
+- [ ] Advanced error recovery (storage corruption, network edge cases)
+- [ ] Memory optimization (lighter validation path for watch bundle)
+- [ ] Battery optimization (timer frequency, network batching)
 - [ ] Complications
-- [ ] Haptic feedback
 
 ## Open Questions
 
@@ -460,16 +477,23 @@ LiftosauriOS/
         ├── LiftosaurColor.swift
         ├── watch-bundle.js             // Built JS bundle (copied from liftosaur/dist)
         ├── Views/
-        │   ├── HomeView.swift
-        │   └── WorkoutCardView.swift
+        │   ├── HomeScreen.swift        // Workout preview with start button
+        │   ├── WorkoutExercisesScreen.swift  // Exercise list with swipeable cards
+        │   ├── ExerciseScreen.swift    // Main workout UI (871 lines - crown & set logging)
+        │   ├── WorkoutCardView.swift   // Exercise card component
+        │   ├── AmrapModalView.swift    // AMRAP/RPE/custom variable input
+        │   ├── RestTimerScreen.swift   // Rest timer with adjustments
+        │   ├── FinishWorkoutScreen.swift  // Summary with PRs, volume, muscles
+        │   └── ScrollableInputFields.swift  // Reusable crown-controlled inputs
         ├── Models/
         │   └── WatchModels.swift       // WatchWorkout, WatchExercise, WatchSet
         └── Engine/
-            ├── LiftosaurEngine.swift   // QuickJS wrapper
-            ├── WorkoutManager.swift    // Workout state
+            ├── LiftosaurEngine.swift   // QuickJS wrapper (14KB)
+            ├── WorkoutManager.swift    // Workout state & orchestration (468 lines)
             ├── WatchCacheManager.swift // Bundle loading
+            ├── WatchStorageManager.swift  // UserDefaults persistence
             ├── WatchConnectivityManager.swift  // Receives storage/auth from phone
-            ├── WatchSyncManager.swift  // Server sync, pending updates queue
+            ├── WatchSyncManager.swift  // Server sync, pending updates queue (17KB)
             └── AuthManager.swift       // JWT token storage and validation
 
 liftosaur/                              // Main web project
@@ -504,3 +528,11 @@ liftosaur/                              // Main web project
 8. **3-way sync architecture** - Watch syncs to both phone (via WatchConnectivity) and server (direct HTTP). Always sync to server when authenticated; phone sync is secondary. This ensures data safety even with poor gym connectivity.
 
 9. **Migration version required** - Server sync requires correct migration version string (not just `1`). Use `getLatestMigrationVersion()` from JS bundle to get the proper version.
+
+10. **Crown gesture complexity** - Crown interactions require careful state management. Use focus modifiers to track which field is selected, and debounce rapid crown rotations to prevent UI lag.
+
+11. **Weight picker needs valid increments** - Don't allow arbitrary weights. Use `getValidWeights()` to generate plate-compatible options based on user's equipment settings.
+
+12. **AMRAP modal flexibility** - AMRAP modal needs to handle multiple input types: reps, weight, RPE, and custom user-prompted state variables. Design it as a dynamic form builder.
+
+13. **Workout pause/resume** - Track workout time via intervals array `[[start, end], [start, end], ...]` rather than a single timestamp, to properly calculate elapsed time with pauses.

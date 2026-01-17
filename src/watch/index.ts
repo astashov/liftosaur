@@ -166,6 +166,52 @@ function setToWatchSet(set: ISet, exerciseType: IExerciseType, settings: ISettin
 // Cache validated storage to avoid re-parsing/validating on every call
 let cachedStorage: IStorage | null = null;
 let cachedStorageVersion: number = 0; // Incremented on each mutation
+let hasValidatedOnceThisSession: boolean = false; // Only validate once per app session
+
+// Cache evaluated program to avoid re-evaluating Liftoscript on every call
+// The memoization in Program.evaluate uses reference equality, which fails when
+// storage is parsed from JSON (new object references each time)
+interface ICachedEvaluatedProgram {
+  programId: string;
+  plannerText: string;
+  evaluatedProgram: ReturnType<typeof Program.evaluate>;
+}
+let cachedEvaluatedProgram: ICachedEvaluatedProgram | null = null;
+
+function getEvaluatedProgram(storage: IStorage): ReturnType<typeof Program.evaluate> | undefined {
+  const program = storage.programs.find((p) => p.id === storage.currentProgramId);
+  if (!program) {
+    return undefined;
+  }
+
+  // Generate a key from the program's planner text for cache comparison
+  const plannerText = program.planner
+    ? program.planner.weeks.map((w) => w.days.map((d) => d.exerciseText).join("\n")).join("\n")
+    : "";
+
+  // Check if we have a cached evaluation for this program
+  if (
+    cachedEvaluatedProgram &&
+    cachedEvaluatedProgram.programId === program.id &&
+    cachedEvaluatedProgram.plannerText === plannerText
+  ) {
+    console.log(`[PERF] using cached evaluated program for ${program.id}`);
+    return cachedEvaluatedProgram.evaluatedProgram;
+  }
+
+  // Evaluate and cache
+  const evalStart = Date.now();
+  const evaluatedProgram = Program.evaluate(program, storage.settings);
+  console.log(`[PERF] Program.evaluate took ${Date.now() - evalStart}ms`);
+
+  cachedEvaluatedProgram = {
+    programId: program.id,
+    plannerText,
+    evaluatedProgram,
+  };
+
+  return evaluatedProgram;
+}
 
 function parseStorageSync(storageJson: string, forceRevalidate: boolean = false): IEither<IStorage, string[]> {
   // If we have cached storage from a recent mutation, use it directly
@@ -178,21 +224,34 @@ function parseStorageSync(storageJson: string, forceRevalidate: boolean = false)
   const parseStart = Date.now();
   const data = JSON.parse(storageJson);
   console.log(`[PERF] JSON.parse took ${Date.now() - parseStart}ms`);
-  // For watch, skip migrations and just validate
-  const validateStart = Date.now();
-  const result = Storage.validateStorage(data);
-  console.log(`[PERF] validateStorage took ${Date.now() - validateStart}ms`);
 
-  if (result.success) {
+  // Validate only once per session to catch schema issues from development changes.
+  // After first successful validation, trust subsequent storage from phone/server.
+  // See: rfcs/watch-storage-performance.md
+  if (!hasValidatedOnceThisSession) {
+    const validateStart = Date.now();
+    const result = Storage.validateStorage(data);
+    console.log(`[PERF] validateStorage took ${Date.now() - validateStart}ms`);
+
+    if (!result.success) {
+      return result;
+    }
+    hasValidatedOnceThisSession = true;
     cachedStorage = result.data;
-    cachedStorageVersion += 1;
+  } else {
+    // Skip validation - already validated once this session
+    console.log(`[PERF] skipping validation (already validated this session)`);
+    cachedStorage = data as IStorage;
   }
-  return result;
+
+  cachedStorageVersion += 1;
+  return { success: true, data: cachedStorage };
 }
 
 // Called when storage is updated from external source (phone sync, server)
 function invalidateStorageCache(): void {
   cachedStorage = null;
+  cachedEvaluatedProgram = null;
   console.log(`[PERF] storage cache invalidated`);
 }
 
@@ -315,13 +374,13 @@ class LiftosaurWatch {
 
   public static getNextHistoryRecord(storageJson: string): string {
     return this.getStorage<IWatchHistoryRecord>(storageJson, (storage) => {
-      const program = storage.programs.find((p) => p.id === storage.currentProgramId);
-      if (!program) {
+      const evaluatedProgram = getEvaluatedProgram(storage);
+      if (!evaluatedProgram) {
         return { success: false, error: "No current program" };
       }
       const settings = storage.settings;
 
-      const historyRecord = Program.nextHistoryRecord(program, settings, storage.stats);
+      const historyRecord = Program.nextHistoryRecordFromEvaluated(evaluatedProgram, settings, storage.stats);
       const watchWorkout = this.convertHistoryRecordToWatchHistoryRecord(historyRecord, settings);
       return { success: true, data: watchWorkout };
     });
@@ -347,13 +406,13 @@ class LiftosaurWatch {
 
   public static startWorkout(storageJson: string, deviceId: string): string {
     return this.modifyStorage(storageJson, deviceId, (storage) => {
-      const program = storage.programs.find((p) => p.id === storage.currentProgramId);
-      if (!program) {
+      const evaluatedProgram = getEvaluatedProgram(storage);
+      if (!evaluatedProgram) {
         return { success: false, error: "No current program" };
       }
 
       const settings = storage.settings;
-      const newProgress = Program.nextHistoryRecord(program, settings, storage.stats);
+      const newProgress = Program.nextHistoryRecordFromEvaluated(evaluatedProgram, settings, storage.stats);
       const updatedStorage: IStorage = {
         ...storage,
         progress: [newProgress],
@@ -430,8 +489,7 @@ class LiftosaurWatch {
       const mode: IProgressMode = isWarmup ? "warmup" : "workout";
       const setIndex = isWarmup ? globalSetIndex : globalSetIndex - warmupSetsCount;
 
-      const program = Program.getCurrentProgram(storage);
-      const evaluatedProgram = program ? Program.evaluate(program, storage.settings) : undefined;
+      const evaluatedProgram = getEvaluatedProgram(storage);
       const programExercise = evaluatedProgram
         ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
         : undefined;
@@ -633,8 +691,7 @@ class LiftosaurWatch {
       // Build user prompted vars if needed
       const userPromptedVars: IWatchUserPromptedStateVar[] = [];
       if (modalData.userVars) {
-        const program = Program.getCurrentProgram(storage);
-        const evaluatedProgram = program ? Program.evaluate(program, settings) : undefined;
+        const evaluatedProgram = getEvaluatedProgram(storage);
         const programExercise = evaluatedProgram
           ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
           : undefined;
@@ -710,8 +767,7 @@ class LiftosaurWatch {
       }
 
       // Get program exercise for running update script
-      const program = Program.getCurrentProgram(storage);
-      const evaluatedProgram = program ? Program.evaluate(program, settings) : undefined;
+      const evaluatedProgram = getEvaluatedProgram(storage);
       const programExercise = evaluatedProgram
         ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
         : undefined;
@@ -928,8 +984,9 @@ class LiftosaurWatch {
       }
       muscleGroups.sort((a, b) => b.sets - a.sets);
 
-      // Calculate personal records
-      const personalRecords = this.convertPrsToWatchPrs(history, record.id, settings);
+      // PRs disabled - watch doesn't receive full history for performance reasons
+      // See: rfcs/watch-storage-performance.md
+      const personalRecords: IWatchPersonalRecords = { maxWeight: [], estimated1RM: [] };
 
       return {
         success: true,
