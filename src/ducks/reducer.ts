@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Reducer } from "preact/hooks";
-import { emptyProgramId, Program } from "../models/program";
+import { Program } from "../models/program";
 import { Progress } from "../models/progress";
-import { StateError } from "./stateError";
-import { History } from "../models/history";
 import { Storage } from "../models/storage";
 import { Screen, IScreen, IScreenStack, IScreenParams } from "../models/screen";
-import { ILensRecordingPayload, lb, LensBuilder, lf } from "lens-shmens";
+import { ILensRecordingPayload, lb, LensBuilder } from "lens-shmens";
 import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors, updateState } from "../models/state";
 import { UidFactory } from "../utils/generator";
 import {
@@ -33,7 +31,6 @@ import { IReducerOnAction } from "./types";
 import { Thunk } from "./thunks";
 import { CollectionUtils } from "../utils/collection";
 import { Subscriptions } from "../utils/subscriptions";
-import deepmerge from "deepmerge";
 import { Exercise } from "../models/exercise";
 import { SendMessage } from "../utils/sendMessage";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
@@ -681,51 +678,17 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
     };
   } else if (action.type === "FinishProgramDayAction") {
-    const settings = state.storage.settings;
     const progress = Progress.getProgress(state);
     if (progress == null) {
-      throw new StateError("FinishProgramDayAction: no progress");
-    } else {
-      const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
-      const program =
-        progress.programId === emptyProgramId ? Program.createEmptyProgram() : state.storage.programs[programIndex];
-      const evaluatedProgram = program ? Program.evaluate(program, settings) : undefined;
-      Progress.stopTimer(progress);
-      const historyRecord = History.finishProgramDay(progress, state.storage.settings, progress.day, evaluatedProgram);
-      let newHistory;
-      if (!Progress.isCurrent(progress)) {
-        newHistory = state.storage.history.map((h) => (h.id === progress.id ? historyRecord : h));
-      } else {
-        newHistory = [historyRecord, ...state.storage.history];
-      }
-      const exerciseData = state.storage.settings.exerciseData;
-      const { program: newProgram, exerciseData: newExerciseData } =
-        Progress.isCurrent(progress) && program != null
-          ? Program.runAllFinishDayScripts(program, progress, state.storage.stats, settings)
-          : { program, exerciseData };
-      const newPrograms =
-        newProgram != null ? lf(state.storage.programs).i(programIndex).set(newProgram) : state.storage.programs;
-      const newSettingsExerciseData = deepmerge(state.storage.settings.exerciseData, newExerciseData);
-      if (typeof window !== "undefined" && window.localStorage) {
-        lg("saved-last-history-record");
-        window.localStorage.setItem("lastHistoryRecord", JSON.stringify({ time: Date.now(), historyRecord }));
-      }
-      return {
-        ...state,
-        storage: {
-          ...state.storage,
-          history: newHistory,
-          programs: newPrograms,
-          settings: {
-            ...state.storage.settings,
-            exerciseData: newSettingsExerciseData,
-          },
-          ...(Progress.isCurrent(progress) ? { progress: [] } : {}),
-        },
-        screenStack: Progress.isCurrent(progress) ? [{ name: "finishDay" }] : Screen.pull(state.screenStack),
-        progress: Progress.isCurrent(progress) ? state.progress : Progress.stop(state.progress, progress.id),
-      };
+      return state;
     }
+    const newStorage = Progress.finishWorkout(state.storage, progress);
+    return {
+      ...state,
+      storage: newStorage,
+      screenStack: Progress.isCurrent(progress) ? [{ name: "finishDay" }] : Screen.pull(state.screenStack),
+      progress: Progress.isCurrent(progress) ? state.progress : Progress.stop(state.progress, progress.id),
+    };
   } else if (action.type === "ChangeDate") {
     return Progress.setProgress(state, Progress.showUpdateDate(Progress.getProgress(state)!, action.date, action.time));
   } else if (action.type === "ConfirmDate") {

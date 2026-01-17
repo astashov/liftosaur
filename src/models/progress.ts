@@ -7,7 +7,7 @@ import { ObjectUtils } from "../utils/object";
 import { IDispatch } from "../ducks/types";
 import { ScriptRunner } from "../parser";
 
-import { IEvaluatedProgram, Program } from "./program";
+import { emptyProgramId, IEvaluatedProgram, Program } from "./program";
 import { IState, updateProgress, updateState } from "./state";
 import {
   IWeight,
@@ -26,6 +26,7 @@ import {
   IUnit,
   IStats,
   IProgram,
+  IStorage,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { Subscriptions } from "../utils/subscriptions";
@@ -44,6 +45,7 @@ import { Stats } from "./stats";
 import { IChangeAMRAPAction, ICompleteSetAction } from "../ducks/reducer";
 import { LiveActivityManager } from "../utils/liveActivityManager";
 import { ProgramExercise } from "./programExercise";
+import deepmerge from "deepmerge";
 
 export interface IScriptBindings {
   day: number;
@@ -1610,5 +1612,38 @@ export namespace Progress {
       ],
       "Force update entry index"
     );
+  }
+
+  export function finishWorkout(storage: IStorage, progress: IHistoryRecord): IStorage {
+    const settings = storage.settings;
+    const programIndex = storage.programs.findIndex((p) => p.id === progress.programId)!;
+    const program =
+      progress.programId === emptyProgramId ? Program.createEmptyProgram() : storage.programs[programIndex];
+    const evaluatedProgram = program ? Program.evaluate(program, settings) : undefined;
+    Progress.stopTimer(progress);
+    const historyRecord = History.finishProgramDay(progress, storage.settings, progress.day, evaluatedProgram);
+    let newHistory;
+    if (!Progress.isCurrent(progress)) {
+      newHistory = storage.history.map((h) => (h.id === progress.id ? historyRecord : h));
+    } else {
+      newHistory = [historyRecord, ...storage.history];
+    }
+    const exerciseData = storage.settings.exerciseData;
+    const { program: newProgram, exerciseData: newExerciseData } =
+      Progress.isCurrent(progress) && program != null
+        ? Program.runAllFinishDayScripts(program, progress, storage.stats, settings)
+        : { program, exerciseData };
+    const newPrograms = newProgram != null ? lf(storage.programs).i(programIndex).set(newProgram) : storage.programs;
+    const newSettingsExerciseData = deepmerge(storage.settings.exerciseData, newExerciseData);
+    return {
+      ...storage,
+      progress: [],
+      history: newHistory,
+      programs: newPrograms,
+      settings: {
+        ...storage.settings,
+        exerciseData: newSettingsExerciseData,
+      },
+    };
   }
 }
