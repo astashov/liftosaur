@@ -65,6 +65,7 @@ export function buildLiftoscriptLanguageSupport(codeEditor: { state: IProgramSta
           { label: "numberOfSets", type: "keyword liftoscript" },
           { label: "completedNumberOfSets", type: "keyword liftoscript" },
           { label: "roundWeight", type: "function liftoscript" },
+          { label: "roundConvertWeight", type: "function liftoscript" },
           { label: "calculateTrainingMax", type: "function liftoscript" },
           { label: "increment", type: "function liftoscript" },
           { label: "decrement", type: "function liftoscript" },

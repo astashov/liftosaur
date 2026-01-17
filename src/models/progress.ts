@@ -98,6 +98,7 @@ export interface IScriptUpdateContext {
 
 export interface IScriptFunctions {
   roundWeight: (num: IWeight, context: IScriptFnContext) => IWeight;
+  roundConvertWeight: (num: IWeight, context: IScriptFnContext) => IWeight;
   calculateTrainingMax: (weight: IWeight, reps: number, context: IScriptFnContext) => IWeight;
   calculate1RM: (weight: IWeight, reps: number, context: IScriptFnContext) => IWeight;
   rpeMultiplier: (reps: number, rpe: number, context: IScriptFnContext) => number;
@@ -349,6 +350,13 @@ export namespace Progress {
         }
         const unit = Equipment.getUnitForExerciseType(settings, context?.exerciseType);
         return Weight.round(num, settings, unit ?? settings.units, context?.exerciseType);
+      },
+      roundConvertWeight: (num, context) => {
+        if (!Weight.is(num)) {
+          num = Weight.build(num, settings.units);
+        }
+        const unit = Equipment.getUnitForExerciseType(settings, context?.exerciseType);
+        return Weight.roundConvertTo(num, settings, unit ?? settings.units, context?.exerciseType);
       },
       calculateTrainingMax: (weight, reps, context) => {
         if (!Weight.is(weight)) {
