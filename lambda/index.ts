@@ -279,6 +279,55 @@ const postReceiveAdAttrHandler: RouteHandler<
   return ResponseUtils.json(200, payload.event, { data: "ok" });
 };
 
+/**
+ * Filters storage for watch to reduce payload size.
+ * - Only includes current program (not all programs)
+ * - Clears history (watch doesn't need it)
+ * - Clears stats (watch doesn't need it)
+ * - Filters _versions to match
+ * See: rfcs/watch-storage-performance.md
+ */
+function filterStorageForWatch(storage: IStorage): IStorage {
+  const currentProgramId = storage.currentProgramId;
+
+  // Filter programs to only include current program
+  const filteredPrograms = currentProgramId
+    ? storage.programs.filter((p) => p.id === currentProgramId)
+    : [];
+
+  // Filter _versions to match
+  let filteredVersions = storage._versions;
+  if (filteredVersions) {
+    const programsVersions = filteredVersions.programs as { items?: Record<string, unknown>; deleted?: Record<string, unknown> } | undefined;
+    filteredVersions = {
+      ...filteredVersions,
+      // Clear history versions
+      history: { items: {} },
+      // Clear stats versions
+      stats: {
+        weight: {},
+        length: {},
+        percentage: {},
+      },
+      // Filter programs versions to only include current program
+      programs: programsVersions ? {
+        ...programsVersions,
+        items: currentProgramId && programsVersions.items
+          ? { [currentProgramId]: programsVersions.items[currentProgramId] }
+          : {},
+      } : { items: {} },
+    };
+  }
+
+  return {
+    ...storage,
+    programs: filteredPrograms,
+    history: [],
+    stats: { weight: {}, length: {}, percentage: {} },
+    _versions: filteredVersions,
+  };
+}
+
 const postSync2Endpoint = Endpoint.build("/api/sync2", {
   tempuserid: "string?",
 });
@@ -302,6 +351,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
   const timestamp: number = (bodyJson.timestamp as number) || Date.now();
   const storageUpdate = bodyJson.storageUpdate as IStorageUpdate2;
   const historylimit = bodyJson.historylimit as number | undefined;
+  const isWatch = bodyJson.isWatch as boolean | undefined;
   const userId = await getCurrentUserId(event, di);
   let keyResult: { key: string; isClaimed: boolean } | undefined;
   if (params.tempuserid) {
@@ -388,7 +438,10 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
           if (historylimit != null) {
             storage.history = storage.history.slice(0, historylimit);
           }
-          return response(200, { type: "dirty", storage, email: limitedUser.email, user_id: limitedUser.id, key });
+          // Filter storage for watch to reduce payload size
+          // See: rfcs/watch-storage-performance.md
+          const responseStorage = isWatch ? filterStorageForWatch(storage) : storage;
+          return response(200, { type: "dirty", storage: responseStorage, email: limitedUser.email, user_id: limitedUser.id, key });
         } else {
           di.log.log("Error", result.error);
           return response(400, { type: "error", error: result.error, key });
