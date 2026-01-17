@@ -1,6 +1,7 @@
 import { Program } from "../models/program";
 import { Exercise } from "../models/exercise";
 import { Storage } from "../models/storage";
+import { History } from "../models/history";
 import { Reps } from "../models/set";
 import { Sync, IStorageUpdate2 } from "../utils/sync";
 import {
@@ -64,6 +65,12 @@ export interface IWatchAmrapModal {
 export interface IWatchRestTimer {
   timerSince: number;
   timer: number;
+}
+
+export interface IWatchWorkoutStatus {
+  isPaused: boolean;
+  intervals: [number, number | null][];  // [startTime, endTime or null if ongoing]
+  startTime: number;
 }
 
 export interface IWatchCompleteSetResult {
@@ -724,6 +731,64 @@ class LiftosaurWatch {
       const newProgress = Progress.stopTimerPure(progress);
       const newStorage: IStorage = { ...storage, progress: [newProgress] };
       return { success: true, data: newStorage };
+    });
+  }
+
+  public static getWorkoutStatus(storageJson: string): string {
+    return this.getStorage<IWatchWorkoutStatus | undefined>(storageJson, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: true, data: undefined };
+      }
+
+      // Convert intervals to the format expected by Swift
+      // If no intervals, use [startTime, endTime or undefined]
+      const intervals: [number, number | null][] = progress.intervals
+        ? progress.intervals.map((i) => [i[0], i[1] ?? null])
+        : [[progress.startTime, progress.endTime ?? null]];
+
+      return {
+        success: true,
+        data: {
+          isPaused: History.isPaused(progress.intervals),
+          intervals,
+          startTime: progress.startTime,
+        },
+      };
+    });
+  }
+
+  public static pauseWorkout(storageJson: string, deviceId: string): string {
+    return this.modifyStorage(storageJson, deviceId, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+
+      const newIntervals = History.pauseWorkout(progress.intervals);
+      if (newIntervals !== progress.intervals) {
+        const newProgress = { ...progress, intervals: newIntervals };
+        const newStorage: IStorage = { ...storage, progress: [newProgress] };
+        return { success: true, data: newStorage };
+      }
+      return { success: true, data: storage };
+    });
+  }
+
+  public static resumeWorkout(storageJson: string, deviceId: string): string {
+    return this.modifyStorage(storageJson, deviceId, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+
+      const newIntervals = History.resumeWorkout(progress, false);
+      if (newIntervals !== progress.intervals) {
+        const newProgress = { ...progress, intervals: newIntervals };
+        const newStorage: IStorage = { ...storage, progress: [newProgress] };
+        return { success: true, data: newStorage };
+      }
+      return { success: true, data: storage };
     });
   }
 
