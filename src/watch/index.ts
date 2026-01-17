@@ -69,7 +69,7 @@ export interface IWatchRestTimer {
 
 export interface IWatchWorkoutStatus {
   isPaused: boolean;
-  intervals: [number, number | null][];  // [startTime, endTime or null if ongoing]
+  intervals: [number, number | null][];
   startTime: number;
 }
 
@@ -244,6 +244,17 @@ class LiftosaurWatch {
     return this.getStorage<{ hasProgram: boolean }>(storageJson, (storage) => {
       const has = storage.programs.some((p) => p.id === storage.currentProgramId);
       return { success: true, data: { hasProgram: has } };
+    });
+  }
+
+  public static finishWorkout(storageJson: string, deviceId: string): string {
+    return this.modifyStorage(storageJson, deviceId, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No progress to finish" };
+      }
+      const newStorage = Progress.finishWorkout(storage, progress);
+      return { success: true, data: newStorage };
     });
   }
 
