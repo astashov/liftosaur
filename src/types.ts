@@ -1492,6 +1492,7 @@ export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
     "timerSetIndex",
   ] as const,
   history_entry: [
+    "exercise",
     "sets",
     "warmupSets",
     "isSuppressed",

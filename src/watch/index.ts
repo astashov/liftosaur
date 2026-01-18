@@ -331,47 +331,6 @@ class LiftosaurWatch {
     };
   }
 
-  private static convertPrsToWatchPrs(
-    history: IHistoryRecord[],
-    recordId: number,
-    settings: ISettings
-  ): IWatchPersonalRecords {
-    const allPrs = History.getPersonalRecords(history);
-    const recordPrs = allPrs[recordId] || {};
-    const maxWeight: IWatchMaxWeightRecord[] = [];
-    const estimated1RM: IWatchEstimated1RMRecord[] = [];
-
-    for (const key of ObjectUtils.keys(recordPrs)) {
-      const pr = recordPrs[key];
-      if (!pr) {
-        continue;
-      }
-
-      const exerciseType = Exercise.fromKey(key);
-      const exercise = Exercise.get(exerciseType, settings.exercises);
-
-      if (pr.maxWeightSet) {
-        const weight = pr.maxWeightSet.completedWeight || pr.maxWeightSet.weight;
-        const reps = pr.maxWeightSet.completedReps || pr.maxWeightSet.reps || 0;
-        if (weight && reps > 0) {
-          maxWeight.push({ exerciseName: exercise.name, weight, reps });
-        }
-      }
-
-      if (pr.max1RMSet) {
-        const set = pr.max1RMSet;
-        const weight = set.completedWeight || set.weight;
-        const reps = Reps.avgUnilateralCompletedReps(set) || 0;
-        if (weight && reps > 0) {
-          const value = Weight.getOneRepMax(weight, reps, set.completedRpe || set.rpe);
-          estimated1RM.push({ exerciseName: exercise.name, value, reps, weight });
-        }
-      }
-    }
-
-    return { maxWeight, estimated1RM };
-  }
-
   public static getNextHistoryRecord(storageJson: string): string {
     return this.getStorage<IWatchHistoryRecord>(storageJson, (storage) => {
       const evaluatedProgram = getEvaluatedProgram(storage);
