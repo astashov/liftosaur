@@ -805,10 +805,15 @@ export namespace History {
     reminder?: number
   ): IIntervals | undefined {
     const intervals = historyRecord.intervals;
-    if (!isPlayground && Progress.isCurrent(historyRecord)) {
-      SendMessage.toIosAndAndroid({ type: "resumeWorkout", reminder: `${reminder || 0}` });
-    }
     if (isPaused(intervals)) {
+      const isStart = !intervals || intervals.length === 0;
+      if (!isPlayground && Progress.isCurrent(historyRecord)) {
+        SendMessage.toIosAndAndroid({
+          type: "resumeWorkout",
+          reminder: `${reminder || 0}`,
+          isStart: isStart ? "true" : "false",
+        });
+      }
       const newIntervals = intervals ? ObjectUtils.clone(intervals) : [];
       newIntervals.push([Date.now(), undefined]);
       return newIntervals;

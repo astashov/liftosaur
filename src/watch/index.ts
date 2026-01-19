@@ -402,10 +402,7 @@ class LiftosaurWatch {
     try {
       const currentStorage = JSON.parse(currentStorageJson) as IStorage;
       const lastSyncedStorage = JSON.parse(lastSyncedStorageJson) as IStorage;
-      console.log("current", JSON.stringify(currentStorage.progress));
-      console.log("last", JSON.stringify(lastSyncedStorage.progress));
       const update: IStorageUpdate2 = Sync.getStorageUpdate2(currentStorage, lastSyncedStorage, deviceId);
-      console.log("update", JSON.stringify(update));
       return JSON.stringify(update);
     } catch (e) {
       return JSON.stringify({ error: String(e) });
@@ -420,7 +417,6 @@ class LiftosaurWatch {
       // Update cache with merged result so next operation doesn't need to re-validate
       cachedStorage = merged;
       cachedStorageVersion += 1;
-      console.log(`[PERF] mergeStorage updated cache (version ${cachedStorageVersion})`);
       return JSON.stringify(merged);
     } catch (e) {
       return JSON.stringify({ error: String(e) });
