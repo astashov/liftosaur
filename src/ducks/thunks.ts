@@ -39,7 +39,6 @@ import { Weight } from "../models/weight";
 import { EditProgram } from "../models/editProgram";
 import { ICollectionVersions } from "../models/versionTracker";
 import { DeviceId } from "../utils/deviceId";
-import { IStorageUpdate2 } from "../utils/sync";
 import { LiveActivityManager } from "../utils/liveActivityManager";
 
 declare let Rollbar: RB;
@@ -525,24 +524,38 @@ export namespace Thunk {
     };
   }
 
-  export function handleWatchStorageUpdate(updateJson: string, watchDeviceId: string): IThunk {
+  export function handleWatchStorageMerge(storageJson: string, watchDeviceId: string): IThunk {
     return async (dispatch, getState) => {
       try {
-        const update: IStorageUpdate2 = JSON.parse(updateJson);
+        const watchStorage: IStorage = JSON.parse(storageJson);
         const state = getState();
 
-        SendMessage.print(`handleWatchStorageUpdate: applying update from device, ${watchDeviceId}`);
+        SendMessage.print(`handleWatchStorageMerge: merging storage from watch device ${watchDeviceId}`);
 
-        const newStorage = Storage.applyStorageUpdate2(state.storage, update, state.deviceId);
+        // Merge watch storage with phone storage
+        const mergedStorage = Storage.mergeStorage(state.storage, watchStorage, state.deviceId);
 
-        if (newStorage !== state.storage) {
-          updateState(dispatch, [lb<IState>().p("storage").record(newStorage)], "Apply watch storage update");
-          SendMessage.print("handleWatchStorageUpdate: successfully applied watch update");
+        if (mergedStorage !== state.storage) {
+          // Also merge into lastSyncedStorage to preserve phone's unsent changes
+          // This ensures prepareSync won't re-detect watch's changes as new phone changes
+          const mergedLastSynced = state.lastSyncedStorage
+            ? Storage.mergeStorage(state.lastSyncedStorage, watchStorage, state.deviceId)
+            : mergedStorage;
+
+          updateState(
+            dispatch,
+            [
+              lb<IState>().p("storage").record(mergedStorage),
+              lb<IState>().p("lastSyncedStorage").record(mergedLastSynced),
+            ],
+            "Merge watch storage"
+          );
+          SendMessage.print("handleWatchStorageMerge: successfully merged watch storage");
         } else {
-          SendMessage.print("handleWatchStorageUpdate: no changes to apply");
+          SendMessage.print("handleWatchStorageMerge: no changes after merge");
         }
       } catch (error) {
-        SendMessage.print(`handleWatchStorageUpdate: failed to process update: ${error}`);
+        SendMessage.print(`handleWatchStorageMerge: failed to merge storage: ${error}`);
       }
     };
   }
