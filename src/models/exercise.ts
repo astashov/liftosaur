@@ -1716,6 +1716,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Minor",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Rectus Abdominis"],
     bodyParts: ["Back"],
@@ -1731,6 +1732,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Minor",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Shoulders"],
     sortedEquipment: ["bodyweight"],
@@ -1772,7 +1774,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["barbell", "smith"],
   },
   bentOverOneArmRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers", "Rhomboids"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Major",
@@ -1786,7 +1788,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["dumbbell"],
   },
   bentOverRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Middle Fibers", "Trapezius Upper Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Middle Fibers", "Rhomboids", "Trapezius Upper Fibers"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Major",
@@ -1922,7 +1924,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["leverageMachine", "band"],
   },
   chestSupportedRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Middle Fibers", "Trapezius Upper Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Middle Fibers", "Rhomboids", "Trapezius Upper Fibers"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Minor",
@@ -1943,6 +1945,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Major",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Back"],
     sortedEquipment: ["leverageMachine", "bodyweight"],
@@ -2057,6 +2060,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Minor",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Shoulders"],
     sortedEquipment: ["barbell"],
@@ -2110,6 +2114,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Minor",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Shoulders"],
     sortedEquipment: ["band"],
@@ -2154,7 +2159,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["bodyweight"],
   },
   gluteKickback: {
-    targetMuscles: ["Gluteus Maximus", "Gluteus Medius"],
+    targetMuscles: ["Gluteus Maximus", "Gluteus Medius", "Gluteus Minimus"],
     synergistMuscles: ["Hamstrings", "Tensor Fasciae Latae", "Rectus Abdominis", "Obliques"],
     bodyParts: ["Glute"],
     sortedEquipment: ["leverageMachine", "bodyweight", "cable", "band"],
@@ -2212,6 +2217,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     targetMuscles: [
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
       "Trapezius Upper Fibers",
       "Quadriceps",
       "Gluteus Maximus",
@@ -2257,7 +2263,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["bodyweight"],
   },
   highRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers", "Rhomboids"],
     synergistMuscles: [
       "Biceps Brachii",
       "Brachialis",
@@ -2270,7 +2276,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["leverageMachine"],
   },
   hipAbductor: {
-    targetMuscles: ["Gluteus Maximus", "Gluteus Medius"],
+    targetMuscles: ["Gluteus Maximus", "Gluteus Medius", "Gluteus Minimus"],
     synergistMuscles: ["Tensor Fasciae Latae"],
     bodyParts: ["Hips"],
     sortedEquipment: ["leverageMachine", "bodyweight", "cable", "band"],
@@ -2318,7 +2324,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["dumbbell"],
   },
   inclineRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Middle Fibers", "Trapezius Upper Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Middle Fibers", "Rhomboids", "Trapezius Upper Fibers"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Minor",
@@ -2330,7 +2336,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["barbell", "dumbbell"],
   },
   invertedRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers", "Rhomboids"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Major",
@@ -2350,7 +2356,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["dumbbell"],
   },
   isoLateralRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers", "Rhomboids"],
     synergistMuscles: [
       "Biceps Brachii",
       "Brachialis",
@@ -2447,6 +2453,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Biceps Brachii",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     synergistMuscles: [
       "Deltoid Posterior",
@@ -2480,6 +2487,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Minor",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Back"],
     sortedEquipment: ["band"],
@@ -2501,6 +2509,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Major",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Back"],
     sortedEquipment: ["cable"],
@@ -2512,6 +2521,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Adductor Longus",
       "Adductor Magnus",
       "Gluteus Medius",
+      "Gluteus Minimus",
       "Tensor Fasciae Latae",
       "Rectus Abdominis",
       "Obliques",
@@ -2600,6 +2610,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Major",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
       "Triceps Brachii",
     ],
     synergistMuscles: [],
@@ -2631,7 +2642,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["leverageMachine"],
   },
   pendlayRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers", "Rhomboids"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Major",
@@ -2655,6 +2666,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Deltoid Anterior",
       "Gluteus Maximus",
       "Gluteus Medius",
+      "Gluteus Minimus",
       "Obliques",
       "Sartorius",
       "Tensor Fasciae Latae",
@@ -2670,6 +2682,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Soleus",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
       "Trapezius Upper Fibers",
       "Latissimus Dorsi",
       "Erector Spinae",
@@ -2689,6 +2702,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Soleus",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
       "Trapezius Upper Fibers",
       "Latissimus Dorsi",
       "Erector Spinae",
@@ -2731,6 +2745,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Minor",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Back"],
     sortedEquipment: ["leverageMachine", "bodyweight", "band"],
@@ -2784,6 +2799,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Minor",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Shoulders"],
     sortedEquipment: ["dumbbell", "leverageMachine", "band"],
@@ -2805,6 +2821,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Major",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Back"],
     sortedEquipment: ["cable"],
@@ -2832,6 +2849,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Triceps Brachii",
       "Latissimus Dorsi",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Waist"],
     sortedEquipment: ["bodyweight"],
@@ -2861,6 +2879,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Rectus Abdominis",
       "Obliques",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Thighs"],
     sortedEquipment: ["cable"],
@@ -2914,7 +2933,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["dumbbell"],
   },
   seatedRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers", "Rhomboids"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Major",
@@ -2928,7 +2947,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["cable", "band", "leverageMachine"],
   },
   seatedWideGripRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers", "Rhomboids"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Major",
@@ -2954,7 +2973,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
   },
   shrug: {
     targetMuscles: ["Trapezius Upper Fibers"],
-    synergistMuscles: ["Trapezius Middle Fibers"],
+    synergistMuscles: ["Trapezius Middle Fibers", "Rhomboids"],
     bodyParts: ["Back"],
     sortedEquipment: ["barbell", "cable", "dumbbell", "leverageMachine", "band", "smith"],
   },
@@ -2971,13 +2990,13 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["bodyweight", "band", "cable"],
   },
   sideHipAbductor: {
-    targetMuscles: ["Gluteus Medius", "Tensor Fasciae Latae"],
+    targetMuscles: ["Gluteus Medius", "Gluteus Minimus", "Tensor Fasciae Latae"],
     synergistMuscles: [],
     bodyParts: ["Hips"],
     sortedEquipment: ["bodyweight", "barbell", "leverageMachine"],
   },
   sideLyingClam: {
-    targetMuscles: ["Gluteus Medius"],
+    targetMuscles: ["Gluteus Medius", "Gluteus Minimus"],
     synergistMuscles: ["Tensor Fasciae Latae"],
     bodyParts: ["Hips"],
     sortedEquipment: ["bodyweight"],
@@ -3076,6 +3095,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Latissimus Dorsi",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
       "Trapezius Upper Fibers",
     ],
     synergistMuscles: [
@@ -3118,6 +3138,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Rectus Abdominis",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
       "Trapezius Upper Fibers",
       "Adductor Magnus",
       "Tensor Fasciae Latae",
@@ -3137,13 +3158,20 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Obliques",
       "Rectus Abdominis",
       "Gluteus Medius",
+      "Gluteus Minimus",
       "Gastrocnemius",
     ],
     bodyParts: ["Thighs"],
     sortedEquipment: ["barbell", "dumbbell", "bodyweight", "smith", "leverageMachine"],
   },
   squatRow: {
-    targetMuscles: ["Gluteus Maximus", "Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: [
+      "Gluteus Maximus",
+      "Latissimus Dorsi",
+      "Trapezius Lower Fibers",
+      "Trapezius Middle Fibers",
+      "Rhomboids",
+    ],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Major",
@@ -3164,7 +3192,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["barbell", "dumbbell", "leverageMachine", "bodyweight", "cable"],
   },
   standingRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers", "Rhomboids"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Major",
@@ -3177,7 +3205,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["cable"],
   },
   standingRowCloseGrip: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Upper Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Upper Fibers", "Trapezius Middle Fibers", "Rhomboids"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Major",
@@ -3199,18 +3227,25 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Minor",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Shoulders"],
     sortedEquipment: ["cable"],
   },
   standingRowRearHorizontalDeltWithRope: {
     targetMuscles: ["Deltoid Posterior"],
-    synergistMuscles: ["Infraspinatus", "Teres Minor", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    synergistMuscles: [
+      "Infraspinatus",
+      "Teres Minor",
+      "Trapezius Lower Fibers",
+      "Trapezius Middle Fibers",
+      "Rhomboids",
+    ],
     bodyParts: ["Shoulders"],
     sortedEquipment: ["cable"],
   },
   standingRowVBar: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers", "Rhomboids"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Major",
@@ -3269,6 +3304,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Minor",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Shoulders"],
     sortedEquipment: ["barbell"],
@@ -3280,7 +3316,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["bodyweight", "dumbbell"],
   },
   tBarRow: {
-    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers", "Rhomboids"],
     synergistMuscles: [
       "Infraspinatus",
       "Teres Major",
@@ -3354,6 +3390,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Minor",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Shoulders"],
     sortedEquipment: ["barbell", "cable", "dumbbell", "band"],
@@ -3373,6 +3410,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Teres Major",
       "Trapezius Lower Fibers",
       "Trapezius Middle Fibers",
+      "Rhomboids",
     ],
     bodyParts: ["Back"],
     sortedEquipment: ["bodyweight"],
