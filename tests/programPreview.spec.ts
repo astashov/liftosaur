@@ -41,8 +41,8 @@ test("Program Preview", async ({ page }) => {
     page
       .getByTestId("preview-day-workout-a")
       .getByTestId("entry-bent-over-row")
-      .getByTestId("variable-changes-key-weights")
-  ).toHaveText("weights: += 2.5lb");
+      .getByTestId("variable-changes-key-weights[1]")
+  ).toHaveText("weights[1]: 97.5lb");
 
   await page.getByTestId("preview-day-workout-a").getByTestId(`workout-tab-bench-press`).nth(0).click();
   await page

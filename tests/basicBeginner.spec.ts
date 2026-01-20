@@ -118,7 +118,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Bent Over Row') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("97.5lb");
+  ).toHaveText("202.5lb");
   await expect(
     page
       .getByTestId("bottom-sheet")
@@ -126,7 +126,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("50lb");
+  ).toHaveText("205lb");
   await expect(
     page
       .getByTestId("bottom-sheet")
@@ -203,7 +203,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Bent Over Row') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("100lb");
+  ).toHaveText("205lb");
   await expect(
     page
       .getByTestId("bottom-sheet")
@@ -211,7 +211,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("45lb");
+  ).toHaveText("190lb");
   await expect(
     page
       .getByTestId("bottom-sheet")
