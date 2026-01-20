@@ -2312,6 +2312,21 @@ Bent Over Row / 3x8 / superset: A`}
       </ul>
     ),
   },
+  "20260120": {
+    title: <span>The current ongoing workout now syncs to the server</span>,
+    body: (
+      <ul>
+        <li>
+          Previously, if you start a workout e.g. on a phone, and then open a webapp, you won't be able to see it there.
+          The ongoing workout would only exist locally, and syncs to the server when you finish it.
+        </li>
+        <li>
+          From now on, the ongoing workout also syncs to the server. So, you can start a workout on a phone, but
+          continue in the webapp, and then switch back to phone.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
