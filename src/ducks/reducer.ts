@@ -708,6 +708,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     if (progress != null) {
       const history = state.storage.history.filter((h) => h.id !== progress.id);
       if (Progress.isCurrent(progress)) {
+        SendMessage.toIosAndAndroid({ type: "pauseWorkout" });
         SendMessage.toIosAndAndroid({ type: "discardWorkout" });
       }
       return {
