@@ -358,13 +358,15 @@ export namespace EditStats {
           ...(platform === "ios" ? { appleUuid: d.uuid } : { googleUuid: d.uuid }),
         });
       } else if (d.type === "bodyfat") {
-        bodyfatValues.push({
-          vtype: "stat",
-          value: d.value as IPercentage,
-          timestamp: d.timestamp,
-          updatedAt: Date.now(),
-          ...(platform === "ios" ? { appleUuid: d.uuid } : { googleUuid: d.uuid }),
-        });
+        if (d.value.value > 0) {
+          bodyfatValues.push({
+            vtype: "stat",
+            value: d.value as IPercentage,
+            timestamp: d.timestamp,
+            updatedAt: Date.now(),
+            ...(platform === "ios" ? { appleUuid: d.uuid } : { googleUuid: d.uuid }),
+          });
+        }
       } else if (d.type === "waist") {
         waistValues.push({
           vtype: "stat",

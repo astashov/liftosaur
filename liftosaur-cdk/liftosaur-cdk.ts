@@ -347,9 +347,9 @@ export class LiftosaurCdkStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_18_X,
       functionName: `LftStatsLambda${suffix}`,
       code: lambda.Code.fromAsset("dist-lambda"),
-      memorySize: 1024,
+      memorySize: 2048,
       layers: [depsLayer],
-      timeout: cdk.Duration.seconds(600),
+      timeout: cdk.Duration.seconds(900),
       handler: `lambda/run.LftStatsLambda${suffix}`,
       environment: {
         IS_DEV: `${isDev}`,
@@ -357,7 +357,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
     const rule = new aws_events.Rule(this, `LftStatsLambdaRule${suffix}`, {
       schedule: aws_events.Schedule.cron({
-        minute: "50",
+        minute: "40",
         hour: "23",
         month: "*",
         weekDay: "*",
