@@ -34,13 +34,26 @@ export function RestTimer(props: IProps): JSX.Element | null {
         setTick(tick + 1);
       }, 1000);
       const timeDifference = Date.now() - timerSince;
-      if (timer != null && timeDifference > timer * 1000 && !sentNotification.current) {
+      const timerMs = timer != null ? timer * 1000 : 0;
+      // Only play notification if within 5 seconds of timer completion
+      // This prevents repeated notifications when syncing from another device
+      // where the timer may already be well past the threshold
+      const maxNotificationWindowMs = 5000;
+      if (
+        timer != null &&
+        timeDifference > timerMs &&
+        timeDifference <= timerMs + maxNotificationWindowMs &&
+        !sentNotification.current
+      ) {
         if (!progress.ui?.nativeNotificationScheduled) {
           SendMessage.print(`Main app: Playing web app notification`);
           props.dispatch(Thunk.playAudioNotification());
         } else {
           SendMessage.print(`Main app: Not playing web app notification`);
         }
+        sentNotification.current = true;
+      } else if (timer != null && timeDifference > timerMs + maxNotificationWindowMs) {
+        // Timer is past the window, mark as sent to prevent future plays
         sentNotification.current = true;
       }
       if (prevProps.current.progress.timerSince !== props.progress.timerSince) {

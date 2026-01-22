@@ -93,10 +93,12 @@ export interface IWatchSet {
   label?: string;
   isCompleted?: boolean;
   completedReps?: number;
+  completedRepsLeft?: number;
   completedWeight?: IWeight;
   status: IWatchSetStatus;
   plates?: string;
   isWarmup: boolean;
+  isUnilateral: boolean;
 }
 
 export interface IWatchFinishWorkoutSummary {
@@ -134,7 +136,13 @@ export interface IWatchEstimated1RMRecord {
   weight: IWeight;
 }
 
-function setToWatchSet(set: ISet, exerciseType: IExerciseType, settings: ISettings, isWarmup: boolean): IWatchSet {
+function setToWatchSet(
+  set: ISet,
+  exerciseType: IExerciseType,
+  settings: ISettings,
+  isWarmup: boolean,
+  isUnilateral: boolean
+): IWatchSet {
   let plates: string | undefined;
   const weight = set.weight;
   if (weight) {
@@ -156,10 +164,12 @@ function setToWatchSet(set: ISet, exerciseType: IExerciseType, settings: ISettin
     label: set.label,
     isCompleted: set.isCompleted,
     completedReps: set.completedReps,
+    completedRepsLeft: isUnilateral ? set.completedRepsLeft : undefined,
     completedWeight: set.completedWeight,
     status: Reps.setsStatus([set]),
     plates,
     isWarmup,
+    isUnilateral,
   };
 }
 
@@ -308,8 +318,11 @@ class LiftosaurWatch {
   ): IWatchHistoryEntry {
     const exercise = Exercise.get(entry.exercise, settings.exercises);
     const imageUrl = ExerciseImageUtils.url(entry.exercise, "small", settings);
-    const warmupSets = (entry.warmupSets || []).map((set) => setToWatchSet(set, entry.exercise, settings, true));
-    const workoutSets = entry.sets.map((set) => setToWatchSet(set, entry.exercise, settings, false));
+    const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
+    const warmupSets = (entry.warmupSets || []).map((set) =>
+      setToWatchSet(set, entry.exercise, settings, true, isUnilateral)
+    );
+    const workoutSets = entry.sets.map((set) => setToWatchSet(set, entry.exercise, settings, false, isUnilateral));
     return {
       name: exercise.name,
       imageUrl,
@@ -524,6 +537,19 @@ class LiftosaurWatch {
     }));
   }
 
+  public static updateSetRepsLeft(
+    storageJson: string,
+    deviceId: string,
+    entryIndex: number,
+    globalSetIndex: number,
+    reps: number
+  ): string {
+    return this.modifySet(storageJson, deviceId, entryIndex, globalSetIndex, (set) => ({
+      ...set,
+      completedRepsLeft: reps,
+    }));
+  }
+
   public static updateSetWeight(
     storageJson: string,
     deviceId: string,
@@ -543,22 +569,19 @@ class LiftosaurWatch {
     });
   }
 
-  public static getNextEntryAndSetIndex(storageJson: string, entryIndex: number): string {
+  public static getNextEntryAndSetIndex(storageJson: string, entryIndex: number, setIndex: number): string {
     return this.getStorage<{ entryIndex: number; setIndex: number } | undefined>(storageJson, (storage) => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
       }
-
-      // First try to find next warmup set, then workout set
-      // findNextEntryAndSetIndex already returns global setIndex
-      const warmupResult = Reps.findNextEntryAndSetIndex(progress, entryIndex, "warmup");
-      if (warmupResult) {
-        return { success: true, data: warmupResult };
+      const entry = progress.entries[entryIndex];
+      if (!entry) {
+        return { success: false, error: "Entry not found" };
       }
-
-      const workoutResult = Reps.findNextEntryAndSetIndex(progress, entryIndex, "workout");
-      return { success: true, data: workoutResult };
+      const mode = setIndex < (entry.warmupSets?.length || 0) ? "warmup" : "workout";
+      const result = Reps.findNextEntryAndSetIndex(progress, entryIndex, mode);
+      return { success: true, data: result };
     });
   }
 
@@ -989,6 +1012,12 @@ class LiftosaurWatch {
   // Forces next operation to re-parse and re-validate from the new storageJson
   public static invalidateStorageCache(): void {
     invalidateStorageCache();
+  }
+
+  public static getVolume(storageJson: string): string {
+    return this.getStorage<{ volume: number }>(storageJson, (storage) => {
+      return { success: true, data: { volume: storage.settings.volume } };
+    });
   }
 }
 
