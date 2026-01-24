@@ -1019,6 +1019,21 @@ class LiftosaurWatch {
       return { success: true, data: { volume: storage.settings.volume } };
     });
   }
+
+  public static getHealthSettings(storageJson: string): string {
+    return this.getStorage<{ appleHealthSyncWorkout: boolean; healthConfirmation: boolean }>(
+      storageJson,
+      (storage) => {
+        return {
+          success: true,
+          data: {
+            appleHealthSyncWorkout: !!storage.settings.appleHealthSyncWorkout,
+            healthConfirmation: !!storage.settings.healthConfirmation,
+          },
+        };
+      }
+    );
+  }
 }
 
 declare const globalThis: Record<string, unknown>;

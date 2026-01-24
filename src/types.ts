@@ -1322,6 +1322,7 @@ export const TSettings = t.intersection(
       googleHealthSyncWorkout: t.boolean,
       googleHealthSyncMeasurements: t.boolean,
       googleHealthAnchor: t.string,
+      healthConfirmation: t.boolean,
       ignoreDoNotDisturb: t.boolean,
       currentGymId: t.string,
       isPublicProfile: t.boolean,

@@ -31,6 +31,7 @@ import { ILensDispatch } from "../utils/useLensReducer";
 import { Settings } from "../models/settings";
 import { BottomSheetWorkoutSuperset } from "./bottomSheetWorkoutSuperset";
 import { Reps } from "../models/set";
+import { HealthSync } from "../lib/healthSync";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
@@ -170,6 +171,18 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                     props.dispatch({ type: "FinishProgramDayAction" });
                     if (Progress.isCurrent(props.progress)) {
                       props.dispatch(Thunk.postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
+                      const healthName = SendMessage.isIos() ? "Apple Health" : "Google Health";
+                      const shouldSyncToHealth =
+                        ((HealthSync.eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
+                          (HealthSync.eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout)) &&
+                        (!props.settings.healthConfirmation ||
+                          confirm(`Do you want to sync this workout to ${healthName}?`));
+                      SendMessage.toIosAndAndroid({
+                        type: "finishWorkout",
+                        healthSync: shouldSyncToHealth ? "true" : "false",
+                        calories: `${History.calories(props.progress)}`,
+                        intervals: JSON.stringify(History.pauseWorkout(progress.intervals)),
+                      });
                     }
                   }
                 }}

@@ -2327,6 +2327,27 @@ Bent Over Row / 3x8 / superset: A`}
       </ul>
     ),
   },
+  "20260124": {
+    title: <span>Workout now syncs to Apple/Google health when you finish a workout</span>,
+    body: (
+      <ul>
+        <li>
+          Previously, the workout would sync to Apple or Google health when you tap "Continue" on the "Congratulations"
+          screen. But some users never did that, exiting the app right after they finished a workout, so the workout
+          never got synced to Apple/Google Health.
+        </li>
+        <li>
+          So, now the workout syncs to Apple/Google Health right when you finish a workout. You can toggle "Ask for
+          confirmation" in the Health settings, if you want. Without it, it just will always submit the workout right
+          away.
+        </li>
+        <li>
+          You can also submit past workouts to Apple/Google Health - if you open a past workout, and tap the share icon
+          - there'll be an option to "Sync to Apple/Google Health".
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

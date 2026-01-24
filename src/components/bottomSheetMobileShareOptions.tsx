@@ -9,7 +9,11 @@ import { WorkoutShareBottomSheetItem } from "./workoutShareBottomSheetItem";
 import { IconLink } from "./icons/iconLink";
 import { ClipboardUtils } from "../utils/clipboard";
 import { Share } from "../models/share";
+import { History } from "../models/history";
 import { IconTiktok } from "./icons/iconTiktok";
+import { SendMessage } from "../utils/sendMessage";
+import { HealthSync } from "../lib/healthSync";
+import { IconHeart } from "./icons/iconHeart";
 
 interface IProps {
   record: IHistoryRecord;
@@ -24,6 +28,8 @@ export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
   const [shareType, setShareType] = useState<"igstory" | "igfeed" | "tiktok">("igstory");
   const [shouldShowShareSheet, setShouldShowShareSheet] = useState<boolean>(false);
 
+  const healthName = SendMessage.isIos() ? "Apple Health" : "Google Health";
+  const shouldShowHealthSync = HealthSync.eligibleForAppleHealth() || HealthSync.eligibleForGoogleHealth();
   return (
     <div>
       <BottomSheet isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
@@ -62,6 +68,23 @@ export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
               props.onClose();
             }}
           />
+          {shouldShowHealthSync && (
+            <BottomSheetItem
+              name="submit-to-health"
+              title={`Sync to ${healthName}`}
+              description={""}
+              icon={<IconHeart size={24} />}
+              onClick={() => {
+                SendMessage.toIosAndAndroid({
+                  type: "finishWorkout",
+                  healthSync: "true",
+                  calories: `${History.calories(props.record)}`,
+                  intervals: JSON.stringify(props.record.intervals),
+                });
+                props.onClose();
+              }}
+            />
+          )}
           <BottomSheetItem
             name="share-to-link"
             title="Copy link to workout"

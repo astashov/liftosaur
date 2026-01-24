@@ -17,9 +17,7 @@ import { Collector } from "../utils/collector";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
 import { TimeUtils } from "../utils/time";
-import { MenuItemEditable } from "./menuItemEditable";
 import { SendMessage } from "../utils/sendMessage";
-import { HealthSync } from "../lib/healthSync";
 import { WorkoutSocialShareSheet } from "./workoutSocialShareSheet";
 import { BottomSheet } from "./bottomSheet";
 import { IconInstagram } from "./icons/iconInstagram";
@@ -55,8 +53,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const startedEntries = History.getStartedEntries(record);
   const totalReps = History.totalRecordReps(record);
   const totalSets = History.totalRecordSets(record);
-  const [syncToAppleHealth, setSyncToAppleHealth] = useState(!!props.settings.appleHealthSyncWorkout);
-  const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncWorkout);
 
   const historyCollector = Collector.build([record]).addFn(History.collectMuscleGroups(props.settings));
   const [muscleGroupsData] = historyCollector.run();
@@ -176,31 +172,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <WebappShare userId={props.userId} history={props.history} settings={props.settings} />
         )}
 
-        {HealthSync.eligibleForAppleHealth() && (
-          <div>
-            <MenuItemEditable
-              name="Sync to Apple Health"
-              type="boolean"
-              value={syncToAppleHealth ? "true" : "false"}
-              onChange={(newValue?: string) => {
-                setSyncToAppleHealth(newValue === "true");
-              }}
-            />
-          </div>
-        )}
-        {HealthSync.eligibleForGoogleHealth() && (
-          <div>
-            <MenuItemEditable
-              name="Sync to Google Health Connect"
-              type="boolean"
-              value={syncToGoogleHealth ? "true" : "false"}
-              onChange={(newValue?: string) => {
-                setSyncToGoogleHealth(newValue === "true");
-              }}
-            />
-          </div>
-        )}
-
         {eligibleForCreateProgramDay && (
           <div className="mx-2 my-1 text-xs text-text-secondary">You can create a program day from this workout</div>
         )}
@@ -229,16 +200,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
               className="w-36"
               data-cy="finish-day-continue"
               onClick={() => {
-                SendMessage.toIosAndAndroid({
-                  type: "finishWorkout",
-                  healthSync:
-                    (HealthSync.eligibleForAppleHealth() && syncToAppleHealth) ||
-                    (HealthSync.eligibleForGoogleHealth() && syncToGoogleHealth)
-                      ? "true"
-                      : "false",
-                  calories: `${History.calories(record)}`,
-                  intervals: JSON.stringify(record.intervals),
-                });
                 ScreenActions.setScreen(props.dispatch, "main");
                 props.dispatch(Thunk.maybeRequestReview());
                 props.dispatch(Thunk.maybeRequestSignup());

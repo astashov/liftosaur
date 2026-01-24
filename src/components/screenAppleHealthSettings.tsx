@@ -36,6 +36,20 @@ export function ScreenAppleHealthSettings(props: IProps): JSX.Element {
           }}
         />
         <MenuItemEditable
+          name="Confirm each workout sync?"
+          type="boolean"
+          value={props.settings.healthConfirmation ? "true" : "false"}
+          onChange={(newValue?: string) => {
+            props.dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>()
+                .p("healthConfirmation")
+                .record(newValue === "true"),
+              desc: "Toggle Health workout confirmation",
+            });
+          }}
+        />
+        <MenuItemEditable
           name="Sync Measurements"
           type="boolean"
           value={props.settings.appleHealthSyncMeasurements ? "true" : "false"}
