@@ -1,7 +1,7 @@
 import { CollectionUtils } from "../utils/collection";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
-import { IGraph, ISettings, IStorage } from "../types";
+import { IGraph, IMuscle, ISettings, IStorage } from "../types";
 import { Weight } from "../models/weight";
 import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
@@ -345,6 +345,24 @@ export const migrations = {
   "20260103180023_add_progress_array": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.progress = storage.progress || [];
+    return storage;
+  },
+  "20260124114134_convert_muscle_multipliers_to_object": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const key of ObjectUtils.keys(storage.settings.exerciseData)) {
+      const exerciseData = storage.settings.exerciseData[key];
+      if (exerciseData?.muscleMultipliers && Array.isArray(exerciseData.muscleMultipliers)) {
+        const oldMultipliers = exerciseData.muscleMultipliers as Array<{ muscle: IMuscle; multiplier: number }>;
+        const newMultipliers: Partial<Record<IMuscle, number>> = {};
+        for (const mm of oldMultipliers) {
+          newMultipliers[mm.muscle] = mm.multiplier;
+        }
+        exerciseData.muscleMultipliers = newMultipliers;
+      }
+    }
     return storage;
   },
 };

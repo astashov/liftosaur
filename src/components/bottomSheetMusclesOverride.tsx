@@ -51,10 +51,24 @@ function getDefaultMusclesAndMultipliers(exercise: IExercise, settings: ISetting
   return CollectionUtils.sort([...targets, ...synergists], (a, b) => a.muscle.localeCompare(b.muscle));
 }
 
+function getDefaultMusclesAndMultipliersAsObject(
+  exercise: IExercise,
+  settings: ISettings
+): Partial<Record<string, number>> {
+  const result: Partial<Record<string, number>> = {};
+  for (const mm of getDefaultMusclesAndMultipliers(exercise, settings)) {
+    result[mm.muscle] = getMultiplierValue(mm.multiplier);
+  }
+  return result;
+}
+
 function getInitialMusclesAndMultipliers(exercise: IExercise, settings: ISettings): IMuscleAndMultiplierOpt[] {
-  const exerciseData = settings.exerciseData[Exercise.toKey(exercise)];
-  if (exerciseData?.muscleMultipliers != null) {
-    return exerciseData.muscleMultipliers;
+  const muscleMultipliers = settings.exerciseData[Exercise.toKey(exercise)]?.muscleMultipliers;
+  if (muscleMultipliers != null) {
+    return ObjectUtils.keys(muscleMultipliers).map((muscle) => ({
+      muscle,
+      multiplier: muscleMultipliers[muscle],
+    }));
   } else {
     return getDefaultMusclesAndMultipliers(exercise, settings);
   }
@@ -166,13 +180,18 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
               className="w-full"
               buttonSize="md"
               onClick={() => {
-                const muscleMultipliers = musclesAndMultipliers.map((mm) => ({
-                  muscle: mm.muscle,
-                  multiplier: getMultiplierValue(mm.multiplier),
-                }));
+                const muscleMultipliers: Partial<Record<string, number>> = {};
+                for (const mm of musclesAndMultipliers) {
+                  muscleMultipliers[mm.muscle] = getMultiplierValue(mm.multiplier);
+                }
                 const exerciseData = props.settings.exerciseData;
                 const newExerciseData = ObjectUtils.clone(exerciseData);
-                if (ObjectUtils.isEqual(muscleMultipliers, getDefaultMusclesAndMultipliers(exercise, props.settings))) {
+                if (
+                  ObjectUtils.isEqual(
+                    muscleMultipliers,
+                    getDefaultMusclesAndMultipliersAsObject(exercise, props.settings)
+                  )
+                ) {
                   delete newExerciseData[Exercise.toKey(exercise)];
                 } else {
                   const ed = newExerciseData[Exercise.toKey(exercise)] || {};

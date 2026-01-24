@@ -1176,7 +1176,7 @@ export const TExerciseDataValue = t.partial(
     rounding: t.number,
     equipment: dictionary(t.string, t.union([t.string, t.undefined])),
     notes: t.string,
-    muscleMultipliers: t.array(TMuscleMultiplier),
+    muscleMultipliers: dictionary(TMuscle, t.union([t.number, t.undefined])),
     isUnilateral: t.boolean,
   },
   "TExerciseDataValue"

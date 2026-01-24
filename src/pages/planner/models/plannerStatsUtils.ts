@@ -65,7 +65,7 @@ export class PlannerStatsUtils {
         if (plannerExercise.notused) {
           continue;
         }
-        const exercise = Exercise.findByName(plannerExercise.name, settings.exercises);
+        const exercise = Exercise.findByNameAndEquipment(plannerExercise.shortName, settings.exercises);
         if (exercise == null) {
           continue;
         }
