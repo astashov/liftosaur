@@ -1,13 +1,22 @@
 import { JSX, h } from "preact";
-import { useState, useEffect, useRef } from "preact/hooks";
+import { useState, useEffect, useRef, useMemo } from "preact/hooks";
+import { debounce } from "../utils/throttler";
 
 interface IProps extends JSX.HTMLAttributes<HTMLTextAreaElement> {
   onChangeText?: (text: string) => void;
+  debounceMs?: number;
 }
 
 export function TextareaAutogrow(props: IProps): JSX.Element {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [value, setValue] = useState(props.value);
+
+  const debouncedOnChangeText = useMemo(() => {
+    if (props.onChangeText && props.debounceMs) {
+      return debounce(props.onChangeText, props.debounceMs);
+    }
+    return props.onChangeText;
+  }, [props.onChangeText, props.debounceMs]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -19,12 +28,12 @@ export function TextareaAutogrow(props: IProps): JSX.Element {
   const handleChange = (event: Event): void => {
     const target = event.target as HTMLTextAreaElement;
     setValue(target.value);
-    if (props.onChangeText) {
-      props.onChangeText(target.value);
+    if (debouncedOnChangeText) {
+      debouncedOnChangeText(target.value);
     }
   };
 
-  const { onChangeText, className, ...otherProps } = props;
+  const { onChangeText, debounceMs, className, value: _value, ...otherProps } = props;
 
   return (
     <textarea

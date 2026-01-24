@@ -270,6 +270,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
         <TextareaAutogrow
           data-cy="workout-notes-input"
           id="workout-notes"
+          debounceMs={1000}
           maxLength={4095}
           name="workout-notes"
           placeholder="Add workout notes here..."

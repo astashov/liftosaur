@@ -291,14 +291,14 @@ function filterStorageForWatch(storage: IStorage): IStorage {
   const currentProgramId = storage.currentProgramId;
 
   // Filter programs to only include current program
-  const filteredPrograms = currentProgramId
-    ? storage.programs.filter((p) => p.id === currentProgramId)
-    : [];
+  const filteredPrograms = currentProgramId ? storage.programs.filter((p) => p.id === currentProgramId) : [];
 
   // Filter _versions to match
   let filteredVersions = storage._versions;
   if (filteredVersions) {
-    const programsVersions = filteredVersions.programs as { items?: Record<string, unknown>; deleted?: Record<string, unknown> } | undefined;
+    const programsVersions = filteredVersions.programs as
+      | { items?: Record<string, unknown>; deleted?: Record<string, unknown> }
+      | undefined;
     filteredVersions = {
       ...filteredVersions,
       // Clear history versions
@@ -310,12 +310,15 @@ function filterStorageForWatch(storage: IStorage): IStorage {
         percentage: {},
       },
       // Filter programs versions to only include current program
-      programs: programsVersions ? {
-        ...programsVersions,
-        items: currentProgramId && programsVersions.items
-          ? { [currentProgramId]: programsVersions.items[currentProgramId] }
-          : {},
-      } : { items: {} },
+      programs: programsVersions
+        ? {
+            ...programsVersions,
+            items:
+              currentProgramId && programsVersions.items
+                ? { [currentProgramId]: programsVersions.items[currentProgramId] }
+                : {},
+          }
+        : { items: {} },
     };
   }
 
@@ -441,7 +444,13 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
           // Filter storage for watch to reduce payload size
           // See: rfcs/watch-storage-performance.md
           const responseStorage = isWatch ? filterStorageForWatch(storage) : storage;
-          return response(200, { type: "dirty", storage: responseStorage, email: limitedUser.email, user_id: limitedUser.id, key });
+          return response(200, {
+            type: "dirty",
+            storage: responseStorage,
+            email: limitedUser.email,
+            user_id: limitedUser.id,
+            key,
+          });
         } else {
           di.log.log("Error", result.error);
           return response(400, { type: "error", error: result.error, key });

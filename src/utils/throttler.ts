@@ -44,6 +44,21 @@ export function delayfn(fn: () => void, ms: number): () => void {
   };
 }
 
+export function debounce<T extends (...args: any[]) => any>(func: T, ms: number): (...args: Parameters<T>) => void {
+  let timeoutId: number | undefined;
+
+  return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
+    const context = this;
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+    timeoutId = window.setTimeout(() => {
+      func.apply(context, args);
+      timeoutId = undefined;
+    }, ms);
+  };
+}
+
 export function wait(ms: number): Promise<void> {
   return new Promise((resolve) => {
     const timeoutId = window.setTimeout(() => {

@@ -320,6 +320,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
         )}
         <div className="">
           <TextareaAutogrow
+            debounceMs={1000}
             data-cy="exercise-notes-input"
             id="exercise-notes"
             maxLength={4095}

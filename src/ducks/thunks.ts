@@ -212,7 +212,10 @@ export namespace Thunk {
           dispatch(Thunk.postevent("handle-response-dirty-requested-last-storage"));
           updateState(
             dispatch,
-            [lb<IState>().p("lastSyncedStorage").record(result.storage)],
+            [
+              lb<IState>().p("lastSyncedStorage").record(result.storage),
+              lb<IState>().p("storage").p("tempUserId").record(result.user_id),
+            ],
             "Update last synced storage"
           );
         } else {
@@ -532,6 +535,10 @@ export namespace Thunk {
 
         SendMessage.print(`handleWatchStorageMerge: merging storage from watch device ${watchDeviceId}`);
 
+        // Check if we're currently on the progress screen
+        const wasOnProgressScreen = Screen.currentName(state.screenStack) === "progress";
+        const hadProgress = state.storage.progress && state.storage.progress.length > 0;
+
         // Merge watch storage with phone storage
         const mergedStorage = Storage.mergeStorage(state.storage, watchStorage, state.deviceId);
 
@@ -551,6 +558,14 @@ export namespace Thunk {
             "Merge watch storage"
           );
           SendMessage.print("handleWatchStorageMerge: successfully merged watch storage");
+
+          // If we were on the progress screen and progress is now empty (workout finished on watch),
+          // navigate back to the main screen to avoid showing an empty/broken workout screen
+          const progressIsNowEmpty = !mergedStorage.progress || mergedStorage.progress.length === 0;
+          if (wasOnProgressScreen && hadProgress && progressIsNowEmpty) {
+            SendMessage.print("handleWatchStorageMerge: workout finished on watch, navigating to main screen");
+            dispatch(Thunk.pushScreen("main", undefined, true));
+          }
         } else {
           SendMessage.print("handleWatchStorageMerge: no changes after merge");
         }

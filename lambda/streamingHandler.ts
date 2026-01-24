@@ -54,7 +54,7 @@ async function getCurrentUserId(event: APIGatewayProxyEventV2, di: IDI): Promise
 
   if (!userId) {
     // Try Authorization header (Apple Watch)
-    const authHeader = event.headers["Authorization"] || event.headers["authorization"];
+    const authHeader = event.headers.Authorization || event.headers.authorization;
     if (authHeader?.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
       userId = await userDao.getUserIdFromToken(token);

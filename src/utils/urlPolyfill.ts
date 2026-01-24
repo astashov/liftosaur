@@ -14,7 +14,9 @@ interface IParsedURL {
 
 function parseURL(url: string): IParsedURL | null {
   const match = url.match(/^(([^:/?#]+):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/);
-  if (!match) return null;
+  if (!match) {
+    return null;
+  }
 
   const authority = match[4] || "";
   let userInfo = "";
@@ -81,7 +83,9 @@ export class URLSearchParamsPolyfill {
     if (query.startsWith("?")) {
       query = query.slice(1);
     }
-    if (!query) return;
+    if (!query) {
+      return;
+    }
     for (const pair of query.split("&")) {
       const eqIndex = pair.indexOf("=");
       if (eqIndex === -1) {
@@ -94,13 +98,13 @@ export class URLSearchParamsPolyfill {
     }
   }
 
-  append(name: string, value: string): void {
+  public append(name: string, value: string): void {
     const values = this.params.get(name) || [];
     values.push(value);
     this.params.set(name, values);
   }
 
-  delete(name: string, value?: string): void {
+  public delete(name: string, value?: string): void {
     if (value === undefined) {
       this.params.delete(name);
     } else {
@@ -116,32 +120,36 @@ export class URLSearchParamsPolyfill {
     }
   }
 
-  get(name: string): string | null {
+  public get(name: string): string | null {
     const values = this.params.get(name);
     return values ? values[0] : null;
   }
 
-  getAll(name: string): string[] {
+  public getAll(name: string): string[] {
     return this.params.get(name) || [];
   }
 
-  has(name: string, value?: string): boolean {
-    if (!this.params.has(name)) return false;
-    if (value === undefined) return true;
+  public has(name: string, value?: string): boolean {
+    if (!this.params.has(name)) {
+      return false;
+    }
+    if (value === undefined) {
+      return true;
+    }
     const values = this.params.get(name)!;
     return values.includes(value);
   }
 
-  set(name: string, value: string): void {
+  public set(name: string, value: string): void {
     this.params.set(name, [value]);
   }
 
-  sort(): void {
+  public sort(): void {
     const sorted = new Map([...this.params.entries()].sort((a, b) => a[0].localeCompare(b[0])));
     this.params = sorted;
   }
 
-  toString(): string {
+  public toString(): string {
     const parts: string[] = [];
     this.params.forEach((values, key) => {
       for (const value of values) {
@@ -151,7 +159,10 @@ export class URLSearchParamsPolyfill {
     return parts.join("&");
   }
 
-  forEach(callback: (value: string, key: string, parent: URLSearchParamsPolyfill) => void, thisArg?: unknown): void {
+  public forEach(
+    callback: (value: string, key: string, parent: URLSearchParamsPolyfill) => void,
+    thisArg?: unknown
+  ): void {
     this.params.forEach((values, key) => {
       for (const value of values) {
         callback.call(thisArg, value, key, this);
@@ -159,7 +170,7 @@ export class URLSearchParamsPolyfill {
     });
   }
 
-  entries(): IterableIterator<[string, string]> {
+  public entries(): IterableIterator<[string, string]> {
     const result: [string, string][] = [];
     this.params.forEach((values, key) => {
       for (const value of values) {
@@ -169,7 +180,7 @@ export class URLSearchParamsPolyfill {
     return result[Symbol.iterator]();
   }
 
-  keys(): IterableIterator<string> {
+  public keys(): IterableIterator<string> {
     const result: string[] = [];
     this.params.forEach((values, key) => {
       for (let i = 0; i < values.length; i++) {
@@ -179,7 +190,7 @@ export class URLSearchParamsPolyfill {
     return result[Symbol.iterator]();
   }
 
-  values(): IterableIterator<string> {
+  public values(): IterableIterator<string> {
     const result: string[] = [];
     this.params.forEach((values) => {
       for (const value of values) {
@@ -189,11 +200,11 @@ export class URLSearchParamsPolyfill {
     return result[Symbol.iterator]();
   }
 
-  [Symbol.iterator](): IterableIterator<[string, string]> {
+  public [Symbol.iterator](): IterableIterator<[string, string]> {
     return this.entries();
   }
 
-  get size(): number {
+  public get size(): number {
     let count = 0;
     this.params.forEach((values) => {
       count += values.length;
@@ -311,35 +322,35 @@ export class URLPolyfill {
     this._searchParams = new URLSearchParamsPolyfill(this._search);
   }
 
-  get protocol(): string {
+  public get protocol(): string {
     return this._protocol;
   }
 
-  set protocol(value: string) {
+  public set protocol(value: string) {
     this._protocol = value.endsWith(":") ? value : value + ":";
   }
 
-  get hostname(): string {
+  public get hostname(): string {
     return this._hostname;
   }
 
-  set hostname(value: string) {
+  public set hostname(value: string) {
     this._hostname = value;
   }
 
-  get port(): string {
+  public get port(): string {
     return this._port;
   }
 
-  set port(value: string) {
+  public set port(value: string) {
     this._port = value;
   }
 
-  get host(): string {
+  public get host(): string {
     return this._port ? this._hostname + ":" + this._port : this._hostname;
   }
 
-  set host(value: string) {
+  public set host(value: string) {
     const portMatch = value.match(/^(.+):(\d+)$/);
     if (portMatch) {
       this._hostname = portMatch[1];
@@ -350,56 +361,56 @@ export class URLPolyfill {
     }
   }
 
-  get pathname(): string {
+  public get pathname(): string {
     return this._pathname;
   }
 
-  set pathname(value: string) {
+  public set pathname(value: string) {
     this._pathname = value.startsWith("/") ? value : "/" + value;
   }
 
-  get search(): string {
+  public get search(): string {
     return this._search;
   }
 
-  set search(value: string) {
+  public set search(value: string) {
     this._search = value.startsWith("?") ? value : value ? "?" + value : "";
     this._searchParams = new URLSearchParamsPolyfill(this._search);
   }
 
-  get searchParams(): URLSearchParamsPolyfill {
+  public get searchParams(): URLSearchParamsPolyfill {
     return this._searchParams;
   }
 
-  get hash(): string {
+  public get hash(): string {
     return this._hash;
   }
 
-  set hash(value: string) {
+  public set hash(value: string) {
     this._hash = value.startsWith("#") ? value : value ? "#" + value : "";
   }
 
-  get username(): string {
+  public get username(): string {
     return this._username;
   }
 
-  set username(value: string) {
+  public set username(value: string) {
     this._username = value;
   }
 
-  get password(): string {
+  public get password(): string {
     return this._password;
   }
 
-  set password(value: string) {
+  public set password(value: string) {
     this._password = value;
   }
 
-  get origin(): string {
+  public get origin(): string {
     return this._protocol + "//" + this.host;
   }
 
-  get href(): string {
+  public get href(): string {
     let userinfo = "";
     if (this._username) {
       userinfo = this._username;
@@ -411,7 +422,7 @@ export class URLPolyfill {
     return this._protocol + "//" + userinfo + this.host + this._pathname + this._search + this._hash;
   }
 
-  set href(value: string) {
+  public set href(value: string) {
     const p = parseURL(value);
     if (!p || !p.protocol) {
       throw new TypeError("Invalid URL");
@@ -427,15 +438,15 @@ export class URLPolyfill {
     this._searchParams = new URLSearchParamsPolyfill(this._search);
   }
 
-  toString(): string {
+  public toString(): string {
     return this.href;
   }
 
-  toJSON(): string {
+  public toJSON(): string {
     return this.href;
   }
 
-  static canParse(url: string, base?: string): boolean {
+  public static canParse(url: string, base?: string): boolean {
     try {
       new URLPolyfill(url, base);
       return true;
