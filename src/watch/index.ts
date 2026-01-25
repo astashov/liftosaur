@@ -15,6 +15,8 @@ import {
   IProgressMode,
   IProgramState,
   IScreenMuscle,
+  IUnit,
+  IPercentageUnit,
 } from "../types";
 import { IEither } from "../utils/types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
@@ -45,7 +47,7 @@ export type IWatchSetStatus = "success" | "in-range" | "failed" | "not-finished"
 export interface IWatchUserPromptedStateVar {
   name: string;
   value: number;
-  unit?: "lb" | "kg" | "%";
+  unit?: IUnit | IPercentageUnit;
 }
 
 export interface IWatchAmrapModal {
@@ -60,8 +62,11 @@ export interface IWatchAmrapModal {
   initialReps?: number;
   initialRepsLeft?: number;
   initialWeight?: number;
-  weightUnit: "lb" | "kg";
+  weightUnit: IUnit;
   initialRpe?: number;
+  // Valid weights for the weight field (plate-compatible increments)
+  validWeights?: number[];
+  validWeightIndex?: number;
   // User prompted state variables
   userPromptedVars: IWatchUserPromptedStateVar[];
 }
@@ -95,6 +100,7 @@ export interface IWatchSet {
   completedReps?: number;
   completedRepsLeft?: number;
   completedWeight?: IWeight;
+  completedRpe?: number;
   status: IWatchSetStatus;
   plates?: string;
   isWarmup: boolean;
@@ -166,6 +172,7 @@ function setToWatchSet(
     completedReps: set.completedReps,
     completedRepsLeft: isUnilateral ? set.completedRepsLeft : undefined,
     completedWeight: set.completedWeight,
+    completedRpe: set.completedRpe,
     status: Reps.setsStatus([set]),
     plates,
     isWarmup,
@@ -592,6 +599,48 @@ class LiftosaurWatch {
     });
   }
 
+  private static generateValidWeightsArray(
+    settings: ISettings,
+    exerciseType: IExerciseType,
+    currentWeightValue: number,
+    unit: IUnit,
+    countUp: number,
+    countDown: number
+  ): { weights: number[]; currentIndex: number } {
+    const currentWeight: IWeight = { value: currentWeightValue, unit };
+
+    const weightsUp: number[] = [];
+    const weightsDown: number[] = [];
+
+    // Generate weights going up
+    let w = currentWeight;
+    for (let i = 0; i < countUp; i++) {
+      const nextW = Weight.increment(w, settings, exerciseType);
+      if (nextW.value === w.value) {
+        break;
+      }
+      weightsUp.push(nextW.value);
+      w = nextW;
+    }
+
+    // Generate weights going down
+    w = currentWeight;
+    for (let i = 0; i < countDown; i++) {
+      const prevW = Weight.decrement(w, settings, exerciseType);
+      if (prevW.value === w.value || prevW.value <= 0) {
+        break;
+      }
+      weightsDown.unshift(prevW.value);
+      w = prevW;
+    }
+
+    // Combine: [...down, current, ...up]
+    const weights = [...weightsDown, currentWeight.value, ...weightsUp];
+    const currentIndex = weightsDown.length;
+
+    return { weights, currentIndex };
+  }
+
   public static getValidWeights(
     storageJson: string,
     entryIndex: number,
@@ -610,40 +659,16 @@ class LiftosaurWatch {
         return { success: false, error: "Entry not found" };
       }
 
-      const exerciseType = entry.exercise;
-      const settings = storage.settings;
-      const currentWeight: IWeight = { value: currentWeightValue, unit: unit as "lb" | "kg" };
+      const result = this.generateValidWeightsArray(
+        storage.settings,
+        entry.exercise,
+        currentWeightValue,
+        unit as IUnit,
+        countUp,
+        countDown
+      );
 
-      const weightsUp: number[] = [];
-      const weightsDown: number[] = [];
-
-      // Generate weights going up
-      let w = currentWeight;
-      for (let i = 0; i < countUp; i++) {
-        const nextW = Weight.increment(w, settings, exerciseType);
-        if (nextW.value === w.value) {
-          break;
-        }
-        weightsUp.push(nextW.value);
-        w = nextW;
-      }
-
-      // Generate weights going down
-      w = currentWeight;
-      for (let i = 0; i < countDown; i++) {
-        const prevW = Weight.decrement(w, settings, exerciseType);
-        if (prevW.value === w.value || prevW.value <= 0) {
-          break;
-        }
-        weightsDown.unshift(prevW.value);
-        w = prevW;
-      }
-
-      // Combine: [...down, current, ...up]
-      const weights = [...weightsDown, currentWeight.value, ...weightsUp];
-      const currentIndex = weightsDown.length;
-
-      return { success: true, data: { weights, currentIndex } };
+      return { success: true, data: result };
     });
   }
 
@@ -672,6 +697,16 @@ class LiftosaurWatch {
       const settings = storage.settings;
       const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
       const weightUnit = set.weight?.unit ?? Equipment.getUnitOrDefaultForExerciseType(settings, entry.exercise);
+
+      // Generate valid weights for the main weight field
+      let validWeights: number[] | undefined;
+      let validWeightIndex: number | undefined;
+      if (modalData.askWeight) {
+        const initialWeight = set.completedWeight?.value ?? set.weight?.value ?? 0;
+        const result = this.generateValidWeightsArray(settings, entry.exercise, initialWeight, weightUnit, 50, 50);
+        validWeights = result.weights;
+        validWeightIndex = result.currentIndex;
+      }
 
       // Build user prompted vars if needed
       const userPromptedVars: IWatchUserPromptedStateVar[] = [];
@@ -712,6 +747,8 @@ class LiftosaurWatch {
         initialWeight: set.completedWeight?.value ?? set.weight?.value,
         weightUnit,
         initialRpe: set.completedRpe ?? set.rpe,
+        validWeights,
+        validWeightIndex,
         userPromptedVars,
       };
 

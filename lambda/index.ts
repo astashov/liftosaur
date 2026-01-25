@@ -279,21 +279,13 @@ const postReceiveAdAttrHandler: RouteHandler<
   return ResponseUtils.json(200, payload.event, { data: "ok" });
 };
 
-/**
- * Filters storage for watch to reduce payload size.
- * - Only includes current program (not all programs)
- * - Clears history (watch doesn't need it)
- * - Clears stats (watch doesn't need it)
- * - Filters _versions to match
- * See: rfcs/watch-storage-performance.md
- */
 function filterStorageForWatch(storage: IStorage): IStorage {
   const currentProgramId = storage.currentProgramId;
 
-  // Filter programs to only include current program
   const filteredPrograms = currentProgramId ? storage.programs.filter((p) => p.id === currentProgramId) : [];
+  const currentProgram = filteredPrograms[0];
+  const programVersionKey = currentProgram?.clonedAt != null ? String(currentProgram.clonedAt) : undefined;
 
-  // Filter _versions to match
   let filteredVersions = storage._versions;
   if (filteredVersions) {
     const programsVersions = filteredVersions.programs as
@@ -301,21 +293,18 @@ function filterStorageForWatch(storage: IStorage): IStorage {
       | undefined;
     filteredVersions = {
       ...filteredVersions,
-      // Clear history versions
       history: { items: {} },
-      // Clear stats versions
       stats: {
         weight: {},
         length: {},
         percentage: {},
       },
-      // Filter programs versions to only include current program
       programs: programsVersions
         ? {
             ...programsVersions,
             items:
-              currentProgramId && programsVersions.items
-                ? { [currentProgramId]: programsVersions.items[currentProgramId] }
+              programVersionKey && programsVersions.items
+                ? { [programVersionKey]: programsVersions.items[programVersionKey] }
                 : {},
           }
         : { items: {} },
