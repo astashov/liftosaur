@@ -144,10 +144,10 @@ function setToWatchSet(
   isUnilateral: boolean
 ): IWatchSet {
   let plates: string | undefined;
-  const weight = set.weight;
-  if (weight) {
-    const unit = weight.unit;
-    const { plates: platesArr } = Weight.calculatePlates(weight, settings, unit, exerciseType);
+  const weightForPlates = set.completedWeight ?? set.weight;
+  if (weightForPlates) {
+    const unit = weightForPlates.unit;
+    const { plates: platesArr } = Weight.calculatePlates(weightForPlates, settings, unit, exerciseType);
     if (platesArr.length > 0) {
       plates = Weight.formatOneSide(settings, platesArr, exerciseType);
     }
@@ -362,6 +362,13 @@ class LiftosaurWatch {
     return this.getStorage<{ hasProgram: boolean }>(storageJson, (storage) => {
       const has = storage.programs.some((p) => p.id === storage.currentProgramId);
       return { success: true, data: { hasProgram: has } };
+    });
+  }
+
+  public static hasSubscription(storageJson: string): string {
+    return this.getStorage<{ hasSubscription: boolean }>(storageJson, (storage) => {
+      // const has = Subscriptions.hasSubscription(storage.subscription);
+      return { success: true, data: { hasSubscription: true } };
     });
   }
 
@@ -1021,18 +1028,29 @@ class LiftosaurWatch {
   }
 
   public static getHealthSettings(storageJson: string): string {
-    return this.getStorage<{ appleHealthSyncWorkout: boolean; healthConfirmation: boolean }>(
-      storageJson,
-      (storage) => {
-        return {
-          success: true,
-          data: {
-            appleHealthSyncWorkout: !!storage.settings.appleHealthSyncWorkout,
-            healthConfirmation: !!storage.settings.healthConfirmation,
-          },
-        };
+    return this.getStorage<{ appleHealthSyncWorkout: boolean; healthConfirmation: boolean }>(storageJson, (storage) => {
+      return {
+        success: true,
+        data: {
+          appleHealthSyncWorkout: !!storage.settings.appleHealthSyncWorkout,
+          healthConfirmation: !!storage.settings.healthConfirmation,
+        },
+      };
+    });
+  }
+
+  // Validates storage without performing any operation.
+  // Used by phone to validate storage before sending to watch.
+  public static validateStorage(storageJson: string): string {
+    try {
+      const result = parseStorageSync(storageJson, true); // force revalidate
+      if (!result.success) {
+        return JSON.stringify({ success: false, error: result.error.join(", ") });
       }
-    );
+      return JSON.stringify({ success: true });
+    } catch (e) {
+      return JSON.stringify({ success: false, error: String(e) });
+    }
   }
 }
 

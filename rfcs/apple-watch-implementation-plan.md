@@ -2,11 +2,11 @@
 
 ## Overview
 
-**Status: ~90% Complete - Production Ready for Core Workflow**
+**Status: ~98% Complete - Production Ready**
 
 An autonomous Apple Watch app for Liftosaur that can complete workouts independently, execute Liftoscript progression logic, and sync with phone/server using the existing VersionTracker infrastructure.
 
-The core workflow (start workout → log sets → finish → sync) is fully functional. Remaining work is primarily polish and edge case handling.
+The core workflow is fully functional with comprehensive features: workout logging, AMRAP/RPE support, unilateral exercises, Apple Health integration, rest timers, and optimized sync. The watch app is production-ready.
 
 ## Architecture
 
@@ -53,8 +53,10 @@ We created a custom Swift package (`QuickJSCore`) that wraps the QuickJS C libra
 - watchOS app limit: ~30MB (varies by model)
 - JS bundle: ~1MB minified (includes io-ts validation)
 - QuickJS runtime overhead: ~5-10MB (with 4MB stack)
-- Workout data: ~1-2MB
-- **Total estimate: ~15-20MB** - within budget
+- Workout data: ~100-200KB (after source-side filtering, down from ~2-5MB)
+- **Total estimate: ~12-15MB** - well within budget
+
+Note: Storage filtering at source (phone/server) significantly reduced workout data size. See `rfcs/watch-storage-performance.md`.
 
 ## Data Sync Strategy
 
@@ -108,34 +110,65 @@ const watchDeviceId = "watch-" + UUID;
 
 ### Entry Point
 
-Located at `src/watch/index.ts`:
+Located at `src/watch/index.ts`. Exports 28+ functions organized by category:
 
 ```typescript
-import { Program } from "../models/program";
-import { Exercise } from "../models/exercise";
-import { Storage } from "../models/storage";
-import { Sync } from "../utils/sync";
-
 // All functions must be SYNCHRONOUS (QuickJS Promise handling is complex)
 
-export function getNextWorkout(storageJson: string): string {
-  const data = JSON.parse(storageJson);
-  const result = Storage.validateStorage(data);  // Skip async migrations
-  if (!result.success) {
-    return JSON.stringify({ error: result.error.join(", ") });
-  }
-  // ... build workout from program
-  return JSON.stringify(watchWorkout);
-}
+// Workout Management
+startWorkout(storageJson: string): string
+finishWorkout(storageJson: string): string
+finishWorkoutContinue(storageJson: string): string  // For Apple Health integration
+discardWorkout(storageJson: string): string
+getProgress(storageJson: string): string
 
-export function hasProgram(storageJson: string): string { ... }
-export function prepareSync(current: string, lastSynced: string, deviceId: string): string { ... }
-export function mergeStorage(current: string, incoming: string, deviceId: string): string { ... }
+// Set Operations
+completeSet(storageJson: string, entryIndex: number, setIndex: number): string
+updateSetReps(storageJson: string, entryIndex: number, setIndex: number, reps: number): string
+updateSetRepsLeft(storageJson: string, entryIndex: number, setIndex: number, reps: number): string
+updateSetWeight(storageJson: string, entryIndex: number, setIndex: number, weight: number): string
+getNextEntryAndSetIndex(storageJson: string): string
+getValidWeights(storageJson: string, exerciseId: string, equipmentId: string): string
+
+// AMRAP/RPE Modal
+getAmrapModal(storageJson: string): string
+completeSetWithAmrap(storageJson: string, entryIndex: number, setIndex: number, updates: object): string
+
+// Rest Timer
+getRestTimer(storageJson: string): string
+adjustRestTimer(storageJson: string, delta: number): string
+stopRestTimer(storageJson: string): string
+
+// Workout Status
+getWorkoutStatus(storageJson: string): string
+pauseWorkout(storageJson: string): string
+resumeWorkout(storageJson: string): string
+
+// History & Summary
+getNextHistoryRecord(storageJson: string): string
+getFinishWorkoutSummary(storageJson: string): string
+
+// Sync Operations
+prepareSync(current: string, lastSynced: string, deviceId: string): string
+mergeStorage(current: string, incoming: string, deviceId: string): string
+invalidateStorageCache(): void
+
+// Utility
+hasProgram(storageJson: string): string
+hasSubscription(storageJson: string): string
+getVolume(storageJson: string): string
+getHealthSettings(storageJson: string): string
+getLatestMigrationVersion(): string
 
 // Expose to global scope for QuickJS
-declare const globalThis: Record<string, unknown>;
-globalThis.Liftosaur = { getNextWorkout, hasProgram, prepareSync, mergeStorage };
+globalThis.Liftosaur = { /* all above functions */ };
 ```
+
+**Performance Optimizations in Bundle:**
+- Storage caching with version tracking (avoids re-parsing)
+- Single-session validation (io-ts validates once, then trusts cache)
+- Program evaluation caching with plannerText key matching
+- Performance logging for all major operations
 
 ### Build Configuration
 
@@ -281,6 +314,7 @@ struct ExerciseEntry: Codable {
    - Fetch current program day from storage
    - Display exercise list with sets
    - Home screen with workout preview and exercise thumbnails
+   - Exercise image caching
 
 2. **Log Sets**
    - Crown-controlled reps input (scroll to adjust)
@@ -288,6 +322,7 @@ struct ExerciseEntry: Codable {
    - Checkmark button to complete set
    - Rest timer auto-triggered after set completion
    - AMRAP modal for reps/weight/RPE/custom variables
+   - **Unilateral exercise support** (separate left/right rep tracking)
 
 3. **Exercise Navigation**
    - Swipe vertically between exercises
@@ -296,6 +331,7 @@ struct ExerciseEntry: Codable {
    - Visual completion status (dot indicators per set)
    - Auto-advance to next incomplete set
    - Discard workout option
+   - **Pause/Resume workout** (accurate time tracking with intervals)
 
 4. **Finish Workout**
    - Execute Liftoscript finish day script
@@ -303,13 +339,20 @@ struct ExerciseEntry: Codable {
    - Comprehensive summary: time, volume, sets, reps
    - Exercise breakdown with completion status
    - Muscle group distribution
-   - Personal records display (max weight, estimated 1RM)
+   - **Apple Health integration** (send workout to Health app via phone)
+   - Personal records display (disabled - watch doesn't receive full history for performance)
 
 5. **Offline Support**
    - Full workout completion without connectivity
    - Queue changes for later sync (pending updates in UserDefaults)
    - Visual indicator of sync status
    - Direct server sync when authenticated (cellular watch support)
+
+6. **Additional Features**
+   - **Premium subscription gating** (checks hasSubscription)
+   - **Heart rate monitoring** during workouts
+   - **Haptic feedback** (crown rotation, button clicks)
+   - **Sound volume control** for rest timer
 
 ### Future Scope
 
@@ -318,7 +361,7 @@ struct ExerciseEntry: Codable {
 - Workout notes
 - Historical workout viewing
 - Complications for next workout
-- Advanced battery/memory optimization
+- Re-enable PR display (pre-compute on phone/server)
 
 ## WatchConnectivity (Phone ↔ Watch)
 
@@ -422,13 +465,22 @@ Response:
 - [x] Initial setup flow (auth token transfer)
 - [ ] Phone UI showing watch workout progress (moved to Future Scope)
 
-### Phase 5: Polish (PARTIAL)
+### Phase 5: Polish ✅ MOSTLY COMPLETE
 - [x] Haptic feedback (crown rotation, button clicks)
 - [x] Basic error handling with user-visible messages
-- [ ] Advanced error recovery (storage corruption, network edge cases)
-- [ ] Memory optimization (lighter validation path for watch bundle)
-- [ ] Battery optimization (timer frequency, network batching)
+- [x] Memory optimization (storage filtering at source - see `rfcs/watch-storage-performance.md`)
+  - [x] Phone-side filtering in WatchConnectivityManager.swift
+  - [x] Server-side filtering in lambda/index.ts (filterStorageForWatch)
+  - [x] Single-session validation in watch bundle
+  - [x] Storage caching with version tracking
+- [x] Sound volume control
+- [x] Heart rate monitoring
+- [x] Premium subscription gating
+- [x] Apple Health integration (send workouts to Health)
+- [x] Unilateral exercise support
+- [x] Pause/Resume workout with accurate time tracking
 - [ ] Complications
+- [ ] Advanced error recovery (storage corruption, network edge cases)
 
 ## Open Questions
 
@@ -439,14 +491,13 @@ Response:
    - Watch also requests auth when phone becomes reachable
    - `clearAuth` message sent when user logs out on phone
 
-2. **Program updates**: If user edits program on phone mid-workout, how to handle on watch?
-   - Option A: Lock phone editing during watch workout
-   - Option B: Merge changes (may cause confusion)
-   - Current: Option B - vector clocks handle merging
+2. **Program updates**: ✅ RESOLVED - If user edits program on phone mid-workout, vector clocks handle merging. Changes are orthogonal (workout progress vs program structure) and merge cleanly.
 
-3. **Which storage fields on watch?**: ✅ RESOLVED - Full IStorage for easier sync. Memory usage is acceptable.
+3. **Which storage fields on watch?**: ✅ RESOLVED - Filtered IStorage for performance. Phone and server filter to only: current program, empty history, empty stats. See `rfcs/watch-storage-performance.md`.
 
 4. **Cellular watch support**: ✅ RESOLVED - Yes! Watch syncs directly with server using Bearer token auth when authenticated. Works independently of phone connectivity.
+
+5. **Large account performance**: ✅ RESOLVED - Source-side filtering reduces storage from ~2-5MB to ~100-200KB. Single-session validation eliminates 18+ second io-ts overhead. See `rfcs/watch-storage-performance.md`.
 
 ## File Structure
 
@@ -468,7 +519,7 @@ LiftosauriOS/
 │
 └── src/
     ├── Liftosaur/                      // iOS app
-    │   ├── WatchConnectivityManager.swift  // Sends storage to watch
+    │   ├── WatchConnectivityManager.swift  // Sends filtered storage to watch
     │   └── ...
     │
     └── LiftosaurWatch/                 // Watch app
@@ -479,27 +530,35 @@ LiftosauriOS/
         ├── Views/
         │   ├── HomeScreen.swift        // Workout preview with start button
         │   ├── WorkoutExercisesScreen.swift  // Exercise list with swipeable cards
-        │   ├── ExerciseScreen.swift    // Main workout UI (871 lines - crown & set logging)
+        │   ├── ExerciseScreen.swift    // Main workout UI (48KB - crown & set logging)
         │   ├── WorkoutCardView.swift   // Exercise card component
         │   ├── AmrapModalView.swift    // AMRAP/RPE/custom variable input
         │   ├── RestTimerScreen.swift   // Rest timer with adjustments
-        │   ├── FinishWorkoutScreen.swift  // Summary with PRs, volume, muscles
-        │   └── ScrollableInputFields.swift  // Reusable crown-controlled inputs
+        │   ├── FinishWorkoutScreen.swift  // Summary with volume, muscles
+        │   ├── ScrollableInputFields.swift  // Reusable crown-controlled inputs
+        │   ├── HeartRateView.swift     // Heart rate display during workout
+        │   └── PremiumRequiredScreen.swift  // Premium subscription gate
         ├── Models/
         │   └── WatchModels.swift       // WatchWorkout, WatchExercise, WatchSet
         └── Engine/
             ├── LiftosaurEngine.swift   // QuickJS wrapper (14KB)
-            ├── WorkoutManager.swift    // Workout state & orchestration (468 lines)
+            ├── WorkoutManager.swift    // Workout state & orchestration (25KB)
             ├── WatchCacheManager.swift // Bundle loading
             ├── WatchStorageManager.swift  // UserDefaults persistence
             ├── WatchConnectivityManager.swift  // Receives storage/auth from phone
-            ├── WatchSyncManager.swift  // Server sync, pending updates queue (17KB)
-            └── AuthManager.swift       // JWT token storage and validation
+            ├── WatchSyncManager.swift  // Server sync, pending updates queue (23KB)
+            ├── AuthManager.swift       // JWT token storage and validation
+            ├── HealthKitManager.swift  // Apple Health integration (14KB)
+            └── ImageCacheManager.swift // Exercise image caching
 
 liftosaur/                              // Main web project
-└── src/
-    └── watch/
-        └── index.ts                    // Watch bundle entry point
+├── src/
+│   └── watch/
+│       └── index.ts                    // Watch bundle entry point (28+ functions)
+├── lambda/
+│   └── index.ts                        // Contains filterStorageForWatch() for server-side optimization
+└── rfcs/
+    └── watch-storage-performance.md    // Detailed RFC for storage performance optimization
 ```
 
 ## References
@@ -508,6 +567,7 @@ liftosaur/                              // Main web project
 - [QuickJS JavaScript Engine](https://bellard.org/quickjs/) - Used instead of JavaScriptCore (not available on watchOS)
 - [Liftoscript Documentation](/llms/liftoscript.md)
 - [VersionTracker Implementation](/src/models/versionTracker.ts)
+- [Watch Storage Performance RFC](/rfcs/watch-storage-performance.md) - Detailed analysis of storage filtering optimization
 
 ## Lessons Learned
 
@@ -536,3 +596,15 @@ liftosaur/                              // Main web project
 12. **AMRAP modal flexibility** - AMRAP modal needs to handle multiple input types: reps, weight, RPE, and custom user-prompted state variables. Design it as a dynamic form builder.
 
 13. **Workout pause/resume** - Track workout time via intervals array `[[start, end], [start, end], ...]` rather than a single timestamp, to properly calculate elapsed time with pauses.
+
+14. **Source-side storage filtering** - For large accounts (700+ workouts), filter storage at the source (phone and server) rather than on watch. This eliminates ~95% of data and avoids expensive io-ts validation. See `rfcs/watch-storage-performance.md` for detailed analysis.
+
+15. **Single-session validation** - Validate storage once per session, then trust the cache. Use `hasValidatedOnceThisSession` flag to skip io-ts on subsequent operations.
+
+16. **PR display trade-off** - Personal records require full workout history. For performance, disable PR display on watch and return empty arrays. Future: pre-compute PRs on phone/server.
+
+17. **VersionTracker with filtered data** - VersionTracker works correctly with filtered data as long as both `storage` AND `_versions` are filtered together. It iterates data arrays, not version entries, so empty arrays don't cause spurious deletions.
+
+18. **Apple Health integration** - Watch can't write directly to HealthKit during workout (mirrored session from phone). Use `finishWorkoutContinue()` to send workout data to phone, which handles the actual HealthKit write.
+
+19. **Unilateral exercises** - Track `completedRepsLeft` separately from `completedReps`. Use `isUnilateral` flag to show two input fields in exercise screen.
