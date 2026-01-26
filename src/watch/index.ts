@@ -436,11 +436,87 @@ class LiftosaurWatch {
     }
   }
 
+  private static logVersionsForProgress(label: string, storage: IStorage): void {
+    const progress = storage.progress?.[0];
+    const versions = storage._versions as Record<string, unknown> | undefined;
+
+    // progress is an array, so it uses collection versioning
+    // Path: _versions.progress.items[startTime].entries.items[entryId].sets.items[setIndex]
+    const progressCollectionVersions = versions?.progress as { items?: Record<string, unknown> } | undefined;
+
+    console.log(`[MERGE] ${label} progress versions:`);
+    console.log(`[MERGE]   Raw _versions keys: ${JSON.stringify(Object.keys(versions || {}))}`);
+    console.log(`[MERGE]   Raw progress versions: ${JSON.stringify(progressCollectionVersions)?.slice(0, 500)}`);
+    if (!progress) {
+      console.log(`[MERGE]   No progress data`);
+      return;
+    }
+
+    // Get the progress item's ID (which is startTime)
+    const progressId = String(progress.startTime);
+    const progressItemVersions = progressCollectionVersions?.items?.[progressId] as Record<string, unknown> | undefined;
+
+    if (!progressItemVersions) {
+      console.log(`[MERGE]   No versions for progress item (startTime=${progressId})`);
+      console.log(
+        `[MERGE]   Available progress version keys: ${JSON.stringify(Object.keys(progressCollectionVersions?.items || {}))}`
+      );
+      return;
+    }
+
+    // entries is a collection within the progress item
+    const entriesVersions = progressItemVersions?.entries as { items?: Record<string, unknown> } | undefined;
+
+    if (!entriesVersions?.items) {
+      console.log(`[MERGE]   Progress versions exist but no entries versions`);
+      console.log(`[MERGE]   Progress version keys: ${JSON.stringify(Object.keys(progressItemVersions || {}))}`);
+      return;
+    }
+
+    for (let i = 0; i < progress.entries.length; i++) {
+      const entry = progress.entries[i];
+      // history_entry uses 'id' field per TYPE_ID_MAPPING (NOT programExerciseId!)
+      const entryId = entry.id || `index-${i}`;
+      const entryVersions = entriesVersions.items[entryId] as Record<string, unknown> | undefined;
+      const setsVersions = entryVersions?.sets as { items?: Record<string, unknown> } | undefined;
+
+      console.log(
+        `[MERGE]   entry[${i}] id=${entryId} peid=${entry.programExerciseId} (setsVersions keys: ${JSON.stringify(Object.keys(setsVersions?.items || {}))}):`
+      );
+      for (let j = 0; j < entry.sets.length; j++) {
+        const set = entry.sets[j];
+        // set uses 'index' field as ID - try both array index and set.index
+        const setIdByArrayIndex = `${j}`;
+        const setIdBySetIndex = `${set.index}`;
+        const setVersionByArray = setsVersions?.items?.[setIdByArrayIndex];
+        const setVersionByIndex = setsVersions?.items?.[setIdBySetIndex];
+        const setVersion = setVersionByArray || setVersionByIndex;
+        const versionStr = setVersion
+          ? typeof setVersion === "number"
+            ? `t:${setVersion}`
+            : JSON.stringify(setVersion)
+          : "NO_VERSION";
+        console.log(
+          `[MERGE]     set[${j}](idx=${set.index}): reps=${set.completedReps ?? "nil"}, done=${set.isCompleted}, v=${versionStr}`
+        );
+      }
+    }
+  }
+
   public static mergeStorage(currentStorageJson: string, incomingStorageJson: string, deviceId: string): string {
     try {
       const currentStorage = JSON.parse(currentStorageJson) as IStorage;
       const incomingStorage = JSON.parse(incomingStorageJson) as IStorage;
+
+      // Log versions before merge
+      this.logVersionsForProgress("INCOMING", incomingStorage);
+      this.logVersionsForProgress("CURRENT", currentStorage);
+
       const merged = Storage.mergeStorage(currentStorage, incomingStorage, deviceId);
+
+      // Log versions after merge
+      this.logVersionsForProgress("MERGED", merged);
+
       // Update cache with merged result so next operation doesn't need to re-validate
       cachedStorage = merged;
       cachedStorageVersion += 1;

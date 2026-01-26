@@ -38,14 +38,18 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
           result[key] = mergedValue;
         }
       } else if (isFieldVersion(diffVersion)) {
-        // extractedValue is undefined but we have a version update
-        // This means the field was explicitly deleted/set to undefined
         if (fullVersion === undefined || !isFieldVersion(fullVersion)) {
           delete result[key];
         } else {
           const comparison = VersionTrackerUtils.compareVersions(diffVersion, fullVersion);
-          if (comparison === "a_newer" || comparison === "concurrent") {
+          if (comparison === "a_newer") {
             delete result[key];
+          } else if (comparison === "concurrent") {
+            const diffNorm = VersionTrackerUtils.normalizeVersion(diffVersion);
+            const fullNorm = VersionTrackerUtils.normalizeVersion(fullVersion);
+            if (diffNorm.t > fullNorm.t) {
+              delete result[key];
+            }
           }
         }
       }
@@ -63,8 +67,15 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
   ): unknown {
     if (isFieldVersion(diffVersion) && isFieldVersion(fullVersion)) {
       const comparison = VersionTrackerUtils.compareVersions(diffVersion, fullVersion);
-      if (comparison === "a_newer" || comparison === "concurrent") {
+      if (comparison === "a_newer") {
         return extractedValue;
+      }
+      if (comparison === "concurrent") {
+        const diffNorm = VersionTrackerUtils.normalizeVersion(diffVersion);
+        const fullNorm = VersionTrackerUtils.normalizeVersion(fullVersion);
+        if (diffNorm.t > fullNorm.t) {
+          return extractedValue;
+        }
       }
       return fullValue;
     }
@@ -141,8 +152,14 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
                 mergedItem[field] = extractedFieldValue;
               } else {
                 const comparison = VersionTrackerUtils.compareVersions(diffFieldVersion, fullFieldVersion);
-                if (comparison === "a_newer" || comparison === "concurrent") {
+                if (comparison === "a_newer") {
                   mergedItem[field] = extractedFieldValue;
+                } else if (comparison === "concurrent") {
+                  const diffNorm = VersionTrackerUtils.normalizeVersion(diffFieldVersion);
+                  const fullNorm = VersionTrackerUtils.normalizeVersion(fullFieldVersion);
+                  if (diffNorm.t > fullNorm.t) {
+                    mergedItem[field] = extractedFieldValue;
+                  }
                 }
               }
             } else if (isCollectionVersions(diffFieldVersion)) {
@@ -284,7 +301,15 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
   ): boolean {
     if (isFieldVersion(diffVersion) && isFieldVersion(fullVersion)) {
       const comparison = VersionTrackerUtils.compareVersions(diffVersion, fullVersion);
-      return comparison === "a_newer" || comparison === "concurrent";
+      if (comparison === "a_newer") {
+        return true;
+      }
+      if (comparison === "concurrent") {
+        const diffNorm = VersionTrackerUtils.normalizeVersion(diffVersion);
+        const fullNorm = VersionTrackerUtils.normalizeVersion(fullVersion);
+        return diffNorm.t > fullNorm.t;
+      }
+      return false;
     }
 
     if (diffVersion !== undefined && fullVersion === undefined) {
