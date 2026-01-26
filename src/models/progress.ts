@@ -1645,7 +1645,7 @@ export namespace Progress {
     const newSettingsExerciseData = deepmerge(storage.settings.exerciseData, newExerciseData);
     return {
       ...storage,
-      progress: [],
+      progress: Progress.isCurrent(progress) ? [] : storage.progress,
       history: newHistory,
       programs: newPrograms,
       settings: {
