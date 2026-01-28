@@ -60,7 +60,7 @@ export class CloudwatchUtil implements ICloudwatchUtil {
         .promise();
 
       const events = response.events || [];
-      pageCount++;
+      pageCount += 1;
 
       for (const event of events) {
         const strippedMsg = (event.message || "").replace(/^[^\[]*/, "");

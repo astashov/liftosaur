@@ -95,6 +95,7 @@ export interface IWatchSet {
   weight?: IWeight;
   originalWeight?: IWeight | IPercentage;
   isAmrap?: boolean;
+  askWeight?: boolean;
   rpe?: number;
   timer?: number;
   label?: string;
@@ -167,6 +168,7 @@ function setToWatchSet(
     weight: set.weight,
     originalWeight: set.originalWeight,
     isAmrap: set.isAmrap,
+    askWeight: set.askWeight,
     rpe: set.rpe,
     timer: set.timer,
     label: set.label,
@@ -667,9 +669,12 @@ class LiftosaurWatch {
 
   public static completeSet(storageJson: string, deviceId: string, entryIndex: number, globalSetIndex: number): string {
     return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
-      const progress = storage.progress?.[0];
+      let progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
+      }
+      if (progress.ui?.amrapModal) {
+        progress = { ...progress, ui: { ...progress.ui, amrapModal: undefined } };
       }
       const entry = progress.entries[entryIndex];
       if (!entry) {
