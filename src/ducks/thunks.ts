@@ -575,6 +575,50 @@ export namespace Thunk {
     };
   }
 
+  export function reloadStorageFromDisk(): IThunk {
+    return async (dispatch, getState) => {
+      try {
+        const currentAccount = (await IndexedDBUtils.get("current_account")) as string | undefined;
+        if (!currentAccount) {
+          SendMessage.print("reloadStorageFromDisk: no current_account");
+          return;
+        }
+
+        const rawStorage = (await IndexedDBUtils.get(`liftosaur_${currentAccount}`)) as string | undefined;
+        if (!rawStorage) {
+          SendMessage.print("reloadStorageFromDisk: no storage found");
+          return;
+        }
+
+        const parsed = JSON.parse(rawStorage);
+        const storage: IStorage = parsed?.storage;
+        const lastSyncedStorage: IStorage | undefined = parsed?.lastSyncedStorage;
+
+        if (!storage) {
+          SendMessage.print("reloadStorageFromDisk: invalid storage format");
+          return;
+        }
+
+        SendMessage.print(
+          `reloadStorageFromDisk: reloading storage, progress.ui: ${JSON.stringify(storage.progress?.[0]?.ui)}`
+        );
+
+        updateState(
+          dispatch,
+          [
+            lb<IState>().p("storage").record(storage),
+            lb<IState>()
+              .p("lastSyncedStorage")
+              .record(lastSyncedStorage ?? storage),
+          ],
+          "Reload storage from disk"
+        );
+      } catch (error) {
+        SendMessage.print(`reloadStorageFromDisk: failed: ${error}`);
+      }
+    };
+  }
+
   export function fetchStorage(storageId?: string): IThunk {
     return async (dispatch, getState, env) => {
       if (getState().errors.corruptedstorage == null) {

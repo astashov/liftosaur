@@ -252,6 +252,8 @@ export function AppView(props: IProps): JSX.Element | null {
         const storageJson = event.data.storage as string;
         const deviceId = event.data.deviceId as string;
         dispatch(Thunk.handleWatchStorageMerge(storageJson, deviceId));
+      } else if (event.data?.type === "reloadStorageFromDisk") {
+        dispatch(Thunk.reloadStorageFromDisk());
       }
     });
     const userId = state.user?.id || state.storage.tempUserId;

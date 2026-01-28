@@ -628,7 +628,7 @@ export namespace Progress {
 
   export function updateTimer(
     progress: IHistoryRecord,
-    program: IProgram,
+    program: IProgram | undefined,
     newTimer: number,
     timerSince: number,
     liveActivityEntryIndex: number | undefined,

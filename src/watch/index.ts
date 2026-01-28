@@ -17,6 +17,7 @@ import {
   IScreenMuscle,
   IUnit,
   IPercentageUnit,
+  IProgram,
 } from "../types";
 import { IEither } from "../utils/types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
@@ -29,6 +30,7 @@ import { ObjectUtils } from "../utils/object";
 import { Collector } from "../utils/collector";
 import { Muscle } from "../models/muscle";
 import { SendMessage } from "../utils/sendMessage";
+import { LiveActivityManager } from "../utils/liveActivityManager";
 
 export interface IWatchHistoryRecord {
   dayName: string;
@@ -195,8 +197,12 @@ interface ICachedEvaluatedProgram {
 }
 let cachedEvaluatedProgram: ICachedEvaluatedProgram | null = null;
 
+function getProgram(storage: IStorage): IProgram | undefined {
+  return storage.programs.find((p) => p.id === storage.currentProgramId);
+}
+
 function getEvaluatedProgram(storage: IStorage): ReturnType<typeof Program.evaluate> | undefined {
-  const program = storage.programs.find((p) => p.id === storage.currentProgramId);
+  const program = getProgram(storage);
   if (!program) {
     return undefined;
   }
@@ -530,8 +536,137 @@ class LiftosaurWatch {
     return getLatestMigrationVersion();
   }
 
+  public static completeSetLiveActivity(
+    storageJson: string,
+    deviceId: string,
+    entryIndex: number,
+    setIndex: number,
+    restTimer: number,
+    restTimerSince: number
+  ): string {
+    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+      const entry = progress.entries[entryIndex];
+      if (!entry) {
+        return { success: false, error: "Entry not found" };
+      }
+      const isWarmup = setIndex < entry.warmupSets.length;
+      let adjustedSetIndex = setIndex;
+      if (!isWarmup) {
+        adjustedSetIndex -= entry.warmupSets.length;
+      }
+      console.log(`Main App: complete set entryIndex: ${entryIndex}, setIndex: ${setIndex}`);
+      const evaluatedProgram = getEvaluatedProgram(storage);
+      const programExercise = evaluatedProgram
+        ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+        : undefined;
+
+      const set = isWarmup ? entry.warmupSets[adjustedSetIndex] : entry.sets[adjustedSetIndex];
+      if (set.isCompleted) {
+        console.log(`Main App: Set already completed, refreshing live activity`);
+        const program = getProgram(storage);
+        LiveActivityManager.updateProgressLiveActivity(
+          program,
+          progress,
+          storage.settings,
+          storage.subscription,
+          entryIndex,
+          setIndex,
+          restTimer,
+          restTimerSince
+        );
+        return { success: true, data: storage };
+      }
+      const newProgress = Progress.completeSetAction(
+        storage.settings,
+        storage.stats,
+        progress,
+        {
+          type: "CompleteSetAction",
+          entryIndex,
+          setIndex: adjustedSetIndex,
+          mode: isWarmup ? "warmup" : "workout",
+          programExercise: programExercise,
+          otherStates: evaluatedProgram?.states,
+          isPlayground: false,
+          forceUpdateEntryIndex: true,
+          isExternal: true,
+        },
+        storage.subscription
+      );
+      const newStorage: IStorage = {
+        ...storage,
+        progress: [newProgress],
+      };
+      return { success: true, data: newStorage };
+    });
+  }
+
+  public static adjustTimerLiveActivity(
+    storageJson: string,
+    deviceId: string,
+    action: "increase" | "decrease",
+    incomingRestTimer: number,
+    incomingRestTimerSince: number,
+    entryIndex: number,
+    setIndex: number,
+    skipLiveActivityUpdate: boolean
+  ): string {
+    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+      const { timer, timerSince } = progress;
+      console.log(`Main app: ${action === "increase" ? "Increasing" : "Decreasing"} rest timer by 15 seconds`);
+      console.log(`Main app: Current timer: ${timer}, since: ${timerSince}`);
+      if (timer == null || timerSince == null) {
+        return { success: true, data: storage };
+      }
+      const program = getProgram(storage);
+      if (incomingRestTimer !== timer || incomingRestTimerSince !== timerSince) {
+        console.log(
+          `Main app: Incoming rest timer data does not match current state, refreshing live activity. ${incomingRestTimer} != ${timer} || ${incomingRestTimerSince} != ${timerSince}`
+        );
+        if (!skipLiveActivityUpdate) {
+          LiveActivityManager.updateProgressLiveActivity(
+            program,
+            progress,
+            storage.settings,
+            storage.subscription,
+            entryIndex,
+            setIndex,
+            timer,
+            timerSince
+          );
+        }
+      } else {
+        const newProgress = Progress.updateTimer(
+          progress,
+          program,
+          action === "increase" ? timer + 15 : Math.max(0, timer - 15),
+          progress.timerSince || Date.now(),
+          entryIndex,
+          setIndex,
+          !!skipLiveActivityUpdate,
+          storage.settings,
+          storage.subscription
+        );
+        const newStorage: IStorage = {
+          ...storage,
+          progress: [newProgress],
+        };
+        return { success: true, data: newStorage };
+      }
+      return { success: true, data: storage };
+    });
+  }
+
   public static completeSet(storageJson: string, deviceId: string, entryIndex: number, globalSetIndex: number): string {
-    return this.modifyStorage(storageJson, deviceId, (storage) => {
+    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
@@ -561,6 +696,7 @@ class LiftosaurWatch {
           setIndex,
           mode,
           programExercise,
+          otherStates: evaluatedProgram?.states,
           forceUpdateEntryIndex: false,
           isExternal: true,
           isPlayground: false,

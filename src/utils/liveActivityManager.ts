@@ -123,7 +123,7 @@ export class LiveActivityManager {
   }
 
   public static updateProgressLiveActivity(
-    program: IProgram,
+    program: IProgram | undefined,
     progress: IHistoryRecord,
     settings: ISettings,
     subscription: ISubscription | undefined,
