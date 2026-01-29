@@ -1,6 +1,7 @@
 import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef, useMemo } from "preact/hooks";
 import { markdown } from "@codemirror/lang-markdown";
+import { debounce } from "../utils/throttler";
 import { drawSelection, EditorView, highlightSpecialChars, keymap, placeholder } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language";
@@ -11,15 +12,27 @@ interface IProps {
   placeholder: string;
   isTransparent?: boolean;
   onChange?: (newValue: string) => void;
+  debounceMs?: number;
 }
 
 export function MarkdownEditorBorderless(props: IProps): JSX.Element {
   const divRef = useRef<HTMLDivElement>();
   const codeEditor = useRef<EditorView | undefined>(undefined);
+
+  const debouncedOnChange = useMemo(() => {
+    if (props.onChange && props.debounceMs) {
+      return debounce(props.onChange, props.debounceMs);
+    }
+    return props.onChange;
+  }, [props.onChange, props.debounceMs]);
+
+  const onChangeRef = useRef<((newValue: string) => void) | undefined>(debouncedOnChange);
+  onChangeRef.current = debouncedOnChange;
+
   useEffect(() => {
     const updateFacet = EditorView.updateListener.of((update) => {
-      if (update.docChanged && props.onChange && !window.isUndoing) {
-        props.onChange(update.state.doc.toString());
+      if (update.docChanged && onChangeRef.current && !window.isUndoing) {
+        onChangeRef.current(update.state.doc.toString());
       }
     });
 

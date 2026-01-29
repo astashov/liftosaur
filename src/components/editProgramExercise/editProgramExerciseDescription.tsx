@@ -75,6 +75,7 @@ export function EditProgramExerciseDescription(props: IEditProgramExerciseDescri
         <MarkdownEditorBorderless
           value={description.value}
           isTransparent={true}
+          debounceMs={500}
           placeholder={`Exercise description in Markdown...`}
           onChange={(v) => {
             EditProgramUiHelpers.changeCurrentInstanceExercise(

@@ -497,6 +497,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
       <GroupHeader topPadding={true} name="Notes" />
       <div style={{ marginLeft: "-0.25rem", marginRight: "-0.25rem" }}>
         <MarkdownEditorBorderless
+          debounceMs={500}
           value={equipmentData.notes}
           placeholder={`Hints or equipment specifics in Markdown...`}
           onChange={(v) => {

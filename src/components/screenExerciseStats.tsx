@@ -179,6 +179,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
         <GroupHeader name="Notes" />
         <div style={{ marginLeft: "-0.25rem", marginRight: "-0.25rem" }}>
           <MarkdownEditorBorderless
+            debounceMs={500}
             value={Exercise.getNotes(exerciseType, props.settings)}
             placeholder={`Exercise notes in Markdown...`}
             onChange={(v) => {

@@ -247,6 +247,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
         <MarkdownEditorBorderless
           value={props.day.description}
           placeholder={`Day description in Markdown...`}
+          debounceMs={500}
           onChange={(v) => {
             props.plannerDispatch(props.lbPlannerDay.p("description").record(v), "Update day description");
           }}

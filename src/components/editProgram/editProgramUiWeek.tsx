@@ -104,6 +104,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
       <div className="px-3 py-1">
         <MarkdownEditorBorderless
           value={currentWeek.description}
+          debounceMs={500}
           placeholder={`Week description in Markdown...`}
           onChange={(v) => {
             props.plannerDispatch(
