@@ -296,7 +296,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                                     props.stats,
                                     props.settings
                                   );
-                                  return [...entries, nextHistoryEntry];
+                                  return [...entries, nextHistoryEntry].map((e, i) => ({ ...e, index: i }));
                                 }),
                             ],
                             "add-exercise"

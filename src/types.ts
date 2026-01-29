@@ -1496,6 +1496,7 @@ export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
     "exercise",
     "sets",
     "warmupSets",
+    "index",
     "isSuppressed",
     "programExerciseId",
     "state",

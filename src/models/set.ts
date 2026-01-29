@@ -80,8 +80,12 @@ export namespace Reps {
         };
       }
     }
+    const maxIndex = Math.max(-1, ...sets.map((s) => s.index || 0));
 
-    return [...sets, { ...ObjectUtils.clone(lastSet), id: UidFactory.generateUid(6), isCompleted: false }];
+    return [
+      ...sets,
+      { ...ObjectUtils.clone(lastSet), id: UidFactory.generateUid(6), isCompleted: false, index: maxIndex + 1 },
+    ];
   }
 
   export function isSameSet(set1: ISet, set2: ISet): boolean {
@@ -91,7 +95,7 @@ export namespace Reps {
   }
 
   export function displayReps(set: ISet): string {
-    const reps = set.minReps != null ? `${set.minReps}-${set.reps}` : `${set.reps}`;
+    const reps = set.minReps != null ? `${set.minReps}-${set.reps ?? 0}` : `${set.reps ?? 0}`;
     return set.isAmrap ? `${reps}+` : `${reps}`;
   }
 

@@ -1256,7 +1256,10 @@ export namespace Progress {
         lb<IHistoryRecord>()
           .p("entries")
           .recordModify((entries) => {
-            return [...entries, History.createCustomEntry(exerciseType, numberOfEntries)];
+            return [...entries, History.createCustomEntry(exerciseType, numberOfEntries)].map((e, i) => ({
+              ...e,
+              index: i,
+            }));
           }),
       ],
       "add-exercise"

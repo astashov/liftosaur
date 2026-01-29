@@ -39,6 +39,7 @@ export interface IWatchHistoryRecord {
 }
 
 export interface IWatchHistoryEntry {
+  id: string;
   name: string;
   imageUrl?: string;
   sets: IWatchSet[];
@@ -323,13 +324,14 @@ class LiftosaurWatch {
     settings: ISettings
   ): IWatchHistoryEntry {
     const exercise = Exercise.get(entry.exercise, settings.exercises);
-    const imageUrl = ExerciseImageUtils.url(entry.exercise, "small", settings);
+    const imageUrl = ExerciseImageUtils.url(exercise, "small", settings);
     const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
     const warmupSets = (entry.warmupSets || []).map((set) =>
       setToWatchSet(set, entry.exercise, settings, true, isUnilateral)
     );
     const workoutSets = entry.sets.map((set) => setToWatchSet(set, entry.exercise, settings, false, isUnilateral));
     return {
+      id: Exercise.toKey(entry.exercise),
       name: exercise.name,
       imageUrl,
       sets: [...warmupSets, ...workoutSets],
