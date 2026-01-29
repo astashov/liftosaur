@@ -31,6 +31,7 @@ import { Collector } from "../utils/collector";
 import { Muscle } from "../models/muscle";
 import { SendMessage } from "../utils/sendMessage";
 import { LiveActivityManager } from "../utils/liveActivityManager";
+import { Subscriptions } from "../utils/subscriptions";
 
 export interface IWatchHistoryRecord {
   dayName: string;
@@ -375,8 +376,8 @@ class LiftosaurWatch {
 
   public static hasSubscription(storageJson: string): string {
     return this.getStorage<{ hasSubscription: boolean }>(storageJson, (storage) => {
-      // const has = Subscriptions.hasSubscription(storage.subscription);
-      return { success: true, data: { hasSubscription: true } };
+      const has = Subscriptions.hasSubscription(storage.subscription);
+      return { success: true, data: { hasSubscription: has } };
     });
   }
 

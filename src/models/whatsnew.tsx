@@ -2348,6 +2348,26 @@ Bent Over Row / 3x8 / superset: A`}
       </ul>
     ),
   },
+  "20260129": {
+    title: <span>⌚ Add Apple Watch Support</span>,
+    body: (
+      <ul>
+        <li>
+          If you have Premium and iPhone, you can now use Liftosaur on your Apple Watch to track your workouts. You can
+          complete sets, see rest timers, view upcoming exercises, etc. You cannot modify the workout though (like
+          change exercises or add sets, or change targets), for that you'll need to grab your phone.
+        </li>
+        <li>Make sure to update the native iOS app to &gt;= 6.31 to get the Watch app as well.</li>
+        <li>
+          That was a huge and complex project, so definitely let me know if you notice any bugs or issues - in Discord,
+          Reddit, or by{" "}
+          <a className="font-bold underline text-text-link" href="mailto:info@liftosaur.com">
+            info@liftosaur.com
+          </a>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
