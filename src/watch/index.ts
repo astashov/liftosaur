@@ -220,14 +220,16 @@ function getEvaluatedProgram(storage: IStorage): ReturnType<typeof Program.evalu
     cachedEvaluatedProgram.programId === program.id &&
     cachedEvaluatedProgram.plannerText === plannerText
   ) {
-    console.log(`[PERF] using cached evaluated program for ${program.id}`);
     return cachedEvaluatedProgram.evaluatedProgram;
   }
 
   // Evaluate and cache
   const evalStart = Date.now();
   const evaluatedProgram = Program.evaluate(program, storage.settings);
-  console.log(`[PERF] Program.evaluate took ${Date.now() - evalStart}ms`);
+  const evalTime = Date.now() - evalStart;
+  if (evalTime > 100) {
+    console.log(`[PERF] Program.evaluate took ${evalTime}ms`);
+  }
 
   cachedEvaluatedProgram = {
     programId: program.id,
@@ -242,13 +244,15 @@ function parseStorageSync(storageJson: string, forceRevalidate: boolean = false)
   // If we have cached storage from a recent mutation, use it directly
   // The version check ensures we use cache only for our own mutations
   if (cachedStorage !== null && !forceRevalidate) {
-    console.log(`[PERF] using cached storage (version ${cachedStorageVersion})`);
     return { success: true, data: cachedStorage };
   }
 
   const parseStart = Date.now();
   const data = JSON.parse(storageJson);
-  console.log(`[PERF] JSON.parse took ${Date.now() - parseStart}ms`);
+  const parseTime = Date.now() - parseStart;
+  if (parseTime > 50) {
+    console.log(`[PERF] JSON.parse took ${parseTime}ms`);
+  }
 
   // Validate only once per session to catch schema issues from development changes.
   // After first successful validation, trust subsequent storage from phone/server.
@@ -256,7 +260,10 @@ function parseStorageSync(storageJson: string, forceRevalidate: boolean = false)
   if (!hasValidatedOnceThisSession) {
     const validateStart = Date.now();
     const result = Storage.validateStorage(data);
-    console.log(`[PERF] validateStorage took ${Date.now() - validateStart}ms`);
+    const validateTime = Date.now() - validateStart;
+    if (validateTime > 50) {
+      console.log(`[PERF] validateStorage took ${validateTime}ms`);
+    }
 
     if (!result.success) {
       return result;
@@ -264,8 +271,6 @@ function parseStorageSync(storageJson: string, forceRevalidate: boolean = false)
     hasValidatedOnceThisSession = true;
     cachedStorage = result.data;
   } else {
-    // Skip validation - already validated once this session
-    console.log(`[PERF] skipping validation (already validated this session)`);
     cachedStorage = data as IStorage;
   }
 
@@ -277,27 +282,17 @@ function parseStorageSync(storageJson: string, forceRevalidate: boolean = false)
 function invalidateStorageCache(): void {
   cachedStorage = null;
   cachedEvaluatedProgram = null;
-  console.log(`[PERF] storage cache invalidated`);
 }
 
 class LiftosaurWatch {
   private static getStorage<T>(storageJson: string, cb: (storage: IStorage) => IEither<T, string>): string {
     try {
-      const totalStart = Date.now();
-      const parseStart = Date.now();
       const result = parseStorageSync(storageJson);
-      console.log(`[PERF] parseStorageSync took ${Date.now() - parseStart}ms`);
       if (!result.success) {
         return JSON.stringify({ success: false, error: result.error.join(", ") });
       }
-      const cbStart = Date.now();
       const newStorageResult = cb(result.data);
-      console.log(`[PERF] callback took ${Date.now() - cbStart}ms`);
-      const stringifyStart = Date.now();
-      const jsonResult = JSON.stringify(newStorageResult);
-      console.log(`[PERF] JSON.stringify took ${Date.now() - stringifyStart}ms`);
-      console.log(`[PERF] getStorage total took ${Date.now() - totalStart}ms`);
-      return jsonResult;
+      return JSON.stringify(newStorageResult);
     } catch (error) {
       return JSON.stringify({ success: false, error: String(error) });
     }
@@ -309,16 +304,12 @@ class LiftosaurWatch {
     cb: (storage: IStorage) => IEither<IStorage, string>
   ): string {
     return this.getStorage<IStorage>(storageJson, (storage) => {
-      const cbStart = Date.now();
       const newStorageResult = cb(storage);
-      console.log(`[PERF] modifyStorage callback took ${Date.now() - cbStart}ms`);
       if (!newStorageResult.success) {
         return { success: false, error: newStorageResult.error };
       }
       const newStorage = newStorageResult.data;
-      const versionsStart = Date.now();
       const newVersions = Storage.updateVersions(storage, newStorage, deviceId);
-      console.log(`[PERF] updateVersions took ${Date.now() - versionsStart}ms`);
       newStorage._versions = newVersions;
       // Update cache with the new storage so next call doesn't need to re-validate
       cachedStorage = newStorage;
@@ -444,87 +435,11 @@ class LiftosaurWatch {
     }
   }
 
-  private static logVersionsForProgress(label: string, storage: IStorage): void {
-    const progress = storage.progress?.[0];
-    const versions = storage._versions as Record<string, unknown> | undefined;
-
-    // progress is an array, so it uses collection versioning
-    // Path: _versions.progress.items[startTime].entries.items[entryId].sets.items[setIndex]
-    const progressCollectionVersions = versions?.progress as { items?: Record<string, unknown> } | undefined;
-
-    console.log(`[MERGE] ${label} progress versions:`);
-    console.log(`[MERGE]   Raw _versions keys: ${JSON.stringify(Object.keys(versions || {}))}`);
-    console.log(`[MERGE]   Raw progress versions: ${JSON.stringify(progressCollectionVersions)?.slice(0, 500)}`);
-    if (!progress) {
-      console.log(`[MERGE]   No progress data`);
-      return;
-    }
-
-    // Get the progress item's ID (which is startTime)
-    const progressId = String(progress.startTime);
-    const progressItemVersions = progressCollectionVersions?.items?.[progressId] as Record<string, unknown> | undefined;
-
-    if (!progressItemVersions) {
-      console.log(`[MERGE]   No versions for progress item (startTime=${progressId})`);
-      console.log(
-        `[MERGE]   Available progress version keys: ${JSON.stringify(Object.keys(progressCollectionVersions?.items || {}))}`
-      );
-      return;
-    }
-
-    // entries is a collection within the progress item
-    const entriesVersions = progressItemVersions?.entries as { items?: Record<string, unknown> } | undefined;
-
-    if (!entriesVersions?.items) {
-      console.log(`[MERGE]   Progress versions exist but no entries versions`);
-      console.log(`[MERGE]   Progress version keys: ${JSON.stringify(Object.keys(progressItemVersions || {}))}`);
-      return;
-    }
-
-    for (let i = 0; i < progress.entries.length; i++) {
-      const entry = progress.entries[i];
-      // history_entry uses 'id' field per TYPE_ID_MAPPING (NOT programExerciseId!)
-      const entryId = entry.id || `index-${i}`;
-      const entryVersions = entriesVersions.items[entryId] as Record<string, unknown> | undefined;
-      const setsVersions = entryVersions?.sets as { items?: Record<string, unknown> } | undefined;
-
-      console.log(
-        `[MERGE]   entry[${i}] id=${entryId} peid=${entry.programExerciseId} (setsVersions keys: ${JSON.stringify(Object.keys(setsVersions?.items || {}))}):`
-      );
-      for (let j = 0; j < entry.sets.length; j++) {
-        const set = entry.sets[j];
-        // set uses 'index' field as ID - try both array index and set.index
-        const setIdByArrayIndex = `${j}`;
-        const setIdBySetIndex = `${set.index}`;
-        const setVersionByArray = setsVersions?.items?.[setIdByArrayIndex];
-        const setVersionByIndex = setsVersions?.items?.[setIdBySetIndex];
-        const setVersion = setVersionByArray || setVersionByIndex;
-        const versionStr = setVersion
-          ? typeof setVersion === "number"
-            ? `t:${setVersion}`
-            : JSON.stringify(setVersion)
-          : "NO_VERSION";
-        console.log(
-          `[MERGE]     set[${j}](idx=${set.index}): reps=${set.completedReps ?? "nil"}, done=${set.isCompleted}, v=${versionStr}`
-        );
-      }
-    }
-  }
-
   public static mergeStorage(currentStorageJson: string, incomingStorageJson: string, deviceId: string): string {
     try {
       const currentStorage = JSON.parse(currentStorageJson) as IStorage;
       const incomingStorage = JSON.parse(incomingStorageJson) as IStorage;
-
-      // Log versions before merge
-      this.logVersionsForProgress("INCOMING", incomingStorage);
-      this.logVersionsForProgress("CURRENT", currentStorage);
-
       const merged = Storage.mergeStorage(currentStorage, incomingStorage, deviceId);
-
-      // Log versions after merge
-      this.logVersionsForProgress("MERGED", merged);
-
       // Update cache with merged result so next operation doesn't need to re-validate
       cachedStorage = merged;
       cachedStorageVersion += 1;
