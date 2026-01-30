@@ -1,4 +1,5 @@
 import { ObjectUtils } from "../../utils/object";
+import { lg } from "../../utils/posthog";
 import {
   IVersionTypes,
   ITypedObject,
@@ -147,6 +148,7 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
     );
     const items = collectionVersions.items || {};
 
+    const deletedInThisUpdate: string[] = [];
     if (Array.isArray(oldValue)) {
       for (const oldItem of oldValue) {
         const oldItemId = VersionTrackerUtils.getId(oldItem, this.versionTypes);
@@ -154,8 +156,19 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
           collectionVersions.deleted = collectionVersions.deleted || {};
           collectionVersions.deleted[oldItemId] = timestamp;
           delete items[oldItemId];
+          deletedInThisUpdate.push(oldItemId);
         }
       }
+    }
+
+    if (deletedInThisUpdate.length > 5) {
+      lg("ls-history-deletion-version-tracker", {
+        path,
+        deletedCount: deletedInThisUpdate.length,
+        oldLen: Array.isArray(oldValue) ? oldValue.length : 0,
+        newLen: newValue.length,
+        timestamp,
+      });
     }
 
     for (const item of newValue) {

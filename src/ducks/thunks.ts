@@ -220,14 +220,31 @@ export namespace Thunk {
           );
         } else {
           dispatch(Thunk.postevent("handle-response-dirty"));
-          const newStorage = Storage.mergeStorage(getState().storage, result.storage, getState().deviceId);
+          const currentStorage = getState().storage;
+          const currentHistoryLen = currentStorage.history?.length ?? 0;
+          const serverHistoryLen = result.storage.history?.length ?? 0;
+          const historyVersions = result.storage._versions?.history as { deleted?: Record<string, number> } | undefined;
+          const serverDeletedHistory = Object.keys(historyVersions?.deleted || {}).length;
+
+          const newStorage = Storage.mergeStorage(currentStorage, result.storage, getState().deviceId);
+          const mergedHistoryLen = newStorage.history?.length ?? 0;
+
+          if (currentHistoryLen > 0 && mergedHistoryLen < currentHistoryLen) {
+            lg("ls-history-deletion-server-merge", {
+              currentHistoryLen,
+              serverHistoryLen,
+              mergedHistoryLen,
+              serverDeletedHistory,
+            });
+          }
+
           const newProgramIds = newStorage.programs.map((p) => p.id);
           if (Array.from(new Set(newProgramIds)).length !== newProgramIds.length) {
             lg("program-duplicate-ids-after-merge", {
               programIds: JSON.stringify(newProgramIds),
-              oldPrograms: JSON.stringify(getState().storage.programs),
+              oldPrograms: JSON.stringify(currentStorage.programs),
               newPrograms: JSON.stringify(result.storage.programs),
-              oldVersions: JSON.stringify(getState().storage._versions?.programs),
+              oldVersions: JSON.stringify(currentStorage._versions?.programs),
               newVersions: JSON.stringify(result.storage._versions?.programs),
             });
           }
@@ -533,7 +550,8 @@ export namespace Thunk {
         const watchStorage: IStorage = JSON.parse(storageJson);
         const state = getState();
 
-        SendMessage.print(`handleWatchStorageMerge: merging storage from watch device ${watchDeviceId}`);
+        const phoneHistoryLen = state.storage.history?.length ?? 0;
+        const watchHistoryLen = watchStorage.history?.length ?? 0;
 
         // Check if we're currently on the progress screen
         const wasOnProgressScreen = Screen.currentName(state.screenStack) === "progress";
@@ -548,6 +566,16 @@ export namespace Thunk {
           const mergedLastSynced = state.lastSyncedStorage
             ? Storage.mergeStorage(state.lastSyncedStorage, watchStorage, state.deviceId)
             : mergedStorage;
+
+          const mergedHistoryLen = mergedStorage.history?.length ?? 0;
+
+          if (phoneHistoryLen > 0 && mergedHistoryLen < phoneHistoryLen) {
+            lg("ls-history-deletion-watch-merge", {
+              phoneHistoryLen,
+              watchHistoryLen,
+              mergedHistoryLen,
+            });
+          }
 
           updateState(
             dispatch,
@@ -599,9 +627,16 @@ export namespace Thunk {
           return;
         }
 
-        SendMessage.print(
-          `reloadStorageFromDisk: reloading storage, progress.ui: ${JSON.stringify(storage.progress?.[0]?.ui)}`
-        );
+        const currentState = getState();
+        const currentHistoryLen = currentState.storage.history?.length ?? 0;
+        const diskHistoryLen = storage.history?.length ?? 0;
+
+        if (currentHistoryLen > 0 && diskHistoryLen === 0) {
+          lg("ls-history-deletion-reload-disk", {
+            currentHistoryLen,
+            diskHistoryLen,
+          });
+        }
 
         updateState(
           dispatch,

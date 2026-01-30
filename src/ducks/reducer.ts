@@ -515,6 +515,22 @@ export const reducerWrapper =
         action.desc === "Reload storage from disk");
     const isStorageChanged = !isMergingStorage && Storage.isChanged(state.storage, newState.storage);
     if (isStorageChanged) {
+      const oldHistoryLen = state.storage.history?.length ?? 0;
+      const newHistoryLen = newState.storage.history?.length ?? 0;
+      const actionDesc = "type" in action && action.type === "UpdateState" ? action.desc : action.type;
+      if (oldHistoryLen > 0 && newHistoryLen === 0) {
+        lg("ls-history-deletion-critical", {
+          oldLen: oldHistoryLen,
+          newLen: newHistoryLen,
+          action: actionDesc || "unknown",
+        });
+      } else if (oldHistoryLen - newHistoryLen > 5) {
+        lg("ls-history-deletion-warning", {
+          oldLen: oldHistoryLen,
+          newLen: newHistoryLen,
+          action: actionDesc || "unknown",
+        });
+      }
       const versions = Storage.updateVersions(state.storage, newState.storage, state.deviceId);
       newState = { ...newState, storage: { ...newState.storage, _versions: versions } };
     }
