@@ -25,3 +25,10 @@ CLAUDE.md
 .cdk.staging
 cdk.out
 cloudflare.*
+
+# Claude Code local settings (personal overrides)
+.claude/settings.local.json
+
+# Claude Code temp files
+.tmp/
+worktrees/

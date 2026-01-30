@@ -510,7 +510,9 @@ export const reducerWrapper =
     const isMergingStorage =
       "type" in action &&
       action.type === "UpdateState" &&
-      (action.desc === "Merge synced storage" || action.desc === "Merge watch storage");
+      (action.desc === "Merge synced storage" ||
+        action.desc === "Merge watch storage" ||
+        action.desc === "Reload storage from disk");
     const isStorageChanged = !isMergingStorage && Storage.isChanged(state.storage, newState.storage);
     if (isStorageChanged) {
       const versions = Storage.updateVersions(state.storage, newState.storage, state.deviceId);

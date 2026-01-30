@@ -5,7 +5,7 @@ import fs from "fs";
 import { Utils } from "../utils";
 
 export interface ICloudwatchUtil {
-  getLogs(date: Date, userid?: string): Promise<void>;
+  getLogs(date: Date, userid?: string, endpoint?: string): Promise<void>;
 }
 
 export class CloudwatchUtil implements ICloudwatchUtil {
@@ -20,8 +20,15 @@ export class CloudwatchUtil implements ICloudwatchUtil {
     return this._cloudwatch;
   }
 
-  public async getLogs(date: Date, userid?: string): Promise<void> {
-    this.log.log(...["Fetching logs for", date, ...(userid ? ["for user", userid] : [])]);
+  public async getLogs(date: Date, userid?: string, endpoint?: string): Promise<void> {
+    this.log.log(
+      ...[
+        "Fetching logs for",
+        date,
+        ...(userid ? ["for user", userid] : []),
+        ...(endpoint ? ["endpoint", endpoint] : []),
+      ]
+    );
     const env = Utils.getEnv();
     const logGroupsResponse = await this.cloudwatch.describeLogGroups().promise();
     const logGroupName = logGroupsResponse.logGroups?.find((r) =>
@@ -38,7 +45,8 @@ export class CloudwatchUtil implements ICloudwatchUtil {
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const outputFile = `logs-${DateUtils.formatYYYYMMDD(date, "-")}${userid ? `-${userid}` : ""}.txt`;
+    const endpointSuffix = endpoint ? `-${endpoint.replace(/\//g, "-")}` : "";
+    const outputFile = `logs-${DateUtils.formatYYYYMMDD(date, "-")}${userid ? `-${userid}` : ""}${endpointSuffix}.txt`;
     const tempFile = `${outputFile}.tmp`;
     const writeStream = fs.createWriteStream(tempFile, { encoding: "utf8" });
 
@@ -85,23 +93,40 @@ export class CloudwatchUtil implements ICloudwatchUtil {
 
     this.log.log(`Fetched ${totalEvents} total events, now sorting and grouping...`);
 
-    this.postProcessLogs(tempFile, outputFile, userid);
+    this.postProcessLogs(tempFile, outputFile, userid, endpoint);
     fs.unlinkSync(tempFile);
 
     this.log.log(`Done! Output written to ${outputFile}`);
   }
 
-  private postProcessLogs(inputFile: string, outputFile: string, userid?: string): void {
+  private postProcessLogs(inputFile: string, outputFile: string, userid?: string, endpoint?: string): void {
     const lines = fs.readFileSync(inputFile, "utf8").split("\x00").filter(Boolean).sort();
+
+    let matchingRequestIds: Set<string> | undefined;
+    if (endpoint) {
+      matchingRequestIds = new Set();
+      for (const log of lines) {
+        if (log.includes(endpoint)) {
+          const match = log.match(/\[(\w+)\]/);
+          if (match) {
+            matchingRequestIds.add(match[1]);
+          }
+        }
+      }
+      this.log.log(`Found ${matchingRequestIds.size} requests matching endpoint ${endpoint}`);
+    }
 
     const sortedResult = new Map<string, Map<string, string[]>>();
     for (const log of lines) {
       const hhmm = log.substring(0, 5);
       const match = log.match(/\[(\w+)\](?:\[(\w+)\])?/);
       if (match) {
-        const key = match[1];
+        const requestId = match[1];
         const loguserid = match[2];
-        if (userid != null && userid !== loguserid) {
+        if (userid && userid !== loguserid) {
+          continue;
+        }
+        if (matchingRequestIds && !matchingRequestIds.has(requestId)) {
           continue;
         }
         let hours = sortedResult.get(hhmm);
@@ -109,10 +134,10 @@ export class CloudwatchUtil implements ICloudwatchUtil {
           hours = new Map<string, string[]>();
           sortedResult.set(hhmm, hours);
         }
-        let keys = hours.get(key);
+        let keys = hours.get(requestId);
         if (!keys) {
           keys = [];
-          hours.set(key, keys);
+          hours.set(requestId, keys);
         }
         keys.push(log);
       }
