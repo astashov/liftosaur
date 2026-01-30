@@ -789,6 +789,9 @@ export class PlannerEvaluator {
   public static evaluate = memoize(this.forceEvaluate, {
     maxSize: 10,
     isEqual: (a: IPlannerProgram | ISettings, b: IPlannerProgram | ISettings) => {
+      if (a == null || b == null) {
+        return a === b;
+      }
       if ("weeks" in a && "weeks" in b) {
         const aText = PlannerProgram.generateFullText(a.weeks);
         const bText = PlannerProgram.generateFullText(b.weeks);
