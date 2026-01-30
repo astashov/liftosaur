@@ -240,14 +240,7 @@ export function AppView(props: IProps): JSX.Element | null {
           );
         }
       } else if (event.data?.type === "timerScheduled") {
-        if (Progress.getProgress(stateRef.current)?.ui) {
-          SendMessage.print(`Main app: Marking native notification as scheduled`);
-          updateState(
-            dispatch,
-            [Progress.lbProgress().pi("ui").p("nativeNotificationScheduled").record(true)],
-            "Set native notification scheduled"
-          );
-        }
+        dispatch(Thunk.markNativeNotificationScheduled());
       } else if (event.data?.type === "watchStorageMerge") {
         const storageJson = event.data.storage as string;
         const deviceId = event.data.deviceId as string;

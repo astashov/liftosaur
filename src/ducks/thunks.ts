@@ -527,6 +527,21 @@ export namespace Thunk {
     };
   }
 
+  export function markNativeNotificationScheduled(): IThunk {
+    return async (dispatch, getState) => {
+      const state = getState();
+      const progress = Progress.getProgress(state);
+      if (progress?.ui) {
+        SendMessage.print(`Main app: Marking native notification as scheduled`);
+        updateState(
+          dispatch,
+          [Progress.lbProgress().pi("ui").p("nativeNotificationScheduled").record(true)],
+          "Set native notification scheduled"
+        );
+      }
+    };
+  }
+
   export function handleWatchStorageMerge(storageJson: string, watchDeviceId: string): IThunk {
     return async (dispatch, getState) => {
       try {
