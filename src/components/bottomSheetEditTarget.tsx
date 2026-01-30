@@ -5,7 +5,7 @@ import { MenuItemWrapper } from "./menuItem";
 import { InputNumber2 } from "./inputNumber2";
 import { IDispatch } from "../ducks/types";
 import { InputWeight2 } from "./inputWeight2";
-import { useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { MenuItemEditable } from "./menuItemEditable";
 import { IconTrash } from "./icons/iconTrash";
 import { lb } from "lens-shmens";
@@ -25,6 +25,7 @@ interface IBottomSheetEditTargetProps {
 
 type IBottomSheetEditTargetContentProps = Omit<IBottomSheetEditTargetProps, "isHidden"> & {
   editSetModal: Required<IProgressUi>["editSetModal"];
+  editSetModalRef: { current: IProgressUi["editSetModal"] };
 };
 
 function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps): JSX.Element {
@@ -45,9 +46,10 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
               <InputNumber2
                 width={2.5}
                 name="target-minreps"
-                onBlur={(value) =>
-                  updateProgress(props.dispatch, [lbSet.p("minReps").record(value)], "target-blur-minreps")
-                }
+                onBlur={(value) => {
+                  if (!props.editSetModalRef.current) return;
+                  updateProgress(props.dispatch, [lbSet.p("minReps").record(value)], "target-blur-minreps");
+                }}
                 onInput={(value) => {
                   if (value != null && !isNaN(value) && value >= 0) {
                     updateProgress(props.dispatch, [lbSet.p("minReps").record(value)], "target-input-minreps");
@@ -64,9 +66,10 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
               <InputNumber2
                 width={2.5}
                 name="target-maxreps"
-                onBlur={(value) =>
-                  updateProgress(props.dispatch, [lbSet.p("reps").record(value)], "target-blur-maxreps")
-                }
+                onBlur={(value) => {
+                  if (!props.editSetModalRef.current) return;
+                  updateProgress(props.dispatch, [lbSet.p("reps").record(value)], "target-blur-maxreps");
+                }}
                 onInput={(value) => {
                   if (value == null || (!isNaN(value) && value >= 0)) {
                     updateProgress(props.dispatch, [lbSet.p("reps").record(value)], "target-input-maxreps");
@@ -105,6 +108,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 subscription={props.subscription}
                 exerciseType={props.editSetModal.exerciseType}
                 onBlur={(value) => {
+                  if (!props.editSetModalRef.current) return;
                   updateProgress(
                     props.dispatch,
                     [lbSet.p("originalWeight").record(value ?? Weight.build(0, "lb"))],
@@ -172,7 +176,10 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   allowDot={true}
                   width={2.5}
                   name="target-rpe"
-                  onBlur={(value) => updateProgress(props.dispatch, [lbSet.p("rpe").record(value)], "target-blur-rpe")}
+                  onBlur={(value) => {
+                    if (!props.editSetModalRef.current) return;
+                    updateProgress(props.dispatch, [lbSet.p("rpe").record(value)], "target-blur-rpe");
+                  }}
                   onInput={(value) => {
                     if (value != null && !isNaN(value) && value >= 0) {
                       updateProgress(props.dispatch, [lbSet.p("rpe").record(value)], "target-input-rpe");
@@ -238,9 +245,10 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 <InputNumber2
                   width={2.5}
                   name="target-timer"
-                  onBlur={(value) =>
-                    updateProgress(props.dispatch, [lbSet.p("timer").record(value)], "target-blur-timer")
-                  }
+                  onBlur={(value) => {
+                    if (!props.editSetModalRef.current) return;
+                    updateProgress(props.dispatch, [lbSet.p("timer").record(value)], "target-blur-timer");
+                  }}
                   onInput={(value) => {
                     if (value != null && !isNaN(value) && value >= 0) {
                       updateProgress(props.dispatch, [lbSet.p("timer").record(value)], "target-input-timer");
@@ -318,11 +326,14 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
 
 export const BottomSheetEditTarget = (props: IBottomSheetEditTargetProps): JSX.Element => {
   const editSetModal = props.editSetModal;
+  const editSetModalRef = useRef<IProgressUi["editSetModal"]>(editSetModal);
+  editSetModalRef.current = editSetModal;
   return (
     <BottomSheet shouldShowClose={true} onClose={props.onClose} isHidden={props.isHidden}>
       {editSetModal && (
         <BottomSheetEditTargetContent
           editSetModal={editSetModal}
+          editSetModalRef={editSetModalRef}
           subscription={props.subscription}
           settings={props.settings}
           progress={props.progress}
