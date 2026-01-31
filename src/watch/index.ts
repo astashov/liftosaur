@@ -242,10 +242,15 @@ function getEvaluatedProgram(storage: IStorage): ReturnType<typeof Program.evalu
   return evaluatedProgram;
 }
 
-function parseStorageSync(storageJson: string, forceRevalidate: boolean = false): IEither<IStorage, string[]> {
+function parseStorageSync(
+  storageJson: string,
+  options: { forceRevalidate?: boolean; skipCacheUpdate?: boolean } = {}
+): IEither<IStorage, string[]> {
+  const { forceRevalidate = false, skipCacheUpdate = false } = options;
+
   // If we have cached storage from a recent mutation, use it directly
   // The version check ensures we use cache only for our own mutations
-  if (cachedStorage !== null && !forceRevalidate) {
+  if (cachedStorage != null && !forceRevalidate) {
     return { success: true, data: cachedStorage };
   }
 
@@ -259,6 +264,8 @@ function parseStorageSync(storageJson: string, forceRevalidate: boolean = false)
   // Validate only once per session to catch schema issues from development changes.
   // After first successful validation, trust subsequent storage from phone/server.
   // See: rfcs/watch-storage-performance.md
+  let storageData: IStorage;
+
   if (!hasValidatedOnceThisSession) {
     const validateStart = Date.now();
     const result = Storage.validateStorage(data);
@@ -271,13 +278,16 @@ function parseStorageSync(storageJson: string, forceRevalidate: boolean = false)
       return result;
     }
     hasValidatedOnceThisSession = true;
-    cachedStorage = result.data;
+    storageData = result.data;
   } else {
-    cachedStorage = data as IStorage;
+    storageData = data as IStorage;
   }
 
-  cachedStorageVersion += 1;
-  return { success: true, data: cachedStorage };
+  if (!skipCacheUpdate) {
+    cachedStorage = storageData;
+    cachedStorageVersion += 1;
+  }
+  return { success: true, data: storageData };
 }
 
 // Called when storage is updated from external source (phone sync, server)
@@ -1213,9 +1223,10 @@ class LiftosaurWatch {
 
   // Validates storage without performing any operation.
   // Used by phone to validate storage before sending to watch.
+  // IMPORTANT: skipCacheUpdate=true prevents contaminating the cache with filtered watch storage
   public static validateStorage(storageJson: string): string {
     try {
-      const result = parseStorageSync(storageJson, true); // force revalidate
+      const result = parseStorageSync(storageJson, { forceRevalidate: true, skipCacheUpdate: true });
       if (!result.success) {
         return JSON.stringify({ success: false, error: result.error.join(", ") });
       }
