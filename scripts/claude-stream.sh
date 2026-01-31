@@ -1,24 +1,47 @@
 #!/bin/bash
 
 # Pretty formatter for streaming claude -p output
-# Usage: ./scripts/claude-stream.sh "your prompt here"
+# Usage: ./scripts/claude-stream.sh "your prompt here" [-l logfile]
 # Example: ./scripts/claude-stream.sh "/fix-rollbar-error 453425925501"
+# Example: ./scripts/claude-stream.sh "/fix-rollbar-error 453425925501" -l output.log
 
-if [ -z "$1" ]; then
-  echo "Usage: $0 \"<prompt>\""
+PROMPT=""
+LOG_FILE=""
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -l|--log)
+      LOG_FILE="$2"
+      shift 2
+      ;;
+    *)
+      PROMPT="$1"
+      shift
+      ;;
+  esac
+done
+
+if [ -z "$PROMPT" ]; then
+  echo "Usage: $0 \"<prompt>\" [-l logfile]"
   echo "Example: $0 \"/fix-rollbar-error 453425925501\""
-  echo "Example: $0 \"Explain the codebase structure\""
+  echo "Example: $0 \"/fix-rollbar-error 453425925501\" -l output.log"
   exit 1
 fi
 
-PROMPT="$1"
+output() {
+  if [ -n "$LOG_FILE" ]; then
+    tee -a "$LOG_FILE"
+  else
+    cat
+  fi
+}
 
-echo "🚀 Running: claude -p \"$PROMPT\""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
+echo "🚀 Running: claude -p \"$PROMPT\"" | output
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" | output
+echo "" | output
 
 claude -p "$PROMPT" --settings .claude/settings.headless.json --output-format stream-json --verbose 2>&1 | \
-  jq -r '
+  jq --unbuffered -r '
     if .type == "assistant" then
       (.message.content[] |
         if .type == "text" then "\n💬 \(.text)\n"
@@ -33,8 +56,8 @@ claude -p "$PROMPT" --settings .claude/settings.headless.json --output-format st
     elif .type == "system" and .subtype == "init" then
       "📋 Session: \(.session_id)\n"
     else empty end
-  '
+  ' | output
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✨ Done!"
+echo "" | output
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" | output
+echo "✨ Done!" | output

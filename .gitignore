@@ -9,7 +9,6 @@
 /cypress/videos
 /cypress/screenshots
 /backup
-/.claude
 /pricepointscache
 CLAUDE.md
 .playwright-mcp
@@ -33,3 +32,4 @@ cloudflare.*
 # Claude Code temp files
 .tmp/
 worktrees/
+logs/
