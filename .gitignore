@@ -12,6 +12,7 @@
 /.claude
 /pricepointscache
 CLAUDE.md
+.playwright-mcp
 
 /liftosaur-cdk/*.d.ts
 /dist-lambda
