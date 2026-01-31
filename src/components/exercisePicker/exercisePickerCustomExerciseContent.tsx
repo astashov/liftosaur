@@ -169,14 +169,18 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               setIsAutofilling(false);
               if (response != null) {
                 const { targetMuscles, synergistMuscles, types } = response;
-                props.dispatch(
-                  [
-                    lb<ICustomExercise>().p("meta").p("targetMuscles").record(targetMuscles),
-                    lb<ICustomExercise>().p("meta").p("synergistMuscles").record(synergistMuscles),
-                    lb<ICustomExercise>().p("types").record(types),
-                  ],
-                  "Autofill custom exercise muscles and types"
-                );
+                try {
+                  props.dispatch(
+                    [
+                      lb<ICustomExercise>().p("meta").p("targetMuscles").record(targetMuscles),
+                      lb<ICustomExercise>().p("meta").p("synergistMuscles").record(synergistMuscles),
+                      lb<ICustomExercise>().p("types").record(types),
+                    ],
+                    "Autofill custom exercise muscles and types"
+                  );
+                } catch (e) {
+                  // User may have navigated away while API call was pending
+                }
               } else {
                 alert("Could't autofill the muscles for this exercise. Try a different name!");
               }
