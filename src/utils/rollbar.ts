@@ -34,6 +34,7 @@ export const exceptionIgnores = [
   "Selection points outside of document",
   "Invalid position",
   "outdated_client_storage",
+  "corrupted_server_storage",
   '{"isTrusted":true}',
 ];
 
