@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Task",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(git push --force)",
+      "Bash(git reset --hard)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/secrets/**)"
+    ],
+    "additionalDirectories": [
+      "../LiftosauriOS/src",
+      "../LiftosaurAndroid"
+    ]
+  }
+}
