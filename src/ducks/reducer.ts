@@ -638,31 +638,31 @@ function pushScreen<T extends IScreen>(
 
 export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   if (action.type === "CompleteSetAction") {
+    const progress = Progress.getProgress(state);
+    if (progress == null) {
+      return state;
+    }
     return Progress.setProgress(
       state,
-      buildCardsReducer(
-        state.storage.settings,
-        state.storage.stats,
-        state.storage.subscription
-      )(Progress.getProgress(state)!, action)
+      buildCardsReducer(state.storage.settings, state.storage.stats, state.storage.subscription)(progress, action)
     );
   } else if (action.type === "ChangeAMRAPAction") {
+    const progress = Progress.getProgress(state);
+    if (progress == null) {
+      return state;
+    }
     return Progress.setProgress(
       state,
-      buildCardsReducer(
-        state.storage.settings,
-        state.storage.stats,
-        state.storage.subscription
-      )(Progress.getProgress(state)!, action)
+      buildCardsReducer(state.storage.settings, state.storage.stats, state.storage.subscription)(progress, action)
     );
   } else if (action.type === "UpdateProgress") {
+    const progress = Progress.getProgress(state);
+    if (progress == null) {
+      return state;
+    }
     return Progress.setProgress(
       state,
-      buildCardsReducer(
-        state.storage.settings,
-        state.storage.stats,
-        state.storage.subscription
-      )(Progress.getProgress(state)!, action)
+      buildCardsReducer(state.storage.settings, state.storage.stats, state.storage.subscription)(progress, action)
     );
   } else if (action.type === "StartProgramDayAction") {
     const progress = Progress.getProgress(state);
