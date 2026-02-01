@@ -32,6 +32,7 @@ import { Muscle } from "../models/muscle";
 import { SendMessage } from "../utils/sendMessage";
 import { LiveActivityManager } from "../utils/liveActivityManager";
 import { Subscriptions } from "../utils/subscriptions";
+import { lg } from "../utils/posthog";
 
 export interface IWatchHistoryRecord {
   dayName: string;
@@ -296,12 +297,17 @@ function invalidateStorageCache(): void {
   cachedEvaluatedProgram = null;
 }
 
+declare let globalThis: { tempUserId?: string } & Record<string, unknown>;
+
 class LiftosaurWatch {
   private static getStorage<T>(storageJson: string, cb: (storage: IStorage) => IEither<T, string>): string {
     try {
       const result = parseStorageSync(storageJson);
       if (!result.success) {
         return JSON.stringify({ success: false, error: result.error.join(", ") });
+      }
+      if (result.data.tempUserId) {
+        globalThis.tempUserId = result.data.tempUserId;
       }
       const newStorageResult = cb(result.data);
       return JSON.stringify(newStorageResult);
@@ -397,6 +403,7 @@ class LiftosaurWatch {
       if (!progress) {
         return { success: false, error: "No progress to finish" };
       }
+      lg("watch-finish-workout");
       const newStorage = Progress.finishWorkout(storage, progress);
       return { success: true, data: newStorage };
     });
@@ -409,6 +416,7 @@ class LiftosaurWatch {
         return { success: false, error: "No current program" };
       }
 
+      lg("watch-start-workout");
       const settings = storage.settings;
       const newProgress = Program.nextHistoryRecordFromEvaluated(evaluatedProgram, settings, storage.stats);
       const updatedStorage: IStorage = {
@@ -432,6 +440,7 @@ class LiftosaurWatch {
 
   public static discardWorkout(storageJson: string, deviceId: string): string {
     return this.modifyStorage(storageJson, deviceId, (storage) => {
+      lg("watch-discard-workout");
       const updatedStorage: IStorage = { ...storage, progress: [] };
       return { success: true, data: updatedStorage };
     });
@@ -619,6 +628,7 @@ class LiftosaurWatch {
       const programExercise = evaluatedProgram
         ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
         : undefined;
+      lg("watch-complete-set");
       const newProgress = Progress.completeSetAction(
         storage.settings,
         storage.stats,
@@ -690,6 +700,7 @@ class LiftosaurWatch {
     globalSetIndex: number,
     reps: number
   ): string {
+    lg("watch-adjust-reps");
     return this.modifySet(storageJson, deviceId, entryIndex, globalSetIndex, (set) => ({
       ...set,
       completedReps: reps,
@@ -703,6 +714,7 @@ class LiftosaurWatch {
     globalSetIndex: number,
     reps: number
   ): string {
+    lg("watch-adjust-reps");
     return this.modifySet(storageJson, deviceId, entryIndex, globalSetIndex, (set) => ({
       ...set,
       completedRepsLeft: reps,
@@ -716,6 +728,7 @@ class LiftosaurWatch {
     globalSetIndex: number,
     weightValue: number
   ): string {
+    lg("watch-adjust-weight");
     return this.modifySet(storageJson, deviceId, entryIndex, globalSetIndex, (set, { settings, exerciseType }) => {
       const unit =
         set.completedWeight?.unit ??
@@ -1025,6 +1038,7 @@ class LiftosaurWatch {
         return { success: false, error: "No current program" };
       }
 
+      lg("watch-adjust-rest-timer");
       const newTimer = progress.timer + adjustment;
       const newProgress = Progress.updateTimer(
         progress,
@@ -1049,6 +1063,7 @@ class LiftosaurWatch {
         return { success: false, error: "No active workout" };
       }
 
+      lg("watch-cancel-rest-timer");
       const newProgress = Progress.stopTimerPure(progress);
       const newStorage: IStorage = { ...storage, progress: [newProgress] };
       return { success: true, data: newStorage };
@@ -1088,6 +1103,7 @@ class LiftosaurWatch {
 
       const newIntervals = History.pauseWorkout(progress.intervals);
       if (newIntervals !== progress.intervals) {
+        lg("watch-pause-workout");
         const newProgress = { ...progress, intervals: newIntervals };
         const newStorage: IStorage = { ...storage, progress: [newProgress] };
         return { success: true, data: newStorage };
@@ -1105,6 +1121,7 @@ class LiftosaurWatch {
 
       const newIntervals = History.resumeWorkout(progress, false);
       if (newIntervals !== progress.intervals) {
+        lg("watch-resume-workout");
         const newProgress = { ...progress, intervals: newIntervals };
         const newStorage: IStorage = { ...storage, progress: [newProgress] };
         return { success: true, data: newStorage };
@@ -1124,6 +1141,7 @@ class LiftosaurWatch {
         return { success: false, error: "Entry not found" };
       }
 
+      lg("watch-add-set");
       const isUnilateral = Exercise.getIsUnilateral(entry.exercise, storage.settings);
       const newSets = Reps.addSet(entry.sets, isUnilateral, undefined, false);
 
@@ -1157,6 +1175,7 @@ class LiftosaurWatch {
         return { success: false, error: "Set not found" };
       }
 
+      lg("watch-delete-set");
       // Remove the set and reindex remaining sets
       const newSets = [...sets];
       newSets.splice(setIndex, 1);
@@ -1297,5 +1316,4 @@ class LiftosaurWatch {
   }
 }
 
-declare const globalThis: Record<string, unknown>;
 globalThis.Liftosaur = LiftosaurWatch;
