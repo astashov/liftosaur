@@ -73,8 +73,9 @@ export class LiveActivityManager {
       return undefined;
     }
     const isNextSetWarmup = setIndex < entry.warmupSets.length;
-    const plates = set.weight
-      ? Weight.calculatePlates(set.weight, settings, set.weight?.unit || settings.units, entry.exercise)
+    const weightForPlates = set.completedWeight ?? set.weight;
+    const plates = weightForPlates
+      ? Weight.calculatePlates(weightForPlates, settings, weightForPlates.unit || settings.units, entry.exercise)
       : undefined;
     let exerciseImageUrl = ExerciseImageUtils.url(exercise, "small", settings);
     if (exerciseImageUrl) {

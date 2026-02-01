@@ -1113,6 +1113,66 @@ class LiftosaurWatch {
     });
   }
 
+  public static addSet(storageJson: string, deviceId: string, entryIndex: number): string {
+    return this.modifyStorage(storageJson, deviceId, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+      const entry = progress.entries[entryIndex];
+      if (!entry) {
+        return { success: false, error: "Entry not found" };
+      }
+
+      const isUnilateral = Exercise.getIsUnilateral(entry.exercise, storage.settings);
+      const newSets = Reps.addSet(entry.sets, isUnilateral, undefined, false);
+
+      const newEntries = [...progress.entries];
+      newEntries[entryIndex] = { ...entry, sets: newSets };
+
+      const newProgress = { ...progress, entries: newEntries };
+      const newStorage: IStorage = { ...storage, progress: [newProgress] };
+      return { success: true, data: newStorage };
+    });
+  }
+
+  public static deleteSet(storageJson: string, deviceId: string, entryIndex: number, globalSetIndex: number): string {
+    return this.modifyStorage(storageJson, deviceId, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+      const entry = progress.entries[entryIndex];
+      if (!entry) {
+        return { success: false, error: "Entry not found" };
+      }
+
+      const warmupSetsCount = (entry.warmupSets || []).length;
+      const isWarmup = globalSetIndex < warmupSetsCount;
+      const setIndex = isWarmup ? globalSetIndex : globalSetIndex - warmupSetsCount;
+      const setsKey = isWarmup ? "warmupSets" : "sets";
+
+      const sets = entry[setsKey];
+      if (!sets || setIndex >= sets.length) {
+        return { success: false, error: "Set not found" };
+      }
+
+      // Remove the set and reindex remaining sets
+      const newSets = [...sets];
+      newSets.splice(setIndex, 1);
+      for (let i = 0; i < newSets.length; i += 1) {
+        newSets[i] = { ...newSets[i], index: i };
+      }
+
+      const newEntries = [...progress.entries];
+      newEntries[entryIndex] = { ...entry, [setsKey]: newSets };
+
+      const newProgress = { ...progress, entries: newEntries };
+      const newStorage: IStorage = { ...storage, progress: [newProgress] };
+      return { success: true, data: newStorage };
+    });
+  }
+
   public static getFinishWorkoutSummary(storageJson: string): string {
     return this.getStorage<IWatchFinishWorkoutSummary | undefined>(storageJson, (storage) => {
       const history = storage.history;
