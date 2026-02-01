@@ -27,6 +27,7 @@
   "include": [
     "src/**/*",
     "server/**/*",
+    "scripts/**/*",
     "lambda/**/*",
     "liftosaur-cdk/**/*",
     "test/**/*",

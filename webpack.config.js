@@ -42,6 +42,8 @@ const watchConfig = {
   plugins: [
     new DefinePlugin({
       window: "globalThis",
+      __COMMIT_HASH__: JSON.stringify(commitHash),
+      __FULL_COMMIT_HASH__: JSON.stringify(fullCommitHash),
       __HOST__: JSON.stringify(
         process.env.NODE_ENV === "production"
           ? process.env.STAGE

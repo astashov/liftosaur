@@ -26,9 +26,12 @@ export function lg(
   service?: Service,
   tempUserId?: string
 ): void {
-  service = service ?? (typeof window !== "undefined" ? new Service(window.fetch.bind(window)) : undefined);
-  tempUserId = tempUserId ?? (typeof window !== "undefined" ? window.tempUserId : undefined);
-  if (service == null || tempUserId == null) {
+  tempUserId =
+    tempUserId ??
+    (typeof globalThis !== "undefined" ? (globalThis as { tempUserId?: string }).tempUserId : undefined) ??
+    (typeof window !== "undefined" ? window.tempUserId : undefined);
+
+  if (tempUserId == null) {
     return;
   }
 
@@ -56,6 +59,12 @@ export function lg(
       commithash: event.commithash,
       userId: event.userId,
     });
+    return;
+  }
+
+  service =
+    service ?? (typeof window !== "undefined" && window.fetch ? new Service(window.fetch.bind(window)) : undefined);
+  if (service == null) {
     return;
   }
 

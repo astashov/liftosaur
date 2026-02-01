@@ -8,19 +8,19 @@ const TIMEOUT_MS = 60 * 60 * 1000; // 1 hour per fix
 const MAX_FIXES = 3;
 const REVIEW_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes for review
 
-interface RollbarItem {
+interface IRollbarItem {
   id: number;
   title: string;
   occurrences: number;
 }
 
-interface RollbarOccurrence {
+interface IRollbarOccurrence {
   id: number;
   itemId: number;
   title: string;
 }
 
-interface GitHubPR {
+interface IGitHubPR {
   number: number;
   title: string;
   headRefName: string;
@@ -44,7 +44,7 @@ async function fetchJson<T>(url: string, headers: Record<string, string> = {}): 
   return response.json() as Promise<T>;
 }
 
-async function getTopActiveItems(): Promise<RollbarItem[]> {
+async function getTopActiveItems(): Promise<IRollbarItem[]> {
   const token = process.env.ROLLBAR_READ_TOKEN;
   if (!token) {
     throw new Error("ROLLBAR_READ_TOKEN not set");
@@ -82,7 +82,7 @@ async function getOccurrenceForItem(itemId: number): Promise<number | null> {
 async function getExistingPRs(): Promise<Set<string>> {
   const existingIds = new Set<string>();
 
-  const runGh = (args: string[]): Promise<GitHubPR[]> => {
+  const runGh = (args: string[]): Promise<IGitHubPR[]> => {
     return new Promise((resolve) => {
       const proc = spawn("gh", ["pr", "list", "--repo", "astashov/liftosaur", ...args], {
         cwd: PROJECT_DIR,
@@ -219,10 +219,12 @@ async function main(): Promise<void> {
 
   // Step 3: Get candidates (items without PRs, with occurrence IDs)
   log("Getting occurrence IDs for top items...");
-  const candidates: RollbarOccurrence[] = [];
+  const candidates: IRollbarOccurrence[] = [];
 
   for (const item of items) {
-    if (candidates.length >= 5) break;
+    if (candidates.length >= 5) {
+      break;
+    }
 
     if (existingPRs.has(item.id.toString())) {
       log(`  Skipping item ${item.id} (already has PR): ${item.title}`);
@@ -249,7 +251,9 @@ async function main(): Promise<void> {
   let fixedCount = 0;
 
   for (const candidate of candidates) {
-    if (fixedCount >= MAX_FIXES) break;
+    if (fixedCount >= MAX_FIXES) {
+      break;
+    }
 
     log("");
     log(`=== Processing fix ${fixedCount + 1}/${MAX_FIXES} ===`);
@@ -290,7 +294,7 @@ async function main(): Promise<void> {
         log(`Review failed or timed out for PR #${prNumber}`);
       }
 
-      fixedCount++;
+      fixedCount += 1;
     } else {
       log("No PR found after fix command - may have been ignored or failed");
     }
