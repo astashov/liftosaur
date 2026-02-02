@@ -592,7 +592,11 @@ export namespace Progress {
         }
       } else if (Reps.isEmptyOrFinished(currentEntry.sets)) {
         if (shouldGoToNextEntry) {
+          const prevEntry: IHistoryEntry = currentEntry;
           currentEntry = progress.entries[(index + 1) % progress.entries.length];
+          if (currentEntry === prevEntry) {
+            return undefined;
+          }
         } else {
           return undefined;
         }
