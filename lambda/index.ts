@@ -1,4 +1,5 @@
 import "source-map-support/register";
+import * as fs from "fs";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Endpoint, Method, Router, RouteHandler } from "yatro";
 import { GoogleAuthTokenDao } from "./dao/googleAuthTokenDao";
@@ -635,6 +636,25 @@ const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof sav
   const { id, data } = getBodyJson(event);
   const debugDao = new DebugDao(di);
   await debugDao.store(id, JSON.stringify(data));
+  return ResponseUtils.json(200, event, { data: "ok" });
+};
+
+const debugLogsEndpoint = Endpoint.build("/api/debuglogs");
+const debugLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof debugLogsEndpoint> = async ({
+  payload,
+}) => {
+  if (Utils.getEnv() !== "dev") {
+    return ResponseUtils.json(403, payload.event, { error: "forbidden" });
+  }
+  const { event } = payload;
+  const { log, device, timestamp } = getBodyJson(event);
+  if (!log) {
+    return ResponseUtils.json(400, event, { error: "log is required" });
+  }
+  const logFile = "/tmp/watchlogs.txt";
+  const date = new Date(timestamp || Date.now()).toISOString();
+  const logLine = `[${date}] [${device || "UNKNOWN"}] ${log}\n`;
+  fs.appendFileSync(logFile, logLine);
   return ResponseUtils.json(200, event, { data: "ok" });
 };
 
@@ -2684,6 +2704,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postCreateCouponEndpoint, postCreateCouponHandler)
       .post(postClaimCouponEndpoint, postClaimCouponHandler)
       .post(saveDebugEndpoint, saveDebugHandler)
+      .post(debugLogsEndpoint, debugLogsHandler)
       .delete(deleteAccountEndpoint, deleteAccountHandler)
       .delete(deleteProgramEndpoint, deleteProgramHandler)
       .get(getExerciseEndpoint, getExerciseHandler)
