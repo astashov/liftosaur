@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Status: ~98% Complete - Production Ready**
+**Status: Complete - Production Ready**
 
 An autonomous Apple Watch app for Liftosaur that can complete workouts independently, execute Liftoscript progression logic, and sync with phone/server using the existing VersionTracker infrastructure.
 
@@ -31,8 +31,8 @@ We created a custom Swift package (`QuickJSCore`) that wraps the QuickJS C libra
 │           │                              │                       │
 │           ▼                              ▼                       │
 │  ┌──────────────────────────────────────────────────────────┐   │
-│  │              Local Storage (UserDefaults)                 │   │
-│  │  - liftosaur_storage (JSON string)                        │   │
+│  │              Local Storage (File-based)                   │   │
+│  │  - liftosaur_storage.json (Documents directory)           │   │
 │  └──────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
            │
@@ -46,15 +46,16 @@ We created a custom Swift package (`QuickJSCore`) that wraps the QuickJS C libra
 
 - **Stack Size:** Default QuickJS stack is too small for our bundle. Set to 4MB via `JS_SetMaxStackSize()`.
 - **Synchronous Only:** QuickJS supports Promises, but handling them from Swift is complex. All watch bundle functions are synchronous.
-- **Bundle Size:** ~1MB minified (larger than estimated due to io-ts validation).
+- **Bundle Size:** ~2.6MB minified (larger than estimated due to io-ts validation).
+- **Bundle Distribution:** Downloaded from server (`https://www.liftosaur.com/watch-bundle.js`) and cached locally by `WatchCacheManager`. Not bundled in the app binary.
 
 ### Memory Budget
 
 - watchOS app limit: ~30MB (varies by model)
-- JS bundle: ~1MB minified (includes io-ts validation)
+- JS bundle: ~2.6MB minified (includes io-ts validation)
 - QuickJS runtime overhead: ~5-10MB (with 4MB stack)
 - Workout data: ~100-200KB (after source-side filtering, down from ~2-5MB)
-- **Total estimate: ~12-15MB** - well within budget
+- **Total estimate: ~15-20MB** - within budget
 
 Note: Storage filtering at source (phone/server) significantly reduced workout data size. See `rfcs/watch-storage-performance.md`.
 
@@ -193,9 +194,24 @@ Uses webpack (configured in `webpack.config.js` with a second entry for watch):
 | io-ts validation | Large - includes full type validation |
 | Program/Exercise models | Workout calculation logic |
 | Storage validation | Schema validation |
-| **Total** | **~1MB minified** |
+| **Total** | **~2.6MB minified** |
 
 Note: Bundle is larger than originally estimated because we use `Storage.validateStorage()` which pulls in io-ts. Future optimization could create a lighter validation path for watch.
+
+### Bundle Distribution
+
+The watch bundle is **not** included in the app binary. Instead:
+
+1. **Server hosting**: Bundle is deployed to `https://www.liftosaur.com/watch-bundle.js`
+2. **On-demand download**: `WatchCacheManager` fetches the bundle on first launch
+3. **Local caching**: Cached to iOS Documents directory at `watchCache/watch-bundle.js`
+4. **Background updates**: After engine initialization, checks for bundle updates in background
+5. **Validation**: Rejects HTML error pages and files <1000 bytes
+
+This approach enables:
+- Faster iteration without App Store review cycles
+- Smaller app binary size
+- Automatic bundle updates when users launch the app
 
 ## Swift ↔ JavaScript Bridge
 
@@ -235,17 +251,13 @@ public class QJSValue {
 class LiftosaurEngine {
     private let runtime: QJSRuntime
     private var context: QJSContext?
+    private let jsQueue = DispatchQueue(label: "com.liftosaur.watch.jsengine")
 
-    init?() {
+    init?(jsCode: String) {  // Bundle loaded by WorkoutManager via WatchCacheManager
         guard let runtime = QJSRuntime() else { return nil }
         self.runtime = runtime
         guard let context = runtime.createContext() else { return nil }
         self.context = context
-
-        // Load bundled JS
-        guard let jsCode = WatchCacheManager.shared.loadBundle() else {
-            return nil
-        }
 
         let result = context.eval(jsCode)
         if result.isException {
@@ -344,7 +356,7 @@ struct ExerciseEntry: Codable {
 
 5. **Offline Support**
    - Full workout completion without connectivity
-   - Queue changes for later sync (pending updates in UserDefaults)
+   - Queue changes for later sync (pending updates queue)
    - Visual indicator of sync status
    - Direct server sync when authenticated (cellular watch support)
 
@@ -444,7 +456,7 @@ Response:
 - [x] WatchConnectivity for phone → watch storage sync
 
 ### Phase 2: Core Workout ✅ COMPLETE
-- [x] Implement workout state storage (UserDefaults)
+- [x] Implement workout state storage (file-based via WatchStorageManager)
 - [x] Build home view with workout preview
 - [x] Build exercise list UI (WorkoutExercisesScreen with swipeable cards)
 - [x] Build set logging UI (ExerciseScreen with crown-controlled reps/weight inputs)
@@ -456,7 +468,7 @@ Response:
 ### Phase 3: Sync ✅ COMPLETE
 - [x] Implement VersionTracker in watch bundle (prepareSync/mergeStorage via JS engine)
 - [x] Server sync (watch ↔ server direct) - fetchStorageFromServer(), syncViaServer()
-- [x] Offline queue and retry logic (pending updates queue in UserDefaults)
+- [x] Offline queue and retry logic (pending updates queue)
 - [x] Sync status indicator (syncStatus @Published property)
 
 ### Phase 4: Phone Integration ✅ COMPLETE
@@ -525,12 +537,11 @@ LiftosauriOS/
     └── LiftosaurWatch/                 // Watch app
         ├── LiftosaurWatchApp.swift
         ├── ContentView.swift
-        ├── LiftosaurColor.swift
-        ├── watch-bundle.js             // Built JS bundle (copied from liftosaur/dist)
+        ├── WatchLayout.swift           // Layout utilities
         ├── Views/
         │   ├── HomeScreen.swift        // Workout preview with start button
         │   ├── WorkoutExercisesScreen.swift  // Exercise list with swipeable cards
-        │   ├── ExerciseScreen.swift    // Main workout UI (48KB - crown & set logging)
+        │   ├── ExerciseScreen.swift    // Main workout UI (~60KB - crown & set logging)
         │   ├── WorkoutCardView.swift   // Exercise card component
         │   ├── AmrapModalView.swift    // AMRAP/RPE/custom variable input
         │   ├── RestTimerScreen.swift   // Rest timer with adjustments
@@ -541,14 +552,14 @@ LiftosauriOS/
         ├── Models/
         │   └── WatchModels.swift       // WatchWorkout, WatchExercise, WatchSet
         └── Engine/
-            ├── LiftosaurEngine.swift   // QuickJS wrapper (14KB)
-            ├── WorkoutManager.swift    // Workout state & orchestration (25KB)
-            ├── WatchCacheManager.swift // Bundle loading
-            ├── WatchStorageManager.swift  // UserDefaults persistence
+            ├── LiftosaurEngine.swift   // QuickJS wrapper (~14KB)
+            ├── WorkoutManager.swift    // Workout state & orchestration (~25KB)
+            ├── WatchCacheManager.swift // Bundle download & caching from server
+            ├── WatchStorageManager.swift  // File-based persistence (>1MB limit on watchOS)
             ├── WatchConnectivityManager.swift  // Receives storage/auth from phone
-            ├── WatchSyncManager.swift  // Server sync, pending updates queue (23KB)
+            ├── WatchSyncManager.swift  // Server sync, pending updates queue (~23KB)
             ├── AuthManager.swift       // JWT token storage and validation
-            ├── HealthKitManager.swift  // Apple Health integration (14KB)
+            ├── HealthKitManager.swift  // Apple Health integration (~14KB)
             └── ImageCacheManager.swift // Exercise image caching
 
 liftosaur/                              // Main web project
@@ -560,6 +571,21 @@ liftosaur/                              // Main web project
 └── rfcs/
     └── watch-storage-performance.md    // Detailed RFC for storage performance optimization
 ```
+
+## Bootstrap Sequence
+
+1. **App Launch**: `LiftosaurWatchApp` initializes, requests HealthKit authorization
+2. **ContentView**: Shows loading spinner while engine initializes
+3. **WorkoutManager.initialize()**:
+   - Check if `watch-bundle.js` cached locally via `WatchCacheManager`
+   - If not found, fetch from `https://www.liftosaur.com/watch-bundle.js`
+   - Create `LiftosaurEngine` (loads bundle into QuickJS)
+   - Process pending incoming storage (if arrived before engine ready)
+   - Check subscription status
+   - Load active workout from storage
+   - Load next workout preview
+   - Background: Fetch bundle updates, sync with server
+4. **UI Ready**: Show HomeScreen or PremiumRequiredScreen based on subscription
 
 ## References
 
@@ -608,3 +634,11 @@ liftosaur/                              // Main web project
 18. **Apple Health integration** - Watch can't write directly to HealthKit during workout (mirrored session from phone). Use `finishWorkoutContinue()` to send workout data to phone, which handles the actual HealthKit write.
 
 19. **Unilateral exercises** - Track `completedRepsLeft` separately from `completedReps`. Use `isUnilateral` flag to show two input fields in exercise screen.
+
+20. **Bundle distribution via server** - Don't bundle watch-bundle.js in the app binary. Host on server and download/cache locally via `WatchCacheManager`. Benefits: faster iteration without App Store review, automatic updates, smaller app binary. Validate downloaded content to reject HTML error pages.
+
+21. **File-based storage on watchOS** - UserDefaults has a ~1MB limit on watchOS. Use file-based storage (`WatchStorageManager`) for larger JSON storage data.
+
+22. **Dedicated JS queue** - QuickJS is not thread-safe. Run all JS evaluations on a dedicated serial queue (`com.liftosaur.watch.jsengine`) to avoid concurrent access issues.
+
+23. **Incoming storage deduplication** - Track `lastStorageReceivedFromPhone` to prevent duplicate merges when the same storage is received multiple times via WatchConnectivity.

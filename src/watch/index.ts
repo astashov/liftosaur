@@ -316,6 +316,22 @@ class LiftosaurWatch {
     }
   }
 
+  private static getStorageFresh<T>(storageJson: string, cb: (storage: IStorage) => IEither<T, string>): string {
+    try {
+      const result = parseStorageSync(storageJson, { forceRevalidate: true });
+      if (!result.success) {
+        return JSON.stringify({ success: false, error: result.error.join(", ") });
+      }
+      if (result.data.tempUserId) {
+        globalThis.tempUserId = result.data.tempUserId;
+      }
+      const newStorageResult = cb(result.data);
+      return JSON.stringify(newStorageResult);
+    } catch (error) {
+      return JSON.stringify({ success: false, error: String(error) });
+    }
+  }
+
   private static modifyStorage(
     storageJson: string,
     deviceId: string,
@@ -329,9 +345,25 @@ class LiftosaurWatch {
       const newStorage = newStorageResult.data;
       const newVersions = Storage.updateVersions(storage, newStorage, deviceId);
       newStorage._versions = newVersions;
-      // Update cache with the new storage so next call doesn't need to re-validate
       cachedStorage = newStorage;
       cachedStorageVersion += 1;
+      return { success: true, data: newStorage };
+    });
+  }
+
+  private static modifyStorageFresh(
+    storageJson: string,
+    deviceId: string,
+    cb: (storage: IStorage) => IEither<IStorage, string>
+  ): string {
+    return this.getStorageFresh<IStorage>(storageJson, (storage) => {
+      const newStorageResult = cb(storage);
+      if (!newStorageResult.success) {
+        return { success: false, error: newStorageResult.error };
+      }
+      const newStorage = newStorageResult.data;
+      const newVersions = Storage.updateVersions(storage, newStorage, deviceId);
+      newStorage._versions = newVersions;
       return { success: true, data: newStorage };
     });
   }
@@ -483,7 +515,7 @@ class LiftosaurWatch {
     restTimer: number,
     restTimerSince: number
   ): string {
-    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+    return this.modifyStorageFresh(storageJson, deviceId, (storage): IEither<IStorage, string> => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
@@ -554,7 +586,7 @@ class LiftosaurWatch {
     setIndex: number,
     skipLiveActivityUpdate: boolean
   ): string {
-    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+    return this.modifyStorageFresh(storageJson, deviceId, (storage): IEither<IStorage, string> => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
