@@ -1151,7 +1151,12 @@ class LiftosaurWatch {
         return { success: false, error: "No active workout" };
       }
 
-      const newIntervals = History.resumeWorkout(progress, false);
+      const newIntervals = History.resumeWorkout(
+        progress,
+        false,
+        undefined,
+        Subscriptions.hasSubscription(storage.subscription)
+      );
       if (newIntervals !== progress.intervals) {
         lg("watch-resume-workout");
         const newProgress = { ...progress, intervals: newIntervals };

@@ -1529,7 +1529,12 @@ export namespace Progress {
       settings,
       subscription
     );
-    newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
+    newProgress.intervals = History.resumeWorkout(
+      newProgress,
+      action.isPlayground,
+      settings.timers.reminder,
+      subscription != null && Subscriptions.hasSubscription(subscription)
+    );
     LiveActivityManager.updateLiveActivityForNextEntry(
       newProgress,
       action.entryIndex,
@@ -1592,7 +1597,12 @@ export namespace Progress {
         subscription
       );
     }
-    newProgress.intervals = History.resumeWorkout(newProgress, action.isPlayground, settings.timers.reminder);
+    newProgress.intervals = History.resumeWorkout(
+      newProgress,
+      action.isPlayground,
+      settings.timers.reminder,
+      subscription != null && Subscriptions.hasSubscription(subscription)
+    );
     LiveActivityManager.updateLiveActivityForNextEntry(
       newProgress,
       action.entryIndex,

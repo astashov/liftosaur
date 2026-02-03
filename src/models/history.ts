@@ -782,12 +782,17 @@ export namespace History {
     }
   }
 
-  export function resumeWorkoutAction(dispatch: IDispatch, isPlayground: boolean, settings: ISettings): void {
+  export function resumeWorkoutAction(
+    dispatch: IDispatch,
+    isPlayground: boolean,
+    settings: ISettings,
+    hasSubscription: boolean
+  ): void {
     updateState(
       dispatch,
       [
         Progress.lbProgress().recordModify((progress) => {
-          const intervals = resumeWorkout(progress, isPlayground, settings.timers.reminder);
+          const intervals = resumeWorkout(progress, isPlayground, settings.timers.reminder, hasSubscription);
           return { ...progress, intervals };
         }),
       ],
@@ -802,7 +807,8 @@ export namespace History {
   export function resumeWorkout(
     historyRecord: IHistoryRecord,
     isPlayground: boolean,
-    reminder?: number
+    reminder: number | undefined,
+    hasSubscription: boolean
   ): IIntervals | undefined {
     const intervals = historyRecord.intervals;
     if (isPaused(intervals)) {
@@ -812,6 +818,7 @@ export namespace History {
           type: "resumeWorkout",
           reminder: `${reminder || 0}`,
           isStart: isStart ? "true" : "false",
+          hasSubscription: hasSubscription ? "true" : "false",
         });
       }
       const newIntervals = intervals ? ObjectUtils.clone(intervals) : [];
