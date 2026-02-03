@@ -5,7 +5,17 @@ import { RollbarUtils } from "./utils/rollbar";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
+declare let __BUNDLE_VERSION_IOS__: number;
+declare let __BUNDLE_VERSION_ANDROID__: number;
 Rollbar.configure(RollbarUtils.config());
+
+// These markers are used by native apps to detect bundle version changes
+const BUNDLE_VERSION_IOS = __BUNDLE_VERSION_IOS__;
+const BUNDLE_VERSION_ANDROID = __BUNDLE_VERSION_ANDROID__;
+// eslint-disable-next-line no-void
+void BUNDLE_VERSION_IOS;
+// eslint-disable-next-line no-void
+void BUNDLE_VERSION_ANDROID;
 
 import { AppView } from "./components/app";
 import { AudioInterface } from "./lib/audioInterface";

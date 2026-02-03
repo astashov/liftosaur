@@ -1,3 +1,14 @@
+declare let __BUNDLE_VERSION_WATCH_IOS__: number;
+declare let __BUNDLE_VERSION_WATCH_ANDROID__: number;
+
+// These markers are used by native apps to detect watch bundle version changes
+const BUNDLE_VERSION_WATCH_IOS = __BUNDLE_VERSION_WATCH_IOS__;
+const BUNDLE_VERSION_WATCH_ANDROID = __BUNDLE_VERSION_WATCH_ANDROID__;
+// eslint-disable-next-line no-void
+void BUNDLE_VERSION_WATCH_IOS;
+// eslint-disable-next-line no-void
+void BUNDLE_VERSION_WATCH_ANDROID;
+
 import { Program } from "../models/program";
 import { Exercise } from "../models/exercise";
 import { Storage } from "../models/storage";

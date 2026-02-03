@@ -8,6 +8,10 @@ const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const commitHash = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
 const fullCommitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
+const bundleVersionIos = 1;
+const bundleVersionAndroid = 1;
+const bundleVersionWatchIos = 1;
+const bundleVersionWatchAndroid = 1;
 
 const localapi = `https://${localapidomain}.liftosaur.com:3000/`;
 const local = `https://${localdomain}.liftosaur.com:8080/`;
@@ -42,6 +46,8 @@ const watchConfig = {
   plugins: [
     new DefinePlugin({
       window: "globalThis",
+      __BUNDLE_VERSION_WATCH_IOS__: bundleVersionWatchIos,
+      __BUNDLE_VERSION_WATCH_ANDROID__: bundleVersionWatchAndroid,
       __COMMIT_HASH__: JSON.stringify(commitHash),
       __FULL_COMMIT_HASH__: JSON.stringify(fullCommitHash),
       __HOST__: JSON.stringify(
@@ -139,6 +145,8 @@ const mainConfig = {
     }),
     new MiniCssExtractPlugin(),
     new DefinePlugin({
+      __BUNDLE_VERSION_IOS__: bundleVersionIos,
+      __BUNDLE_VERSION_ANDROID__: bundleVersionAndroid,
       __COMMIT_HASH__: JSON.stringify(commitHash),
       __FULL_COMMIT_HASH__: JSON.stringify(fullCommitHash),
       __API_HOST__: JSON.stringify(
