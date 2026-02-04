@@ -91,7 +91,7 @@ const mainConfig = {
   },
   output: {
     filename: "[name].js",
-    publicPath: "/",
+    publicPath: process.env.NODE_ENV === "production" ? "/liftosaur/" : "/",
     path: path.resolve(__dirname, "dist"),
   },
   devtool: false,
@@ -167,9 +167,8 @@ const mainConfig = {
       __HOST__: JSON.stringify(
         process.env.NODE_ENV === "production"
           ? process.env.STAGE
-            ? "https://stage.liftosaur.com"
-            : "https://www.liftosaur.com"
-          : `https://${localdomain}.liftosaur.com:8080`
+            ? "https://daposni-code.github.io/liftosaur"
+            : `https://${localdomain}.liftosaur.com:8080`
       ),
     }),
     new CopyPlugin([
