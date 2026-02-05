@@ -302,7 +302,7 @@ Bench Press / 3x8 / progress: none
 
 If you try to specify different progressions for the same exercise in different weeks/days, it'll give you an error - the progressions are applied for an exercise across whole program. You cannot have e.g. linear progression on day 1, and double progression on day 2.
 
-There's a way to have e.g. 2 Bench Press exercises with different progressions though - you can add labels to exercises, and they would be considered different exercises in that case. Label is just some word before an exercise name, with a colon `:` after it. For example - `aux: Bench Press` or `strenght: Squat` or anything like that.
+There's a way to have e.g. 2 Bench Press exercises with different progressions though - you can add labels to exercises, and they would be considered different exercises in that case. Label is just some word before an exercise name, with a colon `:` after it. For example - `aux: Bench Press` or `strength: Squat` or anything like that.
 
 So with labels, e.g. you have low-rep range Bench Press and high-rep range Bench Press in your program, and you want both of them have Double Progression, but in different ranges. You could do it like this:
 
@@ -317,7 +317,7 @@ highrep: Bench Press / 3x8 / progress: dp(5lb, 8, 12)
 
 #### Linear Progression
 
-Linear Progression is when you add weight after N (1 or more) successful finishing of all sets and reps, and optionally - also reducing the weight after N (1 or more) unsuccessful finishing of all sets ans reps.
+Linear Progression is when you add weight after N (1 or more) successful finishing of all sets and reps, and optionally - also reducing the weight after N (1 or more) unsuccessful finishing of all sets and reps.
 
 You add Linear Progression to exercises by specifying `lp` progress type, like this:
 
@@ -509,7 +509,7 @@ Usually in multi-week programs, you have exactly the same exercises on the same 
 Bench Press[1-5] / 3x8
 {% endplannercode %}
 
-The syntax is `Squat[fromWeek-toWeek]`. If you do that, you don't have to type `Bench Press / 3x8` on weeks 2-5. In the full day mode, your days would be empty, and in the per-day mode - the exercises would be listed under the text input on the repeated days, but would be undediable.
+The syntax is `Squat[fromWeek-toWeek]`. If you do that, you don't have to type `Bench Press / 3x8` on weeks 2-5. In the full day mode, your days would be empty, and in the per-day mode - the exercises would be listed under the text input on the repeated days, but would be uneditable.
 
 {% plannercode %}
 # Week 1
@@ -662,7 +662,7 @@ t2 / 1x11, 3x6 / 70%
 
 What's described above is probably enough to cover 95% of the use-cases. But in case you want some custom progressions, you can do it with a special `progress: custom()` Liftoscript syntax.
 
-There, you can unleash the full power of the scripting in Liftosaur. You can directy change weights, reps, sets, timers, RPE, etc using `if/else`s, state variables, math and boolean logic.
+There, you can unleash the full power of the scripting in Liftosaur. You can directly change weights, reps, sets, timers, RPE, etc using `if/else`s, state variables, math and boolean logic.
 
 E.g. this is how a variant of Linear Progression - increasing weight by 5lb if first set was successful - would look like:
 
@@ -679,7 +679,7 @@ this Liftoscript will look very familiar. If not, no worries, it's a pretty simp
 
 In the example above, we increase the weight of all sets by 5lb if the completed reps of the first set were equal or more than required number of reps of the first set. Let's take a look at the syntax closer.
 
-The logic is written in the curly braces **with tildas** - i.e. between `{~` and `~}`. Inside those curly braces you can access required reps, completed reps, weights, RPE, etc of all the sets that were finished for that exercise, and you can update weights/reps/etc of the program based on that.
+The logic is written in the curly braces **with tildes** - i.e. between `{~` and `~}`. Inside those curly braces you can access required reps, completed reps, weights, RPE, etc of all the sets that were finished for that exercise, and you can update weights/reps/etc of the program based on that.
 
 The conditional logic written with `if (...) { ... }` sentence. In the parenthesis you specify the condition when the block of the `if` should happen. `completedReps[1]` gives you the number of **completed reps** of the first set (`[1]` part - arrays indexes start from 1), and `reps[1]` gives you the number of **required reps** that were defined for that set. So `completedReps[1] >= reps[1]` means that completed reps of the first set are equal or more than the required reps of the first set.
 
@@ -784,7 +784,7 @@ Bench Press / 3x8 / progress: custom(attempt: 0) {~
 
 The `attempt` variable will be increased across workouts, and then reset to 0 once you hit 3 successful attempts.
 
-Another use case for the state variables is in reusing the `progress: custom()` logic. The scripts can become pretty large, and usually you want multiple exercises to follow the same logic. So, for that you can reuse it! For that, just specify the exercise you're reusing the logic from like this: `Bench Press / 3x8 / progress: custom() { ...Squat }`. I.e. add it within the curly braces - `{` and `}` (without tildas! So the app would know it's not the script itself). For example, if we want to reuse the logic above, it'd look like this:
+Another use case for the state variables is in reusing the `progress: custom()` logic. The scripts can become pretty large, and usually you want multiple exercises to follow the same logic. So, for that you can reuse it! For that, just specify the exercise you're reusing the logic from like this: `Bench Press / 3x8 / progress: custom() { ...Squat }`. I.e. add it within the curly braces - `{` and `}` (without tildes! So the app would know it's not the script itself). For example, if we want to reuse the logic above, it'd look like this:
 
 {% plannercode %}
 Bench Press / 3x8 / progress: custom(attempt: 0) {~
