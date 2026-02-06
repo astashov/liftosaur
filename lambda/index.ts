@@ -635,7 +635,13 @@ const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof sav
   const { event, di } = payload;
   const { id, data } = getBodyJson(event);
   const debugDao = new DebugDao(di);
-  await debugDao.store(id, JSON.stringify(data));
+  let debugData: string;
+  if (typeof data === "string") {
+    debugData = await NodeEncoder.decode(data);
+  } else {
+    debugData = JSON.stringify(data);
+  }
+  await debugDao.store(id, debugData);
   return ResponseUtils.json(200, event, { data: "ok" });
 };
 

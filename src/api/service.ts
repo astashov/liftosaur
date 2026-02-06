@@ -273,9 +273,10 @@ export class Service {
 
   public async postDebug(id: string, state: string, meta: Record<string, string>): Promise<boolean> {
     try {
+      const compressed = await Encoder.encode(JSON.stringify({ state, meta }));
       const response = await this.client(`${__API_HOST__}/api/debug`, {
         method: "POST",
-        body: JSON.stringify({ id, data: { state, meta } }),
+        body: JSON.stringify({ id, data: compressed }),
         credentials: "include",
       });
       const json = await response.json();
