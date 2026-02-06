@@ -544,7 +544,7 @@ export namespace Thunk {
     };
   }
 
-  export function handleWatchStorageMerge(storageJson: string, watchDeviceId: string): IThunk {
+  export function handleWatchStorageMerge(storageJson: string, watchDeviceId: string, isLiveActivity?: boolean): IThunk {
     return async (dispatch, getState) => {
       try {
         const watchStorage: IStorage = JSON.parse(storageJson);
@@ -558,7 +558,27 @@ export namespace Thunk {
         const hadProgress = state.storage.progress && state.storage.progress.length > 0;
 
         // Merge watch storage with phone storage
-        const mergedStorage = Storage.mergeStorage(state.storage, watchStorage, state.deviceId);
+        let mergedStorage = Storage.mergeStorage(state.storage, watchStorage, state.deviceId);
+
+        // progress.ui is excluded from version-based merging, so amrapModal set by
+        // live activity mutations gets dropped. Propagate it explicitly.
+        const watchAmrapModal = watchStorage.progress?.[0]?.ui?.amrapModal;
+        if (isLiveActivity && watchAmrapModal && mergedStorage.progress?.[0]) {
+          mergedStorage = {
+            ...mergedStorage,
+            progress: [
+              {
+                ...mergedStorage.progress[0],
+                ui: {
+                  ...mergedStorage.progress[0].ui,
+                  amrapModal: watchAmrapModal,
+                  isExternal: watchStorage.progress[0].ui?.isExternal,
+                  forceUpdateEntryIndex: watchStorage.progress[0].ui?.forceUpdateEntryIndex,
+                },
+              },
+            ],
+          };
+        }
 
         if (mergedStorage !== state.storage) {
           // Also merge into lastSyncedStorage to preserve phone's unsent changes
