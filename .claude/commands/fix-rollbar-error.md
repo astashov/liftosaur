@@ -54,6 +54,11 @@ curl -s -H "X-Rollbar-Access-Token: $ROLLBAR_READ_TOKEN" \
   -o ./worktrees/$ARGUMENTS/.tmp/rollbar.json
 ```
 
+Extract the Rollbar item ID (you will need this for the PR title in Step 9):
+```bash
+jq -r '.result.item_id' ./worktrees/$ARGUMENTS/.tmp/rollbar.json
+```
+
 Extract key information using jq:
 ```bash
 jq -r '.result.data | {liftosaur_exception_id, person, body}' ./worktrees/$ARGUMENTS/.tmp/rollbar.json
@@ -202,9 +207,10 @@ From the worktree directory:
 git -C ./worktrees/$ARGUMENTS add <changed-files>
 ```
 
-Write commit message to file using the Write tool at `./worktrees/$ARGUMENTS/.tmp/commit-msg.txt`:
+Write commit message to file using the Write tool at `./worktrees/$ARGUMENTS/.tmp/commit-msg.txt`.
+Use the Rollbar item ID extracted in Step 2 as ITEM_ID:
 ```
-<Fix or Ignore>: <brief description> (Rollbar #$ARGUMENTS)
+fix-rollbar (ITEM_ID/$ARGUMENTS): <brief description>
 
 Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 ```
@@ -216,7 +222,7 @@ git -C ./worktrees/$ARGUMENTS commit -F ./worktrees/$ARGUMENTS/.tmp/commit-msg.t
 
 ```bash
 git -C ./worktrees/$ARGUMENTS push -u origin fix/rollbar-$ARGUMENTS
-gh pr create --repo astashov/liftosaur --head fix/rollbar-$ARGUMENTS --title "<Fix or Ignore>: <brief description> (Rollbar #$ARGUMENTS)" --body "## Summary
+gh pr create --repo astashov/liftosaur --head fix/rollbar-$ARGUMENTS --title "fix-rollbar (ITEM_ID/$ARGUMENTS): <brief description>" --body "## Summary
 - <bullet points of changes>
 
 ## Decision
@@ -231,7 +237,7 @@ gh pr create --repo astashov/liftosaur --head fix/rollbar-$ARGUMENTS --title "<F
 🤖 Generated with [Claude Code](https://claude.ai/code)"
 ```
 
-**For ignore PRs**, the title should be like: `Ignore: Add "error message" to Rollbar ignore list`
+**Important:** Replace ITEM_ID with the actual Rollbar item ID from Step 2 in both the commit message and PR title.
 
 ### 10. Cleanup
 
