@@ -12,6 +12,7 @@
 /pricepointscache
 .playwright-mcp
 localdomain.js
+/output
 
 /liftosaur-cdk/*.d.ts
 /dist-lambda
