@@ -1018,9 +1018,12 @@ export namespace Program {
   }
 
   export function getFirstProgramExercise(
-    program: IEvaluatedProgram,
-    key: string
+    program?: IEvaluatedProgram,
+    key?: string
   ): IPlannerProgramExercise | undefined {
+    if (key == null || program == null) {
+      return undefined;
+    }
     return Program.getAllProgramExercises(program).find((e) => e.key === key || e.fullName === key);
   }
 

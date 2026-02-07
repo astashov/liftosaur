@@ -206,11 +206,17 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 isPlayground={false}
                 settings={props.settings}
                 dispatch={props.dispatch}
-                programExercise={Program.getProgramExercise(
-                  progress.day,
-                  evaluatedProgram,
-                  progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
-                )}
+                programExercise={
+                  Program.getProgramExercise(
+                    progress.day,
+                    evaluatedProgram,
+                    progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
+                  ) ||
+                  Program.getFirstProgramExercise(
+                    evaluatedProgram,
+                    progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
+                  )
+                }
                 progress={progress}
                 onDone={() => {
                   Progress.forceUpdateEntryIndex(props.dispatch);
