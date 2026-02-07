@@ -694,6 +694,8 @@ export class LiftoscriptEvaluator {
             return this.divide(evalLeft, evalRight);
           } else if (op === "%") {
             return this.modulo(evalLeft, evalRight);
+          } else if (op === "^") {
+            return this.exponentiate(evalLeft, evalRight);
           } else {
             this.error(`Unknown operator ${op} between ${evalLeft} and ${evalRight}`, operator);
           }
@@ -1153,6 +1155,13 @@ export class LiftoscriptEvaluator {
     two: IWeight | number | IPercentage
   ): IWeight | number | IPercentage {
     return this.operation(undefined, one, two, (a, b) => a % b);
+  }
+
+  private exponentiate(
+    one: IWeight | number | IPercentage,
+    two: IWeight | number | IPercentage
+  ): IWeight | number | IPercentage {
+    return this.operation(undefined, one, two, (a, b) => a ** b);
   }
 
   private operation(
