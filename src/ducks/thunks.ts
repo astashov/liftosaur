@@ -180,13 +180,13 @@ export namespace Thunk {
     signal?: AbortSignal
   ): Promise<void> {
     const state = getState();
-    function handleResponse(
+    async function handleResponse(
       result: IPostSyncResponse,
       handleResponseArgs: {
         lastSyncedStorage?: IStorage;
         requestedLastStorage?: boolean;
       }
-    ): boolean {
+    ): Promise<boolean> {
       const { lastSyncedStorage, requestedLastStorage } = handleResponseArgs;
       if (result.type === "clean") {
         dispatch(Thunk.postevent("handle-response-clean"));
@@ -272,6 +272,18 @@ export namespace Thunk {
           "Update subscription no storage"
         );
         return false;
+      } else if (result.type === "error" && result.error === "corrupted_server_storage") {
+        const userid = state.user?.id || state.storage.tempUserId;
+        const backup = await env.service.postDebug(userid, JSON.stringify(state.storage), { local: "false" });
+        updateState(
+          dispatch,
+          [
+            lb<IState>().p("errors").p("corruptedstorage").record({ userid, backup, confirmed: false, local: false }),
+            lb<IState>().p("lastSyncedStorage").record(undefined),
+          ],
+          "Corrupted server storage"
+        );
+        return false;
       } else if (result.type === "error") {
         if (result.error === "outdated_client_storage") {
           if (typeof window !== "undefined") {
@@ -303,7 +315,7 @@ export namespace Thunk {
       if (signal?.aborted) {
         return;
       }
-      const handled = handleResponse(result, { requestedLastStorage: true });
+      const handled = await handleResponse(result, { requestedLastStorage: true });
       if (handled) {
         await _sync2(dispatch, getState, env, args);
       }
@@ -321,7 +333,7 @@ export namespace Thunk {
         if (signal?.aborted) {
           return;
         }
-        handleResponse(result, { lastSyncedStorage });
+        await handleResponse(result, { lastSyncedStorage });
       }
     }
   }
