@@ -203,9 +203,22 @@ export class UserDao {
     const originalStorage = limitedUser.storage;
     limitedUser = await this.augmentLimitedUser(limitedUser, storageUpdate);
 
-    const result = await Storage.get(fetch, limitedUser.storage);
+    let result = await Storage.get(fetch, limitedUser.storage);
     if (!result.success) {
-      return { success: false, error: "corrupted_server_storage" };
+      console.log("corrupted_server_storage validation errors:", JSON.stringify(result.error));
+      const fullUser = await this.getById(limitedUser.id);
+      if (fullUser) {
+        const fullResult = await Storage.get(fetch, fullUser.storage);
+        if (fullResult.success) {
+          await this.saveStorage(fullUser, fullResult.data);
+          limitedUser = (await this.getLimitedById(limitedUser.id))!;
+          limitedUser = await this.augmentLimitedUser(limitedUser, storageUpdate);
+          result = await Storage.get(fetch, limitedUser.storage);
+        }
+      }
+      if (!result.success) {
+        return { success: false, error: "corrupted_server_storage" };
+      }
     }
     const { _versions, ...limitedUserStorage } = result.data;
     if (limitedUserStorage.version !== storageUpdate.version) {
@@ -355,9 +368,21 @@ export class UserDao {
     storageUpdate: IStorageUpdate
   ): Promise<IEither<{ originalId: number; newStorage?: IPartialStorage }, string>> {
     const env = Utils.getEnv();
-    const result = await Storage.get(fetch, limitedUser.storage);
+    let result = await Storage.get(fetch, limitedUser.storage);
     if (!result.success) {
-      return { success: false, error: "corrupted_server_storage" };
+      console.log("corrupted_server_storage validation errors (sync1):", JSON.stringify(result.error));
+      const fullUser = await this.getById(limitedUser.id);
+      if (fullUser) {
+        const fullResult = await Storage.get(fetch, fullUser.storage);
+        if (fullResult.success) {
+          await this.saveStorage(fullUser, fullResult.data);
+          limitedUser = (await this.getLimitedById(limitedUser.id))!;
+          result = await Storage.get(fetch, limitedUser.storage);
+        }
+      }
+      if (!result.success) {
+        return { success: false, error: "corrupted_server_storage" };
+      }
     }
     const limitedUserStorage = result.data;
     if (limitedUserStorage.version !== storageUpdate.version) {
