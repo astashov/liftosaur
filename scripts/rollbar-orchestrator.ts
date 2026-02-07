@@ -7,6 +7,7 @@ const LOG_DIR = path.join(PROJECT_DIR, "logs", "rollbar-orchestrator");
 const TIMEOUT_MS = 60 * 60 * 1000; // 1 hour per fix
 const MAX_FIXES = 3;
 const REVIEW_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes for review
+const SIMILARITY_TIMEOUT_MS = 60 * 1000; // 1 minute for Claude similarity check
 
 interface IRollbarItem {
   id: number;
@@ -20,10 +21,12 @@ interface IRollbarOccurrence {
   title: string;
 }
 
-interface IGitHubPR {
+interface IRollbarPR {
   number: number;
   title: string;
-  headRefName: string;
+  state: string;
+  itemId: string | null;
+  occurrenceId: string | null;
 }
 
 const runId = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
@@ -79,40 +82,159 @@ async function getOccurrenceForItem(itemId: number): Promise<number | null> {
   return response.result.instances[0]?.id ?? null;
 }
 
-async function getExistingPRs(): Promise<Set<string>> {
-  const existingIds = new Set<string>();
+function runGhCommand(args: string[]): Promise<string> {
+  return new Promise((resolve) => {
+    const proc = spawn("gh", args, { cwd: PROJECT_DIR });
+    let output = "";
+    proc.stdout.on("data", (data) => (output += data));
+    proc.stderr.on("data", () => {});
+    proc.on("close", () => resolve(output.trim()));
+  });
+}
 
-  const runGh = (args: string[]): Promise<IGitHubPR[]> => {
-    return new Promise((resolve) => {
-      const proc = spawn("gh", ["pr", "list", "--repo", "astashov/liftosaur", ...args], {
-        cwd: PROJECT_DIR,
-      });
-
-      let output = "";
-      proc.stdout.on("data", (data) => (output += data));
-      proc.on("close", () => {
-        try {
-          resolve(JSON.parse(output || "[]"));
-        } catch {
-          resolve([]);
-        }
-      });
-    });
-  };
-
-  const [openPRs, mergedPRs] = await Promise.all([
-    runGh(["--state", "open", "--json", "number,title,headRefName"]),
-    runGh(["--state", "merged", "--limit", "50", "--json", "number,title,headRefName"]),
+async function fetchRollbarPRs(): Promise<IRollbarPR[]> {
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const raw = await runGhCommand([
+    "pr",
+    "list",
+    "--repo",
+    "astashov/liftosaur",
+    "--state",
+    "all",
+    "--search",
+    `fix-rollbar in:title created:>=${since}`,
+    "--json",
+    "number,title,state",
   ]);
 
-  for (const pr of [...openPRs, ...mergedPRs]) {
-    const match = pr.headRefName.match(/rollbar-(\d+)/);
-    if (match) {
-      existingIds.add(match[1]);
-    }
+  let prs: Array<{ number: number; title: string; state: string }>;
+  try {
+    prs = JSON.parse(raw || "[]");
+  } catch {
+    log("Warning: failed to parse GitHub PR list");
+    return [];
   }
 
-  return existingIds;
+  const titlePattern = /fix-rollbar \((\d+)\/(\d+)\)/;
+
+  return prs.map((pr) => {
+    const match = pr.title.match(titlePattern);
+    return {
+      number: pr.number,
+      title: pr.title,
+      state: pr.state,
+      itemId: match ? match[1] : null,
+      occurrenceId: match ? match[2] : null,
+    };
+  });
+}
+
+function checkIdMatch(
+  item: IRollbarItem,
+  occurrenceId: number,
+  prs: IRollbarPR[]
+): { skip: boolean; reason: string } | null {
+  for (const pr of prs) {
+    if (pr.occurrenceId === occurrenceId.toString()) {
+      return { skip: true, reason: `occurrence ${occurrenceId} already has PR #${pr.number} (${pr.state})` };
+    }
+    if (pr.itemId === item.id.toString()) {
+      return { skip: true, reason: `item ${item.id} already has PR #${pr.number} (${pr.state})` };
+    }
+  }
+  return null;
+}
+
+function extractResponseFromRawLog(logFilePath: string): string | null {
+  const rawJsonlPath = logFilePath.replace(/\.log$/, "-raw.jsonl");
+  try {
+    const lines = fs.readFileSync(rawJsonlPath, "utf-8").trim().split("\n");
+    let lastText = "";
+    for (const line of lines) {
+      try {
+        const event = JSON.parse(line);
+        if (event.type === "assistant" && Array.isArray(event.message?.content)) {
+          for (const block of event.message.content) {
+            if (block.type === "text" && block.text) {
+              lastText = block.text;
+            }
+          }
+        }
+      } catch {
+        continue;
+      }
+    }
+    return lastText || null;
+  } catch {
+    return null;
+  }
+}
+
+async function checkSimilarityWithClaude(
+  candidates: IRollbarOccurrence[],
+  existingPRs: IRollbarPR[]
+): Promise<Set<number>> {
+  const skipItemIds = new Set<number>();
+  const parsedPRs = existingPRs.filter((pr) => pr.itemId !== null);
+
+  if (candidates.length === 0 || parsedPRs.length === 0) {
+    return skipItemIds;
+  }
+
+  const prList = parsedPRs
+    .map((pr, i) => `${i + 1}. PR #${pr.number} (${pr.state}): "${pr.title}"`)
+    .join("\n");
+
+  const candidateList = candidates
+    .map((c, i) => `${String.fromCharCode(65 + i)}. Item ${c.itemId}: "${c.title}"`)
+    .join("\n");
+
+  const prompt = `You are checking if new Rollbar errors are likely the same root cause as existing PRs.
+
+Existing Rollbar fix PRs:
+${prList}
+
+New Rollbar errors to potentially fix:
+${candidateList}
+
+For each new error (A, B, C...), determine if it is likely the same root cause as any existing PR.
+Reply ONLY with a JSON object mapping each letter to either null (no match) or the PR number.
+Example: {"A": null, "B": 42}`;
+
+  log("Running Claude similarity check...");
+  const similarityLogPath = path.join(LOG_DIR, `${runId}-similarity.log`);
+  const result = await runClaudeCommand(prompt, SIMILARITY_TIMEOUT_MS, similarityLogPath);
+
+  if (!result.success) {
+    log("Claude similarity check failed or timed out, proceeding with all candidates");
+    return skipItemIds;
+  }
+
+  const responseText = extractResponseFromRawLog(similarityLogPath);
+  if (!responseText) {
+    log("Could not extract response from similarity check log, proceeding with all candidates");
+    return skipItemIds;
+  }
+
+  log(`Similarity check response: ${responseText.slice(0, 500)}`);
+
+  try {
+    const jsonMatch = responseText.match(/\{[^}]+\}/);
+    const parsed: Record<string, unknown> = JSON.parse(jsonMatch ? jsonMatch[0] : responseText);
+
+    for (let i = 0; i < candidates.length; i++) {
+      const key = String.fromCharCode(65 + i);
+      const match = parsed[key];
+      if (match != null) {
+        log(`  Candidate ${key} (item ${candidates[i].itemId}) similar to PR #${match}, skipping`);
+        skipItemIds.add(candidates[i].itemId);
+      }
+    }
+  } catch (err) {
+    log(`Failed to parse Claude similarity response: ${(err as Error).message}`);
+  }
+
+  return skipItemIds;
 }
 
 function runClaudeCommand(
@@ -162,33 +284,23 @@ function runClaudeCommand(
 }
 
 async function getPRNumber(occurrenceId: number): Promise<number | null> {
-  return new Promise((resolve) => {
-    const proc = spawn(
-      "gh",
-      [
-        "pr",
-        "list",
-        "--repo",
-        "astashov/liftosaur",
-        "--state",
-        "open",
-        "--head",
-        `fix/rollbar-${occurrenceId}`,
-        "--json",
-        "number",
-        "--jq",
-        ".[0].number",
-      ],
-      { cwd: PROJECT_DIR }
-    );
+  const output = await runGhCommand([
+    "pr",
+    "list",
+    "--repo",
+    "astashov/liftosaur",
+    "--state",
+    "open",
+    "--head",
+    `fix/rollbar-${occurrenceId}`,
+    "--json",
+    "number",
+    "--jq",
+    ".[0].number",
+  ]);
 
-    let output = "";
-    proc.stdout.on("data", (data) => (output += data));
-    proc.on("close", () => {
-      const num = parseInt(output.trim(), 10);
-      resolve(isNaN(num) ? null : num);
-    });
-  });
+  const num = parseInt(output, 10);
+  return isNaN(num) ? null : num;
 }
 
 function cleanupWorktree(occurrenceId: number): void {
@@ -207,47 +319,55 @@ async function main(): Promise<void> {
   log(`Run ID: ${runId}`);
   log(`Main log: ${mainLogPath}`);
 
-  // Step 1: Get top active items
   log("Fetching top active items from Rollbar...");
   const items = await getTopActiveItems();
   log(`Found ${items.length} active items`);
 
-  // Step 2: Get existing PRs
-  log("Checking for existing Rollbar fix PRs...");
-  const existingPRs = await getExistingPRs();
-  log(`Found PRs for items: ${Array.from(existingPRs).join(", ")}`);
+  log("Fetching existing Rollbar fix PRs from GitHub...");
+  const existingPRs = await fetchRollbarPRs();
+  log(`Found ${existingPRs.length} existing rollbar PRs`);
 
-  // Step 3: Get candidates (items without PRs, with occurrence IDs)
-  log("Getting occurrence IDs for top items...");
-  const candidates: IRollbarOccurrence[] = [];
+  log("Filtering candidates by ID match...");
+  const needsSimilarityCheck: IRollbarOccurrence[] = [];
 
   for (const item of items) {
-    if (candidates.length >= 5) {
+    if (needsSimilarityCheck.length >= 5) {
       break;
     }
 
-    if (existingPRs.has(item.id.toString())) {
-      log(`  Skipping item ${item.id} (already has PR): ${item.title}`);
+    const occurrenceId = await getOccurrenceForItem(item.id);
+    if (!occurrenceId) {
+      log(`  Could not get occurrence for item ${item.id}`);
       continue;
     }
 
-    const occurrenceId = await getOccurrenceForItem(item.id);
-    if (occurrenceId) {
-      log(`  Item ${item.id} -> Occurrence ${occurrenceId}: ${item.title}`);
-      candidates.push({ id: occurrenceId, itemId: item.id, title: item.title });
-    } else {
-      log(`  Could not get occurrence for item ${item.id}`);
+    const idMatch = checkIdMatch(item, occurrenceId, existingPRs);
+    if (idMatch) {
+      log(`  Skipping item ${item.id}: ${idMatch.reason}`);
+      continue;
     }
+
+    log(`  Item ${item.id} -> Occurrence ${occurrenceId}: ${item.title} (needs similarity check)`);
+    needsSimilarityCheck.push({ id: occurrenceId, itemId: item.id, title: item.title });
   }
 
-  if (candidates.length === 0) {
-    log("No items to fix (all have existing PRs or no occurrences found)");
+  if (needsSimilarityCheck.length === 0) {
+    log("No candidates after ID matching");
+    logFile.end();
     return;
   }
 
-  log(`Found ${candidates.length} candidates to fix`);
+  const similarSkips = await checkSimilarityWithClaude(needsSimilarityCheck, existingPRs);
+  const candidates = needsSimilarityCheck.filter((c) => !similarSkips.has(c.itemId));
 
-  // Step 4: Fix top N items
+  log(`${candidates.length} candidates remaining after similarity check`);
+
+  if (candidates.length === 0) {
+    log("No items to fix after similarity filtering");
+    logFile.end();
+    return;
+  }
+
   let fixedCount = 0;
 
   for (const candidate of candidates) {
@@ -275,14 +395,12 @@ async function main(): Promise<void> {
 
     log(`Fix completed in ${duration}s`);
 
-    // Wait a moment for GitHub to register the PR
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     const prNumber = await getPRNumber(candidate.id);
     if (prNumber) {
       log(`PR #${prNumber} created for occurrence ${candidate.id}`);
 
-      // Run review-pr command
       log(`Running review-pr command on PR #${prNumber}...`);
       const reviewLogPath = path.join(LOG_DIR, `${runId}-review-${prNumber}.log`);
       log(`Log file: ${reviewLogPath}`);
