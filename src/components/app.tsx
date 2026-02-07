@@ -240,11 +240,13 @@ export function AppView(props: IProps): JSX.Element | null {
           );
         }
       } else if (event.data?.type === "timerScheduled") {
-        if (Progress.getProgress(stateRef.current)?.ui) {
+        const currentState = stateRef.current;
+        const progressId = Progress.getProgressId(currentState.screenStack);
+        if (Progress.getProgress(currentState)?.ui) {
           SendMessage.print(`Main app: Marking native notification as scheduled`);
           updateState(
             dispatch,
-            [Progress.lbProgress().pi("ui").p("nativeNotificationScheduled").record(true)],
+            [Progress.lbProgress(progressId).pi("ui").p("nativeNotificationScheduled").record(true)],
             "Set native notification scheduled"
           );
         }
