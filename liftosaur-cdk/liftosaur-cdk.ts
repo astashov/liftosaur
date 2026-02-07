@@ -12,6 +12,7 @@ import { aws_cloudfront_origins as origins } from "aws-cdk-lib";
 import { aws_s3_notifications } from "aws-cdk-lib";
 import { LftS3Buckets } from "../lambda/dao/buckets";
 import childProcess from "child_process";
+import localdomain from "../localdomain";
 
 export class LiftosaurCdkStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, isDev: boolean, props?: cdk.StackProps) {
@@ -288,11 +289,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
             "https://stage.liftosaur.com",
             "https://api3.liftosaur.com",
             "https://api3-dev.liftosaur.com",
-            "https://local.liftosaur.com:8080",
-            "https://local-api.liftosaur.com:3000",
+            `https://${localdomain.main}.liftosaur.com:8080`,
+            `https://${localdomain.api}.liftosaur.com:8080`,
             "liftosaur://www.liftosaur.com",
             "liftosaur://stage.liftosaur.com",
-            "liftosaur://local.liftosaur.com:8080",
+            `liftosaur://${localdomain.main}.liftosaur.com:8080`,
           ],
           exposedHeaders: ["ETag"],
           maxAge: 3000,
@@ -454,7 +455,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
       authType: lambda.FunctionUrlAuthType.NONE, // Public access
       cors: {
         allowedOrigins: isDev
-          ? ["https://local.liftosaur.com:8080", "https://stage.liftosaur.com", "https://www.liftosaur.com"]
+          ? [
+              `https://${localdomain.main}.liftosaur.com:8080`,
+              "https://stage.liftosaur.com",
+              "https://www.liftosaur.com",
+            ]
           : ["https://www.liftosaur.com"],
         allowedMethods: [lambda.HttpMethod.POST],
         allowedHeaders: ["Content-Type", "Cookie"],
@@ -471,7 +476,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const responseHeadersPolicy = new cloudfront.ResponseHeadersPolicy(this, `LftStreamingResponseHeaders${suffix}`, {
       corsBehavior: {
         accessControlAllowOrigins: isDev
-          ? ["https://local.liftosaur.com:8080", "https://stage.liftosaur.com", "https://www.liftosaur.com"]
+          ? [
+              `https://${localdomain.main}.liftosaur.com:8080`,
+              "https://stage.liftosaur.com",
+              "https://www.liftosaur.com",
+            ]
           : ["https://www.liftosaur.com"],
         accessControlAllowHeaders: ["Content-Type", "Cookie"],
         accessControlAllowMethods: ["POST", "OPTIONS"],

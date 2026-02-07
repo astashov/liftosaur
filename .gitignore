@@ -10,8 +10,8 @@
 /cypress/screenshots
 /backup
 /pricepointscache
-CLAUDE.md
 .playwright-mcp
+localdomain.js
 
 /liftosaur-cdk/*.d.ts
 /dist-lambda
