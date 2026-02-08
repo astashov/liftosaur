@@ -153,11 +153,15 @@ export namespace IndexedDBUtils {
       result = await withNative(() => nativeStorage?.get(key));
       if (result == null) {
         lg("ls-native-fallback-get", { key }, undefined, userid);
+        const nativeResult = result;
         result = await withTransaction("readonly", (objectStore) => objectStore.getAll(key)).then(
           (results: unknown[] | undefined) => {
             return results?.[0];
           }
         );
+        if (nativeResult !== result) {
+          lg("ls-native-fallback-discrepancy", { key }, undefined, userid);
+        }
       } else {
         lg("ls-native-get", { key }, undefined, userid);
       }
