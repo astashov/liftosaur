@@ -280,12 +280,6 @@ export namespace Thunk {
                 "To fix it - kill/restart the app a couple times."
             );
           }
-        } else if (result.error === "corrupted_server_storage") {
-          updateState(
-            dispatch,
-            [lb<IState>().p("lastSyncedStorage").record(undefined)],
-            "Reset lastSyncedStorage due to corrupted server storage"
-          );
         }
         throw new NoRetryError(result.error);
       }
