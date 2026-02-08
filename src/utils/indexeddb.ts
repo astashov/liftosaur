@@ -1,5 +1,6 @@
 import { NativeStorage } from "./nativeStorage";
 import { lg } from "./posthog";
+import { SendMessage } from "./sendMessage";
 
 type ITransactionMode = "readonly" | "readwrite";
 
@@ -83,6 +84,11 @@ export namespace IndexedDBUtils {
       if (nativeStorage == null && NativeStorage.isAvailable()) {
         nativeStorage = new NativeStorage();
       }
+      if (!window.indexedDB) {
+        SendMessage.toIosAndAndroid({ type: "reloadApp" });
+        resolve();
+        return;
+      }
       const connection = window.indexedDB.open("keyval-store");
       const handler = (): void => {
         if (connection.result != null) {
@@ -108,6 +114,11 @@ export namespace IndexedDBUtils {
         nativeStorage = new NativeStorage();
       }
 
+      if (!window.indexedDB) {
+        SendMessage.toIosAndAndroid({ type: "reloadApp" });
+        reject(new Error("IndexedDB is not available"));
+        return;
+      }
       const connection = window.indexedDB.open("keyval-store");
       connection.addEventListener("success", (event) => {
         const request = event.target as IDBOpenDBRequest;
