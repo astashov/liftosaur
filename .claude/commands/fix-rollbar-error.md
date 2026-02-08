@@ -43,6 +43,11 @@ git worktree add ./worktrees/$ARGUMENTS -b fix/rollbar-$ARGUMENTS master
 npm install --prefix ./worktrees/$ARGUMENTS
 ```
 
+Copy gitignored config file needed for builds:
+```bash
+cp ./localdomain.js ./worktrees/$ARGUMENTS/localdomain.js
+```
+
 ### 2. Fetch Rollbar Occurrence
 
 Get the occurrence details from Rollbar API. Save to a temp file to avoid large output issues:

@@ -78,6 +78,11 @@ git worktree add ./worktrees/pr-$ARGUMENTS origin/{headRefName}
 npm install --prefix ./worktrees/pr-$ARGUMENTS
 ```
 
+Copy gitignored config file needed for builds:
+```bash
+cp ./localdomain.js ./worktrees/pr-$ARGUMENTS/localdomain.js
+```
+
 ### 4. Fetch Rollbar Context
 
 Using the occurrence ID extracted from the branch name in Step 1, fetch the original error context. This may be needed to understand the full picture when addressing feedback.

@@ -18,10 +18,6 @@ interface IComment {
   body: string;
 }
 
-interface ICommit {
-  committedDate: string;
-}
-
 const runId = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 let logFile: fs.WriteStream;
 
@@ -150,9 +146,13 @@ async function getCommentsAfterDate(prNumber: number, afterDate: string): Promis
   const comments: IComment[] = [];
 
   for (const raw of [reviewCommentsRaw, issueCommentsRaw]) {
-    if (!raw) continue;
+    if (!raw) {
+      continue;
+    }
     for (const line of raw.split("\n")) {
-      if (!line.trim()) continue;
+      if (!line.trim()) {
+        continue;
+      }
       try {
         comments.push(JSON.parse(line));
       } catch {
@@ -162,7 +162,9 @@ async function getCommentsAfterDate(prNumber: number, afterDate: string): Promis
   }
 
   // Filter out comments from bots / Claude itself
-  return comments.filter((c) => !c.body.includes("Automated follow-up by Claude Code") && !c.body.includes("Automated Code Review"));
+  return comments.filter(
+    (c) => !c.body.includes("Automated follow-up by Claude Code") && !c.body.includes("Automated Code Review")
+  );
 }
 
 async function main(): Promise<void> {
