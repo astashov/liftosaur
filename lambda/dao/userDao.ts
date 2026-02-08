@@ -205,6 +205,7 @@ export class UserDao {
 
     const result = await Storage.get(fetch, limitedUser.storage);
     if (!result.success) {
+      this.di.log.log("corrupted_server_storage validation errors (sync2):", JSON.stringify(result.error));
       return { success: false, error: "corrupted_server_storage" };
     }
     const { _versions, ...limitedUserStorage } = result.data;
@@ -357,6 +358,7 @@ export class UserDao {
     const env = Utils.getEnv();
     const result = await Storage.get(fetch, limitedUser.storage);
     if (!result.success) {
+      this.di.log.log("corrupted_server_storage validation errors (sync1):", JSON.stringify(result.error));
       return { success: false, error: "corrupted_server_storage" };
     }
     const limitedUserStorage = result.data;
