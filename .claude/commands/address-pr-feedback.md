@@ -185,12 +185,29 @@ Based on the review comments and the full Rollbar context:
 Verify the changes:
 
 ```bash
-npm run build --prefix ./worktrees/pr-$ARGUMENTS
+# Build (also generates required files)
+npm run build:dev --prefix ./worktrees/$ARGUMENTS
+
+# Run unit tests
+npm test --prefix ./worktrees/$ARGUMENTS
+
+# Run Playwright E2E tests (optional but recommended)
+# First, kill any existing servers and start fresh:
+pkill -f "webpack-dev-server" 2>/dev/null || true
+pkill -f "ts-node-dev" 2>/dev/null || true
+lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+
+# Start servers in background (from worktree)
+npm start --prefix ./worktrees/$ARGUMENTS &
+npm run start:server --prefix ./worktrees/$ARGUMENTS &
+sleep 15  # Wait for servers to start
+
+# Run E2E tests
+npm run playwright --prefix ./worktrees/$ARGUMENTS
 ```
 
-```bash
-npm test --prefix ./worktrees/pr-$ARGUMENTS
-```
+Note: The `subscriptions.spec.ts` test may be flaky - failures there can be ignored if unrelated to your changes.
 
 ### 10. Commit and Push
 

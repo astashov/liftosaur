@@ -181,7 +181,7 @@ Before creating PR, verify the changes:
 
 ```bash
 # Build (also generates required files)
-npm run build --prefix ./worktrees/$ARGUMENTS
+npm run build:dev --prefix ./worktrees/$ARGUMENTS
 
 # Run unit tests
 npm test --prefix ./worktrees/$ARGUMENTS
