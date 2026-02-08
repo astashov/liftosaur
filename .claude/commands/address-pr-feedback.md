@@ -186,7 +186,7 @@ Verify the changes:
 
 ```bash
 # Build (also generates required files)
-npm run build:dev --prefix ./worktrees/$ARGUMENTS
+npm run build:prepare --prefix ./worktrees/$ARGUMENTS
 
 # Run unit tests
 npm test --prefix ./worktrees/$ARGUMENTS
