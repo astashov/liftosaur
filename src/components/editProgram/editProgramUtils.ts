@@ -1,7 +1,7 @@
 import { lb } from "lens-shmens";
 import { IPlannerProgramExercise, IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IExercisePickerState } from "../../types";
+import { IExercisePickerState, ISettings } from "../../types";
 
 export function applyChangesInEditor(plannerDispatch: ILensDispatch<IPlannerState>, cb: () => void): void {
   window.isUndoing = true;
@@ -16,14 +16,17 @@ export function applyChangesInEditor(plannerDispatch: ILensDispatch<IPlannerStat
   );
 }
 
-export function pickerStateFromPlannerExercise(plannerExercise?: IPlannerProgramExercise): IExercisePickerState {
+export function pickerStateFromPlannerExercise(
+  settings: ISettings,
+  plannerExercise?: IPlannerProgramExercise
+): IExercisePickerState {
   const templateName =
     plannerExercise != null && plannerExercise.exerciseType == null ? plannerExercise.name : undefined;
 
   return {
     mode: "program",
     screenStack: ["exercisePicker"],
-    sort: "name_asc",
+    sort: plannerExercise?.exerciseType ? (settings.workoutSettings.pickerSort ?? "name_asc") : "name_asc",
     filters: {},
     label: plannerExercise?.label,
     templateName,

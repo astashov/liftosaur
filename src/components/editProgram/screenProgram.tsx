@@ -378,7 +378,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
                         [
                           lbUi.p("editExerciseModal").record(undefined),
                           lbUi.p("exercisePicker").record({
-                            state: pickerStateFromPlannerExercise(editExerciseModal.plannerExercise),
+                            state: pickerStateFromPlannerExercise(props.settings, editExerciseModal.plannerExercise),
                             exerciseKey: editExerciseModal.plannerExercise.key,
                             dayData: editExerciseModal.plannerExercise.dayData,
                             change: "one",
@@ -401,7 +401,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
                         [
                           lbUi.p("editExerciseModal").record(undefined),
                           lbUi.p("exercisePicker").record({
-                            state: pickerStateFromPlannerExercise(editExerciseModal.plannerExercise),
+                            state: pickerStateFromPlannerExercise(props.settings, editExerciseModal.plannerExercise),
                             exerciseKey: editExerciseModal.plannerExercise.key,
                             dayData: editExerciseModal.plannerExercise.dayData,
                             change: "all",

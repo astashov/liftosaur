@@ -370,7 +370,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                           dayInWeek: dayIndex + 1,
                         },
                         change: "all",
-                        state: pickerStateFromPlannerExercise(),
+                        state: pickerStateFromPlannerExercise(props.settings),
                       }),
                     "Open add exercise picker"
                   );

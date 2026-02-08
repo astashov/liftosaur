@@ -5,9 +5,10 @@ import { lb } from "lens-shmens";
 import { IconBack } from "../icons/iconBack";
 import { MenuItemEditable } from "../menuItemEditable";
 
-export interface IExercisePickerSettings {
-  shouldKeepProgramExerciseId: boolean;
-}
+export type IExercisePickerSettings = Pick<
+  ISettings["workoutSettings"],
+  "shouldKeepProgramExerciseId" | "pickerSort" | "shouldShowInvisibleEquipment"
+>;
 
 interface IProps {
   settings: ISettings;

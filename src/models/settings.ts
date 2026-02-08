@@ -336,6 +336,7 @@ export namespace Settings {
       planner: settings.planner || exportedProgram.settings.planner,
       muscleGroups: settings.muscleGroups || exportedProgram.settings.muscleGroups,
       exerciseData: { ...settings.exerciseData, ...exportedProgram.settings.exerciseData },
+      workoutSettings: { ...settings.workoutSettings, ...exportedProgram.settings.workoutSettings },
     };
     return result;
   }
@@ -384,7 +385,7 @@ export namespace Settings {
       lb<ISettings>()
         .p("workoutSettings")
         .recordModify((workoutSettings) => {
-          return { ...workoutSettings, shouldKeepProgramExerciseId: !!settings.shouldKeepProgramExerciseId };
+          return { ...workoutSettings, ...settings };
         }),
       `Change picker settings`
     );

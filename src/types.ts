@@ -1259,6 +1259,8 @@ export const TWorkoutSettings = t.intersection(
     t.partial({
       shouldHideGraphs: t.boolean,
       shouldKeepProgramExerciseId: t.boolean,
+      shouldShowInvisibleEquipment: t.boolean,
+      pickerSort: TExercisePickerSort,
     }),
   ],
   "TWorkoutSettings"
@@ -1419,7 +1421,9 @@ export type IPartialStorage = Omit<IStorage, "history" | "stats" | "programs"> &
   Partial<Pick<IStorage, "history" | "stats" | "programs">>;
 
 export type IProgramContentSettings = Partial<
-  Pick<ISettings, "units" | "planner" | "muscleGroups" | "exerciseData"> & { timers: Partial<ISettings["timers"]> }
+  Pick<ISettings, "units" | "planner" | "muscleGroups" | "exerciseData" | "workoutSettings"> & {
+    timers: Partial<ISettings["timers"]>;
+  }
 >;
 
 export const TMuscleGeneratorResponse = t.type(

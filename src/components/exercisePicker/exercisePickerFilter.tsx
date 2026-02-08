@@ -25,11 +25,15 @@ import { ExercisePickerUtils } from "./exercisePickerUtils";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
 import { ExercisePickerOptions } from "./exercisePickerOptions";
 import { MuscleGroupImage } from "../muscleGroupImage";
+import { IExercisePickerSettings } from "./exercisePickerSettings";
+import { MenuItemEditable } from "../menuItemEditable";
+import { Equipment } from "../../models/equipment";
 
 interface IProps {
   settings: ISettings;
   state: IExercisePickerState;
   dispatch: ILensDispatch<IExercisePickerState>;
+  onChangeSettings: (settings: IExercisePickerSettings) => void;
 }
 
 export const exercisePickerSortNames = {
@@ -48,12 +52,17 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
       disabledReason: props.state.exerciseType != null ? undefined : "Enabled only for swap/edit",
     },
   };
+  const gymEquipment = Equipment.getCurrentGym(props.settings).equipment;
 
   const equipmentValues = equipments.reduce<Record<IBuiltinEquipment, IFilterValue>>(
     (memo, equipment) => {
       memo[equipment] = {
         label: equipmentName(equipment, {}),
         isSelected: props.state.filters.equipment?.includes(equipment) ?? false,
+        disabledReason:
+          !props.settings.workoutSettings.shouldShowInvisibleEquipment && gymEquipment[equipment]?.isDeleted
+            ? "Hidden"
+            : undefined,
       };
       return memo;
     },
@@ -100,12 +109,39 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
           title="Sort by"
           values={sortValues}
           onChange={(value) => {
+            props.onChangeSettings({
+              pickerSort: value,
+            });
             props.dispatch(
               lb<IExercisePickerState>().p("sort").record(value),
               `Set sort in exercise picker to ${value}`
             );
           }}
         />
+        <div className="px-4">
+          <MenuItemEditable
+            type="boolean"
+            name="Show only available equipment"
+            value={props.settings.workoutSettings.shouldShowInvisibleEquipment ? "false" : "true"}
+            onChange={(v) => {
+              props.onChangeSettings({
+                shouldShowInvisibleEquipment: v !== "true",
+              });
+              props.dispatch(
+                lb<IExercisePickerState>()
+                  .p("filters")
+                  .p("equipment")
+                  .recordModify((equipment) => {
+                    if (v === "false") {
+                      return equipment;
+                    }
+                    return equipment?.filter((e) => !gymEquipment[e]?.isDeleted) || [];
+                  }),
+                "Unselect hidden equipment in exercise picker"
+              );
+            }}
+          />
+        </div>
         <Filter
           name="equipment"
           title="Equipment"

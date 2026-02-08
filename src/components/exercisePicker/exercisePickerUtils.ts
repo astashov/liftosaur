@@ -22,6 +22,7 @@ import { IEvaluatedProgram } from "../../models/program";
 import { PP } from "../../models/pp";
 import { CollectionUtils } from "../../utils/collection";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { Equipment } from "../../models/equipment";
 
 export class ExercisePickerUtils {
   public static getSelectedMuscleGroupNames(selectedValues: IMuscle[], settings: ISettings): string[] {
@@ -58,11 +59,19 @@ export class ExercisePickerUtils {
     settings: ISettings
   ): IExercise[] {
     const allFilters = ExercisePickerUtils.getAllFilters(filters);
-    if (allFilters.length === 0) {
+    if (allFilters.length === 0 && settings.workoutSettings.shouldShowInvisibleEquipment) {
       return exercises;
     }
+    const gymEquipment = Equipment.getCurrentGym(settings).equipment;
     return exercises.filter((exercise) => {
       if (!exercise) {
+        return false;
+      }
+      if (
+        !settings.workoutSettings.shouldShowInvisibleEquipment &&
+        exercise.equipment &&
+        gymEquipment[exercise.equipment]?.isDeleted
+      ) {
         return false;
       }
       const typeSet = new Set(filters.type || []);

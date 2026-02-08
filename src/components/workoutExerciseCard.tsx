@@ -216,7 +216,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                             state: {
                               mode: "workout",
                               screenStack: ["exercisePicker"],
-                              sort: "name_asc",
+                              sort: props.settings.workoutSettings.pickerSort ?? "name_asc",
                               filters: {},
                               selectedExercises: [],
                               entryIndex: props.entryIndex,

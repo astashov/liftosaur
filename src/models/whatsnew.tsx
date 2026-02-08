@@ -2368,6 +2368,23 @@ Bent Over Row / 3x8 / superset: A`}
       </ul>
     ),
   },
+  "20260208": {
+    title: <span>Exerciser Picker by default now hides exercises with hidden equipment</span>,
+    body: (
+      <ul>
+        <li>
+          If you hide some equipment in the "Available Equipment" screen, it used to not affect exercise picker, it
+          still was showing e.g. cable, smith machine, etc exercises even though you disabled them in the "Available
+          Equipment".
+        </li>
+        <li>
+          So from now on, those exercises are hidden. You still can make them show if you tap the checkmark in the
+          filter section inside the exercise picker.
+        </li>
+        <li>Also, sorting order (by Name, by Similar Muscles) persists between picker opens from now on.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

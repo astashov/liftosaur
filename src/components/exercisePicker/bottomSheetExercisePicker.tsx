@@ -55,7 +55,14 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
       <ExercisePickerSettings onChange={props.onChangeSettings} settings={props.settings} dispatch={props.dispatch} />
     );
   } else if (currentScreen === "filter") {
-    content = <ExercisePickerFilter state={state} settings={props.settings} dispatch={props.dispatch} />;
+    content = (
+      <ExercisePickerFilter
+        state={state}
+        settings={props.settings}
+        dispatch={props.dispatch}
+        onChangeSettings={props.onChangeSettings}
+      />
+    );
   } else if (currentScreen === "customExercise" && state.editCustomExercise != null) {
     const originalExercise = props.settings.exercises[state.editCustomExercise.id];
     content = (

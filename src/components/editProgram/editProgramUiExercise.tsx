@@ -111,7 +111,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
                         week: props.plannerExercise.dayData.week,
                         dayInWeek: props.plannerExercise.dayData.dayInWeek,
                       },
-                      state: pickerStateFromPlannerExercise(props.plannerExercise),
+                      state: pickerStateFromPlannerExercise(props.settings, props.plannerExercise),
                       exerciseKey: props.plannerExercise.key,
                       change: "one",
                     }),
@@ -322,7 +322,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                     .p("ui")
                     .p("exercisePicker")
                     .record({
-                      state: pickerStateFromPlannerExercise(props.plannerExercise),
+                      state: pickerStateFromPlannerExercise(props.settings, props.plannerExercise),
                       dayData: props.plannerExercise.dayData,
                       exerciseKey: props.plannerExercise.key,
                       change: "duplicate",

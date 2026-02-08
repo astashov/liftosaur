@@ -149,6 +149,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   initialSettings.muscleGroups = props.partialStorage?.settings?.muscleGroups || initialSettings.muscleGroups;
   initialSettings.units = props.partialStorage?.settings?.units ?? initialSettings.units;
   initialSettings.exerciseData = { ...props.partialStorage?.settings?.exerciseData, ...initialSettings.exerciseData };
+  initialSettings.workoutSettings = {
+    ...props.partialStorage?.settings?.workoutSettings,
+    ...initialSettings.workoutSettings,
+  };
 
   const [settings, setSettings] = useState(initialSettings);
   const [isBannerLoading, setIsBannerLoading] = useState(false);
@@ -443,6 +447,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                     const exportProgram = Program.exportProgram(state.current.program, settings);
                     exportProgram.settings.muscleGroups = settings.muscleGroups;
                     exportProgram.settings.exerciseData = settings.exerciseData;
+                    exportProgram.settings.workoutSettings = settings.workoutSettings;
                     await saveProgram(props.client, exportProgram, props.deviceId);
                     dispatch(
                       lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram),
