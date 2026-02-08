@@ -1,6 +1,5 @@
 import { NativeStorage } from "./nativeStorage";
 import { lg } from "./posthog";
-import { SendMessage } from "./sendMessage";
 
 type ITransactionMode = "readonly" | "readwrite";
 
@@ -85,7 +84,7 @@ export namespace IndexedDBUtils {
         nativeStorage = new NativeStorage();
       }
       if (!window.indexedDB) {
-        SendMessage.toIosAndAndroid({ type: "reloadApp" });
+        window.location.reload();
         resolve();
         return;
       }
@@ -115,7 +114,7 @@ export namespace IndexedDBUtils {
       }
 
       if (!window.indexedDB) {
-        SendMessage.toIosAndAndroid({ type: "reloadApp" });
+        window.location.reload();
         reject(new Error("IndexedDB is not available"));
         return;
       }
