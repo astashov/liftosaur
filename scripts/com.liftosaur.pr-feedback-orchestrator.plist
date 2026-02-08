@@ -3,12 +3,12 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.liftosaur.rollbar-orchestrator</string>
+    <string>com.liftosaur.pr-feedback-orchestrator</string>
 
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/anton/projects/liftosaur/scripts/rollbar-orchestrator-runner.sh</string>
+        <string>/Users/anton/projects/liftosaur/scripts/pr-feedback-orchestrator-runner.sh</string>
     </array>
 
     <key>WorkingDirectory</key>
@@ -17,7 +17,7 @@
     <key>StartCalendarInterval</key>
     <dict>
         <key>Hour</key>
-        <integer>1</integer>
+        <integer>5</integer>
         <key>Minute</key>
         <integer>0</integer>
     </dict>
@@ -29,10 +29,10 @@
     </dict>
 
     <key>StandardOutPath</key>
-    <string>/Users/anton/projects/liftosaur/logs/rollbar-orchestrator/launchd-stdout.log</string>
+    <string>/Users/anton/projects/liftosaur/logs/pr-feedback-orchestrator/launchd-stdout.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/Users/anton/projects/liftosaur/logs/rollbar-orchestrator/launchd-stderr.log</string>
+    <string>/Users/anton/projects/liftosaur/logs/pr-feedback-orchestrator/launchd-stderr.log</string>
 
     <key>RunAtLoad</key>
     <false/>
