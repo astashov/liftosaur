@@ -39,6 +39,7 @@ import { UidFactory } from "../../utils/generator";
 import { ObjectUtils } from "../../utils/object";
 import { PlannerProgramExercise } from "./models/plannerProgramExercise";
 import memoize from "micro-memoize";
+import { StringUtils } from "../../utils/string";
 
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
@@ -793,7 +794,7 @@ export class PlannerExerciseEvaluator {
   );
 
   private addDescription(value: string): void {
-    value = value.replace(/^\/\//, "").trim();
+    value = value.replace(/^\/\//, "");
     if (this.latestDescriptions.length === 0) {
       this.latestDescriptions.push([]);
     }
@@ -993,14 +994,15 @@ export class PlannerExerciseEvaluator {
       const askWeight = allSets.find((set) => set.repRange == null && set.askWeight != null)?.askWeight;
       const [line] = this.getLineAndOffset(expr);
       const rawDescriptions: string[] = this.latestDescriptions.map((d) => d.join("\n"));
-      const currentDescriptionIndex = rawDescriptions.findIndex((d) => d.startsWith("!"));
+      const currentDescriptionIndex = rawDescriptions.findIndex((d) => /^\s*!/.test(d));
       let descriptions = rawDescriptions.map((d, i) => ({
-        value: d.replace(/^!/, "").trim(),
+        value: d.replace(/^\s*!/, ""),
         isCurrent: i === currentDescriptionIndex,
       }));
       if (descriptions.length > 1) {
         descriptions = descriptions.filter((d) => d.value);
       }
+      descriptions = descriptions.map((d) => ({ ...d, value: StringUtils.unindent(d.value) }));
       this.latestDescriptions = [];
       const fullNamePoint = this.getPoint(nameNode);
 
