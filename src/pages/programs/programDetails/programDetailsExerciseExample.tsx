@@ -14,6 +14,7 @@ import { CollectionUtils } from "../../../utils/collection";
 import { PlannerProgramExercise } from "../../planner/models/plannerProgramExercise";
 import { Stats } from "../../../models/stats";
 import { Progress } from "../../../models/progress";
+import { UidFactory } from "../../../utils/generator";
 
 export interface IProgramDetailsExerciseExampleProps {
   settings: ISettings;
@@ -67,6 +68,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
             warmupSets: [],
             sets: [
               {
+                id: UidFactory.generateUid(6),
                 vtype: "set",
                 index: 0,
                 isUnilateral: Exercise.getIsUnilateral(exerciseType, settings),

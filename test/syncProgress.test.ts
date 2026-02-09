@@ -10,6 +10,7 @@ import { lb } from "lens-shmens";
 import { IHistoryRecord } from "../src/types";
 import { Progress } from "../src/models/progress";
 import { NoRetryError } from "../src/ducks/thunks";
+import { UidFactory } from "../src/utils/generator";
 
 describe("sync progress", () => {
   let sandbox: sinon.SinonSandbox;
@@ -256,6 +257,7 @@ describe("sync progress", () => {
               {
                 vtype: "set",
                 weight: { value: 45, unit: "lb" },
+                id: UidFactory.generateUid(6),
                 reps: 10,
                 completedReps: 10,
                 isCompleted: true,

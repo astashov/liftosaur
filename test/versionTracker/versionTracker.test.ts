@@ -13,6 +13,7 @@ import { IAtomicType, IControlledType, ISubscriptionReceipt, STORAGE_VERSION_TYP
 import { Storage } from "../../src/models/storage";
 import { IStorage, IProgram, IHistoryRecord, ICustomExercise, IHistoryEntry } from "../../src/types";
 import { ObjectUtils } from "../../src/utils/object";
+import { UidFactory } from "../../src/utils/generator";
 
 describe("VersionTracker", () => {
   describe("vector clocks", () => {
@@ -1156,7 +1157,7 @@ describe("VersionTracker", () => {
         id: "entry-a",
         vtype: "history_entry",
         exercise: { id: "squat" },
-        sets: [{ vtype: "set", index: 0, reps: 5, weight: { value: 100, unit: "kg" } }],
+        sets: [{ vtype: "set", index: 0, reps: 5, weight: { value: 100, unit: "kg" }, id: UidFactory.generateUid(6) }],
         warmupSets: [],
         index: 0,
       };
@@ -1165,7 +1166,7 @@ describe("VersionTracker", () => {
         id: "entry-b",
         vtype: "history_entry",
         exercise: { id: "benchPress" },
-        sets: [{ vtype: "set", index: 0, reps: 8, weight: { value: 60, unit: "kg" } }],
+        sets: [{ vtype: "set", index: 0, reps: 8, weight: { value: 60, unit: "kg" }, id: UidFactory.generateUid(6) }],
         warmupSets: [],
         index: 1,
       };

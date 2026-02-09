@@ -5,6 +5,7 @@ import { HistoryRecordSetsView } from "../../../components/historyRecordSets";
 import { IPlannerProgramExerciseEvaluatedSet, IPlannerProgramExerciseWithType } from "../../planner/models/types";
 import { ProgramSet } from "../../../models/programSet";
 import { Exercise } from "../../../models/exercise";
+import { UidFactory } from "../../../utils/generator";
 
 interface IRepsWeightsProps {
   sets: IPlannerProgramExerciseEvaluatedSet[];
@@ -23,6 +24,7 @@ export const RepsAndWeight = memo((props: IRepsWeightsProps): JSX.Element => {
     return {
       vtype: "set",
       index: i,
+      id: UidFactory.generateUid(6),
       reps: set.maxrep,
       minReps,
       weight,

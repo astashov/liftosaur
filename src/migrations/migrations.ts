@@ -365,4 +365,36 @@ export const migrations = {
     }
     return storage;
   },
+  "20260208210220_fill_sets_with_ids": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const record of storage.history) {
+      for (const entry of record.entries) {
+        for (const set of entry.sets) {
+          if (!set.id) {
+            set.id = UidFactory.generateUid(6);
+          }
+        }
+        for (const set of entry.warmupSets) {
+          if (!set.id) {
+            set.id = UidFactory.generateUid(6);
+          }
+        }
+      }
+    }
+    for (const record of storage.progress || []) {
+      for (const entry of record.entries) {
+        for (const set of entry.sets) {
+          if (!set.id) {
+            set.id = UidFactory.generateUid(6);
+          }
+        }
+        for (const set of entry.warmupSets) {
+          if (!set.id) {
+            set.id = UidFactory.generateUid(6);
+          }
+        }
+      }
+    }
+    return storage;
+  },
 };

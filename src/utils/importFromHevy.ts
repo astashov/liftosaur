@@ -412,6 +412,7 @@ export class ImportFromHevy {
           index,
           warmupSets: record.warmupSets.map((set, i) => ({
             vtype: "set" as const,
+            id: UidFactory.generateUid(6),
             index: i,
             originalWeight:
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
@@ -429,6 +430,7 @@ export class ImportFromHevy {
           })),
           sets: record.sets.map((set, i) => ({
             vtype: "set" as const,
+            id: UidFactory.generateUid(6),
             index: i,
             weight:
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),

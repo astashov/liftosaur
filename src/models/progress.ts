@@ -1373,6 +1373,7 @@ export namespace Progress {
           const weight = ProgramSet.getEvaluatedWeight(programSet, programExercise.exerciseType, settings);
           newSets.push({
             ...progressSet,
+            id: progressSet?.id ?? UidFactory.generateUid(6),
             vtype: "set",
             index: newSets.length,
             reps: programSet.maxrep,
@@ -1391,11 +1392,18 @@ export namespace Progress {
       if (progressEntry.warmupSets.every((w) => !w.isCompleted)) {
         const firstWeight = newSets[0]?.weight;
         forceWarmupSets = forceWarmupSets || Reps.isEmpty(newSets);
-        newWarmupSets = forceWarmupSets
-          ? firstWeight != null
-            ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
-            : []
-          : progressEntry.warmupSets;
+        if (forceWarmupSets) {
+          const generated =
+            firstWeight != null
+              ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
+              : [];
+          newWarmupSets = generated.map((ws, i) => ({
+            ...ws,
+            id: progressEntry.warmupSets[i]?.id ?? ws.id,
+          }));
+        } else {
+          newWarmupSets = progressEntry.warmupSets;
+        }
       }
 
       return {
@@ -1409,6 +1417,7 @@ export namespace Progress {
         const weight = ProgramSet.getEvaluatedWeight(set, programExercise.exerciseType, settings);
         return {
           vtype: "set" as const,
+          id: UidFactory.generateUid(6),
           index: i,
           reps: set.maxrep,
           minReps: set.minrep,

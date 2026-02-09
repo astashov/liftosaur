@@ -464,12 +464,12 @@ export const TSet = t.intersection(
     t.interface({
       vtype: t.literal("set"),
       index: t.number,
+      id: t.string,
     }),
     t.partial({
       reps: t.number,
       originalWeight: t.union([TWeight, TPercentage]),
       weight: TWeight,
-      id: t.string,
       minReps: t.number,
       rpe: t.number,
       logRpe: t.boolean,
@@ -1517,7 +1517,7 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   affiliate: "id",
   program: "clonedAt",
   history_record: "id",
-  set: "index",
+  set: "id",
   progress_ui: "id",
   history_entry: "id",
   progress: "startTime",

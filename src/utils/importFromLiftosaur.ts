@@ -158,6 +158,7 @@ export class ImportFromLiftosaur {
             const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
             return {
               vtype: "set",
+              id: UidFactory.generateUid(6),
               index: i,
               reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
               completedReps: completedReps,
@@ -189,6 +190,7 @@ export class ImportFromLiftosaur {
             const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
             return {
               vtype: "set",
+              id: UidFactory.generateUid(6),
               index: i,
               reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
               completedReps: completedReps,
