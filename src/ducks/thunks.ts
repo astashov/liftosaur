@@ -544,7 +544,7 @@ export namespace Thunk {
     };
   }
 
-  export function handleWatchStorageMerge(storageJson: string, watchDeviceId: string, isLiveActivity?: boolean): IThunk {
+  export function handleWatchStorageMerge(storageJson: string, isLiveActivity?: boolean): IThunk {
     return async (dispatch, getState) => {
       try {
         const watchStorage: IStorage = JSON.parse(storageJson);

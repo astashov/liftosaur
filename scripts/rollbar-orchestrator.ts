@@ -181,9 +181,7 @@ async function checkSimilarityWithClaude(
     return skipItemIds;
   }
 
-  const prList = parsedPRs
-    .map((pr, i) => `${i + 1}. PR #${pr.number} (${pr.state}): "${pr.title}"`)
-    .join("\n");
+  const prList = parsedPRs.map((pr, i) => `${i + 1}. PR #${pr.number} (${pr.state}): "${pr.title}"`).join("\n");
 
   const candidateList = candidates
     .map((c, i) => `${String.fromCharCode(65 + i)}. Item ${c.itemId}: "${c.title}"`)

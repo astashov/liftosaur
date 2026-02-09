@@ -308,13 +308,24 @@ export type IAction =
 
 let timerId: number | undefined = undefined;
 
+function isExternalStorageMerge(action: unknown): boolean {
+  return (
+    typeof action === "object" &&
+    action != null &&
+    "type" in action &&
+    action.type === "UpdateState" &&
+    "desc" in action &&
+    (action.desc === "Merge synced storage" ||
+      action.desc === "Merge watch storage" ||
+      action.desc === "Reload storage from disk")
+  );
+}
+
 export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   return [
     (dispatch, action, oldState, newState) => {
       const isFinishDayAction = "type" in action && action.type === "FinishProgramDayAction";
-      const isMergingStorage =
-        "type" in action && action.type === "UpdateState" && action.desc === "Merge synced storage";
-      if (!isMergingStorage && Storage.isChanged(oldState.storage, newState.storage)) {
+      if (!isExternalStorageMerge(action) && Storage.isChanged(oldState.storage, newState.storage)) {
         dispatch(Thunk.sync2({ log: isFinishDayAction }));
       }
     },
@@ -507,12 +518,7 @@ export const reducerWrapper =
       }
     }
     let newState = reducer(state, action);
-    const isMergingStorage =
-      "type" in action &&
-      action.type === "UpdateState" &&
-      (action.desc === "Merge synced storage" ||
-        action.desc === "Merge watch storage" ||
-        action.desc === "Reload storage from disk");
+    const isMergingStorage = isExternalStorageMerge(action);
     const isStorageChanged = !isMergingStorage && Storage.isChanged(state.storage, newState.storage);
     if (isStorageChanged) {
       const oldHistoryLen = state.storage.history?.length ?? 0;
