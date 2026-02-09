@@ -47,7 +47,10 @@ export class PlannerDayDataError extends Error {
 export type IDereuseDecision = "all" | "weight" | "rpe" | "timer";
 
 export class PlannerProgram {
-  public static isValid(program: IPlannerProgram, settings: ISettings): boolean {
+  public static isValid(program: IPlannerProgram | undefined, settings: ISettings): boolean {
+    if (!program) {
+      return false;
+    }
     const { evaluatedWeeks } = PlannerProgram.evaluate(program, settings);
     return evaluatedWeeks.every((week) => week.every((day) => day.success));
   }
