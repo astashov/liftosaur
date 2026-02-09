@@ -4,9 +4,10 @@
   "description": "App for tracking weight lifting progress",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npm run build:prepare && npm run upload-source-maps",
-    "build:prepare": "npm run build:markdown && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production npm run build:dev",
-    "build:stage": "npm run build:markdown && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production STAGE=1 npm run build:dev",
+    "build": "npm run ensure:localdomain && npm run build:prepare && npm run upload-source-maps",
+    "build:prepare": "npm run ensure:localdomain && npm run build:markdown && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production npm run build:dev",
+    "build:stage": "npm run ensure:localdomain && npm run build:markdown && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production STAGE=1 npm run build:dev",
+    "ensure:localdomain": "test -f localdomain.js || cp localdomain.default.js localdomain.js",
     "build:markdown": "node scripts/build-markdown.js",
     "build:semantic": "node generate-semantic-colors.js",
     "analyze": "open dist/report.html",
