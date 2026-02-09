@@ -20,14 +20,17 @@ export class Encoder {
     return new Promise((resolve, reject) => {
       const textEncoder = new TextEncoder();
       gzip(textEncoder.encode(str), (err, result) => {
-        const reader = new FileReader();
-        reader.onload = function () {
-          const b64 = reader.result;
-          if (typeof b64 === "string") {
-            resolve(btoa(b64));
-          }
-        };
-        reader.readAsDataURL(new Blob([result]));
+        if (err) {
+          reject(err);
+          return;
+        }
+        let binary = "";
+        for (let i = 0; i < result.length; i++) {
+          binary += String.fromCharCode(result[i]);
+        }
+        const b64 = btoa(binary);
+        const dataUrl = `data:application/octet-stream;base64,${b64}`;
+        resolve(btoa(dataUrl));
       });
     });
   }
