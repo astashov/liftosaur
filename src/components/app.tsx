@@ -204,7 +204,7 @@ export function AppView(props: IProps): JSX.Element | null {
         const restTimer = event.data.restTimer as number;
         const restTimerSince = event.data.restTimerSince as number;
         dispatch(Thunk.completeSetExternal(entryIndex, setIndex, restTimer, restTimerSince));
-      } else if (event.data.type === "adjustRestTimer") {
+      } else if (event.data?.type === "adjustRestTimer") {
         const action = event.data.action as "increase" | "decrease";
         const incomingRestTimer = event.data.restTimer as number;
         const incomingRestTimerSince = event.data.restTimerSince as number;
