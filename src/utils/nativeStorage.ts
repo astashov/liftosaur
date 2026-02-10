@@ -55,7 +55,9 @@ export class NativeStorage {
   constructor() {
     this.pendingRequests = new Map();
     window.addEventListener("message", (event) => {
-      this.handleResponse(event.data);
+      if (event.data != null) {
+        this.handleResponse(event.data);
+      }
     });
   }
 
