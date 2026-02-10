@@ -24,13 +24,24 @@ export class Encoder {
           reject(err);
           return;
         }
-        let binary = "";
-        for (let i = 0; i < result.length; i++) {
-          binary += String.fromCharCode(result[i]);
+        if (typeof FileReader !== "undefined") {
+          const reader = new FileReader();
+          reader.onload = function () {
+            const b64 = reader.result;
+            if (typeof b64 === "string") {
+              resolve(btoa(b64));
+            }
+          };
+          reader.readAsDataURL(new Blob([result]));
+        } else {
+          let binary = "";
+          for (let i = 0; i < result.length; i++) {
+            binary += String.fromCharCode(result[i]);
+          }
+          const b64 = btoa(binary);
+          const dataUrl = `data:application/octet-stream;base64,${b64}`;
+          resolve(btoa(dataUrl));
         }
-        const b64 = btoa(binary);
-        const dataUrl = `data:application/octet-stream;base64,${b64}`;
-        resolve(btoa(dataUrl));
       });
     });
   }
