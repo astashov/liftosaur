@@ -35,6 +35,7 @@ export const exceptionIgnores = [
   "Invalid position",
   "outdated_client_storage",
   '{"isTrusted":true}',
+  "Unable to resolve host",
 ];
 
 export namespace RollbarUtils {
