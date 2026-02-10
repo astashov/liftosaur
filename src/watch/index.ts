@@ -498,8 +498,14 @@ class LiftosaurWatch {
 
   public static prepareSync(currentStorageJson: string, lastSyncedStorageJson: string, deviceId: string): string {
     try {
-      const currentStorage = JSON.parse(currentStorageJson) as IStorage;
-      const lastSyncedStorage = JSON.parse(lastSyncedStorageJson) as IStorage;
+      let currentStorage = JSON.parse(currentStorageJson) as IStorage;
+      let lastSyncedStorage = JSON.parse(lastSyncedStorageJson) as IStorage;
+      if (currentStorage.version != null && unrunMigrations(currentStorage).length > 0) {
+        currentStorage = runMigrations(currentStorage);
+      }
+      if (lastSyncedStorage.version != null && unrunMigrations(lastSyncedStorage).length > 0) {
+        lastSyncedStorage = runMigrations(lastSyncedStorage);
+      }
       const update: IStorageUpdate2 = Sync.getStorageUpdate2(currentStorage, lastSyncedStorage, deviceId);
       return JSON.stringify(update);
     } catch (e) {
@@ -523,6 +529,19 @@ class LiftosaurWatch {
 
   public static getLatestMigrationVersion(): string {
     return getLatestMigrationVersion();
+  }
+
+  public static runMigrations(storageJson: string): string {
+    try {
+      const data = JSON.parse(storageJson);
+      if (data.version != null && unrunMigrations(data as IStorage).length > 0) {
+        const migrated = runMigrations(data as IStorage);
+        return JSON.stringify({ success: true, data: migrated });
+      }
+      return JSON.stringify({ success: true, data: null });
+    } catch (e) {
+      return JSON.stringify({ success: false, error: String(e) });
+    }
   }
 
   public static completeSetLiveActivity(
