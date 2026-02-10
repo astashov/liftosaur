@@ -11,7 +11,13 @@ export namespace IndexedDBUtils {
     operation: (objectStore: IDBObjectStore) => IDBRequest<T>
   ): Promise<T | undefined> {
     const promise = new Promise<T>(async (resolve, reject) => {
-      const db = await initialize();
+      let db: IDBDatabase;
+      try {
+        db = await initialize();
+      } catch (e) {
+        reject(e);
+        return;
+      }
       const transaction = db.transaction("keyval", mode);
       const objectStore = transaction.objectStore("keyval");
 
@@ -83,6 +89,10 @@ export namespace IndexedDBUtils {
       if (nativeStorage == null && NativeStorage.isAvailable()) {
         nativeStorage = new NativeStorage();
       }
+      if (!window.indexedDB) {
+        resolve();
+        return;
+      }
       const connection = window.indexedDB.open("keyval-store");
       const handler = (): void => {
         if (connection.result != null) {
@@ -106,6 +116,11 @@ export namespace IndexedDBUtils {
     return new Promise((resolve, reject) => {
       if (nativeStorage == null && NativeStorage.isAvailable()) {
         nativeStorage = new NativeStorage();
+      }
+
+      if (!window.indexedDB) {
+        reject(new Error("IndexedDB is not available"));
+        return;
       }
 
       const connection = window.indexedDB.open("keyval-store");
