@@ -144,7 +144,7 @@ export class NativeStorage {
   }
 
   private handleResponse(data: IStorageResponse): void {
-    if (!data.requestId) {
+    if (data == null || typeof data !== "object" || !data.requestId) {
       return;
     }
 
