@@ -192,7 +192,7 @@ export class UserDao {
     const env = Utils.getEnv();
     if (limitedUser.storage.version !== getLatestMigrationVersion()) {
       const fullUser = await this.getById(limitedUser.id);
-      const storage = await Storage.get(fetch, fullUser!.storage);
+      const storage = Storage.get(fullUser!.storage);
       if (storage.success) {
         await this.saveStorage(fullUser!, storage.data);
       } else {
@@ -203,7 +203,7 @@ export class UserDao {
     const originalStorage = limitedUser.storage;
     limitedUser = await this.augmentLimitedUser(limitedUser, storageUpdate);
 
-    const result = await Storage.get(fetch, limitedUser.storage);
+    const result = Storage.get(limitedUser.storage);
     if (!result.success) {
       this.di.log.log("corrupted_server_storage validation errors (sync2):", JSON.stringify(result.error));
       return { success: false, error: "corrupted_server_storage" };
@@ -356,7 +356,7 @@ export class UserDao {
     storageUpdate: IStorageUpdate
   ): Promise<IEither<{ originalId: number; newStorage?: IPartialStorage }, string>> {
     const env = Utils.getEnv();
-    const result = await Storage.get(fetch, limitedUser.storage);
+    const result = Storage.get(limitedUser.storage);
     if (!result.success) {
       this.di.log.log("corrupted_server_storage validation errors (sync1):", JSON.stringify(result.error));
       return { success: false, error: "corrupted_server_storage" };

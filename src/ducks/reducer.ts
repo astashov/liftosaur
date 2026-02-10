@@ -93,7 +93,7 @@ export async function getInitialState(
   const deviceId = args?.deviceId;
   if (storage != null && storage.storage != null) {
     const hasUnrunMigrations = unrunMigrations(storage.storage).length > 0;
-    const maybeStorage = await Storage.get(client, storage.storage, true);
+    const maybeStorage = Storage.get(storage.storage, true);
     let finalStorage: IStorage;
     const errors: IStateErrors = {};
     if (maybeStorage.success) {
@@ -102,7 +102,7 @@ export async function getInitialState(
       const service = new Service(client);
       const userid = (storage.storage?.tempUserId || `missing-${UidFactory.generateUid(8)}`) as string;
       const serverStorage = await service.getStorage(userid, undefined, undefined);
-      const maybeServerStorage = await Storage.get(client, serverStorage.storage, false);
+      const maybeServerStorage = Storage.get(serverStorage.storage, false);
       if (maybeServerStorage.success) {
         finalStorage = maybeServerStorage.data;
       } else {

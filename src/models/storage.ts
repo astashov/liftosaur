@@ -73,17 +73,16 @@ export namespace Storage {
     return result;
   }
 
-  export async function get(
-    client: Window["fetch"],
+  export function get(
     maybeStorage?: Record<string, unknown>,
     shouldReportError?: boolean
-  ): Promise<IEither<IStorage, string[]>> {
+  ): IEither<IStorage, string[]> {
     if (maybeStorage) {
-      let finalStorage = await runMigrations(client, maybeStorage as IStorage);
+      let finalStorage = runMigrations(maybeStorage as IStorage);
       const firstValidateResult = validate(finalStorage, TStorage, "storage");
       if (!firstValidateResult.success) {
         maybeStorage.version = "20250322014249";
-        finalStorage = await runMigrations(client, maybeStorage as IStorage);
+        finalStorage = runMigrations(maybeStorage as IStorage);
       }
       const result = shouldReportError
         ? validateAndReport(finalStorage, TStorage, "storage")

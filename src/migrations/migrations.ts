@@ -20,10 +20,7 @@ export function getLatestMigrationVersion(): string {
 }
 
 export const migrations = {
-  "20240720152051_fix_null_entries_set_weights": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20240720152051_fix_null_entries_set_weights": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const historyRecord of storage.history) {
       for (const entry of historyRecord.entries) {
@@ -36,10 +33,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20240906074315_add_original_weight_to_sets": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20240906074315_add_original_weight_to_sets": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const historyRecord of storage.history) {
       for (const entry of historyRecord.entries) {
@@ -53,20 +47,17 @@ export const migrations = {
     }
     return storage;
   },
-  "20241101192254_add_deleted_gyms": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20241101192254_add_deleted_gyms": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.deletedGyms = storage.settings.deletedGyms || [];
     return storage;
   },
-  "20241207120042_add_reminder_timer": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20241207120042_add_reminder_timer": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.timers.reminder = storage.settings.timers.reminder ?? 900;
     return storage;
   },
-  "20250211073832_switch_to_planner_programs": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20250211073832_switch_to_planner_programs": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     const currentProgram = storage.programs.find((p) => p.id === storage.currentProgramId);
     if (currentProgram && currentProgram.planner == null) {
@@ -80,7 +71,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20250305183455_cleanup_custom_exercises": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20250305183455_cleanup_custom_exercises": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const customExerciseKey of ObjectUtils.keys(storage.settings.exercises)) {
       const customExercise = storage.settings.exercises[customExerciseKey]!;
@@ -105,7 +96,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20250306192146_fix_empty_graphs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20250306192146_fix_empty_graphs": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const customExerciseKey of ObjectUtils.keys(storage.settings.exercises)) {
       if (Array.isArray(storage.settings.graphs)) {
@@ -118,7 +109,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20250322014249_add_is_completed": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20250322014249_add_is_completed": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const record of storage.history) {
       for (const entry of record.entries) {
@@ -132,17 +123,14 @@ export const migrations = {
     }
     return storage;
   },
-  "20250329092730_add_workout_settings": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20250329092730_add_workout_settings": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.workoutSettings = storage.settings.workoutSettings || {
       targetType: "target",
     };
     return storage;
   },
-  "20250331001906_migrate_weights_to_completed_weights": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20250331001906_migrate_weights_to_completed_weights": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const program of storage.programs) {
       for (const week of program.planner?.weeks || []) {
@@ -156,10 +144,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20250429083937_add_ids_to_planner_weeks_and_days": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20250429083937_add_ids_to_planner_weeks_and_days": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const program of storage.programs) {
       for (const week of program.planner?.weeks || []) {
@@ -171,10 +156,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20250704123128_add_vtypes_and_restructure_subscriptions": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20250704123128_add_vtypes_and_restructure_subscriptions": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     if (storage.subscription) {
       if (!Array.isArray(storage.subscription.apple)) {
@@ -244,20 +226,14 @@ export const migrations = {
     }
     return storage;
   },
-  "20250719104230_add_cloned_at_to_programs": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20250719104230_add_cloned_at_to_programs": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const program of storage.programs) {
       program.clonedAt = program.clonedAt ?? Date.now() - Math.round(Math.random() * 1000000);
     }
     return storage;
   },
-  "20250720120545_make_graphs_atomic_object": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20250720120545_make_graphs_atomic_object": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     if (!storage.settings.graphs.vtype) {
       storage.settings.graphs = {
@@ -271,7 +247,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20250815161850_add_gyms_if_empty": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20250815161850_add_gyms_if_empty": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     if (storage.settings.gyms && storage.settings.gyms.length === 0) {
       storage.settings.gyms.push({
@@ -280,10 +256,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20251005115332_migrate_affiliates_to_affiliates_data": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20251005115332_migrate_affiliates_to_affiliates_data": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const key of Object.keys(storage.affiliates || {})) {
       const value = storage.affiliates[key];
@@ -298,12 +271,12 @@ export const migrations = {
     }
     return storage;
   },
-  "20251030203130_add_muscle_groups": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20251030203130_add_muscle_groups": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.muscleGroups = storage.settings.muscleGroups || { vtype: "muscle_groups_settings", data: {} };
     return storage;
   },
-  "20251230101232_fix_gym_names": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20251230101232_fix_gym_names": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const gym of storage.settings.gyms || []) {
       if (gym.name == null) {
@@ -312,10 +285,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20251231182918_add_vtypes_and_indexes_to_entries_and_sets": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20251231182918_add_vtypes_and_indexes_to_entries_and_sets": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const record of storage.history) {
       record.vtype = record.vtype || "history_record";
@@ -342,15 +312,12 @@ export const migrations = {
     }
     return storage;
   },
-  "20260103180023_add_progress_array": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20260103180023_add_progress_array": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.progress = storage.progress || [];
     return storage;
   },
-  "20260124114134_convert_muscle_multipliers_to_object": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20260124114134_convert_muscle_multipliers_to_object": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const key of ObjectUtils.keys(storage.settings.exerciseData)) {
       const exerciseData = storage.settings.exerciseData[key];
@@ -365,7 +332,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20260208210220_fill_sets_with_ids": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20260208210220_fill_sets_with_ids": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const record of storage.history) {
       for (const entry of record.entries) {

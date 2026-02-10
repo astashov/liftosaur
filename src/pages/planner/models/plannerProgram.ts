@@ -650,7 +650,6 @@ export class PlannerProgram {
   }
 
   public static async getExportedPlannerProgram(
-    client: Window["fetch"],
     program: IExportedPlannerProgram,
     settings: ISettings
   ): Promise<IEither<IExportedPlannerProgram, string[]>> {
@@ -660,7 +659,7 @@ export class PlannerProgram {
     storage.settings = { ...storage.settings, planner: program.plannerSettings || storage.settings.planner };
     storage.settings.exercises = { ...storage.settings.exercises, ...settings.exercises };
 
-    const result = await Storage.get(client, storage);
+    const result = Storage.get(storage);
     if (result.success) {
       const newStorage = result.data;
       return {

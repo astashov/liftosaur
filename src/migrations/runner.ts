@@ -16,23 +16,15 @@ export function unrunMigrations(storage: { version: string }, maxVersion?: strin
   });
 }
 
-export async function runMigrations(
-  client: Window["fetch"],
-  storage: IStorage | IPartialStorage,
-  maxVersion?: string
-): Promise<IStorage> {
+export function runMigrations(storage: IStorage | IPartialStorage, maxVersion?: string): IStorage {
   const newVersions = unrunMigrations(storage, maxVersion);
   let result = Storage.partialStorageToStorage(storage);
   for (const version of newVersions) {
     try {
-      result = await migrations[version](client, result);
+      result = migrations[version](result);
     } catch (error) {
       const e = error as Error;
       console.error(`Error running migration ${version}: ${e}`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (typeof window !== "undefined" && (window as any).Rollbar != null) {
-        Rollbar.error(e);
-      }
     }
   }
   result = { ...result, version: getLatestMigrationVersion() };

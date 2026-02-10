@@ -989,7 +989,7 @@ export namespace Thunk {
   }
 
   export function importStorage(maybeStorage: string): IThunk {
-    return async (dispatch, getState, env) => {
+    return async (dispatch) => {
       dispatch(postevent("import-json-storage"));
       let parsedMaybeStorage: Record<string, unknown>;
       try {
@@ -998,7 +998,7 @@ export namespace Thunk {
         alert("Couldn't parse the provided file");
         return;
       }
-      const result = await Storage.get(env.service.client, parsedMaybeStorage, false);
+      const result = Storage.get(parsedMaybeStorage, false);
       if (result.success) {
         updateState(dispatch, [lb<IState>().p("storage").record(result.data)], "Importing Storage");
         alert("Successfully imported");
@@ -1186,7 +1186,7 @@ export namespace Thunk {
           dispatch(postevent("switch-account"));
           const rawStorage = (await IndexedDBUtils.get(`liftosaur_${id}`)) as string | undefined;
           if (rawStorage != null) {
-            const result = await Storage.get(env.service.client, JSON.parse(rawStorage)?.storage);
+            const result = Storage.get(JSON.parse(rawStorage)?.storage);
             if (result.success) {
               const newState = await getInitialState(env.service.client, { rawStorage, deviceId: getState().deviceId });
               dispatch({ type: "ReplaceState", state: newState });
@@ -1456,7 +1456,7 @@ async function handleLogin(
       dispatch(Thunk.postevent("login"));
       Rollbar.configure(RollbarUtils.config({ person: { email: result.email, id: result.user_id } }));
       let storage: IStorage;
-      const storageResult = await Storage.get(client, result.storage, true);
+      const storageResult = Storage.get(result.storage, true);
       const service = new Service(client);
       if (storageResult.success) {
         storage = storageResult.data;

@@ -32,6 +32,7 @@ import {
 } from "../types";
 import { IEither } from "../utils/types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
+import { runMigrations, unrunMigrations } from "../migrations/runner";
 import { ExerciseImageUtils } from "../models/exerciseImage";
 import { Weight } from "../models/weight";
 import { Progress } from "../models/progress";
@@ -267,10 +268,16 @@ function parseStorageSync(
   }
 
   const parseStart = Date.now();
-  const data = JSON.parse(storageJson);
+  let data = JSON.parse(storageJson);
   const parseTime = Date.now() - parseStart;
   if (parseTime > 50) {
     console.log(`[PERF] JSON.parse took ${parseTime}ms`);
+  }
+
+  if (data.version != null && unrunMigrations(data as IStorage).length > 0) {
+    console.log(`[MIGRATIONS] Running migrations from version ${data.version}`);
+    data = runMigrations(data as IStorage);
+    console.log(`[MIGRATIONS] Migrated to version ${data.version}`);
   }
 
   // Validate only once per session to catch schema issues from development changes.

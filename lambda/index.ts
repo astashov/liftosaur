@@ -859,7 +859,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     const userDao = new UserDao(di);
     const eventDao = new EventDao(di);
     const programs = await userDao.getProgramsByUserId(user.id);
-    const oldStorageResult = await Storage.get(di.fetch, { ...user.storage, programs });
+    const oldStorageResult = Storage.get({ ...user.storage, programs });
     if (!oldStorageResult.success) {
       di.log.log("Program Save: Error loading old storage", oldStorageResult.error);
       return ResponseUtils.json(500, event, { error: "Corrupted storage!" });
@@ -1394,8 +1394,8 @@ const getAdminUsersHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   if (match.params.key === (await di.secrets.getApiKey())) {
     const users = await new UserDao(di).getAll();
     const processedUsers = await Promise.all(
-      users.map(async (u) => {
-        const storage = await runMigrations(di.fetch, u.storage);
+      users.map((u) => {
+        const storage = runMigrations(u.storage);
 
         return {
           id: u.id,
@@ -1773,7 +1773,7 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   if (userResult.success) {
     ({ user, account } = userResult.data);
   }
-  const storage = user?.storage ? await runMigrations(di.fetch, user.storage) : undefined;
+  const storage = user?.storage ? runMigrations(user.storage) : undefined;
 
   if (data) {
     try {
@@ -1807,7 +1807,7 @@ const getUserProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     return userResult.error;
   }
   const { account, user } = userResult.data;
-  const storage = await runMigrations(di.fetch, user.storage);
+  const storage = runMigrations(user.storage);
 
   return {
     statusCode: 200,
@@ -1963,7 +1963,7 @@ const getUserProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
     return userResult.error;
   }
   const { account, user } = userResult.data;
-  const storage = await runMigrations(di.fetch, user.storage);
+  const storage = runMigrations(user.storage);
   const exportedProgram = Program.storageToExportedProgram(storage, params.programid);
   if (!exportedProgram) {
     return {
@@ -2351,7 +2351,7 @@ const getProgramShorturlHandler: RouteHandler<
           if (userResult.success) {
             ({ user, account } = userResult.data);
           }
-          const storage = user?.storage ? await runMigrations(di.fetch, user.storage) : undefined;
+          const storage = user?.storage ? runMigrations(user.storage) : undefined;
 
           return {
             statusCode: 200,

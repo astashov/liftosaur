@@ -50,7 +50,7 @@ export namespace ImportExporter {
     payload.settings.exercises = exportedProgram.customExercises;
     payload.programs.push(exportedProgram.program);
     payload.version = exportedProgram.version;
-    const result = await Storage.get(client, payload, false);
+    const result = Storage.get(payload, false);
     if (result.success) {
       const storage = result.data;
       const customExercises = storage.settings.exercises;

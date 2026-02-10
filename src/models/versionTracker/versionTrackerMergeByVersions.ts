@@ -185,6 +185,7 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         // Validate merged controlled type - if invalid, revert to fullValue
         const validator = this.versionTypes.typeValidators?.[extractedValue.vtype];
         if (validator && !validator.is(mergedItem)) {
+          console.log(`[MERGE_DEBUG] Validator REJECTED merged ${extractedValue.vtype}, reverting to fullValue`);
           return fullValue;
         }
 
