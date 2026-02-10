@@ -210,6 +210,12 @@ export class UserDao {
     }
     const { _versions, ...limitedUserStorage } = result.data;
     if (limitedUserStorage.version !== storageUpdate.version) {
+      this.di.log.log(
+        "outdated storage, client version:",
+        storageUpdate.version,
+        "server version:",
+        limitedUserStorage.version
+      );
       return { success: false, error: "outdated_client_storage" };
     }
     if (
