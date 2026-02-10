@@ -1,37 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git:*)",
-      "Bash(git *)",
-      "Bash(npm install:*)",
-      "Bash(npm test:*)",
-      "Bash(npm start:*)",
-      "Bash(npm run *)",
-      "Bash(npx *)",
-      "Bash(curl:*)",
-      "Bash(jq:*)",
-      "Bash(grep:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(wc:*)",
-      "Bash(echo:*)",
-      "Bash(sleep:*)",
-      "Bash(mkdir:*)",
-      "Bash(install:*)",
-      "Bash(pkill:*)",
-      "Bash(lsof:*)",
-      "Bash(kill:*)",
-      "Bash(gh:*)",
-      "Bash(which:*)",
-      "Bash(env:*)",
-      "Bash(xcodebuild:*)",
-      "Bash(swift build:*)",
-      "Bash(cd:*)",
-      "Bash(rm:*)",
-      "Bash(tee:*)",
-      "Bash(cp:*)",
+      "Bash(*)",
       "Task",
       "WebSearch",
       "Edit(**)",
@@ -48,7 +18,8 @@
     ],
     "additionalDirectories": [
       "../LiftosauriOS/src",
-      "../LiftosaurAndroid"
+      "../LiftosaurAndroid",
+      "./worktrees"
     ]
   }
 }
