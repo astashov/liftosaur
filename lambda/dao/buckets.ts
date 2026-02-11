@@ -7,6 +7,7 @@ export const LftS3Buckets = {
   exceptions: "liftosaurexceptions2",
   storages: "liftosaurstorages",
   programs: "liftosaurprograms",
+  assets: "liftosaurassets",
   images: "liftosaurimages2",
   userimages: "liftosauruserimages",
 };

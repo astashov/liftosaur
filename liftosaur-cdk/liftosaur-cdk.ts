@@ -277,6 +277,10 @@ export class LiftosaurCdkStack extends cdk.Stack {
       bucketName: `${LftS3Buckets.programs}${suffix.toLowerCase()}`,
     });
 
+    const assetsBucket = new s3.Bucket(this, `LftS3Assets${suffix}`, {
+      bucketName: `${LftS3Buckets.assets}${suffix.toLowerCase()}`,
+    });
+
     const userimagesbucket = new s3.Bucket(this, `LftS3UserImages${suffix}`, {
       bucketName: `${LftS3Buckets.userimages}${suffix.toLowerCase()}`,
       cors: [
@@ -397,6 +401,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     exceptionsbucket.grantReadWrite(lambdaFunction);
     paymentsTable.grantReadWriteData(lambdaFunction);
     programsBucket.grantReadWrite(lambdaFunction);
+    assetsBucket.grantReadWrite(lambdaFunction);
     userimagesbucket.grantReadWrite(lambdaFunction);
     statsBucket.grantReadWrite(lambdaFunction);
     storagesBucket.grantReadWrite(lambdaFunction);
