@@ -64,12 +64,17 @@ function getData(
         );
         let onerm = null;
         if (isWithOneRm) {
-          const set = maxe1RMSet || maxSet;
-          onerm = Weight.getOneRepMax(
-            Weight.convertTo(set.completedWeight ?? set.weight ?? Weight.build(0, settings.units), settings.units),
-            set.completedReps || 0,
-            set.completedRpe ?? set.rpe ?? 10
-          ).value;
+          const explicitRm1 = entry.vars?.rm1;
+          if (settings.graphsSettings.useExplicitRm1 && Weight.is(explicitRm1)) {
+            onerm = Weight.convertTo(explicitRm1, settings.units).value;
+          } else {
+            const set = maxe1RMSet || maxSet;
+            onerm = Weight.getOneRepMax(
+              Weight.convertTo(set.completedWeight ?? set.weight ?? Weight.build(0, settings.units), settings.units),
+              set.completedReps || 0,
+              set.completedRpe ?? set.rpe ?? 10
+            ).value;
+          }
         }
         const timestamp = new Date(Date.parse(i.date)).getTime() / 1000;
         historyRecords[timestamp] = i;
@@ -134,7 +139,10 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
           </option>
         </select>
       </div>
-      <GraphExerciseContent key={selectedType} {...{ ...props, selectedType }} />
+      <GraphExerciseContent
+        key={`${selectedType}-${props.isWithOneRm}-${props.isWithProgramLines}-${props.isSameXAxis}-${props.settings.graphsSettings.useExplicitRm1}`}
+        {...{ ...props, selectedType }}
+      />
     </div>
   );
 }

@@ -1299,6 +1299,7 @@ export const TSettings = t.intersection(
         isWithBodyweight: t.boolean,
         isWithOneRm: t.boolean,
         isWithProgramLines: t.boolean,
+        useExplicitRm1: t.boolean,
         defaultType: TGraphExerciseSelectedType,
         defaultMuscleGroupType: TGraphMuscleGroupSelectedType,
       }),

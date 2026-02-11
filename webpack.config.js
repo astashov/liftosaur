@@ -150,14 +150,14 @@ const mainConfig = {
       __COMMIT_HASH__: JSON.stringify(commitHash),
       __FULL_COMMIT_HASH__: JSON.stringify(fullCommitHash),
       __API_HOST__: JSON.stringify(
-        process.env.NODE_ENV === "production"
+        process.env.USE_PROD_API || process.env.NODE_ENV === "production"
           ? process.env.STAGE
             ? "https://api3-dev.liftosaur.com"
             : "https://api3.liftosaur.com"
           : `https://${localapidomain}.liftosaur.com:3000`
       ),
       __STREAMING_API_HOST__: JSON.stringify(
-        process.env.NODE_ENV === "production"
+        process.env.USE_PROD_API || process.env.NODE_ENV === "production"
           ? process.env.STAGE
             ? "https://streaming-api-dev.liftosaur.com"
             : "https://streaming-api.liftosaur.com"
@@ -270,6 +270,12 @@ const mainConfig = {
       index: false, // specify to enable root proxying
     },
     static: path.join(__dirname, "dist"),
+    historyApiFallback: {
+      rewrites: [
+        { from: /^\/app$/, to: '/app/index.html' },
+        { from: /^\/app\//, to: '/app/index.html' },
+      ],
+    },
     compress: true,
     https:
       process.env.NODE_ENV === "production"
