@@ -211,11 +211,20 @@ Based on analysis:
 
 All edits should be in `./worktrees/$ARGUMENTS/src/...`
 
-### 9. Build and Unit Tests
+### 9. Build, Lint, and Unit Tests
 
 ```bash
 npm run build:prepare --prefix ./worktrees/$ARGUMENTS
 ```
+```bash
+npx tsc --noEmit --project ./worktrees/$ARGUMENTS/tsconfig.json
+```
+```bash
+npm run lint --prefix ./worktrees/$ARGUMENTS
+```
+
+If there are type errors, lint errors, or formatting issues, fix them before proceeding.
+
 ```bash
 npm test --prefix ./worktrees/$ARGUMENTS
 ```
