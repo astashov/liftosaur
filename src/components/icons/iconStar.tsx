@@ -6,6 +6,7 @@ interface IProps {
   color?: string;
   className?: string;
   isSelected?: boolean;
+  style?: JSX.CSSProperties;
 }
 
 export function IconStar(props: IProps): JSX.Element {
@@ -15,6 +16,7 @@ export function IconStar(props: IProps): JSX.Element {
     <svg
       width={size}
       height={size}
+      style={props.style}
       className={props.className}
       viewBox="0 0 24 24"
       fill="none"

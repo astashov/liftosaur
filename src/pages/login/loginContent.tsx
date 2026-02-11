@@ -18,9 +18,7 @@ export function LoginContent(props: ILoginContentProps): JSX.Element {
         <div className="py-8 mx-auto" style={{ maxWidth: "24rem" }}>
           <Account client={props.client} account={props.account} redirectUrl={props.redirectUrl} />
         </div>
-        <div className="pt-8 mt-16 border-t border-border-neutral">
-          <FooterPage maxWidth={1200} withoutBg={true} account={props.account} />
-        </div>
+        <FooterPage maxWidth={1200} account={props.account} />
       </div>
     </div>
   );

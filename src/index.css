@@ -511,6 +511,12 @@ input[type="checkbox"].checkbox:disabled {
   line-height: 1.1;
 }
 
+.testimonial-highlight strong {
+  background-color: var(--color-yellow-200);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 .exercise-description-markdown {
   overflow-x: auto;
   font-size: 1rem;
@@ -907,6 +913,29 @@ iframe#exercise-youtube-player {
   }
   100% {
     opacity: 1;
+  }
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.footer-links-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(6, auto);
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+  .footer-links-grid {
+    grid-template-rows: repeat(4, auto);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

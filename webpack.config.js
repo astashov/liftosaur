@@ -1,4 +1,3 @@
-const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 const { main: localdomain, api: localapidomain, streamingapi: localstreamingapidomain } = require("./localdomain");
 
 const path = require("path");
@@ -15,6 +14,8 @@ const bundleVersionWatchAndroid = 1;
 
 const localapi = `https://${localapidomain}.liftosaur.com:3000/`;
 const local = `https://${localdomain}.liftosaur.com:8080/`;
+
+const isDev = process.env.NODE_ENV !== "production";
 
 const watchConfig = {
   entry: "./src/watch/index.ts",
@@ -262,7 +263,7 @@ const mainConfig = {
         to: ".well-known",
       },
     ]),
-    new BundleAnalyzerPlugin({ analyzerMode: "static", openAnalyzer: false }),
+    // new BundleAnalyzerPlugin({ analyzerMode: "static", openAnalyzer: false }),
   ],
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
   devServer: {

@@ -1,93 +1,86 @@
 import { JSX, h } from "preact";
 import { IAccount } from "../models/account";
+import { IconInstagramFlat } from "./icons/iconInstagramFlat";
+import { IconYoutube } from "./icons/iconYoutube";
+import { IconReddit } from "./icons/iconReddit";
+import { IconDiscord } from "./icons/iconDiscord";
 
 interface IProps {
   maxWidth?: number;
   account?: IAccount;
-  withoutBg?: boolean;
 }
+
+const footerLinks: [string, string][] = [
+  ["Roadmap", "https://github.com/astashov/liftosaur/discussions"],
+  ["Docs", "/docs"],
+  ["Web Editor", "/planner"],
+  ["1RM Calculator", "/one-rep-max-calculator"],
+  ["Your Programs", "/user/programs"],
+  ["Blog", "/blog"],
+  ["Exercises", "/exercises"],
+  ["Terms & Conditions", "/terms.html"],
+  ["Privacy", "/privacy.html"],
+  ["Affiliate Program", "/affiliates"],
+];
 
 export function FooterPage(props: IProps): JSX.Element {
   const maxWidth = props.maxWidth != null ? `${props.maxWidth}px` : "800px";
   return (
-    <footer>
-      {!props.withoutBg && (
-        <div
-          className="w-full bg-no-repeat"
-          style={{
-            paddingBottom: "9%",
-            backgroundSize: "100% auto",
-            backgroundImage: "url(/images/desktop-wave-footer.svg)",
-          }}
-        ></div>
-      )}
-      <div style={{ backgroundColor: props.withoutBg ? undefined : "#fafafa" }}>
-        <div className="flex flex-col px-6 py-0 mx-auto my-0 text-sm font-bold md:flex-row" style={{ maxWidth }}>
-          <nav className="flex items-center flex-1 w-full px-0 py-6 leading-loose text-left md:text-right md:py-12 md:px-3">
-            <div className="flex flex-1 md:pr-6">
-              <ul className="flex-1">
-                {[
-                  ["📍 Roadmap", "https://github.com/astashov/liftosaur/discussions"],
-                  ["Docs", "/docs"],
-                  ["Legacy Web Editor", "/program"],
-                  ["Web Editor", "/planner"],
-                  ["1RM Calculator", "/one-rep-max-calculator"],
-                  ...(!!props.account ? [["Your Programs", "/user/programs"]] : []),
-                ].map(([text, link]) => {
-                  return (
-                    <li className="block mx-4 my-0 mb-2 leading-5 text-left">
-                      <a className="text-blue-700 underline cursor-pointer" href={link}>
-                        {text}
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
-              <ul className="flex-1">
-                {[
-                  ["Blog", "/blog"],
-                  ["Exercises", "/exercises"],
-                  ["Terms & Conditions", "/terms.html"],
-                  ["Privacy", "/privacy.html"],
-                  ["Affiliate Program", "/affiliates"],
-                ].map(([text, link]) => {
-                  return (
-                    <li className="block mx-4 my-0 mb-2 leading-5 text-left">
-                      <a className="text-blue-700 underline cursor-pointer" href={link}>
-                        {text}
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
+    <footer className="mt-8">
+      <div style={{ backgroundColor: "#28204B" }}>
+        <div className="px-6 mx-auto" style={{ maxWidth }}>
+          <div className="flex flex-col md:flex-row md:items-center md:gap-10">
+            <div className="hidden pt-8 md:block shrink-0">
+              <img src="/images/logo.svg" alt="" style={{ height: "200px" }} />
             </div>
-            <ul className="inline-block align-middle list-none">
-              {[
-                ["Instagram", "https://www.instagram.com/liftosaurapp", "logo-instagram"],
-                ["Youtube", "https://www.youtube.com/@Liftosaur", "logo-youtube"],
-                ["Reddit", "https://www.reddit.com/r/liftosaur", "logo-reddit"],
-                ["Discord", "https://discord.gg/AAh3cvdBRs", "logo-discord"],
-              ].map(([text, link, img]) => {
-                return (
-                  <li className="inline-block text-left align-middle list-none">
-                    <a
-                      target="_blank"
-                      href={link}
-                      style={{
-                        textIndent: "-9999px",
-                        backgroundPosition: "50%",
-                        backgroundSize: "60%",
-                        backgroundImage: `url(/images/${img}.svg)`,
-                      }}
-                      className="inline-block w-10 h-10 p-2 bg-no-repeat"
-                    >
-                      <span>{text}</span>
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
+
+            <div className="shrink-0">
+              <div className="pt-8 text-3xl font-bold text-white md:pt-0">Liftosaur</div>
+              <div className="flex items-center gap-4 mt-5">
+                <span className="text-sm text-white">Follow us:</span>
+                <a
+                  href="https://www.instagram.com/liftosaurapp"
+                  target="_blank"
+                  className="opacity-80 hover:opacity-100"
+                >
+                  <IconInstagramFlat size={28} color="#fff" />
+                </a>
+                <a href="https://www.youtube.com/@Liftosaur" target="_blank" className="opacity-80 hover:opacity-100">
+                  <IconYoutube size={28} color="#fff" secondaryColor="#28204B" />
+                </a>
+                <a href="https://www.reddit.com/r/liftosaur" target="_blank" className="opacity-80 hover:opacity-100">
+                  <IconReddit size={28} color="#fff" secondaryColor="#28204B" />
+                </a>
+                <a href="https://discord.gg/AAh3cvdBRs" target="_blank" className="opacity-80 hover:opacity-100">
+                  <IconDiscord size={28} color="#fff" />
+                </a>
+              </div>
+              <div className="mt-4 text-sm text-white">
+                Questions?{" "}
+                <a href="mailto:info@liftosaur.com" className="text-purple-300 underline">
+                  info@liftosaur.com
+                </a>
+              </div>
+            </div>
+
+            <div className="flex-1 mt-8 md:mt-0 md:flex md:justify-end">
+              <div className="footer-links-grid gap-x-10 gap-y-3">
+                {footerLinks.map(([text, link]) => (
+                  <a
+                    className="text-sm text-gray-300 no-underline hover:text-white"
+                    href={link}
+                    target={link.startsWith("http") ? "_blank" : undefined}
+                  >
+                    {text}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 md:hidden">
+            <img src="/images/logo.svg" alt="" style={{ height: "200px" }} />
+          </div>
         </div>
       </div>
     </footer>

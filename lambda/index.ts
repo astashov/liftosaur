@@ -86,6 +86,7 @@ import { ClaudeProvider } from "./utils/llms/claude";
 import { MuscleGenerator } from "./utils/muscleGenerator";
 import { LlmMuscles } from "./utils/llms/llmMuscles";
 import { AiMuscleCacheDao } from "./dao/aiMuscleCacheDao";
+import { TestimonialDao } from "./dao/testimonialDao";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1750,10 +1751,11 @@ const getMainHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getMa
     ({ account } = userResult.data);
   }
   const userAgent = payload.event.headers["user-agent"] || payload.event.headers["User-Agent"];
+  const testimonials = await new TestimonialDao(di).getAll();
 
   return {
     statusCode: 200,
-    body: renderMainHtml(di.fetch, account, userAgent),
+    body: renderMainHtml(di.fetch, testimonials, account, userAgent),
     headers: { "content-type": "text/html" },
   };
 };

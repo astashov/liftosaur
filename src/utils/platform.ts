@@ -11,8 +11,15 @@ export class Platform {
     return /Android/i.test(userAgent);
   }
 
-  public static onelink(noparams: boolean): string {
+  public static onelink(noparams: boolean, type?: "ios" | "android"): string {
     const url = UrlUtils.build("https://liftosaur.onelink.me/cG8a/aylyqael");
+    let afr: string | undefined = undefined;
+    if (type) {
+      afr =
+        type === "ios"
+          ? "https://apps.apple.com/us/app/liftosaur-scriptable-workouts/id1661880849"
+          : "https://play.google.com/store/apps/details?id=com.liftosaur.www.twa";
+    }
     if (typeof window !== "undefined" && !noparams) {
       const currentSearchParams = new URL(window.location.href).searchParams;
       const utmSource = currentSearchParams?.get("utm_source") ?? window.localStorage?.getItem("utm_source");
@@ -39,6 +46,9 @@ export class Platform {
       if (utmTerm) {
         url.searchParams.set("utm_term", utmTerm);
         url.searchParams.set("af_adset", utmTerm);
+      }
+      if (afr) {
+        url.searchParams.set("af_r", afr);
       }
     }
     return url.toString();

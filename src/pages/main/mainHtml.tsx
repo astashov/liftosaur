@@ -2,10 +2,12 @@ import { h, JSX } from "preact";
 import { Page } from "../../components/page";
 import { IAccount } from "../../models/account";
 import { MainContent } from "./mainContent";
+import { ITestimonial } from "./testimonitals";
 
 interface IProps {
   client: Window["fetch"];
   account?: IAccount;
+  testimonials: ITestimonial[];
   userAgent?: string;
 }
 
