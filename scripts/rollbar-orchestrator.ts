@@ -7,7 +7,7 @@ const LOG_DIR = path.join(PROJECT_DIR, "logs", "rollbar-orchestrator");
 const TIMEOUT_MS = 60 * 60 * 1000; // 1 hour per fix
 const MAX_FIXES = 3;
 const REVIEW_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes for review
-const SIMILARITY_TIMEOUT_MS = 60 * 1000; // 1 minute for Claude similarity check
+const SIMILARITY_TIMEOUT_MS = 5 * 60 * 1000; // 1 minute for Claude similarity check
 
 interface IRollbarItem {
   id: number;
@@ -47,24 +47,31 @@ async function fetchJson<T>(url: string, headers: Record<string, string> = {}): 
   return response.json() as Promise<T>;
 }
 
-async function getTopActiveItems(): Promise<IRollbarItem[]> {
+const ALLOWED_ENVIRONMENTS = ["production", "prod-lambda"];
+
+async function getActiveItems(): Promise<IRollbarItem[]> {
   const token = process.env.ROLLBAR_READ_TOKEN;
   if (!token) {
     throw new Error("ROLLBAR_READ_TOKEN not set");
   }
 
-  const response = await fetchJson<{
-    err: number;
-    result: Array<{ item: { id: number; title: string; occurrences: number } }>;
-  }>("https://api.rollbar.com/api/1/reports/top_active_items?sort=occurrences", {
-    "X-Rollbar-Access-Token": token,
-  });
+  const items: IRollbarItem[] = [];
+  for (const env of ALLOWED_ENVIRONMENTS) {
+    const response = await fetchJson<{
+      result: { items: Array<{ id: string; title: string; total_occurrences: number }> };
+    }>(
+      `https://api.rollbar.com/api/1/items/?status=active&sort=last_occurrence_timestamp&direction=desc&level=error&environment=${env}`,
+      {
+        "X-Rollbar-Access-Token": token,
+      }
+    );
 
-  return response.result.map((r) => ({
-    id: r.item.id,
-    title: r.item.title,
-    occurrences: r.item.occurrences,
-  }));
+    for (const item of response.result.items) {
+      items.push({ id: Number(item.id), title: item.title, occurrences: item.total_occurrences });
+    }
+  }
+
+  return items;
 }
 
 async function getOccurrenceForItem(itemId: number): Promise<number | null> {
@@ -189,13 +196,15 @@ async function checkSimilarityWithClaude(
 
   const prompt = `You are checking if new Rollbar errors are likely the same root cause as existing PRs.
 
+IMPORTANT: Do NOT use any tools. Do NOT fetch any remote data. Make your decision based ONLY on the titles provided below.
+
 Existing Rollbar fix PRs:
 ${prList}
 
 New Rollbar errors to potentially fix:
 ${candidateList}
 
-For each new error (A, B, C...), determine if it is likely the same root cause as any existing PR.
+For each new error (A, B, C...), determine if it is likely the same root cause as any existing PR based on the error titles alone.
 Reply ONLY with a JSON object mapping each letter to either null (no match) or the PR number.
 Example: {"A": null, "B": 42}`;
 
@@ -317,8 +326,8 @@ async function main(): Promise<void> {
   log(`Run ID: ${runId}`);
   log(`Main log: ${mainLogPath}`);
 
-  log("Fetching top active items from Rollbar...");
-  const items = await getTopActiveItems();
+  log(`Fetching active items from Rollbar (environments: ${ALLOWED_ENVIRONMENTS.join(", ")})...`);
+  const items = await getActiveItems();
   log(`Found ${items.length} active items`);
 
   log("Fetching existing Rollbar fix PRs from GitHub...");

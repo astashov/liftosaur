@@ -19,6 +19,7 @@ To avoid permission issues in headless mode:
 
 Required environment variables:
 - `ROLLBAR_READ_TOKEN` - Rollbar project read token (Settings -> Project Access Tokens)
+- `GH_TOKEN_AI` - GitHub PAT for the `astashovai` bot account (used for pushing and creating PRs)
 
 ## Important: Worktrees as Subdirectories
 
@@ -59,10 +60,21 @@ curl -s -H "X-Rollbar-Access-Token: $ROLLBAR_READ_TOKEN" \
   -o ./worktrees/$ARGUMENTS/.tmp/rollbar.json
 ```
 
-Extract the Rollbar item ID (you will need this for the PR title in Step 9):
+Extract the Rollbar item counter (the short number from the Rollbar URL, e.g. `3190` in `/item/liftosaur/3190/`). First get the internal item ID:
 ```bash
 jq -r '.result.item_id' ./worktrees/$ARGUMENTS/.tmp/rollbar.json
 ```
+
+Then fetch the item details using that ID to get the counter:
+```bash
+curl -s -H "X-Rollbar-Access-Token: $ROLLBAR_READ_TOKEN" \
+  "https://api.rollbar.com/api/1/item/{item_id}" \
+  -o ./worktrees/$ARGUMENTS/.tmp/item.json
+```
+```bash
+jq -r '.result.counter' ./worktrees/$ARGUMENTS/.tmp/item.json
+```
+Save this counter — you will need it for the PR title in Step 11.
 
 Extract key information using jq:
 ```bash
@@ -117,9 +129,32 @@ This shows:
 - Whether the error is recurring (multiple errors for same action)
 - Context about what the user was doing (which screen, what buttons clicked)
 
-### 5. Analyze and Decide
+### 5. Download Server Logs (if needed)
 
-With the stack trace, state, actions, and user events, first **decide if this error is worth fixing**.
+If the error involves a server-side request (API call, sync, login, etc.) and you need more context about what happened on the backend, download the server logs.
+
+Extract the occurrence timestamp and user ID from the Rollbar data:
+```bash
+jq -r '.result.data | {timestamp, person_id: .person.id}' ./worktrees/$ARGUMENTS/.tmp/rollbar.json
+```
+
+Convert the Unix timestamp to a date (YYYY-MM-DD format) and run:
+```bash
+npm run r ./lambda/scripts/get_logs.ts {YYYY-MM-DD} {userid}
+```
+
+This downloads a log file to the project root as `logs-{YYYY-MM-DD}-{userid}.txt`. The file can be large, so don't read the whole thing. Instead, use the occurrence timestamp to find the relevant section — search for log entries around that time and read only the surrounding context.
+
+### 6. Analyze and Decide
+
+First, check the environment from the Rollbar data:
+```bash
+jq -r '.result.data.environment' ./worktrees/$ARGUMENTS/.tmp/rollbar.json
+```
+
+**SKIP entirely if the environment is NOT `production` or `prod-lambda`.** Android errors and other non-webapp environments are out of scope — do not fix or add to ignore list. Clean up the worktree (Step 12) and stop.
+
+With the stack trace, state, actions, and user events, **decide if this error is worth fixing**.
 
 **IGNORE the error (add to ignore list) if:**
 - Error originates from a browser extension (stack trace mentions `chrome-extension://`, `moz-extension://`, etc.)
@@ -137,7 +172,7 @@ With the stack trace, state, actions, and user events, first **decide if this er
 - Error blocks users from completing workouts or core features
 - Error is happening frequently (check user events for pattern)
 
-**Proceed to Step 6 if ignoring, or Step 7 if fixing.**
+**Proceed to Step 7 if ignoring, or Step 8 if fixing.**
 
 Key files for reference:
 - `src/types.ts` - Core type definitions (IStorage, IProgram, IHistoryRecord, etc.)
@@ -145,7 +180,7 @@ Key files for reference:
 - `src/ducks/reducer.ts` - Redux reducer handling actions
 - `src/ducks/thunks.ts` - Async actions
 
-### 6. Add to Ignore List (if not worth fixing)
+### 7. Add to Ignore List (if not worth fixing)
 
 If you decided the error should be ignored, add it to the `exceptionIgnores` array in `./worktrees/$ARGUMENTS/src/utils/rollbar.ts`:
 
@@ -163,48 +198,58 @@ export const exceptionIgnores = [
 - Don't be too broad (avoid ignoring legitimate errors)
 - Add a comment if the ignore reason isn't obvious
 
-Then proceed to Step 8 (Build and Test).
+Then proceed to Step 9 (Build and Test).
 
-### 7. Fix the Bug (if worth fixing)
+### 8. Fix the Bug (if worth fixing)
 
 Based on analysis:
 1. Identify root cause
 2. Create a fix that handles the edge case
 3. Ensure the fix doesn't break other scenarios
 4. Keep the fix minimal and focused
+5. If the fix involves non-trivial logic, add a unit test that reproduces the bug and verifies the fix. Look at existing tests nearby for conventions.
 
 All edits should be in `./worktrees/$ARGUMENTS/src/...`
 
-### 8. Build and Test
-
-Before creating PR, verify the changes:
+### 9. Build and Unit Tests
 
 ```bash
-# Build (also generates required files)
 npm run build:prepare --prefix ./worktrees/$ARGUMENTS
-
-# Run unit tests
+```
+```bash
 npm test --prefix ./worktrees/$ARGUMENTS
+```
 
-# Run Playwright E2E tests (optional but recommended)
-# First, kill any existing servers and start fresh:
+### 10. Playwright E2E Tests
+
+**This step is required — do NOT skip it.**
+
+Kill any existing servers:
+```bash
 pkill -f "webpack-dev-server" 2>/dev/null || true
+```
+```bash
 pkill -f "ts-node-dev" 2>/dev/null || true
-lsof -ti:3000 | xargs kill -9 2>/dev/null || true
-lsof -ti:8080 | xargs kill -9 2>/dev/null || true
-
-# Start servers in background (from worktree)
-npm start --prefix ./worktrees/$ARGUMENTS &
-npm run start:server --prefix ./worktrees/$ARGUMENTS &
-sleep 15  # Wait for servers to start
-
-# Run E2E tests
+```
+Start both servers in the background (use the Bash tool's `run_in_background` parameter, do NOT use `&`):
+```bash
+npm start --prefix ./worktrees/$ARGUMENTS
+```
+```bash
+npm run start:server --prefix ./worktrees/$ARGUMENTS
+```
+Then wait for them to be ready:
+```bash
+sleep 15
+```
+Run Playwright:
+```bash
 npm run playwright --prefix ./worktrees/$ARGUMENTS
 ```
 
-Note: The `subscriptions.spec.ts` test may be flaky - failures there can be ignored if unrelated to your changes.
+Note: The `subscriptions.spec.ts` test may be flaky — failures there can be ignored if unrelated to your changes.
 
-### 9. Create Pull Request
+### 11. Create Pull Request
 
 From the worktree directory:
 
@@ -213,22 +258,24 @@ git -C ./worktrees/$ARGUMENTS add <changed-files>
 ```
 
 Write commit message to file using the Write tool at `./worktrees/$ARGUMENTS/.tmp/commit-msg.txt`.
-Use the Rollbar item ID extracted in Step 2 as ITEM_ID:
+Use the Rollbar item counter extracted in Step 2 as ITEM_COUNTER:
 ```
-fix-rollbar (ITEM_ID/$ARGUMENTS): <brief description>
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+fix-rollbar (ITEM_COUNTER/$ARGUMENTS): <brief description>
 ```
 
-Then commit using the file:
+Then commit using the file (note the `--author` flag for the bot account):
 ```bash
-git -C ./worktrees/$ARGUMENTS commit -F ./worktrees/$ARGUMENTS/.tmp/commit-msg.txt
+git -C ./worktrees/$ARGUMENTS commit --author="astashovai <astashovai@users.noreply.github.com>" -F ./worktrees/$ARGUMENTS/.tmp/commit-msg.txt
 ```
 
+Push and create PR using the bot account's token:
 ```bash
-git -C ./worktrees/$ARGUMENTS push -u origin fix/rollbar-$ARGUMENTS
-gh pr create --repo astashov/liftosaur --head fix/rollbar-$ARGUMENTS --title "fix-rollbar (ITEM_ID/$ARGUMENTS): <brief description>" --body "## Summary
+GH_TOKEN=$GH_TOKEN_AI git -C ./worktrees/$ARGUMENTS push -u origin fix/rollbar-$ARGUMENTS
+GH_TOKEN=$GH_TOKEN_AI gh pr create --repo astashov/liftosaur --head fix/rollbar-$ARGUMENTS --title "fix-rollbar (ITEM_COUNTER/$ARGUMENTS): <brief description>" --body "## Summary
 - <bullet points of changes>
+
+## Rollbar
+https://app.rollbar.com/a/astashov/fix/item/liftosaur/ITEM_COUNTER/occurrence/$ARGUMENTS
 
 ## Decision
 <Why this was fixed OR why this was added to ignore list>
@@ -237,14 +284,12 @@ gh pr create --repo astashov/liftosaur --head fix/rollbar-$ARGUMENTS --title "fi
 <What caused this error>
 
 ## Test plan
-- [ ] <test steps>
-
-🤖 Generated with [Claude Code](https://claude.ai/code)"
+- [ ] <test steps>"
 ```
 
-**Important:** Replace ITEM_ID with the actual Rollbar item ID from Step 2 in both the commit message and PR title.
+**Important:** Replace ITEM_COUNTER with the actual Rollbar item counter from Step 2 in the commit message, PR title, and Rollbar link in the PR body.
 
-### 10. Cleanup
+### 12. Cleanup
 
 After PR is created, kill background servers and remove worktree:
 

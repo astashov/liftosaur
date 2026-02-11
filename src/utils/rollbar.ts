@@ -36,6 +36,7 @@ export const exceptionIgnores = [
   "outdated_client_storage",
   '{"isTrusted":true}',
   "Unable to resolve host",
+  "connection closed",
 ];
 
 export namespace RollbarUtils {

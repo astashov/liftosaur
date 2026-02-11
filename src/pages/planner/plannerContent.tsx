@@ -133,10 +133,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     weeks: [initialWeek],
   };
 
-  const initialProgram = props.initialProgram?.program || {
-    ...Program.create("My Program"),
-    planner: initialPlanner,
-  };
+  const initialProgram = props.initialProgram?.program
+    ? { ...props.initialProgram.program, planner: props.initialProgram.program.planner || initialPlanner }
+    : { ...Program.create("My Program"), planner: initialPlanner };
 
   const initialSettings: ISettings = Settings.build();
   initialSettings.exercises = {
