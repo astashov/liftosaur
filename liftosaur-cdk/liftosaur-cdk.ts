@@ -279,6 +279,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     const assetsBucket = new s3.Bucket(this, `LftS3Assets${suffix}`, {
       bucketName: `${LftS3Buckets.assets}${suffix.toLowerCase()}`,
+      publicReadAccess: true,
+      blockPublicAccess: {
+        blockPublicAcls: false,
+        blockPublicPolicy: false,
+        ignorePublicAcls: false,
+        restrictPublicBuckets: false,
+      },
     });
 
     const userimagesbucket = new s3.Bucket(this, `LftS3UserImages${suffix}`, {
