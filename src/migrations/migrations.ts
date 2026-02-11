@@ -364,4 +364,33 @@ export const migrations = {
     }
     return storage;
   },
+  "20260211120000_add_vtypes_to_progress": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const record of storage.progress || []) {
+      record.vtype = record.vtype || "progress";
+      const progressUi = record.ui;
+      if (progressUi) {
+        progressUi.vtype = progressUi.vtype || "progress_ui";
+        if (!progressUi.id) {
+          progressUi.id = UidFactory.generateUid(8);
+        }
+      }
+      for (let entryIndex = 0; entryIndex < record.entries.length; entryIndex++) {
+        const entry = record.entries[entryIndex];
+        entry.vtype = entry.vtype || "history_entry";
+        entry.index = entry.index ?? entryIndex;
+        for (let setIndex = 0; setIndex < entry.sets.length; setIndex++) {
+          const set = entry.sets[setIndex];
+          set.vtype = set.vtype || "set";
+          set.index = set.index ?? setIndex;
+        }
+        for (let setIndex = 0; setIndex < entry.warmupSets.length; setIndex++) {
+          const set = entry.warmupSets[setIndex];
+          set.vtype = set.vtype || "set";
+          set.index = set.index ?? setIndex;
+        }
+      }
+    }
+    return storage;
+  },
 };
