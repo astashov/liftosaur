@@ -19,6 +19,7 @@ To avoid permission issues in headless mode:
 
 Required environment variables:
 - `ROLLBAR_READ_TOKEN` - Rollbar project read token (Settings -> Project Access Tokens)
+- `GH_TOKEN_AI` - GitHub PAT for the `astashovai` bot account (used for pushing and creating comments)
 
 ## Important: Worktrees as Subdirectories
 
@@ -180,36 +181,54 @@ Based on the review comments and the full Rollbar context:
 3. Keep changes minimal and focused on what was requested
 4. Use the Rollbar error data, user state, and user events to inform your approach if the reviewer suggests a different fix strategy
 
-### 9. Build and Test
-
-Verify the changes:
+### 9. Build, Lint, and Unit Tests
 
 ```bash
-# Build (also generates required files)
-npm run build:prepare --prefix ./worktrees/$ARGUMENTS
-
-# Run unit tests
-npm test --prefix ./worktrees/$ARGUMENTS
-
-# Run Playwright E2E tests (optional but recommended)
-# First, kill any existing servers and start fresh:
-pkill -f "webpack-dev-server" 2>/dev/null || true
-pkill -f "ts-node-dev" 2>/dev/null || true
-lsof -ti:3000 | xargs kill -9 2>/dev/null || true
-lsof -ti:8080 | xargs kill -9 2>/dev/null || true
-
-# Start servers in background (from worktree)
-npm start --prefix ./worktrees/$ARGUMENTS &
-npm run start:server --prefix ./worktrees/$ARGUMENTS &
-sleep 15  # Wait for servers to start
-
-# Run E2E tests
-npm run playwright --prefix ./worktrees/$ARGUMENTS
+npm run build:prepare --prefix ./worktrees/pr-$ARGUMENTS
+```
+```bash
+npx tsc --noEmit --project ./worktrees/pr-$ARGUMENTS/tsconfig.json
+```
+```bash
+npm run lint --prefix ./worktrees/pr-$ARGUMENTS
 ```
 
-Note: The `subscriptions.spec.ts` test may be flaky - failures there can be ignored if unrelated to your changes.
+If there are type errors, lint errors, or formatting issues, fix them before proceeding.
 
-### 10. Commit and Push
+```bash
+npm test --prefix ./worktrees/pr-$ARGUMENTS
+```
+
+### 10. Playwright E2E Tests
+
+**This step is required — do NOT skip it.**
+
+Kill any existing servers:
+```bash
+pkill -f "webpack-dev-server" 2>/dev/null || true
+```
+```bash
+pkill -f "ts-node-dev" 2>/dev/null || true
+```
+Start both servers in the background (use the Bash tool's `run_in_background` parameter, do NOT use `&`):
+```bash
+npm start --prefix ./worktrees/pr-$ARGUMENTS
+```
+```bash
+npm run start:server --prefix ./worktrees/pr-$ARGUMENTS
+```
+Then wait for them to be ready:
+```bash
+sleep 15
+```
+Run Playwright:
+```bash
+npm run playwright --prefix ./worktrees/pr-$ARGUMENTS
+```
+
+Note: The `subscriptions.spec.ts` test may be flaky — failures there can be ignored if unrelated to your changes.
+
+### 11. Commit and Push
 
 ```bash
 git -C ./worktrees/pr-$ARGUMENTS add -A
@@ -218,32 +237,29 @@ git -C ./worktrees/pr-$ARGUMENTS add -A
 Write commit message to file using the Write tool at `./worktrees/pr-$ARGUMENTS/.tmp/commit-msg.txt`:
 ```
 address review feedback: <brief description of changes>
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 ```
 
+Then commit using the file (note the `--author` flag for the bot account):
 ```bash
-git -C ./worktrees/pr-$ARGUMENTS commit -F ./worktrees/pr-$ARGUMENTS/.tmp/commit-msg.txt
+git -C ./worktrees/pr-$ARGUMENTS commit --author="astashovai <astashovai@users.noreply.github.com>" -F /Users/anton/projects/liftosaur/worktrees/pr-$ARGUMENTS/.tmp/commit-msg.txt
 ```
 
+Push using the bot account's token:
 ```bash
-git -C ./worktrees/pr-$ARGUMENTS push origin HEAD:{headRefName}
+GH_TOKEN=$GH_TOKEN_AI git -C ./worktrees/pr-$ARGUMENTS push origin HEAD:{headRefName}
 ```
 
-### 11. Reply on PR
+### 12. Reply on PR
 
 Leave a comment on the PR summarizing what was addressed:
 
 ```bash
-gh pr comment $ARGUMENTS --repo astashov/liftosaur --body "## Feedback Addressed
+GH_TOKEN=$GH_TOKEN_AI gh pr comment $ARGUMENTS --repo astashov/liftosaur --body "## Feedback Addressed
 
-<bullet points of what was changed in response to review comments>
-
----
-*Automated follow-up by Claude Code*"
+<bullet points of what was changed in response to review comments>"
 ```
 
-### 12. Cleanup
+### 13. Cleanup
 
 ```bash
 git worktree remove ./worktrees/pr-$ARGUMENTS
