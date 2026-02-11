@@ -408,7 +408,10 @@ export function AppView(props: IProps): JSX.Element | null {
       throw new Error("Program is not selected on the 'main' screen");
     }
   } else if (Screen.currentName(state.screenStack) === "progress") {
-    const progress = Progress.getProgress(state)!;
+    const progress = Progress.getProgress(state);
+    if (progress == null) {
+      return null;
+    }
     const program = Progress.isCurrent(progress)
       ? Program.getFullProgram(state, progress.programId) ||
         (currentProgram ? Program.fullProgram(currentProgram, state.storage.settings) : undefined)
