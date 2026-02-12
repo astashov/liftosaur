@@ -22,7 +22,7 @@ RUN git clone --depth 1 https://github.com/astashov/liftosaur.git .
 
 RUN npm install
 
-RUN npx playwright install --with-deps chromium
+RUN npx playwright install --with-deps webkit
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

@@ -97,22 +97,19 @@ Look for:
 
 ### 3. Download User State and Actions
 
-Using the `liftosaur_exception_id` from step 2, fetch exception data.
-
-**IMPORTANT:** Use `api3.liftosaur.com` (not `api.liftosaur.com`):
+Using the `liftosaur_exception_id` from step 2, fetch exception data via the sidecar:
 
 ```bash
-curl -s "https://api3.liftosaur.com/api/exception/{liftosaur_exception_id}" \
-  -o ./worktrees/$ARGUMENTS/.tmp/exception.json
+curl -s "http://${SIDECAR_URL:-localhost:9888}/get_exception?exception_id={liftosaur_exception_id}" | jq -r '.stdout' > ./worktrees/$ARGUMENTS/.tmp/exception.json
 ```
 
 The response has nested JSON that needs double-parsing. Use `tee` to save parsed files:
 ```bash
 # Extract and parse lastActions (save to file, show last 10)
-jq -r '.data.data' ./worktrees/$ARGUMENTS/.tmp/exception.json | jq '.lastActions | fromjson' | tee ./worktrees/$ARGUMENTS/.tmp/lastActions.json | jq '.[-10:]'
+jq -r '.data' ./worktrees/$ARGUMENTS/.tmp/exception.json | jq '.lastActions | fromjson' | tee ./worktrees/$ARGUMENTS/.tmp/lastActions.json | jq '.[-10:]'
 
 # Extract and parse lastState (save to file, show summary)
-jq -r '.data.data' ./worktrees/$ARGUMENTS/.tmp/exception.json | jq '.lastState | fromjson' | tee ./worktrees/$ARGUMENTS/.tmp/lastState.json | jq '{screenStack, progressCount: (.storage.progress | length)}'
+jq -r '.data' ./worktrees/$ARGUMENTS/.tmp/exception.json | jq '.lastState | fromjson' | tee ./worktrees/$ARGUMENTS/.tmp/lastState.json | jq '{screenStack, progressCount: (.storage.progress | length)}'
 ```
 
 The parsed data contains:

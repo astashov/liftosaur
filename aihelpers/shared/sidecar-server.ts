@@ -26,6 +26,10 @@ const ALLOWED_SCRIPTS: Record<string, IScriptConfig> = {
     script: "./lambda/scripts/user_events_markdown.ts",
     params: ["userid"],
   },
+  get_exception: {
+    script: "./lambda/scripts/get_exception.ts",
+    params: ["exception_id"],
+  },
 };
 
 function runScript(
