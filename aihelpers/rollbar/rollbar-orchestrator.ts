@@ -11,6 +11,7 @@ const SIMILARITY_TIMEOUT_MS = 5 * 60 * 1000; // 1 minute for Claude similarity c
 
 interface IRollbarItem {
   id: number;
+  counter: number;
   title: string;
   occurrences: number;
 }
@@ -56,9 +57,10 @@ async function getActiveItems(): Promise<IRollbarItem[]> {
   }
 
   const items: IRollbarItem[] = [];
+  const seenCounters = new Set<number>();
   for (const env of ALLOWED_ENVIRONMENTS) {
     const response = await fetchJson<{
-      result: { items: Array<{ id: string; title: string; total_occurrences: number }> };
+      result: { items: Array<{ id: string; counter: number; title: string; total_occurrences: number }> };
     }>(
       `https://api.rollbar.com/api/1/items/?status=active&sort=last_occurrence_timestamp&direction=desc&level=error&environment=${env}`,
       {
@@ -67,7 +69,11 @@ async function getActiveItems(): Promise<IRollbarItem[]> {
     );
 
     for (const item of response.result.items) {
-      items.push({ id: Number(item.id), title: item.title, occurrences: item.total_occurrences });
+      if (seenCounters.has(item.counter)) {
+        continue;
+      }
+      seenCounters.add(item.counter);
+      items.push({ id: Number(item.id), counter: item.counter, title: item.title, occurrences: item.total_occurrences });
     }
   }
 
@@ -292,16 +298,8 @@ function runClaudeCommand(
 
 async function getPRNumber(occurrenceId: number): Promise<number | null> {
   const output = await runGhCommand([
-    "pr",
-    "list",
-    "--repo",
-    "astashov/liftosaur",
-    "--state",
-    "open",
-    "--head",
-    `astashovai:fix/rollbar-${occurrenceId}`,
-    "--json",
-    "number",
+    "api",
+    `repos/astashov/liftosaur/pulls?state=open&head=astashovai:fix/rollbar-${occurrenceId}`,
     "--jq",
     ".[0].number",
   ]);
