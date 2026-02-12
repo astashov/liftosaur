@@ -33,12 +33,14 @@ function changeWeight(
 ): IPlannerProgram {
   return EditProgramUiHelpers.changeFirstInstance(planner, plannerExercise, settings, true, (e) => {
     e.warmupSets = PlannerProgramExercise.degroupWarmupSets(e.warmupSets || []);
-    if (value.unit === "%") {
-      e.warmupSets[setIndex].percentage = value.value;
-      e.warmupSets[setIndex].weight = undefined;
-    } else {
-      e.warmupSets[setIndex].weight = value;
-      e.warmupSets[setIndex].percentage = undefined;
+    if (e.warmupSets[setIndex] != null) {
+      if (value.unit === "%") {
+        e.warmupSets[setIndex].percentage = value.value;
+        e.warmupSets[setIndex].weight = undefined;
+      } else {
+        e.warmupSets[setIndex].weight = value;
+        e.warmupSets[setIndex].percentage = undefined;
+      }
     }
   });
 }
@@ -52,7 +54,9 @@ function changeReps(
 ): IPlannerProgram {
   return EditProgramUiHelpers.changeFirstInstance(planner, plannerExercise, settings, true, (e) => {
     e.warmupSets = PlannerProgramExercise.degroupWarmupSets(e.warmupSets || []);
-    e.warmupSets[setIndex].reps = value;
+    if (e.warmupSets[setIndex] != null) {
+      e.warmupSets[setIndex].reps = value;
+    }
   });
 }
 
