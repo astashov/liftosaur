@@ -434,8 +434,8 @@ export namespace Progress {
     return fns;
   }
 
-  export function isCurrent(progress: IHistoryRecord): boolean {
-    return progress.id === 0;
+  export function isCurrent(progress: IHistoryRecord | undefined): boolean {
+    return progress?.id === 0;
   }
 
   export function startTimer(
