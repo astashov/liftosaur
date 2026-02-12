@@ -19,7 +19,14 @@ To avoid permission issues in headless mode:
 
 Required environment variables:
 - `ROLLBAR_READ_TOKEN` - Rollbar project read token (Settings -> Project Access Tokens)
-- `GH_TOKEN_AI` - GitHub PAT for the `astashovai` bot account (used for pushing and creating PRs)
+- `GH_TOKEN_AI` - GitHub PAT for the `astashovai` bot account (fine-grained, scoped to the fork `astashovai/liftosaur`)
+
+## Fork-Based Workflow
+
+All pushes go to the fork `astashovai/liftosaur`, and PRs are created cross-fork to `astashov/liftosaur`. Ensure the fork remote exists:
+```bash
+git remote add fork "https://astashovai:${GH_TOKEN_AI}@github.com/astashovai/liftosaur.git" 2>/dev/null || true
+```
 
 ## Important: Worktrees as Subdirectories
 
@@ -120,8 +127,7 @@ The parsed data contains:
 Get the user's event log to see what happened around the error. The user ID is in `person.id` from the Rollbar response:
 
 ```bash
-# Save user events to file and search for errors
-npm run r ./lambda/scripts/user_events_markdown.ts {userid} 2>/dev/null | tee ./worktrees/$ARGUMENTS/.tmp/user_events.md | grep -B 5 -A 5 "❌ \*\*ERROR\*\*"
+curl -s "http://${SIDECAR_URL:-localhost:9888}/user_events_markdown?userid={userid}" | jq -r '.stdout' | tee ./worktrees/$ARGUMENTS/.tmp/user_events.md | grep -B 5 -A 5 "❌ \*\*ERROR\*\*"
 ```
 
 This shows:
@@ -140,10 +146,10 @@ jq -r '.result.data | {timestamp, person_id: .person.id}' ./worktrees/$ARGUMENTS
 
 Convert the Unix timestamp to a date (YYYY-MM-DD format) and run:
 ```bash
-npm run r ./lambda/scripts/get_logs.ts {YYYY-MM-DD} {userid}
+curl -s "http://${SIDECAR_URL:-localhost:9888}/get_logs?date={YYYY-MM-DD}&userid={userid}" | jq -r '.stdout' > ./worktrees/$ARGUMENTS/.tmp/server_logs.txt
 ```
 
-This downloads a log file to the project root as `logs-{YYYY-MM-DD}-{userid}.txt`. The file can be large, so don't read the whole thing. Instead, use the occurrence timestamp to find the relevant section — search for log entries around that time and read only the surrounding context.
+The output can be large, so don't read the whole thing. Instead, use the occurrence timestamp to find the relevant section — search for log entries around that time and read only the surrounding context.
 
 ### 6. Analyze and Decide
 
@@ -233,24 +239,8 @@ npm test --prefix ./worktrees/$ARGUMENTS
 
 **This step is required — do NOT skip it.**
 
-Kill any existing servers:
-```bash
-pkill -f "webpack-dev-server" 2>/dev/null || true
-```
-```bash
-pkill -f "ts-node-dev" 2>/dev/null || true
-```
-Start both servers in the background (use the Bash tool's `run_in_background` parameter, do NOT use `&`):
-```bash
-npm start --prefix ./worktrees/$ARGUMENTS
-```
-```bash
-npm run start:server --prefix ./worktrees/$ARGUMENTS
-```
-Then wait for them to be ready:
-```bash
-sleep 15
-```
+The webpack-dev-server (:8080) and devserver (:3000) are already running on the host as LaunchD services. Do NOT start or stop them.
+
 Run Playwright:
 ```bash
 npm run playwright --prefix ./worktrees/$ARGUMENTS
@@ -277,10 +267,10 @@ Then commit using the file (note the `--author` flag for the bot account):
 git -C ./worktrees/$ARGUMENTS commit --author="astashovai <astashovai@users.noreply.github.com>" -F ./worktrees/$ARGUMENTS/.tmp/commit-msg.txt
 ```
 
-Push and create PR using the bot account's token:
+Push to the fork and create a cross-fork PR to the main repo:
 ```bash
-GH_TOKEN=$GH_TOKEN_AI git -C ./worktrees/$ARGUMENTS push -u origin fix/rollbar-$ARGUMENTS
-GH_TOKEN=$GH_TOKEN_AI gh pr create --repo astashov/liftosaur --head fix/rollbar-$ARGUMENTS --title "fix-rollbar (ITEM_COUNTER/$ARGUMENTS): <brief description>" --body "## Summary
+GH_TOKEN=$GH_TOKEN_AI git -C ./worktrees/$ARGUMENTS push -u fork fix/rollbar-$ARGUMENTS
+GH_TOKEN=$GH_TOKEN_AI gh pr create --repo astashov/liftosaur --head astashovai:fix/rollbar-$ARGUMENTS --title "fix-rollbar (ITEM_COUNTER/$ARGUMENTS): <brief description>" --body "## Summary
 - <bullet points of changes>
 
 ## Rollbar
@@ -300,10 +290,8 @@ https://app.rollbar.com/a/astashov/fix/item/liftosaur/ITEM_COUNTER/occurrence/$A
 
 ### 12. Cleanup
 
-After PR is created, kill background servers and remove worktree:
+After PR is created, remove worktree:
 
 ```bash
-pkill -f "webpack-dev-server" 2>/dev/null || true
-pkill -f "ts-node-dev" 2>/dev/null || true
 git worktree remove ./worktrees/$ARGUMENTS
 ```

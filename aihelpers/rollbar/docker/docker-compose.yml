@@ -1,0 +1,21 @@
+services:
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.orchestrator
+    env_file:
+      - ~/liftosaur-secrets/secrets.env
+    environment:
+      - SIDECAR_URL=host.docker.internal:9888
+      - CI=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../../../localdomain.js:/app/localdomain.js:ro
+      - ~/.secrets/live:/root/.secrets/live:ro
+      - orchestrator-logs:/app/logs
+      - orchestrator-worktrees:/app/worktrees
+
+volumes:
+  orchestrator-logs:
+  orchestrator-worktrees:

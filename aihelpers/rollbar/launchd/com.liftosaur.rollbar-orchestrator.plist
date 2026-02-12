@@ -8,7 +8,8 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/anton/projects/liftosaur/scripts/rollbar-orchestrator-runner.sh</string>
+        <string>/Users/anton/projects/liftosaur/aihelpers/rollbar/docker-orchestrator-runner.sh</string>
+        <string>rollbar</string>
     </array>
 
     <key>WorkingDirectory</key>

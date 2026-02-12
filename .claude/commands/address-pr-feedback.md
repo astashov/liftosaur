@@ -19,7 +19,14 @@ To avoid permission issues in headless mode:
 
 Required environment variables:
 - `ROLLBAR_READ_TOKEN` - Rollbar project read token (Settings -> Project Access Tokens)
-- `GH_TOKEN_AI` - GitHub PAT for the `astashovai` bot account (used for pushing and creating comments)
+- `GH_TOKEN_AI` - GitHub PAT for the `astashovai` bot account (fine-grained, scoped to the fork `astashovai/liftosaur`)
+
+## Fork-Based Workflow
+
+All pushes go to the fork `astashovai/liftosaur`, and PRs are created cross-fork to `astashov/liftosaur`. Ensure the fork remote exists:
+```bash
+git remote add fork "https://astashovai:${GH_TOKEN_AI}@github.com/astashovai/liftosaur.git" 2>/dev/null || true
+```
 
 ## Important: Worktrees as Subdirectories
 
@@ -61,9 +68,9 @@ These are the comments you need to address. Read them carefully and understand w
 
 Extract the branch name from the PR metadata (the `headRefName` field from Step 1).
 
-First, fetch the latest from origin:
+First, fetch the latest from the fork (PR branches live on the fork):
 ```bash
-git fetch origin {headRefName}
+git fetch fork {headRefName}
 ```
 
 Clean up any existing worktree at this path, then create one from the PR branch:
@@ -72,7 +79,7 @@ git worktree remove ./worktrees/pr-$ARGUMENTS 2>/dev/null || true
 ```
 
 ```bash
-git worktree add ./worktrees/pr-$ARGUMENTS origin/{headRefName}
+git worktree add ./worktrees/pr-$ARGUMENTS fork/{headRefName}
 ```
 
 ```bash
@@ -149,7 +156,7 @@ The parsed data contains:
 Get the user's event log to see what happened around the error. The user ID is in `person.id` from the Rollbar response:
 
 ```bash
-npm run r ./lambda/scripts/user_events_markdown.ts {userid} 2>/dev/null | tee ./worktrees/pr-$ARGUMENTS/.tmp/user_events.md | grep -B 5 -A 5 "❌ \*\*ERROR\*\*"
+curl -s "http://${SIDECAR_URL:-localhost:9888}/user_events_markdown?userid={userid}" | jq -r '.stdout' | tee ./worktrees/pr-$ARGUMENTS/.tmp/user_events.md | grep -B 5 -A 5 "❌ \*\*ERROR\*\*"
 ```
 
 This shows:
@@ -203,24 +210,8 @@ npm test --prefix ./worktrees/pr-$ARGUMENTS
 
 **This step is required — do NOT skip it.**
 
-Kill any existing servers:
-```bash
-pkill -f "webpack-dev-server" 2>/dev/null || true
-```
-```bash
-pkill -f "ts-node-dev" 2>/dev/null || true
-```
-Start both servers in the background (use the Bash tool's `run_in_background` parameter, do NOT use `&`):
-```bash
-npm start --prefix ./worktrees/pr-$ARGUMENTS
-```
-```bash
-npm run start:server --prefix ./worktrees/pr-$ARGUMENTS
-```
-Then wait for them to be ready:
-```bash
-sleep 15
-```
+The webpack-dev-server (:8080) and devserver (:3000) are already running on the host as LaunchD services. Do NOT start or stop them.
+
 Run Playwright:
 ```bash
 npm run playwright --prefix ./worktrees/pr-$ARGUMENTS
@@ -244,9 +235,9 @@ Then commit using the file (note the `--author` flag for the bot account):
 git -C ./worktrees/pr-$ARGUMENTS commit --author="astashovai <astashovai@users.noreply.github.com>" -F /Users/anton/projects/liftosaur/worktrees/pr-$ARGUMENTS/.tmp/commit-msg.txt
 ```
 
-Push using the bot account's token:
+Push to the fork:
 ```bash
-GH_TOKEN=$GH_TOKEN_AI git -C ./worktrees/pr-$ARGUMENTS push origin HEAD:{headRefName}
+GH_TOKEN=$GH_TOKEN_AI git -C ./worktrees/pr-$ARGUMENTS push fork HEAD:{headRefName}
 ```
 
 ### 12. Reply on PR

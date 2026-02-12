@@ -7,7 +7,7 @@ set -euo pipefail
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
 # Load secrets from file (create this file with your tokens)
 SECRETS_FILE="$HOME/liftosaur-secrets/secrets.env"
@@ -26,4 +26,4 @@ mkdir -p "$PROJECT_DIR/logs/rollbar-orchestrator"
 
 # Run the orchestrator
 cd "$PROJECT_DIR"
-exec npx ts-node scripts/rollbar-orchestrator.ts
+exec npx ts-node aihelpers/rollbar/rollbar-orchestrator.ts

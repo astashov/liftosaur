@@ -2,7 +2,7 @@ import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
-const PROJECT_DIR = path.resolve(__dirname, "..");
+const PROJECT_DIR = path.resolve(__dirname, "..", "..");
 const LOG_DIR = path.join(PROJECT_DIR, "logs", "rollbar-orchestrator");
 const TIMEOUT_MS = 60 * 60 * 1000; // 1 hour per fix
 const MAX_FIXES = 3;
@@ -250,7 +250,7 @@ function runClaudeCommand(
   logFilePath?: string
 ): Promise<{ success: boolean; output: string }> {
   return new Promise((resolve) => {
-    const scriptPath = path.join(PROJECT_DIR, "scripts", "claude-stream.sh");
+    const scriptPath = path.join(PROJECT_DIR, "aihelpers", "shared", "claude-stream.sh");
     const args = logFilePath ? [command, "-l", logFilePath] : [command];
 
     log(`Running: ${scriptPath} "${command}"${logFilePath ? ` -l ${logFilePath}` : ""}`);
@@ -299,7 +299,7 @@ async function getPRNumber(occurrenceId: number): Promise<number | null> {
     "--state",
     "open",
     "--head",
-    `fix/rollbar-${occurrenceId}`,
+    `astashovai:fix/rollbar-${occurrenceId}`,
     "--json",
     "number",
     "--jq",

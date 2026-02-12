@@ -2,7 +2,7 @@ import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
-const PROJECT_DIR = path.resolve(__dirname, "..");
+const PROJECT_DIR = path.resolve(__dirname, "..", "..");
 const LOG_DIR = path.join(PROJECT_DIR, "logs", "pr-feedback-orchestrator");
 const TIMEOUT_MS = 60 * 60 * 1000; // 1 hour per feedback round
 
@@ -44,7 +44,7 @@ function runClaudeCommand(
   logFilePath: string
 ): Promise<{ success: boolean; output: string }> {
   return new Promise((resolve) => {
-    const scriptPath = path.join(PROJECT_DIR, "scripts", "claude-stream.sh");
+    const scriptPath = path.join(PROJECT_DIR, "aihelpers", "shared", "claude-stream.sh");
     const args = [command, "-l", logFilePath];
 
     log(`Running: ${scriptPath} "${command}" -l ${logFilePath}`);
