@@ -106,6 +106,13 @@ export namespace Thunk {
           ({ id_token, code } = result);
         }
       } else {
+        if (!window.AppleID?.auth) {
+          alert("Apple Sign In is not available");
+          if (cb) {
+            cb();
+          }
+          return;
+        }
         const response = await window.AppleID.auth.signIn();
         ({ id_token, code } = response.authorization);
       }
