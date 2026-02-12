@@ -16,9 +16,4 @@ services:
     volumes:
       - ../../../localdomain.js:/app/localdomain.js:ro
       - ~/.secrets/live:/root/.secrets/live:ro
-      - orchestrator-logs:/app/logs
-      - orchestrator-worktrees:/app/worktrees
-
-volumes:
-  orchestrator-logs:
-  orchestrator-worktrees:
+      - ../../../logs:/app/logs
