@@ -338,7 +338,7 @@ async function main(): Promise<void> {
   const needsSimilarityCheck: IRollbarOccurrence[] = [];
 
   for (const item of items) {
-    if (needsSimilarityCheck.length >= 5) {
+    if (needsSimilarityCheck.length >= 10) {
       break;
     }
 
