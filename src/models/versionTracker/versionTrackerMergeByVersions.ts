@@ -1,4 +1,5 @@
 import { ObjectUtils } from "../../utils/object";
+import { CollectionUtils } from "../../utils/collection";
 import {
   IVersionTypes,
   IFieldVersion,
@@ -217,16 +218,22 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
           ...(diffVersion.deleted ? Object.keys(diffVersion.deleted) : []),
         ]);
     if (Array.isArray(fullValue) && Array.isArray(extractedValue)) {
+      const dedupedFull = CollectionUtils.uniqByExpr(fullValue, (item) =>
+        VersionTrackerUtils.getId(item, this.versionTypes)
+      );
+      const dedupedExtracted = CollectionUtils.uniqByExpr(extractedValue, (item) =>
+        VersionTrackerUtils.getId(item, this.versionTypes)
+      );
       const result: unknown[] = [];
       const processedIds = new Set<string>();
 
-      for (const extractedItem of extractedValue) {
+      for (const extractedItem of dedupedExtracted) {
         const itemId = VersionTrackerUtils.getId(extractedItem, this.versionTypes);
         if (itemId && !deletedKeys.has(itemId)) {
           processedIds.add(itemId);
           const diffItemVersion = diffVersion?.items?.[itemId];
           const fullItemVersion = fullVersion?.items?.[itemId];
-          const fullItem = fullValue.find((item) => VersionTrackerUtils.getId(item, this.versionTypes) === itemId);
+          const fullItem = dedupedFull.find((item) => VersionTrackerUtils.getId(item, this.versionTypes) === itemId);
 
           if (
             isVersionsObject(diffItemVersion) &&
@@ -255,7 +262,7 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         }
       }
 
-      for (const fullItem of fullValue) {
+      for (const fullItem of dedupedFull) {
         const itemId = VersionTrackerUtils.getId(fullItem, this.versionTypes);
         if (itemId && !processedIds.has(itemId) && !deletedKeys.has(itemId)) {
           result.push(fullItem);

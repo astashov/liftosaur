@@ -480,6 +480,46 @@ describe("mergeByVersions", () => {
     });
   });
 
+  it("should handle duplicate IDs within collections by keeping first occurrence", () => {
+    const set1 = { vtype: "set", id: "s1", reps: 5 };
+    const set2 = { vtype: "set", id: "s1", reps: 8 };
+    const set3 = { vtype: "set", id: "s1", reps: 10 };
+
+    const fullObj = {
+      sets: [
+        { vtype: "set", id: "s1", reps: 5 },
+        { vtype: "set", id: "s1", reps: 8 },
+        { vtype: "set", id: "s1", reps: 10 },
+      ],
+    };
+
+    const fullVersions: IVersions<any> = {
+      sets: {
+        items: {
+          s1: 1000,
+        },
+      },
+    };
+
+    const versionDiff: IVersions<any> = {
+      sets: {
+        items: {
+          s1: 2000,
+        },
+      },
+    };
+
+    const extractedObj = {
+      sets: [set1, set2, set3],
+    };
+
+    const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
+
+    expect(merged.sets).to.have.length(1);
+    expect(merged.sets[0].reps).to.equal(5);
+    expect(merged.sets[0].id).to.equal("s1");
+  });
+
   it("should handle atomic objects in collections", () => {
     const record1: IHistoryRecord = {
       vtype: "history_record",
