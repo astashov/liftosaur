@@ -10,6 +10,9 @@ services:
       - CI=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      - "localai.liftosaur.com:host-gateway"
+      - "localai-api.liftosaur.com:host-gateway"
+      - "localai-streaming-api.liftosaur.com:host-gateway"
     volumes:
       - ../../../localdomain.js:/app/localdomain.js:ro
       - ~/.secrets/live:/root/.secrets/live:ro
