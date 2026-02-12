@@ -354,7 +354,7 @@ export function AppView(props: IProps): JSX.Element | null {
     userId: state.user?.id,
   };
 
-  let content: JSX.Element;
+  let content: JSX.Element | undefined;
   if (Screen.currentName(state.screenStack) === "first") {
     const userId = state.user?.id;
     const userEmail = state.user?.email;
@@ -408,27 +408,29 @@ export function AppView(props: IProps): JSX.Element | null {
       throw new Error("Program is not selected on the 'main' screen");
     }
   } else if (Screen.currentName(state.screenStack) === "progress") {
-    const progress = Progress.getProgress(state)!;
-    const program = Progress.isCurrent(progress)
-      ? Program.getFullProgram(state, progress.programId) ||
-        (currentProgram ? Program.fullProgram(currentProgram, state.storage.settings) : undefined)
-      : undefined;
-    content = (
-      <ScreenWorkout
-        navCommon={navCommon}
-        stats={state.storage.stats}
-        helps={state.storage.helps}
-        history={state.storage.history}
-        subscription={state.storage.subscription}
-        userId={state.user?.id}
-        progress={progress}
-        allPrograms={state.storage.programs}
-        program={program}
-        currentProgram={currentProgram}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    );
+    const progress = Progress.getProgress(state);
+    if (progress) {
+      const program = Progress.isCurrent(progress)
+        ? Program.getFullProgram(state, progress.programId) ||
+          (currentProgram ? Program.fullProgram(currentProgram, state.storage.settings) : undefined)
+        : undefined;
+      content = (
+        <ScreenWorkout
+          navCommon={navCommon}
+          stats={state.storage.stats}
+          helps={state.storage.helps}
+          history={state.storage.history}
+          subscription={state.storage.subscription}
+          userId={state.user?.id}
+          progress={progress}
+          allPrograms={state.storage.programs}
+          program={program}
+          currentProgram={currentProgram}
+          dispatch={dispatch}
+          settings={state.storage.settings}
+        />
+      );
+    }
   } else if (Screen.currentName(state.screenStack) === "settings") {
     content = (
       <ScreenSettings
