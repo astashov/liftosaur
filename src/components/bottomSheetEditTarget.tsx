@@ -47,11 +47,15 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 width={2.5}
                 name="target-minreps"
                 onBlur={(value) => {
-                  if (savedRef.current) return;
+                  if (savedRef.current) {
+                    return;
+                  }
                   updateProgress(props.dispatch, [lbSet.p("minReps").record(value)], "target-blur-minreps");
                 }}
                 onInput={(value) => {
-                  if (savedRef.current) return;
+                  if (savedRef.current) {
+                    return;
+                  }
                   if (value != null && !isNaN(value) && value >= 0) {
                     updateProgress(props.dispatch, [lbSet.p("minReps").record(value)], "target-input-minreps");
                   }
@@ -68,11 +72,15 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 width={2.5}
                 name="target-maxreps"
                 onBlur={(value) => {
-                  if (savedRef.current) return;
+                  if (savedRef.current) {
+                    return;
+                  }
                   updateProgress(props.dispatch, [lbSet.p("reps").record(value)], "target-blur-maxreps");
                 }}
                 onInput={(value) => {
-                  if (savedRef.current) return;
+                  if (savedRef.current) {
+                    return;
+                  }
                   if (value == null || (!isNaN(value) && value >= 0)) {
                     updateProgress(props.dispatch, [lbSet.p("reps").record(value)], "target-input-maxreps");
                   }
@@ -110,7 +118,9 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                 subscription={props.subscription}
                 exerciseType={props.editSetModal.exerciseType}
                 onBlur={(value) => {
-                  if (savedRef.current) return;
+                  if (savedRef.current) {
+                    return;
+                  }
                   updateProgress(
                     props.dispatch,
                     [lbSet.p("originalWeight").record(value ?? Weight.build(0, "lb"))],
@@ -118,7 +128,9 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   );
                 }}
                 onInput={(value) => {
-                  if (savedRef.current) return;
+                  if (savedRef.current) {
+                    return;
+                  }
                   if (value != null) {
                     updateProgress(
                       props.dispatch,
@@ -180,11 +192,15 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   width={2.5}
                   name="target-rpe"
                   onBlur={(value) => {
-                    if (savedRef.current) return;
+                    if (savedRef.current) {
+                      return;
+                    }
                     updateProgress(props.dispatch, [lbSet.p("rpe").record(value)], "target-blur-rpe");
                   }}
                   onInput={(value) => {
-                    if (savedRef.current) return;
+                    if (savedRef.current) {
+                      return;
+                    }
                     if (value != null && !isNaN(value) && value >= 0) {
                       updateProgress(props.dispatch, [lbSet.p("rpe").record(value)], "target-input-rpe");
                     }
@@ -250,11 +266,15 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   width={2.5}
                   name="target-timer"
                   onBlur={(value) => {
-                    if (savedRef.current) return;
+                    if (savedRef.current) {
+                      return;
+                    }
                     updateProgress(props.dispatch, [lbSet.p("timer").record(value)], "target-blur-timer");
                   }}
                   onInput={(value) => {
-                    if (savedRef.current) return;
+                    if (savedRef.current) {
+                      return;
+                    }
                     if (value != null && !isNaN(value) && value >= 0) {
                       updateProgress(props.dispatch, [lbSet.p("timer").record(value)], "target-input-timer");
                     }
