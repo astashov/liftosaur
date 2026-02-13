@@ -34,7 +34,7 @@ interface IRedditPixelCustomData {
 interface Window {
   handleGapiLoad: () => void;
   disableCopying?: boolean;
-  AppleID: {
+  AppleID?: {
     auth: {
       signIn: () => Promise<{
         authorization: { code: string; id_token: string };
