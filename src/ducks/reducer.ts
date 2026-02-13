@@ -650,11 +650,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     }
     return Progress.setProgress(
       state,
-      buildCardsReducer(
-        state.storage.settings,
-        state.storage.stats,
-        state.storage.subscription
-      )(progress, action)
+      buildCardsReducer(state.storage.settings, state.storage.stats, state.storage.subscription)(progress, action)
     );
   } else if (action.type === "StartProgramDayAction") {
     const progress = Progress.getProgress(state);

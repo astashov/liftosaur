@@ -310,29 +310,6 @@ export const migrations = {
         }
       }
     }
-    for (const record of storage.progress || []) {
-      record.vtype = record.vtype || "progress";
-      const progressUi = record.ui;
-      if (progressUi) {
-        progressUi.vtype = progressUi.vtype || "progress_ui";
-        progressUi.id = progressUi.id || UidFactory.generateUid(8);
-      }
-      for (let entryIndex = 0; entryIndex < record.entries.length; entryIndex++) {
-        const entry = record.entries[entryIndex];
-        entry.vtype = entry.vtype || "history_entry";
-        entry.index = entry.index ?? entryIndex;
-        for (let setIndex = 0; setIndex < entry.sets.length; setIndex++) {
-          const set = entry.sets[setIndex];
-          set.vtype = set.vtype || "set";
-          set.index = set.index ?? setIndex;
-        }
-        for (let setIndex = 0; setIndex < entry.warmupSets.length; setIndex++) {
-          const set = entry.warmupSets[setIndex];
-          set.vtype = set.vtype || "set";
-          set.index = set.index ?? setIndex;
-        }
-      }
-    }
     return storage;
   },
   "20260103180023_add_progress_array": (aStorage: IStorage): IStorage => {
@@ -372,16 +349,31 @@ export const migrations = {
       }
     }
     for (const record of storage.progress || []) {
-      for (const entry of record.entries) {
-        for (const set of entry.sets) {
+      record.vtype = record.vtype || "progress";
+      const progressUi = record.ui;
+      if (progressUi) {
+        progressUi.vtype = progressUi.vtype || "progress_ui";
+        progressUi.id = progressUi.id || UidFactory.generateUid(8);
+      }
+      for (let entryIndex = 0; entryIndex < record.entries.length; entryIndex++) {
+        const entry = record.entries[entryIndex];
+        entry.vtype = entry.vtype || "history_entry";
+        entry.index = entry.index ?? entryIndex;
+        for (let setIndex = 0; setIndex < entry.sets.length; setIndex++) {
+          const set = entry.sets[setIndex];
           if (!set.id) {
             set.id = UidFactory.generateUid(6);
           }
+          set.vtype = set.vtype || "set";
+          set.index = set.index ?? setIndex;
         }
-        for (const set of entry.warmupSets) {
+        for (let setIndex = 0; setIndex < entry.warmupSets.length; setIndex++) {
+          const set = entry.warmupSets[setIndex];
           if (!set.id) {
             set.id = UidFactory.generateUid(6);
           }
+          set.vtype = set.vtype || "set";
+          set.index = set.index ?? setIndex;
         }
       }
     }
