@@ -278,7 +278,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                           }),
                         lb<IHistoryRecord>()
                           .pi("ui")
-                          .p("currentEntryIndex")
+                          .pi("currentEntryIndex")
                           .recordModify((index) => {
                             return Math.max(0, (index ?? 0) - 1);
                           }),
