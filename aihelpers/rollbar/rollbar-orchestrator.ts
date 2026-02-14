@@ -264,16 +264,25 @@ function runClaudeCommand(
     const proc = spawn(scriptPath, args, {
       cwd: PROJECT_DIR,
       stdio: ["ignore", "pipe", "pipe"],
+      detached: true,
     });
 
     let output = "";
     let killed = false;
 
+    const killProcessGroup = (signal: NodeJS.Signals): void => {
+      try {
+        process.kill(-proc.pid!, signal);
+      } catch {
+        // Process group already gone
+      }
+    };
+
     const timer = setTimeout(() => {
       killed = true;
-      log("Command timed out, killing process...");
-      proc.kill("SIGTERM");
-      setTimeout(() => proc.kill("SIGKILL"), 5000);
+      log("Command timed out, killing process group...");
+      killProcessGroup("SIGTERM");
+      setTimeout(() => killProcessGroup("SIGKILL"), 5000);
     }, timeoutMs);
 
     proc.stdout.on("data", (data) => {
