@@ -42,14 +42,12 @@ export function ScreenAccount(props: IProps): JSX.Element {
 
   useEffect(() => {
     refetchAccounts();
-    if (window.AppleID?.auth) {
-      window.AppleID.auth.init({
-        clientId: "com.liftosaur.www.signinapple", // This is the service ID we created.
-        scope: "email", // To tell apple we want the user name and emails fields in the response it sends us.
-        redirectURI: `${__HOST__}/appleauthcallback.html`, // As registered along with our service ID
-        usePopup: true, // Important if we want to capture the data apple sends on the client side.
-      });
-    }
+    window.AppleID?.auth.init({
+      clientId: "com.liftosaur.www.signinapple", // This is the service ID we created.
+      scope: "email", // To tell apple we want the user name and emails fields in the response it sends us.
+      redirectURI: `${__HOST__}/appleauthcallback.html`, // As registered along with our service ID
+      usePopup: true, // Important if we want to capture the data apple sends on the client side.
+    });
   }, []);
 
   return (
