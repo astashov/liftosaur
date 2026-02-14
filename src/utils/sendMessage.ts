@@ -115,8 +115,13 @@ export namespace SendMessage {
       window.webkit.messageHandlers &&
       window.webkit.messageHandlers.liftosaurMessage
     ) {
-      window.webkit.messageHandlers.liftosaurMessage.postMessage(obj);
-      return true;
+      try {
+        window.webkit.messageHandlers.liftosaurMessage.postMessage(obj);
+        return true;
+      } catch (e) {
+        console.error("Failed to send message to iOS bridge:", e);
+        return false;
+      }
     } else {
       return false;
     }
@@ -124,8 +129,13 @@ export namespace SendMessage {
 
   export function toAndroid(obj: Record<string, string | undefined>): boolean {
     if (typeof window !== "undefined" && window.JSAndroidBridge) {
-      window.JSAndroidBridge.sendMessage(JSON.stringify(obj));
-      return true;
+      try {
+        window.JSAndroidBridge.sendMessage(JSON.stringify(obj));
+        return true;
+      } catch (e) {
+        console.error("Failed to send message to Android bridge:", e);
+        return false;
+      }
     } else {
       return false;
     }
