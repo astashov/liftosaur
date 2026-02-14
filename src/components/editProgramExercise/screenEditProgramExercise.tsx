@@ -260,21 +260,24 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
               pickerDispatch={buildCustomLensDispatch(plannerDispatch, lbUi.pi("exercisePickerState"))}
               dispatch={props.dispatch}
               onNewKey={(newKey) => {
-                updateState(
-                  props.dispatch,
-                  [
-                    (
-                      lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
-                        IState,
-                        { key: string },
-                        {}
-                      >
-                    )
-                      .pi("key")
-                      .record(newKey),
-                  ],
-                  "Update exercise key in screen params"
-                );
+                const hasEditExerciseScreen = props.navCommon.screenStack.some((s) => s.name === "editProgramExercise");
+                if (hasEditExerciseScreen) {
+                  updateState(
+                    props.dispatch,
+                    [
+                      (
+                        lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
+                          IState,
+                          { key: string },
+                          {}
+                        >
+                      )
+                        .pi("key")
+                        .record(newKey),
+                    ],
+                    "Update exercise key in screen params"
+                  );
+                }
               }}
             />
           )}
