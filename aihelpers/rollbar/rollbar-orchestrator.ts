@@ -16,6 +16,11 @@ interface IRollbarItem {
   occurrences: number;
 }
 
+interface IOccurrenceInfo {
+  id: number;
+  codeVersion: string | null;
+}
+
 interface IRollbarOccurrence {
   id: number;
   itemId: number;
@@ -80,7 +85,7 @@ async function getActiveItems(): Promise<IRollbarItem[]> {
   return items;
 }
 
-async function getOccurrenceForItem(itemId: number): Promise<number | null> {
+async function getOccurrenceForItem(itemId: number): Promise<IOccurrenceInfo | null> {
   const token = process.env.ROLLBAR_READ_TOKEN;
   if (!token) {
     throw new Error("ROLLBAR_READ_TOKEN not set");
@@ -92,7 +97,28 @@ async function getOccurrenceForItem(itemId: number): Promise<number | null> {
     "X-Rollbar-Access-Token": token,
   });
 
-  return response.result.instances[0]?.id ?? null;
+  const id = response.result.instances[0]?.id;
+  if (id == null) return null;
+
+  let codeVersion: string | null = null;
+  try {
+    const detail = await fetchJson<{
+      result: { data: Record<string, unknown> };
+    }>(`https://api.rollbar.com/api/1/instance/${id}`, {
+      "X-Rollbar-Access-Token": token,
+    });
+    const data = detail.result.data as {
+      client?: { javascript?: { code_version?: string } };
+      server?: { code_version?: string };
+      code_version?: string;
+    };
+    codeVersion =
+      data?.client?.javascript?.code_version ?? data?.server?.code_version ?? data?.code_version ?? null;
+  } catch {
+    // Non-critical — continue without code version
+  }
+
+  return { id, codeVersion };
 }
 
 function runGhCommand(args: string[]): Promise<string> {
@@ -151,10 +177,55 @@ function checkIdMatch(
     if (pr.occurrenceId === occurrenceId.toString()) {
       return { skip: true, reason: `occurrence ${occurrenceId} already has PR #${pr.number} (${pr.state})` };
     }
-    if (pr.itemId === item.id.toString()) {
+    if (pr.itemId === item.counter.toString()) {
       return { skip: true, reason: `item ${item.id} already has PR #${pr.number} (${pr.state})` };
     }
   }
+  return null;
+}
+
+async function getMergeCommit(prNumber: number): Promise<string | null> {
+  const output = await runGhCommand([
+    "pr",
+    "view",
+    String(prNumber),
+    "--repo",
+    "astashov/liftosaur",
+    "--json",
+    "mergeCommit",
+    "--jq",
+    ".mergeCommit.oid",
+  ]);
+  return output || null;
+}
+
+function isAncestor(maybeAncestor: string, descendant: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const proc = spawn("git", ["merge-base", "--is-ancestor", maybeAncestor, descendant], {
+      cwd: PROJECT_DIR,
+    });
+    proc.on("close", (code) => resolve(code === 0));
+  });
+}
+
+async function isFixedByMergedPR(
+  codeVersion: string,
+  item: IRollbarItem,
+  prs: IRollbarPR[]
+): Promise<string | null> {
+  const mergedMatches = prs.filter(
+    (pr) => pr.state === "MERGED" && pr.itemId === item.counter.toString()
+  );
+
+  for (const pr of mergedMatches) {
+    const mergeCommit = await getMergeCommit(pr.number);
+    if (!mergeCommit) continue;
+
+    if (await isAncestor(codeVersion, mergeCommit)) {
+      return `occurrence commit ${codeVersion.slice(0, 8)} predates merged fix PR #${pr.number}`;
+    }
+  }
+
   return null;
 }
 
@@ -349,20 +420,28 @@ async function main(): Promise<void> {
       break;
     }
 
-    const occurrenceId = await getOccurrenceForItem(item.id);
-    if (!occurrenceId) {
+    const occurrence = await getOccurrenceForItem(item.id);
+    if (!occurrence) {
       log(`  Could not get occurrence for item ${item.id}`);
       continue;
     }
 
-    const idMatch = checkIdMatch(item, occurrenceId, existingPRs);
+    const idMatch = checkIdMatch(item, occurrence.id, existingPRs);
     if (idMatch) {
       log(`  Skipping item ${item.id}: ${idMatch.reason}`);
       continue;
     }
 
-    log(`  Item ${item.id} -> Occurrence ${occurrenceId}: ${item.title} (needs similarity check)`);
-    needsSimilarityCheck.push({ id: occurrenceId, itemId: item.id, title: item.title });
+    if (occurrence.codeVersion) {
+      const fixedReason = await isFixedByMergedPR(occurrence.codeVersion, item, existingPRs);
+      if (fixedReason) {
+        log(`  Skipping item ${item.id}: ${fixedReason}`);
+        continue;
+      }
+    }
+
+    log(`  Item ${item.id} -> Occurrence ${occurrence.id}: ${item.title} (needs similarity check)`);
+    needsSimilarityCheck.push({ id: occurrence.id, itemId: item.id, title: item.title });
   }
 
   if (needsSimilarityCheck.length === 0) {
