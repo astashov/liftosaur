@@ -31,7 +31,10 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
   const set = props.editSetModal.set;
   const [enableRpe, setEnableRpe] = useState(set.rpe != null);
   const [enableTimer, setEnableTimer] = useState(set.timer != null);
-  const lbSet = lb<IHistoryRecord>().pi("ui").pi("editSetModal").pi("set");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lbEditSetModal: any = lb<IHistoryRecord>().pi("ui").p("editSetModal");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lbSet: any = lbEditSetModal.pi("set");
   const savedRef = useRef(false);
 
   return (
