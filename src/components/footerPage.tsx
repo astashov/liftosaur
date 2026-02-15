@@ -26,7 +26,7 @@ const footerLinks: [string, string][] = [
 export function FooterPage(props: IProps): JSX.Element {
   const maxWidth = props.maxWidth != null ? `${props.maxWidth}px` : "800px";
   return (
-    <footer className="mt-8">
+    <footer className="mt-8 ">
       <div style={{ backgroundColor: "#28204B" }}>
         <div className="px-6 mx-auto" style={{ maxWidth }}>
           <div className="flex flex-col md:flex-row md:items-center md:gap-10">
