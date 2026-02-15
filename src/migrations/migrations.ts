@@ -7,6 +7,7 @@ import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvalua
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { IVersions } from "../models/versionTracker";
 import { Settings } from "../models/settings";
+import { lg } from "../utils/posthog";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -348,34 +349,99 @@ export const migrations = {
         }
       }
     }
-    for (const record of storage.progress || []) {
-      record.vtype = record.vtype || "progress";
+    const progressRecords = storage.progress || [];
+    if (progressRecords.length > 0) {
+      lg("migration-20260208-progress-start", {
+        progressCount: progressRecords.length,
+      });
+    }
+    let progressRecordsModified = 0;
+    let entriesModified = 0;
+    let setsModified = 0;
+    for (const record of progressRecords) {
+      let recordModified = false;
+      if (!record.vtype) {
+        record.vtype = "progress";
+        recordModified = true;
+      }
       const progressUi = record.ui;
       if (progressUi) {
-        progressUi.vtype = progressUi.vtype || "progress_ui";
-        progressUi.id = progressUi.id || UidFactory.generateUid(8);
+        if (!progressUi.vtype) {
+          progressUi.vtype = "progress_ui";
+          recordModified = true;
+        }
+        if (!progressUi.id) {
+          progressUi.id = UidFactory.generateUid(8);
+          recordModified = true;
+        }
       }
       for (let entryIndex = 0; entryIndex < record.entries.length; entryIndex++) {
         const entry = record.entries[entryIndex];
-        entry.vtype = entry.vtype || "history_entry";
-        entry.index = entry.index ?? entryIndex;
+        let entryModified = false;
+        if (!entry.vtype) {
+          entry.vtype = "history_entry";
+          entryModified = true;
+        }
+        if (entry.index == null) {
+          entry.index = entryIndex;
+          entryModified = true;
+        }
+        if (entryModified) {
+          entriesModified += 1;
+          recordModified = true;
+        }
         for (let setIndex = 0; setIndex < entry.sets.length; setIndex++) {
           const set = entry.sets[setIndex];
+          let setModified = false;
           if (!set.id) {
             set.id = UidFactory.generateUid(6);
+            setModified = true;
           }
-          set.vtype = set.vtype || "set";
-          set.index = set.index ?? setIndex;
+          if (!set.vtype) {
+            set.vtype = "set";
+            setModified = true;
+          }
+          if (set.index == null) {
+            set.index = setIndex;
+            setModified = true;
+          }
+          if (setModified) {
+            setsModified += 1;
+            recordModified = true;
+          }
         }
         for (let setIndex = 0; setIndex < entry.warmupSets.length; setIndex++) {
           const set = entry.warmupSets[setIndex];
+          let setModified = false;
           if (!set.id) {
             set.id = UidFactory.generateUid(6);
+            setModified = true;
           }
-          set.vtype = set.vtype || "set";
-          set.index = set.index ?? setIndex;
+          if (!set.vtype) {
+            set.vtype = "set";
+            setModified = true;
+          }
+          if (set.index == null) {
+            set.index = setIndex;
+            setModified = true;
+          }
+          if (setModified) {
+            setsModified += 1;
+            recordModified = true;
+          }
         }
       }
+      if (recordModified) {
+        progressRecordsModified += 1;
+      }
+    }
+    if (progressRecordsModified > 0) {
+      lg("migration-20260208-progress-complete", {
+        progressRecordsModified,
+        entriesModified,
+        setsModified,
+        totalProgressRecords: progressRecords.length,
+      });
     }
     return storage;
   },
