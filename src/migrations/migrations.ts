@@ -364,4 +364,34 @@ export const migrations = {
     }
     return storage;
   },
+  "20260215185600_remove_invalid_history_records": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.history = storage.history.filter((record) => {
+      return (
+        record.date != null &&
+        record.programId != null &&
+        record.programName != null &&
+        record.day != null &&
+        record.dayName != null &&
+        record.entries != null &&
+        record.startTime != null &&
+        record.id != null
+      );
+    });
+    if (storage.progress) {
+      storage.progress = storage.progress.filter((record) => {
+        return (
+          record.date != null &&
+          record.programId != null &&
+          record.programName != null &&
+          record.day != null &&
+          record.dayName != null &&
+          record.entries != null &&
+          record.startTime != null &&
+          record.id != null
+        );
+      });
+    }
+    return storage;
+  },
 };
