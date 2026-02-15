@@ -77,7 +77,7 @@ export class VersionTrackerDiffVersions {
       const diffObj: IVersionsObject = {};
       let hasChanges = false;
 
-      for (const key in newVersion) {
+      for (const key of Object.keys(newVersion)) {
         const fieldDiff = this.diffFieldVersion(oldObj?.[key], newVersion[key]);
         if (fieldDiff != null) {
           diffObj[key] = fieldDiff;

@@ -28,7 +28,7 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
   ): T {
     const result: Record<string, unknown> = ObjectUtils.clone(fullObj);
 
-    for (const key in versionDiff) {
+    for (const key of Object.keys(versionDiff)) {
       const diffVersion = versionDiff[key];
       const fullVersion = fullVersions[key];
       const extractedValue = extractedObj[key as keyof T];

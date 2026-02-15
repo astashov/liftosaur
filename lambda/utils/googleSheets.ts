@@ -26,11 +26,11 @@ export class GoogleSheetsUtil {
 
     try {
       // Try API approach first - fetch all sheets
-      return await this.fetchAllSheetsWithAPI(spreadsheetId);
+      return this.fetchAllSheetsWithAPI(spreadsheetId);
     } catch (error) {
       this.log.log("Error fetching Google Sheet with API:", error);
       // Fallback to CSV export - just export the first sheet
-      return await this.fetchSheetAsCSV(spreadsheetId, "0");
+      return this.fetchSheetAsCSV(spreadsheetId, "0");
     }
   }
 

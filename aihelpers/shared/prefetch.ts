@@ -39,7 +39,9 @@ function runScript(
 
 function extractJsonFromOutput(output: string): string {
   const firstBrace = output.indexOf("{");
-  if (firstBrace === -1) return output;
+  if (firstBrace === -1) {
+    return output;
+  }
   const jsonPart = output.slice(firstBrace);
   try {
     JSON.parse(jsonPart);

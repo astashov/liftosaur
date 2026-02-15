@@ -80,7 +80,12 @@ async function getActiveItems(): Promise<IRollbarItem[]> {
         continue;
       }
       seenCounters.add(item.counter);
-      items.push({ id: Number(item.id), counter: item.counter, title: item.title, occurrences: item.total_occurrences });
+      items.push({
+        id: Number(item.id),
+        counter: item.counter,
+        title: item.title,
+        occurrences: item.total_occurrences,
+      });
     }
   }
 
@@ -100,7 +105,9 @@ async function getOccurrenceForItem(itemId: number): Promise<IOccurrenceInfo | n
   });
 
   const id = response.result.instances[0]?.id;
-  if (id == null) return null;
+  if (id == null) {
+    return null;
+  }
 
   let codeVersion: string | null = null;
   try {
@@ -114,8 +121,7 @@ async function getOccurrenceForItem(itemId: number): Promise<IOccurrenceInfo | n
       server?: { code_version?: string };
       code_version?: string;
     };
-    codeVersion =
-      data?.client?.javascript?.code_version ?? data?.server?.code_version ?? data?.code_version ?? null;
+    codeVersion = data?.client?.javascript?.code_version ?? data?.server?.code_version ?? data?.code_version ?? null;
   } catch {
     // Non-critical — continue without code version
   }
@@ -210,18 +216,14 @@ function isAncestor(maybeAncestor: string, descendant: string): Promise<boolean>
   });
 }
 
-async function isFixedByMergedPR(
-  codeVersion: string,
-  item: IRollbarItem,
-  prs: IRollbarPR[]
-): Promise<string | null> {
-  const mergedMatches = prs.filter(
-    (pr) => pr.state === "MERGED" && pr.itemId === item.counter.toString()
-  );
+async function isFixedByMergedPR(codeVersion: string, item: IRollbarItem, prs: IRollbarPR[]): Promise<string | null> {
+  const mergedMatches = prs.filter((pr) => pr.state === "MERGED" && pr.itemId === item.counter.toString());
 
   for (const pr of mergedMatches) {
     const mergeCommit = await getMergeCommit(pr.number);
-    if (!mergeCommit) continue;
+    if (!mergeCommit) {
+      continue;
+    }
 
     if (await isAncestor(codeVersion, mergeCommit)) {
       return `occurrence commit ${codeVersion.slice(0, 8)} predates merged fix PR #${pr.number}`;

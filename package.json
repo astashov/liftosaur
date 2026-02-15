@@ -18,7 +18,7 @@
     "build:dev": "webpack",
     "check": "tsc --noEmit",
     "grammar:planner": "lezer-generator --output ./src/pages/planner/plannerExerciseParser.ts ./src/pages/planner/plannerExercise.grammar",
-    "lint": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint . --fix",
     "start": "npm run build:markdown && webpack-dev-server",
     "start:server": "npm run build:markdown && IS_DEV=true IS_LOCAL=true IMGPREFIX=lambda/ ts-node-dev --inspect --files --poll -T devserver.ts",
     "start:server:prod": "IS_DEV=false IS_LOCAL=false IMGPREFIX=lambda/ ts-node-dev --inspect --files --poll -T devserver.ts",

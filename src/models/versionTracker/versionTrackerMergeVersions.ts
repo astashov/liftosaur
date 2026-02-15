@@ -25,7 +25,7 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
     const resultObj = VersionTrackerUtils.asVersionsObject(result);
     const diffObj = VersionTrackerUtils.asVersionsObject(versionDiff);
 
-    for (const key in diffObj) {
+    for (const key of Object.keys(diffObj)) {
       const fullVersion = resultObj[key];
       const diffVersion = diffObj[key];
 
@@ -82,7 +82,7 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
 
       const result: IVersionsObject = { ...fullObj };
 
-      for (const key in diffVersion) {
+      for (const key of Object.keys(diffVersion)) {
         const mergedField = this.mergeVersionField(fullObj[key], diffVersion[key], path ? `${path}.${key}` : key);
         if (mergedField !== undefined) {
           result[key] = mergedField;
@@ -96,7 +96,7 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
   }
 
   private findIdVersion(versions: IVersionsObject): IIdVersion | undefined {
-    for (const key in versions) {
+    for (const key of Object.keys(versions)) {
       const value = versions[key];
       if (isIdVersion(value)) {
         return value;
@@ -122,9 +122,9 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
         : {}),
     };
 
-    for (const id in diffCollection.items) {
+    for (const id of Object.keys(diffCollection.items ?? {})) {
       const fullItemVersion = result.items?.[id];
-      const diffItemVersion = diffCollection.items[id];
+      const diffItemVersion = diffCollection.items?.[id];
 
       const mergedItemVersion = this.mergeVersionField(fullItemVersion, diffItemVersion);
       if (mergedItemVersion !== undefined && !isCollectionVersions(mergedItemVersion)) {

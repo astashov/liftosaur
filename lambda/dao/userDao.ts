@@ -832,7 +832,7 @@ export class UserDao {
   }
 
   public async getImages(userId: string): Promise<string[]> {
-    return await this.di.s3.listObjects({
+    return this.di.s3.listObjects({
       bucket: `${LftS3Buckets.userimages}${Utils.getEnv() === "dev" ? "dev" : ""}`,
       prefix: `user-uploads/${userId}/`,
     });

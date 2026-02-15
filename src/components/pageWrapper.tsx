@@ -25,7 +25,10 @@ export function PageWrapper(props: IPageWrapperProps): JSX.Element {
           client={props.client}
         />
       )}
-      <div id="app" style={{ maxWidth: props.maxBodyWidth || props.maxWidth || 800, margin: "0 auto", width: "100%", flex: 1 }}>
+      <div
+        id="app"
+        style={{ maxWidth: props.maxBodyWidth || props.maxWidth || 800, margin: "0 auto", width: "100%", flex: 1 }}
+      >
         {props.children}
       </div>
       {!props.skipFooter && <FooterPage maxWidth={props.maxWidth || 800} account={props.account} />}

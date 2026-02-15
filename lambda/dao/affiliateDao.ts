@@ -69,7 +69,7 @@ export class AffiliateDao {
     for (const group of groups) {
       const groupResults = await Promise.all(
         group.map(async (userId) => {
-          return await this.di.dynamo.query<IAffiliateDao>({
+          return this.di.dynamo.query<IAffiliateDao>({
             tableName: tableNames[env].affiliates,
             indexName: tableNames[env].affiliatesUserIdIndex,
             expression: "userId = :userId",

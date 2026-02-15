@@ -49,7 +49,7 @@ export class AiMuscleCacheDao {
   public async getByName(name: string): Promise<IAiMuscleCacheDao | undefined> {
     const env = Utils.getEnv();
     const key = this.getKeyFromName(name);
-    return await this.di.dynamo.get<IAiMuscleCacheDao>({
+    return this.di.dynamo.get<IAiMuscleCacheDao>({
       tableName: tableNames[env].aiMuscleCaches,
       key: { key },
     });

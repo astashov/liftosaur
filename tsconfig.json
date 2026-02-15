@@ -32,6 +32,7 @@
     "liftosaur-cdk/**/*",
     "test/**/*",
     "tests/**/*",
+    "aihelpers/**/*",
     "devserver.ts",
     "playwright.config.ts"
   ]
