@@ -477,7 +477,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
         onChange={(newValue?: string) => {
           const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
           if (v != null) {
-            const value = Math.min(Math.max(1, v), 2);
+            const value = Math.min(Math.max(1, v), 4);
             const lensRecording = [
               props.lensPrefix.then(lb<IAllEquipment>().pi(props.name).p("multiplier").get()).record(value),
               props.lensPrefix.then(lb<IAllEquipment>().pi(props.name).p("plates").get()).recordModify((pl) => {
