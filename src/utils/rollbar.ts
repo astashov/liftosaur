@@ -37,6 +37,7 @@ export const exceptionIgnores = [
   '{"isTrusted":true}',
   "Unable to resolve host",
   "connection closed",
+  "Invalid change range",
 ];
 
 export namespace RollbarUtils {
