@@ -278,9 +278,11 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                           }),
                         lb<IHistoryRecord>()
                           .pi("ui")
-                          .pi("currentEntryIndex")
-                          .recordModify((index) => {
-                            return Math.max(0, (index ?? 0) - 1);
+                          .recordModify((ui) => {
+                            if (ui && ui.currentEntryIndex != null) {
+                              return { ...ui, currentEntryIndex: Math.max(0, ui.currentEntryIndex - 1) };
+                            }
+                            return ui;
                           }),
                       ],
                       "kebab-delete-exercise"
