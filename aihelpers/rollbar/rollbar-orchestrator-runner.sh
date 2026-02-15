@@ -5,6 +5,8 @@
 set -euo pipefail
 
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
+export NODE_OPTIONS="--max-old-space-size=8192"
+export TS_NODE_TRANSPILE_ONLY=1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"

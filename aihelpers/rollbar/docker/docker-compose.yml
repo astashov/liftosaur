@@ -1,19 +1,6 @@
 services:
-  orchestrator:
+  claude-sandbox:
     build:
       context: .
       dockerfile: Dockerfile.orchestrator
-    env_file:
-      - ~/liftosaur-secrets/secrets.env
-    environment:
-      - SIDECAR_URL=host.docker.internal:9888
-      - CI=true
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-      - "localai.liftosaur.com:host-gateway"
-      - "localai-api.liftosaur.com:host-gateway"
-      - "localai-streaming-api.liftosaur.com:host-gateway"
-    volumes:
-      - ../../../localdomain.js:/app/localdomain.js:ro
-      - ~/.secrets/live:/root/.secrets/live:ro
-      - ../../../logs:/app/logs
+    image: liftosaur-claude-sandbox

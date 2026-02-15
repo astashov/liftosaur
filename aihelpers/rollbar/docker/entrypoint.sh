@@ -9,7 +9,6 @@ cd /app
 git fetch origin master
 git reset --hard origin/master
 
-# localdomain.js is gitignored and mounted from host
 if [[ ! -f localdomain.js ]]; then
     echo "ERROR: localdomain.js not found — mount it as a volume"
     exit 1
@@ -26,27 +25,11 @@ if [[ -n "${GH_TOKEN_AI:-}" ]]; then
         git remote set-url fork "https://astashovai:${GH_TOKEN_AI}@github.com/astashovai/liftosaur.git"
 fi
 
-# CLAUDE_CODE_OAUTH_TOKEN is picked up automatically by claude CLI
-
-ORCHESTRATOR="${1:-rollbar}"
-
-case "$ORCHESTRATOR" in
-    rollbar)
-        exec npx ts-node aihelpers/rollbar/rollbar-orchestrator.ts
-        ;;
-    pr-feedback)
-        exec npx ts-node aihelpers/rollbar/pr-feedback-orchestrator.ts
-        ;;
-    both)
-        npx ts-node aihelpers/rollbar/rollbar-orchestrator.ts
-        exec npx ts-node aihelpers/rollbar/pr-feedback-orchestrator.ts
-        ;;
+case "${1:-}" in
     bash|shell)
         exec /bin/bash
         ;;
     *)
-        echo "Unknown orchestrator: $ORCHESTRATOR"
-        echo "Usage: entrypoint.sh [rollbar|pr-feedback|both|bash]"
-        exit 1
+        exec bash aihelpers/shared/claude-stream.sh "$1" ${2:+-l "$2"}
         ;;
 esac

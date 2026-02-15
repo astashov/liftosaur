@@ -1,10 +1,12 @@
 import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
+import { prefetchOccurrenceData, cleanupPrefetchDir } from "../shared/prefetch";
+import { runClaudeInDocker } from "../shared/docker-claude";
 
 const PROJECT_DIR = path.resolve(__dirname, "..", "..");
 const LOG_DIR = path.join(PROJECT_DIR, "logs", "pr-feedback-orchestrator");
-const TIMEOUT_MS = 60 * 60 * 1000; // 1 hour per feedback round
+const TIMEOUT_MS = 60 * 60 * 1000;
 
 interface IPRInfo {
   number: number;
@@ -35,61 +37,6 @@ function runGhCommand(args: string[]): Promise<string> {
     proc.stdout.on("data", (data) => (output += data));
     proc.stderr.on("data", () => {});
     proc.on("close", () => resolve(output.trim()));
-  });
-}
-
-function runClaudeCommand(
-  command: string,
-  timeoutMs: number,
-  logFilePath: string
-): Promise<{ success: boolean; output: string }> {
-  return new Promise((resolve) => {
-    const scriptPath = path.join(PROJECT_DIR, "aihelpers", "shared", "claude-stream.sh");
-    const args = [command, "-l", logFilePath];
-
-    log(`Running: ${scriptPath} "${command}" -l ${logFilePath}`);
-
-    const proc = spawn(scriptPath, args, {
-      cwd: PROJECT_DIR,
-      stdio: ["ignore", "pipe", "pipe"],
-      detached: true,
-    });
-
-    let output = "";
-    let killed = false;
-
-    const killProcessGroup = (signal: NodeJS.Signals): void => {
-      try {
-        process.kill(-proc.pid!, signal);
-      } catch {
-        // Process group already gone
-      }
-    };
-
-    const timer = setTimeout(() => {
-      killed = true;
-      log("Command timed out, killing process group...");
-      killProcessGroup("SIGTERM");
-      setTimeout(() => killProcessGroup("SIGKILL"), 5000);
-    }, timeoutMs);
-
-    proc.stdout.on("data", (data) => {
-      output += data.toString();
-      process.stdout.write(data);
-    });
-
-    proc.stderr.on("data", (data) => {
-      output += data.toString();
-      process.stderr.write(data);
-    });
-
-    proc.on("close", (code) => {
-      clearTimeout(timer);
-      resolve({
-        success: !killed && code === 0,
-        output,
-      });
-    });
   });
 }
 
@@ -132,7 +79,6 @@ async function getLastCommitDate(prNumber: number): Promise<string | null> {
 }
 
 async function getCommentsAfterDate(prNumber: number, afterDate: string): Promise<IComment[]> {
-  // Check both PR review comments (inline) and issue-style comments
   const reviewCommentsRaw = await runGhCommand([
     "api",
     `repos/astashov/liftosaur/pulls/${prNumber}/comments`,
@@ -170,10 +116,14 @@ async function getCommentsAfterDate(prNumber: number, afterDate: string): Promis
     }
   }
 
-  // Filter out comments from bots / Claude itself
   return comments.filter(
     (c) => !c.body.includes("Automated follow-up by Claude Code") && !c.body.includes("Automated Code Review")
   );
+}
+
+function extractOccurrenceId(headRefName: string): string | null {
+  const match = headRefName.match(/^fix\/rollbar-(\d+)$/);
+  return match ? match[1] : null;
 }
 
 async function main(): Promise<void> {
@@ -218,11 +168,39 @@ async function main(): Promise<void> {
       log(`    - [${c.author.login}] ${c.body.slice(0, 100).replace(/\n/g, " ")}...`);
     }
 
+    const occurrenceId = extractOccurrenceId(pr.headRefName);
+    let prefetchDir: string | undefined;
+
+    if (occurrenceId) {
+      log(`  Pre-fetching data for occurrence ${occurrenceId}...`);
+      const prefetch = await prefetchOccurrenceData(occurrenceId, log);
+      if (prefetch.rollbar) {
+        prefetchDir = prefetch.dir;
+      } else {
+        log(`  Pre-fetch failed, proceeding without pre-fetched data`);
+        cleanupPrefetchDir(prefetch.dir);
+      }
+    } else {
+      log(`  Could not extract occurrence ID from branch ${pr.headRefName}, skipping pre-fetch`);
+    }
+
     const feedbackLogPath = path.join(LOG_DIR, `${runId}-pr-${pr.number}.log`);
     log(`  Running /address-pr-feedback ${pr.number}...`);
     const startTime = Date.now();
-    const result = await runClaudeCommand(`/address-pr-feedback ${pr.number}`, TIMEOUT_MS, feedbackLogPath);
+    const result = await runClaudeInDocker(
+      {
+        command: `/address-pr-feedback ${pr.number}`,
+        logFilePath: feedbackLogPath,
+        timeoutMs: TIMEOUT_MS,
+        prefetchDir,
+      },
+      log
+    );
     const duration = Math.round((Date.now() - startTime) / 1000);
+
+    if (prefetchDir) {
+      cleanupPrefetchDir(prefetchDir);
+    }
 
     if (result.success) {
       log(`  Feedback addressed in ${duration}s`);

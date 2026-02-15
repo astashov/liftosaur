@@ -45,7 +45,7 @@ STDERR_LOG="${STDERR_LOG:-/dev/null}"
 RAW_LOG="${LOG_FILE:+${LOG_FILE%.log}-raw.jsonl}"
 RAW_LOG="${RAW_LOG:-/dev/null}"
 
-claude -p "$PROMPT" --settings .claude/settings.headless.json --output-format stream-json --verbose 2>"$STDERR_LOG" | \
+claude -p "$PROMPT" --settings .claude/settings.headless.json --output-format stream-json --verbose --no-session-persistence 2>"$STDERR_LOG" | \
   stdbuf -oL tee "$RAW_LOG" | \
   awk '{if(length>200000)print "{\"_truncated\":true}";else print; fflush()}' | \
   jq --unbuffered -r '

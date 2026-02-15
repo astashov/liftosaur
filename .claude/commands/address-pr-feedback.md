@@ -18,8 +18,9 @@ To avoid permission issues in headless mode:
 ## Prerequisites
 
 Required environment variables:
-- `ROLLBAR_READ_TOKEN` - Rollbar project read token (Settings -> Project Access Tokens)
 - `GH_TOKEN_AI` - GitHub PAT for the `astashovai` bot account (fine-grained, scoped to the fork `astashovai/liftosaur`)
+
+Pre-fetched data is mounted at `/prefetched/` (read-only) by the orchestrator when available.
 
 ## Fork-Based Workflow
 
@@ -91,23 +92,17 @@ Copy gitignored config file needed for builds:
 cp ./localdomain.js ./worktrees/pr-$ARGUMENTS/localdomain.js
 ```
 
-### 4. Fetch Rollbar Context
+### 4. Load Pre-fetched Rollbar Context
 
-Using the occurrence ID extracted from the branch name in Step 1, fetch the original error context. This may be needed to understand the full picture when addressing feedback.
+The orchestrator has already fetched all Rollbar and user data. Copy it into the worktree:
 
 ```bash
 install -d ./worktrees/pr-$ARGUMENTS/.tmp
-```
-
-```bash
-curl -s -H "X-Rollbar-Access-Token: $ROLLBAR_READ_TOKEN" \
-  "https://api.rollbar.com/api/1/instance/{OCCURRENCE_ID}" \
-  -o ./worktrees/pr-$ARGUMENTS/.tmp/rollbar.json
-```
-
-Extract the Rollbar item ID:
-```bash
-jq -r '.result.item_id' ./worktrees/pr-$ARGUMENTS/.tmp/rollbar.json
+cp /prefetched/rollbar.json ./worktrees/pr-$ARGUMENTS/.tmp/ 2>/dev/null || true
+cp /prefetched/item.json ./worktrees/pr-$ARGUMENTS/.tmp/ 2>/dev/null || true
+cp /prefetched/exception.json ./worktrees/pr-$ARGUMENTS/.tmp/ 2>/dev/null || true
+cp /prefetched/user_events.md ./worktrees/pr-$ARGUMENTS/.tmp/ 2>/dev/null || true
+cp /prefetched/server_logs.txt ./worktrees/pr-$ARGUMENTS/.tmp/ 2>/dev/null || true
 ```
 
 Extract key information using jq:
@@ -122,22 +117,15 @@ Look for:
 - Environment, timestamp, browser info
 - Browser/client info in `client` field
 
-### 5. Download User State and Actions
+### 5. Parse User State and Actions
 
-Using the `liftosaur_exception_id` from step 4, fetch exception data via the sidecar:
+If `exception.json` was pre-fetched, parse the nested JSON:
 
 ```bash
-curl -s "http://${SIDECAR_URL:-localhost:9888}/get_exception?exception_id={liftosaur_exception_id}" | jq -r '.stdout' > ./worktrees/pr-$ARGUMENTS/.tmp/exception.json
-```
-
-The response has nested JSON that needs double-parsing. Use `tee` to save parsed files:
-```bash
-# Extract and parse lastActions (save to file, show last 10)
 jq -r '.data' ./worktrees/pr-$ARGUMENTS/.tmp/exception.json | jq '.lastActions | fromjson' | tee ./worktrees/pr-$ARGUMENTS/.tmp/lastActions.json | jq '.[-10:]'
 ```
 
 ```bash
-# Extract and parse lastState (save to file, show summary)
 jq -r '.data' ./worktrees/pr-$ARGUMENTS/.tmp/exception.json | jq '.lastState | fromjson' | tee ./worktrees/pr-$ARGUMENTS/.tmp/lastState.json | jq '{screenStack, progressCount: (.storage.progress | length)}'
 ```
 
@@ -148,12 +136,12 @@ The parsed data contains:
   - `progress` - In-progress workout data (array, may be empty if workout finished)
 - `lastActions` - Array of recent Redux actions that led to the error (reverse chronological - newest first)
 
-### 6. Fetch User Events Timeline
+### 6. Review User Events Timeline
 
-Get the user's event log to see what happened around the error. The user ID is in `person.id` from the Rollbar response:
+If `user_events.md` was pre-fetched, search for errors:
 
 ```bash
-curl -s "http://${SIDECAR_URL:-localhost:9888}/user_events_markdown?userid={userid}" | jq -r '.stdout' | tee ./worktrees/pr-$ARGUMENTS/.tmp/user_events.md | grep -B 5 -A 5 "❌ \*\*ERROR\*\*"
+grep -B 5 -A 5 "❌ \*\*ERROR\*\*" ./worktrees/pr-$ARGUMENTS/.tmp/user_events.md || echo "No error markers found"
 ```
 
 This shows:

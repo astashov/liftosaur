@@ -18,8 +18,9 @@ To avoid permission issues in headless mode:
 ## Prerequisites
 
 Required environment variables:
-- `ROLLBAR_READ_TOKEN` - Rollbar project read token (Settings -> Project Access Tokens)
 - `GH_TOKEN_AI` - GitHub PAT for the `astashovai` bot account (fine-grained, scoped to the fork `astashovai/liftosaur`)
+
+Pre-fetched data is mounted at `/prefetched/` (read-only) by the orchestrator.
 
 ## Fork-Based Workflow
 
@@ -56,28 +57,20 @@ Copy gitignored config file needed for builds:
 cp ./localdomain.js ./worktrees/$ARGUMENTS/localdomain.js
 ```
 
-### 2. Fetch Rollbar Occurrence
+### 2. Load Pre-fetched Data
 
-Get the occurrence details from Rollbar API. Save to a temp file to avoid large output issues:
+The orchestrator has already fetched all Rollbar and user data. Copy it into the worktree:
 
 ```bash
 install -d ./worktrees/$ARGUMENTS/.tmp
-curl -s -H "X-Rollbar-Access-Token: $ROLLBAR_READ_TOKEN" \
-  "https://api.rollbar.com/api/1/instance/$ARGUMENTS" \
-  -o ./worktrees/$ARGUMENTS/.tmp/rollbar.json
+cp /prefetched/rollbar.json ./worktrees/$ARGUMENTS/.tmp/
+cp /prefetched/item.json ./worktrees/$ARGUMENTS/.tmp/
+cp /prefetched/exception.json ./worktrees/$ARGUMENTS/.tmp/ 2>/dev/null || true
+cp /prefetched/user_events.md ./worktrees/$ARGUMENTS/.tmp/ 2>/dev/null || true
+cp /prefetched/server_logs.txt ./worktrees/$ARGUMENTS/.tmp/ 2>/dev/null || true
 ```
 
-Extract the Rollbar item counter (the short number from the Rollbar URL, e.g. `3190` in `/item/liftosaur/3190/`). First get the internal item ID:
-```bash
-jq -r '.result.item_id' ./worktrees/$ARGUMENTS/.tmp/rollbar.json
-```
-
-Then fetch the item details using that ID to get the counter:
-```bash
-curl -s -H "X-Rollbar-Access-Token: $ROLLBAR_READ_TOKEN" \
-  "https://api.rollbar.com/api/1/item/{item_id}" \
-  -o ./worktrees/$ARGUMENTS/.tmp/item.json
-```
+Extract the Rollbar item counter (needed for PR title in Step 11):
 ```bash
 jq -r '.result.counter' ./worktrees/$ARGUMENTS/.tmp/item.json
 ```
@@ -95,20 +88,15 @@ Look for:
 - Environment, timestamp, browser info
 - Browser/client info in `client` field
 
-### 3. Download User State and Actions
+### 3. Parse User State and Actions
 
-Using the `liftosaur_exception_id` from step 2, fetch exception data via the sidecar:
+If `exception.json` was pre-fetched, parse the nested JSON:
 
 ```bash
-curl -s "http://${SIDECAR_URL:-localhost:9888}/get_exception?exception_id={liftosaur_exception_id}" | jq -r '.stdout' > ./worktrees/$ARGUMENTS/.tmp/exception.json
+jq -r '.data' ./worktrees/$ARGUMENTS/.tmp/exception.json | jq '.lastActions | fromjson' | tee ./worktrees/$ARGUMENTS/.tmp/lastActions.json | jq '.[-10:]'
 ```
 
-The response has nested JSON that needs double-parsing. Use `tee` to save parsed files:
 ```bash
-# Extract and parse lastActions (save to file, show last 10)
-jq -r '.data' ./worktrees/$ARGUMENTS/.tmp/exception.json | jq '.lastActions | fromjson' | tee ./worktrees/$ARGUMENTS/.tmp/lastActions.json | jq '.[-10:]'
-
-# Extract and parse lastState (save to file, show summary)
 jq -r '.data' ./worktrees/$ARGUMENTS/.tmp/exception.json | jq '.lastState | fromjson' | tee ./worktrees/$ARGUMENTS/.tmp/lastState.json | jq '{screenStack, progressCount: (.storage.progress | length)}'
 ```
 
@@ -119,12 +107,12 @@ The parsed data contains:
   - `progress` - In-progress workout data (array, may be empty if workout finished)
 - `lastActions` - Array of recent Redux actions that led to the error (reverse chronological - newest first)
 
-### 4. Fetch User Events Timeline
+### 4. Review User Events Timeline
 
-Get the user's event log to see what happened around the error. The user ID is in `person.id` from the Rollbar response:
+If `user_events.md` was pre-fetched, search for errors:
 
 ```bash
-curl -s "http://${SIDECAR_URL:-localhost:9888}/user_events_markdown?userid={userid}" | jq -r '.stdout' | tee ./worktrees/$ARGUMENTS/.tmp/user_events.md | grep -B 5 -A 5 "❌ \*\*ERROR\*\*"
+grep -B 5 -A 5 "❌ \*\*ERROR\*\*" ./worktrees/$ARGUMENTS/.tmp/user_events.md || echo "No error markers found"
 ```
 
 This shows:
@@ -132,21 +120,15 @@ This shows:
 - Whether the error is recurring (multiple errors for same action)
 - Context about what the user was doing (which screen, what buttons clicked)
 
-### 5. Download Server Logs (if needed)
+### 5. Review Server Logs (if available)
 
-If the error involves a server-side request (API call, sync, login, etc.) and you need more context about what happened on the backend, download the server logs.
+If `server_logs.txt` was pre-fetched, use the occurrence timestamp to find the relevant section:
 
-Extract the occurrence timestamp and user ID from the Rollbar data:
 ```bash
-jq -r '.result.data | {timestamp, person_id: .person.id}' ./worktrees/$ARGUMENTS/.tmp/rollbar.json
+jq -r '.result.data.timestamp' ./worktrees/$ARGUMENTS/.tmp/rollbar.json
 ```
 
-Convert the Unix timestamp to a date (YYYY-MM-DD format) and run:
-```bash
-curl -s "http://${SIDECAR_URL:-localhost:9888}/get_logs?date={YYYY-MM-DD}&userid={userid}" | jq -r '.stdout' > ./worktrees/$ARGUMENTS/.tmp/server_logs.txt
-```
-
-The output can be large, so don't read the whole thing. Instead, use the occurrence timestamp to find the relevant section — search for log entries around that time and read only the surrounding context.
+The output can be large, so don't read the whole thing. Search for log entries around the occurrence time and read only the surrounding context.
 
 ### 6. Analyze and Decide
 
