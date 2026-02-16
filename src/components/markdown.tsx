@@ -1,7 +1,6 @@
 import { h, JSX } from "preact";
-import micromark from "micromark";
-import gfm from "micromark-extension-gfm";
-import gfmHtml from "micromark-extension-gfm/html";
+import { micromark } from "micromark";
+import { gfm, gfmHtml } from "micromark-extension-gfm";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "./linkButton";
 
@@ -16,7 +15,7 @@ export function Markdown(props: IProps): JSX.Element {
   const [isTruncated, setIsTruncated] = useState(props.truncate != null);
   const result = micromark(props.value, {
     extensions: [gfm()],
-    htmlExtensions: [gfmHtml],
+    htmlExtensions: [gfmHtml()],
   });
   let className = props.className || "markdown";
   if (isTruncated && props.className?.indexOf("line-clamp") === -1) {
