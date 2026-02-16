@@ -279,8 +279,8 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                         lb<IHistoryRecord>()
                           .pi("ui")
                           .recordModify((ui) => {
-                            if (ui && ui.currentEntryIndex != null) {
-                              return { ...ui, currentEntryIndex: Math.max(0, ui.currentEntryIndex - 1) };
+                            if (ui && ui.currentEntryIndex != null && ui.currentEntryIndex > props.entryIndex) {
+                              return { ...ui, currentEntryIndex: ui.currentEntryIndex - 1 };
                             }
                             return ui;
                           }),
