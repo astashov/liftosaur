@@ -1,175 +1,80 @@
 import { h, JSX } from "preact";
-import { useRef } from "preact/compat";
 import { Settings } from "../../models/settings";
 import { IProgram } from "../../types";
-import { CollectionUtils } from "../../utils/collection";
-import { useLensReducer } from "../../utils/useLensReducer";
 import { IAudioInterface } from "../../lib/audioInterface";
-import { Service } from "../../api/service";
-import { lb } from "lens-shmens";
-import { IProgramDetailsState } from "./programDetails/types";
-import { ProgramDetailsArnoldGoldenSix } from "./detailed/programDetailsArnoldGoldenSix";
-import { ProgramDetailsGzclp } from "./detailed/programDetailsGzclp";
-import { ProgramDetailsJackedAndTan } from "./detailed/programDetailsJackedAndTan";
-import { ProgramDetailsTheRippler } from "./detailed/programDetailsTheRippler";
-import { ProgramDetailsGzclUhf9w } from "./detailed/programDetailsGzclUhf9w";
-import { ProgramDetailsGzclVdip } from "./detailed/programDetailsGzclVdip";
-import { ProgramDetailsGzclGeneralGainz } from "./detailed/programDetailsGzclGeneralGainz";
-import { ProgramDetailsGzclUhf5w } from "./detailed/programDetailsGzclUhf5w";
-import { ProgramDetailsGzclBurritoButBig } from "./detailed/programDetailsGzclBurritoButBig";
-import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
+import { ProgramDetailsWorkoutPlayground } from "./programDetails/programDetailsWorkoutPlayground";
+import { ProgramDetailsUpsell } from "./programDetails/programDetailsUpsell";
+import { Program } from "../../models/program";
+import { ObjectUtils } from "../../utils/object";
+import { Markdown } from "../../components/markdown";
+import { IconCheckCircle } from "../../components/icons/iconCheckCircle";
+import { IconEditSquare } from "../../components/icons/iconEditSquare";
+import { Muscle } from "../../models/muscle";
+import { MusclesView } from "../../components/muscles/musclesView";
 import { Stats } from "../../models/stats";
 
 export interface IProgramDetailsContentProps {
   selectedProgramId: string;
   programs: IProgram[];
+  fullDescription?: string;
   client: Window["fetch"];
   audio: IAudioInterface;
   userAgent?: string;
 }
 
 export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.Element {
-  const service = new Service(props.client);
-  const ref = useRef<HTMLSelectElement>();
-  const initialState: IProgramDetailsState = {
-    programs: props.programs,
-    selectedProgramId: props.selectedProgramId,
-    shouldShowAllScripts: false,
-    shouldShowAllFormulas: false,
-    settings: Settings.build(),
-  };
-  const [state, dispatch] = useLensReducer(initialState, { audio: props.audio, service });
-  const program = state.programs.filter((p) => p.id === state.selectedProgramId)[0] || state.programs[0];
+  const program = props.programs.filter((p) => p.id === props.selectedProgramId)[0] || props.programs[0];
+  const settings = Settings.build();
+  const fullProgram = Program.fullProgram(ObjectUtils.clone(program), settings);
+  const evaluatedProgram = Program.evaluate(ObjectUtils.clone(program), settings);
+  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(evaluatedProgram, Stats.getEmpty(), settings));
+  const descriptionText = props.fullDescription || program.description;
 
-  if (props.selectedProgramId === "arnoldgoldensix") {
-    return (
-      <ProgramDetailsArnoldGoldenSix
-        userAgent={props.userAgent}
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-the-rippler") {
-    return (
-      <ProgramDetailsTheRippler
-        userAgent={props.userAgent}
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzclp") {
-    return (
-      <ProgramDetailsGzclp
-        userAgent={props.userAgent}
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-jacked-and-tan-2") {
-    return (
-      <ProgramDetailsJackedAndTan
-        userAgent={props.userAgent}
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-uhf-9-weeks") {
-    return (
-      <ProgramDetailsGzclUhf9w
-        userAgent={props.userAgent}
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-general-gainz-burrito-but-big") {
-    return (
-      <ProgramDetailsGzclBurritoButBig
-        userAgent={props.userAgent}
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-uhf-5-weeks") {
-    return (
-      <ProgramDetailsGzclUhf5w
-        userAgent={props.userAgent}
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-vdip") {
-    return (
-      <ProgramDetailsGzclVdip
-        userAgent={props.userAgent}
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-general-gainz") {
-    return (
-      <ProgramDetailsGzclGeneralGainz
-        userAgent={props.userAgent}
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  }
-
-  if (typeof window !== "undefined" && window.history) {
-    window.history.replaceState({}, `Liftosaur: Program Details - ${program.name}`, `/programs/${program.id}`);
-  }
   return (
-    <div className="px-4">
-      <div className="flex program-details-header">
-        <div>
-          <select
-            ref={ref}
-            className="py-2 border border-gray-400 rounded-lg"
-            name="selected_program_id"
-            id="selected_program_id"
-            onChange={() => {
-              dispatch(lb<IProgramDetailsState>().p("selectedProgramId").record(ref.current.value), "Select program");
-              window.history.replaceState(
-                {},
-                `Liftosaur: Program Details - ${program.name}`,
-                `/programs/${program.id}`
-              );
+    <section className="px-4">
+      <h1 className="text-2xl font-bold leading-8 text-center">{program.name}</h1>
+      {program.author && (
+        <div className="mb-4 text-sm font-bold text-center">
+          {program.url ? (
+            <a href={program.url} target="_blank" className="underline text-text-link">
+              By {program.author}
+            </a>
+          ) : (
+            <span>By {program.author}</span>
+          )}
+        </div>
+      )}
+      <div className="flex flex-col sm:flex-row program-details-description" style={{ gap: "1rem" }}>
+        <div className="flex-1 min-w-0">
+          <Markdown
+            value={descriptionText}
+            directivesData={{
+              exercise: { settings },
+              exerciseExample: { settings, evaluatedProgram },
             }}
-          >
-            {CollectionUtils.sort(state.programs, (a, b) => a.name.localeCompare(b.name)).map((p) => (
-              <option selected={p.id === state.selectedProgramId} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          />
+        </div>
+        <div className="w-64 mx-auto">
+          <h3 className="text-lg font-bold leading-8 text-center">Muscle Balance</h3>
+          <MusclesView title="Muscle Balance" settings={settings} points={points} hideListOfExercises={true} />
         </div>
       </div>
-      <ProgramPreviewOrPlayground
-        key={state.selectedProgramId}
-        stats={Stats.getEmpty()}
-        program={program}
-        settings={state.settings}
-        isMobile={false}
-        hasNavbar={false}
-      />
-    </div>
+      <div className="w-32 h-px mx-auto my-8 b bg-border-neutral" />
+      <h3 className="mb-4 text-xl font-bold leading-8">Try it out in interactive playground!</h3>
+      <p className="mb-4">
+        Tap on squares to finish sets. Tap multiple times to reduce completed reps. Finish workout and see what the next
+        time the workout would look like (with possibly updated weights, reps and sets).
+      </p>
+      <p className="mb-4">
+        For convenience, you can finish all the sets of an exercise by clicking on the{" "}
+        <IconCheckCircle className="inline-block" isChecked={true} color="#BAC4CD" /> icon. And you can adjust the
+        exercise variables (weight, reps, TM, RIR, etc) by clicking on the <IconEditSquare className="inline-block" />{" "}
+        icon.
+      </p>
+      <ProgramDetailsWorkoutPlayground program={fullProgram} settings={settings} />
+      <div className="mt-8">
+        <ProgramDetailsUpsell userAgent={props.userAgent} />
+      </div>
+    </section>
   );
 }

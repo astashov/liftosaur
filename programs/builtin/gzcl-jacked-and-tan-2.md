@@ -12,6 +12,90 @@ A good next step after GZCLP. It's a twelve-week strength and hypertrophy traini
 
 Before starting the program, please read the [program explanation](https://swoleateveryheight.blogspot.com/2016/07/jacked-tan-20.html) first!
 
+<!-- more -->
+
+Jacked & Tan 2.0 is a weightlifting program based on the **GZCL principle**, created by [Cody Lefever](https://www.gainzfever.com/). The GZCL name comes from his Reddit username - [u/gzcl](https://www.reddit.com/u/gzcl). It's a 12-week weightlifting program, following GZCL principles, and offering quite a lot of volume. It's designed both for hypertrophy and strength. It starts with lower intensity / higher volume, then progresses to higher intensity / lower volume. It's a fun program to run, offering somewhat unusual and interesting rep schemes, with testing for different RMs each workout.
+
+It's an intermediate program, so you're going to find it most useful after your newbie gains are over. There's good variety in exercises, and a lot of people reported getting serious gains and new PRs after running this program.
+
+You can run it after beginner [GZCLP](/programs/gzclp) program, or after beginner/intermediate [GZCL: The Rippler](/programs/gzcl-the-rippler) program.
+
+## GZCL principle
+
+Before diving in, here's some basic terminology:
+
+- **Rep Max**: This refers to the maximum weight you can lift for a given number of reps. For instance, if you can do 5 reps (and no more) with 100 kg, then your 5 rep max is 100 kg. When measuring this, you should not go to full failure, but stop when you can't maintain good form for another rep.
+
+Now, let's talk about exercises. Exercises in GZCL programs are split into **3 tiers**:
+
+- **T1**: These are main compound exercises (e.g., :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}). These exercises involve the highest intensity (i.e., the largest weights, about **85-100%** of your 2-3 rep max), but with lower volume (fewer reps and sets). Typically, you will perform 10-15 total reps, usually within **1-3 reps** per set.
+- **T2**: These are secondary compound exercises (e.g., :exercise[Front Squat]{id="frontSquat" equipment="barbell"}, :exercise[Romanian Deadlift]{id="romanianDeadlift" equipment="barbell"}, :exercise[Incline Bench Press]{id="inclineBenchPress" equipment="barbell"}, etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You should pick exercises that will assist with your T1 exercises. These exercises are performed with **65-85%** of your 2-3 rep max, usually within **5-8 reps** per set.
+- **T3**: These are isolation exercises (e.g., :exercise[Leg Press]{id="legPress" equipment="leverageMachine"}, :exercise[Seated Leg Curl]{id="seatedLegCurl" equipment="leverageMachine"}, :exercise[Triceps Extension]{id="tricepsExtension" equipment="dumbbell"}, :exercise[Lateral Raise]{id="lateralRaise" equipment="dumbbell"}). These exercises have the lowest intensity (lightest weights), but highest volume (most reps and sets). These are performed with less than **65%** of your 2-3 rep max, usually with **8 or more reps** per set.
+
+A useful rule of thumb is the **1:2:3 rule** - for every rep you perform in T1, do 2 reps in T2, and 3 in T3.
+
+This is a very short description of the GZCL principle. For more information, and more details, I REALLY recommend to read [Cody's blogpost](http://swoleateveryheight.blogspot.com/2012/11/the-gzcl-method-for-powerlifting.html).
+
+## Application of the GZCL Principle to the Jacked And Tan 2.0 program
+
+### T1 Exercise
+
+For the T1 exercise, we start with high volume and low intensity (high reps, lower weight), and progress to lower volume and higher intensity (lower reps, higher weight) - so called Linear Periodization.
+
+First, you need to define your training max (TM), which is approximately equal to your 2RM (2 Rep Max). It'll be the basis for your "drop sets" for T1 exercise. Drop sets are the sets that you do after the Rep Max set, which are based on percentage of TM.
+
+The first set is a Rep Max set, where you have to work up to your Rep Max. For the first week it's 10RM, for the second - 8RM, etc. So, to work up your 10RM, you need to guess your approximate 10RM weight, and then do "warmup" sets, that are not fatiguing, slowly increasing the weight. Like, let's say you guessed your 10RM for :exercise[Bench Press]{id="benchPress" equipment="barbell"} is 185lb. So, you do:
+
+- 5 reps with empty bar
+- 5 reps with 95lb
+- 3 reps with 135lb
+- 10 reps with 185lb
+
+If you missed, and chose the weight that is too heavy, and let's say you only could do 8 reps. Or too light, and you did 12 reps. That's okay! You'll get better at this later on, just record your weight/reps, and move to the drop sets.
+
+Drop sets are sets that are based on the Training Max. E.g. for week 1 it's 50% of TM, 10 reps each. Last set is As Many Reps As Possible (AMRAP) - try to do as many reps as possible (leaving 1-2 reps in the tan). It's a good way to push yourself, and also to see if you need to adjust TM - if you can get more than 12 reps there, you may want to consider increasing TM.
+
+On week 6, you measure your 1RM. You don't do any T1 drop sets (and any T2 exercises).
+
+After that, for the next 5 weeks, instead of %TM for the drop sets, you use percentage of your Rep Max for that week. E.g. on Week 7 you do your 6RM set first, and then the drop sets would be 85% of 6RM.
+
+At the end, at the week 12, you do another 1RM measurement, without T1 drop sets and T2 exercises again.
+
+It sounds pretty complicated, but should be way more clear when you look at the example below, and also after playing around with the interactive example at the bottom of this page.
+
+### Example of a T1 exercise sets/reps/weight week over week
+
+Note that first RM sets are approximate in this example
+
+:::exercise-example{exercise="squat" equipment="barbell" key="squat_barbell"}
+
+
+### T2a Exercise
+
+The T2a exercise weight is usually based on the T1 Training Max weight (since T2a exercises are auxiliary exercises to T1 ones). The exception is :exercise[Front Squat]{id="frontSquat" equipment="barbell"}, which is using its own TM.
+
+The weight/volume is also changing week over week in a wave pattern, adding sets on lower weights, to compensate drop in volume.
+
+You skip the exercise on the Week 6 and Week 12, when you measure your 1RM for T1 exercise.
+
+:::exercise-example{exercise="deficitDeadlift" equipment="barbell" key="deficitdeadlift_barbell"}
+
+
+### T2b and T3 Exercises
+
+T2b and T3 exercises are pretty similar to each other, they just use different first set RM value. So, for the first set, you attempt to do RM for the reps of that set (similar to T1), record the weight, and then you do the so-called Max Rep Sets (MRS). Simply, try to do as many reps as possible with the same weight as you did for the first set. For the 2nd, 3rd, etc Max Reps Set you likely will be able to do less and less reps, but that's okay and expected, as you're accumulating fatigue.
+
+You skip these exercises on the Week 7 and Week 12
+
+:::exercise-example{exercise="tricepsPushdown" equipment="cable" key="tricepspushdown_cable"}
+
+
+Again, this is just a short description, and for full information and details, please read the [original post with the GZCL applications](http://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html).
+
+Check the interactive playground below to see how the program works, and what the weights/sets/reps look like for each week. You can edit the 2RM, 5RM, etc. weights for each exercise, and see how the weight changes.
+
+You can run the GZCL: Jacked And Tan 2.0 program in the Liftosaur app.
+
 ```liftoscript
 # Week 1
 ## Day 1

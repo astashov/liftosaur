@@ -1694,12 +1694,24 @@ const getProgramDetailsHandler: RouteHandler<
   const result = await new ProgramDao(di).getAll();
   const userAgent = getUserAgent(payload.event);
   if (result != null) {
+    const host = process.env.HOST || "https://www.liftosaur.com";
+    let fullDescription: string | undefined;
+    try {
+      const detailResponse = await di.fetch(`${host}/programdata/programs/builtin/${params.id}.json`);
+      if (detailResponse.ok) {
+        const detail = await detailResponse.json();
+        fullDescription = detail.fullDescription || detail.description;
+      }
+    } catch (e) {
+      // Fall back to description from program
+    }
     return {
       statusCode: 200,
       body: renderProgramDetailsHtml(
         result.map((p) => p.program),
         params.id,
         di.fetch,
+        fullDescription,
         userAgent
       ),
       headers: { "content-type": "text/html" },

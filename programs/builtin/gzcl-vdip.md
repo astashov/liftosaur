@@ -12,6 +12,58 @@ VDIP - Volume-dependent Intensity Progression. A bit unusual program, where each
 
 Before starting the program, please read [the program explanation on author's blog](https://swoleateveryheight.blogspot.com/2016/11/volume-dependent-intensity-progression.html) first!
 
+<!-- more -->
+
+GZCL: VDIP (Volume-dependent Intensity Progression) is a weightlifting program based on the **GZCL principle**, created by [Cody Lefever](https://www.gainzfever.com/). The GZCL name comes from his Reddit username - [u/gzcl](https://www.reddit.com/u/gzcl). It's a beginner-intermediate program, with the main idea is that each set is an AMRAP.
+
+## GZCL principle
+
+Before diving in, here's some basic terminology:
+
+- **Rep Max**: This refers to the maximum weight you can lift for a given number of reps. For instance, if you can do 5 reps (and no more) with 100 kg, then your 5 rep max is 100 kg. When measuring this, you should not go to full failure, but stop when you can't maintain good form for another rep.
+
+Now, let's talk about exercises. Exercises in GZCL programs are split into **3 tiers**:
+
+- **T1**: These are main compound exercises (e.g., :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}). These exercises involve the highest intensity (i.e., the largest weights, about **85-100%** of your 2-3 rep max), but with lower volume (fewer reps and sets). Typically, you will perform 10-15 total reps, usually within **1-3 reps** per set.
+- **T2**: These are secondary compound exercises (e.g., :exercise[Front Squat]{id="frontSquat" equipment="barbell"}, :exercise[Romanian Deadlift]{id="romanianDeadlift" equipment="barbell"}, :exercise[Incline Bench Press]{id="inclineBenchPress" equipment="barbell"}, etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You should pick exercises that will assist with your T1 exercises. These exercises are performed with **65-85%** of your 2-3 rep max, usually within **5-8 reps** per set.
+- **T3**: These are isolation exercises (e.g., :exercise[Leg Press]{id="legPress" equipment="leverageMachine"}, :exercise[Seated Leg Curl]{id="seatedLegCurl" equipment="leverageMachine"}, :exercise[Triceps Extension]{id="tricepsExtension" equipment="dumbbell"}, :exercise[Lateral Raise]{id="lateralRaise" equipment="dumbbell"}). These exercises have the lowest intensity (lightest weights), but highest volume (most reps and sets). These are performed with less than **65%** of your 2-3 rep max, usually with **8 or more reps** per set.
+
+A useful rule of thumb is the **1:2:3 rule** - for every rep you perform in T1, do 2 reps in T2, and 3 in T3.
+
+This is a very short description of the GZCL principle. For more information, and more details, I REALLY recommend to read [Cody's blogpost](http://swoleateveryheight.blogspot.com/2012/11/the-gzcl-method-for-powerlifting.html).
+
+## Application of the GZCL Principle to the VDIP program
+
+### T1 Exercise
+
+First, you come up with the initial weight - which is **~85%** of your 2RM for that exercise.
+
+There are **3 sets**, and every set of every exercise in this program is a Max Rep Set (or AMRAP - As Many Reps As Possible). You don't go to complete failure, but leave 1-2 reps in the tank, and do as many as you can. For the following sets, you will likely be able to do fewer and fewer reps, but that's okay. There's an autoregulating part of the program that will increase the weight by **10lbs** if the sum of all the reps is **15** or more, and by **5lb** if it's **10** or more.
+
+It's important to track the Rest Timer here, which should be **3-5** minutes for T1.
+
+### T2 Exercise
+
+Similar to T1, but initial weight - **~65%** of your 2RM for that exercise (so you should be able to do more reps per set).
+
+It'll bump the weight by **10lb** if you got **30** or more total reps, and by **5lb** - if **25** or more total reps.
+
+The Rest Timer is smaller - **2-3** minutes for T2.
+
+### T3 Exercise
+
+All the same as in T1/T2, but **4 sets**. Initial weight - **~55%** of your 2RM for that exercise.
+
+It'll increase the weight by **5lb** if you got **50** reps or more total.
+
+The Rest Timer is even smaller - **30-90** seconds for T3.
+
+Again, this is just a brief description, and for full information and details, please read the [original post with the GZCL VDIP application](http://swoleateveryheight.blogspot.com/2016/11/volume-dependent-intensity-progression.html).
+
+Check the interactive playground below to see how the program works, and what the weights/sets/reps look like for each day. You can finish the sets, and see how the weight would be changed for the next workout.
+
+You can run GZCL: VDIP program in the Liftosaur app.
+
 ```liftoscript
 # Week 1
 ## Day 1

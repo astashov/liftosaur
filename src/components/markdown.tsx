@@ -1,20 +1,61 @@
-import { h, JSX } from "preact";
+import { h, JSX, render } from "preact";
 import MarkdownIt from "markdown-it";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "./linkButton";
+import { IEvaluatedProgram } from "../models/program";
+import { ISettings } from "../types";
+import { ExerciseImage } from "./exerciseImage";
+import { ProgramDetailsExerciseExample } from "../pages/programs/programDetails/programDetailsExerciseExample";
+import { Exercise } from "../models/exercise";
 
 const md = new MarkdownIt({ html: true, linkify: true });
+
+function preprocessDirectives(text: string, directivesData?: IMarkdownDirectivesData): string {
+  let result = text;
+  if (directivesData?.exercise) {
+    result = result.replace(
+      /:exercise\[([^\]]*)\]\{([^}]*)\}/g,
+      (_match, label: string, attrsStr: string) => {
+        const attrs: Record<string, string> = {};
+        for (const m of attrsStr.matchAll(/(\w+)="([^"]*)"/g)) {
+          attrs[m[1]] = m[2];
+        }
+        return `<span class="md-exercise-directive" data-id="${attrs.id || ""}" data-equipment="${attrs.equipment || ""}">${label}</span>`;
+      }
+    );
+  }
+  if (directivesData?.exerciseExample) {
+    result = result.replace(
+      /^:::exercise-example\{([^}]*)\}\s*$/gm,
+      (_match, attrsStr: string) => {
+        const attrs: Record<string, string> = {};
+        for (const m of attrsStr.matchAll(/(\w+)="([^"]*)"/g)) {
+          attrs[m[1]] = m[2];
+        }
+        return `<div class="md-exercise-example" data-exercise="${attrs.exercise || ""}" data-equipment="${attrs.equipment || ""}" data-key="${attrs.key || ""}" data-weeks="${attrs.weeks || ""}" data-week-labels="${attrs.weekLabels || ""}"></div>`;
+      }
+    );
+  }
+  return result;
+}
+
+export interface IMarkdownDirectivesData {
+  exercise?: { settings: ISettings };
+  exerciseExample?: { settings: ISettings; evaluatedProgram: IEvaluatedProgram };
+}
 
 interface IProps {
   value: string;
   className?: string;
   truncate?: number;
+  directivesData?: IMarkdownDirectivesData;
 }
 
 export function Markdown(props: IProps): JSX.Element {
   const [shouldTruncate, setShouldTruncate] = useState(props.truncate != null);
   const [isTruncated, setIsTruncated] = useState(props.truncate != null);
-  const result = md.render(props.value);
+  const value = preprocessDirectives(props.value, props.directivesData);
+  const result = md.render(value);
   let className = props.className || "markdown";
   if (isTruncated && props.className?.indexOf("line-clamp") === -1) {
     className += ` line-clamp-${props.truncate}`;
@@ -29,6 +70,16 @@ export function Markdown(props: IProps): JSX.Element {
     if (container) {
       for (const element of Array.from(container.querySelectorAll("a"))) {
         element.setAttribute("target", "_blank");
+      }
+      if (props.directivesData?.exercise) {
+        hydrateExerciseDirectives(container, props.directivesData.exercise.settings);
+      }
+      if (props.directivesData?.exerciseExample) {
+        hydrateExerciseExampleDirectives(
+          container,
+          props.directivesData.exerciseExample.settings,
+          props.directivesData.exerciseExample.evaluatedProgram
+        );
       }
     }
   });
@@ -49,4 +100,69 @@ export function Markdown(props: IProps): JSX.Element {
       )}
     </div>
   );
+}
+
+function hydrateExerciseDirectives(container: HTMLElement, settings: ISettings): void {
+  for (const el of Array.from(container.querySelectorAll(".md-exercise-directive"))) {
+    if (el.getAttribute("data-hydrated")) {
+      continue;
+    }
+    el.setAttribute("data-hydrated", "true");
+    const id = el.getAttribute("data-id") || "";
+    const equipment = el.getAttribute("data-equipment") || "";
+    const label = el.textContent || "";
+    const exerciseType = { id, equipment };
+    const exercise = Exercise.get(exerciseType, settings.exercises);
+    render(
+      <span className="inline-flex items-center align-middle">
+        <ExerciseImage settings={settings} className="w-6 inline-block" exerciseType={exerciseType} size="small" />
+        <span className="ml-1">{label || exercise.name}</span>
+      </span>,
+      el
+    );
+  }
+}
+
+function hydrateExerciseExampleDirectives(
+  container: HTMLElement,
+  settings: ISettings,
+  evaluatedProgram: IEvaluatedProgram
+): void {
+  for (const el of Array.from(container.querySelectorAll(".md-exercise-example"))) {
+    if (el.getAttribute("data-hydrated")) {
+      continue;
+    }
+    el.setAttribute("data-hydrated", "true");
+    const exercise = el.getAttribute("data-exercise") || "";
+    const equipment = el.getAttribute("data-equipment") || "";
+    const key = el.getAttribute("data-key") || "";
+    const weeksStr = el.getAttribute("data-weeks") || "";
+    const weekLabelsStr = el.getAttribute("data-week-labels") || "";
+
+    const exerciseType = { id: exercise, equipment };
+    const weekLabels = weekLabelsStr ? weekLabelsStr.split(",") : [];
+
+    let weekSetup: { name: string }[] | undefined;
+    if (weeksStr) {
+      const [start, end] = weeksStr.split("-").map(Number);
+      weekSetup = evaluatedProgram.weeks.slice(start - 1, end).map((w, i) => ({
+        name: weekLabels[i] ? `${w.name} (${weekLabels[i]})` : w.name,
+      }));
+    } else if (weekLabels.length > 0) {
+      weekSetup = evaluatedProgram.weeks.map((w, i) => ({
+        name: weekLabels[i] ? `${w.name} (${weekLabels[i]})` : w.name,
+      }));
+    }
+
+    render(
+      <ProgramDetailsExerciseExample
+        program={evaluatedProgram}
+        settings={settings}
+        programExerciseKey={key}
+        exerciseType={exerciseType}
+        weekSetup={weekSetup}
+      />,
+      el as HTMLElement
+    );
+  }
 }

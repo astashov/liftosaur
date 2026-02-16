@@ -352,6 +352,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
         IS_DEV: `${isDev}`,
         COMMIT_HASH: commitHash,
         FULL_COMMIT_HASH: fullCommitHash,
+        HOST: isDev ? "https://stage.liftosaur.com" : "https://www.liftosaur.com",
       },
     });
 
@@ -533,4 +534,4 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-new LiftosaurCdkStack(app, "LiftosaurStack", false);
+// new LiftosaurCdkStack(app, "LiftosaurStack", false);

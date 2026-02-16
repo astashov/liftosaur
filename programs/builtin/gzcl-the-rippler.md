@@ -15,6 +15,52 @@ The bi-weekly waving patterns of weight change and gradual reducing of volume an
 
 Please read the [program explanation](https://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html) before start!
 
+<!-- more -->
+
+The Rippler is a weightlifting program based on the **GZCL principle**, created by [Cody Lefever](https://www.gainzfever.com/). The GZCL name comes from his Reddit username - [u/gzcl](https://www.reddit.com/u/gzcl). This program is an excellent next step following the beginner [GZCLP](/programs/gzclp) program, particularly when your newbie gains have plateaued and you can't increase your weights as quickly.
+
+## GZCL principle
+
+Before diving in, here's some basic terminology:
+
+- **Rep Max**: This refers to the maximum weight you can lift for a given number of reps. For instance, if you can do 5 reps (and no more) with 100 kg, then your 5 rep max is 100 kg. When measuring this, you should not go to full failure, but stop when you can't maintain good form for another rep.
+
+Now, let's talk about exercises. Exercises in GZCL programs are split into **3 tiers**:
+
+- **T1**: These are main compound exercises (e.g., :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}). These exercises involve the highest intensity (i.e., the largest weights, about **85-100%** of your 2-3 rep max), but with lower volume (fewer reps and sets). Typically, you will perform 10-15 total reps, usually within **1-3 reps** per set.
+- **T2**: These are secondary compound exercises (e.g., :exercise[Front Squat]{id="frontSquat" equipment="barbell"}, :exercise[Romanian Deadlift]{id="romanianDeadlift" equipment="barbell"}, :exercise[Incline Bench Press]{id="inclineBenchPress" equipment="barbell"}, etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You should pick exercises that will assist with your T1 exercises. These exercises are performed with **65-85%** of your 2-3 rep max, usually within **5-8 reps** per set.
+- **T3**: These are isolation exercises (e.g., :exercise[Leg Press]{id="legPress" equipment="leverageMachine"}, :exercise[Seated Leg Curl]{id="seatedLegCurl" equipment="leverageMachine"}, :exercise[Triceps Extension]{id="tricepsExtension" equipment="dumbbell"}, :exercise[Lateral Raise]{id="lateralRaise" equipment="dumbbell"}). These exercises have the lowest intensity (lightest weights), but highest volume (most reps and sets). These are performed with less than **65%** of your 2-3 rep max, usually with **8 or more reps** per set.
+
+A useful rule of thumb is the **1:2:3 rule** - for every rep you perform in T1, do 2 reps in T2, and 3 in T3.
+
+This is a very short description of the GZCL principle. For more information, and more details, I REALLY recommend to read [Cody's blogpost](http://swoleateveryheight.blogspot.com/2012/11/the-gzcl-method-for-powerlifting.html).
+
+## Application of the GZCL Principle to The Rippler Program
+
+In The Rippler program, we use the 2 rep max (2RM) weight as a basis. This is a **12-week** program, where the weight for T1 and T2 exercises changes each week according to a specific pattern.
+
+For **T1 exercises**, we increase the weight for 2 weeks, then slightly decrease it, and increase it even more in week 4. This pattern repeats through 4-week blocks. We'll have three 4-week blocks. We use 2 rep max (2RM) as a base weight for T1 exercises. So, for first 4 weeks we do 85%, 87.5%, 90%, 92.5% of 2RM weight. Liftosaur uses 1RM as a basis for the programs though, so the weights are converted into 1RM.
+
+### Example of a T1 exercise sets/reps/weight week over week
+
+:::exercise-example{exercise="benchPress" equipment="barbell" key="t1-benchpress_barbell" weeks="1-12" weekLabels="80%,85%,82.5%,87.5%,85%,90%,87.5%,92.5%,90%,95%,85%,95%"}
+
+For **T2 exercises**, we gradually increase the weights over 3 weeks (e.g., 80%, 85%, 90%), then reset to 82.5%, and increase again (82.5%, 87.5%, 92.5%). We repeat this pattern over four 3-week blocks, creating a wave-like pattern. We use 5 rep max (5RM) as a base weight for T2 exercises. We skip T2 exercises completely on weeks 11 and 12. Again, the weights in Liftosaur are converted into % of 1RM.
+
+### Example of a T2 exercise sets/reps/weight week over week
+
+:::exercise-example{exercise="inclineBenchPress" equipment="barbell" key="t2-inclinebenchpress_barbell" weeks="1-10" weekLabels="68%,72%,76%,70%,74%,78%,72%,76%,80%,85%"}
+
+For **T3 exercises**, we don't vary the weight, but aim to do the maximum reps each time. Start with a weight you can lift for 10 reps, then do as many reps as you can, leaving 1-2 reps in reserve. It's better to err on the side of lighter weights. If the weight you choose is too light, the Liftosaur app will automatically adjust and increase the weight as needed in weeks 3, 6, and 9.
+
+Feel free to substitute exercises if you don't have the necessary equipment or if you wish to target specific muscles, particularly for the T3 exercises. If you use the Liftosaur app, there's a handy "Substitute" exercise feature where you can select similar exercises that require different equipment.
+
+## 1RM test
+
+Starting from week 11, you'll begin preparing for the 1RM test. You won't perform the T2 and T3 exercises at all during this period. On week 11, you will do heavy 2RMs of T1, and on week 12, you'll test your 1RM, and enjoy your new PRs!
+
+Again, this is just a short description, and for full information and details, please read the [original post with the GZCL applications](http://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html).
+
 ```liftoscript
 # Week 1
 ## Day 1

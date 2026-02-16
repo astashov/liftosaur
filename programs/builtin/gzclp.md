@@ -10,6 +10,62 @@ tags: []
 
 Popular linear progression workout routine, based on the [GZCL method](http://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html), featuring well-balanced exercise selection, and proven progression scheme. It's great for beginners, you could choose it right after 3-6 month course of 'Basic Beginner' program.
 
+<!-- more -->
+
+GZCLP is a weightlifting program based on the **GZCL principle**, created by [Cody Lefever](https://www.gainzfever.com/). The GZCL name comes from his Reddit username - [u/gzcl](https://www.reddit.com/u/gzcl). It's a great beginner program. You do it three times a week and it's based on the GZCL principle. It's a good next step after doing 3-6 months of a Basic Beginner Routine or Starting Strength. It's also good for getting a lot of practice with exercises, because you do more reps than most other beginner programs.
+
+## GZCL principle
+
+Before diving in, here's some basic terminology:
+
+- **Rep Max**: This refers to the maximum weight you can lift for a given number of reps. For instance, if you can do 5 reps (and no more) with 100 kg, then your 5 rep max is 100 kg. When measuring this, you should not go to full failure, but stop when you can't maintain good form for another rep.
+
+Now, let's talk about exercises. Exercises in GZCL programs are split into **3 tiers**:
+
+- **T1**: These are main compound exercises (e.g., :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}). These exercises involve the highest intensity (i.e., the largest weights, about **85-100%** of your 2-3 rep max), but with lower volume (fewer reps and sets). Typically, you will perform 10-15 total reps, usually within **1-3 reps** per set.
+- **T2**: These are secondary compound exercises (e.g., :exercise[Front Squat]{id="frontSquat" equipment="barbell"}, :exercise[Romanian Deadlift]{id="romanianDeadlift" equipment="barbell"}, :exercise[Incline Bench Press]{id="inclineBenchPress" equipment="barbell"}, etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You should pick exercises that will assist with your T1 exercises. These exercises are performed with **65-85%** of your 2-3 rep max, usually within **5-8 reps** per set.
+- **T3**: These are isolation exercises (e.g., :exercise[Leg Press]{id="legPress" equipment="leverageMachine"}, :exercise[Seated Leg Curl]{id="seatedLegCurl" equipment="leverageMachine"}, :exercise[Triceps Extension]{id="tricepsExtension" equipment="dumbbell"}, :exercise[Lateral Raise]{id="lateralRaise" equipment="dumbbell"}). These exercises have the lowest intensity (lightest weights), but highest volume (most reps and sets). These are performed with less than **65%** of your 2-3 rep max, usually with **8 or more reps** per set.
+
+A useful rule of thumb is the **1:2:3 rule** - for every rep you perform in T1, do 2 reps in T2, and 3 in T3.
+
+This is a very short description of the GZCL principle. For more information, and more details, I REALLY recommend to read [Cody's blogpost](http://swoleateveryheight.blogspot.com/2012/11/the-gzcl-method-for-powerlifting.html).
+
+## Application of the GZCL Principle to GZCLP program
+
+The GZCLP program has three workouts per week, but it's comprised of four different days - A1, A2, B1, and B2. So, you might do A1 on Monday, A2 on Wednesday, B1 on Friday, and then start the next week with B2 on Monday. You keep rotating through these workouts.
+
+For **T1 exercises**, we utilize main lifts: :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}. You start with 5 sets of 3 reps. The last rep should be as many as you can do (AMRAP), but **don't push to total exhaustion**. Stop when you feel you have **1-2 reps** left. You'll know you're close to your limit when the bar gets much slower, or your form starts to go wrong.
+
+If you manage to finish all sets, you add **5lb** to the Bench Press and Overhead Press, and **10lb** to the Squat and Deadlift. If you can't finish, you keep the weight the same, but move on to "Stage 2" - 6 sets of 2 reps. You keep adding weight following the same rules. If you still can't finish - you move to "Stage 3" - 10 sets of 1 rep.
+
+If you can't manage "Stage 3", you either establish your new 5 reps max (5RM) and use that to restart "Stage 1", or you reduce your current weight by 10% and revert to "Stage 1".
+
+So, to summarize:
+
+- **Stage 1** - 5 sets of 3 reps, AMRAP on the last set
+- **Stage 2** - 6 sets of 2 reps, AMRAP on the last set
+- **Stage 3** - 10 sets of 1 rep, AMRAP on the last set
+
+For **T2 exercises**, we also do the same main lifts as in T1: :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}. When you're doing Squats as T1 exercise, you do Bench Press as T2. When Bench Press is T1, Squat is T2. You flip flop the T1 and T2.
+
+There are also 3 stages in T2, but you don't do AMRAP on the last set. You use the same progression rules as in T1 - if you successfully finish all sets, you increase the weight by **5lb** for Bench Press and Overhead Press, and by **10lb** for Squat and Deadlift. If you couldn't finish all sets, you switch to the next stage.
+
+There're the following stages:
+
+- **Stage 1** - 3 sets of 10 reps, no AMRAP
+- **Stage 2** - 3 sets of 8 reps, no AMRAP
+- **Stage 3** - 3 sets of 6 reps, no AMRAP
+
+If you fail "Stage 3", you revert to your last weight from "Stage 1", add 15lb to it, and transition back to "Stage 1".
+
+For the **T3 exercises**, we use :exercise[Lat Pulldown]{id="latPulldown" equipment="cable"} and :exercise[Dumbbell Bent Over Row]{id="bentOverRow" equipment="dumbbell"}.
+
+There are no stages, just do 3 sets of 15 reps, with AMRAP as a last set.
+
+Once you can do 25 reps or more - add 5lb to the weight.
+
+Again, this is a brief overview. For comprehensive information and details, please read the [original post with the GZCL applications](https://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html).
+
 ```liftoscript
 # Week 1
 ## Day 1

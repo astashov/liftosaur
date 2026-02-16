@@ -8,12 +8,14 @@ export function renderProgramDetailsHtml(
   programs: IProgram[],
   selectedProgramId: string,
   client: Window["fetch"],
+  fullDescription?: string,
   userAgent?: string
 ): string {
   return renderPage(
     <ProgramDetailsHtml
       programs={programs}
       selectedProgramId={selectedProgramId}
+      fullDescription={fullDescription}
       client={client}
       userAgent={userAgent}
     />

@@ -14,6 +14,71 @@ In the UHF model greater importance is placed on the effort of the T1, which is 
 
 Please read the [program explanation](https://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html) before starting the program!
 
+<!-- more -->
+
+GZCL: UHF (Ultra High Frequency) is a weightlifting program based on the **GZCL principle**, created by [Cody Lefever](https://www.gainzfever.com/). The GZCL name comes from his Reddit username - [u/gzcl](https://www.reddit.com/u/gzcl). It's a program that combines GZCL principles and the Daily Undulated Periodization (DUP) principle. It's somewhat similar to [GZCL: The Rippler](/programs/gzcl-the-rippler), but The Rippler used week to week undulating while UHF sticks closer to the DUP principle and changes volume and intensity daily.
+
+Another difference is that The Rippler sticks to Upper/Lower days, while in UHF every day is pretty much full body (if T1 is Upper, T2 is Lower, and vice versa).
+
+The volume is also significantly higher, which makes it more of an advanced program.
+
+## GZCL principle
+
+Before diving in, here's some basic terminology:
+
+- **Rep Max**: This refers to the maximum weight you can lift for a given number of reps. For instance, if you can do 5 reps (and no more) with 100 kg, then your 5 rep max is 100 kg. When measuring this, you should not go to full failure, but stop when you can't maintain good form for another rep.
+
+Now, let's talk about exercises. Exercises in GZCL programs are split into **3 tiers**:
+
+- **T1**: These are main compound exercises (e.g., :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}). These exercises involve the highest intensity (i.e., the largest weights, about **85-100%** of your 2-3 rep max), but with lower volume (fewer reps and sets). Typically, you will perform 10-15 total reps, usually within **1-3 reps** per set.
+- **T2**: These are secondary compound exercises (e.g., :exercise[Front Squat]{id="frontSquat" equipment="barbell"}, :exercise[Romanian Deadlift]{id="romanianDeadlift" equipment="barbell"}, :exercise[Incline Bench Press]{id="inclineBenchPress" equipment="barbell"}, etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You should pick exercises that will assist with your T1 exercises. These exercises are performed with **65-85%** of your 2-3 rep max, usually within **5-8 reps** per set.
+- **T3**: These are isolation exercises (e.g., :exercise[Leg Press]{id="legPress" equipment="leverageMachine"}, :exercise[Seated Leg Curl]{id="seatedLegCurl" equipment="leverageMachine"}, :exercise[Triceps Extension]{id="tricepsExtension" equipment="dumbbell"}, :exercise[Lateral Raise]{id="lateralRaise" equipment="dumbbell"}). These exercises have the lowest intensity (lightest weights), but highest volume (most reps and sets). These are performed with less than **65%** of your 2-3 rep max, usually with **8 or more reps** per set.
+
+A useful rule of thumb is the **1:2:3 rule** - for every rep you perform in T1, do 2 reps in T2, and 3 in T3.
+
+This is a very short description of the GZCL principle. For more information, and more details, I REALLY recommend to read [Cody's blogpost](http://swoleateveryheight.blogspot.com/2012/11/the-gzcl-method-for-powerlifting.html).
+
+## Application of the GZCL Principle to the UHF program
+
+### T1 Exercise
+
+In the UHF program, we use the 2 rep max (2RM) weight as Training Max (TM). This is a **9-week** program, and each week we use different 2RM% weight and reps for various T1 exercises. E.g. for week 1, we use 85% of 2RM weight for :exercise[Squat]{id="squat" equipment="barbell"}, 75% for :exercise[Deadlift]{id="deadlift" equipment="barbell"}, 90% for :exercise[Sling Shot Bench Press]{id="slingShotBenchPress" equipment="barbell"}, etc.
+
+As in any Linear Periodization program, the weight generally goes up, while volume goes down. The weight goes up non-linearly though, but in the wave form, where each wave is 3 weeks.
+
+:::exercise-example{exercise="squat" equipment="barbell" key="t1-squat_barbell"}
+
+### T2 Exercise
+
+Same as T1, we use a 2RM weight for the TM and various T1 exercises. But unlike T1, we use a linear increase in weight (non-wavy) and a somewhat wavy decrease in volume. The peaks of the waves are mostly due to AMRAP (As Many Reps As Possible) sets.
+
+For T2, we use the 'opposite' side for exercise selection - if T1 is Upper, T2 is Lower, and vice versa. This sort of makes the UHF program technically a full-body program.
+
+Week 9 is a deload week, so skip the T2 exercise completely.
+
+:::exercise-example{exercise="inclineBenchPress" equipment="barbell" key="t2-inclinebenchpress_barbell" weeks="1-8"}
+
+### T3 Exercise
+
+For T3, the first set is a Rep Max set, where you work up to your Rep Max. For the first week, it's a 15RM, for the second week, it's a 12RM, and so on. To work up to your 15RM, you need to estimate your approximate 15RM weight and then perform 'warm-up' sets (3-4 of them) that are not fatiguing, gradually increasing the weight. For example, let's say you estimated your 15RM for :exercise[Bicep Curl]{id="bicepCurl" equipment="dumbbell"} is 50lb. So, you would do:
+
+- 5 reps with an empty bar
+- 5 reps with 30lb
+- 3 reps with 40lb
+- and 15 reps with 50lb.
+
+If you missed and chose a weight that is too heavy, let's say you could only do 8 reps, or if it was too light and you did 12 reps, that's okay! You'll improve over time, so just record the weight and reps, and move on to the Max Rep Sets.
+
+For the Max Rep Sets, simply try to do as many reps as possible with the same weight as the first set (50lb in our case). For the second, third, and so on, Max Reps Sets, you will likely be able to do fewer and fewer reps, but that's okay and expected as you accumulate fatigue.
+
+:::exercise-example{exercise="bicepCurl" equipment="dumbbell" key="t3-bicepcurl_dumbbell"}
+
+Again, this is just a short description, and for full information and details, please read the [original post with the GZCL applications](http://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html).
+
+Check the interactive playground below to see how the program works, and what the weights/sets/reps look like for each week. You can edit the 2RM, 5RM, etc weights for each exercise, and see how the weight changes.
+
+You can run the GZCL: UHF 9 weeks program in the Liftosaur app.
+
 ```liftoscript
 # Week 1
 ## Day 1

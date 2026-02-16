@@ -14,6 +14,34 @@ By default the program is set up with Classic progressions, but in the there're 
 
 Make sure to read the [original post on Reddit](https://www.reddit.com/r/gzcl/comments/12ggfn7/burrito_but_big_a_general_gainzbased_12week/) describing the program before starting!
 
+<!-- more -->
+
+Burrito But Big is a weightlifting program created by the Reddit user [u/benjaminbk](https://www.reddit.com/user/benjaminbk/), based on the **GZCL principle** from [Cody Lefever](https://www.gainzfever.com/). This program is a hypertrophy adaptation of the [General Gainz program](/programs/gzcl-general-gainz), presented as a 12-week program. There're several fun progression schemes, you can mix and match in your program, and generally the program is fun and efficient to run.
+
+## GZCL principle
+
+Before diving in, here's some basic terminology:
+
+- **Rep Max**: This refers to the maximum weight you can lift for a given number of reps. For instance, if you can do 5 reps (and no more) with 100 kg, then your 5 rep max is 100 kg. When measuring this, you should not go to full failure, but stop when you can't maintain good form for another rep.
+
+Now, let's talk about exercises. Exercises in GZCL programs are split into **3 tiers**:
+
+- **T1**: These are main compound exercises (e.g., :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}). These exercises involve the highest intensity (i.e., the largest weights, about **85-100%** of your 2-3 rep max), but with lower volume (fewer reps and sets). Typically, you will perform 10-15 total reps, usually within **1-3 reps** per set.
+- **T2**: These are secondary compound exercises (e.g., :exercise[Front Squat]{id="frontSquat" equipment="barbell"}, :exercise[Romanian Deadlift]{id="romanianDeadlift" equipment="barbell"}, :exercise[Incline Bench Press]{id="inclineBenchPress" equipment="barbell"}, etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You should pick exercises that will assist with your T1 exercises. These exercises are performed with **65-85%** of your 2-3 rep max, usually within **5-8 reps** per set.
+- **T3**: These are isolation exercises (e.g., :exercise[Leg Press]{id="legPress" equipment="leverageMachine"}, :exercise[Seated Leg Curl]{id="seatedLegCurl" equipment="leverageMachine"}, :exercise[Triceps Extension]{id="tricepsExtension" equipment="dumbbell"}, :exercise[Lateral Raise]{id="lateralRaise" equipment="dumbbell"}). These exercises have the lowest intensity (lightest weights), but highest volume (most reps and sets). These are performed with less than **65%** of your 2-3 rep max, usually with **8 or more reps** per set.
+
+A useful rule of thumb is the **1:2:3 rule** - for every rep you perform in T1, do 2 reps in T2, and 3 in T3.
+
+This is a very short description of the GZCL principle. For more information, and more details, I REALLY recommend to read [Cody's blogpost](http://swoleateveryheight.blogspot.com/2012/11/the-gzcl-method-for-powerlifting.html).
+
+## Application of the GZCL Principle to the Burrito But Big program
+
+I highly recommend to read [the Reddit post](https://www.reddit.com/r/gzcl/comments/12ggfn7/burrito_but_big_a_general_gainzbased_12week/) describing the program and all the progressions and details.
+
+Check the interactive playground below to see how the program works, and what the weights/sets/reps look like for each week. You can edit the 2RM, 5RM, etc weights for each exercise, and see how the weight changes.
+
+You can run GZCL: General Gainz - Burrito But Big program in the Liftosaur app. You only would need to set initial RM weights for each exercise, and the app will automatically calculate the weights, change the sets, autobalance the T3 weights, and do all the math for you.
+
 ```liftoscript
 # Week 1
 ## Day 1

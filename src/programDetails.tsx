@@ -8,6 +8,7 @@ import { HydrateUtils } from "./utils/hydrate";
 interface IData {
   selectedProgramId: string;
   programs: IProgram[];
+  fullDescription?: string;
 }
 
 function main(): void {
