@@ -534,4 +534,4 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-// new LiftosaurCdkStack(app, "LiftosaurStack", false);
+new LiftosaurCdkStack(app, "LiftosaurStack", false);
