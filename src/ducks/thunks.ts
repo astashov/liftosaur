@@ -912,7 +912,24 @@ export namespace Thunk {
 
   export function fetchPrograms(): IThunk {
     return async (dispatch, getState, env) => {
-      const programs = await load(dispatch, "Loading programs", () => env.service.programs());
+      const programs = await load(dispatch, "Loading programs", async () => {
+        const index = await env.service.programsIndex();
+        const details = await Promise.all(index.map((entry) => env.service.programDetail(entry.id)));
+        return index.map((entry, i) => {
+          const detail = details[i];
+          const program: IProgram = {
+            ...Program.create(entry.name, entry.id),
+            author: entry.author,
+            url: entry.url,
+            shortDescription: entry.shortDescription,
+            description: detail.description,
+            isMultiweek: entry.isMultiweek,
+            tags: entry.tags as IProgram["tags"],
+            planner: detail.planner,
+          };
+          return program;
+        });
+      });
       dispatch({
         type: "UpdateState",
         lensRecording: [lb<IState>().p("programs").record(programs)],

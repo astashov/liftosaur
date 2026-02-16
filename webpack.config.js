@@ -251,6 +251,10 @@ const mainConfig = {
         to: "images",
       },
       {
+        from: "programdata",
+        to: "programdata",
+      },
+      {
         from: "manifest.webmanifest",
         to: "manifest.webmanifest",
       },
@@ -404,6 +408,11 @@ const mainConfig = {
       "/program": {
         target: localapi,
         secure: false,
+        bypass: function (req) {
+          if (req.path.startsWith("/programdata")) {
+            return req.path;
+          }
+        },
       },
       "/user/*": {
         target: localapi,

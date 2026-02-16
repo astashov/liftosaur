@@ -1,4 +1,4 @@
-import { IStorage, IHistoryRecord, ISettings, IProgram, IMuscleGeneratorResponse } from "../types";
+import { IStorage, IHistoryRecord, ISettings, IProgram, IMuscleGeneratorResponse, IPlannerProgramWeek } from "../types";
 import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
@@ -6,6 +6,27 @@ import { IExportedProgram } from "../models/program";
 import { CollectionUtils } from "../utils/collection";
 import { Encoder } from "../utils/encoder";
 import { IAppleOffer, IGoogleOffer } from "../models/state";
+
+export interface IProgramIndexEntry {
+  id: string;
+  name: string;
+  author: string;
+  authorUrl: string;
+  url: string;
+  shortDescription: string;
+  isMultiweek: boolean;
+  tags: string[];
+}
+
+export interface IProgramDetail {
+  description: string;
+  fullDescription: string;
+  planner: {
+    vtype: "planner";
+    name: string;
+    weeks: IPlannerProgramWeek[];
+  };
+}
 
 export interface IGetStorageResponse {
   email: string;
@@ -573,6 +594,16 @@ export class Service {
     return this.client(`${__API_HOST__}/api/programs`, { credentials: "include" })
       .then((response) => response.json())
       .then((json) => json.programs.map((p: { program: IProgram }) => p.program));
+  }
+
+  public async programsIndex(): Promise<IProgramIndexEntry[]> {
+    const response = await this.client(`${__HOST__}/programdata/index.json`);
+    return response.json();
+  }
+
+  public async programDetail(id: string, category: string = "builtin"): Promise<IProgramDetail> {
+    const response = await this.client(`${__HOST__}/programdata/programs/${category}/${id}.json`);
+    return response.json();
   }
 
   public async getMuscles(exercise: string): Promise<IMuscleGeneratorResponse | undefined> {

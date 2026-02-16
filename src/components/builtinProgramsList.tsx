@@ -31,6 +31,7 @@ import { Thunk } from "../ducks/thunks";
 import { equipmentName } from "../models/exercise";
 import { Equipment } from "../models/equipment";
 import { Settings } from "../models/settings";
+import { Markdown } from "./markdown";
 
 interface IProps {
   programs: IProgram[];
@@ -208,7 +209,9 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
             </div>
           )}
         </div>
-        <h4 className="text-sm text-text-secondary">{props.program.shortDescription}</h4>
+        {props.program.shortDescription && (
+          <Markdown value={props.program.shortDescription} className="text-sm text-text-secondary" />
+        )}
         <div className="py-3">
           {exercises
             .filter((e) => ExerciseImageUtils.exists(e, "small"))

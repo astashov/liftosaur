@@ -13,6 +13,7 @@
 .playwright-mcp
 localdomain.js
 /output
+/programdata
 
 /liftosaur-cdk/*.d.ts
 /dist-lambda

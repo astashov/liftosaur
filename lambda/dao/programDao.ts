@@ -45,6 +45,9 @@ export const programOrder = [
   "ss3",
   "strongcurves",
   "texasmethod",
+  "arnoldgoldensix",
+  "lylegenericbulking",
+  "metallicadpappl",
 ];
 
 export class ProgramDao {

@@ -6,6 +6,7 @@ import { Link } from "./link";
 import { IconWatch } from "./icons/iconWatch";
 import { TimeUtils } from "../utils/time";
 import { Program } from "../models/program";
+import { Markdown } from "./markdown";
 
 interface IProps {
   program: IProgram;
@@ -36,10 +37,7 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
           </div>
         </div>
       )}
-      <div
-        dangerouslySetInnerHTML={{ __html: props.program.description }}
-        className="mt-4 text-sm program-description"
-      />
+      <Markdown value={props.program.description} className="mt-4 text-sm program-description" />
       <p className="mt-6 text-center">
         <Button
           name="preview-program"
