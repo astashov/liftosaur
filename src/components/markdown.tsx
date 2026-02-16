@@ -1,9 +1,9 @@
 import { h, JSX } from "preact";
-import micromark from "micromark";
-import gfm from "micromark-extension-gfm";
-import gfmHtml from "micromark-extension-gfm/html";
+import MarkdownIt from "markdown-it";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "./linkButton";
+
+const md = new MarkdownIt({ html: true, linkify: true });
 
 interface IProps {
   value: string;
@@ -14,10 +14,7 @@ interface IProps {
 export function Markdown(props: IProps): JSX.Element {
   const [shouldTruncate, setShouldTruncate] = useState(props.truncate != null);
   const [isTruncated, setIsTruncated] = useState(props.truncate != null);
-  const result = micromark(props.value, {
-    extensions: [gfm()],
-    htmlExtensions: [gfmHtml],
-  });
+  const result = md.render(props.value);
   let className = props.className || "markdown";
   if (isTruncated && props.className?.indexOf("line-clamp") === -1) {
     className += ` line-clamp-${props.truncate}`;
