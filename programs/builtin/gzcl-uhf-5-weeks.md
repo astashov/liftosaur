@@ -28,9 +28,9 @@ Before diving in, here's some basic terminology:
 
 Now, let's talk about exercises. Exercises in GZCL programs are split into **3 tiers**:
 
-- **T1**: These are main compound exercises (e.g., :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}). These exercises involve the highest intensity (i.e., the largest weights, about **85-100%** of your 2-3 rep max), but with lower volume (fewer reps and sets). Typically, you will perform 10-15 total reps, usually within **1-3 reps** per set.
-- **T2**: These are secondary compound exercises (e.g., :exercise[Front Squat]{id="frontSquat" equipment="barbell"}, :exercise[Romanian Deadlift]{id="romanianDeadlift" equipment="barbell"}, :exercise[Incline Bench Press]{id="inclineBenchPress" equipment="barbell"}, etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You should pick exercises that will assist with your T1 exercises. These exercises are performed with **65-85%** of your 2-3 rep max, usually within **5-8 reps** per set.
-- **T3**: These are isolation exercises (e.g., :exercise[Leg Press]{id="legPress" equipment="leverageMachine"}, :exercise[Seated Leg Curl]{id="seatedLegCurl" equipment="leverageMachine"}, :exercise[Triceps Extension]{id="tricepsExtension" equipment="dumbbell"}, :exercise[Lateral Raise]{id="lateralRaise" equipment="dumbbell"}). These exercises have the lowest intensity (lightest weights), but highest volume (most reps and sets). These are performed with less than **65%** of your 2-3 rep max, usually with **8 or more reps** per set.
+- **T1**: These are main compound exercises (e.g., [{Squat}], [{Deadlift}], [{Bench Press}], [{Overhead Press}]). These exercises involve the highest intensity (i.e., the largest weights, about **85-100%** of your 2-3 rep max), but with lower volume (fewer reps and sets). Typically, you will perform 10-15 total reps, usually within **1-3 reps** per set.
+- **T2**: These are secondary compound exercises (e.g., [{Front Squat}], [{Romanian Deadlift}], [{Incline Bench Press}], etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You should pick exercises that will assist with your T1 exercises. These exercises are performed with **65-85%** of your 2-3 rep max, usually within **5-8 reps** per set.
+- **T3**: These are isolation exercises (e.g., [{Leg Press}], [{Seated Leg Curl}], [{Triceps Extension}], [{Lateral Raise}]). These exercises have the lowest intensity (lightest weights), but highest volume (most reps and sets). These are performed with less than **65%** of your 2-3 rep max, usually with **8 or more reps** per set.
 
 A useful rule of thumb is the **1:2:3 rule** - for every rep you perform in T1, do 2 reps in T2, and 3 in T3.
 
@@ -40,7 +40,7 @@ This is a very short description of the GZCL principle. For more information, an
 
 ### T1 Exercise
 
-In the UHF program, we use the 2 rep max (2RM) weight as Training Max (TM). This is a **5-week** program, and each week we use different 2RM% weight and reps for various T1 exercises. E.g. for week 1, we use 85% of 2RM weight for :exercise[Squat]{id="squat" equipment="barbell"}, 75% for :exercise[Deadlift]{id="deadlift" equipment="barbell"}, 90% for :exercise[Sling Shot Bench Press]{id="slingShotBenchPress" equipment="barbell"}, etc.
+In the UHF program, we use the 2 rep max (2RM) weight as Training Max (TM). This is a **5-week** program, and each week we use different 2RM% weight and reps for various T1 exercises. E.g. for week 1, we use 85% of 2RM weight for [{Squat}], 75% for [{Deadlift}], 90% for [{Sling Shot Bench Press}], etc.
 
 As in any Linear Periodization program, the weight generally goes up, while volume goes down. The weight goes up non-linearly though, but in the wave form, where each wave is 3 weeks.
 
@@ -56,7 +56,7 @@ For T2, we use the 'opposite' side for exercise selection - if T1 is Upper, T2 i
 
 ### T3 Exercise
 
-For T3, the first set is a Rep Max set, where you work up to your Rep Max. For the first week, it's a 15RM, for the second week, it's a 12RM, and so on. To work up to your 15RM, you need to estimate your approximate 15RM weight and then perform 'warm-up' sets (3-4 of them) that are not fatiguing, gradually increasing the weight. For example, let's say you estimated your 15RM for :exercise[Bicep Curl]{id="bicepCurl" equipment="dumbbell"} is 50lb. So, you would do:
+For T3, the first set is a Rep Max set, where you work up to your Rep Max. For the first week, it's a 15RM, for the second week, it's a 12RM, and so on. To work up to your 15RM, you need to estimate your approximate 15RM weight and then perform 'warm-up' sets (3-4 of them) that are not fatiguing, gradually increasing the weight. For example, let's say you estimated your 15RM for [{Bicep Curl}] is 50lb. So, you would do:
 
 - 5 reps with an empty bar
 - 5 reps with 30lb

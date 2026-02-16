@@ -4,6 +4,8 @@ import { ObjectUtils } from "../../src/utils/object";
 import { UrlUtils } from "../../src/utils/url";
 import JWT from "jsonwebtoken";
 import { NoRetryError } from "../../src/ducks/thunks";
+import fs from "fs";
+import path from "path";
 
 interface IMockRequest {
   url: string;
@@ -31,6 +33,32 @@ export class MockFetch {
     const body = options?.body;
     const headers = { Cookie: `session=${session}`, ...options?.headers };
     const url = UrlUtils.build(typeof urlStr === "string" ? urlStr : (urlStr as Request).url);
+    if (url.pathname.startsWith("/programdata/")) {
+      const filePath = path.join(__dirname, "../../dist", url.pathname);
+      if (!this.hasConnection) {
+        throw new NoRetryError("Network Error");
+      }
+      const content = fs.readFileSync(filePath, "utf-8");
+      return {
+        ok: true,
+        bytes: async () => new Uint8Array(0),
+        status: 200,
+        statusText: "OK",
+        json: async () => JSON.parse(content),
+        headers: new MockHeaders({}),
+        redirected: false,
+        text: async () => content,
+        url: url.href,
+        trailer: Promise.resolve(new MockHeaders({})),
+        type: "basic",
+        clone: () => new Response(),
+        body: null,
+        bodyUsed: false,
+        arrayBuffer: async () => new ArrayBuffer(0),
+        blob: async () => new Blob(),
+        formData: async () => new FormData(),
+      };
+    }
     const qs: Record<string, string> = {};
     url.searchParams.forEach((value, key) => (qs[key] = value));
     const request: APIGatewayProxyEvent = {

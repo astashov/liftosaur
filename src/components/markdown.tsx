@@ -5,6 +5,7 @@ import { LinkButton } from "./linkButton";
 import { IEvaluatedProgram } from "../models/program";
 import { ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
+import { Exercise } from "../models/exercise";
 import { ProgramDetailsExerciseExample } from "../pages/programs/programDetails/programDetailsExerciseExample";
 
 const md = new MarkdownIt({ html: true, linkify: true });
@@ -12,12 +13,8 @@ const md = new MarkdownIt({ html: true, linkify: true });
 function preprocessDirectives(text: string, directivesData?: IMarkdownDirectivesData): string {
   let result = text;
   if (directivesData?.exercise) {
-    result = result.replace(/:exercise\[([^\]]*)\]\{([^}]*)\}/g, (_match, label: string, attrsStr: string) => {
-      const attrs: Record<string, string> = {};
-      for (const m of attrsStr.matchAll(/(\w+)="([^"]*)"/g)) {
-        attrs[m[1]] = m[2];
-      }
-      return `<strong class="md-exercise-directive" data-id="${attrs.id || ""}" data-equipment="${attrs.equipment || ""}">${label}</strong>`;
+    result = result.replace(/\[\{([^}]+)\}\]/g, (_match, name: string) => {
+      return `<strong class="md-exercise-directive" data-name="${name.trim()}">${name.trim()}</strong>`;
     });
   }
   if (directivesData?.exerciseExample) {
@@ -103,9 +100,12 @@ function hydrateExerciseDirectives(container: HTMLElement, settings: ISettings):
       continue;
     }
     el.setAttribute("data-hydrated", "true");
-    const id = el.getAttribute("data-id") || "";
-    const equipment = el.getAttribute("data-equipment") || "";
-    const exerciseType = { id, equipment };
+    const name = el.getAttribute("data-name") || "";
+    const exercise = Exercise.findByNameAndEquipment(name, settings.exercises);
+    if (!exercise) {
+      continue;
+    }
+    const exerciseType = { id: exercise.id, equipment: exercise.equipment };
     render(
       <span className="inline-flex items-center align-middle" style={{ marginRight: "0.25rem" }}>
         <ExerciseImage settings={settings} className="inline-block w-6" exerciseType={exerciseType} size="small" />

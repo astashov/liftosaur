@@ -62,11 +62,7 @@ async function main(): Promise<void> {
 
     const description = program.description || "";
 
-    const parts: string[] = [
-      toFrontmatter(frontmatterData),
-      "",
-      description,
-    ];
+    const parts: string[] = [toFrontmatter(frontmatterData), "", description];
 
     if (liftoscript) {
       parts.push("");

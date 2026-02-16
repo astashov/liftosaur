@@ -22,9 +22,9 @@ Before diving in, here's some basic terminology:
 
 Now, let's talk about exercises. Exercises in GZCL programs are split into **3 tiers**:
 
-- **T1**: These are main compound exercises (e.g., :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}). These exercises involve the highest intensity (i.e., the largest weights, about **85-100%** of your 2-3 rep max), but with lower volume (fewer reps and sets). Typically, you will perform 10-15 total reps, usually within **1-3 reps** per set.
-- **T2**: These are secondary compound exercises (e.g., :exercise[Front Squat]{id="frontSquat" equipment="barbell"}, :exercise[Romanian Deadlift]{id="romanianDeadlift" equipment="barbell"}, :exercise[Incline Bench Press]{id="inclineBenchPress" equipment="barbell"}, etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You should pick exercises that will assist with your T1 exercises. These exercises are performed with **65-85%** of your 2-3 rep max, usually within **5-8 reps** per set.
-- **T3**: These are isolation exercises (e.g., :exercise[Leg Press]{id="legPress" equipment="leverageMachine"}, :exercise[Seated Leg Curl]{id="seatedLegCurl" equipment="leverageMachine"}, :exercise[Triceps Extension]{id="tricepsExtension" equipment="dumbbell"}, :exercise[Lateral Raise]{id="lateralRaise" equipment="dumbbell"}). These exercises have the lowest intensity (lightest weights), but highest volume (most reps and sets). These are performed with less than **65%** of your 2-3 rep max, usually with **8 or more reps** per set.
+- **T1**: These are main compound exercises (e.g., [{Squat}], [{Deadlift}], [{Bench Press}], [{Overhead Press}]). These exercises involve the highest intensity (i.e., the largest weights, about **85-100%** of your 2-3 rep max), but with lower volume (fewer reps and sets). Typically, you will perform 10-15 total reps, usually within **1-3 reps** per set.
+- **T2**: These are secondary compound exercises (e.g., [{Front Squat}], [{Romanian Deadlift}], [{Incline Bench Press}], etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You should pick exercises that will assist with your T1 exercises. These exercises are performed with **65-85%** of your 2-3 rep max, usually within **5-8 reps** per set.
+- **T3**: These are isolation exercises (e.g., [{Leg Press}], [{Seated Leg Curl}], [{Triceps Extension}], [{Lateral Raise}]). These exercises have the lowest intensity (lightest weights), but highest volume (most reps and sets). These are performed with less than **65%** of your 2-3 rep max, usually with **8 or more reps** per set.
 
 A useful rule of thumb is the **1:2:3 rule** - for every rep you perform in T1, do 2 reps in T2, and 3 in T3.
 
@@ -34,7 +34,7 @@ This is a very short description of the GZCL principle. For more information, an
 
 The GZCLP program has three workouts per week, but it's comprised of four different days - A1, A2, B1, and B2. So, you might do A1 on Monday, A2 on Wednesday, B1 on Friday, and then start the next week with B2 on Monday. You keep rotating through these workouts.
 
-For **T1 exercises**, we utilize main lifts: :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}. You start with 5 sets of 3 reps. The last rep should be as many as you can do (AMRAP), but **don't push to total exhaustion**. Stop when you feel you have **1-2 reps** left. You'll know you're close to your limit when the bar gets much slower, or your form starts to go wrong.
+For **T1 exercises**, we utilize main lifts: [{Squat}], [{Deadlift}], [{Bench Press}], [{Overhead Press}]. You start with 5 sets of 3 reps. The last rep should be as many as you can do (AMRAP), but **don't push to total exhaustion**. Stop when you feel you have **1-2 reps** left. You'll know you're close to your limit when the bar gets much slower, or your form starts to go wrong.
 
 If you manage to finish all sets, you add **5lb** to the Bench Press and Overhead Press, and **10lb** to the Squat and Deadlift. If you can't finish, you keep the weight the same, but move on to "Stage 2" - 6 sets of 2 reps. You keep adding weight following the same rules. If you still can't finish - you move to "Stage 3" - 10 sets of 1 rep.
 
@@ -46,7 +46,7 @@ So, to summarize:
 - **Stage 2** - 6 sets of 2 reps, AMRAP on the last set
 - **Stage 3** - 10 sets of 1 rep, AMRAP on the last set
 
-For **T2 exercises**, we also do the same main lifts as in T1: :exercise[Squat]{id="squat" equipment="barbell"}, :exercise[Deadlift]{id="deadlift" equipment="barbell"}, :exercise[Bench Press]{id="benchPress" equipment="barbell"}, :exercise[Overhead Press]{id="overheadPress" equipment="barbell"}. When you're doing Squats as T1 exercise, you do Bench Press as T2. When Bench Press is T1, Squat is T2. You flip flop the T1 and T2.
+For **T2 exercises**, we also do the same main lifts as in T1: [{Squat}], [{Deadlift}], [{Bench Press}], [{Overhead Press}]. When you're doing Squats as T1 exercise, you do Bench Press as T2. When Bench Press is T1, Squat is T2. You flip flop the T1 and T2.
 
 There are also 3 stages in T2, but you don't do AMRAP on the last set. You use the same progression rules as in T1 - if you successfully finish all sets, you increase the weight by **5lb** for Bench Press and Overhead Press, and by **10lb** for Squat and Deadlift. If you couldn't finish all sets, you switch to the next stage.
 
@@ -58,7 +58,7 @@ There're the following stages:
 
 If you fail "Stage 3", you revert to your last weight from "Stage 1", add 15lb to it, and transition back to "Stage 1".
 
-For the **T3 exercises**, we use :exercise[Lat Pulldown]{id="latPulldown" equipment="cable"} and :exercise[Dumbbell Bent Over Row]{id="bentOverRow" equipment="dumbbell"}.
+For the **T3 exercises**, we use [{Lat Pulldown}] and [{Bent Over Row}].
 
 There are no stages, just do 3 sets of 15 reps, with AMRAP as a last set.
 
