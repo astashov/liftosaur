@@ -24,7 +24,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const depsLayer = new lambda.LayerVersion(this, `LftNodeDependencies${suffix}`, {
       code: lambda.Code.fromAsset("dist-lambda", {
         bundling: {
-          image: lambda.Runtime.NODEJS_24_X.bundlingImage,
+          image: lambda.Runtime.NODEJS_22_X.bundlingImage,
           command: [
             "bash",
             "-c",
@@ -39,7 +39,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       tableName: `lftUsers${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
     usersTable.addGlobalSecondaryIndex({
       indexName: `lftUsersGoogleId${suffix}`,
@@ -62,7 +62,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "affiliateId", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
     affiliatesTable.addGlobalSecondaryIndex({
       indexName: `lftAffiliatesUserId${suffix}`,
@@ -74,7 +74,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       tableName: `lftSubscriptionDetails${suffix}`,
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
     subscriptionDetailsTable.addGlobalSecondaryIndex({
       indexName: `lftSubscriptionDetailsOriginalTransactionId${suffix}`,
@@ -87,7 +87,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
     paymentsTable.addGlobalSecondaryIndex({
       indexName: `lftPaymentsTransactionId${suffix}`,
@@ -99,14 +99,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
       tableName: `lftGoogleAuthKeys${suffix}`,
       partitionKey: { name: "token", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
 
     const appleAuthKeysTable = new dynamodb.Table(this, `LftAppleAuthKeys${suffix}`, {
       tableName: `lftAppleAuthKeys${suffix}`,
       partitionKey: { name: "token", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
 
     const historyRecordsTable = new dynamodb.Table(this, `LftHistoryRecords${suffix}`, {
@@ -114,7 +114,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "id", type: dynamodb.AttributeType.NUMBER },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
     historyRecordsTable.addGlobalSecondaryIndex({
       indexName: `lftHistoryRecordsDate${suffix}`,
@@ -128,7 +128,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "name", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
     statsTable.addGlobalSecondaryIndex({
       indexName: `lftStatsTimestamp${suffix}`,
@@ -142,7 +142,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "action", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
     logsTable.addGlobalSecondaryIndex({
       indexName: `lftLogsDate${suffix}`,
@@ -156,21 +156,21 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
 
     const programsTable = new dynamodb.Table(this, `LftPrograms${suffix}`, {
       tableName: `lftPrograms${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
 
     const urlsTable = new dynamodb.Table(this, `LftUrls${suffix}`, {
       tableName: `lftUrls${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
     urlsTable.addGlobalSecondaryIndex({
       indexName: `lftUrlsUserId${suffix}`,
@@ -182,21 +182,21 @@ export class LiftosaurCdkStack extends cdk.Stack {
       tableName: `lftFreeUsers${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
 
     const couponsTable = new dynamodb.Table(this, `LftCoupons${suffix}`, {
       tableName: `lftCoupons${suffix}`,
       partitionKey: { name: "code", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
 
     const debugTable = new dynamodb.Table(this, `LftDebug${suffix}`, {
       tableName: `lftDebug${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
 
     const eventsTable = new dynamodb.Table(this, `LftEvents${suffix}`, {
@@ -205,7 +205,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
       timeToLiveAttribute: "ttl",
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
     eventsTable.addGlobalSecondaryIndex({
       indexName: `lftEventsName${suffix}`,
@@ -219,14 +219,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       timeToLiveAttribute: "ttl",
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
 
     const aiMuscleCaches = new dynamodb.Table(this, `LftAiMuscleCaches${suffix}`, {
       tableName: `lftAiMuscleCaches${suffix}`,
       partitionKey: { name: "key", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      pointInTimeRecovery: true,
     });
 
     // Add GSI for querying by userId
@@ -320,7 +320,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
 
     const imageResizerFunction = new lambda.Function(this, `LftImageResizer${suffix}`, {
-      runtime: lambda.Runtime.NODEJS_24_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       code: lambda.Code.fromAsset("dist-lambda"),
       memorySize: 1536,
       layers: [depsLayer],
@@ -341,7 +341,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
     const fullCommitHash = childProcess.execSync("git rev-parse HEAD").toString().trim();
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
-      runtime: lambda.Runtime.NODEJS_24_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       code: lambda.Code.fromAsset("dist-lambda"),
       memorySize: 2048,
       layers: [depsLayer],
@@ -356,7 +356,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
 
     const statsLambdaFunction = new lambda.Function(this, `LftStatsLambda${suffix}`, {
-      runtime: lambda.Runtime.NODEJS_24_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       functionName: `LftStatsLambda${suffix}`,
       code: lambda.Code.fromAsset("dist-lambda"),
       memorySize: 2048,
@@ -442,7 +442,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     // Streaming Lambda for AI conversion
     const streamingLambdaFunction = new lambda.Function(this, `LftStreamingLambda${suffix}`, {
-      runtime: lambda.Runtime.NODEJS_24_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       functionName: `LftStreamingLambda${suffix}`,
       code: lambda.Code.fromAsset("dist-lambda"),
       memorySize: 1024,
