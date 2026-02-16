@@ -32,7 +32,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
 
   return (
     <section className="px-4">
-      <h1 className="text-2xl font-bold leading-8 text-center">{program.name}</h1>
+      <h1 className="text-2xl font-bold leading-8 text-center">{program.name} Program Explained</h1>
       {program.author && (
         <div className="mb-4 text-sm font-bold text-center">
           {program.url ? (
@@ -47,6 +47,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
       <div className="flex flex-col sm:flex-row program-details-description" style={{ gap: "1rem" }}>
         <div className="flex-1 min-w-0">
           <Markdown
+            className="program-details-description"
             value={descriptionText}
             directivesData={{
               exercise: { settings },

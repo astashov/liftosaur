@@ -6,35 +6,28 @@ import { IEvaluatedProgram } from "../models/program";
 import { ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
 import { ProgramDetailsExerciseExample } from "../pages/programs/programDetails/programDetailsExerciseExample";
-import { Exercise } from "../models/exercise";
 
 const md = new MarkdownIt({ html: true, linkify: true });
 
 function preprocessDirectives(text: string, directivesData?: IMarkdownDirectivesData): string {
   let result = text;
   if (directivesData?.exercise) {
-    result = result.replace(
-      /:exercise\[([^\]]*)\]\{([^}]*)\}/g,
-      (_match, label: string, attrsStr: string) => {
-        const attrs: Record<string, string> = {};
-        for (const m of attrsStr.matchAll(/(\w+)="([^"]*)"/g)) {
-          attrs[m[1]] = m[2];
-        }
-        return `<span class="md-exercise-directive" data-id="${attrs.id || ""}" data-equipment="${attrs.equipment || ""}">${label}</span>`;
+    result = result.replace(/:exercise\[([^\]]*)\]\{([^}]*)\}/g, (_match, label: string, attrsStr: string) => {
+      const attrs: Record<string, string> = {};
+      for (const m of attrsStr.matchAll(/(\w+)="([^"]*)"/g)) {
+        attrs[m[1]] = m[2];
       }
-    );
+      return `<strong class="md-exercise-directive" data-id="${attrs.id || ""}" data-equipment="${attrs.equipment || ""}">${label}</strong>`;
+    });
   }
   if (directivesData?.exerciseExample) {
-    result = result.replace(
-      /^:::exercise-example\{([^}]*)\}\s*$/gm,
-      (_match, attrsStr: string) => {
-        const attrs: Record<string, string> = {};
-        for (const m of attrsStr.matchAll(/(\w+)="([^"]*)"/g)) {
-          attrs[m[1]] = m[2];
-        }
-        return `<div class="md-exercise-example" data-exercise="${attrs.exercise || ""}" data-equipment="${attrs.equipment || ""}" data-key="${attrs.key || ""}" data-weeks="${attrs.weeks || ""}" data-week-labels="${attrs.weekLabels || ""}"></div>`;
+    result = result.replace(/^:::exercise-example\{([^}]*)\}[ \t]*$/gm, (_match, attrsStr: string) => {
+      const attrs: Record<string, string> = {};
+      for (const m of attrsStr.matchAll(/(\w+)="([^"]*)"/g)) {
+        attrs[m[1]] = m[2];
       }
-    );
+      return `<div class="md-exercise-example mb-4" data-exercise="${attrs.exercise || ""}" data-equipment="${attrs.equipment || ""}" data-key="${attrs.key || ""}" data-weeks="${attrs.weeks || ""}" data-week-labels="${attrs.weekLabels || ""}"></div>`;
+    });
   }
   return result;
 }
@@ -71,16 +64,18 @@ export function Markdown(props: IProps): JSX.Element {
       for (const element of Array.from(container.querySelectorAll("a"))) {
         element.setAttribute("target", "_blank");
       }
-      if (props.directivesData?.exercise) {
-        hydrateExerciseDirectives(container, props.directivesData.exercise.settings);
-      }
-      if (props.directivesData?.exerciseExample) {
-        hydrateExerciseExampleDirectives(
-          container,
-          props.directivesData.exerciseExample.settings,
-          props.directivesData.exerciseExample.evaluatedProgram
-        );
-      }
+      setTimeout(() => {
+        if (props.directivesData?.exercise) {
+          hydrateExerciseDirectives(container, props.directivesData.exercise.settings);
+        }
+        if (props.directivesData?.exerciseExample) {
+          hydrateExerciseExampleDirectives(
+            container,
+            props.directivesData.exerciseExample.settings,
+            props.directivesData.exerciseExample.evaluatedProgram
+          );
+        }
+      }, 0);
     }
   });
 
@@ -110,13 +105,10 @@ function hydrateExerciseDirectives(container: HTMLElement, settings: ISettings):
     el.setAttribute("data-hydrated", "true");
     const id = el.getAttribute("data-id") || "";
     const equipment = el.getAttribute("data-equipment") || "";
-    const label = el.textContent || "";
     const exerciseType = { id, equipment };
-    const exercise = Exercise.get(exerciseType, settings.exercises);
     render(
-      <span className="inline-flex items-center align-middle">
-        <ExerciseImage settings={settings} className="w-6 inline-block" exerciseType={exerciseType} size="small" />
-        <span className="ml-1">{label || exercise.name}</span>
+      <span className="inline-flex items-center align-middle" style={{ marginRight: "0.25rem" }}>
+        <ExerciseImage settings={settings} className="inline-block w-6" exerciseType={exerciseType} size="small" />
       </span>,
       el
     );
