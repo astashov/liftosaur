@@ -358,8 +358,17 @@ export const migrations = {
     let progressRecordsModified = 0;
     let entriesModified = 0;
     let setsModified = 0;
+    let missingVtypeCount = 0;
+    let missingIndexCount = 0;
+    let missingIdCount = 0;
+    let recordsMissingEntryVtype = 0;
+    let recordsMissingSetVtype = 0;
+    let recordsMissingSetIndex = 0;
     for (const record of progressRecords) {
       let recordModified = false;
+      let recordHasMissingEntryVtype = false;
+      let recordHasMissingSetVtype = false;
+      let recordHasMissingSetIndex = false;
       if (!record.vtype) {
         record.vtype = "progress";
         recordModified = true;
@@ -381,10 +390,13 @@ export const migrations = {
         if (!entry.vtype) {
           entry.vtype = "history_entry";
           entryModified = true;
+          missingVtypeCount += 1;
+          recordHasMissingEntryVtype = true;
         }
         if (entry.index == null) {
           entry.index = entryIndex;
           entryModified = true;
+          missingIndexCount += 1;
         }
         if (entryModified) {
           entriesModified += 1;
@@ -396,14 +408,19 @@ export const migrations = {
           if (!set.id) {
             set.id = UidFactory.generateUid(6);
             setModified = true;
+            missingIdCount += 1;
           }
           if (!set.vtype) {
             set.vtype = "set";
             setModified = true;
+            missingVtypeCount += 1;
+            recordHasMissingSetVtype = true;
           }
           if (set.index == null) {
             set.index = setIndex;
             setModified = true;
+            missingIndexCount += 1;
+            recordHasMissingSetIndex = true;
           }
           if (setModified) {
             setsModified += 1;
@@ -416,14 +433,19 @@ export const migrations = {
           if (!set.id) {
             set.id = UidFactory.generateUid(6);
             setModified = true;
+            missingIdCount += 1;
           }
           if (!set.vtype) {
             set.vtype = "set";
             setModified = true;
+            missingVtypeCount += 1;
+            recordHasMissingSetVtype = true;
           }
           if (set.index == null) {
             set.index = setIndex;
             setModified = true;
+            missingIndexCount += 1;
+            recordHasMissingSetIndex = true;
           }
           if (setModified) {
             setsModified += 1;
@@ -433,6 +455,15 @@ export const migrations = {
       }
       if (recordModified) {
         progressRecordsModified += 1;
+        if (recordHasMissingEntryVtype) {
+          recordsMissingEntryVtype += 1;
+        }
+        if (recordHasMissingSetVtype) {
+          recordsMissingSetVtype += 1;
+        }
+        if (recordHasMissingSetIndex) {
+          recordsMissingSetIndex += 1;
+        }
       }
     }
     if (progressRecordsModified > 0) {
@@ -441,6 +472,12 @@ export const migrations = {
         entriesModified,
         setsModified,
         totalProgressRecords: progressRecords.length,
+        missingVtypeCount,
+        missingIndexCount,
+        missingIdCount,
+        recordsMissingEntryVtype,
+        recordsMissingSetVtype,
+        recordsMissingSetIndex,
       });
     }
     return storage;
