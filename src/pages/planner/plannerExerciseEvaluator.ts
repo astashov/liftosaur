@@ -346,7 +346,10 @@ export class PlannerExerciseEvaluator {
         (weightNode != null && this.getValue(weightNode).indexOf("+") !== -1) ||
         (percentageNode != null && this.getValue(percentageNode).indexOf("+") !== -1);
       const logRpe = rpeNode == null ? undefined : this.getValue(rpeNode).indexOf("+") !== -1;
-      const rpe = rpeNode == null ? undefined : parseFloat(this.getValue(rpeNode).replace("@", "").replace("+", ""));
+      let rpe = rpeNode == null ? undefined : parseFloat(this.getValue(rpeNode).replace("@", "").replace("+", ""));
+      if (rpe != null && isNaN(rpe)) {
+        rpe = undefined;
+      }
       const timer = timerNode == null ? undefined : parseInt(this.getValue(timerNode).replace("s", ""), 10);
       const percentage =
         percentageNode == null ? undefined : parseFloat(this.getValue(percentageNode).replace(/[%\+]/, ""));
