@@ -14,8 +14,7 @@ import { MusclesView } from "../../components/muscles/musclesView";
 import { Stats } from "../../models/stats";
 
 export interface IProgramDetailsContentProps {
-  selectedProgramId: string;
-  programs: IProgram[];
+  program: IProgram;
   fullDescription?: string;
   client: Window["fetch"];
   audio: IAudioInterface;
@@ -23,7 +22,7 @@ export interface IProgramDetailsContentProps {
 }
 
 export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.Element {
-  const program = props.programs.filter((p) => p.id === props.selectedProgramId)[0] || props.programs[0];
+  const { program } = props;
   const settings = Settings.build();
   const fullProgram = Program.fullProgram(ObjectUtils.clone(program), settings);
   const evaluatedProgram = Program.evaluate(ObjectUtils.clone(program), settings);

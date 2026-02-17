@@ -5,16 +5,14 @@ import { IProgram } from "../../types";
 import { ProgramDetailsContent } from "./programDetailsContent";
 
 interface IProps {
-  selectedProgramId: string;
-  programs: IProgram[];
+  program: IProgram;
   fullDescription?: string;
   userAgent?: string;
   client: Window["fetch"];
 }
 
 export function ProgramDetailsHtml(props: IProps): JSX.Element {
-  const { programs, selectedProgramId } = props;
-  const program = programs.filter((p) => p.id === selectedProgramId)[0] || programs[0];
+  const { program } = props;
   const audio = new MockAudioInterface();
   const { client, ...data } = props;
   const title = `${program.name} program explained | Liftosaur`;
@@ -38,9 +36,8 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
     >
       <ProgramDetailsContent
         userAgent={props.userAgent}
-        programs={props.programs}
+        program={program}
         fullDescription={props.fullDescription}
-        selectedProgramId={props.selectedProgramId}
         client={props.client}
         audio={audio}
       />

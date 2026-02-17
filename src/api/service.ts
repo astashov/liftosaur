@@ -1,4 +1,4 @@
-import { IStorage, IHistoryRecord, ISettings, IProgram, IMuscleGeneratorResponse, IPlannerProgramWeek } from "../types";
+import { IStorage, IHistoryRecord, ISettings, IMuscleGeneratorResponse, IPlannerProgramWeek } from "../types";
 import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
@@ -580,21 +580,7 @@ export class Service {
     }
   }
 
-  public async publishProgram(program: IProgram, adminKey: string): Promise<void> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/publishprogram`);
-    url.searchParams.set("key", adminKey);
-    await this.client(url.toString(), {
-      method: "POST",
-      body: JSON.stringify({ program }),
-      credentials: "include",
-    });
-  }
 
-  public programs(): Promise<IProgram[]> {
-    return this.client(`${__API_HOST__}/api/programs`, { credentials: "include" })
-      .then((response) => response.json())
-      .then((json) => json.programs.map((p: { program: IProgram }) => p.program));
-  }
 
   public async programsIndex(): Promise<IProgramIndexEntry[]> {
     const response = await this.client(`${__HOST__}/programdata/index.json`);

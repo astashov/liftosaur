@@ -614,7 +614,6 @@ export function AppView(props: IProps): JSX.Element | null {
             client={client}
             helps={state.storage.helps}
             navCommon={navCommon}
-            adminKey={state.adminKey}
             subscription={state.storage.subscription}
             settings={state.storage.settings}
             dispatch={dispatch}

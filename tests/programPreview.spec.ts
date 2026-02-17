@@ -8,7 +8,7 @@ test("Program Preview", async ({ page }) => {
   await expect(page.getByTestId("program-name")).toHaveText("Basic Beginner Routine");
   await expect(page.getByTestId("program-author")).toHaveText("By /r/fitness");
   await expect(page.getByTestId("preview-day-workout-a").first().getByTestId("preview-day-name")).toHaveText(
-    "Week 1 - Workout A"
+    "Workout A"
   );
 
   await expect(

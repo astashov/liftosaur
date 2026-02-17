@@ -5,19 +5,12 @@ import { IProgram } from "../src/types";
 import { renderPage } from "./render";
 
 export function renderProgramDetailsHtml(
-  programs: IProgram[],
-  selectedProgramId: string,
+  program: IProgram,
   client: Window["fetch"],
   fullDescription?: string,
   userAgent?: string
 ): string {
   return renderPage(
-    <ProgramDetailsHtml
-      programs={programs}
-      selectedProgramId={selectedProgramId}
-      fullDescription={fullDescription}
-      client={client}
-      userAgent={userAgent}
-    />
+    <ProgramDetailsHtml program={program} fullDescription={fullDescription} client={client} userAgent={userAgent} />
   );
 }

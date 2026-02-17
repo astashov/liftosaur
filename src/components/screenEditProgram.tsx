@@ -12,7 +12,6 @@ interface IProps {
   dispatch: IDispatch;
   subscription: ISubscription;
   settings: ISettings;
-  adminKey?: string;
   originalProgram: IProgram;
   plannerState: IPlannerState;
   client: Window["fetch"];
@@ -37,7 +36,6 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           originalProgram={originalProgram}
           plannerState={plannerState}
-          adminKey={props.adminKey}
           isLoggedIn={props.isLoggedIn}
           navCommon={props.navCommon}
         />

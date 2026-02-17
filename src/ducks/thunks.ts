@@ -887,28 +887,6 @@ export namespace Thunk {
     };
   }
 
-  export function publishProgram(
-    program: IProgram,
-    args: Pick<IProgram, "id" | "author" | "name" | "shortDescription" | "description" | "url">
-  ): IThunk {
-    const { id, author, name, description, shortDescription, url } = args;
-    return async (dispatch, getState, env) => {
-      const state = getState();
-      const newProgram = {
-        ...program,
-        id,
-        author,
-        name,
-        description,
-        shortDescription,
-        url,
-      };
-      if (state.adminKey) {
-        await env.service.publishProgram(newProgram, state.adminKey);
-        alert("Published");
-      }
-    };
-  }
 
   export function fetchPrograms(): IThunk {
     return async (dispatch, getState, env) => {

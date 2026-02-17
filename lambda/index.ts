@@ -1063,9 +1063,9 @@ const getProgramImageHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
 }) => {
   const { event, di } = payload;
   return ImageCacher.cache(di, event, `programimage${event.path}-${params.id}.png`, async () => {
-    const program = await new ProgramDao(di).get(params.id);
+    const program = await new ProgramDao(di).getById(params.id);
     if (program != null) {
-      const imageResult = await new ProgramImageGenerator().generate({ program: program.program });
+      const imageResult = await new ProgramImageGenerator().generate({ program });
       if (imageResult.success) {
         return { success: true, data: imageResult.data };
       } else {
@@ -1075,25 +1075,6 @@ const getProgramImageHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       return { success: false, error: "Can't find program" };
     }
   });
-};
-
-const publishProgramEndpoint = Endpoint.build("/api/publishprogram", { key: "string" });
-const publishProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof publishProgramEndpoint> = async ({
-  payload,
-  match: { params },
-}) => {
-  const { event, di } = payload;
-  if (params.key === (await di.secrets.getApiKey())) {
-    const program = getBodyJson(event).program;
-    if (program != null) {
-      await new ProgramDao(di).save(program);
-      return ResponseUtils.json(200, event, { data: "ok" });
-    } else {
-      return ResponseUtils.json(400, event, { error: "missing program in payload" });
-    }
-  } else {
-    return ResponseUtils.json(401, event, {});
-  }
 };
 
 const postAddFreeUserEndpoint = Endpoint.build("/api/addfreeuser/:id", { key: "string" });
@@ -1691,29 +1672,20 @@ const getProgramDetailsHandler: RouteHandler<
   typeof getProgramDetailsEndpoint
 > = async ({ payload, match: { params } }) => {
   const { di } = payload;
-  const result = await new ProgramDao(di).getAll();
+  const dao = new ProgramDao(di);
+  const program = await dao.getById(params.id);
   const userAgent = getUserAgent(payload.event);
-  if (result != null) {
-    const host = process.env.HOST || "https://www.liftosaur.com";
+  if (program != null) {
     let fullDescription: string | undefined;
     try {
-      const detailResponse = await di.fetch(`${host}/programdata/programs/builtin/${params.id}.json`);
-      if (detailResponse.ok) {
-        const detail = await detailResponse.json();
-        fullDescription = detail.fullDescription || detail.description;
-      }
+      const detail = await dao.getDetail(params.id);
+      fullDescription = detail.fullDescription || detail.description;
     } catch (e) {
       // Fall back to description from program
     }
     return {
       statusCode: 200,
-      body: renderProgramDetailsHtml(
-        result.map((p) => p.program),
-        params.id,
-        di.fetch,
-        fullDescription,
-        userAgent
-      ),
+      body: renderProgramDetailsHtml(program, di.fetch, fullDescription, userAgent),
       headers: { "content-type": "text/html" },
     };
   } else {
@@ -2714,7 +2686,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getHistoryRecordEndpoint, getHistoryRecordHandler)
       .get(getHistoryRecordImageEndpoint, getHistoryRecordImageHandler)
       .post(logEndpoint, logHandler)
-      .post(publishProgramEndpoint, publishProgramHandler)
+
       .get(getProfileEndpoint, getProfileHandler)
       .get(getProfileImageEndpoint, getProfileImageHandler)
       .get(getAdminUsersEndpoint, getAdminUsersHandler)

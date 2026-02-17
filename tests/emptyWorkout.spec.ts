@@ -92,17 +92,15 @@ test("Empty Workout", async ({ page }) => {
 
   await page.getByTestId("history-record").nth(1).click();
   await page.getByTestId("save-to-program").click();
-  await page.getByTestId("menu-item-next-day-picker-3").click();
+  await page.getByTestId("menu-item-next-day-picker-2").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("change-next-day").click();
 
-  await expect(page.getByTestId("menu-item-next-day-picker-4")).toContainText("Week 1 - Day 4");
-  await page.getByTestId("menu-item-next-day-picker-4").click();
+  await expect(page.getByTestId("menu-item-next-day-picker-3")).toContainText("Day 3");
+  await page.getByTestId("menu-item-next-day-picker-3").click();
 
-  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-record-program")).toContainText(
-    "Week 1 - Day 4"
-  );
+  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-record-program")).toContainText("Day 3");
   await expect(page.getByTestId("history-record").nth(0).getByTestId("history-record-program")).toContainText(
     "Basic Beginner Routine"
   );

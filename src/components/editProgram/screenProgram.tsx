@@ -27,7 +27,6 @@ import { LinkButton } from "../linkButton";
 import { ModalProgramNextDay } from "../modalProgramNextDay";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { Button } from "../button";
-import { ModalPublishProgram } from "../modalPublishProgram";
 import { BottomSheetEditProgramV2 } from "../bottomSheetEditProgramV2";
 import { IconKebab } from "../icons/iconKebab";
 import { ModalPlannerPictureExport } from "../../pages/planner/components/modalPlannerPictureExport";
@@ -53,7 +52,6 @@ interface IProps {
   helps: string[];
   client: Window["fetch"];
   dispatch: IDispatch;
-  adminKey?: string;
   settings: ISettings;
   isLoggedIn: boolean;
   revisions: string[];
@@ -64,7 +62,6 @@ declare let __HOST__: string;
 
 export function ScreenProgram(props: IProps): JSX.Element {
   const plannerState = props.plannerState;
-  const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
 
   const plannerDispatch: ILensDispatch<IPlannerState> = useCallback(
     buildPlannerDispatch(
@@ -202,16 +199,6 @@ export function ScreenProgram(props: IProps): JSX.Element {
               }}
               allPrograms={[program]}
               settings={props.settings}
-            />
-          )}
-          {shouldShowPublishModal && (
-            <ModalPublishProgram
-              isHidden={!shouldShowPublishModal}
-              program={props.originalProgram}
-              dispatch={props.dispatch}
-              onClose={() => {
-                setShouldShowPublishModal(false);
-              }}
             />
           )}
           {shouldShowGenerateImageModal && (
@@ -507,19 +494,6 @@ export function ScreenProgram(props: IProps): JSX.Element {
             },
           ]}
         />
-        {props.adminKey && (
-          <div className="py-3 text-center">
-            <Button
-              name="publish-program"
-              kind="purple"
-              onClick={() => {
-                setShouldShowPublishModal(true);
-              }}
-            >
-              Publish
-            </Button>
-          </div>
-        )}
       </div>
     </Surface>
   );

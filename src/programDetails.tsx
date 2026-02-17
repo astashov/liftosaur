@@ -6,8 +6,7 @@ import { IProgram } from "./types";
 import { HydrateUtils } from "./utils/hydrate";
 
 interface IData {
-  selectedProgramId: string;
-  programs: IProgram[];
+  program: IProgram;
   fullDescription?: string;
 }
 
