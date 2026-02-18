@@ -1,3 +1,4 @@
+import "./localePolyfill";
 import { h } from "preact";
 import { IExerciseContentProps, ExerciseContent } from "./pages/exercise/exerciseContent";
 import { HydrateUtils } from "./utils/hydrate";

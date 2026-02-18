@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import "./localePolyfill";
 import { h, render } from "preact";
 import RB from "rollbar";
 import { RollbarUtils } from "./utils/rollbar";

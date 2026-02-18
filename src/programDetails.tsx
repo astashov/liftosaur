@@ -1,3 +1,4 @@
+import "./localePolyfill";
 import { h } from "preact";
 import { PageWrapper } from "./components/pageWrapper";
 import { AudioInterface } from "./lib/audioInterface";

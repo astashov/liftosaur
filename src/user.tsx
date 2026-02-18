@@ -1,3 +1,4 @@
+import "./localePolyfill";
 import { h } from "preact";
 import { HydrateUtils } from "./utils/hydrate";
 import { UserContent } from "./pages/user/userContent";
