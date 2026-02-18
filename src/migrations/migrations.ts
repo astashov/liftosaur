@@ -350,11 +350,6 @@ export const migrations = {
       }
     }
     const progressRecords = storage.progress || [];
-    if (progressRecords.length > 0) {
-      lg("migration-20260208-progress-start", {
-        progressCount: progressRecords.length,
-      });
-    }
     let progressRecordsModified = 0;
     let entriesModified = 0;
     let setsModified = 0;
@@ -364,6 +359,9 @@ export const migrations = {
     let recordsMissingEntryVtype = 0;
     let recordsMissingSetVtype = 0;
     let recordsMissingSetIndex = 0;
+    let recordsMissingRecordVtype = 0;
+    let recordsMissingUiVtype = 0;
+    let recordsMissingUiId = 0;
     for (const record of progressRecords) {
       let recordModified = false;
       let recordHasMissingEntryVtype = false;
@@ -372,16 +370,19 @@ export const migrations = {
       if (!record.vtype) {
         record.vtype = "progress";
         recordModified = true;
+        recordsMissingRecordVtype += 1;
       }
       const progressUi = record.ui;
       if (progressUi) {
         if (!progressUi.vtype) {
           progressUi.vtype = "progress_ui";
           recordModified = true;
+          recordsMissingUiVtype += 1;
         }
         if (!progressUi.id) {
           progressUi.id = UidFactory.generateUid(8);
           recordModified = true;
+          recordsMissingUiId += 1;
         }
       }
       for (let entryIndex = 0; entryIndex < record.entries.length; entryIndex++) {
@@ -466,7 +467,7 @@ export const migrations = {
         }
       }
     }
-    if (progressRecordsModified > 0) {
+    if (progressRecords.length > 0) {
       lg("migration-20260208-progress-complete", {
         progressRecordsModified,
         entriesModified,
@@ -475,6 +476,9 @@ export const migrations = {
         missingVtypeCount,
         missingIndexCount,
         missingIdCount,
+        recordsMissingRecordVtype,
+        recordsMissingUiVtype,
+        recordsMissingUiId,
         recordsMissingEntryVtype,
         recordsMissingSetVtype,
         recordsMissingSetIndex,
