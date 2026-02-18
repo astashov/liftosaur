@@ -2,6 +2,7 @@ import RB, { Dictionary, LogArgument } from "rollbar";
 import { Service } from "../api/service";
 import { IState } from "../models/state";
 import { UidFactory } from "./generator";
+import { Encoder } from "./encoder";
 
 declare let __ENV__: string;
 declare let __FULL_COMMIT_HASH__: string;
@@ -103,16 +104,17 @@ export namespace RollbarUtils {
         }
         const id = UidFactory.generateUid(12);
         pld.liftosaur_exception_id = id;
+        const state = window.reducerLastState ?? window.state;
+        const data = {
+          userid: pld.person?.id ?? window.tempUserId,
+          lastState: state ? JSON.stringify(state) : undefined,
+          lastActions: window.reducerLastActions ? JSON.stringify(window.reducerLastActions) : undefined,
+        };
+        console.log("Sending exception", data);
+        const compressed = await Encoder.encode(JSON.stringify(data));
         fetch(`${__API_HOST__}/api/exception`, {
           method: "POST",
-          body: JSON.stringify({
-            id,
-            data: {
-              userid: pld.person?.id,
-              lastState: window.reducerLastState ? JSON.stringify(window.reducerLastState) : undefined,
-              lastActions: window.reducerLastActions ? JSON.stringify(window.reducerLastActions) : undefined,
-            },
-          }),
+          body: JSON.stringify({ id, data: compressed }),
           credentials: "include",
         });
       },

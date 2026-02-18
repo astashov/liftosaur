@@ -2278,7 +2278,13 @@ const postStoreExceptionDataHandler: RouteHandler<
   const bodyJson = getBodyJson(event);
   const { id, data } = bodyJson;
   const exceptionDao = new ExceptionDao(di);
-  await exceptionDao.store(id, JSON.stringify(data));
+  let exceptionData: string;
+  if (typeof data === "string") {
+    exceptionData = await NodeEncoder.decode(data);
+  } else {
+    exceptionData = JSON.stringify(data);
+  }
+  await exceptionDao.store(id, exceptionData);
   return ResponseUtils.json(200, event, { data: { id } });
 };
 

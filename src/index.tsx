@@ -41,22 +41,27 @@ const userId = url.searchParams.get("userid") || undefined;
 const adminKey = url.searchParams.get("admin");
 
 async function initialize(loadedData: unknown): Promise<void> {
-  (window as any).loadedData = loadedData;
-  const deviceId = await DeviceId.get();
-  const initialState = await getInitialState(client, { url, rawStorage: loadedData as string | undefined, deviceId });
-  if (adminKey) {
-    initialState.adminKey = adminKey;
+  try {
+    (window as any).loadedData = loadedData;
+    const deviceId = await DeviceId.get();
+    const initialState = await getInitialState(client, { url, rawStorage: loadedData as string | undefined, deviceId });
+    if (adminKey) {
+      initialState.adminKey = adminKey;
+    }
+    const uid = initialState.user?.id || initialState.storage.tempUserId;
+    Rollbar.configure(RollbarUtils.config({ person: { id: uid } }));
+    (window as any).state = initialState;
+    (window as any).service = new Service(window.fetch.bind(window));
+    const queue = new AsyncQueue();
+    (window as any).queue = queue;
+    render(
+      <AppView initialState={initialState} client={client} audio={audio} queue={queue} />,
+      document.getElementById("app")!
+    );
+  } catch (e) {
+    console.error(e);
+    Rollbar.error("Failed to initialize app", e instanceof Error ? e : new Error(String(e)));
   }
-  const uid = initialState.user?.id || initialState.storage.tempUserId;
-  Rollbar.configure(RollbarUtils.config({ person: { id: uid } }));
-  (window as any).state = initialState;
-  (window as any).service = new Service(window.fetch.bind(window));
-  const queue = new AsyncQueue();
-  (window as any).queue = queue;
-  render(
-    <AppView initialState={initialState} client={client} audio={audio} queue={queue} />,
-    document.getElementById("app")!
-  );
 }
 
 IndexedDBUtils.getAllKeys();
@@ -71,6 +76,13 @@ async function main(): Promise<void> {
 }
 
 main();
+
+setTimeout(() => {
+  const appEl = document.getElementById("app");
+  if (appEl && appEl.childElementCount === 0) {
+    Rollbar.error("White screen detected - app failed to render after 10s");
+  }
+}, 10000);
 
 (window as any).storeData = async (data: any) => {
   IndexedDBUtils.set(await getIdbKey(userId, !!adminKey), typeof data === "string" ? data : JSON.stringify(data)).catch(

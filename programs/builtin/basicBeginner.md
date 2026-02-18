@@ -134,13 +134,15 @@ For each exercise on Day 1:
 ```liftoscript
 # Week 1
 ## Workout A
-main / used: none / 2x5, 1x5+ / 120s \
+main / used: none / 2x5, 1x5+ \
   / progress: custom(increase: 2.5lb) {~
-  if (sum(completedReps) >= sum(reps)) {
-    if (completedReps[ns] > 10) {
-      weights += state.increase * 2
-    } else {
-      weights += state.increase
+  if (completedReps >= reps) {
+    for (var.i in completedReps) {
+      if (completedReps[ns] > 10) {
+        weights[var.i] = completedWeights[var.i] + state.increase * 2
+      } else {
+        weights[var.i] = completedWeights[var.i] + state.increase
+      }
     }
   } else {
     weights *= 0.9

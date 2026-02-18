@@ -669,6 +669,7 @@ export function AppView(props: IProps): JSX.Element | null {
       );
     }
   } else {
+    Rollbar.error(`Unknown screen: ${state.screenStack.length > 0 ? Screen.currentName(state.screenStack) : "empty"}`);
     return null;
   }
 
