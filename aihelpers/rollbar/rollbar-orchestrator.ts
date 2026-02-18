@@ -410,50 +410,55 @@ async function main(): Promise<void> {
   log(`Found ${existingPRs.length} existing rollbar PRs`);
 
   log("Filtering candidates by ID match...");
-  const needsSimilarityCheck: IRollbarOccurrence[] = [];
+  const candidates: IRollbarOccurrence[] = [];
+  let itemIndex = 0;
 
-  for (const item of items) {
-    if (needsSimilarityCheck.length >= 10) {
+  while (candidates.length < MAX_FIXES && itemIndex < items.length) {
+    const batch: IRollbarOccurrence[] = [];
+
+    while (batch.length < 10 && itemIndex < items.length) {
+      const item = items[itemIndex];
+      itemIndex++;
+
+      const occurrence = await getOccurrenceForItem(item.id);
+      if (!occurrence) {
+        log(`  Could not get occurrence for item ${item.id}`);
+        continue;
+      }
+
+      const idMatch = checkIdMatch(item, occurrence.id, existingPRs);
+      if (idMatch) {
+        log(`  Skipping item ${item.id}: ${idMatch.reason}`);
+        continue;
+      }
+
+      if (occurrence.codeVersion) {
+        const fixedReason = await isFixedByMergedPR(occurrence.codeVersion, item, existingPRs);
+        if (fixedReason) {
+          log(`  Skipping item ${item.id}: ${fixedReason}`);
+          continue;
+        }
+      }
+
+      log(`  Item ${item.id} -> Occurrence ${occurrence.id}: ${item.title} (needs similarity check)`);
+      batch.push({ id: occurrence.id, itemId: item.id, title: item.title });
+    }
+
+    if (batch.length === 0) {
+      log("No more candidates after ID matching");
       break;
     }
 
-    const occurrence = await getOccurrenceForItem(item.id);
-    if (!occurrence) {
-      log(`  Could not get occurrence for item ${item.id}`);
-      continue;
-    }
+    const similarSkips = await checkSimilarityWithClaude(batch, existingPRs);
+    const survived = batch.filter((c) => !similarSkips.has(c.itemId));
 
-    const idMatch = checkIdMatch(item, occurrence.id, existingPRs);
-    if (idMatch) {
-      log(`  Skipping item ${item.id}: ${idMatch.reason}`);
-      continue;
-    }
-
-    if (occurrence.codeVersion) {
-      const fixedReason = await isFixedByMergedPR(occurrence.codeVersion, item, existingPRs);
-      if (fixedReason) {
-        log(`  Skipping item ${item.id}: ${fixedReason}`);
-        continue;
-      }
-    }
-
-    log(`  Item ${item.id} -> Occurrence ${occurrence.id}: ${item.title} (needs similarity check)`);
-    needsSimilarityCheck.push({ id: occurrence.id, itemId: item.id, title: item.title });
+    log(`${survived.length} candidates from this batch passed similarity check`);
+    candidates.push(...survived);
+    log(`Total candidates so far: ${candidates.length}`);
   }
-
-  if (needsSimilarityCheck.length === 0) {
-    log("No candidates after ID matching");
-    logFile.end();
-    return;
-  }
-
-  const similarSkips = await checkSimilarityWithClaude(needsSimilarityCheck, existingPRs);
-  const candidates = needsSimilarityCheck.filter((c) => !similarSkips.has(c.itemId));
-
-  log(`${candidates.length} candidates remaining after similarity check`);
 
   if (candidates.length === 0) {
-    log("No items to fix after similarity filtering");
+    log("No items to fix after filtering");
     logFile.end();
     return;
   }
