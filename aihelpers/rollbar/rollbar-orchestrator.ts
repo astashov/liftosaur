@@ -418,7 +418,7 @@ async function main(): Promise<void> {
 
     while (batch.length < 10 && itemIndex < items.length) {
       const item = items[itemIndex];
-      itemIndex++;
+      itemIndex += 1;
 
       const occurrence = await getOccurrenceForItem(item.id);
       if (!occurrence) {

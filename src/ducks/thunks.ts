@@ -887,7 +887,6 @@ export namespace Thunk {
     };
   }
 
-
   export function fetchPrograms(): IThunk {
     return async (dispatch, getState, env) => {
       const programs = await load(dispatch, "Loading programs", async () => {

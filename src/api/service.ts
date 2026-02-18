@@ -580,8 +580,6 @@ export class Service {
     }
   }
 
-
-
   public async programsIndex(): Promise<IProgramIndexEntry[]> {
     const response = await this.client(`${__HOST__}/programdata/index.json`);
     return response.json();

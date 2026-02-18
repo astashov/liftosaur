@@ -45,8 +45,8 @@ export namespace ImportExporter {
     }
     const payload = Storage.getDefault();
     payload.settings = ObjectUtils.clone(settings || payload.settings);
-    payload.settings.timers.workout = exportedProgram.settings.timers?.workout || payload.settings.timers.workout;
-    payload.settings.units = exportedProgram.settings.units || payload.settings.units;
+    payload.settings.timers.workout = exportedProgram.settings?.timers?.workout || payload.settings.timers.workout;
+    payload.settings.units = exportedProgram.settings?.units || payload.settings.units;
     payload.settings.exercises = exportedProgram.customExercises;
     payload.programs.push(exportedProgram.program);
     payload.version = exportedProgram.version;
