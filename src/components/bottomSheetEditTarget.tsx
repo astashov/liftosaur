@@ -31,11 +31,22 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
   const set = props.editSetModal.set;
   const [enableRpe, setEnableRpe] = useState(set.rpe != null);
   const [enableTimer, setEnableTimer] = useState(set.timer != null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const lbEditSetModal: any = lb<IHistoryRecord>().pi("ui").p("editSetModal");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const lbSet: any = lbEditSetModal.pi("set");
   const savedRef = useRef(false);
+
+  const updateSet = (fn: (s: typeof props.editSetModal.set) => typeof props.editSetModal.set, desc: string): void => {
+    updateProgress(
+      props.dispatch,
+      lb<IHistoryRecord>()
+        .pi("ui")
+        .recordModify((ui) => {
+          if (!ui.editSetModal) {
+            return ui;
+          }
+          return { ...ui, editSetModal: { ...ui.editSetModal, set: fn(ui.editSetModal.set) } };
+        }),
+      desc
+    );
+  };
 
   return (
     <div className="px-4 pb-4">
@@ -53,14 +64,14 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   if (savedRef.current) {
                     return;
                   }
-                  updateProgress(props.dispatch, [lbSet.p("minReps").record(value)], "target-blur-minreps");
+                  updateSet((s) => ({ ...s, minReps: value }), "target-blur-minreps");
                 }}
                 onInput={(value) => {
                   if (savedRef.current) {
                     return;
                   }
                   if (value != null && !isNaN(value) && value >= 0) {
-                    updateProgress(props.dispatch, [lbSet.p("minReps").record(value)], "target-input-minreps");
+                    updateSet((s) => ({ ...s, minReps: value }), "target-input-minreps");
                   }
                 }}
                 value={set.minReps}
@@ -78,14 +89,14 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   if (savedRef.current) {
                     return;
                   }
-                  updateProgress(props.dispatch, [lbSet.p("reps").record(value)], "target-blur-maxreps");
+                  updateSet((s) => ({ ...s, reps: value }), "target-blur-maxreps");
                 }}
                 onInput={(value) => {
                   if (savedRef.current) {
                     return;
                   }
                   if (value == null || (!isNaN(value) && value >= 0)) {
-                    updateProgress(props.dispatch, [lbSet.p("reps").record(value)], "target-input-maxreps");
+                    updateSet((s) => ({ ...s, reps: value }), "target-input-maxreps");
                   }
                 }}
                 value={set.reps}
@@ -103,7 +114,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   className="block align-middle checkbox text-text-link"
                   type="checkbox"
                   onChange={(e) => {
-                    updateProgress(props.dispatch, [lbSet.p("isAmrap").record(!set.isAmrap)], "amrap-checkbox");
+                    updateSet((s) => ({ ...s, isAmrap: !s.isAmrap }), "amrap-checkbox");
                   }}
                 />
               </label>
@@ -124,22 +135,14 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   if (savedRef.current) {
                     return;
                   }
-                  updateProgress(
-                    props.dispatch,
-                    [lbSet.p("originalWeight").record(value ?? Weight.build(0, "lb"))],
-                    "target-blur-weight"
-                  );
+                  updateSet((s) => ({ ...s, originalWeight: value ?? Weight.build(0, "lb") }), "target-blur-weight");
                 }}
                 onInput={(value) => {
                   if (savedRef.current) {
                     return;
                   }
                   if (value != null) {
-                    updateProgress(
-                      props.dispatch,
-                      [lbSet.p("originalWeight").record(value ?? Weight.build(0, "lb"))],
-                      "target-input-weight"
-                    );
+                    updateSet((s) => ({ ...s, originalWeight: value ?? Weight.build(0, "lb") }), "target-input-weight");
                   }
                 }}
                 units={["lb", "kg", "%"] as const}
@@ -161,11 +164,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   className="block align-middle checkbox text-text-link"
                   type="checkbox"
                   onChange={(e) => {
-                    updateProgress(
-                      props.dispatch,
-                      [lbSet.p("askWeight").record(!set.askWeight)],
-                      "ask-weight-checkbox"
-                    );
+                    updateSet((s) => ({ ...s, askWeight: !s.askWeight }), "ask-weight-checkbox");
                   }}
                 />
               </label>
@@ -198,14 +197,14 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                     if (savedRef.current) {
                       return;
                     }
-                    updateProgress(props.dispatch, [lbSet.p("rpe").record(value)], "target-blur-rpe");
+                    updateSet((s) => ({ ...s, rpe: value }), "target-blur-rpe");
                   }}
                   onInput={(value) => {
                     if (savedRef.current) {
                       return;
                     }
                     if (value != null && !isNaN(value) && value >= 0) {
-                      updateProgress(props.dispatch, [lbSet.p("rpe").record(value)], "target-input-rpe");
+                      updateSet((s) => ({ ...s, rpe: value }), "target-input-rpe");
                     }
                   }}
                   value={set.rpe}
@@ -223,7 +222,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                     className="block align-middle checkbox text-text-link"
                     type="checkbox"
                     onChange={(e) => {
-                      updateProgress(props.dispatch, [lbSet.p("logRpe").record(!set.logRpe)], "log-rpe-checkbox");
+                      updateSet((s) => ({ ...s, logRpe: !s.logRpe }), "log-rpe-checkbox");
                     }}
                   />
                 </label>
@@ -233,11 +232,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   className="p-2"
                   onClick={() => {
                     setEnableRpe(false);
-                    updateProgress(
-                      props.dispatch,
-                      [lbSet.p("logRpe").record(false), lbSet.p("rpe").record(undefined)],
-                      "clear-rpe"
-                    );
+                    updateSet((s) => ({ ...s, logRpe: false, rpe: undefined }), "clear-rpe");
                   }}
                   style={{ marginRight: "-0.5rem" }}
                 >
@@ -272,14 +267,14 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                     if (savedRef.current) {
                       return;
                     }
-                    updateProgress(props.dispatch, [lbSet.p("timer").record(value)], "target-blur-timer");
+                    updateSet((s) => ({ ...s, timer: value }), "target-blur-timer");
                   }}
                   onInput={(value) => {
                     if (savedRef.current) {
                       return;
                     }
                     if (value != null && !isNaN(value) && value >= 0) {
-                      updateProgress(props.dispatch, [lbSet.p("timer").record(value)], "target-input-timer");
+                      updateSet((s) => ({ ...s, timer: value }), "target-input-timer");
                     }
                   }}
                   value={set.timer}
@@ -294,7 +289,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   className="p-2"
                   onClick={() => {
                     setEnableTimer(false);
-                    updateProgress(props.dispatch, [lbSet.p("timer").record(undefined)], "target-clear-timer");
+                    updateSet((s) => ({ ...s, timer: undefined }), "target-clear-timer");
                   }}
                   style={{ marginRight: "-0.5rem" }}
                 >
