@@ -49,7 +49,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
   const src = ExerciseImageUtils.url(exerciseType, size, props.settings);
   const doesExist =
     ExerciseImageUtils.exists(exerciseType, size) ||
-    (!props.suppressCustom && ExerciseImageUtils.existsCustom(exerciseType, size, props.settings));
+    ExerciseImageUtils.existsCustom(exerciseType, size, !!props.suppressCustom, props.settings);
 
   if (size === "small") {
     return (

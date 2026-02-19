@@ -682,11 +682,18 @@ export namespace ExerciseImageUtils {
     return size === "small" ? availableSmallImages.has(id(type)) : availableLargeImages.has(id(type));
   }
 
-  export function existsCustom(type: IExerciseType, size: "small" | "large", settings?: ISettings): boolean {
+  export function existsCustom(
+    type: IExerciseType,
+    size: "small" | "large",
+    checkDomain: boolean,
+    settings?: ISettings
+  ): boolean {
     const customExercise = settings?.exercises?.[type.id];
-    return size === "small"
-      ? !!customExercise?.smallImageUrl
-      : !!(customExercise?.largeImageUrl ?? customExercise?.smallImageUrl);
+    const imageUrl =
+      size === "small"
+        ? customExercise?.smallImageUrl
+        : (customExercise?.largeImageUrl ?? customExercise?.smallImageUrl);
+    return checkDomain ? !!imageUrl?.includes("liftosaur.com") : !!imageUrl;
   }
 
   export function ogImageUrl(type: IExerciseType): string {
@@ -701,7 +708,7 @@ export namespace ExerciseImageUtils {
           ? `/externalimages/exercises/full/large/${id(type)}_full_large.png`
           : `/externalimages/exercises/single/small/${id(type)}_single_small.png`;
       return src;
-    } else if (existsCustom(type, size, settings)) {
+    } else if (existsCustom(type, size, false, settings)) {
       const customExercise = settings?.exercises?.[type.id];
       return size === "large"
         ? (customExercise?.largeImageUrl ?? customExercise?.smallImageUrl)
