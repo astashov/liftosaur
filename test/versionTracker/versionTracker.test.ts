@@ -1247,4 +1247,162 @@ describe("VersionTracker", () => {
       expect(merged.progress[0].entries).to.have.lengthOf(2);
     });
   });
+
+  describe("phone-watch set sync (empty sets → collection version transition)", () => {
+    it("should preserve phone's newly added set when watch sends back old storage without it", () => {
+      const phoneTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_phone" });
+      const watchTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "watch_abc" });
+
+      const entry: IHistoryEntry = {
+        id: "entry1",
+        vtype: "history_entry",
+        exercise: { id: "squat" },
+        sets: [],
+        warmupSets: [],
+        index: 0,
+      };
+
+      // 1. Phone creates progress with an entry that has empty sets
+      const storageBase = Storage.getDefault();
+      const storageWithProgress = {
+        ...storageBase,
+        progress: [
+          {
+            vtype: "progress" as const,
+            startTime: 5000,
+            entries: [entry],
+            date: "2024-01-01",
+            programId: "prog1",
+            programName: "Test",
+            day: 1,
+            dayName: "Day 1",
+            id: 1,
+          },
+        ],
+      };
+      const phoneVersions1 = phoneTracker.updateVersions(storageBase, storageWithProgress, {}, {}, 1000);
+
+      // 2. Watch receives the phone's storage (entry with 0 sets) and creates its own versions
+      const watchStorage1 = ObjectUtils.clone(storageWithProgress);
+      const watchVersions1 = watchTracker.fillVersions(watchStorage1, phoneVersions1, 1000);
+
+      // 3. Phone adds a set to the entry
+      const setToAdd = {
+        vtype: "set" as const,
+        index: 0,
+        id: "new-set-1",
+        isAmrap: false,
+        isUnilateral: false,
+        askWeight: false,
+        isCompleted: false,
+      };
+      const storageWithSet = {
+        ...storageWithProgress,
+        progress: [
+          {
+            ...storageWithProgress.progress[0],
+            entries: [{ ...entry, sets: [setToAdd] }],
+          },
+        ],
+      };
+      const phoneVersions2 = phoneTracker.updateVersions(storageWithProgress, storageWithSet, phoneVersions1, {}, 2000);
+
+      // Verify phone now has a collection version for sets (not a field version)
+      const progressVersions = phoneVersions2.progress as ICollectionVersions;
+      const progressItemVersions = progressVersions.items!["5000"] as IVersionsObject;
+      const entriesVersions = progressItemVersions.entries as ICollectionVersions;
+      const entryVersions = entriesVersions.items!["entry1"] as IVersionsObject;
+      expect(entryVersions.sets).to.have.property("items");
+
+      // 4. Watch sends back its OLD storage (without the set) to the phone
+      //    This simulates the watch sending before receiving the phone's updated storage
+      const phoneStorage = { ...storageWithSet, _versions: phoneVersions2 } as any;
+      const watchStorageToSend = { ...watchStorage1, _versions: watchVersions1 } as any;
+      const merged = Storage.mergeStorage(phoneStorage, watchStorageToSend, "ios_phone");
+
+      // Phone's set must be preserved
+      expect(merged.progress[0].entries[0].sets).to.have.lengthOf(1);
+      expect(merged.progress[0].entries[0].sets[0].id).to.equal("new-set-1");
+    });
+
+    it("should not oscillate when phone and watch repeatedly merge", () => {
+      const phoneTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_phone" });
+
+      const entry: IHistoryEntry = {
+        id: "entry1",
+        vtype: "history_entry",
+        exercise: { id: "squat" },
+        sets: [],
+        warmupSets: [],
+        index: 0,
+      };
+
+      // 1. Phone creates progress with empty sets
+      const storageBase = Storage.getDefault();
+      const storageWithProgress = {
+        ...storageBase,
+        progress: [
+          {
+            vtype: "progress" as const,
+            startTime: 5000,
+            entries: [entry],
+            date: "2024-01-01",
+            programId: "prog1",
+            programName: "Test",
+            day: 1,
+            dayName: "Day 1",
+            id: 1,
+          },
+        ],
+      };
+      const phoneVersions1 = phoneTracker.updateVersions(storageBase, storageWithProgress, {}, {}, 1000);
+
+      // 2. Watch gets phone's storage
+      const watchStorage = ObjectUtils.clone(storageWithProgress) as any;
+      watchStorage._versions = ObjectUtils.clone(phoneVersions1);
+
+      // 3. Phone adds a set
+      const setToAdd = {
+        vtype: "set" as const,
+        index: 0,
+        id: "new-set-1",
+        isAmrap: false,
+        isUnilateral: false,
+        askWeight: false,
+        isCompleted: false,
+      };
+      const storageWithSet = {
+        ...storageWithProgress,
+        progress: [
+          {
+            ...storageWithProgress.progress[0],
+            entries: [{ ...entry, sets: [setToAdd] }],
+          },
+        ],
+      };
+      const phoneVersions2 = phoneTracker.updateVersions(storageWithProgress, storageWithSet, phoneVersions1, {}, 2000);
+
+      // 4. Simulate multiple round-trips: phone merges watch, then watch merges phone, etc.
+      let phoneState: any = { ...storageWithSet, _versions: phoneVersions2 };
+      let watchState: any = { ...watchStorage, _versions: watchStorage._versions };
+
+      for (let i = 0; i < 5; i++) {
+        // Phone merges watch's storage
+        const phoneMerged = Storage.mergeStorage(phoneState, watchState, "ios_phone");
+        phoneState = phoneMerged;
+
+        // Watch merges phone's storage
+        const watchMerged = Storage.mergeStorage(watchState, phoneState, "watch_abc");
+        watchState = watchMerged;
+      }
+
+      // After all round-trips, phone should still have the set
+      expect(phoneState.progress[0].entries[0].sets).to.have.lengthOf(1);
+      expect(phoneState.progress[0].entries[0].sets[0].id).to.equal("new-set-1");
+
+      // Watch should also have the set now
+      expect(watchState.progress[0].entries[0].sets).to.have.lengthOf(1);
+      expect(watchState.progress[0].entries[0].sets[0].id).to.equal("new-set-1");
+    });
+  });
 });

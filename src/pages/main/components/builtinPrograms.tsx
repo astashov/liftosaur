@@ -18,7 +18,7 @@ export function BuiltinPrograms(): JSX.Element {
     ["Lyle's Generic Bulking", "/programs/lylegenericbulking"],
     ["Metallicadpa PPL", "/programs/metallicadpappl"],
     ["Starting Strength", "/programs/ss1"],
-    ["Strong Curves", "/programs/strongcurves1"],
+    ["Strong Curves", "/programs/strongcurves"],
     ["Texas Method", "/programs/texasmethod"],
     ["Arnold's Golden Six", "/programs/arnoldgoldensix"],
   ];

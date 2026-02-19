@@ -587,7 +587,7 @@ export namespace Thunk {
           };
         }
 
-        if (mergedStorage !== state.storage) {
+        if (Storage.isChanged(state.storage, mergedStorage)) {
           // Also merge into lastSyncedStorage to preserve phone's unsent changes
           // This ensures prepareSync won't re-detect watch's changes as new phone changes
           const mergedLastSynced = state.lastSyncedStorage

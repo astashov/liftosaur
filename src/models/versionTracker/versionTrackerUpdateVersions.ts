@@ -347,12 +347,7 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
     path: string
   ): IVersionValue | undefined {
     if (Array.isArray(newValue)) {
-      const hasTrackableItems = newValue.some(
-        (item) => VersionTrackerUtils.getId(item, this.versionTypes) !== undefined
-      );
-      if (hasTrackableItems) {
-        return this.updateArrayCollectionVersion(oldValue, newValue, currentVersion, undefined, timestamp, path);
-      }
+      return this.updateArrayCollectionVersion(oldValue, newValue, currentVersion, undefined, timestamp, path);
     }
 
     if (VersionTrackerUtils.isRecord(newValue)) {
