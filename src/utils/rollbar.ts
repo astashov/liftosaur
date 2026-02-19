@@ -39,6 +39,7 @@ export const exceptionIgnores = [
   "Unable to resolve host",
   "connection closed",
   "Invalid change range",
+  "Empty response from API",
 ];
 
 export namespace RollbarUtils {
