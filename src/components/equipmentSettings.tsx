@@ -308,7 +308,7 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
               if (plates.every((p) => !Weight.eqeq(p.weight, newWeight))) {
                 const lensRecording = props.lensPrefix
                   .then(lb<IAllEquipment>().pi(modalNewPlateEquipmentToShow).p("plates").get())
-                  .recordModify((p) => [...p, { weight: newWeight, num: 2 }]);
+                  .recordModify((p) => [...(p || []), { weight: newWeight, num: 2 }]);
                 props.lensDispatch(lensRecording, "Add plate");
               }
             }
@@ -331,7 +331,7 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
               if (fixedWeights.every((p) => !Weight.eqeq(p, newWeight))) {
                 const lensRecording = props.lensPrefix
                   .then(lb<IAllEquipment>().pi(modalNewFixedWeightEquipmentToShow).p("fixed").get())
-                  .recordModify((p) => [...p, newWeight]);
+                  .recordModify((p) => [...(p || []), newWeight]);
                 props.lensDispatch(lensRecording, "Add fixed weight");
               }
             }
@@ -481,6 +481,9 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
             const lensRecording = [
               props.lensPrefix.then(lb<IAllEquipment>().pi(props.name).p("multiplier").get()).record(value),
               props.lensPrefix.then(lb<IAllEquipment>().pi(props.name).p("plates").get()).recordModify((pl) => {
+                if (!pl) {
+                  return pl;
+                }
                 const newPlates = pl.map((plate) => {
                   return {
                     ...plate,
@@ -522,6 +525,9 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
               const lensRecording = props.lensPrefix
                 .then(lb<IAllEquipment>().pi(props.name).p("plates").get())
                 .recordModify((pl) => {
+                  if (!pl) {
+                    return pl;
+                  }
                   let newPlates;
                   if (v != null) {
                     const num = Math.floor(v / equipmentData.multiplier) * equipmentData.multiplier;

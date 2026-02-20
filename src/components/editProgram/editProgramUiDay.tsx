@@ -36,7 +36,7 @@ interface IEditProgramDayViewProps {
   isValidProgram: boolean;
   evaluatedProgram: IEvaluatedProgram;
   evaluatedDay: IPlannerEvalResult;
-  lbPlannerWeek: LensBuilder<IPlannerState, IPlannerProgramWeek, {}>;
+  lbPlannerWeek: LensBuilder<IPlannerState, IPlannerProgramWeek, {}, undefined>;
   showDelete: boolean;
   weekIndex: number;
   dayInWeekIndex: number;
@@ -216,7 +216,7 @@ interface IEditProgramDayContentViewProps {
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
   evaluatedProgram: IEvaluatedProgram;
-  lbPlannerDay: LensBuilder<IPlannerState, IPlannerProgramDay, {}>;
+  lbPlannerDay: LensBuilder<IPlannerState, IPlannerProgramDay, {}, undefined>;
   ui: IPlannerUi;
   isValidProgram: boolean;
   dayData: Required<IDayData>;

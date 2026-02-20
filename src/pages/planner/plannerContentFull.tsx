@@ -25,7 +25,7 @@ export interface IPlannerContentFullProps {
   fullText: IPlannerFullText;
   settings: ISettings;
   dispatch: ILensDispatch<IPlannerState>;
-  lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
+  lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}, undefined>;
   service: Service;
 }
 
@@ -126,7 +126,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
 
   return (
     <div className="relative">
-      <div className="sticky top-0 z-30 bg-background-default border-b sm:hidden border-border-neutral">
+      <div className="sticky top-0 z-30 border-b bg-background-default sm:hidden border-border-neutral">
         <div className="flex items-center justify-end">
           <div className="flex-1 mr-2">
             <Button
@@ -260,7 +260,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
             )}
           </div>
           <div
-            className="fixed bottom-0 py-2 text-center bg-background-default shadow-xs"
+            className="fixed bottom-0 py-2 text-center shadow-xs bg-background-default"
             style={{ width: statsWidth }}
           >
             <Button

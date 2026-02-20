@@ -12,7 +12,7 @@ export interface IEditProgramV2FullProps {
   plannerProgram: IPlannerProgram;
   settings: ISettings;
   ui: IPlannerUi;
-  lbUi: LensBuilder<IPlannerState, IPlannerUi, {}>;
+  lbUi: LensBuilder<IPlannerState, IPlannerUi, {}, undefined>;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 

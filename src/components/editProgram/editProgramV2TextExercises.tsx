@@ -21,7 +21,7 @@ interface IEditProgramV2TextExercisesProps {
   ui: IPlannerUi;
   plannerDispatch: ILensDispatch<IPlannerState>;
   weekIndex: number;
-  lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
+  lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}, undefined>;
 }
 
 export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesProps): JSX.Element {

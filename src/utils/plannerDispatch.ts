@@ -4,9 +4,9 @@ import { IDispatch } from "../ducks/types";
 import { ILensDispatch } from "./useLensReducer";
 import { IUndoRedoState, undoRedoMiddleware } from "../pages/builder/utils/undoredo";
 
-export function buildPlannerDispatch<T, S extends IUndoRedoState<T>>(
+export function buildPlannerDispatch<T, S extends IUndoRedoState<T>, O = never>(
   dispatch: IDispatch,
-  lensBuilder: LensBuilder<IState, S, {}>,
+  lensBuilder: LensBuilder<IState, S, {}, O>,
   plannerState: S
 ): ILensDispatch<S> {
   const plannerDispatch = (

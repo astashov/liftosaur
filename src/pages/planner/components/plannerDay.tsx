@@ -25,7 +25,7 @@ interface IPlannerDayProps {
   dayIndex: number;
   day: IPlannerProgramDay;
   program: IPlannerProgram;
-  lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
+  lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}, undefined>;
   ui: IPlannerUi;
   exerciseFullNames: string[];
   evaluatedWeeks: IPlannerEvalResult[][];

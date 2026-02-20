@@ -83,7 +83,12 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
           const isUnilateral = value === "true";
           updateSettings(
             props.dispatch,
-            lb<ISettings>().p("exerciseData").pi(Exercise.toKey(fullExercise)).p("isUnilateral").record(isUnilateral),
+            lb<ISettings>()
+              .p("exerciseData")
+              .recordModify((exerciseData) => {
+                const k = Exercise.toKey(fullExercise);
+                return { ...exerciseData, [k]: { ...exerciseData[k], isUnilateral } };
+              }),
             "Set exercise unilateral setting"
           );
         }}

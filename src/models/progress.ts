@@ -873,7 +873,7 @@ export namespace Progress {
     return 0;
   }
 
-  export function lbProgress(progressId?: number): LensBuilder<IState, IHistoryRecord, {}> {
+  export function lbProgress(progressId?: number): LensBuilder<IState, IHistoryRecord, {}, undefined> {
     if (progressId == null || progressId === 0) {
       return lb<IState>().p("storage").pi("progress").i(0);
     } else {

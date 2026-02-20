@@ -761,7 +761,7 @@ export namespace History {
           .pi("progress")
           .i(0)
           .p("intervals")
-          .recordModify((intervals, getters) => pauseWorkout(getters.progress[0].intervals)),
+          .recordModify((intervals, getters) => pauseWorkout(getters.progress?.[0].intervals)),
       ],
       "Pause workout"
     );
