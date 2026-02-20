@@ -37,9 +37,9 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
     updateProgress(
       props.dispatch,
       lb<IHistoryRecord>()
-        .pi("ui")
+        .p("ui")
         .recordModify((ui) => {
-          if (!ui.editSetModal) {
+          if (!ui?.editSetModal) {
             return ui;
           }
           return { ...ui, editSetModal: { ...ui.editSetModal, set: fn(ui.editSetModal.set) } };
