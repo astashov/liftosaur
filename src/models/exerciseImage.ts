@@ -693,7 +693,7 @@ export namespace ExerciseImageUtils {
       size === "small"
         ? customExercise?.smallImageUrl
         : (customExercise?.largeImageUrl ?? customExercise?.smallImageUrl);
-    return checkDomain ? !!imageUrl?.includes("liftosaur.com") : !!imageUrl;
+    return checkDomain ? !!(imageUrl?.startsWith("/") || imageUrl?.includes("liftosaur.com")) : !!imageUrl;
   }
 
   export function ogImageUrl(type: IExerciseType): string {
