@@ -1311,7 +1311,7 @@ describe("VersionTracker", () => {
       const progressVersions = phoneVersions2.progress as ICollectionVersions;
       const progressItemVersions = progressVersions.items!["5000"] as IVersionsObject;
       const entriesVersions = progressItemVersions.entries as ICollectionVersions;
-      const entryVersions = entriesVersions.items!["entry1"] as IVersionsObject;
+      const entryVersions = entriesVersions.items!.entry1 as IVersionsObject;
       expect(entryVersions.sets).to.have.property("items");
 
       // 4. Watch sends back its OLD storage (without the set) to the phone
