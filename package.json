@@ -137,7 +137,7 @@
     "html-to-image": "^1.11.11",
     "io-ts": "^2.2.4",
     "jsonwebtoken": "^8.5.1",
-    "lens-shmens": "^1.5.0",
+    "lens-shmens": "^1.5.2",
     "markdown-it": "^14.1.1",
     "micro-memoize": "^4.1.2",
     "mini-css-extract-plugin": "^2.9.2",

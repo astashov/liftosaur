@@ -192,7 +192,7 @@ function setToWatchSet(
     completedRepsLeft: isUnilateral ? set.completedRepsLeft : undefined,
     completedWeight: set.completedWeight,
     completedRpe: set.completedRpe,
-    status: Reps.setsStatus([set]),
+    status: isWarmup ? Reps.setWarmupStatus([set]) : Reps.setsStatus([set]),
     plates,
     isWarmup,
     isUnilateral,

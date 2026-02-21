@@ -139,6 +139,17 @@ export namespace Reps {
     return sets.length > 0 && sets.every((set) => Reps.isCompletedSet(set));
   }
 
+  export function setWarmupStatus(sets: ISet[]): ISetsStatus {
+    if (sets.length === 0) {
+      return "not-finished";
+    }
+    if (Reps.isFinished(sets)) {
+      return "success";
+    } else {
+      return "not-finished";
+    }
+  }
+
   export function setsStatus(sets: ISet[]): ISetsStatus {
     if (Reps.isCompleted(sets)) {
       return "success";
