@@ -9,9 +9,6 @@ import {
   builtinProgramDurationsKeys,
   builtinProgramFrequencies,
   builtinProgramGoals,
-  builtinProgramProperties,
-} from "../models/builtinPrograms";
-import {
   IBuiltinProgramAge,
   IBuiltinProgramDuration,
   IBuiltinProgramFrequency,
@@ -19,7 +16,7 @@ import {
 } from "../models/builtinPrograms";
 import { SelectLink } from "./selectLink";
 import { ExerciseImageUtils } from "../models/exerciseImage";
-import { Program } from "../models/program";
+import { IProgramIndexEntry, Program } from "../models/program";
 import { StringUtils } from "../utils/string";
 import { Tailwind } from "../utils/tailwindConfig";
 import { ExerciseImage } from "./exerciseImage";
@@ -35,6 +32,7 @@ import { Markdown } from "./markdown";
 
 interface IProps {
   programs: IProgram[];
+  programsIndex: IProgramIndexEntry[];
   hasCustomPrograms: boolean;
   settings: ISettings;
   dispatch: IDispatch;
@@ -52,38 +50,33 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
   const [sort, setSort] = useState<"age" | "duration" | "frequency" | undefined>(undefined);
   const [selectedProgram, setSelectedProgram] = useState<IProgram | undefined>(undefined);
 
-  const programs = props.programs.filter((program) => {
-    const properties = builtinProgramProperties[program.id];
+  const entries = props.programsIndex.filter((entry) => {
     let result = true;
-    if (properties) {
-      if (filter.age) {
-        result = result && filter.age === properties.age;
-      }
-      if (filter.duration) {
-        result = result && filter.duration === properties.duration;
-      }
-      if (filter.frequency) {
-        result = result && Number(filter.frequency ?? 0) === Number(properties.frequency ?? 0);
-      }
-      if (filter.goal) {
-        result = result && filter.goal === properties.goal;
-      }
+    if (filter.age) {
+      result = result && filter.age === entry.age;
+    }
+    if (filter.duration) {
+      result = result && filter.duration === entry.duration;
+    }
+    if (filter.frequency) {
+      result = result && Number(filter.frequency ?? 0) === Number(entry.frequency ?? 0);
+    }
+    if (filter.goal) {
+      result = result && filter.goal === entry.goal;
     }
     return result;
   });
-  programs.sort((a, b) => {
-    const aProperties = builtinProgramProperties[a.id];
-    const bProperties = builtinProgramProperties[b.id];
+  entries.sort((a, b) => {
     if (sort === "age") {
-      const aAgeIndex = builtinProgramAgesKeys.indexOf(aProperties?.age ?? "less_than_3_months");
-      const bAgeIndex = builtinProgramAgesKeys.indexOf(bProperties?.age ?? "less_than_3_months");
+      const aAgeIndex = builtinProgramAgesKeys.indexOf((a.age ?? "less_than_3_months") as IBuiltinProgramAge);
+      const bAgeIndex = builtinProgramAgesKeys.indexOf((b.age ?? "less_than_3_months") as IBuiltinProgramAge);
       return aAgeIndex - bAgeIndex;
     } else if (sort === "duration") {
-      const aDurationIndex = builtinProgramDurationsKeys.indexOf(aProperties?.duration ?? "30-45");
-      const bDurationIndex = builtinProgramDurationsKeys.indexOf(bProperties?.duration ?? "30-45");
+      const aDurationIndex = builtinProgramDurationsKeys.indexOf((a.duration ?? "30-45") as IBuiltinProgramDuration);
+      const bDurationIndex = builtinProgramDurationsKeys.indexOf((b.duration ?? "30-45") as IBuiltinProgramDuration);
       return aDurationIndex - bDurationIndex;
     } else if (sort === "frequency") {
-      return (aProperties?.frequency ?? 0) - (bProperties?.frequency ?? 0);
+      return (a.frequency ?? 0) - (b.frequency ?? 0);
     }
     return 0;
   });
@@ -141,14 +134,17 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
             value={sort}
           />
         </div>
-        {programs.length > 0 ? (
-          programs.map((program) => {
+        {entries.length > 0 ? (
+          entries.map((entry) => {
             return (
               <BuiltInProgram
                 settings={props.settings}
-                program={program}
+                entry={entry}
                 onClick={() => {
-                  setSelectedProgram(program);
+                  const program = props.programs.find((p) => p.id === entry.id);
+                  if (program) {
+                    setSelectedProgram(program);
+                  }
                 }}
               />
             );
@@ -181,18 +177,18 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
 }
 
 interface IBuiltInProgramProps {
-  program: IProgram;
+  entry: IProgramIndexEntry;
   settings: ISettings;
   onClick: () => void;
 }
 
 function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
-  const properties = builtinProgramProperties[props.program.id];
-  const exercises = properties?.exercises ?? [];
+  const { entry } = props;
+  const exercises = entry.exercises ?? [];
   const allEquipment = Equipment.currentEquipment(props.settings);
-  const equipment = (properties?.equipment ?? []).map((e) => equipmentName(e, allEquipment));
-  const exercisesRange = properties?.exercisesRange;
-  const numberOfWeeks = props.program.planner?.weeks.length ?? 0;
+  const equipment = (entry.equipment ?? []).map((e) => equipmentName(e, allEquipment));
+  const exercisesRange = entry.exercisesRange;
+  const numberOfWeeks = entry.weeksCount ?? 0;
 
   return (
     <button
@@ -201,17 +197,15 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
     >
       <div className="flex-1">
         <div className="flex items-center">
-          <h3 className="flex-1 mr-2 text-base font-bold">{props.program.name}</h3>
-          {properties?.duration && (
+          <h3 className="flex-1 mr-2 text-base font-bold">{entry.name}</h3>
+          {entry.duration && (
             <div className="text-sm">
               <IconWatch className="mb-1 align-middle" />
-              <span className="pl-1 align-middle">{properties.duration} mins</span>
+              <span className="pl-1 align-middle">{entry.duration} mins</span>
             </div>
           )}
         </div>
-        {props.program.shortDescription && (
-          <Markdown value={props.program.shortDescription} className="text-sm text-text-secondary" />
-        )}
+        {entry.shortDescription && <Markdown value={entry.shortDescription} className="text-sm text-text-secondary" />}
         <div className="py-3">
           {exercises
             .filter((e) => ExerciseImageUtils.exists(e, "small"))
@@ -223,7 +217,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
           <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
           <div className="text-xs">
             {numberOfWeeks > 1 && `${numberOfWeeks} ${StringUtils.pluralize("week", numberOfWeeks)}, `}
-            {properties?.frequency ? `${properties.frequency}x/week, ` : ""}
+            {entry.frequency ? `${entry.frequency}x/week, ` : ""}
             {exercisesRange ? Program.exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
           </div>
         </div>

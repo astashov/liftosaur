@@ -889,10 +889,10 @@ export namespace Thunk {
 
   export function fetchPrograms(): IThunk {
     return async (dispatch, getState, env) => {
-      const programs = await load(dispatch, "Loading programs", async () => {
+      const result = await load(dispatch, "Loading programs", async () => {
         const index = await env.service.programsIndex();
         const details = await Promise.all(index.map((entry) => env.service.programDetail(entry.id)));
-        return index.map((entry, i) => {
+        const programs = index.map((entry, i) => {
           const detail = details[i];
           const program: IProgram = {
             ...Program.create(entry.name, entry.id),
@@ -906,12 +906,18 @@ export namespace Thunk {
           };
           return program;
         });
+        return { programs, index };
       });
-      dispatch({
-        type: "UpdateState",
-        lensRecording: [lb<IState>().p("programs").record(programs)],
-        desc: "Set loaded Programs",
-      });
+      if (result) {
+        dispatch({
+          type: "UpdateState",
+          lensRecording: [
+            lb<IState>().p("programs").record(result.programs),
+            lb<IState>().p("programsIndex").record(result.index),
+          ],
+          desc: "Set loaded Programs",
+        });
+      }
     };
   }
 

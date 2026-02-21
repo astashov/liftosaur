@@ -387,6 +387,7 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch={dispatch}
         progress={Progress.getProgress(state)}
         programs={state.programs || []}
+        programsIndex={state.programsIndex || []}
         customPrograms={state.storage.programs || []}
         editProgramId={Progress.getProgress(state)?.programId}
       />

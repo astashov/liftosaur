@@ -140,6 +140,7 @@ export async function getInitialState(
       notification,
       loading: { items: {} },
       programs: [basicBeginnerProgram],
+      programsIndex: [],
       revisions: {},
       screenStack,
       user: undefined,

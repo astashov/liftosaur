@@ -13,11 +13,12 @@ import { ModalCreateProgram } from "./modalCreateProgram";
 import { EditProgram } from "../models/editProgram";
 import { CustomProgramsList } from "./customProgramsList";
 import { ScrollableTabs } from "./scrollableTabs";
-import { emptyProgramId, Program } from "../models/program";
+import { emptyProgramId, IProgramIndexEntry, Program } from "../models/program";
 
 interface IProps {
   dispatch: IDispatch;
   programs: IProgram[];
+  programsIndex: IProgramIndexEntry[];
   progress?: IHistoryRecord;
   settings: ISettings;
   customPrograms: IProgram[];
@@ -33,6 +34,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
     <BuiltinProgramsList
       hasCustomPrograms={props.customPrograms.length > 0}
       programs={props.programs}
+      programsIndex={props.programsIndex}
       settings={props.settings}
       dispatch={props.dispatch}
     />

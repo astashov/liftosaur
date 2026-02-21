@@ -5,6 +5,7 @@ import { IDispatch } from "../ducks/types";
 import { Storage } from "../models/storage";
 import { ILensRecordingPayload } from "lens-shmens";
 import { IUser } from "./user";
+import { IProgramIndexEntry } from "./program";
 import {
   IStorage,
   IProgram,
@@ -111,6 +112,7 @@ export interface IState {
   storage: IStorage;
   lastSyncedStorage?: IStorage;
   programs: IProgram[];
+  programsIndex: IProgramIndexEntry[];
   notification?: INotification;
   screenStack: IScreenStack;
   revisions: Partial<Record<string, string[]>>;
@@ -161,6 +163,7 @@ export function buildState(args: {
     screenStack: [{ name: args.shouldSkipIntro ? "programs" : "first" }],
     progress: {},
     programs: [basicBeginnerProgram],
+    programsIndex: [],
     loading: { items: {} },
     notification: args.notification,
     storage: args.storage || Storage.getDefault(),
