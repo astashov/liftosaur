@@ -111,6 +111,7 @@ export namespace RollbarUtils {
           userid: pld.person?.id ?? window.tempUserId,
           lastState: state ? JSON.stringify(state) : undefined,
           lastActions: window.reducerLastActions ? JSON.stringify(window.reducerLastActions) : undefined,
+          validationErrors: window.lastValidationErrors ? JSON.stringify(window.lastValidationErrors) : undefined,
         };
         console.log("Sending exception", data);
         const compressed = await Encoder.encode(JSON.stringify(data));

@@ -64,6 +64,7 @@ export namespace Storage {
       const error = result.error;
       lg("ls-corrupted-storage", { lastActions: JSON.stringify(window.reducerLastActions || []) });
       if (Rollbar != null) {
+        window.lastValidationErrors = error;
         Rollbar.error(error.join("\n"), { state: JSON.stringify(data), type: name });
       }
       console.error(`Error decoding ${name}`);

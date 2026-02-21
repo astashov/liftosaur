@@ -40,6 +40,7 @@ interface Window {
   rdt(command: "init", pixelId: string): void;
   rdt(command: "track", eventName: IRedditPixelStandardEvent | string, customData?: IRedditPixelCustomData): void;
   reducerLastActions?: any[];
+  lastValidationErrors?: string[];
   loadRollbar: (item: string | number, token: string) => Promise<void>;
   isUndoing?: boolean;
   webeditor?: boolean;
