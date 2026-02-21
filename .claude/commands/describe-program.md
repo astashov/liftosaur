@@ -62,7 +62,13 @@ url: "https://original-source-url"
 shortDescription: One sentence summary
 isMultiweek: true/false
 tags: []
+frequency: 3
+age: "less_than_3_months"
+duration: "45-60"
+goal: "strength"
 ---
+
+Valid values for `frequency`, `age`, `duration`, and `goal` are defined in `src/models/builtinPrograms.ts`. Pick values based on the program's characteristics.
 
 One paragraph summary of the program (shown in program list previews).
 

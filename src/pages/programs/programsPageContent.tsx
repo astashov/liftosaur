@@ -5,53 +5,26 @@ import {
   builtinProgramDurations,
   builtinProgramFrequencies,
   builtinProgramGoals,
-  IBuiltinProgramAge,
-  IBuiltinProgramDuration,
-  IBuiltinProgramFrequency,
-  IBuiltinProgramGoal,
 } from "../../models/builtinPrograms";
 import { SelectLink } from "../../components/selectLink";
 import { Settings } from "../../models/settings";
 import { IconFilter2 } from "../../components/icons/iconFilter2";
 import { ProgramsTabContent } from "./programList/programsTabContent";
 import { IProgramIndexEntry } from "../../models/program";
+import { IProgramFilter, IProgramSort, ProgramFilter } from "../../utils/programFilter";
 
 export interface IProgramsPageContentProps {
   programs: IProgramIndexEntry[];
   client: Window["fetch"];
 }
 
-interface IFilter {
-  age?: IBuiltinProgramAge;
-  duration?: IBuiltinProgramDuration;
-  frequency?: IBuiltinProgramFrequency;
-  goal?: IBuiltinProgramGoal;
-}
-
 export function ProgramsPageContent(props: IProgramsPageContentProps): JSX.Element {
-  const [filter, setFilter] = useState<IFilter>({});
+  const [filter, setFilter] = useState<IProgramFilter>({});
+  const [sort, setSort] = useState<IProgramSort>(undefined);
   const [search, setSearch] = useState("");
   const settings = Settings.build();
 
-  const filteredPrograms = props.programs.filter((program) => {
-    let result = true;
-    if (filter.age) {
-      result = result && filter.age === program.age;
-    }
-    if (filter.duration) {
-      result = result && filter.duration === program.duration;
-    }
-    if (filter.frequency) {
-      result = result && Number(filter.frequency) === Number(program.frequency);
-    }
-    if (filter.goal) {
-      result = result && filter.goal === program.goal;
-    }
-    if (search) {
-      result = result && program.name.toLowerCase().includes(search.toLowerCase());
-    }
-    return result;
-  });
+  const filteredPrograms = ProgramFilter.sort(ProgramFilter.filter(props.programs, filter, search), sort);
 
   return (
     <div className="px-4 pb-8">
@@ -98,6 +71,15 @@ export function ProgramsPageContent(props: IProgramsPageContentProps): JSX.Eleme
           value={filter.goal}
         />
         <span>.</span>
+        <span> Sort by: </span>
+        <SelectLink
+          name="programs-sort"
+          className="font-semibold"
+          values={{ age: "Age", frequency: "Frequency", duration: "Duration" }}
+          onChange={(v) => setSort(v)}
+          emptyLabel="None"
+          value={sort}
+        />
       </div>
 
       <ProgramsTabContent programs={filteredPrograms} search={search} onSearchChange={setSearch} settings={settings} />

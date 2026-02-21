@@ -4,16 +4,11 @@ import { IProgram, ISettings } from "../types";
 import { useState } from "preact/compat";
 import {
   builtinProgramAges,
-  builtinProgramAgesKeys,
   builtinProgramDurations,
-  builtinProgramDurationsKeys,
   builtinProgramFrequencies,
   builtinProgramGoals,
-  IBuiltinProgramAge,
-  IBuiltinProgramDuration,
-  IBuiltinProgramFrequency,
-  IBuiltinProgramGoal,
 } from "../models/builtinPrograms";
+import { IProgramFilter, IProgramSort, ProgramFilter } from "../utils/programFilter";
 import { SelectLink } from "./selectLink";
 import { ExerciseImageUtils } from "../models/exerciseImage";
 import { IProgramIndexEntry, Program } from "../models/program";
@@ -38,48 +33,12 @@ interface IProps {
   dispatch: IDispatch;
 }
 
-interface IFilter {
-  age?: IBuiltinProgramAge;
-  duration?: IBuiltinProgramDuration;
-  frequency?: IBuiltinProgramFrequency;
-  goal?: IBuiltinProgramGoal;
-}
-
 export function BuiltinProgramsList(props: IProps): JSX.Element {
-  const [filter, setFilter] = useState<IFilter>({});
-  const [sort, setSort] = useState<"age" | "duration" | "frequency" | undefined>(undefined);
+  const [filter, setFilter] = useState<IProgramFilter>({});
+  const [sort, setSort] = useState<IProgramSort>(undefined);
   const [selectedProgram, setSelectedProgram] = useState<IProgram | undefined>(undefined);
 
-  const entries = props.programsIndex.filter((entry) => {
-    let result = true;
-    if (filter.age) {
-      result = result && filter.age === entry.age;
-    }
-    if (filter.duration) {
-      result = result && filter.duration === entry.duration;
-    }
-    if (filter.frequency) {
-      result = result && Number(filter.frequency ?? 0) === Number(entry.frequency ?? 0);
-    }
-    if (filter.goal) {
-      result = result && filter.goal === entry.goal;
-    }
-    return result;
-  });
-  entries.sort((a, b) => {
-    if (sort === "age") {
-      const aAgeIndex = builtinProgramAgesKeys.indexOf((a.age ?? "less_than_3_months") as IBuiltinProgramAge);
-      const bAgeIndex = builtinProgramAgesKeys.indexOf((b.age ?? "less_than_3_months") as IBuiltinProgramAge);
-      return aAgeIndex - bAgeIndex;
-    } else if (sort === "duration") {
-      const aDurationIndex = builtinProgramDurationsKeys.indexOf((a.duration ?? "30-45") as IBuiltinProgramDuration);
-      const bDurationIndex = builtinProgramDurationsKeys.indexOf((b.duration ?? "30-45") as IBuiltinProgramDuration);
-      return aDurationIndex - bDurationIndex;
-    } else if (sort === "frequency") {
-      return (a.frequency ?? 0) - (b.frequency ?? 0);
-    }
-    return 0;
-  });
+  const entries = ProgramFilter.sort(ProgramFilter.filter(props.programsIndex, filter), sort);
 
   return (
     <>
