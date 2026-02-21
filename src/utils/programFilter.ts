@@ -18,11 +18,7 @@ export interface IProgramFilter {
 export type IProgramSort = "age" | "duration" | "frequency" | undefined;
 
 export class ProgramFilter {
-  public static filter(
-    entries: IProgramIndexEntry[],
-    filter: IProgramFilter,
-    search?: string
-  ): IProgramIndexEntry[] {
+  public static filter(entries: IProgramIndexEntry[], filter: IProgramFilter, search?: string): IProgramIndexEntry[] {
     return entries.filter((entry) => {
       let result = true;
       if (filter.age) {

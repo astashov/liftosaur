@@ -221,7 +221,7 @@ body {
 }
 
 .program-details-description li {
-  margin-bottom: 1rem;
+  margin-bottom: 0.25rem;
 }
 
 .program-details-description h2 {
@@ -236,6 +236,30 @@ body {
   font-weight: bold;
   line-height: 1.75rem;
   margin-bottom: 0.5rem;
+}
+
+
+.program-details-description table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+}
+
+.program-details-description th,
+.program-details-description td {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.program-details-description th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+}
+
+.program-details-description tr:nth-child(even) {
+  background-color: #f9fafb;
 }
 
 .muscle {
@@ -368,8 +392,7 @@ input[type="checkbox"].checkbox {
   width: 10px;
   height: 10px;
   background: white;
-  box-shadow:
-    -1px -1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow: -1px -1px 2px 0 rgba(0, 0, 0, 0.06);
   transform: rotate(45deg);
 }
 

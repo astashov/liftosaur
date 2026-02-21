@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "./linkButton";
 import { IEvaluatedProgram } from "../models/program";
 import { ISettings } from "../types";
-import { ExerciseImage } from "./exerciseImage";
 import { Exercise } from "../models/exercise";
 import { ProgramDetailsExerciseExample } from "../pages/programs/programDetails/programDetailsExerciseExample";
+import { ExerciseTooltip } from "./exerciseTooltip";
 
 const md = new MarkdownIt({ html: true, linkify: true });
 
@@ -106,12 +106,8 @@ function hydrateExerciseDirectives(container: HTMLElement, settings: ISettings):
       continue;
     }
     const exerciseType = { id: exercise.id, equipment: exercise.equipment };
-    render(
-      <span className="inline-flex items-center align-middle" style={{ marginRight: "0.25rem" }}>
-        <ExerciseImage settings={settings} className="inline-block w-6" exerciseType={exerciseType} size="small" />
-      </span>,
-      el
-    );
+    el.textContent = "";
+    render(<ExerciseTooltip exerciseType={exerciseType} settings={settings} name={name} />, el);
   }
 }
 

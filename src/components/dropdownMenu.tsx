@@ -34,9 +34,7 @@ export function DropdownMenu(props: {
         >
           {props.children}
         </div>
-        {!props.hideTip && (
-          <div className={props.tipClassName || "add-tip"} style={{ backgroundColor: color }} />
-        )}
+        {!props.hideTip && <div className={props.tipClassName || "add-tip"} style={{ backgroundColor: color }} />}
       </div>
     </section>
   );
