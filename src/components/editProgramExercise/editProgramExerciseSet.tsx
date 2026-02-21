@@ -237,6 +237,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   step={1}
                 />
               </div>
+              {lastHasRow == null && buttons}
             </div>
             {props.opts.hasWeight && (
               <>
