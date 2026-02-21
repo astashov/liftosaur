@@ -522,6 +522,11 @@ export namespace Thunk {
         : undefined;
 
       const set = isWarmup ? entry.warmupSets[adjustedSetIndex] : entry.sets[adjustedSetIndex];
+      if (!set) {
+        SendMessage.print(`Main App: Set not found at index ${adjustedSetIndex}, skipping`);
+        dispatch(Thunk.updateLiveActivity(entryIndex, setIndex, restTimer, restTimerSince));
+        return;
+      }
       if (set.isCompleted) {
         SendMessage.print(`Main App: Set already completed, refreshing live activity`);
         dispatch(Thunk.updateLiveActivity(entryIndex, setIndex, restTimer, restTimerSince));
