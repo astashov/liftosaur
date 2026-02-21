@@ -19,6 +19,9 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
   const actualStep = step ?? 1;
 
   function getValue(): number | undefined {
+    if (!inputRef.current) {
+      return undefined;
+    }
     const inputValue = inputRef.current.value || min;
     const v = inputValue != null ? Number(inputValue) : undefined;
     if (v != null && !isNaN(v)) {
