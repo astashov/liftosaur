@@ -234,6 +234,22 @@ export function ScreenStats(props: IProps): JSX.Element {
         <p className="py-2 text-sm text-text-secondary">
           All fields are optional, input only the fields you want this time. Empty fields won't be added.
         </p>
+        <div className="text-center">
+          <Button
+            data-cy="clear-stats-fields"
+            name="clear-stats-fields"
+            kind="grayv2"
+            onClick={() => {
+              for (const key of ObjectUtils.keys(refs)) {
+                if (refs[key]?.current) {
+                  refs[key].current.value = "";
+                }
+              }
+            }}
+          >
+            Clear All Fields
+          </Button>
+        </div>
         {statsEnabled.length.neck && (
           <SingleLine>
             <StatInput ref={refs.neck} label="Neck" value={lastLengthStats.neck?.value} unit={lengthUnits} />
