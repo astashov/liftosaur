@@ -12,6 +12,10 @@ export namespace IndexedDBUtils {
   ): Promise<T | undefined> {
     const promise = new Promise<T>(async (resolve, reject) => {
       const db = await initialize();
+      if (db == null) {
+        lg("ls-indexeddb-empty");
+        return;
+      }
       const transaction = db.transaction("keyval", mode);
       const objectStore = transaction.objectStore("keyval");
 
@@ -109,7 +113,7 @@ export namespace IndexedDBUtils {
     });
   }
 
-  export function initialize(): Promise<IDBDatabase> {
+  export function initialize(): Promise<IDBDatabase | undefined> {
     return new Promise((resolve, reject) => {
       if (nativeStorage == null && NativeStorage.isAvailable()) {
         nativeStorage = new NativeStorage();
@@ -118,8 +122,10 @@ export namespace IndexedDBUtils {
       if (!window.indexedDB) {
         if (!NativeStorage.isAvailable()) {
           window.location.reload();
+          reject(new Error("IndexedDB is not available"));
+        } else {
+          resolve(undefined);
         }
-        reject(new Error("IndexedDB is not available"));
         return;
       }
       const connection = window.indexedDB.open("keyval-store");

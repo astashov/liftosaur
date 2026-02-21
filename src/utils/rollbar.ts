@@ -106,6 +106,11 @@ export namespace RollbarUtils {
         }
         const id = UidFactory.generateUid(12);
         pld.liftosaur_exception_id = id;
+        pld.lftAndroidVersion = window.lftAndroidVersion;
+        pld.lftAndroidAppVersion = window.lftAndroidAppVersion;
+        pld.lftIosVersion = window.lftIosVersion;
+        pld.lftIosAppVersion = window.lftIosAppVersion;
+        pld.lftSystemDarkMode = window.lftSystemDarkMode;
         const state = window.reducerLastState ?? window.state;
         const data = {
           userid: pld.person?.id ?? window.tempUserId,
