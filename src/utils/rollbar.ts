@@ -41,6 +41,7 @@ export const exceptionIgnores = [
   "Invalid change range",
   "Empty response from API",
   "_AutofillCallbackHandler",
+  "Incorrect locale information provided",
 ];
 
 export namespace RollbarUtils {
