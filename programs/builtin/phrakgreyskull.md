@@ -6,6 +6,10 @@ url: "https://www.liftosaur.com/programs/phrakgreyskull"
 shortDescription: Simple 3x5 program with Linear Progression for beginners
 isMultiweek: true
 tags: []
+frequency: 3
+age: "less_than_3_months"
+duration: "30-45"
+goal: "strength"
 ---
 
 Good balanced strength program for beginners - simple linear progression, focusing mostly on main lifts (squat/bench/ohp/deadlift).

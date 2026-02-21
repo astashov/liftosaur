@@ -6,6 +6,10 @@ url: "https://www.gainzfever.com"
 shortDescription: Another good next step after GZCLP.
 isMultiweek: true
 tags: []
+frequency: 4
+age: "more_than_year"
+duration: "60-90"
+goal: "strength_and_hypertrophy"
 ---
 
 A good next step after GZCLP. It's a twelve-week strength and hypertrophy training regimen that focuses on a higher volume and intensity approach, employing varying rep ranges and periodization to maximize muscle growth and strength gains.

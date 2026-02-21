@@ -6,6 +6,10 @@ url: "https://startingstrength.com/get-started/programs"
 shortDescription: "Beginner barbell program, Phase 2 — power cleans replace deadlifts on alternate days"
 isMultiweek: true
 tags: []
+frequency: 3
+age: "less_than_3_months"
+duration: "30-45"
+goal: "strength"
 ---
 
 A beginner barbell program and the classic phase of Starting Strength. [{Power Clean}] replaces [{Deadlift}] on alternate sessions, reducing deadlift frequency to aid recovery while maintaining posterior chain development through explosive pulling. This is the phase most beginner lifters spend the longest in — typically several months of consistent 5lb jumps.

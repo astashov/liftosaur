@@ -6,6 +6,10 @@ url: "https://www.reddit.com/r/StrongCurves/wiki/index"
 shortDescription: "Bootyful Beginnings - 12-week glute-focused beginner program, 3 days per week, progressing from bodyweight to barbell"
 isMultiweek: true
 tags: []
+frequency: 3
+age: "3_to_12_months"
+duration: "60-90"
+goal: "hypertrophy"
 ---
 
 The Bootyful Beginnings program from Bret Contreras' *Strong Curves* book. A 12-week, 3-day-per-week program designed to introduce women to strength training with a focus on building the glutes. Progresses from mostly bodyweight exercises in weeks 1-4 to barbell compounds by weeks 9-12.

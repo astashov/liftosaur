@@ -6,6 +6,10 @@ url: "https://www.liftosaur.com/programs/gzcl-general-gainz-burrito-but-big"
 shortDescription: Hypertrophy adaptation of General Gainz, as a 12-week program.
 isMultiweek: true
 tags: []
+frequency: 4
+age: "more_than_year"
+duration: "60-90"
+goal: "hypertrophy"
 ---
 
 Fun adaptation of GZCL: General Gainz program, with several variations of really interesting progression schemes available.

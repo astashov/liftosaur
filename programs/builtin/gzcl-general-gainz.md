@@ -6,6 +6,10 @@ url: "https://www.liftosaur.com/programs/gzcl-general-gainz"
 shortDescription: Latest GZCL program combining learnings from all other GZCL programs.
 isMultiweek: true
 tags: []
+frequency: 4
+age: "more_than_year"
+duration: "60-90"
+goal: "strength"
 ---
 
 It's the latest Cody program, combining the elements and best parts of other GZCL programs: GZCLP, VDIP, Jacked & Tan 2.0, etc.

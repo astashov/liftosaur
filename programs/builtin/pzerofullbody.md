@@ -6,6 +6,10 @@ url: "https://www.amazon.com/P-Zero-Revisiting-Method-Cody-Lefever-ebook/dp/B0FB
 shortDescription: "Latest GZCL program, it's like GZCLP 2.0"
 isMultiweek: false
 tags: []
+frequency: 4
+age: "3_to_12_months"
+duration: "60-90"
+goal: "strength_and_hypertrophy"
 ---
 
 This is a program from the latest Cody's book. Unlike GZCLP, it prioritizes higher volume, and higher variety in exercises. It's in-between powerlifting and bodybuilding, but leans a bit more to bodybuilding, with higher rep ranges.

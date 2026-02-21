@@ -1,6 +1,6 @@
 import { IProgram } from "../../src/types";
-import { IProgramDetail, IProgramIndexEntry } from "../../src/api/service";
-import { Program } from "../../src/models/program";
+import { IProgramDetail } from "../../src/api/service";
+import { IProgramIndexEntry, Program } from "../../src/models/program";
 import { IDI } from "../utils/di";
 
 export interface IProgramPayload {
@@ -51,7 +51,7 @@ function buildProgram(entry: IProgramIndexEntry, detail: IProgramDetail): IProgr
     author: entry.author,
     url: entry.url,
     shortDescription: entry.shortDescription,
-    description: detail.description,
+    description: entry.description || "",
     isMultiweek: entry.isMultiweek,
     tags: entry.tags as IProgram["tags"],
     planner: detail.planner,

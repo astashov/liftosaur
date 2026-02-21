@@ -2,24 +2,12 @@ import { IStorage, IHistoryRecord, ISettings, IMuscleGeneratorResponse, IPlanner
 import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
-import { IExportedProgram } from "../models/program";
+import { IExportedProgram, IProgramIndexEntry } from "../models/program";
 import { CollectionUtils } from "../utils/collection";
 import { Encoder } from "../utils/encoder";
 import { IAppleOffer, IGoogleOffer } from "../models/state";
 
-export interface IProgramIndexEntry {
-  id: string;
-  name: string;
-  author: string;
-  authorUrl: string;
-  url: string;
-  shortDescription: string;
-  isMultiweek: boolean;
-  tags: string[];
-}
-
 export interface IProgramDetail {
-  description: string;
   fullDescription: string;
   planner: {
     vtype: "planner";

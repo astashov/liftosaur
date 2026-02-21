@@ -6,6 +6,10 @@ url: "https://www.gainzfever.com/"
 shortDescription: A 12-week GZCL program optimizing bi-weekly undulation in intensity, weight and reps. A good next step after GZCLP.
 isMultiweek: true
 tags: []
+frequency: 4
+age: "more_than_year"
+duration: "45-60"
+goal: "strength"
 ---
 
 A four-day upper/lower, with bi-weekly undulation in intensity, weight and reps.

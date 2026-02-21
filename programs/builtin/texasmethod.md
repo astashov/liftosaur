@@ -6,6 +6,10 @@ url: "https://startingstrength.com/article/the_texas_method"
 shortDescription: "Weekly linear progression for intermediates — Volume/Recovery/Intensity across 3 full-body days"
 isMultiweek: true
 tags: []
+frequency: 3
+age: "3_to_12_months"
+duration: "45-60"
+goal: "strength"
 ---
 
 A 3-day full-body intermediate program that compresses an entire volume-recovery-intensity mesocycle into a single week. Created by Mark Rippetoe and Glenn Pendlay, it's the go-to "next step" for lifters who can no longer add weight every session on programs like Starting Strength or StrongLifts.

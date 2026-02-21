@@ -6,6 +6,10 @@ url: "https://jcdfitness.com/2009/01/lyle-mcdonalds-bulking-routine/"
 shortDescription: "4-day upper/lower split for intermediate lifters on a bulk - moderate volume, double progression, twice-per-week frequency"
 isMultiweek: false
 tags: []
+frequency: 4
+age: "3_to_12_months"
+duration: "60-90"
+goal: "hypertrophy"
 ---
 
 A 4-day upper/lower split designed by Lyle McDonald for intermediate lifters on a caloric surplus. Each muscle group is hit twice per week with a mix of heavy compounds (6-8 reps) and moderate-rep accessory work (10-12 and 12-15 reps). Progression is straightforward double progression: add reps within the prescribed range, then add weight when you hit the top.

@@ -1,5 +1,4 @@
 import { h, JSX } from "preact";
-import { builtinProgramProperties } from "../../../models/builtinPrograms";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { IconCalendarSmall } from "../../../components/icons/iconCalendarSmall";
 import { IconKettlebellSmall } from "../../../components/icons/iconKettlebellSmall";
@@ -8,24 +7,22 @@ import { Markdown } from "../../../components/markdown";
 import { Equipment } from "../../../models/equipment";
 import { equipmentName } from "../../../models/exercise";
 import { ExerciseImageUtils } from "../../../models/exerciseImage";
-import { Program } from "../../../models/program";
+import { IProgramIndexEntry, Program } from "../../../models/program";
 import { ISettings } from "../../../types";
 import { StringUtils } from "../../../utils/string";
 import { Tailwind } from "../../../utils/tailwindConfig";
-import { IProgramListItem } from "../programsPageContent";
 
 interface IProgramCardProps {
-  program: IProgramListItem;
+  program: IProgramIndexEntry;
   settings: ISettings;
 }
 
 export function ProgramCard(props: IProgramCardProps): JSX.Element {
   const { program, settings } = props;
-  const properties = builtinProgramProperties[program.id];
-  const exercises = properties?.exercises ?? [];
+  const exercises = program.exercises ?? [];
   const allEquipment = Equipment.currentEquipment(settings);
-  const equipment = (properties?.equipment ?? []).map((e) => equipmentName(e, allEquipment));
-  const exercisesRange = properties?.exercisesRange;
+  const equipment = (program.equipment ?? []).map((e) => equipmentName(e, allEquipment));
+  const exercisesRange = program.exercisesRange;
 
   return (
     <a
@@ -35,10 +32,10 @@ export function ProgramCard(props: IProgramCardProps): JSX.Element {
       <div className="p-4">
         <div className="flex items-start">
           <h3 className="flex-1 mr-2 text-base font-bold leading-tight">{program.name}</h3>
-          {properties?.duration && (
+          {program.duration && (
             <div className="flex-shrink-0 text-sm text-text-secondary whitespace-nowrap">
               <IconWatch className="mb-1 align-middle" width={14} height={18} />
-              <span className="pl-1 align-middle">{properties.duration}m</span>
+              <span className="pl-1 align-middle">{program.duration}m</span>
             </div>
           )}
         </div>
@@ -64,8 +61,9 @@ export function ProgramCard(props: IProgramCardProps): JSX.Element {
         <div className="flex mb-1 text-text-secondary">
           <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mt-0.5 mr-1" />
           <div className="text-xs">
-            {program.weeksCount > 1 && `${program.weeksCount} ${StringUtils.pluralize("week", program.weeksCount)}, `}
-            {properties?.frequency ? `${properties.frequency}x/week, ` : ""}
+            {(program.weeksCount ?? 0) > 1 &&
+              `${program.weeksCount} ${StringUtils.pluralize("week", program.weeksCount ?? 0)}, `}
+            {program.frequency ? `${program.frequency}x/week, ` : ""}
             {exercisesRange ? Program.exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
           </div>
         </div>

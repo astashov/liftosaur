@@ -6,6 +6,10 @@ url: "https://thefitness.wiki/routines/r-fitness-basic-beginner-routine/"
 shortDescription: "Simple 3-day barbell program to build your first foundation of strength"
 isMultiweek: true
 tags: []
+frequency: 3
+age: "less_than_3_months"
+duration: "30-45"
+goal: "strength"
 ---
 
 The go-to starting program from the r/Fitness wiki. Three days per week, two alternating workouts, six barbell movements. Every set scheme is the same: 2 straight sets of 5, then one all-out AMRAP set. Add weight each session, deload 10% when you stall, and move on after 3 months.

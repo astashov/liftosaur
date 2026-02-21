@@ -6,6 +6,10 @@ url: "https://www.liftosaur.com/programs/gzcl-vdip"
 shortDescription: Beginner-intermediate program where each set is AMRAP.
 isMultiweek: true
 tags: []
+frequency: 5
+age: "3_to_12_months"
+duration: "60-90"
+goal: "strength"
 ---
 
 VDIP - Volume-dependent Intensity Progression. A bit unusual program, where each set for each exercise is AMRAP, and we increase the weight based on total completed reps for all sets.

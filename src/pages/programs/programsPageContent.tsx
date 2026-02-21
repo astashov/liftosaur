@@ -5,7 +5,6 @@ import {
   builtinProgramDurations,
   builtinProgramFrequencies,
   builtinProgramGoals,
-  builtinProgramProperties,
   IBuiltinProgramAge,
   IBuiltinProgramDuration,
   IBuiltinProgramFrequency,
@@ -15,16 +14,10 @@ import { SelectLink } from "../../components/selectLink";
 import { Settings } from "../../models/settings";
 import { IconFilter2 } from "../../components/icons/iconFilter2";
 import { ProgramsTabContent } from "./programList/programsTabContent";
-
-export interface IProgramListItem {
-  id: string;
-  name: string;
-  shortDescription: string;
-  weeksCount: number;
-}
+import { IProgramIndexEntry } from "../../models/program";
 
 export interface IProgramsPageContentProps {
-  programs: IProgramListItem[];
+  programs: IProgramIndexEntry[];
   client: Window["fetch"];
 }
 
@@ -41,21 +34,18 @@ export function ProgramsPageContent(props: IProgramsPageContentProps): JSX.Eleme
   const settings = Settings.build();
 
   const filteredPrograms = props.programs.filter((program) => {
-    const properties = builtinProgramProperties[program.id];
     let result = true;
-    if (properties) {
-      if (filter.age) {
-        result = result && filter.age === properties.age;
-      }
-      if (filter.duration) {
-        result = result && filter.duration === properties.duration;
-      }
-      if (filter.frequency) {
-        result = result && Number(filter.frequency) === Number(properties.frequency);
-      }
-      if (filter.goal) {
-        result = result && filter.goal === properties.goal;
-      }
+    if (filter.age) {
+      result = result && filter.age === program.age;
+    }
+    if (filter.duration) {
+      result = result && filter.duration === program.duration;
+    }
+    if (filter.frequency) {
+      result = result && Number(filter.frequency) === Number(program.frequency);
+    }
+    if (filter.goal) {
+      result = result && filter.goal === program.goal;
     }
     if (search) {
       result = result && program.name.toLowerCase().includes(search.toLowerCase());

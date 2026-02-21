@@ -6,6 +6,10 @@ url: "https://www.gainzfever.com/"
 shortDescription: 5-week GZCL program adopting a Daily Undulating Periodization model of progression. Ultra High Frequency.
 isMultiweek: true
 tags: []
+frequency: 5
+age: "more_than_year"
+duration: "60-90"
+goal: "strength_and_hypertrophy"
 ---
 
 It's a 5-week variant of original 9-week GZCL: UHF program

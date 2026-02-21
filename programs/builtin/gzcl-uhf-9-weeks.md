@@ -6,6 +6,10 @@ url: "https://www.gainzfever.com/"
 shortDescription: 9-week GZCL program adopting a Daily Undulating Periodization model of progression. Ultra High Frequency.
 isMultiweek: true
 tags: []
+frequency: 5
+age: "more_than_year"
+duration: "60-90"
+goal: "strength_and_hypertrophy"
 ---
 
 The T1 resets base intensities and volumes every fourth week. The T2 progresses in the same three-week blocks but with other controls in place to maintain progression sustainability from weeks four through nine.

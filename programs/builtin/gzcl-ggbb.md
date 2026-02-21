@@ -6,6 +6,10 @@ url: "https://swoleateveryheight.blogspot.com/2022/01/general-gainz-body-buildin
 shortDescription: General Gainz variation for hypertrophy/bodybuilding
 isMultiweek: false
 tags: []
+frequency: 4
+age: "more_than_year"
+duration: "90+"
+goal: "hypertrophy"
 ---
 
 It's an intermediate/advanced program for hypertrophy, with very flexible progression logic.

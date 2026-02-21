@@ -6,6 +6,10 @@ url: "https://www.reddit.com/r/Fitness/comments/37ylk5/a_linear_progression_base
 shortDescription: 6-day beginner Push/Pull/Legs with linear progression on main lifts
 isMultiweek: true
 tags: []
+frequency: 6
+age: "3_to_12_months"
+duration: "60-90"
+goal: "hypertrophy"
 ---
 
 A 6-day Push/Pull/Legs program that combines linear progression on heavy compound lifts with higher-rep bodybuilding-style accessories. Created by Reddit user /u/metallicadpa, it's one of the most popular beginner programs on r/Fitness.

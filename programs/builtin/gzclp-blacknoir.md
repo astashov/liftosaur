@@ -6,6 +6,10 @@ url: "https://www.reddit.com/r/gzcl/comments/1207bs7/announce_as_requested_singl
 shortDescription: Variation of GZCLP from Reddit user u/blacknoir
 isMultiweek: true
 tags: []
+frequency: 3
+age: "3_to_12_months"
+duration: "45-60"
+goal: "strength"
 ---
 
 Modification of the GZCLP program, with slightly different set x rep schemes and progressions (maybe for somebody who doesn't like 10x1 sets :)).

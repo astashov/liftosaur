@@ -1,10 +1,11 @@
 import { h, JSX } from "preact";
 import { Page } from "../../../components/page";
 import { IAccount } from "../../../models/account";
-import { IProgramListItem, ProgramsPageContent } from "../programsPageContent";
+import { ProgramsPageContent } from "../programsPageContent";
+import { IProgramIndexEntry } from "../../../models/program";
 
 interface IProps {
-  programs: IProgramListItem[];
+  programs: IProgramIndexEntry[];
   account?: IAccount;
   client: Window["fetch"];
 }

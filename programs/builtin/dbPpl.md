@@ -6,6 +6,10 @@ url: "https://old.reddit.com/r/Fitness/comments/2e79y4/dumbbell_ppl_proposed_alt
 shortDescription: Dumbbell-only push/pull/legs split. Great if you only have dumbbells.
 isMultiweek: true
 tags: []
+frequency: 6
+age: "more_than_year"
+duration: "60-90"
+goal: "hypertrophy"
 ---
 
 Dumbbell-only Push/Pull/Legs routine for beginners with limited equipment. Uses double progression (work up to 12 reps, then increase weight) across all exercises. A practical option when you only have dumbbells, a bench, and a pull-up bar.

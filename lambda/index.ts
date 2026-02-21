@@ -1678,16 +1678,9 @@ const getAllProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   }
   const dao = new ProgramDao(di);
   const index = await dao.getIndex();
-  const details = await Promise.all(index.map((entry) => dao.getDetail(entry.id)));
-  const programs = index.map((entry, i) => ({
-    id: entry.id,
-    name: entry.name,
-    shortDescription: entry.shortDescription,
-    weeksCount: details[i].planner.weeks.length,
-  }));
   return {
     statusCode: 200,
-    body: renderAllProgramsHtml(di.fetch, programs, account),
+    body: renderAllProgramsHtml(di.fetch, index, account),
     headers: { "content-type": "text/html" },
   };
 };
@@ -1706,7 +1699,7 @@ const getProgramDetailsHandler: RouteHandler<
     let fullDescription: string | undefined;
     try {
       const detail = await dao.getDetail(params.id);
-      fullDescription = detail.fullDescription || detail.description;
+      fullDescription = detail.fullDescription || program.description;
     } catch (e) {
       // Fall back to description from program
     }

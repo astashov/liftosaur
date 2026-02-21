@@ -6,6 +6,10 @@ url: "https://marathonhandbook.com/madcow/"
 shortDescription: Intermediate strength program
 isMultiweek: true
 tags: []
+frequency: 3
+age: "3_to_12_months"
+duration: "60-90"
+goal: "strength"
 ---
 
 Strength program, using Medium/Light/Heavy day approach, and weekly weight progression for main exercises.

@@ -6,6 +6,10 @@ url: "https://liftvault.com/programs/bodybuilding/arnold-schwarzenegger-workout-
 shortDescription: Arnold Schwarzenegger’s 3 day beginner hypertrophy program
 isMultiweek: true
 tags: []
+frequency: 3
+age: "3_to_12_months"
+duration: "60-90"
+goal: "hypertrophy"
 ---
 
 Very simple hypertrophy program - just 6 exercises repeated each day, with progression if you hit 13+ reps on last set.

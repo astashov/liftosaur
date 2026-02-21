@@ -6,6 +6,10 @@ url: "https://www.muscleandstrength.com/workouts/phul-workout"
 shortDescription: "Power Hypertrophy Upper Lower - 4-day split combining heavy compound work with higher-rep hypertrophy training"
 isMultiweek: false
 tags: []
+frequency: 4
+age: "3_to_12_months"
+duration: "60-90"
+goal: "strength_and_hypertrophy"
 ---
 
 A 4-day upper/lower split that trains each muscle group twice per week — once for strength (3-5 reps) and once for hypertrophy (8-12 reps). Created by Brandon Campbell, PHUL bridges the gap between powerlifting and bodybuilding for intermediate lifters who want to get both stronger and bigger.

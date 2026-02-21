@@ -899,7 +899,7 @@ export namespace Thunk {
             author: entry.author,
             url: entry.url,
             shortDescription: entry.shortDescription,
-            description: detail.description,
+            description: entry.description || "",
             isMultiweek: entry.isMultiweek,
             tags: entry.tags as IProgram["tags"],
             planner: detail.planner,

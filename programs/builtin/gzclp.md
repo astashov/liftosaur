@@ -6,6 +6,10 @@ url: "https://www.liftosaur.com/programs/gzclp"
 shortDescription: Another good “next step” program after Basic Beginner or Starting Strength..  Do it after 3-9 months in gym.
 isMultiweek: true
 tags: []
+frequency: 3
+age: "3_to_12_months"
+duration: "45-60"
+goal: "strength"
 ---
 
 Popular linear progression workout routine, based on the [GZCL method](http://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html), featuring well-balanced exercise selection, and proven progression scheme. It's great for beginners, you could choose it right after 3-6 month course of 'Basic Beginner' program.

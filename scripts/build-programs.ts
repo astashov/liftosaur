@@ -2,9 +2,11 @@ import * as fs from "fs";
 import * as path from "path";
 import matter from "gray-matter";
 import { programOrder } from "../lambda/dao/programDao";
-import { IPlannerProgramWeek } from "../src/types";
+import { IExerciseType, IPlannerProgramWeek } from "../src/types";
 import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
 import { CollectionUtils } from "../src/utils/collection";
+import { Settings } from "../src/models/settings";
+import { IProgramIndexEntry } from "../src/models/program";
 
 const programsSources = [
   { dir: path.resolve(__dirname, "../programs/builtin"), category: "builtin" },
@@ -23,19 +25,7 @@ function extractLiftoscriptBlock(content: string): { markdown: string; liftoscri
   return { markdown: markdown.trim(), liftoscript: match[1].trim() };
 }
 
-interface IProgramIndexEntry {
-  id: string;
-  name: string;
-  author: string;
-  authorUrl: string;
-  url: string;
-  shortDescription: string;
-  isMultiweek: boolean;
-  tags: string[];
-}
-
 interface IProgramDetail {
-  description: string;
   fullDescription: string;
   planner: {
     vtype: "planner";
@@ -55,6 +45,57 @@ function collectMdFiles(): { file: string; dir: string; category: string }[] {
     }
   }
   return results;
+}
+
+function extractExerciseData(liftoscript: string): {
+  exercises: IExerciseType[];
+  equipment: string[];
+  exercisesRange: [number, number];
+} {
+  const settings = Settings.build();
+  const { evaluatedWeeks } = PlannerProgram.evaluateFull(liftoscript, settings);
+
+  const exerciseMap = new Map<string, IExerciseType>();
+  let minExercises = Infinity;
+  let maxExercises = 0;
+
+  if (evaluatedWeeks.success) {
+    for (const week of evaluatedWeeks.data) {
+      for (const day of week.days) {
+        const dayExercises = day.exercises.filter((e) => !e.notused);
+        const count = dayExercises.length;
+        minExercises = Math.min(minExercises, count);
+        maxExercises = Math.max(maxExercises, count);
+
+        for (const exercise of dayExercises) {
+          if (exercise.exerciseType) {
+            const key = `${exercise.exerciseType.id}:${exercise.exerciseType.equipment}`;
+            if (!exerciseMap.has(key)) {
+              exerciseMap.set(key, exercise.exerciseType);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (minExercises === Infinity) {
+    minExercises = 0;
+  }
+
+  const exercises = Array.from(exerciseMap.values());
+  const equipmentSet = new Set<string>();
+  for (const e of exercises) {
+    if (e.equipment && e.equipment !== "bodyweight") {
+      equipmentSet.add(e.equipment);
+    }
+  }
+
+  return {
+    exercises,
+    equipment: Array.from(equipmentSet),
+    exercisesRange: [minExercises, maxExercises],
+  };
 }
 
 function buildPrograms(): void {
@@ -90,20 +131,43 @@ function buildPrograms(): void {
       ? PlannerProgram.evaluateText(liftoscript)
       : [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }];
 
-    index.push({
+    const { exercises, equipment, exercisesRange } = liftoscript
+      ? extractExerciseData(liftoscript)
+      : { exercises: [], equipment: [], exercisesRange: [0, 0] as [number, number] };
+
+    const entry: IProgramIndexEntry = {
       id,
       name: (frontmatter.name as string) || id,
       author: (frontmatter.author as string) || "",
       authorUrl: (frontmatter.authorUrl as string) || "",
       url: (frontmatter.url as string) || "",
       shortDescription: (frontmatter.shortDescription as string) || "",
+      description,
       isMultiweek: (frontmatter.isMultiweek as boolean) || false,
       tags: (frontmatter.tags as string[]) || [],
-    });
+      weeksCount: weeks.length,
+      exercises: exercises.filter((e) => e.equipment != null).map((e) => ({ id: e.id, equipment: e.equipment! })),
+      equipment,
+      exercisesRange,
+    };
+
+    if (frontmatter.frequency != null) {
+      entry.frequency = frontmatter.frequency as number;
+    }
+    if (frontmatter.age != null) {
+      entry.age = frontmatter.age as string;
+    }
+    if (frontmatter.duration != null) {
+      entry.duration = frontmatter.duration as string;
+    }
+    if (frontmatter.goal != null) {
+      entry.goal = frontmatter.goal as string;
+    }
+
+    index.push(entry);
 
     programsById[id] = {
       detail: {
-        description,
         fullDescription,
         planner: { vtype: "planner", name: (frontmatter.name as string) || id, weeks },
       },

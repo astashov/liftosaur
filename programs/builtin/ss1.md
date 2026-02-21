@@ -6,6 +6,10 @@ url: "https://startingstrength.com/get-started/programs"
 shortDescription: "Beginner barbell program, Phase 1 — squat, press, and deadlift every session"
 isMultiweek: true
 tags: []
+frequency: 3
+age: "less_than_3_months"
+duration: "30-45"
+goal: "strength"
 ---
 
 A beginner barbell program and the introductory phase of Starting Strength. Only four exercises: [{Squat}], [{Bench Press}], [{Overhead Press}], and [{Deadlift}]. Every session includes deadlifts while the weight is still light enough to recover from. Run this for 1–3 weeks, then move to Phase 2 when deadlift recovery becomes difficult.

@@ -3,10 +3,10 @@ import { useRef } from "preact/hooks";
 import { ProgramCard } from "./programCard";
 import { ISettings } from "../../../types";
 import { StringUtils } from "../../../utils/string";
-import { IProgramListItem } from "../programsPageContent";
+import { IProgramIndexEntry } from "../../../models/program";
 
 interface IProgramsTabContentProps {
-  programs: IProgramListItem[];
+  programs: IProgramIndexEntry[];
   search: string;
   onSearchChange: (value: string) => void;
   settings: ISettings;

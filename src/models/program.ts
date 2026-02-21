@@ -58,6 +58,26 @@ declare let __HOST__: string;
 
 const encodedProgramHashToShortUrl: Partial<Record<string, string>> = {};
 
+export interface IProgramIndexEntry {
+  id: string;
+  name: string;
+  author: string;
+  authorUrl: string;
+  url: string;
+  shortDescription: string;
+  description?: string;
+  isMultiweek: boolean;
+  tags: string[];
+  frequency?: number;
+  age?: string;
+  duration?: string;
+  goal?: string;
+  exercises?: IExerciseType[];
+  equipment?: string[];
+  exercisesRange?: [number, number];
+  weeksCount?: number;
+}
+
 export interface IExportedProgram {
   program: IProgram;
   customExercises: Partial<Record<string, ICustomExercise>>;
