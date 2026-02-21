@@ -160,9 +160,8 @@ export class UserDao {
         const storageUpdateProgram = storageUpdate.storage?.programs?.find((sup) => sup.id === p.id);
         return storageUpdateProgram && storageUpdateProgram.clonedAt === p.clonedAt;
       });
-      if (allClonedAtsAreDifferent && allProgramsValid) {
-        programs = storagePrograms;
-      } else {
+      programs = storagePrograms;
+      if (!allClonedAtsAreDifferent || !allProgramsValid) {
         const eventDao = new EventDao(this.di);
         await eventDao.post({
           type: "event",
