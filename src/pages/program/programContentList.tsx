@@ -125,7 +125,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                         name: newName,
                         id: UidFactory.generateUid(8),
                         clonedAt: Date.now(),
-                        planner: program.planner ? { ...program.planner, name: newName } : undefined,
+                        ...(program.planner ? { planner: { ...program.planner, name: newName } } : {}),
                       };
                       try {
                         await saveProgram(newProgram, props.service);
