@@ -45,6 +45,7 @@ import { SendMessage } from "../utils/sendMessage";
 import { LiveActivityManager } from "../utils/liveActivityManager";
 import { Subscriptions } from "../utils/subscriptions";
 import { lg } from "../utils/posthog";
+import { CollectionUtils } from "../utils/collection";
 
 export interface IWatchHistoryRecord {
   dayName: string;
@@ -861,9 +862,10 @@ class LiftosaurWatch {
       w = prevW;
     }
 
-    // Combine: [...down, current, ...up]
-    const weights = [...weightsDown, currentWeight.value, ...weightsUp];
-    const currentIndex = weightsDown.length;
+    const roundedValue = Weight.round(currentWeight, settings, unit, exerciseType).value;
+    const combined = [...weightsDown, roundedValue, ...weightsUp];
+    const weights = CollectionUtils.uniqByExpr(combined, (v) => v);
+    const currentIndex = weights.indexOf(roundedValue);
 
     return { weights, currentIndex };
   }
@@ -872,7 +874,7 @@ class LiftosaurWatch {
     storageJson: string,
     entryIndex: number,
     currentWeightValue: number,
-    unit: string,
+    unit: string | undefined,
     countUp: number,
     countDown: number
   ): string {
@@ -886,11 +888,13 @@ class LiftosaurWatch {
         return { success: false, error: "Entry not found" };
       }
 
+      const resolvedUnit =
+        (unit as IUnit) || Equipment.getUnitOrDefaultForExerciseType(storage.settings, entry.exercise);
       const result = this.generateValidWeightsArray(
         storage.settings,
         entry.exercise,
         currentWeightValue,
-        unit as IUnit,
+        resolvedUnit,
         countUp,
         countDown
       );
