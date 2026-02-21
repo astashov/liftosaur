@@ -71,6 +71,7 @@ const mainConfig = {
     exercise: ["./src/exercise.tsx", "./src/index.css"],
     repmax: ["./src/repmax.tsx", "./src/index.css"],
     allexercises: ["./src/allExercises.tsx", "./src/index.css"],
+    allprograms: ["./src/allPrograms.tsx", "./src/index.css"],
     app: ["./src/index.tsx", "./src/index.css"],
     admin: ["./src/admin.tsx", "./src/admin.css"],
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],

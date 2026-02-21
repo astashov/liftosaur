@@ -361,6 +361,18 @@ input[type="checkbox"].checkbox {
   transform: rotate(45deg);
 }
 
+.add-tip-up {
+  position: absolute;
+  top: -5px;
+  left: 16px;
+  width: 10px;
+  height: 10px;
+  background: white;
+  box-shadow:
+    -1px -1px 2px 0 rgba(0, 0, 0, 0.06);
+  transform: rotate(45deg);
+}
+
 input[type="checkbox"].checkbox:checked {
   background-color: #28839f;
 }

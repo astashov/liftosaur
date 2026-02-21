@@ -15,7 +15,7 @@ import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgra
 import { EditProgramExerciseWarmups } from "./editProgramExerciseWarmups";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { IconKebab } from "../icons/iconKebab";
-import { DropdownMenu, DropdownMenuItem } from "../editProgram/editProgramUi/editProgramUiDropdownMenu";
+import { DropdownMenu, DropdownMenuItem } from "../dropdownMenu";
 import { EditProgramExerciseProgress } from "./editProgramExerciseProgress";
 import { EditProgramExerciseUpdate } from "./editProgramExerciseUpdate";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";

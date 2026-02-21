@@ -7,7 +7,7 @@ import { EditProgramExerciseDayExercise } from "./editProgramExerciseDayExercise
 import { Button } from "../button";
 import { IconKebab } from "../icons/iconKebab";
 import { useState } from "preact/hooks";
-import { DropdownMenu, DropdownMenuItem } from "../editProgram/editProgramUi/editProgramUiDropdownMenu";
+import { DropdownMenu, DropdownMenuItem } from "../dropdownMenu";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { ObjectUtils } from "../../utils/object";
 import { lb } from "lens-shmens";

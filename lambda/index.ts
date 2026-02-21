@@ -69,6 +69,7 @@ import { ExerciseImageUtils } from "../src/models/exerciseImage";
 import { Exercise } from "../src/models/exercise";
 import { renderExerciseHtml } from "./exercise";
 import { renderAllExercisesHtml } from "./allExercises";
+import { renderAllProgramsHtml } from "./allPrograms";
 import { renderRepMaxHtml } from "./repmax";
 import { MathUtils } from "../src/utils/math";
 import { EventDao } from "./dao/eventDao";
@@ -1665,6 +1666,32 @@ const deleteAccountHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   }
 };
 
+const getAllProgramsEndpoint = Endpoint.build("/programs");
+const getAllProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAllProgramsEndpoint> = async ({
+  payload,
+}) => {
+  const { di } = payload;
+  let account: IAccount | undefined;
+  const userResult = await getUserAccount(payload);
+  if (userResult.success) {
+    account = userResult.data.account;
+  }
+  const dao = new ProgramDao(di);
+  const index = await dao.getIndex();
+  const details = await Promise.all(index.map((entry) => dao.getDetail(entry.id)));
+  const programs = index.map((entry, i) => ({
+    id: entry.id,
+    name: entry.name,
+    shortDescription: entry.shortDescription,
+    weeksCount: details[i].planner.weeks.length,
+  }));
+  return {
+    statusCode: 200,
+    body: renderAllProgramsHtml(di.fetch, programs, account),
+    headers: { "content-type": "text/html" },
+  };
+};
+
 const getProgramDetailsEndpoint = Endpoint.build("/programs/:id");
 const getProgramDetailsHandler: RouteHandler<
   IPayload,
@@ -2697,6 +2724,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getProfileImageEndpoint, getProfileImageHandler)
       .get(getAdminUsersEndpoint, getAdminUsersHandler)
       .get(getAdminLogsEndpoint, getAdminLogsHandler)
+      .get(getAllProgramsEndpoint, getAllProgramsHandler)
       .get(getProgramDetailsEndpoint, getProgramDetailsHandler)
       .get(getProgramImageEndpoint, getProgramImageHandler)
       .post(postCreateCouponEndpoint, postCreateCouponHandler)

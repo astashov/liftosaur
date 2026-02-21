@@ -15,7 +15,7 @@ import { Subscriptions } from "../utils/subscriptions";
 import { Thunk } from "../ducks/thunks";
 import { WorkoutExerciseAllSets } from "./workoutExerciseAllSets";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
-import { DropdownMenu, DropdownMenuItem } from "./editProgram/editProgramUi/editProgramUiDropdownMenu";
+import { DropdownMenu, DropdownMenuItem } from "./dropdownMenu";
 import { IconSwap } from "./icons/iconSwap";
 import { IconTrash } from "./icons/iconTrash";
 import { IconEdit2 } from "./icons/iconEdit2";
