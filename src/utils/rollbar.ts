@@ -40,6 +40,7 @@ export const exceptionIgnores = [
   "connection closed",
   "Invalid change range",
   "Empty response from API",
+  "_AutofillCallbackHandler",
 ];
 
 export namespace RollbarUtils {
