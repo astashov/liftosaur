@@ -5,7 +5,7 @@ import { IconKettlebellSmall } from "../../../components/icons/iconKettlebellSma
 import { IconWatch } from "../../../components/icons/iconWatch";
 import { Markdown } from "../../../components/markdown";
 import { Equipment } from "../../../models/equipment";
-import { equipmentName } from "../../../models/exercise";
+import { equipmentName, Exercise } from "../../../models/exercise";
 import { ExerciseImageUtils } from "../../../models/exerciseImage";
 import { IProgramIndexEntry, Program } from "../../../models/program";
 import { ISettings } from "../../../types";
@@ -49,7 +49,7 @@ export function ProgramCard(props: IProgramCardProps): JSX.Element {
             .filter((e) => ExerciseImageUtils.exists(e, "small"))
             .map((e) => (
               <ExerciseImage
-                key={`${e.id}-${e.equipment}`}
+                key={Exercise.toKey(e)}
                 settings={settings}
                 exerciseType={e}
                 size="small"

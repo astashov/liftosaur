@@ -4,6 +4,8 @@ import { ProgramCard } from "./programCard";
 import { ISettings } from "../../../types";
 import { StringUtils } from "../../../utils/string";
 import { IProgramIndexEntry } from "../../../models/program";
+import { IconMagnifyingGlass } from "../../../components/icons/iconMagnifyingGlass";
+import { Tailwind } from "../../../utils/tailwindConfig";
 
 interface IProgramsTabContentProps {
   programs: IProgramIndexEntry[];
@@ -13,8 +15,6 @@ interface IProgramsTabContentProps {
 }
 
 export function ProgramsTabContent(props: IProgramsTabContentProps): JSX.Element {
-  const searchRef = useRef<HTMLInputElement>(null);
-
   return (
     <div className="pt-4">
       <div className="flex items-center justify-between pb-4">
@@ -22,35 +22,7 @@ export function ProgramsTabContent(props: IProgramsTabContentProps): JSX.Element
           <span className="font-bold">{props.programs.length}</span>{" "}
           {StringUtils.pluralize("program", props.programs.length)}
         </div>
-        <div className="relative">
-          <svg
-            className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            ref={searchRef}
-            className="py-2 pl-8 pr-4 text-sm border rounded-lg border-border-neutral bg-background-default focus:outline-none focus:ring-1 focus:ring-button-primarybackground"
-            type="text"
-            value={props.search}
-            placeholder="Search by name"
-            onInput={() => {
-              if (searchRef.current) {
-                props.onSearchChange(searchRef.current.value);
-              }
-            }}
-            style={{ width: "220px" }}
-          />
-        </div>
+        <ProgramSearchField value={props.search} onChange={props.onSearchChange} />
       </div>
 
       {props.programs.length > 0 ? (
@@ -64,6 +36,38 @@ export function ProgramsTabContent(props: IProgramsTabContentProps): JSX.Element
           No programs found with selected filters
         </div>
       )}
+    </div>
+  );
+}
+
+interface IProgramSearchFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+function ProgramSearchField(props: IProgramSearchFieldProps): JSX.Element {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="relative">
+      <IconMagnifyingGlass
+        color={Tailwind.semantic().icon.neutralsubtle}
+        size={16}
+        className="absolute transform -translate-y-1/2 left-3 top-1/2"
+      />
+      <input
+        ref={inputRef}
+        className="py-2 pl-8 pr-4 text-sm border rounded-lg border-border-neutral bg-background-default focus:outline-none focus:ring-1 focus:ring-button-primarybackground"
+        type="text"
+        value={props.value}
+        placeholder="Search by name"
+        onInput={() => {
+          if (inputRef.current) {
+            props.onChange(inputRef.current.value);
+          }
+        }}
+        style={{ width: "220px" }}
+      />
     </div>
   );
 }
