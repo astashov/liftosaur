@@ -136,7 +136,23 @@ Register in router chain (~line 2700):
 .get(getMyPageEndpoint, getMyPageHandler)
 ```
 
-### 3. TopNavMenu (`src/components/topNavMenu.tsx`)
+### 3. Redirects (`_redirects` and `_redirects_staging`)
+
+Add redirect entries so the CDN (Netlify) proxies the route to the Lambda backend:
+
+In `_redirects`:
+```
+/myroute https://api3.liftosaur.com/myroute  200
+```
+
+In `_redirects_staging`:
+```
+/myroute https://api3-dev.liftosaur.com/myroute  200
+```
+
+Place the entry before any parameterized routes for the same prefix (e.g. `/myroute` before `/myroute/:id`).
+
+### 4. TopNavMenu (`src/components/topNavMenu.tsx`)
 
 If page should appear in nav, update `getMenuItems()`.
 

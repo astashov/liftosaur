@@ -16,6 +16,7 @@
 /affiliates https://api3.liftosaur.com/affiliates  200
 /ai https://api3.liftosaur.com/ai  200
 /ai/prompt https://api3.liftosaur.com/ai/prompt  200
+/programs https://api3.liftosaur.com/programs  200
 /programs/:programId https://api3.liftosaur.com/programs/:programId  200
 /planner https://api3.liftosaur.com/planner  200
 /program https://api3.liftosaur.com/program  200
