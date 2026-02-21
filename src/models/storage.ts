@@ -59,15 +59,16 @@ export namespace Storage {
     type: t.Type<any, any, any>,
     name: string
   ): IEither<IStorage, string[]> {
-    const result = validate(data, type, name);
+    const cleanedData = ObjectUtils.removeUndefined(data);
+    const result = validate(cleanedData, type, name);
     if (!result.success) {
       const error = result.error;
       lg("ls-corrupted-storage", { lastActions: JSON.stringify(window.reducerLastActions || []) });
       if (Rollbar != null) {
-        Rollbar.error(error.join("\n"), { state: JSON.stringify(data), type: name });
+        Rollbar.error(error.join("\n"), { state: JSON.stringify(cleanedData), type: name });
       }
       console.error(`Error decoding ${name}`);
-      console.log(data);
+      console.log(cleanedData);
       error.forEach((e) => console.error(e));
     }
     return result;
