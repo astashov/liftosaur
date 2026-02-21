@@ -10,6 +10,7 @@ const TIMEOUT_MS = 60 * 60 * 1000;
 const MAX_FIXES = 3;
 const REVIEW_TIMEOUT_MS = 10 * 60 * 1000;
 const SIMILARITY_TIMEOUT_MS = 5 * 60 * 1000;
+const IGNORE_PATTERNS: RegExp[] = [/Invalid value .* supplied to : THistoryRecord/];
 
 interface IRollbarItem {
   id: number;
@@ -402,8 +403,21 @@ async function main(): Promise<void> {
   log(`Main log: ${mainLogPath}`);
 
   log(`Fetching active items from Rollbar (environments: ${ALLOWED_ENVIRONMENTS.join(", ")})...`);
-  const items = await getActiveItems();
-  log(`Found ${items.length} active items`);
+  const allItems = await getActiveItems();
+  log(`Found ${allItems.length} active items`);
+
+  const items = allItems.filter((item) => {
+    for (const pattern of IGNORE_PATTERNS) {
+      if (pattern.test(item.title)) {
+        log(`  Ignoring item ${item.id}: title matches ignore pattern ${pattern}`);
+        return false;
+      }
+    }
+    return true;
+  });
+  if (items.length < allItems.length) {
+    log(`Filtered to ${items.length} items after applying ignore patterns`);
+  }
 
   log("Fetching existing Rollbar fix PRs from GitHub...");
   const existingPRs = await fetchRollbarPRs();
