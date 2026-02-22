@@ -19,7 +19,8 @@ interface IPlaygroundProps {
 export const ProgramDetailsWorkoutPlayground = memo((props: IPlaygroundProps): JSX.Element => {
   const [units, setUnits] = useState<IUnit>(props.settings.units);
   const [tab, setTab] = useState<ITab>("preview");
-  const [weeksAsTabs, setWeeksAsTabs] = useState(false);
+  const isMultiweek = (props.program.planner?.weeks || []).length > 1;
+  const [weeksAsTabs, setWeeksAsTabs] = useState(!isMultiweek);
   const settings = { ...props.settings, units };
   const maxWidth = props.maxWidth;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -97,16 +98,18 @@ export const ProgramDetailsWorkoutPlayground = memo((props: IPlaygroundProps): J
       )}
       <div ref={containerRef} style={{ display: tab === "preview" ? "block" : "none" }}>
         <div className="flex items-center mx-auto mt-2 mb-4 text-sm text-text-secondary" style={{ maxWidth }}>
-          <label className="flex items-center gap-1">
-            <input
-              type="checkbox"
-              className="checkbox"
-              id="weeksAsTabs"
-              checked={weeksAsTabs}
-              onChange={() => setWeeksAsTabs((v) => !v)}
-            />
-            <span>Show weeks as tabs</span>
-          </label>
+          {isMultiweek && (
+            <label className="flex items-center gap-1">
+              <input
+                type="checkbox"
+                className="checkbox"
+                id="weeksAsTabs"
+                checked={weeksAsTabs}
+                onChange={() => setWeeksAsTabs((v) => !v)}
+              />
+              <span>Show weeks as tabs</span>
+            </label>
+          )}
           {!weeksAsTabs && (
             <div className="flex gap-2 ml-auto">
               <button
