@@ -1,18 +1,26 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
+import { useState } from "preact/hooks";
 import { Settings } from "../../models/settings";
 import { IProgram, ISettings } from "../../types";
 import { IAccount } from "../../models/account";
 import { ProgramDetailsWorkoutPlayground } from "./programDetails/programDetailsWorkoutPlayground";
 import { ProgramDetailsUpsell } from "./programDetails/programDetailsUpsell";
 import { ProgramDetailsAddButton } from "./programDetails/programDetailsAddButton";
-import { Program } from "../../models/program";
+import { IProgramIndexEntry, Program } from "../../models/program";
 import { ObjectUtils } from "../../utils/object";
 import { Markdown } from "../../components/markdown";
-import { PlannerStatsUtils } from "../planner/models/plannerStatsUtils";
 import { IPlannerEvalResult } from "../planner/plannerExerciseEvaluator";
 import { IconBack } from "../../components/icons/iconBack";
+import { IconArrowDown2 } from "../../components/icons/iconArrowDown2";
+import { IconArrowRight } from "../../components/icons/iconArrowRight";
 import { PlannerWeekStats } from "../planner/components/plannerWeekStats";
 import { IconWatch } from "../../components/icons/iconWatch";
+import { IconCalendarSmall } from "../../components/icons/iconCalendarSmall";
+import { IconKettlebellSmall } from "../../components/icons/iconKettlebellSmall";
+import { Equipment } from "../../models/equipment";
+import { equipmentName } from "../../models/exercise";
+import { StringUtils } from "../../utils/string";
+import { Tailwind } from "../../utils/tailwindConfig";
 
 export interface IProgramDetailsContentProps {
   program: IProgram;
@@ -21,30 +29,29 @@ export interface IProgramDetailsContentProps {
   userAgent?: string;
   accountSettings?: ISettings;
   account?: IAccount;
+  indexEntry?: IProgramIndexEntry;
 }
 
 export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.Element {
-  const { program, accountSettings } = props;
+  const { program, accountSettings, indexEntry } = props;
   const settings = accountSettings || Settings.build();
   const fullProgram = Program.fullProgram(ObjectUtils.clone(program), settings);
   const evaluatedProgram = Program.evaluate(ObjectUtils.clone(program), settings);
   const descriptionText = props.fullDescription || program.description;
 
   const firstWeek = evaluatedProgram.weeks[0];
-  const daysPerWeek = firstWeek?.days.length ?? 0;
-  const allExercises = firstWeek?.days.flatMap((d) => d.exercises.filter((e) => !e.notused)) ?? [];
-  const exercisesPerDay = daysPerWeek > 0 ? Math.round(allExercises.length / daysPerWeek) : 0;
-
-  const restTimer = settings.timers.workout ?? 90;
-  const totalTimeMs =
-    firstWeek?.days.reduce((acc, d) => {
-      return acc + PlannerStatsUtils.dayApproxTimeMs(d.exercises, restTimer);
-    }, 0) ?? 0;
-  const avgTimeMinutes = daysPerWeek > 0 ? Math.round(totalTimeMs / daysPerWeek / 1000 / 60) : 0;
   const maxWidth = 1200;
 
   const evaluatedDays: IPlannerEvalResult[] =
     firstWeek?.days.map((d) => ({ success: true as const, data: d.exercises })) ?? [];
+
+  const allEquipment = Equipment.currentEquipment(settings);
+  const equipment = (indexEntry?.equipment ?? []).map((e) => equipmentName(e, allEquipment));
+  const exercisesRange = indexEntry?.exercisesRange;
+  const weeksCount = indexEntry?.weeksCount ?? 0;
+
+  const [isSummaryOpen, setIsSummaryOpen] = useState(true);
+  const [isWeekStatsOpen, setIsWeekStatsOpen] = useState(true);
 
   return (
     <section className="px-4">
@@ -78,27 +85,75 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
         </div>
         <div className="flex-shrink-0 w-72">
           <div className="lg:sticky lg:top-4">
-            <h3 className="mb-2 text-xl font-bold">Summary</h3>
-            <div className="mb-1 text-sm">
-              {daysPerWeek} days per week, {exercisesPerDay} exercises per day
-            </div>
-            {avgTimeMinutes > 0 && (
-              <div className="flex items-center gap-1 mb-4 text-sm text-text-secondary">
-                <div>
-                  <IconWatch />
-                </div>{" "}
-                <div>{avgTimeMinutes}m</div>
+            <button
+              className="flex items-center w-full gap-1 mb-2 text-xl font-bold text-left cursor-pointer"
+              onClick={() => setIsSummaryOpen(!isSummaryOpen)}
+            >
+              <div className="flex items-center justify-center w-4">
+                {isSummaryOpen ? (
+                  <IconArrowDown2 className="inline-block" />
+                ) : (
+                  <IconArrowRight className="inline-block" />
+                )}
               </div>
+              <div>Summary</div>
+            </button>
+            {isSummaryOpen && (
+              <>
+                <div>
+                  {indexEntry?.duration && (
+                    <div className="flex items-center gap-1 mb-2 text-sm text-text-secondary">
+                      <IconWatch width={14} height={18} />
+                      <span>~{indexEntry.duration} min per workout</span>
+                    </div>
+                  )}
+                  <div className="flex mb-2 text-sm text-text-secondary">
+                    <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mt-0.5 mr-1" />
+                    <div>
+                      {weeksCount > 1 && `${weeksCount} ${StringUtils.pluralize("week", weeksCount)}, `}
+                      {indexEntry?.frequency ? `${indexEntry.frequency}x/week` : ""}
+                      {indexEntry?.frequency && exercisesRange ? ", " : ""}
+                      {exercisesRange ? Program.exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
+                    </div>
+                  </div>
+                  {equipment.length > 0 && (
+                    <div className="flex mb-2 text-sm text-text-secondary">
+                      <IconKettlebellSmall color={Tailwind.colors().lightgray[600]} className="block mt-0.5 mr-1" />
+                      <div>{equipment.join(", ")}</div>
+                    </div>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <ProgramDetailsAddButton
+                    program={program}
+                    settings={settings}
+                    account={props.account}
+                    client={props.client}
+                  />
+                </div>
+              </>
             )}
-            <div className="mb-4">
-              <ProgramDetailsAddButton
-                program={program}
+            <button
+              className="flex items-center w-full gap-1 mb-2 text-xl font-bold text-left cursor-pointer"
+              onClick={() => setIsWeekStatsOpen(!isWeekStatsOpen)}
+            >
+              <div className="flex items-center justify-center w-4">
+                {isWeekStatsOpen ? (
+                  <IconArrowDown2 className="inline-block" />
+                ) : (
+                  <IconArrowRight className="inline-block" />
+                )}
+              </div>
+              <div>Week Stats</div>
+            </button>
+            {isWeekStatsOpen && (
+              <PlannerWeekStats
+                hideTitle={true}
+                dispatch={() => {}}
+                evaluatedDays={evaluatedDays}
                 settings={settings}
-                account={props.account}
-                client={props.client}
               />
-            </div>
-            <PlannerWeekStats dispatch={() => {}} evaluatedDays={evaluatedDays} settings={settings} />
+            )}
           </div>
         </div>
       </div>

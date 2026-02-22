@@ -66,14 +66,14 @@ export class ProgramDao {
     return response.json();
   }
 
-  public async getById(id: string): Promise<IProgram | undefined> {
+  public async getById(id: string): Promise<{ program: IProgram; indexEntry: IProgramIndexEntry } | undefined> {
     const index = await this.getIndex();
     const entry = index.find((e) => e.id === id);
     if (!entry) {
       return undefined;
     }
     const detail = await this.getDetail(id);
-    return buildProgram(entry, detail);
+    return { program: buildProgram(entry, detail), indexEntry: entry };
   }
 
   public async getAll(): Promise<IProgramPayload[]> {

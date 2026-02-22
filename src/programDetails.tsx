@@ -1,5 +1,6 @@
 import { h } from "preact";
 import { PageWrapper } from "./components/pageWrapper";
+import { IProgramIndexEntry } from "./models/program";
 import { ProgramDetailsContent } from "./pages/programs/programDetailsContent";
 import { IProgram } from "./types";
 import { HydrateUtils } from "./utils/hydrate";
@@ -7,6 +8,7 @@ import { HydrateUtils } from "./utils/hydrate";
 interface IData {
   program: IProgram;
   fullDescription?: string;
+  indexEntry?: IProgramIndexEntry;
 }
 
 function main(): void {

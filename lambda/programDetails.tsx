@@ -2,6 +2,7 @@ import { h } from "preact";
 import { ProgramDetailsHtml } from "../src/pages/programs/programDetailsHtml";
 import { IProgram, ISettings } from "../src/types";
 import { IAccount } from "../src/models/account";
+import { IProgramIndexEntry } from "../src/models/program";
 
 import { renderPage } from "./render";
 
@@ -11,7 +12,8 @@ export function renderProgramDetailsHtml(
   fullDescription?: string,
   userAgent?: string,
   account?: IAccount,
-  accountSettings?: ISettings
+  accountSettings?: ISettings,
+  indexEntry?: IProgramIndexEntry
 ): string {
   return renderPage(
     <ProgramDetailsHtml
@@ -21,6 +23,7 @@ export function renderProgramDetailsHtml(
       userAgent={userAgent}
       account={account}
       accountSettings={accountSettings}
+      indexEntry={indexEntry}
     />
   );
 }

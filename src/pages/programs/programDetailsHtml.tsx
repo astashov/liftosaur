@@ -1,6 +1,7 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
 import { IAccount } from "../../models/account";
+import { IProgramIndexEntry } from "../../models/program";
 import { IProgram, ISettings } from "../../types";
 import { ProgramDetailsContent } from "./programDetailsContent";
 
@@ -11,6 +12,7 @@ interface IProps {
   client: Window["fetch"];
   account?: IAccount;
   accountSettings?: ISettings;
+  indexEntry?: IProgramIndexEntry;
 }
 
 export function ProgramDetailsHtml(props: IProps): JSX.Element {

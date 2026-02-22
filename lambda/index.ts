@@ -1064,9 +1064,9 @@ const getProgramImageHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
 }) => {
   const { event, di } = payload;
   return ImageCacher.cache(di, event, `programimage${event.path}-${params.id}.png`, async () => {
-    const program = await new ProgramDao(di).getById(params.id);
-    if (program != null) {
-      const imageResult = await new ProgramImageGenerator().generate({ program });
+    const result = await new ProgramDao(di).getById(params.id);
+    if (result != null) {
+      const imageResult = await new ProgramImageGenerator().generate({ program: result.program });
       if (imageResult.success) {
         return { success: true, data: imageResult.data };
       } else {
@@ -1693,9 +1693,10 @@ const getProgramDetailsHandler: RouteHandler<
 > = async ({ payload, match: { params } }) => {
   const { di } = payload;
   const dao = new ProgramDao(di);
-  const program = await dao.getById(params.id);
+  const result = await dao.getById(params.id);
   const userAgent = getUserAgent(payload.event);
-  if (program != null) {
+  if (result != null) {
+    const { program, indexEntry } = result;
     let fullDescription: string | undefined;
     try {
       const detail = await dao.getDetail(params.id);
@@ -1709,7 +1710,7 @@ const getProgramDetailsHandler: RouteHandler<
 
     return {
       statusCode: 200,
-      body: renderProgramDetailsHtml(program, di.fetch, fullDescription, userAgent, account, settings),
+      body: renderProgramDetailsHtml(program, di.fetch, fullDescription, userAgent, account, settings, indexEntry),
       headers: { "content-type": "text/html" },
     };
   } else {
