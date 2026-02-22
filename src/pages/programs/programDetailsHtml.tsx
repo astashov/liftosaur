@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
-import { MockAudioInterface } from "../../lib/audioInterface";
-import { IProgram } from "../../types";
+import { IAccount } from "../../models/account";
+import { IProgram, ISettings } from "../../types";
 import { ProgramDetailsContent } from "./programDetailsContent";
 
 interface IProps {
@@ -9,11 +9,12 @@ interface IProps {
   fullDescription?: string;
   userAgent?: string;
   client: Window["fetch"];
+  account?: IAccount;
+  accountSettings?: ISettings;
 }
 
 export function ProgramDetailsHtml(props: IProps): JSX.Element {
   const { program } = props;
-  const audio = new MockAudioInterface();
   const { client, ...data } = props;
   const title = `${program.name} program explained | Liftosaur`;
   const url = `https://www.liftosaur.com/programs/${program.id}`;
@@ -34,14 +35,9 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
         <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/themes/prism.min.css" rel="stylesheet" />
       }
       client={client}
+      account={props.account}
     >
-      <ProgramDetailsContent
-        userAgent={props.userAgent}
-        program={program}
-        fullDescription={props.fullDescription}
-        client={props.client}
-        audio={audio}
-      />
+      <ProgramDetailsContent {...props} client={props.client} />
     </Page>
   );
 }

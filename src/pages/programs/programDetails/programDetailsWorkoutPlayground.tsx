@@ -17,7 +17,7 @@ interface IPlaygroundProps {
 }
 
 export const ProgramDetailsWorkoutPlayground = memo((props: IPlaygroundProps): JSX.Element => {
-  const [units, setUnits] = useState<IUnit>("lb");
+  const [units, setUnits] = useState<IUnit>(props.settings.units);
   const [tab, setTab] = useState<ITab>("preview");
   const [weeksAsTabs, setWeeksAsTabs] = useState(false);
   const settings = { ...props.settings, units };

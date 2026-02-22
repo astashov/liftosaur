@@ -1703,9 +1703,13 @@ const getProgramDetailsHandler: RouteHandler<
     } catch (e) {
       // Fall back to description from program
     }
+    const userResult = await getUserAccount(payload);
+    const account = userResult.success ? userResult.data.account : undefined;
+    const settings = userResult.success ? userResult.data.user.storage.settings : undefined;
+
     return {
       statusCode: 200,
-      body: renderProgramDetailsHtml(program, di.fetch, fullDescription, userAgent),
+      body: renderProgramDetailsHtml(program, di.fetch, fullDescription, userAgent, account, settings),
       headers: { "content-type": "text/html" },
     };
   } else {

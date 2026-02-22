@@ -1,9 +1,10 @@
 import { h, JSX } from "preact";
 import { Settings } from "../../models/settings";
-import { IProgram } from "../../types";
-import { IAudioInterface } from "../../lib/audioInterface";
+import { IProgram, ISettings } from "../../types";
+import { IAccount } from "../../models/account";
 import { ProgramDetailsWorkoutPlayground } from "./programDetails/programDetailsWorkoutPlayground";
 import { ProgramDetailsUpsell } from "./programDetails/programDetailsUpsell";
+import { ProgramDetailsAddButton } from "./programDetails/programDetailsAddButton";
 import { Program } from "../../models/program";
 import { ObjectUtils } from "../../utils/object";
 import { Markdown } from "../../components/markdown";
@@ -17,13 +18,14 @@ export interface IProgramDetailsContentProps {
   program: IProgram;
   fullDescription?: string;
   client: Window["fetch"];
-  audio: IAudioInterface;
   userAgent?: string;
+  accountSettings?: ISettings;
+  account?: IAccount;
 }
 
 export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.Element {
-  const { program } = props;
-  const settings = Settings.build();
+  const { program, accountSettings } = props;
+  const settings = accountSettings || Settings.build();
   const fullProgram = Program.fullProgram(ObjectUtils.clone(program), settings);
   const evaluatedProgram = Program.evaluate(ObjectUtils.clone(program), settings);
   const descriptionText = props.fullDescription || program.description;
@@ -88,7 +90,14 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
                 <div>{avgTimeMinutes}m</div>
               </div>
             )}
-
+            <div className="mb-4">
+              <ProgramDetailsAddButton
+                program={program}
+                settings={settings}
+                account={props.account}
+                client={props.client}
+              />
+            </div>
             <PlannerWeekStats dispatch={() => {}} evaluatedDays={evaluatedDays} settings={settings} />
           </div>
         </div>

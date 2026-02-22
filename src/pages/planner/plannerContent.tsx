@@ -364,7 +364,13 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             isBannerLoading={isBannerLoading}
             account={props.account}
             onAddProgram={async () => {
-              const exportProgram = Program.exportProgram(state.current.program, settings);
+              const exportProgram = Program.exportProgram(
+                {
+                  ...state.current.program,
+                  id: UidFactory.generateUid(8),
+                },
+                settings
+              );
               const pg = exportProgram.program;
               if (pg.planner && PlannerProgram.hasNonSelectedWeightUnit(pg.planner, settings)) {
                 const fromUnit = Weight.oppositeUnit(settings.units);
