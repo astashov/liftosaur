@@ -345,7 +345,7 @@ Squat / 3x8 / progress: lp(5lb, 2)
 /// increase by 5lb after 2 successful attempts, and already had 1 successful attempt
 Squat / 3x8 / progress: lp(5lb, 2, 1)
 
-/// increase by 5lb after 1 successful attempt, and decrease by 10lb after 3 unsuccessful
+/// increase by 5lb after 2 successful attempts, starting with 1 successful attempt, and decrease by 10lb after 3 unsuccessful
 Squat / 3x8 / progress: lp(5lb, 2, 1, 10lb, 3)
 
 /// You can also use percentages for increase (instead of absolute values)
