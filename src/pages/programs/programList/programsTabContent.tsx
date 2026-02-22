@@ -57,7 +57,7 @@ function ProgramSearchField(props: IProgramSearchFieldProps): JSX.Element {
       />
       <input
         ref={inputRef}
-        className="py-2 pl-8 pr-4 text-sm border rounded-lg border-border-neutral bg-background-default focus:outline-none focus:ring-1 focus:ring-button-primarybackground"
+        className="py-2 pl-8 pr-4 text-base border rounded-lg border-border-neutral bg-background-default focus:outline-none focus:ring-1 focus:ring-button-primarybackground"
         type="text"
         value={props.value}
         placeholder="Search by name"
