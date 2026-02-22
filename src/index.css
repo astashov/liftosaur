@@ -238,7 +238,6 @@ body {
   margin-bottom: 0.5rem;
 }
 
-
 .program-details-description table {
   border-collapse: collapse;
   width: 100%;
@@ -260,6 +259,14 @@ body {
 
 .program-details-description tr:nth-child(even) {
   background-color: #f9fafb;
+}
+
+.program-details-description strong {
+  font-weight: 600;
+}
+
+.program-details-description .md-exercise-directive {
+  color: var(--color-text-secondary);
 }
 
 .program-details-description .uplot table {

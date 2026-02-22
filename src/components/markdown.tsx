@@ -14,7 +14,7 @@ function preprocessDirectives(text: string, directivesData?: IMarkdownDirectives
   let result = text;
   if (directivesData?.exercise) {
     result = result.replace(/\[\{([^}]+)\}\]/g, (_match, name: string) => {
-      return `<strong class="md-exercise-directive" data-name="${name.trim()}">${name.trim()}</strong>`;
+      return `<strong class="md-exercise-directive md" data-name="${name.trim()}">${name.trim()}</strong>`;
     });
   }
   if (directivesData?.exerciseExample) {
