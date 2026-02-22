@@ -38,6 +38,10 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
   const planner = program.planner!;
 
   const currentWeek = planner.weeks[currentWeekIndex];
+  if (!currentWeek) {
+    return <div></div>;
+  }
+
   const lbPlanner = lb<IPlannerState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerState>().p("ui");
   const lbPlannerWeek = lbPlanner.p("weeks").i(currentWeekIndex);
