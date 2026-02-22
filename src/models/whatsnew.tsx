@@ -2385,6 +2385,22 @@ Bent Over Row / 3x8 / superset: A`}
       </ul>
     ),
   },
+  "20260222": {
+    title: <span>New /programs page on the liftosaur.com site</span>,
+    body: (
+      <ul>
+        <li>
+          Not the app, but the site update. There's now the /programs page on the liftosaur.com site, where you can find
+          all the programs available in the app, along with full description (pros/cons, program philosophy, how to run
+          it, etc), preview, Liftoscript code, etc.
+        </li>
+        <li>
+          If you're currently figuring out the next program, it could be a great resource to check it out, compare
+          different programs, and pick the one that suits you the best.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
