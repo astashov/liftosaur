@@ -685,7 +685,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     return {
       ...state,
       screenStack: pushScreen(newScreenStack, "progress", { id: action.historyRecord.id }),
-      progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
+      progress: { ...state.progress, [action.historyRecord.id]: { ...action.historyRecord, ui: {} } },
     };
   } else if (action.type === "FinishProgramDayAction") {
     const progress = Progress.getProgress(state);
