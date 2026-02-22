@@ -262,6 +262,29 @@ body {
   background-color: #f9fafb;
 }
 
+.program-details-description .uplot table {
+  border-collapse: initial;
+  width: auto;
+  margin-bottom: 0;
+  font-size: inherit;
+}
+
+.program-details-description .uplot th,
+.program-details-description .uplot td {
+  border: none;
+  padding: 0;
+  text-align: initial;
+}
+
+.program-details-description .uplot th {
+  background-color: transparent;
+  font-weight: inherit;
+}
+
+.program-details-description .uplot tr:nth-child(even) {
+  background-color: transparent;
+}
+
 .muscle {
   width: 100%;
 }

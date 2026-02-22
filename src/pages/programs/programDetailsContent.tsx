@@ -7,12 +7,11 @@ import { ProgramDetailsUpsell } from "./programDetails/programDetailsUpsell";
 import { Program } from "../../models/program";
 import { ObjectUtils } from "../../utils/object";
 import { Markdown } from "../../components/markdown";
-import { IconCheckCircle } from "../../components/icons/iconCheckCircle";
-import { IconEditSquare } from "../../components/icons/iconEditSquare";
 import { PlannerStatsUtils } from "../planner/models/plannerStatsUtils";
 import { IPlannerEvalResult } from "../planner/plannerExerciseEvaluator";
 import { IconBack } from "../../components/icons/iconBack";
 import { PlannerWeekStats } from "../planner/components/plannerWeekStats";
+import { IconWatch } from "../../components/icons/iconWatch";
 
 export interface IProgramDetailsContentProps {
   program: IProgram;
@@ -40,13 +39,14 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
       return acc + PlannerStatsUtils.dayApproxTimeMs(d.exercises, restTimer);
     }, 0) ?? 0;
   const avgTimeMinutes = daysPerWeek > 0 ? Math.round(totalTimeMs / daysPerWeek / 1000 / 60) : 0;
+  const maxWidth = 1200;
 
   const evaluatedDays: IPlannerEvalResult[] =
     firstWeek?.days.map((d) => ({ success: true as const, data: d.exercises })) ?? [];
 
   return (
     <section className="px-4">
-      <div className="flex flex-col lg:flex-row" style={{ gap: "2rem" }}>
+      <div className="flex flex-col mx-auto lg:flex-row" style={{ gap: "2rem", maxWidth }}>
         <div className="flex-1 min-w-0">
           <h1 className="flex items-center text-2xl font-bold leading-8">
             <a href="/programs" className="flex-shrink-0 mr-3">
@@ -81,8 +81,11 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
               {daysPerWeek} days per week, {exercisesPerDay} exercises per day
             </div>
             {avgTimeMinutes > 0 && (
-              <div className="mb-4 text-sm text-text-secondary">
-                <span>&#9201;</span> {avgTimeMinutes}m
+              <div className="flex items-center gap-1 mb-4 text-sm text-text-secondary">
+                <div>
+                  <IconWatch />
+                </div>{" "}
+                <div>{avgTimeMinutes}m</div>
               </div>
             )}
 
@@ -91,20 +94,9 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
         </div>
       </div>
       <div className="w-32 h-px mx-auto my-8 b bg-border-neutral" />
-      <h3 className="mb-4 text-xl font-bold leading-8">Try it out in interactive playground!</h3>
-      <p className="mb-4">
-        Tap on squares to finish sets. Tap multiple times to reduce completed reps. Finish workout and see what the next
-        time the workout would look like (with possibly updated weights, reps and sets).
-      </p>
-      <p className="mb-4">
-        For convenience, you can finish all the sets of an exercise by clicking on the{" "}
-        <IconCheckCircle className="inline-block" isChecked={true} color="#BAC4CD" /> icon. And you can adjust the
-        exercise variables (weight, reps, TM, RIR, etc) by clicking on the <IconEditSquare className="inline-block" />{" "}
-        icon.
-      </p>
-      <ProgramDetailsWorkoutPlayground program={fullProgram} settings={settings} />
+      <ProgramDetailsWorkoutPlayground program={fullProgram} settings={settings} maxWidth={maxWidth} />
       <div className="mt-8">
-        <ProgramDetailsUpsell userAgent={props.userAgent} />
+        <ProgramDetailsUpsell userAgent={props.userAgent} maxWidth={maxWidth} />
       </div>
     </section>
   );

@@ -5,6 +5,7 @@ import { Onelink } from "../../../components/onelink";
 
 interface IProgramDetailsUpsellProps {
   userAgent?: string;
+  maxWidth?: number;
 }
 
 export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Element {
@@ -12,7 +13,10 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
   const isAndroid = Platform.isAndroid(props.userAgent);
   const isMobile = isiOS || isAndroid;
   return (
-    <div className="flex flex-col items-center px-8 py-4 mx-4 mb-4 bg-yellow-100 border border-orange-400 rounded-lg sm:flex-row">
+    <div
+      className="flex flex-col items-center px-8 py-4 mx-auto mb-4 bg-yellow-100 border border-orange-400 rounded-lg sm:flex-row"
+      style={{ maxWidth: props.maxWidth }}
+    >
       <div className="flex-1">
         You can use this program on <strong>Liftosaur</strong> - a weightlifting tracker app!
         <ul className="pl-4 mt-2 list-disc">

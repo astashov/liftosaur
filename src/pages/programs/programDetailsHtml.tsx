@@ -27,7 +27,8 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
       canonical={url}
       ogUrl={url}
       ogImage={`https://www.liftosaur.com/programimage/${program.id}`}
-      maxWidth={1020}
+      maxWidth={1200}
+      maxBodyWidth={10000}
       data={data}
       postHead={
         <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/themes/prism.min.css" rel="stylesheet" />
