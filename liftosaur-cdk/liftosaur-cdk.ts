@@ -28,7 +28,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
           command: [
             "bash",
             "-c",
-            "mkdir -p /asset-output/nodejs && cd /asset-output/nodejs && cp /asset-input/{package.json,package-lock.json} . && npm ci",
+            "mkdir -p /asset-output/nodejs && cd /asset-output/nodejs && cp /asset-input/{package.json,package-lock.json} . && npm ci && npm install --os=linux --cpu=x64 sharp",
           ],
           environment: { HOME: "/tmp/home" },
         },
@@ -534,4 +534,4 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-// new LiftosaurCdkStack(app, "LiftosaurStack", false);
+new LiftosaurCdkStack(app, "LiftosaurStack", false);
