@@ -154,7 +154,7 @@
     "rollbar": "^2.26.2",
     "rsa-pem-from-mod-exp": "^0.8.5",
     "satori": "^0.19.2",
-    "sharp": "^0.34.4",
+    "sharp": "^0.34.5",
     "uplot": "^1.6.23",
     "upng-js": "^2.1.0",
     "yatro": "^0.2.7",

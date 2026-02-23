@@ -40,7 +40,7 @@
     "rollbar": "^2.26.2",
     "rsa-pem-from-mod-exp": "^0.8.5",
     "satori": "^0.19.2",
-    "sharp": "^0.32.6",
+    "sharp": "^0.34.5",
     "source-map-support": "^0.5.19",
     "turndown": "^7.2.0",
     "uplot": "^1.6.23",
