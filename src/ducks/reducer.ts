@@ -8,7 +8,6 @@ import { ILensRecordingPayload, lb, LensBuilder } from "lens-shmens";
 import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors, updateState } from "../models/state";
 import { UidFactory } from "../utils/generator";
 import {
-  THistoryRecord,
   IStorage,
   IWeight,
   IProgressMode,
@@ -122,9 +121,9 @@ export async function getInitialState(
     // Now progress is stored in storage.progress
     const oldProgress = (storage as { progress?: IHistoryRecord }).progress;
     if (oldProgress != null && (finalStorage.progress == null || finalStorage.progress.length === 0)) {
-      const isProgressValid = Storage.validateAndReport(oldProgress, THistoryRecord, "progress").success;
-      if (isProgressValid) {
-        finalStorage = { ...finalStorage, progress: [oldProgress] };
+      const migratedProgress = Storage.getHistoryRecord(oldProgress as unknown as Record<string, unknown>, true);
+      if (migratedProgress.success) {
+        finalStorage = { ...finalStorage, progress: [{ ...migratedProgress.data, vtype: "progress" }] };
       }
     }
 

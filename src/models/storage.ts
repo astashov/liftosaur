@@ -12,7 +12,7 @@ import { IDispatch } from "../ducks/types";
 import { ObjectUtils } from "../utils/object";
 import { DateUtils } from "../utils/date";
 import { IStorageUpdate, IStorageUpdate2 } from "../utils/sync";
-import { IStorage, TStorage, IPartialStorage, STORAGE_VERSION_TYPES } from "../types";
+import { IHistoryRecord, IStorage, THistoryRecord, TStorage, IPartialStorage, STORAGE_VERSION_TYPES } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { IVersions, VersionTracker } from "./versionTracker";
 import { lg } from "../utils/posthog";
@@ -92,6 +92,27 @@ export namespace Storage {
     } else {
       return { success: false, error: ["Provided data is empty"] };
     }
+  }
+
+  export function getHistoryRecord(
+    record: Record<string, unknown>,
+    shouldReportError?: boolean
+  ): IEither<IHistoryRecord, string[]> {
+    const storage = getDefault();
+    storage.version = "20251230101232";
+    storage.history = [record as unknown as IHistoryRecord];
+    const migrated = runMigrations(storage);
+    const migratedRecord = migrated.history[0];
+    if (!migratedRecord) {
+      return { success: false, error: ["Failed to migrate history record"] };
+    }
+    const result = shouldReportError
+      ? validateAndReport(migratedRecord as unknown as Record<string, unknown>, THistoryRecord, "progress")
+      : validate(migratedRecord as unknown as Record<string, unknown>, THistoryRecord, "progress");
+    if (result.success) {
+      return { success: true, data: migratedRecord };
+    }
+    return { success: false, error: result.error };
   }
 
   export function getDefault(): IStorage {
