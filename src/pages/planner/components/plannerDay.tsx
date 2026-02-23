@@ -38,10 +38,10 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   const { day, dispatch, lbProgram, weekIndex, dayIndex } = props;
   const { exercises } = props.settings;
   const focusedExercise = props.ui.focusedExercise;
-  const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
+  const evaluatedDay = props.evaluatedWeeks[weekIndex]?.[dayIndex];
   const isFocused = focusedExercise?.weekIndex === weekIndex && focusedExercise?.dayIndex === dayIndex;
   let approxDayTime: string | undefined;
-  if (evaluatedDay.success) {
+  if (evaluatedDay?.success) {
     for (const plannerExercise of evaluatedDay.data) {
       const exercise = Exercise.findByName(plannerExercise.name, {});
       if (exercise) {
@@ -53,7 +53,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
     );
   }
   const showProgramDescription = day.description != null;
-  const repeats: IPlannerProgramExercise[] = evaluatedDay.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
+  const repeats: IPlannerProgramExercise[] = evaluatedDay?.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
 
   return (
     <div className="flex flex-col md:flex-row">
@@ -218,12 +218,12 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
         </div>
       </div>
       <div className="w-56 ml-0 sm:ml-4">
-        {isFocused && (
+        {isFocused && evaluatedDay && (
           <PlannerDayStats
             dispatch={dispatch}
             focusedExercise={focusedExercise}
             settings={props.settings}
-            evaluatedDay={props.evaluatedWeeks[props.weekIndex][props.dayIndex]}
+            evaluatedDay={evaluatedDay}
           />
         )}
       </div>
