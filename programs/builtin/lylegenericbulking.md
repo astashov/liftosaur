@@ -90,7 +90,7 @@ For example, [{Squat}] starts at 4x6. You work up to 4x8. Once you complete 4x8,
 
 Run for **6-8 weeks per cycle**, with a deload week between cycles. You can repeat cycles for as long as you're in a caloric surplus and still progressing, typically 3-6 months during a dedicated bulk.
 
-**Signs it's time to move on**: You're stalling on most exercises despite deloading, you're no longer in a surplus, or you want more variety. Transition to **PHUL** (adds separate power/hypertrophy days), a **PPL split** (6 days/week for more volume), or **5/3/1 BBB** (if you want to shift toward strength).
+**Signs it's time to move on**: You're stalling on most exercises despite deloading, you're no longer in a surplus, or you want more variety. Transition to [PHUL](/programs/phul) (adds separate power/hypertrophy days), a **PPL split** (6 days/week for more volume), or [5/3/1 BBB](/programs/the531bbb) (if you want to shift toward strength).
 
 ## Equipment Needed
 

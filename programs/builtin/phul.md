@@ -86,7 +86,7 @@ The same logic applies to hypertrophy exercises: [{Incline Bench Press}] at 3x8 
 
 Run PHUL for **12-16 weeks** before reassessing. Take a deload week (50% of normal weights, same exercises and reps) at the 6-week mark if fatigue is accumulating, and definitely after 12 weeks.
 
-**Signs it's time to move on**: You're stalling on most lifts despite deloading, sessions feel like a grind, or your goals have shifted toward pure strength or pure hypertrophy. Transition to **PHAT** (5-day version with more volume), a **5/3/1 variant** (for strength focus), or a **PPL split** (for more training frequency if you have 5-6 days available).
+**Signs it's time to move on**: You're stalling on most lifts despite deloading, sessions feel like a grind, or your goals have shifted toward pure strength or pure hypertrophy. Transition to **PHAT** (5-day version with more volume), a **[5/3/1](/programs/the5314b) variant** (for strength focus), or a **PPL split** (for more training frequency if you have 5-6 days available).
 
 ## Equipment Needed
 
@@ -128,7 +128,7 @@ The program as written requires a barbell, dumbbells, a cable machine, and a leg
 
 ### Is PHUL good for beginners?
 
-PHUL is an intermediate program — you should have 1-3 years of consistent training and be comfortable with squat, bench, deadlift, and overhead press form. If you're still making session-to-session progress, a beginner program like GZCLP will be more effective.
+PHUL is an intermediate program — you should have 1-3 years of consistent training and be comfortable with squat, bench, deadlift, and overhead press form. If you're still making session-to-session progress, a beginner program like [GZCLP](/programs/gzclp) will be more effective.
 
 ### How many days a week is PHUL?
 

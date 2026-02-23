@@ -12,7 +12,7 @@ duration: "60-90"
 goal: "strength_and_hypertrophy"
 ---
 
-This is a program from the latest Cody's book. Unlike GZCLP, it prioritizes higher volume, and higher variety in exercises. It's in-between powerlifting and bodybuilding, but leans a bit more to bodybuilding, with higher rep ranges.
+This is a program from the latest Cody's book. Unlike [GZCLP](/programs/gzclp), it prioritizes higher volume, and higher variety in exercises. It's in-between powerlifting and bodybuilding, but leans a bit more to bodybuilding, with higher rep ranges.
 
 Make sure to read the book before doing the program! It gives a detailed explanation how things should work
 
@@ -20,11 +20,11 @@ Make sure to read the book before doing the program! It gives a detailed explana
 
 ### What is P-Zero Full Body?
 
-P-Zero Full Body is the latest program from Cody Lefever (creator of GZCL). Think of it as GZCLP 2.0 — it uses the same GZCL tier system but prioritizes higher volume, more exercise variety, and higher rep ranges than the original GZCLP.
+P-Zero Full Body is the latest program from Cody Lefever (creator of GZCL). Think of it as [GZCLP](/programs/gzclp) 2.0 — it uses the same GZCL tier system but prioritizes higher volume, more exercise variety, and higher rep ranges than the original [GZCLP](/programs/gzclp).
 
 ### Is P-Zero good for beginners?
 
-P-Zero is designed for lifters with a few months of training experience. It sits between GZCLP (pure beginner) and intermediate GZCL programs like The Rippler. If you've outgrown a basic beginner program but aren't ready for advanced periodization, P-Zero is a good fit.
+P-Zero is designed for lifters with a few months of training experience. It sits between [GZCLP](/programs/gzclp) (pure beginner) and intermediate GZCL programs like [The Rippler](/programs/gzcl-the-rippler). If you've outgrown a basic beginner program but aren't ready for advanced periodization, P-Zero is a good fit.
 
 ### How many days a week is P-Zero?
 
@@ -32,7 +32,7 @@ P-Zero is a 4-day program. Each day is a full-body workout following the GZCL ti
 
 ### How is P-Zero different from GZCLP?
 
-P-Zero has higher volume and more exercise variety than GZCLP. It leans more toward bodybuilding with higher rep ranges, while GZCLP is more powerlifting-focused. P-Zero also uses 4 training days instead of GZCLP's 3.
+P-Zero has higher volume and more exercise variety than [GZCLP](/programs/gzclp). It leans more toward bodybuilding with higher rep ranges, while [GZCLP](/programs/gzclp) is more powerlifting-focused. P-Zero also uses 4 training days instead of GZCLP's 3.
 
 ### Do I need to read the book to run P-Zero?
 

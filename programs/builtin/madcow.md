@@ -14,6 +14,7 @@ goal: "strength"
 
 An intermediate strength program built on Bill Starr's 5x5 system, designed for lifters who've outgrown beginner programs like Starting Strength or StrongLifts. Instead of adding weight every session, Madcow shifts to weekly linear progression using a Heavy/Light/Medium framework across three full-body days, with ramping sets that build to a single top set each workout.
 
+
 <!-- more -->
 
 ## Origin & Philosophy
@@ -24,7 +25,7 @@ The core insight: once you can no longer add weight every session (the hallmark 
 
 ## Who It's For
 
-- **Experience level**: Late novice to early intermediate (6-18 months of consistent barbell training). You should have completed a beginner linear progression program like Starting Strength, StrongLifts 5x5, or GZCLP and can no longer add weight every session.
+- **Experience level**: Late novice to early intermediate (6-18 months of consistent barbell training). You should have completed a beginner linear progression program like Starting Strength, StrongLifts 5x5, or [GZCLP](/programs/gzclp) and can no longer add weight every session.
 - **Prerequisites**: Comfortable with [{Squat}], [{Bench Press}], [{Deadlift}], [{Incline Bench Press}], and [{Bent Over Row}] technique. You should know your 5-rep maxes for the main lifts.
 - **Primary goal**: Strength with some hypertrophy from the Friday back-off sets.
 - **Best suited for**: Bulking or maintenance. The weekly PRs require adequate recovery, so a caloric deficit will limit how long you can progress.
@@ -95,7 +96,7 @@ Run Madcow for **12-16 weeks total**. The first 2-3 weeks should feel moderate a
 
 **Signs it's time to move on**: You've deloaded and rebuilt twice on the same lift, Friday triples are grinding, or you've been stuck at the same weights for 3+ weeks despite good sleep and nutrition.
 
-**Transition to**: **5/3/1** (monthly progression with AMRAP sets), **GZCL programs** like The Rippler (tiered approach with more volume), or the **Texas Method** (similar weekly structure but with more volume on Monday). If you want more hypertrophy, consider **PHUL** or **Lyle McDonald's Generic Bulking Routine**.
+**Transition to**: [5/3/1 for Beginners](/programs/the5314b) (monthly progression with AMRAP sets), **GZCL programs** like [The Rippler](/programs/gzcl-the-rippler) (tiered approach with more volume), or the [Texas Method](/programs/texasmethod) (similar weekly structure but with more volume on Monday). If you want more hypertrophy, consider [PHUL](/programs/phul) or [Lyle's Generic Bulking](/programs/lylegenericbulking).
 
 ## Equipment Needed
 
@@ -136,7 +137,7 @@ With your 1RM set, Monday's top set will start at 85% of 1RM (roughly your 5RM).
 
 ### Is Madcow 5x5 good for beginners?
 
-No, Madcow is an intermediate program designed for lifters who can no longer add weight every session on beginner programs like Starting Strength or StrongLifts 5x5. You should have at least 6-18 months of consistent barbell training and know your 5-rep maxes before starting.
+No, Madcow is an intermediate program designed for lifters who can no longer add weight every session on beginner programs like Starting Strength or StrongLifts 5x5. You should have at least 6–18 months of consistent barbell training and know your 5-rep maxes before starting.
 
 ### How many days a week is Madcow 5x5?
 

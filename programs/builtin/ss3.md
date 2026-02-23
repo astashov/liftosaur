@@ -119,10 +119,10 @@ Each lift is tracked independently. You may finish linear progression on [{Overh
 **Signs it's time to move on**: You're deloading repeatedly on [{Squat}] and [{Deadlift}] despite good sleep and nutrition. Multiple lifts have stalled through 2–3 deload cycles.
 
 **Good next programs**:
-- **Texas Method** — the natural continuation recommended by Rippetoe; weekly periodization with volume/recovery/intensity days
-- **Madcow 5x5** — similar weekly progression with ramping sets
-- **5/3/1** — monthly periodization, very flexible, runs indefinitely
-- **GZCLP** — tiered approach with more exercise variety
+- [Texas Method](/programs/texasmethod) — the natural continuation recommended by Rippetoe; weekly periodization with volume/recovery/intensity days
+- [Madcow 5x5](/programs/madcow) — similar weekly progression with ramping sets
+- [5/3/1 for Beginners](/programs/the5314b) — monthly periodization, very flexible, runs indefinitely
+- [GZCLP](/programs/gzclp) — tiered approach with more exercise variety
 
 ## Equipment Needed
 
@@ -183,7 +183,7 @@ Yes, microplates (1.25lb each side for 2.5lb total jumps) are essential at this 
 
 ### What program should I do after Starting Strength?
 
-The natural continuation is the Texas Method (weekly periodization with volume/recovery/intensity days). Other good options include Madcow 5x5 (weekly progression with ramping sets), 5/3/1 (monthly periodization), or GZCLP (tiered approach with more variety).
+The natural continuation is the [Texas Method](/programs/texasmethod) (weekly periodization with volume/recovery/intensity days). Other good options include [Madcow 5x5](/programs/madcow) (weekly progression with ramping sets), [5/3/1 for Beginners](/programs/the5314b) (monthly periodization), or [GZCLP](/programs/gzclp) (tiered approach with more variety).
 
 ### When should I move on from Starting Strength Phase 3?
 

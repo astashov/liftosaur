@@ -20,7 +20,7 @@ Choose starting weights and set them to the `weight` variable. Tend to go on the
 
 Arnold Schwarzenegger's Golden Six routine is a classic full-body hypertrophy workout that was popularized by the legendary bodybuilder and actor during the early stages of his career. This program is often recommended for beginners - it's very simple, contains compound exercises, and provides enough volume and frequency for beginners. It's also pretty short - only takes about an hour to finish the workout.
 
-Intermediate / advanced lifters would benefit more from other hypertrophy programs that provide more volume and exercise selection, like 5/3/1 Boring But Big, Dr. Swole Upper Lower program, etc.
+Intermediate / advanced lifters would benefit more from other hypertrophy programs that provide more volume and exercise selection, like [5/3/1 Boring But Big](/programs/the531bbb), Dr. Swole Upper Lower program, etc.
 
 The program is very simple - it's just 6 exercises repeated per day, 3 days a week, on alternate days.
 
@@ -49,7 +49,7 @@ The last set of each exercise is AMRAP (as many reps as possible). For barbell e
 
 ### How long should I run Arnold's Golden Six?
 
-Run it for 3-6 months or until you stop making consistent progress and feel you need more exercise variety and volume. At that point, transition to an intermediate hypertrophy program with a proper split structure like PHUL or 5/3/1 Boring But Big.
+Run it for 3-6 months or until you stop making consistent progress and feel you need more exercise variety and volume. At that point, transition to an intermediate hypertrophy program with a proper split structure like [PHUL](/programs/phul) or [5/3/1 Boring But Big](/programs/the531bbb).
 
 ### Can I substitute exercises in Arnold's Golden Six?
 

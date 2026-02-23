@@ -105,10 +105,10 @@ Each lift is tracked independently. Stalling on [{Overhead Press}] doesn't affec
 **Move to Phase 3 when**: Upper body lifts start stalling despite microloading, and you want to add [{Chin Up}] for more pulling volume. Or transition directly to an intermediate program if you've exhausted linear progression on most lifts (typically after 2–3 deload cycles with no sustained progress).
 
 **Good next steps**:
-- **Starting Strength Phase 3** — adds [{Chin Up}], alternates [{Deadlift}]/[{Power Clean}] on A days
-- **Texas Method** — the natural intermediate continuation; weekly periodization with volume/recovery/intensity days
-- **Madcow 5x5** — weekly progression with ramping sets
-- **5/3/1** — monthly periodization, very flexible, runs indefinitely
+- [Starting Strength Phase 3](/programs/ss3) — adds [{Chin Up}], alternates [{Deadlift}]/[{Power Clean}] on A days
+- [Texas Method](/programs/texasmethod) — the natural intermediate continuation; weekly periodization with volume/recovery/intensity days
+- [Madcow 5x5](/programs/madcow) — weekly progression with ramping sets
+- [5/3/1 for Beginners](/programs/the5314b) — monthly periodization, very flexible, runs indefinitely
 
 ## Equipment Needed
 

@@ -12,7 +12,7 @@ duration: "60-90"
 goal: "strength"
 ---
 
-It's the latest Cody program, combining the elements and best parts of other GZCL programs: GZCLP, VDIP, Jacked & Tan 2.0, etc.
+It's the latest Cody program, combining the elements and best parts of other GZCL programs: [GZCLP](/programs/gzclp), [VDIP](/programs/gzcl-vdip), [Jacked & Tan 2.0](/programs/gzcl-jacked-and-tan-2), etc.
 
 Before starting the program, please read [the program explanation on Reddit](https://www.reddit.com/r/gzcl/comments/aqkdgo/happy_gday_gainerz/) first!
 
@@ -80,7 +80,7 @@ You can run the GZCL: General Gainz program in the Liftosaur app.
 
 ### Is GZCL General Gainz good for intermediates?
 
-Yes, General Gainz is designed for intermediate to advanced lifters. It combines elements from all previous GZCL programs (GZCLP, VDIP, Jacked & Tan 2.0) into one flexible system. You should have at least a year of training experience and be comfortable estimating rep maxes.
+Yes, General Gainz is designed for intermediate to advanced lifters. It combines elements from all previous GZCL programs ([GZCLP](/programs/gzclp), [VDIP](/programs/gzcl-vdip), [Jacked & Tan 2.0](/programs/gzcl-jacked-and-tan-2)) into one flexible system. You should have at least a year of training experience and be comfortable estimating rep maxes.
 
 ### How many days a week is General Gainz?
 
@@ -92,7 +92,7 @@ Progression uses four actions: Find (test a rep max), Hold (repeat the same weig
 
 ### What is the difference between General Gainz and GZCLP?
 
-GZCLP uses fixed set/rep schemes with automatic linear progression — you add weight every session. General Gainz is autoregulated — you choose when to push, hold, or extend based on how the weight feels. This makes it more flexible but requires more training experience to manage.
+[GZCLP](/programs/gzclp) uses fixed set/rep schemes with automatic linear progression — you add weight every session. General Gainz is autoregulated — you choose when to push, hold, or extend based on how the weight feels. This makes it more flexible but requires more training experience to manage.
 
 ### Can I customize exercises in General Gainz?
 

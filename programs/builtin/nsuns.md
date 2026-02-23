@@ -104,7 +104,7 @@ Run nSuns LP for **12-20 weeks**. It's designed for aggressive linear gains, and
 
 **Signs it's time to move on**: You're consistently getting only 1 rep on AMRAPs even after a 10% reset, sessions are taking 90+ minutes because you need longer rest periods, or you're dreading the volume.
 
-**Transition to**: [5/3/1 Boring But Big](https://www.jimwendler.com/blogs/jimwendler-com/101077382-boring-but-big) (slower progression, still high volume), GZCL The Rippler (periodized intermediate program), or any intermediate program with built-in periodization. nSuns LP is a bridge between beginner linear progression and true intermediate programming.
+**Transition to**: [5/3/1 Boring But Big](/programs/the531bbb) (slower progression, still high volume), [GZCL The Rippler](/programs/gzcl-the-rippler) (periodized intermediate program), or any intermediate program with built-in periodization. nSuns LP is a bridge between beginner linear progression and true intermediate programming.
 
 ## Equipment Needed
 

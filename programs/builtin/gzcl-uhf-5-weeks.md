@@ -83,7 +83,7 @@ You can run the GZCL: UHF 5 weeks program in the Liftosaur app.
 
 ### Is GZCL UHF 5 weeks good for beginners?
 
-No, UHF 5 weeks is an advanced program requiring solid experience with squat, bench, deadlift, and overhead press. You should be comfortable training 5 days per week at high volume with percentage-based programming. Start with GZCLP or The Rippler first.
+No, UHF 5 weeks is an advanced program requiring solid experience with squat, bench, deadlift, and overhead press. You should be comfortable training 5 days per week at high volume with percentage-based programming. Start with [GZCLP](/programs/gzclp) or [The Rippler](/programs/gzcl-the-rippler) first.
 
 ### How many days a week is GZCL UHF 5 weeks?
 

@@ -99,7 +99,7 @@ Run this program for as long as you continue making progress — typically **3-6
 - You're stalling and deloading frequently across many exercises
 - You have access to a barbell and want faster strength progression
 
-**Transition to:** If you get access to a barbell, switch to a barbell beginner program like 'Basic Beginner Routine', 'GZCLP', or '5/3/1 for Beginners'. These programs allow larger weight increments on lower body exercises and drive faster overall strength gains.
+**Transition to:** If you get access to a barbell, switch to a barbell beginner program like [Basic Beginner Routine](/programs/basicBeginner), [GZCLP](/programs/gzclp), or [5/3/1 for Beginners](/programs/the5314b). These programs allow larger weight increments on lower body exercises and drive faster overall strength gains.
 
 ## Equipment Needed
 

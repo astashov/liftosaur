@@ -107,7 +107,7 @@ Week 9 is a deload where you skip T2 exercises entirely and reduce T1 volume. Th
 
 ### What should I run after GZCL UHF 9 weeks?
 
-You can run it again with updated training maxes, switch to Jacked and Tan 2.0 for more hypertrophy emphasis, or try General Gainz for a more flexible autoregulated approach. Some lifters alternate between UHF and The Rippler.
+You can run it again with updated training maxes, switch to [Jacked and Tan 2.0](/programs/gzcl-jacked-and-tan-2) for more hypertrophy emphasis, or try [General Gainz](/programs/gzcl-general-gainz) for a more flexible autoregulated approach. Some lifters alternate between UHF and [The Rippler](/programs/gzcl-the-rippler).
 
 ```liftoscript
 # Week 1

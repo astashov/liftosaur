@@ -95,7 +95,7 @@ Core and stability exercises (planks, crunches, clams, hip abductor walks) have 
 
 ## How Long to Run It / What Next
 
-Run the full **12-week program** as written. After completing it, Contreras recommends moving to the **Gluteal Goddess** program (the intermediate program in Strong Curves), which increases training frequency to 4 days per week and uses heavier loads. Other good follow-ups include **PHUL** (for a balanced strength/hypertrophy split) or **Lyle's Generic Bulking** (for a dedicated bulk phase with higher frequency per muscle group).
+Run the full **12-week program** as written. After completing it, Contreras recommends moving to the **Gluteal Goddess** program (the intermediate program in Strong Curves), which increases training frequency to 4 days per week and uses heavier loads. Other good follow-ups include [PHUL](/programs/phul) (for a balanced strength/hypertrophy split) or [Lyle's Generic Bulking](/programs/lylegenericbulking) (for a dedicated bulk phase with higher frequency per muscle group).
 
 ## Equipment Needed
 
@@ -157,7 +157,7 @@ While the book and program are marketed toward women with a focus on glute devel
 
 ### What should I do after Strong Curves Bootyful Beginnings?
 
-After completing the 12 weeks, move to the Gluteal Goddess program (the intermediate program in Strong Curves), which increases to 4 days per week with heavier loads. Other good follow-ups include PHUL for a balanced split or Lyle's Generic Bulking for a dedicated bulk phase.
+After completing the 12 weeks, move to the Gluteal Goddess program (the intermediate program in Strong Curves), which increases to 4 days per week with heavier loads. Other good follow-ups include [PHUL](/programs/phul) for a balanced split or [Lyle's Generic Bulking](/programs/lylegenericbulking) for a dedicated bulk phase.
 
 ```liftoscript
 # Week 1

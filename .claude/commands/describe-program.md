@@ -97,6 +97,18 @@ When mentioning exercises in the description text, use this syntax: `[{Exercise 
 
 For example: `[{Squat}]`, `[{Bench Press}]`, `[{Romanian Deadlift}]`
 
+### Program Cross-Reference Syntax
+
+When mentioning other Liftosaur programs in the description text, always link to them using internal links. Use markdown link syntax with the program's URL path:
+
+`[Program Name](/programs/program-id)`
+
+For example: `[GZCLP](/programs/gzclp)`, `[5/3/1: Boring But Big](/programs/the531bbb)`, `[The Rippler](/programs/gzcl-the-rippler)`
+
+Check the existing programs in `programs/builtin/` to find the correct `id` from their YAML frontmatter. Only link to programs that exist in the app — do not link to external programs that aren't built in.
+
+This applies everywhere a program is mentioned: body text, transition recommendations, FAQ answers, pros/cons, etc.
+
 ### Description Sections
 
 Write in a clear, direct, authoritative tone. Avoid fluff and filler. Be specific with numbers (sets, reps, percentages, pounds) whenever possible.

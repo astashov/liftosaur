@@ -92,7 +92,7 @@ Rest 3-5 minutes between T1 sets, 2-3 minutes between T2 sets, and 30-90 seconds
 
 ### How long should I run GZCL VDIP?
 
-Run VDIP as long as you keep making progress. Most lifters get 3-6 months before progression slows significantly. After that, move to a more periodized GZCL program like The Rippler or Jacked & Tan 2.0.
+Run VDIP as long as you keep making progress. Most lifters get 3-6 months before progression slows significantly. After that, move to a more periodized GZCL program like [The Rippler](/programs/gzcl-the-rippler) or [Jacked & Tan 2.0](/programs/gzcl-jacked-and-tan-2).
 
 ```liftoscript
 # Week 1

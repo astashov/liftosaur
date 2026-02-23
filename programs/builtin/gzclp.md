@@ -12,11 +12,11 @@ duration: "45-60"
 goal: "strength"
 ---
 
-Popular linear progression workout routine, based on the [GZCL method](http://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html), featuring well-balanced exercise selection, and proven progression scheme. It's great for beginners, you could choose it right after 3-6 month course of 'Basic Beginner' program.
+Popular linear progression workout routine, based on the [GZCL method](http://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html), featuring well-balanced exercise selection, and proven progression scheme. It's great for beginners, you could choose it right after 3-6 month course of [Basic Beginner](/programs/basicBeginner) program.
 
 <!-- more -->
 
-GZCLP is a weightlifting program based on the **GZCL principle**, created by [Cody Lefever](https://www.gainzfever.com/). The GZCL name comes from his Reddit username - [u/gzcl](https://www.reddit.com/u/gzcl). It's a great beginner program. You do it three times a week and it's based on the GZCL principle. It's a good next step after doing 3-6 months of a Basic Beginner Routine or Starting Strength. It's also good for getting a lot of practice with exercises, because you do more reps than most other beginner programs.
+GZCLP is a weightlifting program based on the **GZCL principle**, created by [Cody Lefever](https://www.gainzfever.com/). The GZCL name comes from his Reddit username - [u/gzcl](https://www.reddit.com/u/gzcl). It's a great beginner program. You do it three times a week and it's based on the GZCL principle. It's a good next step after doing 3-6 months of a [Basic Beginner Routine](/programs/basicBeginner) or Starting Strength. It's also good for getting a lot of practice with exercises, because you do more reps than most other beginner programs.
 
 ## GZCL principle
 

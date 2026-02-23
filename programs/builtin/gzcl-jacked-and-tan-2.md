@@ -104,7 +104,7 @@ You can run the GZCL: Jacked And Tan 2.0 program in the Liftosaur app.
 
 ### Is Jacked and Tan 2.0 good for beginners?
 
-No, Jacked and Tan 2.0 is an intermediate program best suited for lifters who have exhausted beginner linear progression. You should have at least a year of training experience and be comfortable estimating rep maxes. Run GZCLP first if you're still making session-to-session progress.
+No, Jacked and Tan 2.0 is an intermediate program best suited for lifters who have exhausted beginner linear progression. You should have at least a year of training experience and be comfortable estimating rep maxes. Run [GZCLP](/programs/gzclp) first if you're still making session-to-session progress.
 
 ### How many days a week is Jacked and Tan 2.0?
 
@@ -116,7 +116,7 @@ The program runs for 12 weeks. Weeks 1-5 build volume at increasing intensity, w
 
 ### What should I run after Jacked and Tan 2.0?
 
-You can run it again with updated maxes, or switch to The Rippler for a pure strength focus. Many lifters alternate between JT2.0 and The Rippler for continued progress across both strength and hypertrophy goals.
+You can run it again with updated maxes, or switch to [The Rippler](/programs/gzcl-the-rippler) for a pure strength focus. Many lifters alternate between JT2.0 and The Rippler for continued progress across both strength and hypertrophy goals.
 
 ### How do the Rep Max sets work in Jacked and Tan 2.0?
 

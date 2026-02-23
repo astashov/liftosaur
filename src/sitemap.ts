@@ -1,26 +1,69 @@
 import fs from "fs";
+import { execSync } from "child_process";
 import { programOrder } from "../lambda/dao/programDao";
 import { Exercise } from "./models/exercise";
 import { buildExerciseUrl } from "./pages/exercise/exerciseContent";
 import { MathUtils } from "./utils/math";
 const blogposts = JSON.parse(fs.readFileSync("blog/blog-posts.json", { encoding: "utf-8" }));
 
-const staticUrls = [
-  "https://www.liftosaur.com",
-  "https://www.liftosaur.com/app",
-  "https://www.liftosaur.com/docs",
-  "https://www.liftosaur.com/blog",
-  "https://www.liftosaur.com/exercises",
-  "https://www.liftosaur.com/planner",
-  "https://www.liftosaur.com/privacy.html",
-  "https://www.liftosaur.com/terms.html",
-  ...blogposts.data.map((post: string) => `https://www.liftosaur.com/blog${post}`),
-  ...programOrder.map((program: string) => `https://www.liftosaur.com/programs/${program}`),
-  ...Exercise.allExpanded({}).map((e) => `https://www.liftosaur.com${buildExerciseUrl(e, [])}`),
-  ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].flatMap((r) => {
-    const word = MathUtils.toWord(r);
-    return [`https://www.liftosaur.com/${word}-rep-max-calculator`];
+function getGitLastModified(filePath: string): string | undefined {
+  try {
+    const date = execSync(`git log -1 --format=%aI -- "${filePath}"`, { encoding: "utf8" }).trim();
+    return date || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+interface ISitemapUrl {
+  loc: string;
+  lastmod?: string;
+}
+
+const urls: ISitemapUrl[] = [
+  { loc: "https://www.liftosaur.com" },
+  { loc: "https://www.liftosaur.com/app" },
+  { loc: "https://www.liftosaur.com/docs" },
+  { loc: "https://www.liftosaur.com/blog" },
+  { loc: "https://www.liftosaur.com/exercises" },
+  { loc: "https://www.liftosaur.com/planner" },
+  { loc: "https://www.liftosaur.com/privacy.html" },
+  { loc: "https://www.liftosaur.com/terms.html" },
+  { loc: "https://www.liftosaur.com/affiliates" },
+  { loc: "https://www.liftosaur.com/rep-max-calculator" },
+  { loc: "https://www.liftosaur.com/ai/prompt" },
+  ...blogposts.data.map((post: string) => {
+    const slug = post.replace(/^\/posts\//, "").replace(/\/$/, "");
+    const lastmod = getGitLastModified(`blog/posts/${slug}.md`);
+    return { loc: `https://www.liftosaur.com/blog${post}`, ...(lastmod ? { lastmod } : {}) };
   }),
+  ...programOrder.map((program: string) => {
+    const mdFiles = ["programs/builtin", "programs/community"];
+    let lastmod: string | undefined;
+    for (const dir of mdFiles) {
+      const filePath = `${dir}/${program}.md`;
+      if (fs.existsSync(filePath)) {
+        lastmod = getGitLastModified(filePath);
+        break;
+      }
+    }
+    return { loc: `https://www.liftosaur.com/programs/${program}`, ...(lastmod ? { lastmod } : {}) };
+  }),
+  ...Exercise.allExpanded({}).map((e) => ({
+    loc: `https://www.liftosaur.com${buildExerciseUrl(e, [])}`,
+  })),
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((r) => ({
+    loc: `https://www.liftosaur.com/${MathUtils.toWord(r)}-rep-max-calculator`,
+  })),
 ];
 
-fs.writeFileSync("src/sitemap.txt", staticUrls.join("\n"), { encoding: "utf-8" });
+const xml = [
+  `<?xml version="1.0" encoding="UTF-8"?>`,
+  `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+  ...urls.map(
+    (u) => `  <url>\n    <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}\n  </url>`
+  ),
+  `</urlset>`,
+].join("\n");
+
+fs.writeFileSync("src/sitemap.xml", xml, { encoding: "utf-8" });

@@ -37,7 +37,7 @@ Yes, the program includes exercise templates from Default, Modified, and Advance
 
 ### What should I run after GZCLP Blacknoir?
 
-Once you can no longer make linear progress (adding weight each session), move to an intermediate GZCL program like The Rippler for strength or Jacked & Tan 2.0 for hypertrophy. Both use periodized progression instead of linear.
+Once you can no longer make linear progress (adding weight each session), move to an intermediate GZCL program like [The Rippler](/programs/gzcl-the-rippler) for strength or [Jacked & Tan 2.0](/programs/gzcl-jacked-and-tan-2) for hypertrophy. Both use periodized progression instead of linear.
 
 ```liftoscript
 # Week 1

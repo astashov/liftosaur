@@ -76,6 +76,8 @@ export interface IProgramIndexEntry {
   equipment?: string[];
   exercisesRange?: [number, number];
   weeksCount?: number;
+  datePublished?: string;
+  dateModified?: string;
 }
 
 export interface IExportedProgram {

@@ -89,13 +89,13 @@ All sets are straight work sets at the same weight. No AMRAP sets, no back-off s
 
 Each lift is tracked independently. Stalling on [{Overhead Press}] doesn't affect [{Squat}] progression.
 
-**Transition to Phase 2**: When your deadlift gets heavy enough that recovering between sessions becomes difficult (typically after 1–3 weeks), move to Starting Strength Phase 2, which replaces deadlifts with [{Power Clean}] on alternate sessions.
+**Transition to Phase 2**: When your deadlift gets heavy enough that recovering between sessions becomes difficult (typically after 1–3 weeks), move to [Starting Strength Phase 2](/programs/ss2), which replaces deadlifts with [{Power Clean}] on alternate sessions.
 
 ## How Long to Run It / What Next
 
 **Run Phase 1 for 1–3 weeks.** The transition point is when deadlift recovery starts suffering — you'll notice the deadlift feeling sluggish at the start of sessions, or failing to complete sets because of accumulated fatigue rather than true strength limits.
 
-**Move to**: Starting Strength Phase 2. The only change is [{Power Clean}] replaces [{Deadlift}] in Workout B.
+**Move to**: [Starting Strength Phase 2](/programs/ss2). The only change is [{Power Clean}] replaces [{Deadlift}] in Workout B.
 
 ## Equipment Needed
 

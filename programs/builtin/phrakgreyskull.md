@@ -93,8 +93,8 @@ The deload-and-rebuild cycle is a feature, not a bug: hitting lighter weights fo
 Run it for **2-4 months**. Move on when you're deloading on multiple lifts frequently and your AMRAP sets barely hit 5 reps.
 
 **Good next programs**:
-- **GZCLP** — adds tiered exercise structure with more volume
-- **5/3/1 for Beginners** — periodized progression with built-in assistance work
+- [GZCLP](/programs/gzclp) — adds tiered exercise structure with more volume
+- [5/3/1 for Beginners](/programs/the5314b) — periodized progression with built-in assistance work
 
 ## Equipment Needed
 
@@ -152,7 +152,7 @@ When you fail to complete all prescribed reps on an exercise, reduce the weight 
 
 ### How long should I run Phrak's Greyskull LP?
 
-Run it for 2-4 months. Move on when you're deloading on multiple lifts frequently and your AMRAP sets barely hit 5 reps. Good next programs include GZCLP or 5/3/1 for Beginners.
+Run it for 2-4 months. Move on when you're deloading on multiple lifts frequently and your AMRAP sets barely hit 5 reps. Good next programs include [GZCLP](/programs/gzclp) or [5/3/1 for Beginners](/programs/the5314b).
 
 ### Can I add accessories to Phrak's Greyskull LP?
 

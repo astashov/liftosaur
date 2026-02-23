@@ -1,4 +1,5 @@
 import { h, JSX } from "preact";
+import MarkdownIt from "markdown-it";
 import { IJsonLd, IJsonLdFAQEntry, Page } from "../../components/page";
 import { IAccount } from "../../models/account";
 import { IProgramIndexEntry } from "../../models/program";
@@ -51,6 +52,7 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
 }
 
 export function parseFaqMarkdown(faqMd: string): IJsonLdFAQEntry[] {
+  const md = new MarkdownIt({ html: true, linkify: true });
   const entries: IJsonLdFAQEntry[] = [];
   const lines = faqMd.split("\n");
   let currentQuestion: string | undefined;
@@ -60,7 +62,8 @@ export function parseFaqMarkdown(faqMd: string): IJsonLdFAQEntry[] {
     const questionMatch = line.match(/^###\s+(.+)/);
     if (questionMatch) {
       if (currentQuestion && currentAnswer.length > 0) {
-        entries.push({ question: currentQuestion, answer: currentAnswer.join(" ").trim() });
+        const html = md.renderInline(currentAnswer.join(" ").trim());
+        entries.push({ question: currentQuestion, answer: html });
       }
       currentQuestion = questionMatch[1].trim();
       currentAnswer = [];
@@ -72,7 +75,8 @@ export function parseFaqMarkdown(faqMd: string): IJsonLdFAQEntry[] {
     }
   }
   if (currentQuestion && currentAnswer.length > 0) {
-    entries.push({ question: currentQuestion, answer: currentAnswer.join(" ").trim() });
+    const html = md.renderInline(currentAnswer.join(" ").trim());
+    entries.push({ question: currentQuestion, answer: html });
   }
   return entries;
 }
@@ -102,6 +106,8 @@ function buildJsonLd(
     author: program.author,
     image: `https://www.liftosaur.com/programimage/${program.id}`,
     mainEntityOfPage: url,
+    ...(indexEntry?.datePublished ? { datePublished: indexEntry.datePublished } : {}),
+    ...(indexEntry?.dateModified ? { dateModified: indexEntry.dateModified } : {}),
   };
 
   const breadcrumbs: IJsonLd = {

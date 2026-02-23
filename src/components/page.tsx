@@ -9,6 +9,8 @@ export interface IJsonLdArticle {
   author?: string;
   image?: string;
   mainEntityOfPage?: string;
+  datePublished?: string;
+  dateModified?: string;
 }
 
 export interface IJsonLdBreadcrumbItem {
@@ -68,6 +70,8 @@ function jsonLdToSchema(ld: IJsonLd): object {
         publisher: { "@type": "Organization", name: "Liftosaur", url: "https://www.liftosaur.com" },
         ...(ld.image ? { image: ld.image } : {}),
         ...(ld.mainEntityOfPage ? { mainEntityOfPage: ld.mainEntityOfPage } : {}),
+        ...(ld.datePublished ? { datePublished: ld.datePublished } : {}),
+        ...(ld.dateModified ? { dateModified: ld.dateModified } : {}),
       };
     case "BreadcrumbList":
       return {

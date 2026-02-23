@@ -100,8 +100,8 @@ Each exercise is tracked independently. Stalling on [{Bench Press}] doesn't affe
 **Move on when**: You're deloading on multiple lifts regularly. Your AMRAP sets barely hit 5. You've been at it for 8-12 weeks and want more volume or variety.
 
 **Good next programs**:
-- **GZCLP** — more volume, tiered exercise structure, still linear progression
-- **5/3/1 for Beginners** — periodized with built-in assistance templates
+- [GZCLP](/programs/gzclp) — more volume, tiered exercise structure, still linear progression
+- [5/3/1 for Beginners](/programs/the5314b) — periodized with built-in assistance templates
 - Anything on the [r/Fitness recommended routines page](https://thefitness.wiki/routines/)
 
 ## Equipment Needed

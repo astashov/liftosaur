@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import { execSync } from "child_process";
 import matter from "gray-matter";
 import { programOrder } from "../lambda/dao/programDao";
 import { IExerciseType, IPlannerProgramWeek } from "../src/types";
@@ -99,6 +100,19 @@ function extractExerciseData(liftoscript: string): {
   };
 }
 
+function getGitDates(filePath: string): { datePublished?: string; dateModified?: string } {
+  try {
+    const dateModified = execSync(`git log -1 --format=%aI -- "${filePath}"`, { encoding: "utf8" }).trim();
+    const datePublished = execSync(`git log --diff-filter=A --format=%aI -- "${filePath}"`, { encoding: "utf8" }).trim();
+    return {
+      ...(datePublished ? { datePublished } : {}),
+      ...(dateModified ? { dateModified } : {}),
+    };
+  } catch {
+    return {};
+  }
+}
+
 function buildPrograms(): void {
   const mdFiles = collectMdFiles();
   if (mdFiles.length === 0) {
@@ -172,6 +186,14 @@ function buildPrograms(): void {
     }
     if (frontmatter.goal != null) {
       entry.goal = frontmatter.goal as string;
+    }
+
+    const gitDates = getGitDates(path.join(dir, file));
+    if (gitDates.datePublished) {
+      entry.datePublished = gitDates.datePublished;
+    }
+    if (gitDates.dateModified) {
+      entry.dateModified = gitDates.dateModified;
     }
 
     index.push(entry);

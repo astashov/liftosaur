@@ -110,7 +110,7 @@ Signs it's time to move on:
 - AMRAP sets barely hitting the minimum 5 reps consistently
 - Recovery becoming unsustainable despite adequate sleep and nutrition
 
-**Transition to:** An intermediate program with weekly or multi-week progression — 'GZCLP', '5/3/1 for Beginners', or 'GZCL: The Rippler'.
+**Transition to:** An intermediate program with weekly or multi-week progression — [GZCLP](/programs/gzclp), [5/3/1 for Beginners](/programs/the5314b), or [GZCL: The Rippler](/programs/gzcl-the-rippler).
 
 ## Equipment Needed
 

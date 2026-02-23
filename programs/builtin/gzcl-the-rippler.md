@@ -14,7 +14,7 @@ goal: "strength"
 
 A four-day upper/lower, with bi-weekly undulation in intensity, weight and reps.
 
-More volume and slower progression than in GZCLP, which makes it a good program for intermediate lifters.
+More volume and slower progression than in [GZCLP](/programs/gzclp), which makes it a good program for intermediate lifters.
 The bi-weekly waving patterns of weight change and gradual reducing of volume and increasing the weight makes it quite fun to follow!
 
 Please read the [program explanation](https://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html) before start!
@@ -69,7 +69,7 @@ Again, this is just a short description, and for full information and details, p
 
 ### Is The Rippler good for beginners?
 
-The Rippler is best for early intermediates, not complete beginners. If you've finished GZCLP and can no longer add weight every session, The Rippler is a natural next step. You should have at least 6-12 months of consistent training before starting.
+The Rippler is best for early intermediates, not complete beginners. If you've finished [GZCLP](/programs/gzclp) and can no longer add weight every session, The Rippler is a natural next step. You should have at least 6-12 months of consistent training before starting.
 
 ### How many days a week is The Rippler?
 
@@ -85,7 +85,7 @@ T1 weights undulate in 4-week blocks, trending upward from about 80% to 95% of y
 
 ### What should I do after The Rippler?
 
-You can run it again with your new 1RM numbers, or move to Jacked and Tan 2.0 for more volume and hypertrophy. Many lifters alternate between The Rippler (strength focus) and JT2.0 (size focus) for well-rounded progress.
+You can run it again with your new 1RM numbers, or move to [Jacked and Tan 2.0](/programs/gzcl-jacked-and-tan-2) for more volume and hypertrophy. Many lifters alternate between The Rippler (strength focus) and JT2.0 (size focus) for well-rounded progress.
 
 ### Can I change exercises in The Rippler?
 

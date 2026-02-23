@@ -98,7 +98,7 @@ Run BBB for **3-6 cycles** (12-24 weeks). It's a template you can return to repe
 
 **Signs it's time to switch**: You're dreading the 5x10 sets every session (mental burnout), recovery is suffering despite adequate sleep/food, or you want to prioritize absolute strength over hypertrophy.
 
-**Transition to**: **BBB 3-Month Challenge** (ramps BBB weight from 50% to 70% TM over 3 cycles for more advanced lifters), **5/3/1 Building the Monolith** (higher volume, more variety), or **5/3/1 First Set Last** (lower volume, better for cutting or recovery phases). Any 5/3/1 template from *5/3/1 Forever* works as a follow-up.
+**Transition to**: **BBB 3-Month Challenge** (ramps BBB weight from 50% to 70% TM over 3 cycles for more advanced lifters), [5/3/1 Building the Monolith](/programs/monolith531) (higher volume, more variety), or **5/3/1 First Set Last** (lower volume, better for cutting or recovery phases). Any 5/3/1 template from *5/3/1 Forever* works as a follow-up.
 
 ## Equipment Needed
 
@@ -137,7 +137,7 @@ Barbell, squat rack, bench, weight plates, and a pull-up bar for the main lifts 
 
 ### Is 5/3/1 Boring But Big good for beginners?
 
-BBB is an intermediate program — you need 1-3 years of experience and solid technique on squat, bench, deadlift, and overhead press. The 5x10 supplemental sets demand good form under fatigue. Start with 5/3/1 for Beginners if you're newer to lifting.
+BBB is an intermediate program — you need 1-3 years of experience and solid technique on squat, bench, deadlift, and overhead press. The 5x10 supplemental sets demand good form under fatigue. Start with [5/3/1 for Beginners](/programs/the5314b) if you're newer to lifting.
 
 ### How many days a week is 5/3/1 Boring But Big?
 

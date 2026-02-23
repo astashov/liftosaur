@@ -107,7 +107,7 @@ Run Building the Monolith for **exactly 6 weeks**. Do NOT repeat it immediately.
 
 **Signs it's working**: Bodyweight is climbing, clothes fit tighter in shoulders and thighs, widowmaker squat weight is increasing each week.
 
-**What next**: **5/3/1 Boring But Big** (similar philosophy but sustainable long-term), **5/3/1 First Set Last** (lower volume for recovery), or any standard 5/3/1 template. Wendler specifically warns against jumping into another extreme block immediately.
+**What next**: [5/3/1 Boring But Big](/programs/the531bbb) (similar philosophy but sustainable long-term), **5/3/1 First Set Last** (lower volume for recovery), or any standard 5/3/1 template. Wendler specifically warns against jumping into another extreme block immediately.
 
 ## Equipment Needed
 
@@ -152,7 +152,7 @@ Barbell, squat rack, bench, weight plates, a pull-up/chin-up bar, and dumbbells 
 
 ### Is 5/3/1 Building the Monolith good for beginners?
 
-No, Building the Monolith is an intermediate to advanced program requiring 2+ years of training experience. You need to be able to accumulate 50+ chin-ups and 50+ dips in a single session before starting. Try 5/3/1 for Beginners or Boring But Big first.
+No, Building the Monolith is an intermediate to advanced program requiring 2+ years of training experience. You need to be able to accumulate 50+ chin-ups and 50+ dips in a single session before starting. Try [5/3/1 for Beginners](/programs/the5314b) or [Boring But Big](/programs/the531bbb) first.
 
 ### How many days a week is Building the Monolith?
 
@@ -172,7 +172,7 @@ Every Friday includes one set of 20 reps of squats, climbing from about 40% to 6
 
 ### What should I do after Building the Monolith?
 
-Transition to 5/3/1 Boring But Big (similar philosophy but sustainable long-term), 5/3/1 First Set Last (lower volume for recovery), or any standard 5/3/1 template. Wendler specifically warns against jumping into another extreme block immediately.
+Transition to [5/3/1 Boring But Big](/programs/the531bbb) (similar philosophy but sustainable long-term), 5/3/1 First Set Last (lower volume for recovery), or any standard 5/3/1 template. Wendler specifically warns against jumping into another extreme block immediately.
 
 ```liftoscript
 # Week 1

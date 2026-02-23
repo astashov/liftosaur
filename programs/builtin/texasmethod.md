@@ -24,7 +24,7 @@ The core insight: intermediate lifters can't recover from max-effort training ev
 
 ## Who It's For
 
-- **Experience level**: Intermediate (12-24+ months of consistent barbell training). You should have completed a novice linear progression program like Starting Strength, StrongLifts 5x5, or GreySkull LP.
+- **Experience level**: Intermediate (12-24+ months of consistent barbell training). You should have completed a novice linear progression program like Starting Strength, StrongLifts 5x5, or [Phrak's Greyskull LP](/programs/phrakgreyskull).
 - **Prerequisites**: Comfortable with [{Squat}], [{Bench Press}], [{Overhead Press}], [{Deadlift}], and [{Clean}] technique. Approximate minimums: 1.25x bodyweight squat, 0.85x bodyweight bench.
 - **Primary goal**: Strength — this is a peaking-style program, not a hypertrophy program.
 - **Best suited for**: Bulking or maintenance. Running it on a caloric deficit will make recovery extremely difficult. Rippetoe recommends eating in a 200-300 calorie surplus and sleeping 8+ hours.
@@ -98,7 +98,7 @@ Run the Texas Method for **3-6 months**. Some lifters get 6-12+ months out of it
 
 **Signs it's time to move on**: Friday PRs require cycling through triples and doubles frequently, Volume Day takes 2+ hours and you dread it, or you've stalled and reset multiple times.
 
-**Transition to**: A more advanced intermediate/early advanced program. The [Barbell Medicine](https://www.barbellmedicine.com/blog/12-ways-to-skin-the-texas-method/) variants extend the Texas Method's life. Beyond that, **5/3/1** (monthly progression), **GZCL** (tiered approach with more volume), or **Madcow 5x5** (ramped sets with weekly progression) are natural next steps.
+**Transition to**: A more advanced intermediate/early advanced program. The [Barbell Medicine](https://www.barbellmedicine.com/blog/12-ways-to-skin-the-texas-method/) variants extend the Texas Method's life. Beyond that, [5/3/1 for Beginners](/programs/the5314b) (monthly progression), [GZCLP](/programs/gzclp) (tiered approach with more volume), or [Madcow 5x5](/programs/madcow) (ramped sets with weekly progression) are natural next steps.
 
 ## Equipment Needed
 
