@@ -28,10 +28,7 @@ export function ProgramsPageHtml(props: IProps): JSX.Element {
     },
     {
       type: "BreadcrumbList",
-      items: [
-        { name: "Home", url: "https://www.liftosaur.com" },
-        { name: "Programs" },
-      ],
+      items: [{ name: "Home", url: "https://www.liftosaur.com" }, { name: "Programs" }],
     },
   ];
 

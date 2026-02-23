@@ -103,7 +103,9 @@ function extractExerciseData(liftoscript: string): {
 function getGitDates(filePath: string): { datePublished?: string; dateModified?: string } {
   try {
     const dateModified = execSync(`git log -1 --format=%aI -- "${filePath}"`, { encoding: "utf8" }).trim();
-    const datePublished = execSync(`git log --diff-filter=A --format=%aI -- "${filePath}"`, { encoding: "utf8" }).trim();
+    const datePublished = execSync(`git log --diff-filter=A --format=%aI -- "${filePath}"`, {
+      encoding: "utf8",
+    }).trim();
     return {
       ...(datePublished ? { datePublished } : {}),
       ...(dateModified ? { dateModified } : {}),
