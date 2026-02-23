@@ -25,6 +25,7 @@ import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
 import { ObjectUtils } from "../../utils/object";
 import { Tailwind } from "../../utils/tailwindConfig";
 import { Settings } from "../../models/settings";
+import { Muscle } from "../../models/muscle";
 
 const buildHighlightStyle = (): HighlightStyle => {
   return HighlightStyle.define([
@@ -162,7 +163,7 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
                 const synergistMusclesNode = buildInfoLine("Synergist Muscles: ", synergistMuscles.join(", "));
 
                 const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((w) =>
-                  StringUtils.capitalize(w)
+                  Muscle.getMuscleGroupName(w, settings)
                 );
                 const targetMuscleGroupsNode = buildInfoLine("Target Muscle Groups: ", targetMuscleGroups.join(", "));
                 targetMuscleGroupsNode.style.marginTop = "0.25rem";
@@ -170,7 +171,7 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
                 const synergistMuscleGroupsNode = buildInfoLine(
                   "Synergist Muscle Groups: ",
                   Exercise.synergistMusclesGroups(exercise, settings)
-                    .map((w) => StringUtils.capitalize(w))
+                    .map((w) => Muscle.getMuscleGroupName(w, settings))
                     .filter((w) => targetMuscleGroups.indexOf(w) === -1)
                     .join(", ")
                 );

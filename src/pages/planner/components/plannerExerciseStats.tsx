@@ -3,7 +3,6 @@ import { ExerciseImage } from "../../../components/exerciseImage";
 import { Exercise, IExercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";
 import { ISettings } from "../../../types";
-import { StringUtils } from "../../../utils/string";
 import { PlannerProgramExercise } from "../models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerState } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
@@ -14,6 +13,7 @@ import { lb } from "lens-shmens";
 import { PlannerKey } from "../plannerKey";
 import { IconExternalLink } from "../../../components/icons/iconExternalLink";
 import { ExerciseImageUtils } from "../../../models/exerciseImage";
+import { Muscle } from "../../../models/muscle";
 
 interface IPlannerExerciseStatsProps {
   settings: ISettings;
@@ -73,10 +73,10 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
   const targetMuscles = Exercise.targetMuscles(exercise, props.settings);
   const synergeticMuscles = Exercise.synergistMuscles(exercise, props.settings);
   const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, props.settings).map((w) =>
-    StringUtils.capitalize(w)
+    Muscle.getMuscleGroupName(w, props.settings)
   );
   const synergeticMuscleGroups = Exercise.synergistMusclesGroups(exercise, props.settings)
-    .map((w) => StringUtils.capitalize(w))
+    .map((w) => Muscle.getMuscleGroupName(w, props.settings))
     .filter((w) => targetMuscleGroups.indexOf(w) === -1);
 
   const intensityGraphData = getIntensityPerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name);

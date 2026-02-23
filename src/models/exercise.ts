@@ -4478,14 +4478,14 @@ export namespace Exercise {
         new Set(
           CollectionUtils.flat(exercise.meta.targetMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m, settings)))
         )
-      ).map((m) => StringUtils.capitalize(m));
+      ).map((m) => Muscle.getMuscleGroupName(m, settings));
       const synergistMuscleGroups = Array.from(
         new Set(
           CollectionUtils.flat(
             exercise.meta.synergistMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m, settings))
           )
         )
-      ).map((m) => StringUtils.capitalize(m));
+      ).map((m) => Muscle.getMuscleGroupName(m, settings));
       return filterTypes.every((ft) => {
         return (
           targetMuscleGroups.indexOf(ft) !== -1 ||

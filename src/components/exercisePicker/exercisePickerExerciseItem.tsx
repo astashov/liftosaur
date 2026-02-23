@@ -226,7 +226,7 @@ export function MuscleGroupsView(props: {
                   <span
                     className={!props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"}
                   >
-                    {StringUtils.capitalize(m)}
+                    {Muscle.getMuscleGroupName(m, props.settings)}
                   </span>
                   {i !== targetMuscleGroups.length - 1 ? ", " : ""}
                 </span>
@@ -247,7 +247,7 @@ export function MuscleGroupsView(props: {
                   <span
                     className={!props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"}
                   >
-                    {StringUtils.capitalize(m)}
+                    {Muscle.getMuscleGroupName(m, props.settings)}
                   </span>
                   {i !== synergistMuscleGroups.length - 1 ? ", " : ""}
                 </span>

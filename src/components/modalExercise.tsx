@@ -489,9 +489,11 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
 
 export function MuscleGroupsView(props: { exercise: IExercise; settings: ISettings }): JSX.Element {
   const { exercise, settings } = props;
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((m) => StringUtils.capitalize(m));
+  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((m) =>
+    Muscle.getMuscleGroupName(m, settings)
+  );
   const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings)
-    .map((m) => StringUtils.capitalize(m))
+    .map((m) => Muscle.getMuscleGroupName(m, settings))
     .filter((m) => targetMuscleGroups.indexOf(m) === -1);
 
   const types = exercise.types.map((t) => StringUtils.capitalize(t));

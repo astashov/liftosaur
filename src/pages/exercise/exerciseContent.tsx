@@ -380,9 +380,11 @@ export interface IMuscleGroupsProps {
 function MuscleGroups(props: IMuscleGroupsProps): JSX.Element {
   const settings = Settings.build();
   const exercise = Exercise.get(props.exerciseType, {});
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((m) => StringUtils.capitalize(m));
+  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((m) =>
+    Muscle.getMuscleGroupName(m, settings)
+  );
   const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings)
-    .map((m) => StringUtils.capitalize(m))
+    .map((m) => Muscle.getMuscleGroupName(m, settings))
     .filter((m) => targetMuscleGroups.indexOf(m) === -1);
   const targetMuscles = Exercise.targetMuscles(exercise, settings);
   const synergistMuscles = Exercise.synergistMuscles(exercise, settings).filter((m) => targetMuscles.indexOf(m) === -1);

@@ -34,7 +34,7 @@ export class ExercisePickerUtils {
       const group = Muscle.getScreenMusclesFromMuscle(muscle, settings)?.[0];
       return group && !currentGroups.includes(group);
     });
-    return [...currentGroups.map((g) => StringUtils.capitalize(g)), ...currentMuscles];
+    return [...currentGroups.map((g) => Muscle.getMuscleGroupName(g, settings)), ...currentMuscles];
   }
 
   public static getAllFilterNames(filters: IExercisePickerFilters, settings: ISettings): string[] {
