@@ -44,7 +44,8 @@ interface IProps {
 export function Markdown(props: IProps): JSX.Element {
   const [shouldTruncate, setShouldTruncate] = useState(props.truncate != null);
   const [isTruncated, setIsTruncated] = useState(props.truncate != null);
-  const value = preprocessDirectives(props.value, props.directivesData);
+  const stringValue = typeof props.value === "string" ? props.value : String(props.value ?? "");
+  const value = preprocessDirectives(stringValue, props.directivesData);
   const result = md.render(value);
   let className = props.className || "markdown";
   if (isTruncated && props.className?.indexOf("line-clamp") === -1) {
