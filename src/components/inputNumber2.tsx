@@ -421,7 +421,9 @@ interface ICustomKeyboardProps {
 }
 
 const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<HTMLDivElement>) => {
-  return createPortal(
+  const containerRef = typeof window !== "undefined" ? window.document.querySelector("#keyboard") : undefined;
+
+  const element = (
     <div ref={ref} id="keyboard-content" className="fixed bottom-0 left-0 z-50 w-full keyboard-shadow">
       <div className="safe-area-inset-bottom">
         <div className="flex items-center w-full gap-2 px-4 bg-background-subtle">
@@ -534,7 +536,8 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
           </div>
         </div>
       </div>
-    </div>,
-    document.querySelector("#keyboard")!
+    </div>
   );
+
+  return containerRef ? createPortal(element, containerRef) : element;
 });

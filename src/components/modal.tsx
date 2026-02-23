@@ -57,7 +57,9 @@ export function Modal(props: IProps): JSX.Element {
     }
   }
 
-  return createPortal(
+  const containerRef = typeof window !== "undefined" ? window.document.getElementById("modal") : undefined;
+
+  const element = (
     <section ref={modalRef} className={className} style={{ zIndex: props.zIndex ?? 40 }}>
       <div
         data-name="overlay"
@@ -94,7 +96,8 @@ export function Modal(props: IProps): JSX.Element {
           </button>
         )}
       </div>
-    </section>,
-    document.getElementById("modal")!
+    </section>
   );
+
+  return containerRef ? createPortal(element, containerRef) : element;
 }
