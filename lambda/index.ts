@@ -2677,6 +2677,17 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
     }
     di.log.log("--------> Starting request", event.httpMethod, event.path);
     di.log.log("User Agent:", event.headers["user-agent"] || event.headers["User-Agent"] || "");
+
+    const host = ResponseUtils.getHost(event);
+    const isApiDomain = host.startsWith("api3");
+    if (isApiDomain && event.path === "/robots.txt") {
+      return {
+        statusCode: 200,
+        body: "User-agent: *\nDisallow: /\n",
+        headers: { "content-type": "text/plain" },
+      };
+    }
+
     const request: IPayload = { event, di };
     let r = new Router<IPayload, APIGatewayProxyResult>(request)
       .get(getMainEndpoint, getMainHandler)
