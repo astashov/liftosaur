@@ -10,7 +10,7 @@ export namespace ImageCacher {
     di: IDI,
     event: APIGatewayProxyEvent,
     key: string,
-    factory: () => Promise<IEither<Buffer, string>>
+    factory: () => Promise<IEither<Buffer | Uint8Array, string>>
   ): Promise<APIGatewayProxyResult> {
     const env = Utils.getEnv();
     const bucket = `${LftS3Buckets.caches}${env === "dev" ? "dev" : ""}`;

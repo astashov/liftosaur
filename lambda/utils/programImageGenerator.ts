@@ -1,5 +1,5 @@
 import satori from "satori";
-import { Resvg } from "@resvg/resvg-js";
+import { Resvg, initWasm } from "@resvg/resvg-wasm";
 import * as fs from "fs";
 import * as path from "path";
 import { IProgramIndexEntry } from "../../src/models/program";
@@ -9,6 +9,17 @@ import { Program } from "../../src/models/program";
 import { StringUtils } from "../../src/utils/string";
 import { IEither } from "../../src/utils/types";
 import { Tailwind } from "../../src/utils/tailwindConfig";
+
+let resvgInitialized = false;
+async function initResvgWasm(): Promise<void> {
+  if (resvgInitialized) {
+    return;
+  }
+  const wasmPath = require.resolve("@resvg/resvg-wasm/index_bg.wasm");
+  const wasmBuf = await fs.promises.readFile(wasmPath);
+  await initWasm(wasmBuf);
+  resvgInitialized = true;
+}
 
 export interface IProgramImageGeneratorArgs {
   indexEntry: IProgramIndexEntry;
@@ -110,7 +121,7 @@ async function fetchImageAsDataUri(fetchFn: Window["fetch"], url: string): Promi
 }
 
 export class ProgramImageGenerator {
-  public async generate(args: IProgramImageGeneratorArgs): Promise<IEither<Buffer, string>> {
+  public async generate(args: IProgramImageGeneratorArgs): Promise<IEither<Uint8Array<ArrayBufferLike>, string>> {
     const { indexEntry, fetch: fetchFn } = args;
     const exercises = indexEntry.exercises ?? [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -315,6 +326,7 @@ export class ProgramImageGenerator {
       ],
     });
 
+    await initResvgWasm();
     const resvg = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } });
     const png = resvg.render().asPng();
     return { success: true, data: png };
