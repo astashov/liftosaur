@@ -10,7 +10,6 @@ import { IProgramIndexEntry, Program } from "../../models/program";
 import { ObjectUtils } from "../../utils/object";
 import { Markdown } from "../../components/markdown";
 import { IPlannerEvalResult } from "../planner/plannerExerciseEvaluator";
-import { IconBack } from "../../components/icons/iconBack";
 import { IconArrowDown2 } from "../../components/icons/iconArrowDown2";
 import { IconArrowRight } from "../../components/icons/iconArrowRight";
 import { PlannerWeekStats } from "../planner/components/plannerWeekStats";
@@ -57,12 +56,18 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
     <section className="px-4">
       <div className="flex flex-col mx-auto lg:flex-row" style={{ gap: "2rem", maxWidth }}>
         <div className="flex-1 min-w-0">
-          <h1 className="flex items-center text-2xl font-bold leading-8">
-            <a href="/programs" className="flex-shrink-0 mr-3">
-              <IconBack />
+          <nav className="pt-2 pb-2 text-xs text-text-secondary" aria-label="Breadcrumb">
+            <a href="/" className="underline hover:text-text-primary">
+              Home
             </a>
-            {program.name} Program
-          </h1>
+            <span className="mx-1">/</span>
+            <a href="/programs" className="underline hover:text-text-primary">
+              Programs
+            </a>
+            <span className="mx-1">/</span>
+            <span className="text-text-primary">{program.name}</span>
+          </nav>
+          <h1 className="text-2xl font-bold leading-8">{program.name} Workout Program</h1>
           {program.author && (
             <div className="mt-2 mb-4 text-sm font-bold">
               {program.url ? (

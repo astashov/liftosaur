@@ -2,6 +2,103 @@ import { JSX, h } from "preact";
 import { IAccount } from "../models/account";
 import { IPageWrapperProps, PageWrapper } from "./pageWrapper";
 
+export interface IJsonLdArticle {
+  type: "Article";
+  headline: string;
+  description?: string;
+  author?: string;
+  image?: string;
+  mainEntityOfPage?: string;
+}
+
+export interface IJsonLdBreadcrumbItem {
+  name: string;
+  url?: string;
+}
+
+export interface IJsonLdBreadcrumbs {
+  type: "BreadcrumbList";
+  items: IJsonLdBreadcrumbItem[];
+}
+
+export interface IJsonLdSoftwareApp {
+  type: "SoftwareApplication";
+  name: string;
+  applicationCategory?: string;
+  operatingSystem?: string;
+  url?: string;
+  price?: string;
+  priceCurrency?: string;
+  featureList?: string;
+}
+
+export interface IJsonLdItemListEntry {
+  name: string;
+  url: string;
+}
+
+export interface IJsonLdItemList {
+  type: "ItemList";
+  name: string;
+  items: IJsonLdItemListEntry[];
+}
+
+export type IJsonLd = IJsonLdArticle | IJsonLdBreadcrumbs | IJsonLdSoftwareApp | IJsonLdItemList;
+
+function jsonLdToSchema(ld: IJsonLd): object {
+  const base = { "@context": "https://schema.org" as const };
+  switch (ld.type) {
+    case "Article":
+      return {
+        ...base,
+        "@type": "Article",
+        headline: ld.headline,
+        ...(ld.description ? { description: ld.description } : {}),
+        ...(ld.author ? { author: { "@type": "Person", name: ld.author } } : {}),
+        publisher: { "@type": "Organization", name: "Liftosaur", url: "https://www.liftosaur.com" },
+        ...(ld.image ? { image: ld.image } : {}),
+        ...(ld.mainEntityOfPage ? { mainEntityOfPage: ld.mainEntityOfPage } : {}),
+      };
+    case "BreadcrumbList":
+      return {
+        ...base,
+        "@type": "BreadcrumbList",
+        itemListElement: ld.items.map((item, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: item.name,
+          ...(item.url ? { item: item.url } : {}),
+        })),
+      };
+    case "SoftwareApplication":
+      return {
+        ...base,
+        "@type": "SoftwareApplication",
+        name: ld.name,
+        ...(ld.applicationCategory ? { applicationCategory: ld.applicationCategory } : {}),
+        ...(ld.operatingSystem ? { operatingSystem: ld.operatingSystem } : {}),
+        ...(ld.url ? { url: ld.url } : {}),
+        ...(ld.featureList ? { featureList: ld.featureList } : {}),
+        ...(ld.price != null
+          ? { offers: { "@type": "Offer", price: ld.price, priceCurrency: ld.priceCurrency || "USD" } }
+          : {}),
+      };
+    case "ItemList":
+      return {
+        ...base,
+        "@type": "ItemList",
+        name: ld.name,
+        numberOfItems: ld.items.length,
+        itemListElement: ld.items.map((item, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: item.name,
+          url: item.url,
+        })),
+      };
+  }
+}
+
 interface IProps<T> extends IPageWrapperProps {
   title: string;
   canonical: string;
@@ -12,6 +109,7 @@ interface IProps<T> extends IPageWrapperProps {
   ogDescription?: string;
   ogUrl?: string;
   ogImage?: string;
+  jsonLd?: IJsonLd[];
   data: T;
   postHead?: JSX.Element;
   account?: IAccount;
@@ -84,6 +182,9 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         <meta property="twitter:card" content="summary_large_image" />
         <script dangerouslySetInnerHTML={{ __html: rollbar() }} />
         <script dangerouslySetInnerHTML={{ __html: storeUtmInLocalStorage() }} />
+        {props.jsonLd?.map((ld) => (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdToSchema(ld)) }} />
+        ))}
         {props.postHead}
       </head>
       <body>

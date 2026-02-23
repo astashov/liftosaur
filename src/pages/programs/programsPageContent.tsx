@@ -21,7 +21,7 @@ export function ProgramsPageContent(props: IProgramsPageContentProps): JSX.Eleme
 
   return (
     <div className="px-4 pb-8">
-      <h1 className="pt-4 pb-6 text-3xl font-bold">Programs</h1>
+      <h1 className="pt-4 pb-6 text-3xl font-bold">Weightlifting Programs & Workout Routines</h1>
 
       <ProgramsFilterSort filter={filter} sort={sort} onFilterChange={setFilter} onSortChange={setSort} />
 
