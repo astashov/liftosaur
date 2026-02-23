@@ -10,6 +10,7 @@ export function renderProgramDetailsHtml(
   program: IProgram,
   client: Window["fetch"],
   fullDescription?: string,
+  faq?: string,
   userAgent?: string,
   account?: IAccount,
   accountSettings?: ISettings,
@@ -19,6 +20,7 @@ export function renderProgramDetailsHtml(
     <ProgramDetailsHtml
       program={program}
       fullDescription={fullDescription}
+      faq={faq}
       client={client}
       userAgent={userAgent}
       account={account}

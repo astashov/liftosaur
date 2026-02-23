@@ -132,6 +132,32 @@ With your 1RM set, Monday's top set will start at 85% of 1RM (roughly your 5RM).
 - **Reduce upper body increments to 1.25lb** if 2.5lb/week stalls quickly (requires microplates)
 - **Replace [{Bicep Curl}] with [{Chin Up}]** for a compound pulling movement that also hits biceps
 
+<!-- faq -->
+
+### Is Madcow 5x5 good for beginners?
+
+No, Madcow is an intermediate program designed for lifters who can no longer add weight every session on beginner programs like Starting Strength or StrongLifts 5x5. You should have at least 6-18 months of consistent barbell training and know your 5-rep maxes before starting.
+
+### How many days a week is Madcow 5x5?
+
+Madcow is a 3-day program, typically run Monday/Wednesday/Friday. Monday is the heavy day, Wednesday is a light recovery day, and Friday is the PR day where you attempt a heavier triple.
+
+### How does Madcow 5x5 progression work?
+
+Madcow uses weekly linear progression instead of session-to-session. On Friday you attempt a triple at a weight slightly above Monday's top set. If successful, all weights increase for the next week: 5lb/week for squats and deadlifts, 2.5lb/week for upper body lifts.
+
+### How long should I run Madcow 5x5?
+
+Run Madcow for 12-16 weeks. Expect 8-12 weeks of genuine PRs after a 2-3 week ramp-up period. Move on when you've deloaded and rebuilt twice on the same lift or been stuck for 3+ weeks.
+
+### What do I do when I stall on Madcow 5x5?
+
+First, try the same weight again the following week — one bad session doesn't mean a stall. If you fail the same weight twice, reduce your 1RM by 10% for that specific lift and work back up over 3-4 weeks. Only deload the stalled lift, not the entire program.
+
+### What are ramping sets in Madcow 5x5?
+
+Instead of doing all 5 sets at the same weight, you progressively increase the weight each set (40%, 55%, 65%, 75%, 85% of 1RM). Only the final top set is truly challenging. The preceding sets serve as a built-in, structured warmup.
+
 ```liftoscript
 # Week 1
 ## Workout A

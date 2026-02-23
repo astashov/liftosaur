@@ -46,6 +46,32 @@ Check the interactive playground below to see how the program works, and what th
 
 You can run GZCL: General Gainz - Burrito But Big program in the Liftosaur app. You only would need to set initial RM weights for each exercise, and the app will automatically calculate the weights, change the sets, autobalance the T3 weights, and do all the math for you.
 
+<!-- faq -->
+
+### Is Burrito But Big good for building muscle?
+
+Yes, Burrito But Big is specifically designed for hypertrophy. It uses the General Gainz framework but structures it into a 12-week program with leader and anchor phases that progressively increase volume and intensity to maximize muscle growth.
+
+### How many days a week is Burrito But Big?
+
+Burrito But Big is a 4-day program. Each day includes T1 and T2 compound exercises plus T3 isolation work. Sessions typically run 60-90 minutes depending on how many extension sets you perform.
+
+### What are the different progression schemes in Burrito But Big?
+
+The program offers several options: Classic (standard half-sets after the RM set), Conditioning (timed singles/doubles within 10 minutes), High-Volume (3 sets of 5-7 reps after the RM set), and Widowmaker (working toward a 20RM goal over 4 weeks). You can mix and match these across exercises.
+
+### How does the 12-week structure work?
+
+Weeks 1-4 and 5-8 are "leader" phases where you build up reps and volume at moderate intensity. Weeks 9-12 are the "anchor" phase where you test heavier weights with lower reps and singles. The program resets your 1RM at the end based on your week 12 performance.
+
+### Do I need experience with General Gainz before running Burrito But Big?
+
+It helps but isn't required. Burrito But Big lays out the exact sets, reps, and progressions for each week, so it's more structured than standard General Gainz. However, you should have at least a year of training experience and be comfortable with RPE-based training.
+
+### Can I swap exercises in Burrito But Big?
+
+Yes, you can change T2 and T3 exercises to match your equipment and goals. Just make sure your T2 exercises support your T1 lifts, and keep T3 exercises as isolation movements. The progression logic carries over regardless of the exercise you choose.
+
 ```liftoscript
 # Week 1
 ## Day 1

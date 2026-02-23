@@ -68,6 +68,32 @@ Check the interactive playground below to see how the program works, and what th
 
 You can run GZCL: VDIP program in the Liftosaur app.
 
+<!-- faq -->
+
+### What makes GZCL VDIP different from other GZCL programs?
+
+VDIP's unique feature is that every single set is AMRAP (as many reps as possible). Weight increases are based on total reps achieved across all sets, making progression entirely volume-dependent. This creates a natural autoregulation — you progress faster on good days and maintain on bad days.
+
+### Is GZCL VDIP good for beginners?
+
+VDIP works for beginner to intermediate lifters. The AMRAP-based system is forgiving because you don't have fixed rep targets to hit. However, you need the discipline to push yourself on every set since there are no prescribed rep numbers — just "do as many as you can."
+
+### How many days a week is GZCL VDIP?
+
+VDIP is a 5-day program. Each day has T1, T2, and T3 exercises following the GZCL tier system. The higher training frequency means each muscle group is hit multiple times per week.
+
+### How does progression work in GZCL VDIP?
+
+Weight increases when your total reps across all sets hit a threshold. For T1 (3 sets): 15+ total reps adds 10lb, 10+ adds 5lb. For T2 (3 sets): 30+ adds 10lb, 25+ adds 5lb. For T3 (4 sets): 50+ total reps adds 5lb.
+
+### What rest times should I use for GZCL VDIP?
+
+Rest 3-5 minutes between T1 sets, 2-3 minutes between T2 sets, and 30-90 seconds between T3 sets. Keeping to these rest times is important — longer rest would let you do more reps and game the progression thresholds.
+
+### How long should I run GZCL VDIP?
+
+Run VDIP as long as you keep making progress. Most lifters get 3-6 months before progression slows significantly. After that, move to a more periodized GZCL program like The Rippler or Jacked & Tan 2.0.
+
 ```liftoscript
 # Week 1
 ## Day 1

@@ -135,6 +135,32 @@ For each exercise on Day 1:
 - **Back-off sets**: Drop 20-30% after working sets and do 1-3 extra sets of 5-8 reps for more volume and form practice.
 - **Can't do chin-ups**: Use [{Lat Pulldown}] at 3x8-12 until you're strong enough for bodyweight reps.
 
+<!-- faq -->
+
+### Is the Basic Beginner Routine good for complete beginners?
+
+Yes, it's the primary recommended program on the r/Fitness wiki for people who have never lifted before. It focuses on just 3 exercises per session across 6 fundamental barbell movements, so you can learn proper form without being overwhelmed.
+
+### How many days a week is the Basic Beginner Routine?
+
+It's a 3-day program with at least one rest day between sessions. A typical schedule is Monday/Wednesday/Friday. Two alternating workouts (A and B) rotate each week, so Week 1 is A/B/A and Week 2 is B/A/B.
+
+### How long should I run the Basic Beginner Routine?
+
+Run it for a maximum of 3 months. The program is intentionally low-volume to teach you the lifts and build a gym habit. After 8-12 weeks, transition to a program with more volume like GZCLP or 5/3/1 for Beginners.
+
+### What do I do when I stall on the Basic Beginner Routine?
+
+When you fail to complete all prescribed reps on an exercise, reduce the weight by 10% next session. Use the lighter weight to chase a new AMRAP rep record. Each exercise is tracked independently, so stalling on one lift doesn't affect others.
+
+### Can I add accessory exercises to the Basic Beginner Routine?
+
+Yes. After the main 3 lifts, add 2-3 sets each of a push, pull, and core exercise at 10-15 reps. Good picks include face pulls, bicep curls, hanging leg raises, and triceps pushdowns. Keep them light and don't let accessories interfere with your main lifts.
+
+### What if I can't do chin-ups in the Basic Beginner Routine?
+
+Replace chin-ups with lat pulldowns at 3 sets of 8-12 reps, or use band-assisted chin-ups. Work on these until you're strong enough to perform bodyweight chin-ups, then switch to the programmed exercise.
+
 ```liftoscript
 # Week 1
 ## Workout A

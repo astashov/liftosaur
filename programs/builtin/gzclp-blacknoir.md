@@ -17,6 +17,28 @@ Based on a popular set of elaborate spreadsheets created by a Reddit user **/u/b
 
 It contains example exercises from both **Default** GZCLP, **Modified** GZCLP and **Advanced**, making it easy to mix and match various types of T1/T2/T3 exercises and craft a weightlifting program for your needs.
 
+<!-- faq -->
+
+### How is GZCLP Blacknoir different from regular GZCLP?
+
+The Blacknoir version uses different set and rep schemes and progressions compared to standard GZCLP. The most notable change is avoiding the 10x1 stage that some lifters dislike. It also includes Default, Modified, and Advanced exercise templates you can mix and match.
+
+### Is GZCLP Blacknoir good for beginners?
+
+Yes, like standard GZCLP it's designed for beginner to early intermediate lifters. It uses the same GZCL tier system (T1/T2/T3) but with modified progression schemes that some lifters find more enjoyable. You should have a few months of training experience before starting.
+
+### How many days a week is GZCLP Blacknoir?
+
+GZCLP Blacknoir is a 3-day program. You rotate through workouts on non-consecutive days, typically Monday/Wednesday/Friday, just like standard GZCLP.
+
+### Can I customize exercises in GZCLP Blacknoir?
+
+Yes, the program includes exercise templates from Default, Modified, and Advanced GZCLP configurations. You can swap T2 and T3 exercises to match your equipment and goals while keeping the progression logic intact.
+
+### What should I run after GZCLP Blacknoir?
+
+Once you can no longer make linear progress (adding weight each session), move to an intermediate GZCL program like The Rippler for strength or Jacked & Tan 2.0 for hypertrophy. Both use periodized progression instead of linear.
+
 ```liftoscript
 # Week 1
 ## Day 1

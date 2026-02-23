@@ -24,7 +24,31 @@ In the blogpost Cody also recommends tracking effort, in the app it's done by RP
 
 Other than that - it's the same old General Gainz with T2s - so all those find,push,hold,extend actions. The app will show the last week sets/reps/RPE etc for the exercise, so based on that you can make a decision what part you'll push and what parts you'll hold this time.
 
+<!-- faq -->
 
+### Is GZCL General Gainz Bodybuilding good for hypertrophy?
+
+Yes, GGBB is specifically designed for hypertrophy. It removes T1 heavy work entirely and replaces it with three T2 exercises and five T3 exercises per day, creating very high volume. It's one of the most volume-heavy GZCL programs available.
+
+### How many days a week is GGBB?
+
+GGBB is a 4-day program with a body-part split: legs and abs, shoulders, back, and arms. Each session runs 90+ minutes due to the high number of exercises and superset structure.
+
+### How is GGBB different from regular General Gainz?
+
+Regular General Gainz uses T1 heavy compounds for strength. GGBB drops T1 entirely and uses only T2 and T3 exercises, shifting the focus to hypertrophy. It also has significantly more volume per session — typically 8-10 exercises per day arranged in supersets.
+
+### What does the superset structure look like in GGBB?
+
+Each day is organized into pairs: a T2 exercise supersetted with a T3 exercise (T2, T3, T2, T3...). This keeps rest times efficient and increases training density. The T2 exercises use the General Gainz find/push/hold/extend system while T3 exercises use max rep sets.
+
+### Can I reduce the volume in GGBB?
+
+Yes, Cody himself suggests adjusting volume to your needs. You can remove the last pair of T3 exercises from each day, or reduce the number of sets. Start conservatively and add volume over time if you recover well.
+
+### What experience level do I need for GGBB?
+
+GGBB is an intermediate to advanced program. You should have at least a year of consistent training and be familiar with the General Gainz find/push/hold/extend system. The high volume requires good recovery capacity and training experience.
 
 ```liftoscript
 # Week 1

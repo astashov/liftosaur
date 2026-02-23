@@ -79,6 +79,32 @@ Check the interactive playground below to see how the program works, and what th
 
 You can run the GZCL: UHF 5 weeks program in the Liftosaur app.
 
+<!-- faq -->
+
+### Is GZCL UHF 5 weeks good for beginners?
+
+No, UHF 5 weeks is an advanced program requiring solid experience with squat, bench, deadlift, and overhead press. You should be comfortable training 5 days per week at high volume with percentage-based programming. Start with GZCLP or The Rippler first.
+
+### How many days a week is GZCL UHF 5 weeks?
+
+It's a 5-day program trained Monday through Friday. Every session includes a T1 main lift, a T2 secondary lift, and multiple T3 isolation exercises, making each day essentially a full-body workout.
+
+### What is the difference between GZCL UHF 5 weeks and 9 weeks?
+
+The 5-week version compresses the same DUP principles into a shorter timeframe. The 9-week version provides more gradual progression with additional weeks at each intensity level, making it better for longer training blocks and peaking cycles.
+
+### What is Daily Undulating Periodization in UHF?
+
+DUP means volume and intensity change from day to day rather than week to week. In UHF, each training day uses different percentages and rep schemes for the T1 and T2 lifts, so you get heavy, moderate, and light stimuli within the same week.
+
+### How does progression work in GZCL UHF?
+
+T1 and T2 exercises follow a fixed 5-week percentage scheme based on your 2RM. Weights generally increase while volume decreases across the weeks. T3 exercises use a rep max approach — work up to your RM for the first set, then do max rep sets with the same weight.
+
+### How long should I run GZCL UHF 5 weeks?
+
+Run it for one 5-week cycle, then reassess. You can repeat the cycle with updated rep maxes if you're still progressing. If you want a longer training block, consider the 9-week version instead.
+
 ```liftoscript
 # Week 1
 ## Day 1

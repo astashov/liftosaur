@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IJsonLd, Page } from "../../components/page";
+import { IJsonLd, IJsonLdFAQEntry, Page } from "../../components/page";
 import { IAccount } from "../../models/account";
 import { IProgramIndexEntry } from "../../models/program";
 import { IProgram, ISettings } from "../../types";
@@ -8,6 +8,7 @@ import { ProgramDetailsContent } from "./programDetailsContent";
 interface IProps {
   program: IProgram;
   fullDescription?: string;
+  faq?: string;
   userAgent?: string;
   client: Window["fetch"];
   account?: IAccount;
@@ -21,7 +22,8 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
   const title = `${program.name} Workout Program - Free Tracker & Guide | Liftosaur`;
   const url = `https://www.liftosaur.com/programs/${program.id}`;
   const description = buildMetaDescription(program, indexEntry);
-  const jsonLd = buildJsonLd(program, indexEntry, url, description);
+  const faqEntries = props.faq ? parseFaqMarkdown(props.faq) : [];
+  const jsonLd = buildJsonLd(program, indexEntry, url, description, faqEntries);
 
   return (
     <Page
@@ -48,6 +50,33 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
   );
 }
 
+export function parseFaqMarkdown(faqMd: string): IJsonLdFAQEntry[] {
+  const entries: IJsonLdFAQEntry[] = [];
+  const lines = faqMd.split("\n");
+  let currentQuestion: string | undefined;
+  let currentAnswer: string[] = [];
+
+  for (const line of lines) {
+    const questionMatch = line.match(/^###\s+(.+)/);
+    if (questionMatch) {
+      if (currentQuestion && currentAnswer.length > 0) {
+        entries.push({ question: currentQuestion, answer: currentAnswer.join(" ").trim() });
+      }
+      currentQuestion = questionMatch[1].trim();
+      currentAnswer = [];
+    } else if (currentQuestion) {
+      const trimmed = line.trim();
+      if (trimmed) {
+        currentAnswer.push(trimmed);
+      }
+    }
+  }
+  if (currentQuestion && currentAnswer.length > 0) {
+    entries.push({ question: currentQuestion, answer: currentAnswer.join(" ").trim() });
+  }
+  return entries;
+}
+
 function buildMetaDescription(program: IProgram, indexEntry?: IProgramIndexEntry): string {
   const short = indexEntry?.shortDescription || program.shortDescription || program.description;
   if (!short) {
@@ -63,7 +92,8 @@ function buildJsonLd(
   program: IProgram,
   indexEntry: IProgramIndexEntry | undefined,
   url: string,
-  description: string
+  description: string,
+  faqEntries: IJsonLdFAQEntry[]
 ): IJsonLd[] {
   const article: IJsonLd = {
     type: "Article",
@@ -96,5 +126,9 @@ function buildJsonLd(
       : {}),
   };
 
-  return [article, breadcrumbs, app];
+  const result: IJsonLd[] = [article, breadcrumbs, app];
+  if (faqEntries.length > 0) {
+    result.push({ type: "FAQPage", questions: faqEntries });
+  }
+  return result;
 }

@@ -133,6 +133,32 @@ Barbell, squat rack, bench, weight plates, and a pull-up bar for the main lifts 
 - **5s PRO variant** (from *Forever*): Replace the AMRAP sets with straight sets of 5 across all 3 weeks. Reduces CNS fatigue and pairs better with the high BBB volume. Recommended in newer Wendler writings.
 - **Add [{Face Pull}]**: 3-5 sets of 15-20 reps on pressing days for shoulder health — the program is pressing-heavy.
 
+<!-- faq -->
+
+### Is 5/3/1 Boring But Big good for beginners?
+
+BBB is an intermediate program — you need 1-3 years of experience and solid technique on squat, bench, deadlift, and overhead press. The 5x10 supplemental sets demand good form under fatigue. Start with 5/3/1 for Beginners if you're newer to lifting.
+
+### How many days a week is 5/3/1 Boring But Big?
+
+It's a 4-day program, typically Monday/Tuesday/Thursday/Friday. Each day focuses on one main barbell lift (OHP, deadlift, bench press, or squat) followed by 5x10 of the same lift and two assistance exercises.
+
+### What makes Boring But Big different from other 5/3/1 templates?
+
+The defining feature is the 5x10 supplemental sets at 50% of 1RM after your heavy 5/3/1 work. This gives you 50 additional reps of each main lift per session, making it one of the most effective templates for building muscle while maintaining strength.
+
+### How does progression work on 5/3/1 BBB?
+
+After each 3-week working cycle, increase your 1RM by 5 lbs for overhead press and bench press, and 10 lbs for squat and deadlift. Every 4th week is a mandatory deload. The BBB supplemental weight stays at 50% of 1RM throughout.
+
+### Can I run 5/3/1 BBB on a cut?
+
+Not recommended. The 5x10 sets create significant fatigue that requires adequate caloric surplus and sleep to recover from. If you're cutting, use a lower-volume template like 5/3/1 First Set Last (FSL) instead.
+
+### How long should I run 5/3/1 Boring But Big?
+
+Run it for 3-6 cycles (12-24 weeks). Many lifters cycle between BBB and lower-volume templates throughout the year. Move on when you're dreading the 5x10 sets every session, recovery is suffering, or you want to prioritize absolute strength over hypertrophy.
+
 ```liftoscript
 # Week 1
 ## Day 1

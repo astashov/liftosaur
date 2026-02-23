@@ -49,7 +49,7 @@ Pay special attention to:
 
 ## Output Format
 
-Write the description as a markdown file. The file must have YAML frontmatter and a description section ABOVE the `<!-- more -->` separator, followed by the full description, and ending with a ```liftoscript code block.
+Write the description as a markdown file. The file must have YAML frontmatter and a description section ABOVE the `<!-- more -->` separator, followed by the full description, then a `<!-- faq -->` separator with FAQ content, and ending with a ```liftoscript code block.
 
 ### File Structure
 
@@ -75,6 +75,16 @@ One paragraph summary of the program (shown in program list previews).
 <!-- more -->
 
 [Full description with all sections below]
+
+<!-- faq -->
+
+### Question 1?
+
+Answer text here.
+
+### Question 2?
+
+Answer text here.
 
 ```liftoscript
 [program code]
@@ -169,6 +179,25 @@ Do NOT list sets/reps here — the program detail page has an interactive previe
 - Adding accessories for weak points
 - 3-day vs 4-day vs 5-day variants if they exist
 - Adaptations for different equipment availability
+
+#### 13. FAQ Section (after `<!-- faq -->` separator)
+
+Write 5-8 frequently asked questions about the program. These generate FAQPage structured data (JSON-LD) which produces expandable FAQ rich snippets in Google search results.
+
+**Format:** Each question is an H3 (`### Question?`) followed by a paragraph answer. Place after the `<!-- faq -->` separator and before the liftoscript code block.
+
+**How to find good questions:**
+- Search Reddit for "[program name] questions" or "[program name] help"
+- Look at common confusions in program review threads
+- Check what people ask in r/fitness, r/weightroom, r/gzcl, etc.
+- Include the most basic questions ("Is X good for beginners?", "How many days?", "How long to run it?")
+- Include program-specific questions about stalling, accessories, modifications
+
+**Guidelines:**
+- Questions should be how real people would ask them in Google (e.g., "Is GZCLP good for beginners?" not "Suitability for novice trainees")
+- Answers should be 2-4 sentences, direct and specific
+- Include the program name in at least 2-3 questions for SEO
+- Don't repeat information verbatim from the main description — rephrase and summarize
 
 ## Validation Phase (AFTER Writing)
 

@@ -134,6 +134,32 @@ If 12 reps is easy on your first workout, you started too light — that's fine.
 - **Want more calf work:** Perform [{Standing Calf Raise}] on an elevated surface (step or plate) for full range of motion. Switch to single-leg calf raises when the weight gets easy.
 - **Adding lateral raises:** The program has no direct lateral delt work. Adding [{Lateral Raise}] to Push Day is a common and reasonable addition.
 
+<!-- faq -->
+
+### Can I build muscle with only dumbbells?
+
+Yes, especially as a beginner. The Dumbbell P/P/L program covers all major movement patterns using only dumbbells, a bench, and a pull-up bar. You'll make solid progress for 3-6 months before potentially needing barbells for continued lower body progression.
+
+### How many days a week is Dumbbell P/P/L?
+
+You can run it anywhere from 3 to 6 days per week. The minimum is 3 days (one push, one pull, one legs session). For optimal results, run it 6 days per week with each muscle group trained twice and one rest day.
+
+### How does progression work in Dumbbell P/P/L?
+
+The program uses double progression. Start each exercise at a weight where you can do at least 8 reps per set, then work up to 3 sets of 12. Once you hit 12 reps on all 3 sets, increase the weight by 5lb for compounds or 2.5lb for isolation exercises.
+
+### What do I do when goblet squats get too heavy?
+
+Goblet squats are usually the first exercise to stall because you'll max out your heaviest dumbbell. When that happens, switch to Bulgarian split squats or pistol squats, which let you continue progressing with less weight by training one leg at a time.
+
+### What if I can't do pull-ups yet?
+
+Start with negative pull-ups: jump to the top position and lower yourself slowly over 3-5 seconds. Alternatively, break the rep target into more sets, like 6 sets of 2 instead of 3 sets of 4. You can also substitute inverted rows using a sturdy table edge.
+
+### Is Dumbbell P/P/L good for home workouts?
+
+Yes, it's one of the best structured home gym programs. You only need adjustable dumbbells (or a range of fixed dumbbells), a bench (ideally adjustable for incline), and a pull-up bar. No barbells, cables, or machines are required.
+
 ```liftoscript
 # Week 1
 ## Push Day

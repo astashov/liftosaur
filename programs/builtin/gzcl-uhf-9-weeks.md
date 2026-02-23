@@ -83,6 +83,32 @@ Check the interactive playground below to see how the program works, and what th
 
 You can run the GZCL: UHF 9 weeks program in the Liftosaur app.
 
+<!-- faq -->
+
+### How is GZCL UHF 9 weeks different from UHF 5 weeks?
+
+UHF 9 weeks has T1 resets every fourth week, giving you three distinct 3-week progression blocks instead of one continuous 5-week block. The longer duration allows more time for adaptation and includes a deload week (week 9) for recovery before testing.
+
+### Is GZCL UHF good for beginners?
+
+No, UHF is an advanced GZCL program. The 5-day full-body training frequency and high volume require significant recovery capacity. You should have at least a year of training experience and ideally have run GZCLP and an intermediate program like The Rippler first.
+
+### How many days a week is GZCL UHF 9 weeks?
+
+UHF 9 weeks is a 5-day program. Each day is essentially a full-body workout — if the T1 exercise is upper body, the T2 is lower body, and vice versa. This ultra-high frequency ensures each muscle group is trained multiple times per week.
+
+### How does the daily undulating periodization work in UHF?
+
+Unlike The Rippler which undulates week-to-week, UHF changes volume and intensity day-to-day. Each day uses different percentages and rep schemes for T1 and T2 exercises. The weight generally trends upward in wave-like patterns across the 9 weeks while total volume decreases.
+
+### What is the deload week in UHF 9 weeks?
+
+Week 9 is a deload where you skip T2 exercises entirely and reduce T1 volume. This allows your body to recover from the accumulated fatigue of 8 weeks of high-frequency training before you test or move to another program.
+
+### What should I run after GZCL UHF 9 weeks?
+
+You can run it again with updated training maxes, switch to Jacked and Tan 2.0 for more hypertrophy emphasis, or try General Gainz for a more flexible autoregulated approach. Some lifters alternate between UHF and The Rippler.
+
 ```liftoscript
 # Week 1
 ## Day 1

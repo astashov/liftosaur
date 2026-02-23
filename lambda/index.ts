@@ -1698,9 +1698,11 @@ const getProgramDetailsHandler: RouteHandler<
   if (result != null) {
     const { program, indexEntry } = result;
     let fullDescription: string | undefined;
+    let faq: string | undefined;
     try {
       const detail = await dao.getDetail(params.id);
       fullDescription = detail.fullDescription || program.description;
+      faq = detail.faq;
     } catch (e) {
       // Fall back to description from program
     }
@@ -1710,7 +1712,7 @@ const getProgramDetailsHandler: RouteHandler<
 
     return {
       statusCode: 200,
-      body: renderProgramDetailsHtml(program, di.fetch, fullDescription, userAgent, account, settings, indexEntry),
+      body: renderProgramDetailsHtml(program, di.fetch, fullDescription, faq, userAgent, account, settings, indexEntry),
       headers: { "content-type": "text/html" },
     };
   } else {

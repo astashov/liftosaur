@@ -126,6 +126,32 @@ For each exercise, pick a weight where you can complete all prescribed sets at t
 - **Strength/hypertrophy variant**: Run the first session each week at 3-5x5 (strength focus) and the second session at 3x8-12 (hypertrophy focus). Lyle mentioned this as a valid long-term periodization approach.
 - **Reduced volume**: If recovery is an issue, drop to 2-3x6-8 for main compounds and 1-2x10-12 for secondary lifts.
 
+<!-- faq -->
+
+### Is Lyle's Generic Bulking good for beginners?
+
+No, it's designed for intermediate lifters with 1-3 years of training experience. You should be comfortable with squat, bench, deadlift, and row form. If you're still making session-to-session progress, use a beginner program like GZCLP first.
+
+### How many days a week is Lyle's Generic Bulking?
+
+It's a 4-day upper/lower split, typically run Monday/Tuesday/Thursday/Friday. Both lower body days are identical, and both upper body days are identical, making it very simple to follow.
+
+### Do I need to be bulking to run this program?
+
+The program is specifically designed for a caloric surplus (250-500 calories above maintenance). The volume and recovery demands assume adequate nutrition. It's not ideal for cutting since recovery will suffer in a deficit.
+
+### How does progression work on Lyle's Generic Bulking?
+
+All exercises use double progression. Start at the bottom of the rep range (e.g., 6 reps for a 6-8 range), work up to the top of the range on all sets, then add 5lb and reset. For example, squat goes 4x6 → 4x7 → 4x8, then add 5lb and drop back to 4x6.
+
+### How long should I run Lyle's Generic Bulking?
+
+Run it in 6-8 week cycles with a deload week between cycles. Weeks 1-2 can be a submaximal ramp-up using 85-95% of your working weights. You can repeat cycles for 3-6 months during a dedicated bulk.
+
+### What exercises should I add to Lyle's Generic Bulking?
+
+The program has no direct rear delt, lateral delt, or ab work. Add face pulls or reverse flyes for rear delts, lateral raises for side delts, and hanging leg raises or cable crunches for abs — 2-3 sets each at the end of the appropriate sessions.
+
 ```liftoscript
 # Week 1
 ## Lower Body

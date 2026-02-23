@@ -132,6 +132,32 @@ For each exercise on your first day:
 - **No microplates**: Use 5lb jumps for upper body. You'll deload more often but still progress.
 - **More deadlift volume**: Add working sets (making it 2x5, 1x5+) if you feel the single AMRAP set isn't enough practice. This is what the r/Fitness Basic Beginner Routine does.
 
+<!-- faq -->
+
+### Is Phrak's Greyskull LP good for beginners?
+
+Yes, it's one of the most recommended beginner barbell programs. It adds dedicated pulling work (chin-ups and rows) to every session — something most beginner programs lack. The AMRAP last sets provide built-in autoregulation and make deloads productive rather than wasted time.
+
+### How many days a week is Phrak's Greyskull LP?
+
+It's a 3-day program trained on non-consecutive days, typically Monday/Wednesday/Friday. Two alternating workouts (A and B) rotate each session, so Week 1 is A/B/A and Week 2 is B/A/B.
+
+### How is Phrak's Greyskull LP different from Starting Strength?
+
+Phrak's GSLP includes chin-ups and rows in every session, uses AMRAP last sets instead of straight sets of 5, and has an accelerated progression rule (double the weight jump at 10+ AMRAP reps). Starting Strength uses only 3x5 straight sets and doesn't include pulling exercises until Phase 3.
+
+### What do I do when I stall on Phrak's Greyskull LP?
+
+When you fail to complete all prescribed reps on an exercise, reduce the weight by 10% and work back up. The deload is a feature — hitting lighter weights for higher AMRAP reps on the way back up provides a hypertrophy stimulus that helps you break through the plateau.
+
+### How long should I run Phrak's Greyskull LP?
+
+Run it for 2-4 months. Move on when you're deloading on multiple lifts frequently and your AMRAP sets barely hit 5 reps. Good next programs include GZCLP or 5/3/1 for Beginners.
+
+### Can I add accessories to Phrak's Greyskull LP?
+
+Yes. After the main lifts, add 2-3 sets each of face pulls, bicep curls, and hanging leg raises at 10-15 reps. Keep accessories light and don't let them interfere with recovery for the main lifts.
+
 ```liftoscript
 # Week 1
 ## Workout A

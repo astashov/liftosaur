@@ -124,6 +124,32 @@ The program as written requires a barbell, dumbbells, a cable machine, and a leg
 - **3-day variant**: Run Upper Power / Lower Power / Full Body Hypertrophy if you only have 3 training days.
 - **Bump to 4 sets**: Once you adapt to 3 sets (after 3-4 weeks), add a 4th set to the main compound exercises for more volume.
 
+<!-- faq -->
+
+### Is PHUL good for beginners?
+
+PHUL is an intermediate program — you should have 1-3 years of consistent training and be comfortable with squat, bench, deadlift, and overhead press form. If you're still making session-to-session progress, a beginner program like GZCLP will be more effective.
+
+### How many days a week is PHUL?
+
+PHUL is a 4-day program, typically run Monday/Tuesday/Thursday/Friday with Wednesday and weekends off. It follows an Upper Power, Lower Power, Upper Hypertrophy, Lower Hypertrophy structure.
+
+### What is the difference between power and hypertrophy days in PHUL?
+
+Power days use heavy compound lifts in the 3-5 rep range to build maximal strength. Hypertrophy days use moderate loads in the 8-12 rep range to accumulate volume for muscle growth. The strength gains from power days let you use heavier weights on hypertrophy days over time.
+
+### How does progression work in PHUL?
+
+PHUL uses double progression: work within your rep range (e.g., 3-5 for power), and when you can hit the top reps on all sets, add 5lb and reset to the bottom of the range. For example, bench goes 3x3 → 3x4 → 3x5, then add 5lb and reset to 3x3.
+
+### How long should I run PHUL?
+
+Run PHUL for 12-16 weeks before reassessing. Take a deload week at the 6-week mark if fatigue is accumulating. Move on when you're stalling on most lifts despite deloads or when your goals shift toward pure strength or pure hypertrophy.
+
+### Does PHUL include ab work?
+
+No, the base program has no direct ab work. Add hanging leg raises or cable crunches at the end of lower body days, or train abs on rest days. Adding face pulls for rear delt health is also recommended.
+
 ```liftoscript
 # Week 1
 ## Upper Power

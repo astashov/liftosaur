@@ -33,6 +33,32 @@ The program is very simple - it's just 6 exercises repeated per day, 3 days a we
 
 For progression, you do the last set as AMRAP - as many reps as possible. For [{Chin Up}] and [{Crunch}], next time you'll have to do at least as many as you were able to do this time + one more rep. And for the rest of the exercises, if you've achieved at least 13 reps, you should increase your weight by 5lb or 2.5kg in your next workout.
 
+<!-- faq -->
+
+### Is Arnold's Golden Six good for beginners?
+
+Yes, Arnold's Golden Six is one of the simplest beginner hypertrophy programs available. It has only 6 exercises repeated each session, 3 days per week. The straightforward structure lets you focus on learning the movements and building a training habit without overthinking programming.
+
+### How many days a week is Arnold's Golden Six?
+
+Arnold's Golden Six is a 3-day program trained on alternate days, such as Monday/Wednesday/Friday. Each session uses the same 6 exercises, so there's nothing to memorize or alternate between.
+
+### How does progression work on Arnold's Golden Six?
+
+The last set of each exercise is AMRAP (as many reps as possible). For barbell exercises, if you hit 13 or more reps on that AMRAP set, you increase the weight by 5lb next session. For chin-ups and crunches, you simply aim to beat your previous rep count by at least one rep each session.
+
+### How long should I run Arnold's Golden Six?
+
+Run it for 3-6 months or until you stop making consistent progress and feel you need more exercise variety and volume. At that point, transition to an intermediate hypertrophy program with a proper split structure like PHUL or 5/3/1 Boring But Big.
+
+### Can I substitute exercises in Arnold's Golden Six?
+
+Yes. Behind The Neck Press can be swapped for a standard Overhead Press if it bothers your shoulders. Wide Grip Bench Press can be replaced with regular Bench Press. If you can't do chin-ups, use an assisted chin-up machine or do lat pulldowns instead.
+
+### Is Arnold's Golden Six enough for building muscle?
+
+For beginners, yes. The program provides sufficient volume and frequency across all major muscle groups with compound movements. Intermediate or advanced lifters will likely need more volume, exercise variety, and progressive overload strategies than this program offers.
+
 ```liftoscript
 # Week 1
 ## Day 1

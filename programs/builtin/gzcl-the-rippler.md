@@ -65,6 +65,32 @@ Starting from week 11, you'll begin preparing for the 1RM test. You won't perfor
 
 Again, this is just a short description, and for full information and details, please read the [original post with the GZCL applications](http://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html).
 
+<!-- faq -->
+
+### Is The Rippler good for beginners?
+
+The Rippler is best for early intermediates, not complete beginners. If you've finished GZCLP and can no longer add weight every session, The Rippler is a natural next step. You should have at least 6-12 months of consistent training before starting.
+
+### How many days a week is The Rippler?
+
+The Rippler is a 4-day program. Each day features a different T1 main lift (Bench Press, Squat, Overhead Press, Deadlift) with supporting T2 and T3 work.
+
+### How long is The Rippler program?
+
+The Rippler runs for 12 weeks. Weeks 1-10 build strength through undulating intensity patterns, and weeks 11-12 drop the T2 and T3 work so you can peak and test your 1RM on all four main lifts.
+
+### How does the weight progression work in The Rippler?
+
+T1 weights undulate in 4-week blocks, trending upward from about 80% to 95% of your 2RM. T2 weights wave in 3-week blocks with a similar upward trend. T3 exercises use a fixed weight where you aim for max reps, and the app auto-adjusts the weight every 3 weeks based on performance.
+
+### What should I do after The Rippler?
+
+You can run it again with your new 1RM numbers, or move to Jacked and Tan 2.0 for more volume and hypertrophy. Many lifters alternate between The Rippler (strength focus) and JT2.0 (size focus) for well-rounded progress.
+
+### Can I change exercises in The Rippler?
+
+Yes, T3 exercises can be freely swapped for movements that address your weaknesses. T2 exercises should remain close variations of the T1 lifts. Keep the four T1 lifts as-is since the whole program is built around peaking them at week 12.
+
 ```liftoscript
 # Week 1
 ## Day 1

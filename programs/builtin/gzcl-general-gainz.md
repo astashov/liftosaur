@@ -76,6 +76,32 @@ Check the interactive playground below to see how the program works, and what th
 
 You can run the GZCL: General Gainz program in the Liftosaur app.
 
+<!-- faq -->
+
+### Is GZCL General Gainz good for intermediates?
+
+Yes, General Gainz is designed for intermediate to advanced lifters. It combines elements from all previous GZCL programs (GZCLP, VDIP, Jacked & Tan 2.0) into one flexible system. You should have at least a year of training experience and be comfortable estimating rep maxes.
+
+### How many days a week is General Gainz?
+
+General Gainz is typically run as a 4-day program, but the framework is flexible enough for 3-6 days per week. Each day has a T1 heavy compound, a T2 moderate compound, and T3 isolation work.
+
+### How does progression work in General Gainz?
+
+Progression uses four actions: Find (test a rep max), Hold (repeat the same weight and reps), Push (try more reps at the same weight), and Extend (do singles or half-sets after the main set). Once you reach 6RM + 6 singles for T1 or 10RM + all extensions for T2, you increase the weight.
+
+### What is the difference between General Gainz and GZCLP?
+
+GZCLP uses fixed set/rep schemes with automatic linear progression — you add weight every session. General Gainz is autoregulated — you choose when to push, hold, or extend based on how the weight feels. This makes it more flexible but requires more training experience to manage.
+
+### Can I customize exercises in General Gainz?
+
+Yes, the program is a framework, not a fixed routine. You choose your T1, T2, and T3 exercises based on your goals. T1 should be the main competition lifts, T2 should be variations that support T1, and T3 should be isolation work for weak points.
+
+### How long should I run General Gainz?
+
+General Gainz can be run indefinitely because it's autoregulated. There's no fixed cycle length — you just keep finding, pushing, holding, and extending as appropriate. Many lifters run it for 6+ months at a time.
+
 ```liftoscript
 # Week 1
 ## Day 1

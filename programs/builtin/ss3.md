@@ -163,6 +163,32 @@ If starting the program fresh in Phase 3 (not recommended — start from Phase 1
 - **Add accessories**: At this stage, some lifters add 1–2 light accessories after the main lifts: [{Back Extension, Bodyweight}] (3x10), [{Bicep Curl}] (3x10), or [{Hanging Leg Raise}] (3x10). Keep them light and don't let them interfere with recovery for the main lifts.
 - **Drop to 3x3 or 5x1 on lifts near failure**: If you're consistently missing the 5th rep, some coaches recommend temporarily dropping to triples or singles at higher weight to continue progressing before transitioning to intermediate programming.
 
+<!-- faq -->
+
+### Is Starting Strength Phase 3 the last phase?
+
+Yes, Phase 3 is the advanced novice phase — the final stage before transitioning to an intermediate program. It adds chin-ups and creates a 4-workout rotation. Total time on all Starting Strength phases combined is usually 3-9 months.
+
+### How many days a week is Starting Strength Phase 3?
+
+It's still a 3-day program on non-consecutive days (typically Mon/Wed/Fri), but now with a 4-workout rotation instead of Phase 2's simple A/B alternation. The four workouts cycle continuously, shifting the pattern each week.
+
+### What's different about Starting Strength Phase 3?
+
+Phase 3 adds chin-ups on all B-days for upper body pulling volume, and deadlifts and power cleans now alternate within A-days (instead of being fixed to specific workouts). Microloading (2.5lb jumps) becomes essential for upper body lifts.
+
+### Do I need microplates for Starting Strength Phase 3?
+
+Yes, microplates (1.25lb each side for 2.5lb total jumps) are essential at this stage. Without them, you'll stall much sooner on overhead press and bench press. Most gyms don't stock these — buy your own.
+
+### What program should I do after Starting Strength?
+
+The natural continuation is the Texas Method (weekly periodization with volume/recovery/intensity days). Other good options include Madcow 5x5 (weekly progression with ramping sets), 5/3/1 (monthly periodization), or GZCLP (tiered approach with more variety).
+
+### When should I move on from Starting Strength Phase 3?
+
+Move on when you're deloading repeatedly on squat and deadlift despite good sleep and nutrition, and multiple lifts have stalled through 2-3 deload cycles. You may finish linear progression on overhead press months before squat — only change programming for lifts that have truly stalled.
+
 ```liftoscript
 # Week 1
 ## Day A 1

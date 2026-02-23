@@ -9,6 +9,7 @@ import { IAppleOffer, IGoogleOffer } from "../models/state";
 
 export interface IProgramDetail {
   fullDescription: string;
+  faq?: string;
   planner: {
     vtype: "planner";
     name: string;

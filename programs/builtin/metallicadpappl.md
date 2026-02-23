@@ -149,6 +149,32 @@ Signs it's time to move on:
 - **Want more rear delt work:** The 5x15-20 [{Face Pull}] already provides substantial rear delt volume. If you still want more, add [{Reverse Fly}] on pull days.
 - **Supersets for time savings:** The original program supersets [{Triceps Pushdown}] with [{Lateral Raise}], then [{Triceps Extension}] with [{Lateral Raise}]. In this implementation they're listed separately — perform them back-to-back to save time.
 
+<!-- faq -->
+
+### Is Metallicadpa PPL good for beginners?
+
+Yes, it's one of the most popular beginner programs on Reddit. It's designed for lifters with 0-12 months of experience who want to train 6 days per week. You just need basic familiarity with barbell movements like squat, bench, deadlift, and overhead press.
+
+### How many days a week is Metallicadpa PPL?
+
+It's a 6-day program with one rest day per week. You run Push, Pull, Legs twice in a row, then take a day off. If you can't commit to 6 days, you can run it as a 3-day program, but progress will be slower.
+
+### How does progression work on Metallicadpa PPL?
+
+Main compound lifts use linear progression: add 5 lbs per session for bench, overhead press, row, and squat, and 10 lbs per session for deadlift. Accessories use double progression — add reps within the prescribed range, then add 5 lbs when you hit the top of the range.
+
+### What do I do when I stall on Metallicadpa PPL?
+
+If you fail to complete prescribed reps for 3 consecutive sessions on a lift, deload by 10% and work back up. Your AMRAP sets on the way back should beat previous bests. If you're stalling repeatedly after multiple deloads, it's time for an intermediate program.
+
+### Does Metallicadpa PPL have enough leg volume?
+
+Squats only get 3 working sets per session (2x5, 1x5+), which some lifters find low. However, you squat twice per week and also do leg press, Romanian deadlifts, and leg curls. If you still want more, add a fourth squat set or extra leg press sets.
+
+### Should I add ab work to Metallicadpa PPL?
+
+Yes, the base program has no direct ab work. Adding hanging leg raises, ab wheel rollouts, or cable crunches on pull and legs days is a common and recommended modification.
+
 ```liftoscript
 # Week 1
 ## Pull (Deadlift)

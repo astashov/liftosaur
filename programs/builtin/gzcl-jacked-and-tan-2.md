@@ -100,6 +100,32 @@ Check the interactive playground below to see how the program works, and what th
 
 You can run the GZCL: Jacked And Tan 2.0 program in the Liftosaur app.
 
+<!-- faq -->
+
+### Is Jacked and Tan 2.0 good for beginners?
+
+No, Jacked and Tan 2.0 is an intermediate program best suited for lifters who have exhausted beginner linear progression. You should have at least a year of training experience and be comfortable estimating rep maxes. Run GZCLP first if you're still making session-to-session progress.
+
+### How many days a week is Jacked and Tan 2.0?
+
+Jacked and Tan 2.0 is a 4-day program. Each day has a different T1 main lift (Squat, Bench, Deadlift, Overhead Press) along with T2 and T3 accessory work.
+
+### How long is the Jacked and Tan 2.0 program?
+
+The program runs for 12 weeks. Weeks 1-5 build volume at increasing intensity, week 6 tests your 1RM, weeks 7-11 shift to intensity-focused work with drop sets based on your rep max, and week 12 is a final 1RM test.
+
+### What should I run after Jacked and Tan 2.0?
+
+You can run it again with updated maxes, or switch to The Rippler for a pure strength focus. Many lifters alternate between JT2.0 and The Rippler for continued progress across both strength and hypertrophy goals.
+
+### How do the Rep Max sets work in Jacked and Tan 2.0?
+
+For the T1 first set each week, you warm up to a target rep max (10RM in week 1, 8RM in week 2, etc.) and record the weight you hit. Don't worry if you overshoot or undershoot the target reps by a couple — just record what you did and move to the drop sets.
+
+### Can I swap exercises in Jacked and Tan 2.0?
+
+Yes, especially T2b and T3 exercises. Pick movements that support your T1 lifts and address your weak points. T1 exercises should stay as the main competition lifts, and T2a exercises should remain close variations of your T1 movements.
+
 ```liftoscript
 # Week 1
 ## Day 1

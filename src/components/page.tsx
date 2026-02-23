@@ -43,7 +43,17 @@ export interface IJsonLdItemList {
   items: IJsonLdItemListEntry[];
 }
 
-export type IJsonLd = IJsonLdArticle | IJsonLdBreadcrumbs | IJsonLdSoftwareApp | IJsonLdItemList;
+export interface IJsonLdFAQEntry {
+  question: string;
+  answer: string;
+}
+
+export interface IJsonLdFAQ {
+  type: "FAQPage";
+  questions: IJsonLdFAQEntry[];
+}
+
+export type IJsonLd = IJsonLdArticle | IJsonLdBreadcrumbs | IJsonLdSoftwareApp | IJsonLdItemList | IJsonLdFAQ;
 
 function jsonLdToSchema(ld: IJsonLd): object {
   const base = { "@context": "https://schema.org" as const };
@@ -94,6 +104,16 @@ function jsonLdToSchema(ld: IJsonLd): object {
           position: i + 1,
           name: item.name,
           url: item.url,
+        })),
+      };
+    case "FAQPage":
+      return {
+        ...base,
+        "@type": "FAQPage",
+        mainEntity: ld.questions.map((q) => ({
+          "@type": "Question",
+          name: q.question,
+          acceptedAnswer: { "@type": "Answer", text: q.answer },
         })),
       };
   }

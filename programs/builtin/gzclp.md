@@ -70,6 +70,32 @@ Once you can do 25 reps or more - add 5lb to the weight.
 
 Again, this is a brief overview. For comprehensive information and details, please read the [original post with the GZCL applications](https://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html).
 
+<!-- faq -->
+
+### Is GZCLP good for beginners?
+
+Yes, GZCLP is one of the best beginner programs. It's ideal after 3-6 months of a simpler routine like Starting Strength or Basic Beginner. It introduces the tier system (T1/T2/T3) which teaches you how to structure training, and the higher rep counts give you more practice with each lift.
+
+### How many days a week is GZCLP?
+
+GZCLP is a 3-day program. You rotate through 4 different workouts (A1, A2, B1, B2), training 3 days per week with rest days in between. A typical schedule is Monday/Wednesday/Friday.
+
+### How long should I run GZCLP?
+
+Most people run GZCLP for 3-6 months. You should switch when you can no longer make linear progress (adding weight each session). At that point, move to an intermediate program like GZCL The Rippler or GZCL Jacked & Tan 2.0.
+
+### What do I do when I stall on GZCLP?
+
+GZCLP has a built-in stall protocol. When you fail a stage, you move to the next: Stage 1 (5x3) → Stage 2 (6x2) → Stage 3 (10x1). If you fail Stage 3, you reset to 90% of your current weight and restart at Stage 1, or test a new 5RM.
+
+### Can I add accessories to GZCLP?
+
+Yes. The base program has one T3 exercise per day, but you can add 1-2 more T3 exercises. Good additions include face pulls, curls, lateral raises, or ab work. Keep T3 exercises at 3x15+ with light weight.
+
+### What is the difference between GZCLP and GZCL?
+
+GZCL is the overarching training method created by Cody Lefever. GZCLP is a specific beginner program that applies the GZCL principles with linear progression (the "LP" stands for Linear Progression). Other GZCL programs like The Rippler and Jacked & Tan use periodization instead.
+
 ```liftoscript
 # Week 1
 ## Day 1

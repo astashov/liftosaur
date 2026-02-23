@@ -24,6 +24,7 @@ import { Tailwind } from "../../utils/tailwindConfig";
 export interface IProgramDetailsContentProps {
   program: IProgram;
   fullDescription?: string;
+  faq?: string;
   client: Window["fetch"];
   userAgent?: string;
   accountSettings?: ISettings;
@@ -87,6 +88,12 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
               exerciseExample: { settings, evaluatedProgram },
             }}
           />
+          {props.faq && (
+            <Markdown
+              className="program-details-description mt-8"
+              value={`## Frequently Asked Questions\n\n${props.faq}`}
+            />
+          )}
         </div>
         <div className="flex-shrink-0 w-72">
           <div className="lg:sticky lg:top-4">

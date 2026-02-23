@@ -133,6 +133,32 @@ Most of weeks 1-4 is bodyweight, so starting weights only matter for the few wei
 - **4 days per week** (recommended for weeks 5-12): Perform Workout A on Monday and Thursday, Workout B on Tuesday, Workout C on Friday
 - **Can't do chin-ups**: Use [{Lat Pulldown}] with underhand grip as a substitute in weeks 5-8 and 9-12
 
+<!-- faq -->
+
+### Is Strong Curves good for beginners?
+
+Yes, Strong Curves Bootyful Beginnings is specifically designed for beginners with no prior lifting experience. It starts with entirely bodyweight exercises in weeks 1-4 and progressively introduces equipment, so you learn movement patterns before adding load.
+
+### How many days a week is Strong Curves?
+
+The base program is 3 days per week. From weeks 5 onward, the book recommends adding a 4th day by performing Workout A twice per week for additional glute training volume.
+
+### How long is the Strong Curves program?
+
+Bootyful Beginnings is a 12-week program divided into three 4-week phases. Phase 1 is mostly bodyweight, Phase 2 introduces barbells and kettlebells, and Phase 3 uses full barbell compounds like squats and hip thrusts.
+
+### How does progression work on Strong Curves?
+
+The program uses double progression within each phase — add reps until you hit the top of the range, then add 5lb. The primary progression mechanism across the 12 weeks is the phase transitions, which introduce harder exercise variations (bodyweight to barbell).
+
+### Is Strong Curves only for women?
+
+While the book and program are marketed toward women with a focus on glute development, anyone can benefit from the training structure. The emphasis on hip thrusts, glute bridges, and progressive loading builds a strong posterior chain regardless of gender.
+
+### What should I do after Strong Curves Bootyful Beginnings?
+
+After completing the 12 weeks, move to the Gluteal Goddess program (the intermediate program in Strong Curves), which increases to 4 days per week with heavier loads. Other good follow-ups include PHUL for a balanced split or Lyle's Generic Bulking for a dedicated bulk phase.
+
 ```liftoscript
 # Week 1
 ## Workout A

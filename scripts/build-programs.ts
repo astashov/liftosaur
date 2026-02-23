@@ -27,6 +27,7 @@ function extractLiftoscriptBlock(content: string): { markdown: string; liftoscri
 
 interface IProgramDetail {
   fullDescription: string;
+  faq?: string;
   planner: {
     vtype: "planner";
     name: string;
@@ -116,12 +117,21 @@ function buildPrograms(): void {
     const { markdown, liftoscript } = extractLiftoscriptBlock(content);
 
     const moreSeparator = "<!-- more -->";
+    const faqSeparator = "<!-- faq -->";
     const moreIndex = markdown.indexOf(moreSeparator);
     let description: string;
     let fullDescription: string;
+    let faq: string | undefined;
     if (moreIndex !== -1) {
       description = markdown.slice(0, moreIndex).trim();
-      fullDescription = markdown.slice(moreIndex + moreSeparator.length).trim();
+      const afterMore = markdown.slice(moreIndex + moreSeparator.length).trim();
+      const faqIndex = afterMore.indexOf(faqSeparator);
+      if (faqIndex !== -1) {
+        fullDescription = afterMore.slice(0, faqIndex).trim();
+        faq = afterMore.slice(faqIndex + faqSeparator.length).trim();
+      } else {
+        fullDescription = afterMore;
+      }
     } else {
       description = markdown.trim();
       fullDescription = "";
@@ -169,6 +179,7 @@ function buildPrograms(): void {
     programsById[id] = {
       detail: {
         fullDescription,
+        ...(faq ? { faq } : {}),
         planner: { vtype: "planner", name: (frontmatter.name as string) || id, weeks },
       },
       category,

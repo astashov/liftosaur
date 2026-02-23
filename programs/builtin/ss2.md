@@ -150,6 +150,32 @@ If starting the program fresh (skipping Phase 1), use this method for each exerc
 - **Microloading**: When 5lb jumps become too much for [{Overhead Press}] and [{Bench Press}], switch to 2.5lb jumps using fractional plates (1.25lb each side).
 - **No power clean variant**: Replace [{Power Clean}] with [{Deadlift}] 1x5 on Workout B, making deadlift every session. Only viable if your deadlift is still light enough to recover from — otherwise you'll regress to Phase 1's recovery problems.
 
+<!-- faq -->
+
+### Is Starting Strength Phase 2 good for beginners?
+
+Yes, Phase 2 is the main phase of Starting Strength where most beginners spend the longest — typically 2-4 months. You should have completed Phase 1 first (1-3 weeks) or at minimum be comfortable with squat, bench, overhead press, and deadlift form.
+
+### How many days a week is Starting Strength Phase 2?
+
+It's a 3-day program trained on non-consecutive days, typically Monday/Wednesday/Friday. Two alternating workouts (A and B) rotate each session. Workout A has deadlift; Workout B has power clean.
+
+### Can I replace power cleans with rows in Starting Strength?
+
+Yes, bent over rows are the most common power clean substitution. Rows build upper back and posterior chain strength, though you lose the explosive training component. Rippetoe himself allows this substitution for lifters training without a coach.
+
+### How does progression work on Starting Strength Phase 2?
+
+All lifts use linear progression — add 5lb per session for squat, deadlift, bench press, overhead press, and power clean. When 5lb jumps become too much for upper body lifts, switch to 2.5lb jumps using microplates.
+
+### How long should I run Starting Strength Phase 2?
+
+Run it for several weeks to several months — most beginners spend 2-4 months in this phase. Move on when upper body lifts stall despite microloading, or transition directly to an intermediate program after 2-3 deload cycles with no sustained progress.
+
+### What do I do when I stall on Starting Strength?
+
+When you can't complete all prescribed reps for 2 consecutive workouts on a lift, deload by 10% and work back up. Before deloading, check your recovery — sleep 7-9 hours and eat enough protein (0.7-1g per lb bodyweight). Each lift is tracked independently.
+
 ```liftoscript
 # Week 1
 ## Workout A

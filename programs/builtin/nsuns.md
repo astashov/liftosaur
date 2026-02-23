@@ -141,6 +141,32 @@ For accessories, start with the default weights and adjust up or down based on f
 - **Different T2 exercises**: [{Sumo Deadlift}] can be replaced with [{Romanian Deadlift, Barbell}] or [{Stiff Leg Deadlift}]. [{Front Squat}] can be swapped for [{Leg Press}]. [{Bench Press Close Grip}] can be replaced with [{Incline Bench Press, Dumbbell}].
 - **Row variant**: Replace [{Overhead Press}] T2 on Day 1 with [{Bent Over Row}] for lifters who need more back volume.
 
+<!-- faq -->
+
+### Is nSuns good for beginners?
+
+nSuns LP is not ideal for true beginners. It's best suited for late beginners to intermediates with 6-18 months of training experience. You need solid technique on squat, bench, deadlift, and overhead press because you'll be handling heavy loads across 17 compound sets per session.
+
+### How many days a week is nSuns?
+
+nSuns is a 5-day program, typically run Monday through Friday with weekends off. There are also popular 4-day and 6-day variants if you need to adjust the schedule.
+
+### How long should I run nSuns?
+
+Run nSuns LP for 12-20 weeks. It's designed for aggressive linear gains. If you're consistently only hitting 1 rep on AMRAPs even after resetting your 1RM, it's time to move to an intermediate program like 5/3/1 BBB or GZCL The Rippler.
+
+### How does progression work on nSuns?
+
+Progression is based on your AMRAP performance on the T1 top set each session. Hit 2-3 reps and your 1RM goes up 5 lbs, 4-5 reps adds 10 lbs, and 6+ reps adds 15 lbs. If you only get 0-1 reps, the weight stays the same.
+
+### How long do nSuns workouts take?
+
+Sessions routinely take 75-90 minutes because of the 17 compound working sets (9 T1 + 8 T2) plus accessories. Rest times of 2-3 minutes on T1 sets add up quickly. Supersetting accessories with T2 sets can save some time.
+
+### What accessories should I add to nSuns?
+
+The program doesn't prescribe specific accessories — you choose 2-4 per day. The most important addition is pulling work like rows and pull-ups on every session, since 4 of 5 days involve pressing movements and the program is very pressing-heavy.
+
 ```liftoscript
 # Week 1
 ## Day 1

@@ -132,6 +132,32 @@ On your first day, for each exercise:
 - **Bigger deadlift jumps**: If 5lb jumps feel trivially easy in the first week, jump 10–15lb per session on deadlift until it starts feeling heavy. This is expected and normal for Phase 1.
 - **Can't use 45lb bar**: Use dumbbells or a lighter bar until you can handle the standard 45lb barbell. [{Goblet Squat}] is a good substitute for [{Squat}] in this case.
 
+<!-- faq -->
+
+### Is Starting Strength good for beginners?
+
+Yes, Starting Strength is one of the most well-known beginner barbell programs. Phase 1 uses only 4 exercises — squat, bench press, overhead press, and deadlift — making it simple to learn. It's designed for complete beginners stepping into a gym for the first time.
+
+### How many days a week is Starting Strength Phase 1?
+
+It's a 3-day program trained on non-consecutive days, typically Monday/Wednesday/Friday. Two alternating workouts (A and B) rotate each session, with each workout containing only 3 exercises.
+
+### How does progression work on Starting Strength?
+
+Starting Strength uses straight linear progression — you add weight every single session. Squat and deadlift increase by 5lb per session (10-15lb in the first few sessions), and bench press and overhead press increase by 5lb per session.
+
+### How long should I run Starting Strength Phase 1?
+
+Phase 1 is designed for your first 1-3 weeks of training only. Move to Phase 2 when your deadlift gets heavy enough that recovering between sessions becomes difficult. Phase 2 introduces power cleans to replace deadlifts on alternate days.
+
+### What is the difference between Starting Strength phases?
+
+Phase 1 has deadlifts every session while weights are light. Phase 2 replaces deadlifts with power cleans on alternate days to aid recovery. Phase 3 adds chin-ups and creates a 4-workout rotation with both deadlifts and power cleans alternating.
+
+### Why does Starting Strength only have 1 set of deadlifts?
+
+Deadlifts are the most systemically fatiguing lift — they tax the entire posterior chain, grip, and central nervous system. One heavy set of 5 is sufficient stimulus for a novice. As the weight gets heavier, you'll understand why more sets aren't needed.
+
 ```liftoscript
 # Week 1
 ## Workout A

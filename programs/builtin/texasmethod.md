@@ -136,6 +136,32 @@ Barbell, squat rack, bench, and weight plates. That's the core.
 - **More arm work**: Add [{Triceps Extension}] or [{Skullcrusher}] on Volume Day alongside the bicep curls.
 - **Bench emphasis**: If preparing for a meet, run [{Bench Press}] on both Volume and Intensity days every week (dropping the alternation with OHP). Keep [{Overhead Press}] on Recovery Day only.
 
+<!-- faq -->
+
+### Is the Texas Method good for beginners?
+
+No, the Texas Method is an intermediate program designed for lifters who have completed a novice linear progression like Starting Strength or StrongLifts 5x5. You should have 12-24+ months of consistent barbell training before starting.
+
+### How many days a week is the Texas Method?
+
+It's a 3-day program trained Monday/Wednesday/Friday. Monday is Volume Day (5x5), Wednesday is Recovery Day (light work), and Friday is Intensity Day (1x5 PR attempt).
+
+### How does progression work on the Texas Method?
+
+The Texas Method uses weekly linear progression. When you hit your Intensity Day PR (1x5), your 1RM increases by 5lb, which shifts all Volume and Recovery Day weights up proportionally for the next cycle.
+
+### What do I do when I stall on the Texas Method?
+
+First try cutting Monday volume from 5x5 to 4x5 or 3x5. If that doesn't work, reduce Monday weight by 5-10% and rebuild. You can also cycle Intensity Day rep ranges — shift from 1x5 to 2x3, then 3x2, then 5x1, then reset.
+
+### How long should I run the Texas Method?
+
+Run it for 3-6 months. Some lifters get 6-12+ months with modifications, but the basic version has a finite lifespan. Move on when Friday PRs require frequent cycling through triples and doubles or when Volume Day takes 2+ hours.
+
+### Can I replace power cleans in the Texas Method?
+
+Yes. Many lifters use a deadlift variation (deficit deadlifts, sumo deadlifts) or a heavier deadlift set on Intensity Day instead of cleans. Cleans develop explosive power that deadlifts don't, but the substitution works fine for general strength development.
+
 ```liftoscript
 # Week 1
 ## Volume Day
