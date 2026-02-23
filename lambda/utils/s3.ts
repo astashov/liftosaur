@@ -20,6 +20,7 @@ export interface IS3Util {
     contentType: string;
     expiresIn?: number;
   }): Promise<string>;
+  getPresignedDownloadUrl(args: { bucket: string; key: string; expiresIn?: number }): Promise<string>;
 }
 
 export class S3Util implements IS3Util {
@@ -122,5 +123,17 @@ export class S3Util implements IS3Util {
       `- ${Date.now() - startTime}ms`
     );
     return uploadUrl;
+  }
+
+  public async getPresignedDownloadUrl(args: { bucket: string; key: string; expiresIn?: number }): Promise<string> {
+    const startTime = Date.now();
+    const params = {
+      Bucket: args.bucket,
+      Key: args.key,
+      Expires: args.expiresIn || 300,
+    };
+    const downloadUrl = await this.s3.getSignedUrlPromise("getObject", params);
+    this.log.log("S3 presigned download URL generated:", `${args.bucket}/${args.key}`, `- ${Date.now() - startTime}ms`);
+    return downloadUrl;
   }
 }

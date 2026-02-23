@@ -262,6 +262,22 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const exceptionsbucket = new s3.Bucket(this, `LftS3Exceptions${suffix}`, {
       bucketName: `${LftS3Buckets.exceptions}${suffix.toLowerCase()}`,
       lifecycleRules: [{ expiration: cdk.Duration.days(30) }],
+      cors: [
+        {
+          allowedHeaders: ["*"],
+          allowedMethods: [s3.HttpMethods.GET],
+          allowedOrigins: [
+            "http://localhost:3000",
+            "https://www.liftosaur.com",
+            "https://stage.liftosaur.com",
+            `https://${localdomain.main}.liftosaur.com:8080`,
+            "liftosaur://www.liftosaur.com",
+            "liftosaur://stage.liftosaur.com",
+            `liftosaur://${localdomain.main}.liftosaur.com:8080`,
+          ],
+          maxAge: 3000,
+        },
+      ],
     });
 
     const storagesBucket = new s3.Bucket(this, `LftS3Storages${suffix}`, {

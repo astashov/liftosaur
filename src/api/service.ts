@@ -438,11 +438,12 @@ export class Service {
   }
 
   public async getExceptionData(id: string): Promise<string | undefined> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/exception/${id}`);
+    const apiUrl = UrlUtils.build(`${__API_HOST__}/api/exception/${id}`);
     try {
-      const result = await this.client(url.toString(), { credentials: "include" });
+      const result = await this.client(apiUrl.toString(), { credentials: "include" });
       const json = await result.json();
-      return json.data.data;
+      const s3Response = await this.client(json.url);
+      return s3Response.text();
     } catch (_) {
       return undefined;
     }

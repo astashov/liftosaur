@@ -32,4 +32,8 @@ export class MockS3Util implements IS3Util {
   }): Promise<string> {
     return Promise.resolve("https://example.com/presigned-upload-url");
   }
+
+  public getPresignedDownloadUrl(args: { bucket: string; key: string; expiresIn?: number }): Promise<string> {
+    return Promise.resolve("https://example.com/presigned-download-url");
+  }
 }

@@ -2326,13 +2326,11 @@ const getStoreExceptionDataHandler: RouteHandler<
 > = async ({ payload, match: { params } }) => {
   const { di, event } = payload;
   const id = params.id;
-  const exceptionDao = new ExceptionDao(di);
-  const data = await exceptionDao.get(id);
-  if (data) {
-    return ResponseUtils.json(200, event, { data });
-  } else {
-    return ResponseUtils.json(404, event, { error: "Not Found" });
-  }
+  const env = Utils.getEnv();
+  const bucket = env === "dev" ? `${LftS3Buckets.exceptions}dev` : LftS3Buckets.exceptions;
+  const key = `exceptions/${id}`;
+  const url = await di.s3.getPresignedDownloadUrl({ bucket, key, expiresIn: 300 });
+  return ResponseUtils.json(200, event, { url });
 };
 
 const getPlannerShorturlEndpoint = Endpoint.build("/n/:id");
