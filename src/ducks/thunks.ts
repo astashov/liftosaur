@@ -1098,6 +1098,13 @@ export namespace Thunk {
       const result = await ImportExporter.getExportedProgram(env.service.client, maybeProgram, state.storage.settings);
       if (result.success) {
         const { program, customExercises } = result.data;
+        const existingCustomExerciseNames = new Set(
+          CollectionUtils.compact(ObjectUtils.values(state.storage.settings.exercises).map((e) => e?.name))
+        );
+        const newCustomExercises = ObjectUtils.filter(
+          customExercises,
+          (_, v) => v != null && !existingCustomExerciseNames.has(v.name)
+        );
         if (source) {
           program.source = source;
         }
@@ -1126,7 +1133,7 @@ export namespace Thunk {
               .p("storage")
               .p("settings")
               .p("exercises")
-              .recordModify((e) => ({ ...e, ...customExercises })),
+              .recordModify((e) => ({ ...e, ...newCustomExercises })),
             lb<IState>()
               .p("storage")
               .p("programs")
