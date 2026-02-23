@@ -1066,7 +1066,10 @@ const getProgramImageHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   return ImageCacher.cache(di, event, `programimage${event.path}-${params.id}.png`, async () => {
     const result = await new ProgramDao(di).getById(params.id);
     if (result != null) {
-      const imageResult = await new ProgramImageGenerator().generate({ indexEntry: result.indexEntry, fetch: di.fetch });
+      const imageResult = await new ProgramImageGenerator().generate({
+        indexEntry: result.indexEntry,
+        fetch: di.fetch,
+      });
       if (imageResult.success) {
         return { success: true, data: imageResult.data };
       } else {

@@ -1,5 +1,5 @@
 import satori from "satori";
-import sharp from "sharp";
+import { Resvg } from "@resvg/resvg-js";
 import * as fs from "fs";
 import * as path from "path";
 import { IProgramIndexEntry } from "../../src/models/program";
@@ -315,7 +315,8 @@ export class ProgramImageGenerator {
       ],
     });
 
-    const png = await sharp(Buffer.from(svg)).png().toBuffer();
+    const resvg = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } });
+    const png = resvg.render().asPng();
     return { success: true, data: png };
   }
 }
