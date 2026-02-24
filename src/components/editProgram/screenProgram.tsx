@@ -67,10 +67,11 @@ export function ScreenProgram(props: IProps): JSX.Element {
     buildPlannerDispatch(
       props.dispatch,
       (
-        lb<IState>().p("screenStack").findBy("name", "editProgram", true).p("params") as LensBuilder<
+        lb<IState>().p("screenStack").findBy("name", "editProgram", true).pi("params") as LensBuilder<
           IState,
           { plannerState: IPlannerState },
-          {}
+          {},
+          undefined
         >
       ).pi("plannerState"),
       plannerState
