@@ -424,10 +424,12 @@ export class Service {
     url.searchParams.set("historylimit", historylimit.toString());
     const result = await this.client(url.toString(), { credentials: "include" });
     const json = await result.json();
-    json.storage.history = await this.getAllHistoryRecords({
-      alreadyFetchedHistory: json.storage.history,
-      historyLimit: historylimit,
-    });
+    if (json.storage?.history) {
+      json.storage.history = await this.getAllHistoryRecords({
+        alreadyFetchedHistory: json.storage.history,
+        historyLimit: historylimit,
+      });
+    }
     return {
       email: json.email,
       storage: json.storage,
