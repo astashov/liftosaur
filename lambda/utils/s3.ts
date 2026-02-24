@@ -1,16 +1,26 @@
-import { AWSError, S3 } from "aws-sdk";
+import {
+  S3Client,
+  ListObjectsCommand,
+  ListObjectsCommandOutput,
+  GetObjectCommand,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  ObjectCannedACL,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Readable } from "stream";
 import { ILogUtil } from "./log";
 
 export interface IS3Util {
   listObjects(args: { bucket: string; prefix: string }): Promise<string[]>;
-  getObject(args: { bucket: string; key: string }): Promise<AWS.S3.GetObjectOutput["Body"] | undefined>;
+  getObject(args: { bucket: string; key: string }): Promise<Buffer | undefined>;
   putObject(args: {
     bucket: string;
     key: string;
-    body: AWS.S3.PutObjectRequest["Body"];
+    body: string | Buffer | Uint8Array | Readable;
     opts?: {
-      acl?: AWS.S3.ObjectCannedACL;
-      contentType?: AWS.S3.ContentType;
+      acl?: string;
+      contentType?: string;
     };
   }): Promise<void>;
   deleteObject(args: { bucket: string; key: string }): Promise<void>;
@@ -24,13 +34,13 @@ export interface IS3Util {
 }
 
 export class S3Util implements IS3Util {
-  private _s3?: S3;
+  private _s3?: S3Client;
 
   constructor(public readonly log: ILogUtil) {}
 
-  private get s3(): S3 {
+  private get s3(): S3Client {
     if (this._s3 == null) {
-      this._s3 = new S3();
+      this._s3 = new S3Client({});
     }
     return this._s3;
   }
@@ -39,11 +49,11 @@ export class S3Util implements IS3Util {
     const startTime = Date.now();
     let result: string[] = [];
     let nextPageAvailable = true;
-    let nextMarker: AWS.S3.Marker | undefined = undefined;
+    let nextMarker: string | undefined = undefined;
     while (nextPageAvailable) {
-      const response: AWS.S3.ListObjectsOutput = await this.s3
-        .listObjects({ Bucket: args.bucket, Prefix: args.prefix, Marker: nextMarker })
-        .promise();
+      const response: ListObjectsCommandOutput = await this.s3.send(
+        new ListObjectsCommand({ Bucket: args.bucket, Prefix: args.prefix, Marker: nextMarker })
+      );
       result = result.concat(response.Contents?.map((c) => c.Key!) ?? []);
       nextMarker = response.NextMarker;
       nextPageAvailable = !!(response.NextMarker ?? false);
@@ -56,16 +66,18 @@ export class S3Util implements IS3Util {
     return result;
   }
 
-  public async getObject(args: { bucket: string; key: string }): Promise<AWS.S3.GetObjectOutput["Body"] | undefined> {
+  public async getObject(args: { bucket: string; key: string }): Promise<Buffer | undefined> {
     const startTime = Date.now();
-    let result: AWS.S3.GetObjectOutput["Body"] | undefined;
+    let result: Buffer | undefined;
     try {
-      const response = await this.s3.getObject({ Bucket: args.bucket, Key: args.key }).promise();
-      result = response.Body;
+      const response = await this.s3.send(new GetObjectCommand({ Bucket: args.bucket, Key: args.key }));
+      if (response.Body) {
+        result = Buffer.from(await response.Body.transformToByteArray());
+      }
     } catch (error) {
-      const e = error as AWSError;
+      const e = error as Error & { name?: string };
       result = undefined;
-      if (e.code !== "NoSuchKey") {
+      if (e.name !== "NoSuchKey") {
         throw e;
       }
     }
@@ -76,28 +88,28 @@ export class S3Util implements IS3Util {
   public async putObject(args: {
     bucket: string;
     key: string;
-    body: AWS.S3.PutObjectRequest["Body"];
+    body: string | Buffer | Uint8Array | Readable;
     opts?: {
-      acl?: AWS.S3.ObjectCannedACL;
-      contentType?: AWS.S3.ContentType;
+      acl?: ObjectCannedACL;
+      contentType?: string;
     };
   }): Promise<void> {
     const startTime = Date.now();
-    await this.s3
-      .putObject({
+    await this.s3.send(
+      new PutObjectCommand({
         Bucket: args.bucket,
         Key: args.key,
         Body: args.body,
         ACL: args.opts?.acl,
         ContentType: args.opts?.contentType,
       })
-      .promise();
+    );
     this.log.log("S3 put:", `${args.bucket}/${args.key}`, `- ${Date.now() - startTime}ms`);
   }
 
   public async deleteObject(args: { bucket: string; key: string }): Promise<void> {
     const startTime = Date.now();
-    await this.s3.deleteObject({ Bucket: args.bucket, Key: args.key }).promise();
+    await this.s3.send(new DeleteObjectCommand({ Bucket: args.bucket, Key: args.key }));
     this.log.log("S3 delete:", `${args.bucket}/${args.key}`, `- ${Date.now() - startTime}ms`);
   }
 
@@ -108,14 +120,12 @@ export class S3Util implements IS3Util {
     expiresIn?: number;
   }): Promise<string> {
     const startTime = Date.now();
-    const params = {
+    const command = new PutObjectCommand({
       Bucket: args.bucket,
       Key: args.key,
       ContentType: args.contentType,
-      Expires: args.expiresIn || 300,
-    };
-
-    const uploadUrl = await this.s3.getSignedUrlPromise("putObject", params);
+    });
+    const uploadUrl = await getSignedUrl(this.s3, command, { expiresIn: args.expiresIn || 300 });
     this.log.log(
       "S3 presigned URL generated:",
       `${args.bucket}/${args.key}`,
@@ -127,12 +137,11 @@ export class S3Util implements IS3Util {
 
   public async getPresignedDownloadUrl(args: { bucket: string; key: string; expiresIn?: number }): Promise<string> {
     const startTime = Date.now();
-    const params = {
+    const command = new GetObjectCommand({
       Bucket: args.bucket,
       Key: args.key,
-      Expires: args.expiresIn || 300,
-    };
-    const downloadUrl = await this.s3.getSignedUrlPromise("getObject", params);
+    });
+    const downloadUrl = await getSignedUrl(this.s3, command, { expiresIn: args.expiresIn || 300 });
     this.log.log("S3 presigned download URL generated:", `${args.bucket}/${args.key}`, `- ${Date.now() - startTime}ms`);
     return downloadUrl;
   }

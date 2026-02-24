@@ -5,8 +5,14 @@ const fs = require("fs");
 const { DefinePlugin, SourceMapDevToolPlugin } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const commitHash = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
-const fullCommitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
+let commitHash, fullCommitHash;
+try {
+  commitHash = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
+  fullCommitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
+} catch {
+  fullCommitHash = process.env.CODEBUILD_RESOLVED_SOURCE_VERSION || "unknown";
+  commitHash = fullCommitHash.substring(0, 7);
+}
 const bundleVersionIos = 1;
 const bundleVersionAndroid = 1;
 const bundleVersionWatchIos = 1;
@@ -142,10 +148,10 @@ const mainConfig = {
   },
   plugins: [
     new SourceMapDevToolPlugin({
-      append: `\n//# sourceMappingURL=[file].map?version=${commitHash}`,
+      append: `\n//# sourceMappingURL=[name].js.map?version=${commitHash}`,
       filename: "[file].map",
     }),
-    new MiniCssExtractPlugin(),
+    new MiniCssExtractPlugin({ filename: "[name].css" }),
     new DefinePlugin({
       __BUNDLE_VERSION_IOS__: bundleVersionIos,
       __BUNDLE_VERSION_ANDROID__: bundleVersionAndroid,

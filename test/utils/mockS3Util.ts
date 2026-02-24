@@ -1,3 +1,4 @@
+import { Readable } from "stream";
 import { ILogUtil } from "../../lambda/utils/log";
 import { IS3Util } from "../../lambda/utils/s3";
 
@@ -7,16 +8,16 @@ export class MockS3Util implements IS3Util {
   public async listObjects(args: { bucket: string; prefix: string }): Promise<string[]> {
     return [];
   }
-  public async getObject(args: { bucket: string; key: string }): Promise<AWS.S3.GetObjectOutput["Body"] | undefined> {
+  public async getObject(args: { bucket: string; key: string }): Promise<Buffer | undefined> {
     return undefined;
   }
   public async putObject(args: {
     bucket: string;
     key: string;
-    body: AWS.S3.PutObjectRequest["Body"];
+    body: string | Buffer | Uint8Array | Readable;
     opts?: {
-      acl?: AWS.S3.ObjectCannedACL;
-      contentType?: AWS.S3.ContentType;
+      acl?: string;
+      contentType?: string;
     };
   }): Promise<void> {}
 

@@ -1,4 +1,18 @@
-import { Request, DynamoDB, AWSError } from "aws-sdk";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  QueryCommand,
+  QueryCommandOutput,
+  ScanCommand,
+  ScanCommandOutput,
+  GetCommand,
+  PutCommand,
+  UpdateCommand,
+  DeleteCommand,
+  BatchGetCommand,
+  BatchWriteCommand,
+  NativeAttributeValue,
+} from "@aws-sdk/lib-dynamodb";
 import { CollectionUtils } from "../../src/utils/collection";
 import { ILogUtil } from "./log";
 
@@ -9,14 +23,14 @@ export interface IDynamoUtil {
     filterExpression?: string;
     indexName?: string;
     scanIndexForward?: boolean;
-    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    attrs?: Record<string, string>;
     values?: Partial<Record<string, string | string[] | number | number[]>>;
     limit?: number;
   }): Promise<T[]>;
   scan<T>(args: {
     tableName: string;
     filterExpression?: string;
-    names?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    names?: Record<string, string>;
     values?: Partial<Record<string, number | string | string[]>>;
     limit?: number;
   }): Promise<T[]>;
@@ -26,45 +40,47 @@ export interface IDynamoUtil {
     filterExpression?: string;
     indexName?: string;
     scanIndexForward?: boolean;
-    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    attrs?: Record<string, string>;
     values?: Partial<Record<string, string | string[] | number | number[]>>;
     limit?: number;
   }): AsyncGenerator<T[], void, unknown>;
   streamingScan<T>(args: {
     tableName: string;
     filterExpression?: string;
-    names?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    names?: Record<string, string>;
     values?: Partial<Record<string, number | string | string[]>>;
   }): AsyncGenerator<T[], void, unknown>;
-  get<T>(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<T | undefined>;
-  put(args: { tableName: string; item: DynamoDB.DocumentClient.PutItemInputAttributeMap }): Promise<void>;
+  get<T>(args: { tableName: string; key: Record<string, NativeAttributeValue> }): Promise<T | undefined>;
+  put(args: { tableName: string; item: Record<string, NativeAttributeValue> }): Promise<void>;
   putIfNotExists(args: {
     tableName: string;
-    item: DynamoDB.DocumentClient.PutItemInputAttributeMap;
+    item: Record<string, NativeAttributeValue>;
     partitionKey: string;
     sortKey?: string;
   }): Promise<boolean>;
   update(args: {
     tableName: string;
-    key: DynamoDB.DocumentClient.Key;
+    key: Record<string, NativeAttributeValue>;
     expression: string;
-    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
-    values?: Partial<Record<string, unknown>>;
+    attrs?: Record<string, string>;
+    values?: Partial<Record<string, NativeAttributeValue>>;
   }): Promise<void>;
-  remove(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<void>;
-  batchGet<T>(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<T[]>;
-  batchDelete(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<void>;
-  batchPut(args: { tableName: string; items: DynamoDB.DocumentClient.PutItemInputAttributeMap[] }): Promise<void>;
+  remove(args: { tableName: string; key: Record<string, NativeAttributeValue> }): Promise<void>;
+  batchGet<T>(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<T[]>;
+  batchDelete(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<void>;
+  batchPut(args: { tableName: string; items: Record<string, NativeAttributeValue>[] }): Promise<void>;
 }
 
 export class DynamoUtil implements IDynamoUtil {
-  private _dynamo?: DynamoDB.DocumentClient;
+  private _dynamo?: DynamoDBDocumentClient;
 
   constructor(private readonly log: ILogUtil) {}
 
-  private get dynamo(): DynamoDB.DocumentClient {
+  private get dynamo(): DynamoDBDocumentClient {
     if (this._dynamo == null) {
-      this._dynamo = new DynamoDB.DocumentClient();
+      this._dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
+        marshallOptions: { removeUndefinedValues: true },
+      });
     }
     return this._dynamo;
   }
@@ -75,24 +91,26 @@ export class DynamoUtil implements IDynamoUtil {
     filterExpression?: string;
     indexName?: string;
     scanIndexForward?: boolean;
-    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    attrs?: Record<string, string>;
     values?: Partial<Record<string, string | string[] | number>>;
     limit?: number;
   }): Promise<T[]> {
     const startTime = Date.now();
     try {
-      const result = await query<T>((key) => {
-        return this.dynamo.query({
-          TableName: args.tableName,
-          IndexName: args.indexName,
-          ExclusiveStartKey: key,
-          ScanIndexForward: args.scanIndexForward,
-          KeyConditionExpression: args.expression,
-          FilterExpression: args.filterExpression,
-          ExpressionAttributeNames: args.attrs,
-          ExpressionAttributeValues: args.values,
-          Limit: args.limit,
-        });
+      const result = await paginatedQuery<T>(async (key) => {
+        return this.dynamo.send(
+          new QueryCommand({
+            TableName: args.tableName,
+            IndexName: args.indexName,
+            ExclusiveStartKey: key,
+            ScanIndexForward: args.scanIndexForward,
+            KeyConditionExpression: args.expression,
+            FilterExpression: args.filterExpression,
+            ExpressionAttributeNames: args.attrs,
+            ExpressionAttributeValues: args.values,
+            Limit: args.limit,
+          })
+        );
       }, args.limit);
       this.log.log(
         `Dynamo query: ${args.tableName}${args.indexName ? ` (${args.indexName})` : ""} - `,
@@ -117,21 +135,23 @@ export class DynamoUtil implements IDynamoUtil {
   public async scan<T>(args: {
     tableName: string;
     filterExpression?: string;
-    names?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    names?: Record<string, string>;
     values?: Partial<Record<string, number | string | string[]>>;
     limit?: number;
   }): Promise<T[]> {
     const startTime = Date.now();
     try {
-      const result = await query<T>((key) => {
-        return this.dynamo.scan({
-          TableName: args.tableName,
-          ExclusiveStartKey: key,
-          FilterExpression: args.filterExpression,
-          ExpressionAttributeNames: args.names,
-          ExpressionAttributeValues: args.values,
-          Limit: args.limit,
-        });
+      const result = await paginatedQuery<T>(async (key) => {
+        return this.dynamo.send(
+          new ScanCommand({
+            TableName: args.tableName,
+            ExclusiveStartKey: key,
+            FilterExpression: args.filterExpression,
+            ExpressionAttributeNames: args.names,
+            ExpressionAttributeValues: args.values,
+            Limit: args.limit,
+          })
+        );
       }, args.limit);
       this.log.log(`Dynamo scan: ${args.tableName} - `, args.tableName, ` - ${Date.now() - startTime}ms`);
       return result;
@@ -147,7 +167,7 @@ export class DynamoUtil implements IDynamoUtil {
     filterExpression?: string;
     indexName?: string;
     scanIndexForward?: boolean;
-    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    attrs?: Record<string, string>;
     values?: Partial<Record<string, string | string[] | number>>;
     limit?: number;
   }): AsyncGenerator<T[], void, unknown> {
@@ -155,18 +175,20 @@ export class DynamoUtil implements IDynamoUtil {
     let totalItems = 0;
 
     try {
-      for await (const batch of streamingQuery<T>((key) => {
-        return this.dynamo.query({
-          TableName: args.tableName,
-          IndexName: args.indexName,
-          ExclusiveStartKey: key,
-          ScanIndexForward: args.scanIndexForward,
-          KeyConditionExpression: args.expression,
-          FilterExpression: args.filterExpression,
-          ExpressionAttributeNames: args.attrs,
-          ExpressionAttributeValues: args.values,
-          Limit: args.limit,
-        });
+      for await (const batch of streamingPaginatedQuery<T>(async (key) => {
+        return this.dynamo.send(
+          new QueryCommand({
+            TableName: args.tableName,
+            IndexName: args.indexName,
+            ExclusiveStartKey: key,
+            ScanIndexForward: args.scanIndexForward,
+            KeyConditionExpression: args.expression,
+            FilterExpression: args.filterExpression,
+            ExpressionAttributeNames: args.attrs,
+            ExpressionAttributeValues: args.values,
+            Limit: args.limit,
+          })
+        );
       }, args.limit)) {
         yield batch;
         totalItems += batch.length;
@@ -194,21 +216,23 @@ export class DynamoUtil implements IDynamoUtil {
   public async *streamingScan<T>(args: {
     tableName: string;
     filterExpression?: string;
-    names?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    names?: Record<string, string>;
     values?: Partial<Record<string, number | string | string[]>>;
   }): AsyncGenerator<T[], void, unknown> {
     const startTime = Date.now();
     let totalItems = 0;
 
     try {
-      for await (const batch of streamingQuery<T>((key) => {
-        return this.dynamo.scan({
-          TableName: args.tableName,
-          ExclusiveStartKey: key,
-          FilterExpression: args.filterExpression,
-          ExpressionAttributeNames: args.names,
-          ExpressionAttributeValues: args.values,
-        });
+      for await (const batch of streamingPaginatedQuery<T>(async (key) => {
+        return this.dynamo.send(
+          new ScanCommand({
+            TableName: args.tableName,
+            ExclusiveStartKey: key,
+            FilterExpression: args.filterExpression,
+            ExpressionAttributeNames: args.names,
+            ExpressionAttributeValues: args.values,
+          })
+        );
       })) {
         yield batch;
         totalItems += batch.length;
@@ -223,19 +247,16 @@ export class DynamoUtil implements IDynamoUtil {
     }
   }
 
-  public async get<T>(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<T | undefined> {
+  public async get<T>(args: { tableName: string; key: Record<string, NativeAttributeValue> }): Promise<T | undefined> {
     const startTime = Date.now();
     try {
-      const result = await this.dynamo
-        .get({ TableName: args.tableName, Key: args.key })
-        .promise()
-        .then((r) => r.Item as T | undefined);
+      const result = await this.dynamo.send(new GetCommand({ TableName: args.tableName, Key: args.key }));
       this.log.log(`Dynamo get: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
-      return result;
+      return result.Item as T | undefined;
     } catch (error) {
-      const e = error as Error;
+      const e = error as Error & { name?: string };
       this.log.log(`FAILED Dynamo get: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
-      if ("code" in e && e.code === "ResourceNotFoundException") {
+      if (e.name === "ResourceNotFoundException") {
         return undefined;
       } else {
         throw e;
@@ -243,10 +264,10 @@ export class DynamoUtil implements IDynamoUtil {
     }
   }
 
-  public async put(args: { tableName: string; item: DynamoDB.DocumentClient.PutItemInputAttributeMap }): Promise<void> {
+  public async put(args: { tableName: string; item: Record<string, NativeAttributeValue> }): Promise<void> {
     const startTime = Date.now();
     try {
-      await this.dynamo.put({ TableName: args.tableName, Item: args.item }).promise();
+      await this.dynamo.send(new PutCommand({ TableName: args.tableName, Item: args.item }));
     } catch (error) {
       const e = error as Error;
       this.log.log(`FAILED Dynamo put: ${args.tableName} - `, args.item, ` - ${Date.now() - startTime}ms`);
@@ -259,7 +280,7 @@ export class DynamoUtil implements IDynamoUtil {
 
   public async putIfNotExists(args: {
     tableName: string;
-    item: DynamoDB.DocumentClient.PutItemInputAttributeMap;
+    item: Record<string, NativeAttributeValue>;
     partitionKey: string;
     sortKey?: string;
   }): Promise<boolean> {
@@ -275,14 +296,14 @@ export class DynamoUtil implements IDynamoUtil {
         expressionAttributeNames["#sk"] = args.sortKey;
       }
 
-      await this.dynamo
-        .put({
+      await this.dynamo.send(
+        new PutCommand({
           TableName: args.tableName,
           Item: args.item,
           ConditionExpression: conditionExpression,
           ExpressionAttributeNames: expressionAttributeNames,
         })
-        .promise();
+      );
 
       this.log.log(
         `Dynamo putIfNotExists (inserted): ${args.tableName} - `,
@@ -291,8 +312,8 @@ export class DynamoUtil implements IDynamoUtil {
       );
       return true;
     } catch (error) {
-      const e = error as AWSError;
-      if (e.code === "ConditionalCheckFailedException") {
+      const e = error as Error & { name?: string };
+      if (e.name === "ConditionalCheckFailedException") {
         this.log.log(
           `Dynamo putIfNotExists (already exists): ${args.tableName} - `,
           args.item,
@@ -309,22 +330,22 @@ export class DynamoUtil implements IDynamoUtil {
 
   public async update(args: {
     tableName: string;
-    key: DynamoDB.DocumentClient.Key;
+    key: Record<string, NativeAttributeValue>;
     expression: string;
-    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
-    values?: Partial<Record<string, unknown>>;
+    attrs?: Record<string, string>;
+    values?: Partial<Record<string, NativeAttributeValue>>;
   }): Promise<void> {
     const startTime = Date.now();
     try {
-      await this.dynamo
-        .update({
+      await this.dynamo.send(
+        new UpdateCommand({
           TableName: args.tableName,
           Key: args.key,
           UpdateExpression: args.expression,
           ExpressionAttributeNames: args.attrs,
           ExpressionAttributeValues: args.values,
         })
-        .promise();
+      );
     } catch (e) {
       this.log.log(
         `FAILED Dynamo update: ${args.tableName} - `,
@@ -344,15 +365,15 @@ export class DynamoUtil implements IDynamoUtil {
     );
   }
 
-  public async remove(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<void> {
+  public async remove(args: { tableName: string; key: Record<string, NativeAttributeValue> }): Promise<void> {
     const startTime = Date.now();
     try {
-      await this.dynamo
-        .delete({
+      await this.dynamo.send(
+        new DeleteCommand({
           TableName: args.tableName,
           Key: args.key,
         })
-        .promise();
+      );
     } catch (e) {
       this.log.log(`FAILED Dynamo delete: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
       throw e;
@@ -360,12 +381,12 @@ export class DynamoUtil implements IDynamoUtil {
     this.log.log(`Dynamo delete: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
   }
 
-  public async batchGet<T>(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<T[]> {
+  public async batchGet<T>(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<T[]> {
     const startTime = Date.now();
     try {
       const result = await Promise.all(
         CollectionUtils.inGroupsOf(95, args.keys).map((group) => {
-          return this.dynamo.batchGet({ RequestItems: { [args.tableName]: { Keys: group } } }).promise();
+          return this.dynamo.send(new BatchGetCommand({ RequestItems: { [args.tableName]: { Keys: group } } }));
         })
       );
       this.log.log(`Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
@@ -376,7 +397,7 @@ export class DynamoUtil implements IDynamoUtil {
     }
   }
 
-  public async batchDelete(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<void> {
+  public async batchDelete(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<void> {
     if (args.keys.length === 0) {
       return;
     }
@@ -384,8 +405,8 @@ export class DynamoUtil implements IDynamoUtil {
       CollectionUtils.inGroupsOf(25, args.keys).map(async (group) => {
         const startTime = Date.now();
         try {
-          await this.dynamo
-            .batchWrite({
+          await this.dynamo.send(
+            new BatchWriteCommand({
               RequestItems: {
                 [args.tableName]: group.map((key) => ({
                   DeleteRequest: {
@@ -394,7 +415,7 @@ export class DynamoUtil implements IDynamoUtil {
                 })),
               },
             })
-            .promise();
+          );
         } catch (e) {
           this.log.log(`FAILED Dynamo batch delete: ${args.tableName} - `, group, ` - ${Date.now() - startTime}ms`);
           throw e;
@@ -404,10 +425,7 @@ export class DynamoUtil implements IDynamoUtil {
     );
   }
 
-  public async batchPut(args: {
-    tableName: string;
-    items: DynamoDB.DocumentClient.PutItemInputAttributeMap[];
-  }): Promise<void> {
+  public async batchPut(args: { tableName: string; items: Record<string, NativeAttributeValue>[] }): Promise<void> {
     if (args.items.length === 0) {
       return;
     }
@@ -415,8 +433,8 @@ export class DynamoUtil implements IDynamoUtil {
       CollectionUtils.inGroupsOf(25, args.items).map(async (group) => {
         const startTime = Date.now();
         try {
-          await this.dynamo
-            .batchWrite({
+          await this.dynamo.send(
+            new BatchWriteCommand({
               RequestItems: {
                 [args.tableName]: group.map((item) => ({
                   PutRequest: {
@@ -425,7 +443,7 @@ export class DynamoUtil implements IDynamoUtil {
                 })),
               },
             })
-            .promise();
+          );
         } catch (e) {
           this.log.log(
             `FAILED Dynamo batch put: ${args.tableName}`,
@@ -468,14 +486,14 @@ export class DynamoUtil implements IDynamoUtil {
   }
 }
 
-async function query<T>(
-  cb: (key?: DynamoDB.DocumentClient.Key) => Request<DynamoDB.DocumentClient.QueryOutput, AWSError>,
+async function paginatedQuery<T>(
+  cb: (key?: Record<string, NativeAttributeValue>) => Promise<QueryCommandOutput | ScanCommandOutput>,
   limit?: number
 ): Promise<T[]> {
-  let key: DynamoDB.DocumentClient.Key | undefined;
-  let items: DynamoDB.DocumentClient.ItemList = [];
+  let key: Record<string, NativeAttributeValue> | undefined;
+  let items: Record<string, NativeAttributeValue>[] = [];
   do {
-    const result = await cb(key).promise();
+    const result = await cb(key);
     items = items.concat(result.Items || []);
     if (limit != null && items.length >= limit) {
       break;
@@ -485,15 +503,15 @@ async function query<T>(
   return items as T[];
 }
 
-async function* streamingQuery<T>(
-  cb: (key?: DynamoDB.DocumentClient.Key) => Request<DynamoDB.DocumentClient.QueryOutput, AWSError>,
+async function* streamingPaginatedQuery<T>(
+  cb: (key?: Record<string, NativeAttributeValue>) => Promise<QueryCommandOutput | ScanCommandOutput>,
   limit?: number
 ): AsyncGenerator<T[], void, unknown> {
-  let key: DynamoDB.DocumentClient.Key | undefined;
+  let key: Record<string, NativeAttributeValue> | undefined;
   let totalItems = 0;
 
   do {
-    const result = await cb(key).promise();
+    const result = await cb(key);
     const items = result.Items || [];
 
     if (items.length > 0) {

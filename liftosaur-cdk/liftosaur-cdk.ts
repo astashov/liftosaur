@@ -9,13 +9,24 @@ import { aws_iam as iam } from "aws-cdk-lib";
 import { aws_events, aws_events_targets } from "aws-cdk-lib";
 import { aws_cloudfront as cloudfront } from "aws-cdk-lib";
 import { aws_cloudfront_origins as origins } from "aws-cdk-lib";
+import { aws_s3_deployment as s3Deployment } from "aws-cdk-lib";
 import { aws_s3_notifications } from "aws-cdk-lib";
+import { aws_codepipeline as codepipeline } from "aws-cdk-lib";
+import { aws_codepipeline_actions as codepipeline_actions } from "aws-cdk-lib";
+import { aws_codebuild as codebuild } from "aws-cdk-lib";
+import { Construct } from "constructs";
 import { LftS3Buckets } from "../lambda/dao/buckets";
 import childProcess from "child_process";
 import localdomain from "../localdomain";
 
+function getCommitHashes(): { commitHash: string; fullCommitHash: string } {
+  const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
+  const fullCommitHash = childProcess.execSync("git rev-parse HEAD").toString().trim();
+  return { commitHash, fullCommitHash };
+}
+
 export class LiftosaurCdkStack extends cdk.Stack {
-  constructor(scope: cdk.App, id: string, isDev: boolean, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, isDev: boolean, props?: cdk.StackProps) {
     super(scope, id, props);
 
     const suffix = isDev ? "Dev" : "";
@@ -354,8 +365,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       { prefix: "user-uploads/" }
     );
 
-    const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
-    const fullCommitHash = childProcess.execSync("git rev-parse HEAD").toString().trim();
+    const { commitHash, fullCommitHash } = getCommitHashes();
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
       runtime: lambda.Runtime.NODEJS_24_X,
       code: lambda.Code.fromAsset("dist-lambda"),
@@ -545,9 +555,311 @@ export class LiftosaurCdkStack extends cdk.Stack {
       value: `https://streaming-api${isDev ? "-dev" : ""}.liftosaur.com`,
       description: "Custom domain for streaming endpoint (requires DNS setup)",
     });
+
+    // --- Static assets S3 bucket + CloudFront distribution ---
+
+    const staticBucket = new s3.Bucket(this, `LftS3Static${suffix}`, {
+      bucketName: `lftstatic${suffix.toLowerCase()}`,
+      publicReadAccess: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      websiteIndexDocument: "index.html",
+      blockPublicAccess: new s3.BlockPublicAccess({
+        blockPublicAcls: false,
+        ignorePublicAcls: false,
+        blockPublicPolicy: false,
+        restrictPublicBuckets: false,
+      }),
+    });
+
+    const stripStaticPrefix = new cloudfront.Function(this, `LftStripStaticPrefix${suffix}`, {
+      functionName: `LftStripStaticPrefix${suffix}`,
+      code: cloudfront.FunctionCode.fromInline(`
+        function handler(event) {
+          event.request.uri = event.request.uri.replace(/^\\/static/, '');
+          return event.request;
+        }
+      `),
+    });
+
+    const s3Origin = new origins.S3StaticWebsiteOrigin(staticBucket);
+
+    const addCharset = new cloudfront.Function(this, `LftAddCharset${suffix}`, {
+      functionName: `LftAddCharset${suffix}`,
+      code: cloudfront.FunctionCode.fromInline(`
+        function handler(event) {
+          var resp = event.response;
+          var ct = resp.headers['content-type'];
+          if (ct && ct.value && ct.value.indexOf('charset') === -1) {
+            if (ct.value.indexOf('javascript') !== -1 || ct.value.indexOf('text/') === 0) {
+              resp.headers['content-type'] = { value: ct.value + '; charset=utf-8' };
+            }
+          }
+          return resp;
+        }
+      `),
+    });
+
+    const s3CorsPolicy = new cloudfront.ResponseHeadersPolicy(this, `LftS3Cors${suffix}`, {
+      corsBehavior: {
+        accessControlAllowOrigins: ["*"],
+        accessControlAllowHeaders: ["*"],
+        accessControlAllowMethods: ["GET", "HEAD"],
+        accessControlAllowCredentials: false,
+        originOverride: false,
+      },
+    });
+
+    const s3CachedBehavior: cloudfront.BehaviorOptions = {
+      origin: s3Origin,
+      cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      responseHeadersPolicy: s3CorsPolicy,
+      functionAssociations: [
+        {
+          function: addCharset,
+          eventType: cloudfront.FunctionEventType.VIEWER_RESPONSE,
+        },
+      ],
+    };
+
+    const mainDomain = isDev ? "stage.liftosaur.com" : "www.liftosaur.com";
+
+    const rewriteUrls = new cloudfront.Function(this, `LftRewriteUrls${suffix}`, {
+      functionName: `LftRewriteUrls${suffix}`,
+      code: cloudfront.FunctionCode.fromInline(`
+        function handler(event) {
+          var uri = event.request.uri;
+          if (uri === '/' || uri === '/about') {
+            event.request.uri = '/main';
+          } else if (uri === '/record') {
+            event.request.uri = '/api/record';
+          } else if (uri === '/recordimage') {
+            event.request.uri = '/api/recordimage';
+          } else if (uri.indexOf('/programimage/') === 0) {
+            event.request.uri = '/api' + uri;
+          } else if (uri === '/app') {
+            return { statusCode: 301, statusDescription: 'Moved Permanently', headers: { location: { value: '/app/' } } };
+          } else if (uri === '/docs') {
+            return { statusCode: 301, statusDescription: 'Moved Permanently', headers: { location: { value: '/blog/docs' } } };
+          } else if (uri === '/blog') {
+            return { statusCode: 301, statusDescription: 'Moved Permanently', headers: { location: { value: '/blog/' } } };
+          }
+          return event.request;
+        }
+      `),
+    });
+
+    const externalImagesOrigin = new origins.HttpOrigin("liftosaurimages2.s3-us-west-2.amazonaws.com");
+    const userImagesBucket = isDev ? "liftosauruserimagesdev" : "liftosauruserimages";
+    const userImagesOrigin = new origins.HttpOrigin(`${userImagesBucket}.s3-us-west-2.amazonaws.com`);
+
+    const stripPathPrefix = new cloudfront.Function(this, `LftStripPathPrefix${suffix}`, {
+      functionName: `LftStripPathPrefix${suffix}`,
+      code: cloudfront.FunctionCode.fromInline(`
+        function handler(event) {
+          event.request.uri = event.request.uri.replace(/^\\/[^\\/]+/, '');
+          return event.request;
+        }
+      `),
+    });
+
+    const mainDistribution = new cloudfront.Distribution(this, `LftMainDistribution${suffix}`, {
+      certificate: streamingCert,
+      domainNames: [mainDomain],
+      defaultBehavior: {
+        origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
+          originPath: `/${restApi.deploymentStage.stageName}`,
+        }),
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        functionAssociations: [
+          {
+            function: rewriteUrls,
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
+      },
+      additionalBehaviors: {
+        "/static/*": {
+          origin: s3Origin,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: stripStaticPrefix,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
+        "*.js": s3CachedBehavior,
+        "*.css": s3CachedBehavior,
+        "*.map": s3CachedBehavior,
+        "*.html": s3CachedBehavior,
+        "*.txt": s3CachedBehavior,
+        "*.webmanifest": s3CachedBehavior,
+        "*.zip": s3CachedBehavior,
+        "*.m4r": s3CachedBehavior,
+        "/app/*": s3CachedBehavior,
+        "/icons/*": s3CachedBehavior,
+        "/fonts/*": s3CachedBehavior,
+        "/images/*": s3CachedBehavior,
+        "/programdata/*": s3CachedBehavior,
+        "/blog/*": s3CachedBehavior,
+        "/docs/*": s3CachedBehavior,
+        "/.well-known/*": s3CachedBehavior,
+        "/externalimages/*": {
+          origin: externalImagesOrigin,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: stripPathPrefix,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
+        "/userimages/*": {
+          origin: userImagesOrigin,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: stripPathPrefix,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
+      },
+    });
+
+    new s3Deployment.BucketDeployment(this, `LftDeployStatic${suffix}`, {
+      sources: [s3Deployment.Source.asset("dist")],
+      destinationBucket: staticBucket,
+      distribution: mainDistribution,
+      distributionPaths: ["/*"],
+      memoryLimit: 1024,
+      ephemeralStorageSize: cdk.Size.mebibytes(1024),
+    });
+
+    new cdk.CfnOutput(this, `MainDistributionDomain${suffix}`, {
+      value: mainDistribution.distributionDomainName,
+      description: "CloudFront distribution domain for main site",
+    });
+  }
+}
+
+class LiftosaurPipelineStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, isDev: boolean, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    const suffix = isDev ? "Dev" : "";
+    const branch = isDev ? "redesign" : "master";
+    const stackName = isDev ? "LiftosaurStackDev" : "LiftosaurStack";
+
+    const sourceOutput = new codepipeline.Artifact();
+
+    const buildProject = new codebuild.PipelineProject(this, `LftBuild${suffix}`, {
+      projectName: `LiftosaurBuild${suffix}`,
+      buildSpec: codebuild.BuildSpec.fromObject({
+        version: "0.2",
+        phases: {
+          install: {
+            "runtime-versions": { nodejs: "22" },
+            commands: ["npm ci", "npm install -g aws-cdk"],
+          },
+          build: {
+            commands: [
+              ...(isDev ? ["export STAGE=1"] : []),
+              "npm run build:prepare",
+              "npm run build:lambda",
+              `cdk deploy ${stackName} --require-approval never`,
+            ],
+          },
+        },
+      }),
+      environment: {
+        buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
+        privileged: true,
+        computeType: codebuild.ComputeType.MEDIUM,
+      },
+      timeout: cdk.Duration.minutes(30),
+    });
+
+    buildProject.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: ["arn:aws:iam::*:role/cdk-*"],
+      })
+    );
+    buildProject.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "cloudformation:*",
+          "s3:*",
+          "lambda:*",
+          "iam:*",
+          "apigateway:*",
+          "dynamodb:*",
+          "events:*",
+          "cloudfront:*",
+          "acm:*",
+          "secretsmanager:GetSecretValue",
+          "ses:*",
+          "ssm:GetParameter",
+          "ecr:*",
+          "logs:*",
+        ],
+        resources: ["*"],
+      })
+    );
+
+    const sourceAction = new codepipeline_actions.CodeStarConnectionsSourceAction({
+      actionName: "GitHub",
+      connectionArn: "arn:aws:codeconnections:us-west-2:366191129585:connection/818034fa-10b0-45f0-9895-3d7d2b9991fd",
+      owner: "astashov",
+      repo: "liftosaur",
+      branch,
+      output: sourceOutput,
+      codeBuildCloneOutput: true,
+      triggerOnPush: false,
+    });
+
+    new codepipeline.Pipeline(this, `LftPipeline${suffix}`, {
+      pipelineName: `Liftosaur${suffix}`,
+      pipelineType: codepipeline.PipelineType.V2,
+      triggers: [
+        {
+          providerType: codepipeline.ProviderType.CODE_STAR_SOURCE_CONNECTION,
+          gitConfiguration: {
+            sourceAction,
+            pushFilter: [{ branchesIncludes: [branch] }],
+          },
+        },
+      ],
+      stages: [
+        {
+          stageName: "Source",
+          actions: [sourceAction],
+        },
+        {
+          stageName: "BuildAndDeploy",
+          actions: [
+            new codepipeline_actions.CodeBuildAction({
+              actionName: "BuildAndDeploy",
+              project: buildProject,
+              input: sourceOutput,
+            }),
+          ],
+        },
+      ],
+    });
   }
 }
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-new LiftosaurCdkStack(app, "LiftosaurStack", false);
+// new LiftosaurCdkStack(app, "LiftosaurStack", false);
+new LiftosaurPipelineStack(app, "LiftosaurPipelineDev", true);
+// new LiftosaurPipelineStack(app, "LiftosaurPipeline", false);

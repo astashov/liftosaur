@@ -1,4 +1,4 @@
-import { DynamoDB } from "aws-sdk";
+import { NativeAttributeValue } from "@aws-sdk/lib-dynamodb";
 import { IDynamoUtil } from "../../lambda/utils/dynamo";
 import { ILogUtil } from "../../lambda/utils/log";
 import deepmerge from "deepmerge";
@@ -25,7 +25,7 @@ export class MockDynamoUtil implements IDynamoUtil {
 
   private buildCondition<T>(args: {
     filterExpression: string;
-    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    attrs?: Record<string, string>;
     values?: Partial<Record<string, string | string[] | number | number[]>>;
   }): (item: T) => boolean {
     let expression = args.filterExpression;
@@ -55,7 +55,7 @@ export class MockDynamoUtil implements IDynamoUtil {
     filterExpression?: string;
     indexName?: string;
     scanIndexForward?: boolean;
-    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    attrs?: Record<string, string>;
     values?: Partial<Record<string, string | string[] | number>>;
   }): Promise<T[]> {
     let values = ObjectUtils.values(this.data[args.tableName] || {}) as unknown as T[];
@@ -77,17 +77,17 @@ export class MockDynamoUtil implements IDynamoUtil {
     return Promise.resolve(ObjectUtils.clone(values));
   }
 
-  private getKey(key: DynamoDB.DocumentClient.Key): string {
-    const keys = ObjectUtils.keys(key).sort();
+  private getKey(key: Record<string, NativeAttributeValue>): string {
+    const keys = Object.keys(key).sort();
     return JSON.stringify(key, keys);
   }
 
-  public async get<T>(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<T | undefined> {
+  public async get<T>(args: { tableName: string; key: Record<string, NativeAttributeValue> }): Promise<T | undefined> {
     const value = this.data[args.tableName]?.[this.getKey(args.key)] as T | undefined;
     return ObjectUtils.clone(value);
   }
 
-  public async put(args: { tableName: string; item: DynamoDB.DocumentClient.PutItemInputAttributeMap }): Promise<void> {
+  public async put(args: { tableName: string; item: Record<string, NativeAttributeValue> }): Promise<void> {
     const keyNames = idKeys[args.tableName];
     if (keyNames) {
       const key = keyNames.reduce((memo, k) => ({ ...memo, [k]: args.item[k] }), {});
@@ -100,7 +100,7 @@ export class MockDynamoUtil implements IDynamoUtil {
 
   public putIfNotExists(args: {
     tableName: string;
-    item: DynamoDB.DocumentClient.PutItemInputAttributeMap;
+    item: Record<string, NativeAttributeValue>;
     partitionKey: string;
     sortKey?: string;
   }): Promise<boolean> {
@@ -117,33 +117,30 @@ export class MockDynamoUtil implements IDynamoUtil {
 
   public async update(args: {
     tableName: string;
-    key: DynamoDB.DocumentClient.Key;
+    key: Record<string, NativeAttributeValue>;
     expression: string;
-    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    attrs?: Record<string, string>;
     values?: Partial<Record<string, unknown>>;
   }): Promise<void> {
     // console.log("update", args);
   }
 
-  public async remove(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<void> {
+  public async remove(args: { tableName: string; key: Record<string, NativeAttributeValue> }): Promise<void> {
     const key = this.getKey(args.key);
     delete this.data[args.tableName]?.[key];
   }
 
-  public async batchGet<T>(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<T[]> {
+  public async batchGet<T>(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<T[]> {
     return CollectionUtils.compact(
       await Promise.all(args.keys.map((key) => this.get<T>({ tableName: args.tableName, key })))
     );
   }
-  public async batchDelete(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<void> {
+  public async batchDelete(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<void> {
     for (const key of args.keys) {
       await this.remove({ tableName: args.tableName, key });
     }
   }
-  public async batchPut(args: {
-    tableName: string;
-    items: DynamoDB.DocumentClient.PutItemInputAttributeMap[];
-  }): Promise<void> {
+  public async batchPut(args: { tableName: string; items: Record<string, NativeAttributeValue>[] }): Promise<void> {
     for (const item of args.items) {
       await this.put({ tableName: args.tableName, item });
     }
@@ -155,7 +152,7 @@ export class MockDynamoUtil implements IDynamoUtil {
     filterExpression?: string;
     indexName?: string;
     scanIndexForward?: boolean;
-    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    attrs?: Record<string, string>;
     values?: Partial<Record<string, string | string[] | number | number[]>>;
     limit?: number;
   }): AsyncGenerator<T[], void, unknown> {

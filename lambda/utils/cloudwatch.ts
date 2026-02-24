@@ -1,4 +1,8 @@
-import { CloudWatchLogs } from "aws-sdk";
+import {
+  CloudWatchLogsClient,
+  DescribeLogGroupsCommand,
+  FilterLogEventsCommand,
+} from "@aws-sdk/client-cloudwatch-logs";
 import { DateUtils } from "../../src/utils/date";
 import { ILogUtil } from "./log";
 import fs from "fs";
@@ -9,13 +13,13 @@ export interface ICloudwatchUtil {
 }
 
 export class CloudwatchUtil implements ICloudwatchUtil {
-  private _cloudwatch?: CloudWatchLogs;
+  private _cloudwatch?: CloudWatchLogsClient;
 
   constructor(private readonly log: ILogUtil) {}
 
-  private get cloudwatch(): CloudWatchLogs {
+  private get cloudwatch(): CloudWatchLogsClient {
     if (this._cloudwatch == null) {
-      this._cloudwatch = new CloudWatchLogs();
+      this._cloudwatch = new CloudWatchLogsClient({});
     }
     return this._cloudwatch;
   }
@@ -30,7 +34,7 @@ export class CloudwatchUtil implements ICloudwatchUtil {
       ]
     );
     const env = Utils.getEnv();
-    const logGroupsResponse = await this.cloudwatch.describeLogGroups().promise();
+    const logGroupsResponse = await this.cloudwatch.send(new DescribeLogGroupsCommand({}));
     const logGroupName = logGroupsResponse.logGroups?.find((r) =>
       r.logGroupName?.includes(`LftLambda${env === "dev" ? "Dev" : ""}`)
     )?.logGroupName;
@@ -57,15 +61,15 @@ export class CloudwatchUtil implements ICloudwatchUtil {
     const filterPattern = userid ? `"[${userid}]"` : undefined;
 
     do {
-      const response = await this.cloudwatch
-        .filterLogEvents({
+      const response = await this.cloudwatch.send(
+        new FilterLogEventsCommand({
           logGroupName,
           startTime: startOfDay.getTime(),
           endTime: endOfDay.getTime(),
           nextToken,
           filterPattern,
         })
-        .promise();
+      );
 
       const events = response.events || [];
       pageCount += 1;
