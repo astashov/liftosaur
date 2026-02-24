@@ -55,7 +55,7 @@ export class NativeStorage {
   constructor() {
     this.pendingRequests = new Map();
     window.addEventListener("message", (event) => {
-      if (event.data != null) {
+      if (event.data != null && this.isStorageResponse(event.data)) {
         this.handleResponse(event.data);
       }
     });
@@ -143,6 +143,22 @@ export class NativeStorage {
 
   private generateRequestId(): string {
     return `req_${UidFactory.generateUid(8)}`;
+  }
+
+  private isStorageResponse(data: unknown): data is IStorageResponse {
+    if (typeof data !== "object" || data === null) {
+      return false;
+    }
+    const obj = data as Record<string, unknown>;
+    return (
+      typeof obj.type === "string" &&
+      (obj.type === "storageGetResult" ||
+        obj.type === "storageSetResult" ||
+        obj.type === "storageDeleteResult" ||
+        obj.type === "storageHasResult" ||
+        obj.type === "storageGetAllKeysResult") &&
+      typeof obj.requestId === "string"
+    );
   }
 
   private handleResponse(data: IStorageResponse): void {
