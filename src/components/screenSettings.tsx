@@ -15,7 +15,7 @@ import { ClipboardUtils_copy } from "../utils/clipboard";
 import { Share_generateProfileLink } from "../models/share";
 import { useEffect, useState } from "preact/hooks";
 import { ILengthUnit, ISettings, IStats, ISubscription, IUnit } from "../types";
-import { WhatsNew_showWhatsNew } from "../models/whatsnew";
+import { WhatsNew_showWhatsNew } from "../models/whatsnewUtils";
 import { ImporterStorage } from "./importerStorage";
 import { ImporterProgram } from "./importerProgram";
 import { NavbarView } from "./navbar";

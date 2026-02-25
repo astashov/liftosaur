@@ -32,7 +32,7 @@ import { Exporter_toFile } from "../utils/exporter";
 import { DateUtils_formatYYYYMMDD, DateUtils_format } from "../utils/date";
 import { getInitialState } from "./reducer";
 import { IndexedDBUtils_get, IndexedDBUtils_remove } from "../utils/indexeddb";
-import { WhatsNew_updateStorage } from "../models/whatsnew";
+import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
 import { Screen_currentName, Screen_shouldConfirmNavigation, Screen_updateParams } from "../models/screen";
 import {
   Subscriptions_listOfSubscriptions,

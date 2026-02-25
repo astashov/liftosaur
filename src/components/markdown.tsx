@@ -5,7 +5,6 @@ import { LinkButton } from "./linkButton";
 import { IEvaluatedProgram } from "../models/program";
 import { ISettings } from "../types";
 import { Exercise_findByNameAndEquipment } from "../models/exercise";
-import { ProgramDetailsExerciseExample } from "../pages/programs/programDetails/programDetailsExerciseExample";
 import { ExerciseTooltip } from "./exerciseTooltip";
 
 const md = new MarkdownIt({ html: true, linkify: true });
@@ -143,15 +142,17 @@ function hydrateExerciseExampleDirectives(
       }));
     }
 
-    render(
-      <ProgramDetailsExerciseExample
-        program={evaluatedProgram}
-        settings={settings}
-        programExerciseKey={key}
-        exerciseType={exerciseType}
-        weekSetup={weekSetup}
-      />,
-      el as HTMLElement
-    );
+    import("../pages/programs/programDetails/programDetailsExerciseExample").then((mod) => {
+      render(
+        <mod.ProgramDetailsExerciseExample
+          program={evaluatedProgram}
+          settings={settings}
+          programExerciseKey={key}
+          exerciseType={exerciseType}
+          weekSetup={weekSetup}
+        />,
+        el as HTMLElement
+      );
+    });
   }
 }
