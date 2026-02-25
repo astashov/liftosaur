@@ -1737,17 +1737,19 @@ const getProgramDetailsHandler: RouteHandler<
     } catch (e) {
       // Fall back to description from program
     }
-    const userResult = await getUserAccount(payload);
-    const account = userResult.success ? userResult.data.account : undefined;
-    const settings = userResult.success ? userResult.data.user.storage.settings : undefined;
+    const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
+    const isLoggedIn = authState === "yes";
 
     return {
       statusCode: 200,
-      body: renderProgramDetailsHtml(program, di.fetch, fullDescription, faq, userAgent, account, settings, indexEntry),
-      headers: { "content-type": "text/html" },
+      body: renderProgramDetailsHtml(program, di.fetch, fullDescription, faq, userAgent, isLoggedIn, indexEntry),
+      headers: {
+        "content-type": "text/html",
+        "cache-control": "public, s-maxage=86400, max-age=3600",
+      },
     };
   } else {
-    return { statusCode: 404, body: "Not Found", headers: { "content-type": "text/html" } };
+    return { statusCode: 404, body: "Not Found", headers: { "content-type": "text/html", "cache-control": "no-cache" } };
   }
 };
 

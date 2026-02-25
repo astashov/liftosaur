@@ -1,9 +1,8 @@
 import { h, JSX } from "preact";
 import MarkdownIt from "markdown-it";
 import { IJsonLd, IJsonLdFAQEntry, Page } from "../../components/page";
-import { IAccount } from "../../models/account";
 import { IProgramIndexEntry } from "../../models/program";
-import { IProgram, ISettings } from "../../types";
+import { IProgram } from "../../types";
 import { ProgramDetailsContent } from "./programDetailsContent";
 
 interface IProps {
@@ -12,14 +11,13 @@ interface IProps {
   faq?: string;
   userAgent?: string;
   client: Window["fetch"];
-  account?: IAccount;
-  accountSettings?: ISettings;
+  isLoggedIn?: boolean;
   indexEntry?: IProgramIndexEntry;
 }
 
 export function ProgramDetailsHtml(props: IProps): JSX.Element {
   const { program, indexEntry } = props;
-  const { client, ...data } = props;
+  const { client, isLoggedIn, ...data } = props;
   const title = `${program.name} Workout Program - Free Tracker & Guide | Liftosaur`;
   const url = `https://www.liftosaur.com/programs/${program.id}`;
   const description = buildMetaDescription(program, indexEntry);
@@ -44,7 +42,7 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
         <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/themes/prism.min.css" rel="stylesheet" />
       }
       client={client}
-      isLoggedIn={!!props.account}
+      isLoggedIn={!!props.isLoggedIn}
     >
       <ProgramDetailsContent {...props} client={props.client} />
     </Page>

@@ -1,8 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { useState } from "preact/hooks";
 import { Settings_build } from "../../models/settings";
-import { IProgram, ISettings } from "../../types";
-import { IAccount } from "../../models/account";
+import { IProgram, IUnit } from "../../types";
 import { ProgramDetailsWorkoutPlayground } from "./programDetails/programDetailsWorkoutPlayground";
 import { ProgramDetailsUpsell } from "./programDetails/programDetailsUpsell";
 import { ProgramDetailsAddButton } from "./programDetails/programDetailsAddButton";
@@ -32,14 +31,14 @@ export interface IProgramDetailsContentProps {
   faq?: string;
   client: Window["fetch"];
   userAgent?: string;
-  accountSettings?: ISettings;
-  account?: IAccount;
+  isLoggedIn?: boolean;
+  units?: IUnit;
   indexEntry?: IProgramIndexEntry;
 }
 
 export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.Element {
-  const { program, accountSettings, indexEntry } = props;
-  const settings = accountSettings || Settings_build();
+  const { program, indexEntry } = props;
+  const settings = props.units ? { ...Settings_build(), units: props.units } : Settings_build();
   const fullProgram = Program_fullProgram(ObjectUtils_clone(program), settings);
   const evaluatedProgram = Program_evaluate(ObjectUtils_clone(program), settings);
   const descriptionText = props.fullDescription || program.description;
@@ -144,7 +143,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
                   <ProgramDetailsAddButton
                     program={program}
                     settings={settings}
-                    account={props.account}
+                    isLoggedIn={props.isLoggedIn}
                     client={props.client}
                   />
                 </div>

@@ -704,7 +704,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
         ],
       },
       additionalBehaviors: {
-        "/programs": {
+        "/programs*": {
           origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
             originPath: `/${restApi.deploymentStage.stageName}`,
           }),

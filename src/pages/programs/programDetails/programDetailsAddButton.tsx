@@ -1,7 +1,6 @@
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
 import { IProgram, ISettings } from "../../../types";
-import { IAccount } from "../../../models/account";
 import { Program_exportProgram } from "../../../models/program";
 import { Service } from "../../../api/service";
 import {
@@ -19,7 +18,7 @@ declare let __HOST__: string;
 interface IProps {
   program: IProgram;
   settings: ISettings;
-  account?: IAccount;
+  isLoggedIn?: boolean;
   client: Window["fetch"];
 }
 
@@ -31,10 +30,10 @@ export function ProgramDetailsAddButton(props: IProps): JSX.Element {
     <Button
       className="w-full"
       name="add-program-to-account"
-      kind={props.account ? "purple" : "grayv2"}
+      kind={props.isLoggedIn ? "purple" : "grayv2"}
       disabled={isLoading}
       onClick={async () => {
-        if (!props.account) {
+        if (!props.isLoggedIn) {
           alert("You should be logged in");
           return;
         }
