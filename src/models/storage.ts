@@ -329,7 +329,3 @@ export function Storage_applyUpdate(storage: IPartialStorage, updateWithStats: I
   return newStorage;
 }
 
-if (typeof window !== "undefined") {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any).Storage = Storage;
-}

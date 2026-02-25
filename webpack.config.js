@@ -30,6 +30,13 @@ const watchConfig = {
     filename: "watch-bundle.js",
     path: path.resolve(__dirname, "dist"),
   },
+  optimization: {
+    splitChunks: false,
+  },
+  externals: {
+    module: "var { createRequire: function() { return function() { return {} } } }",
+    stream: "var {}",
+  },
   devtool: false,
   module: {
     rules: [
