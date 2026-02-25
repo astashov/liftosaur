@@ -19,6 +19,7 @@ interface IProps {
   settings?: ISettings;
   className?: string;
   customClassName?: string;
+  width?: number;
 }
 
 export function ExerciseImage(props: IProps): JSX.Element | null {
@@ -46,19 +47,23 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
       }
     }
   }, []);
-  let className = `inline ${props.className} `;
-  if (isLoading || isError) {
-    className += "invisible h-0";
-  }
   const src = ExerciseImageUtils_url(exerciseType, size, props.settings);
   const doesExist =
     ExerciseImageUtils_exists(exerciseType, size) ||
     ExerciseImageUtils_existsCustom(exerciseType, size, !!props.suppressCustom, props.settings);
 
   if (size === "small") {
+    let className = `inline ${props.className} `;
+    const imgAttrs: { width?: number; height?: number } = {};
+    if (props.width) {
+      imgAttrs.width = props.width;
+      imgAttrs.height = Math.round(props.width * 1.5);
+    } else if (isLoading || isError) {
+      className += "invisible h-0";
+    }
     return (
       <>
-        {!isError && doesExist && <img data-cy="exercise-image-small" ref={imgRef} className={className} src={src} />}
+        {!isError && doesExist && <img data-cy="exercise-image-small" ref={imgRef} className={className} src={src} {...imgAttrs} />}
         {isError ||
           (!doesExist &&
             (props.useTextForCustomExercise ? (
@@ -85,6 +90,10 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
       </>
     );
   } else {
+    let className = `inline ${props.className} `;
+    if (isLoading || isError) {
+      className += "invisible h-0";
+    }
     return doesExist ? (
       <>
         <img ref={imgRef} data-cy="exercise-image-large" className={className} src={src} />

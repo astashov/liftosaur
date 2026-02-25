@@ -204,6 +204,8 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         {props.jsonLd?.map((ld) => (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdToSchema(ld)) }} />
         ))}
+        <link rel="preload" href="/fonts/Poppins-Regular.latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/Poppins-Bold.latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         {props.postHead}
       </head>
       <body>
