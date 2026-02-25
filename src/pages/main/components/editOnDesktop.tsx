@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { IconLaptop } from "../../../components/icons/iconLaptop";
-import { Tailwind } from "../../../utils/tailwindConfig";
+import { Tailwind_colors } from "../../../utils/tailwindConfig";
 
 export function EditOnDesktop(): JSX.Element {
   return (
@@ -9,8 +9,8 @@ export function EditOnDesktop(): JSX.Element {
         <div className="flex flex-col md:flex-row">
           <div className="flex-1 px-4 py-12 md:px-12 md:py-20">
             <div className="flex items-center gap-2 mb-4">
-              <IconLaptop color={Tailwind.colors().purple[400]} />
-              <span className="text-sm font-semibold" style={{ color: Tailwind.colors().purple[400] }}>
+              <IconLaptop color={Tailwind_colors().purple[400]} />
+              <span className="text-sm font-semibold" style={{ color: Tailwind_colors().purple[400] }}>
                 Program Web Editor
               </span>
             </div>
@@ -23,7 +23,7 @@ export function EditOnDesktop(): JSX.Element {
             <a
               href="/planner"
               className="inline-block font-bold underline"
-              style={{ color: Tailwind.colors().purple[400] }}
+              style={{ color: Tailwind_colors().purple[400] }}
             >
               Try the Web Editor
             </a>

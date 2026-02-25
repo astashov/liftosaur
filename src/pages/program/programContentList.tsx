@@ -30,7 +30,7 @@ import {
   Program_create,
 } from "../../models/program";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
-import { UrlUtils } from "../../utils/url";
+import { UrlUtils_build } from "../../utils/url";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { lb } from "lens-shmens";
 import { ObjectUtils_values } from "../../utils/object";
@@ -52,7 +52,7 @@ async function saveProgram(newProgram: IProgram, service: Service): Promise<void
   };
   const result = await service.postSaveProgram(exportedProgram);
   if (result.success) {
-    window.location.href = UrlUtils.build(
+    window.location.href = UrlUtils_build(
       `/user/p/${encodeURIComponent(result.data)}`,
       window.location.href
     ).toString();

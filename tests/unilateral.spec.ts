@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_clickAll,
+  PlaywrightUtils_typeKeyboard,
+} from "./playwrightUtils";
 
 test("Unilateral exercises", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
@@ -10,8 +16,8 @@ test("Unilateral exercises", async ({ page }) => {
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
-  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
-  await PlaywrightUtils.typeCodeMirror(
+  await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils_typeCodeMirror(
     page,
     "planner-editor",
     `# Week 1
@@ -40,13 +46,13 @@ Bicep Curl / 2x5, 1x5+ / 10lb / warmup: none
   await expect(page.getByTestId("entry-squat").getByTestId("input-set-reps-field")).toHaveCount(5);
   await expect(page.getByTestId("entry-squat").getByTestId("input-set-left-reps-field")).toHaveCount(5);
 
-  await PlaywrightUtils.clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-squat").getByTestId("input-set-left-reps-field").nth(2),
     "4"
   );
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-squat").getByTestId("input-set-left-reps-field").nth(3),
     "6"
@@ -56,7 +62,7 @@ Bicep Curl / 2x5, 1x5+ / 10lb / warmup: none
   await expect(page.getByTestId("entry-bicep-curl").getByTestId("input-set-reps-field")).toHaveCount(3);
   await expect(page.getByTestId("entry-bicep-curl").getByTestId("input-set-left-reps-field")).toHaveCount(3);
 
-  await PlaywrightUtils.clickAll(page.getByTestId("entry-bicep-curl").getByTestId("complete-set"));
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-bicep-curl").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("3");
   await page.getByTestId("modal-amrap-left-input").fill("2");
   await page.getByTestId("modal-amrap-submit").click();

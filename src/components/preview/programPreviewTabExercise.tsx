@@ -6,7 +6,10 @@ import {
   Exercise_nameWithEquipment,
   Exercise_fullName,
 } from "../../models/exercise";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_currentDescription,
+  PlannerProgramExercise_getState,
+} from "../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IHistoryEntry, ISettings, IStats } from "../../types";
 import { StringUtils_dashcase } from "../../utils/string";
@@ -14,7 +17,7 @@ import { ExerciseImage } from "../exerciseImage";
 import { HistoryRecordSetsView } from "../historyRecordSets";
 import { Markdown } from "../markdown";
 import { IconEditSquare } from "../icons/iconEditSquare";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlaygroundExerciseEditModal";
@@ -53,7 +56,7 @@ interface IProgramPreviewTabExerciseProps {
 export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps): JSX.Element {
   const exercise = Exercise_get(props.entry.exercise, props.settings.exercises);
   const programExercise = props.programExercise;
-  const description = PlannerProgramExercise.currentDescription(programExercise);
+  const description = PlannerProgramExercise_currentDescription(programExercise);
   const currentEquipmentName = Equipment_getEquipmentNameForExerciseType(props.settings, exercise);
   const currentEquipmentNotes = Equipment_getEquipmentDataForExerciseType(props.settings, exercise)?.notes;
   const exerciseNotes = Exercise_getNotes(props.entry.exercise, props.settings);
@@ -179,7 +182,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
                 .p("exercises")
                 .find((e) => e.key === programExercise.key),
               {
-                [stateKey]: Program_stateValue(PlannerProgramExercise.getState(programExercise), stateKey, newValue),
+                [stateKey]: Program_stateValue(PlannerProgramExercise_getState(programExercise), stateKey, newValue),
               }
             );
             const newEvaluatedProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), props.program);
@@ -250,7 +253,7 @@ function ProgramPreviewTabExerciseTopBar(props: IProgramPreviewTabExerciseTopBar
             );
           }}
         >
-          <IconEditSquare color={Tailwind.semantic().icon.neutralsubtle} />
+          <IconEditSquare color={Tailwind_semantic().icon.neutralsubtle} />
         </button>
       </div>
     </div>

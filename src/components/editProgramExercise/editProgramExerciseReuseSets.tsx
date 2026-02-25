@@ -9,10 +9,13 @@ import { IDayData, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IEvaluatedProgram, Program_getReusingSetsExercises } from "../../models/program";
 import { InputSelect } from "../inputSelect";
-import { PP } from "../../models/pp";
+import { PP_iterate2 } from "../../models/pp";
 import { lb } from "lens-shmens";
 import { ObjectUtils_entries, ObjectUtils_mapValues, ObjectUtils_keys, ObjectUtils_clone } from "../../utils/object";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import {
+  EditProgramUiHelpers_changeCurrentInstanceExercise,
+  EditProgramUiHelpers_changeCurrentInstance2,
+} from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { LinkButton } from "../linkButton";
 import { EditProgramExerciseReuseAtWeekDay } from "./editProgramExerciseReuseAtWeekDay";
 
@@ -32,7 +35,7 @@ function getReuseSetsCandidates(
   dayData: Required<IDayData>
 ): Record<string, IReuseCandidate> {
   const result: Record<string, IReuseCandidate> = {};
-  PP.iterate2(evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
+  PP_iterate2(evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
     if (
       exercise.key === key &&
       ((dayData.week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1) || exercise.isRepeat)
@@ -120,7 +123,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
           onChange={(value) => {
             let isProgressEnabled = props.ui.isProgressEnabled;
             let isUpdateEnabled = props.ui.isUpdateEnabled;
-            EditProgramUiHelpers.changeCurrentInstanceExercise(
+            EditProgramUiHelpers_changeCurrentInstanceExercise(
               props.plannerDispatch,
               plannerExercise,
               props.settings,
@@ -218,7 +221,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                 data-cy="edit-exercise-remove-override-sets"
                 name="edit-exercise-remove-override-sets"
                 onClick={() => {
-                  EditProgramUiHelpers.changeCurrentInstanceExercise(
+                  EditProgramUiHelpers_changeCurrentInstanceExercise(
                     props.plannerDispatch,
                     plannerExercise,
                     props.settings,
@@ -241,7 +244,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                 onClick={() => {
                   props.plannerDispatch(
                     lbProgram.recordModify((program) => {
-                      return EditProgramUiHelpers.changeCurrentInstance2(
+                      return EditProgramUiHelpers_changeCurrentInstance2(
                         program,
                         plannerExercise,
                         props.settings,

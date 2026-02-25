@@ -5,7 +5,7 @@ import { Button } from "./button";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import StorySlider from "./storySlider";
 import { IconKettlebell } from "./icons/iconKettlebell";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconWorkoutProgress } from "./icons/iconWorkoutProgress";
 import { IconEditor } from "./icons/iconEditor";
 import { IconTracker } from "./icons/iconTracker";
@@ -29,13 +29,13 @@ export function ScreenFirst(props: IProps): JSX.Element {
           slides={[
             <FirstSlide />,
             <RestSlide
-              bgColorHexFrom={Tailwind.colors().purple[200]}
-              bgColorHexTo={Tailwind.colors().purple[100]}
+              bgColorHexFrom={Tailwind_colors().purple[200]}
+              bgColorHexTo={Tailwind_colors().purple[100]}
               bgColor="bg-purple-100"
               borderColor="border-purplev3-200"
               header={
                 <span>
-                  <IconKettlebell color={Tailwind.colors().purple[600]} className="inline-block mr-1 align-middle" />
+                  <IconKettlebell color={Tailwind_colors().purple[600]} className="inline-block mr-1 align-middle" />
                   <span className="align-middle text-text-purple">Weightlifting Programs</span>
                 </span>
               }
@@ -43,14 +43,14 @@ export function ScreenFirst(props: IProps): JSX.Element {
               image="slide-2-image"
             />,
             <RestSlide
-              bgColorHexFrom={Tailwind.colors().yellow[200]}
-              bgColorHexTo={Tailwind.colors().yellow[100]}
+              bgColorHexFrom={Tailwind_colors().yellow[200]}
+              bgColorHexTo={Tailwind_colors().yellow[100]}
               bgColor="bg-yellow-100"
               borderColor="border-border-cardyellow"
               header={
                 <span>
                   <IconWorkoutProgress
-                    color={Tailwind.colors().yellow[600]}
+                    color={Tailwind_colors().yellow[600]}
                     className="inline-block mr-1 align-middle"
                   />
                   <span className="align-middle text-icon-yellow">Workout Tracker</span>
@@ -60,13 +60,13 @@ export function ScreenFirst(props: IProps): JSX.Element {
               image="slide-3-image"
             />,
             <RestSlide
-              bgColorHexFrom={Tailwind.colors().purple[200]}
-              bgColorHexTo={Tailwind.colors().purple[100]}
+              bgColorHexFrom={Tailwind_colors().purple[200]}
+              bgColorHexTo={Tailwind_colors().purple[100]}
               bgColor="bg-purple-100"
               borderColor="border-purplev3-200"
               header={
                 <span>
-                  <IconEditor color={Tailwind.colors().purple[600]} className="inline-block mr-1 align-middle" />
+                  <IconEditor color={Tailwind_colors().purple[600]} className="inline-block mr-1 align-middle" />
                   <span className="align-middle text-text-purple">Program Editor</span>
                 </span>
               }
@@ -74,13 +74,13 @@ export function ScreenFirst(props: IProps): JSX.Element {
               image="slide-4-image"
             />,
             <RestSlide
-              bgColorHexFrom={Tailwind.colors().red[200]}
-              bgColorHexTo={Tailwind.colors().red[100]}
+              bgColorHexFrom={Tailwind_colors().red[200]}
+              bgColorHexTo={Tailwind_colors().red[100]}
               bgColor="bg-red-100"
               borderColor="border-red-200"
               header={
                 <span>
-                  <IconTracker color={Tailwind.colors().red[600]} className="inline-block mr-1 align-middle" />
+                  <IconTracker color={Tailwind_colors().red[600]} className="inline-block mr-1 align-middle" />
                   <span className="align-middle text-text-error">Workout History</span>
                 </span>
               }

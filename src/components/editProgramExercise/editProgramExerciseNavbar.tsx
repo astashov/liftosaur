@@ -17,7 +17,7 @@ import { IconSwap } from "../icons/iconSwap";
 import { delayfn } from "../../utils/throttler";
 import { ReactUtils_usePropToRef } from "../../utils/react";
 import { pickerStateFromPlannerExercise } from "../editProgram/editProgramUtils";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IEditProgramExerciseNavbarProps {
   state: IPlannerExerciseState;
@@ -53,7 +53,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           <IconUndo
             width={20}
             height={20}
-            color={!canUndo(props.state) ? Tailwind.semantic().icon.light : Tailwind.semantic().icon.neutral}
+            color={!canUndo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
           />
         </button>
         <button
@@ -67,7 +67,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
             width={20}
             height={20}
             style={{ transform: "scale(-1,  1)" }}
-            color={!canRedo(props.state) ? Tailwind.semantic().icon.light : Tailwind.semantic().icon.neutral}
+            color={!canRedo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
           />
         </button>
       </div>

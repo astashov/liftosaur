@@ -61,7 +61,7 @@ import { ImportExporter_handleUniversalLink } from "../lib/importexporter";
 import { ModalSignupRequest } from "./modalSignupRequest";
 import { SendMessage_toAndroid, SendMessage_toIos, SendMessage_print } from "../utils/sendMessage";
 import { ModalCorruptedState } from "./modalCorruptedState";
-import { UrlUtils } from "../utils/url";
+import { UrlUtils_build } from "../utils/url";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { useLoopCatcher } from "../utils/useLoopCatcher";
 import { Equipment_getEquipmentOfGym } from "../models/equipment";
@@ -74,7 +74,7 @@ import RB from "rollbar";
 import { exceptionIgnores } from "../utils/rollbar";
 import { ScreenWorkout } from "./screenWorkout";
 import { Account_getFromStorage } from "../models/account";
-import { ImagePreloader } from "../utils/imagePreloader";
+import { ImagePreloader_preload, ImagePreloader_dynocoach } from "../utils/imagePreloader";
 import { ScreenEditProgramExercise } from "./editProgramExercise/screenEditProgramExercise";
 import { FallbackScreen } from "./fallbackScreen";
 import { Screen1RM } from "./screen1RM";
@@ -123,7 +123,7 @@ export function AppView(props: IProps): JSX.Element | null {
 
   useEffect(() => {
     const url =
-      typeof window !== "undefined" ? UrlUtils.build(window.location.href, "https://liftosaur.com") : undefined;
+      typeof window !== "undefined" ? UrlUtils_build(window.location.href, "https://liftosaur.com") : undefined;
     const urlUserId = url != null ? url.searchParams.get("userid") || undefined : undefined;
     if (state.adminKey != null && urlUserId != null) {
       const storageId = url != null ? url.searchParams.get("storageid") || undefined : undefined;
@@ -346,7 +346,7 @@ export function AppView(props: IProps): JSX.Element | null {
     }
 
     if (state.storage.history.length === 0) {
-      ImagePreloader.preload(ImagePreloader.dynocoach);
+      ImagePreloader_preload(ImagePreloader_dynocoach);
     }
 
     Settings_applyTheme(state.storage.settings.theme || (window.lftSystemDarkMode ? "dark" : "light"));

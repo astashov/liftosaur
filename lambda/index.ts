@@ -37,7 +37,7 @@ import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
 import { Subscriptions } from "./utils/subscriptions";
 import * as ClientSubscription from "../src/utils/subscriptions";
-import { NodeEncoder } from "./utils/nodeEncoder";
+import { NodeEncoder_decode } from "./utils/nodeEncoder";
 import { renderProgramHtml } from "./program";
 import {
   IExportedProgram,
@@ -65,7 +65,7 @@ import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
 import { ExceptionDao } from "./dao/exceptionDao";
-import { UrlUtils } from "../src/utils/url";
+import { UrlUtils_build, UrlUtils_buildSafe } from "../src/utils/url";
 import { RollbarUtils_checkIgnore } from "../src/utils/rollbar";
 import { IAccount, Account_getFromStorage } from "../src/models/account";
 import { Storage_get, Storage_updateVersions } from "../src/models/storage";
@@ -75,7 +75,7 @@ import { getUserImagesPrefix, LftS3Buckets } from "./dao/buckets";
 import { IStorageUpdate, IStorageUpdate2 } from "../src/utils/sync";
 import { IEventPayload, IPostSyncResponse } from "../src/api/service";
 import { Settings_applyExportedProgram } from "../src/models/settings";
-import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
+import { PlannerProgram_generateFullText } from "../src/pages/planner/models/plannerProgram";
 import { renderLoginHtml } from "./login";
 import { ExerciseImageUtils_exists } from "../src/models/exerciseImage";
 import { Exercise_fromUrlSlug } from "../src/models/exercise";
@@ -91,7 +91,7 @@ import { renderUserDashboardHtml } from "./userDashboard";
 import { renderPaymentsDashboardHtml, IPaymentsDashboardData } from "./paymentsDashboard";
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { UrlContentFetcher } from "./utils/urlContentFetcher";
-import { LlmPrompt } from "./utils/llms/llmPrompt";
+import { LlmPrompt_getSystemPrompt, LlmPrompt_getUserPrompt } from "./utils/llms/llmPrompt";
 import { AiLogsDao } from "./dao/aiLogsDao";
 import { ICollectionVersions } from "../src/models/versionTracker";
 import { ObjectUtils_values, ObjectUtils_keys } from "../src/utils/object";
@@ -349,7 +349,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
   // Support both compressed (with data field) and uncompressed payloads
   let bodyJson: Record<string, unknown>;
   if (rawBodyJson.data && typeof rawBodyJson.data === "string") {
-    const bodyJsonStr = await NodeEncoder.decode(rawBodyJson.data);
+    const bodyJsonStr = await NodeEncoder_decode(rawBodyJson.data);
     bodyJson = JSON.parse(bodyJsonStr);
   } else {
     bodyJson = rawBodyJson;
@@ -651,7 +651,7 @@ const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof sav
   const debugDao = new DebugDao(di);
   let debugData: string;
   if (typeof data === "string") {
-    debugData = await NodeEncoder.decode(data);
+    debugData = await NodeEncoder_decode(data);
   } else {
     debugData = JSON.stringify(data);
   }
@@ -1748,7 +1748,7 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const data = params.data;
   if (data) {
     try {
-      const initialProgramJson = await NodeEncoder.decode(data);
+      const initialProgramJson = await NodeEncoder_decode(data);
       const programData: IExportedProgram | IExportedPlannerProgram = JSON.parse(initialProgramJson);
       if ("type" in programData && programData.type === "v2") {
         initialProgram = Program_exportedPlannerProgramToExportedProgram(programData);
@@ -1808,7 +1808,7 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 
   if (data) {
     try {
-      const exportedProgramJson = await NodeEncoder.decode(data);
+      const exportedProgramJson = await NodeEncoder_decode(data);
       const result = await ImportExporter_getExportedProgram(di.fetch, exportedProgramJson);
       if (result.success) {
         program = result.data;
@@ -1961,7 +1961,7 @@ const getProgramRevisionHandler: RouteHandler<
   if (!program || !program.planner) {
     return ResponseUtils_json(404, event, { error: "not_found" });
   }
-  const fulltext = PlannerProgram.generateFullText(program.planner.weeks);
+  const fulltext = PlannerProgram_generateFullText(program.planner.weeks);
   return ResponseUtils_json(200, event, { text: fulltext });
 };
 
@@ -2144,8 +2144,8 @@ const postAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
     }
 
     // Generate the full prompt
-    const systemPrompt = LlmPrompt.getSystemPrompt();
-    const userPrompt = LlmPrompt.getUserPrompt(content);
+    const systemPrompt = LlmPrompt_getSystemPrompt();
+    const userPrompt = LlmPrompt_getUserPrompt(content);
     const fullPrompt = `${systemPrompt}\n\n---\n\n${userPrompt}`;
 
     return ResponseUtils_json(200, event, { prompt: fullPrompt });
@@ -2288,7 +2288,7 @@ async function _getProgramShorturlResponseHandler(
 ): Promise<APIGatewayProxyResult> {
   const urlString = await new UrlDao(di).get(id);
   if (urlString) {
-    const url = UrlUtils.build(urlString, "https://www.liftosaur.com");
+    const url = UrlUtils_build(urlString, "https://www.liftosaur.com");
     const data = url.searchParams.get("data");
     const s = url.searchParams.get("s");
     const u = url.searchParams.get("u");
@@ -2325,7 +2325,7 @@ const postStoreExceptionDataHandler: RouteHandler<
   const exceptionDao = new ExceptionDao(di);
   let exceptionData: string;
   if (typeof data === "string") {
-    exceptionData = await NodeEncoder.decode(data);
+    exceptionData = await NodeEncoder_decode(data);
   } else {
     exceptionData = JSON.stringify(data);
   }
@@ -2371,12 +2371,12 @@ const getProgramShorturlHandler: RouteHandler<
   const isMobile = Mobile_isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
   const urlString = await new UrlDao(di).get(id);
   if (urlString) {
-    const url = UrlUtils.build(urlString, "https://www.liftosaur.com");
+    const url = UrlUtils_build(urlString, "https://www.liftosaur.com");
     const data = url.searchParams.get("data");
     const source = url.searchParams.get("s") || undefined;
     if (data) {
       try {
-        const exportedProgramJson = await NodeEncoder.decode(data);
+        const exportedProgramJson = await NodeEncoder_decode(data);
         const result = await ImportExporter_getExportedProgram(di.fetch, exportedProgramJson);
         if (result.success) {
           program = result.data;
@@ -2438,7 +2438,7 @@ const postShortUrlHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
     return ResponseUtils_json(400, event, {});
   }
   if (userid || src) {
-    const uriResult = UrlUtils.buildSafe(url, "https://www.liftosaur.com");
+    const uriResult = UrlUtils_buildSafe(url, "https://www.liftosaur.com");
     if (uriResult.success) {
       const uri = uriResult.data;
       if (userid) {
@@ -2771,7 +2771,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
     r = repmaxpairswords.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
     r = repmaxpairnums.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
 
-    const url = UrlUtils.build(event.path, "http://example.com");
+    const url = UrlUtils_build(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {
       const value = (event.queryStringParameters || {})[key];
       url.searchParams.set(key, value || "");

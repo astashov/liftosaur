@@ -58,7 +58,7 @@ function findTargets(project: Project, typeFilter: string, targetFilter?: string
 
   for (const sf of project.getSourceFiles()) {
     const fp = sf.getFilePath();
-    if (fp.includes("node_modules") || fp.endsWith(".d.ts") || fp.includes("/worktrees/")) continue;
+    if (fp.includes("node_modules") || fp.endsWith(".d.ts") || fp.includes("/worktrees/") || fp.includes("/lambda/scripts/")) continue;
     if (fileFilter && !fp.includes(fileFilter)) continue;
 
     if (typeFilter === "all" || typeFilter === "namespace") {
@@ -236,7 +236,7 @@ function processTarget(project: Project, target: Target): void {
 
   for (const sf of project.getSourceFiles()) {
     const fp = sf.getFilePath();
-    if (fp.includes("node_modules") || fp.endsWith(".d.ts") || fp.includes("/worktrees/")) continue;
+    if (fp.includes("node_modules") || fp.endsWith(".d.ts") || fp.includes("/worktrees/") || fp.includes("/lambda/scripts/")) continue;
 
     const replacements: { node: Node; newText: string }[] = [];
     const fileUsages = new Set<string>();
@@ -283,7 +283,7 @@ function processTarget(project: Project, target: Target): void {
   // These may use the container as a value (e.g., sandbox.stub(Foo, "bar")) and need manual fixing.
   for (const sf of project.getSourceFiles()) {
     const fp = sf.getFilePath();
-    if (fp.includes("node_modules") || fp.endsWith(".d.ts") || fp.includes("/worktrees/")) continue;
+    if (fp.includes("node_modules") || fp.endsWith(".d.ts") || fp.includes("/worktrees/") || fp.includes("/lambda/scripts/")) continue;
     if (fp === target.filePath) continue;
     if (usagesByFile.has(fp)) continue;
 

@@ -2,7 +2,7 @@ import RB, { Dictionary, LogArgument } from "rollbar";
 import { Service } from "../api/service";
 import { IState } from "../models/state";
 import { UidFactory_generateUid } from "./generator";
-import { Encoder } from "./encoder";
+import { Encoder_encode } from "./encoder";
 
 declare let __ENV__: string;
 declare let __FULL_COMMIT_HASH__: string;
@@ -118,7 +118,7 @@ export function RollbarUtils_config(payload?: object): RB.Configuration {
         validationErrors: window.lastValidationErrors ? JSON.stringify(window.lastValidationErrors) : undefined,
       };
       console.log("Sending exception", data);
-      const compressed = await Encoder.encode(JSON.stringify(data));
+      const compressed = await Encoder_encode(JSON.stringify(data));
       fetch(`${__API_HOST__}/api/exception`, {
         method: "POST",
         body: JSON.stringify({ id, data: compressed }),

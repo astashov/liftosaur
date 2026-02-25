@@ -5,10 +5,13 @@ import { ObjectUtils_keys } from "../../utils/object";
 import { ExerciseImage } from "../exerciseImage";
 import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { HistoryRecordSet } from "../historyRecordSets";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_currentEvaluatedSetVariation,
+  PlannerProgramExercise_evaluatedSetsToDisplaySets,
+} from "../../pages/planner/models/plannerProgramExercise";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { Exercise_eq } from "../../models/exercise";
-import { ExercisePickerUtils } from "./exercisePickerUtils";
+import { ExercisePickerUtils_getIsMultiselect, ExercisePickerUtils_chooseProgramExercise } from "./exercisePickerUtils";
 import { StringUtils_dashcase } from "../../utils/string";
 
 interface IProps {
@@ -21,7 +24,7 @@ interface IProps {
 }
 
 export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
-  const isMultiselect = ExercisePickerUtils.getIsMultiselect(props.state);
+  const isMultiselect = ExercisePickerUtils_getIsMultiselect(props.state);
   const exercisesToDays = props.week.days.reduce<Record<string, IPlannerProgramExercise[]>>((acc, day) => {
     day.exercises.forEach((exercise) => {
       if (!acc[exercise.key]) {
@@ -92,8 +95,8 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                   (ex) => "exerciseType" in ex && Exercise_eq(ex.exerciseType, anExerciseType)
                 );
                 const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, anExerciseType));
-                const currentSetVariation = PlannerProgramExercise.currentEvaluatedSetVariation(exercise);
-                const displayGroups = PlannerProgramExercise.evaluatedSetsToDisplaySets(
+                const currentSetVariation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
+                const displayGroups = PlannerProgramExercise_evaluatedSetsToDisplaySets(
                   currentSetVariation.sets,
                   props.settings
                 );
@@ -123,7 +126,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                                 })}
                                 checked={isSelected}
                                 onChange={() => {
-                                  ExercisePickerUtils.chooseProgramExercise(
+                                  ExercisePickerUtils_chooseProgramExercise(
                                     props.dispatch,
                                     anExerciseType,
                                     exercise.dayData.week,
@@ -142,7 +145,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                                 data-cy={`exercise-picker-program-${StringUtils_dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`}
                                 type="checkbox"
                                 onChange={() => {
-                                  ExercisePickerUtils.chooseProgramExercise(
+                                  ExercisePickerUtils_chooseProgramExercise(
                                     props.dispatch,
                                     anExerciseType,
                                     exercise.dayData.week,

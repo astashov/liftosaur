@@ -30,7 +30,7 @@ import {
   History_calories,
 } from "../models/history";
 import { Reps_setWarmupStatus, Reps_setsStatus, Reps_findNextEntryAndSetIndex, Reps_addSet } from "../models/set";
-import { Sync, IStorageUpdate2 } from "../utils/sync";
+import { IStorageUpdate2, Sync_getStorageUpdate2 } from "../utils/sync";
 import {
   IStorage,
   ISet,
@@ -67,12 +67,15 @@ import {
   Progress_stopTimerPure,
 } from "../models/progress";
 import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_getStateMetadata,
+  PlannerProgramExercise_getState,
+} from "../pages/planner/models/plannerProgramExercise";
 import { ObjectUtils_keys } from "../utils/object";
 import { Collector } from "../utils/collector";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { SendMessage_toIos } from "../utils/sendMessage";
-import { LiveActivityManager } from "../utils/liveActivityManager";
+import { LiveActivityManager_updateProgressLiveActivity } from "../utils/liveActivityManager";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { lg } from "../utils/posthog";
 import { CollectionUtils_uniqByExpr } from "../utils/collection";
@@ -537,7 +540,7 @@ class LiftosaurWatch {
       if (lastSyncedStorage.version != null && unrunMigrations(lastSyncedStorage).length > 0) {
         lastSyncedStorage = runMigrations(lastSyncedStorage);
       }
-      const update: IStorageUpdate2 = Sync.getStorageUpdate2(currentStorage, lastSyncedStorage, deviceId);
+      const update: IStorageUpdate2 = Sync_getStorageUpdate2(currentStorage, lastSyncedStorage, deviceId);
       return JSON.stringify(update);
     } catch (e) {
       return JSON.stringify({ error: String(e) });
@@ -607,7 +610,7 @@ class LiftosaurWatch {
       if (set.isCompleted) {
         console.log(`Main App: Set already completed, refreshing live activity`);
         const program = getProgram(storage);
-        LiveActivityManager.updateProgressLiveActivity(
+        LiveActivityManager_updateProgressLiveActivity(
           program,
           progress,
           storage.settings,
@@ -671,7 +674,7 @@ class LiftosaurWatch {
           `Main app: Incoming rest timer data does not match current state, refreshing live activity. ${incomingRestTimer} != ${timer} || ${incomingRestTimerSince} != ${timerSince}`
         );
         if (!skipLiveActivityUpdate) {
-          LiveActivityManager.updateProgressLiveActivity(
+          LiveActivityManager_updateProgressLiveActivity(
             program,
             progress,
             storage.settings,
@@ -978,8 +981,8 @@ class LiftosaurWatch {
           : undefined;
 
         if (programExercise) {
-          const stateMetadata = PlannerProgramExercise.getStateMetadata(programExercise) || {};
-          const state = PlannerProgramExercise.getState(programExercise);
+          const stateMetadata = PlannerProgramExercise_getStateMetadata(programExercise) || {};
+          const state = PlannerProgramExercise_getState(programExercise);
           for (const key of ObjectUtils_keys(stateMetadata)) {
             if (stateMetadata[key]?.userPrompted) {
               const value = state[key];

@@ -10,8 +10,6 @@ export interface ITestimonial {
   priority?: number;
 }
 
-export class Testimonials {
-  public static getHighRatingTitles(testimonials: ITestimonial[]): string[] {
-    return testimonials.filter((t) => t.source === "appstore" && t.title).map((t) => t.title!);
-  }
+export function Testimonials_getHighRatingTitles(testimonials: ITestimonial[]): string[] {
+  return testimonials.filter((t) => t.source === "appstore" && t.title).map((t) => t.title!);
 }

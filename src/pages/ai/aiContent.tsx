@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { IAccount } from "../../models/account";
 import { useState, useRef } from "preact/hooks";
 import { Service } from "../../api/service";
-import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
+import { PlannerProgram_evaluateFull } from "../../pages/planner/models/plannerProgram";
 import { Settings_build } from "../../models/settings";
 import { PlannerSyntaxError } from "../../pages/planner/plannerExerciseEvaluator";
 import { Button } from "../../components/button";
@@ -27,7 +27,7 @@ export function AiContent(props: IAiContentProps): JSX.Element {
   const validateLiftoscript = (liftoscript: string): { isValid: boolean; errors?: PlannerSyntaxError[] } => {
     try {
       const settings = Settings_build();
-      const { evaluatedWeeks } = PlannerProgram.evaluateFull(liftoscript, settings);
+      const { evaluatedWeeks } = PlannerProgram_evaluateFull(liftoscript, settings);
 
       if (!evaluatedWeeks.success) {
         return {

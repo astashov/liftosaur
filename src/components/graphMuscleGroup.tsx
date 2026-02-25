@@ -3,10 +3,10 @@ import { h, JSX } from "preact";
 import UPlot from "uplot";
 import { useRef, useEffect, useState } from "preact/hooks";
 import { ISettings, IVolumeSelectedType } from "../types";
-import { GraphsPlugins } from "../utils/graphsPlugins";
+import { GraphsPlugins_zoom, GraphsPlugins_programLines } from "../utils/graphsPlugins";
 import { StringUtils_capitalize } from "../utils/string";
 import { DateUtils_format } from "../utils/date";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 
 interface IGraphMuscleGroupProps {
@@ -60,8 +60,8 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
       },
       scales: { x: { min: dataMinX, max: dataMaxX } },
       plugins: [
-        GraphsPlugins.zoom(),
-        ...(props.programChangeTimes ? [GraphsPlugins.programLines(props.programChangeTimes)] : []),
+        GraphsPlugins_zoom(),
+        ...(props.programChangeTimes ? [GraphsPlugins_programLines(props.programChangeTimes)] : []),
         {
           hooks: {
             setCursor: [
@@ -98,7 +98,7 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
           label: "Volume",
           show: props.selectedType === "volume",
           value: (self, rawValue) => `${rawValue} ${props.settings.units}`,
-          stroke: Tailwind.colors().red[500],
+          stroke: Tailwind_colors().red[500],
           width: 1,
           spanGaps: true,
         },
@@ -106,7 +106,7 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
           label: "Sets",
           show: props.selectedType === "sets",
           value: (self, rawValue) => `${rawValue}`,
-          stroke: Tailwind.colors().red[500],
+          stroke: Tailwind_colors().red[500],
           width: 1,
           spanGaps: true,
         },
@@ -118,18 +118,18 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
           values: (self, ticks) => {
             return ticks.map((rawValue) => `${Math.round(rawValue / 1000)}k ${props.settings.units}`);
           },
-          stroke: Tailwind.semantic().text.primary,
-          ticks: { stroke: Tailwind.semantic().border.neutral },
-          grid: { stroke: Tailwind.semantic().border.neutral },
+          stroke: Tailwind_semantic().text.primary,
+          ticks: { stroke: Tailwind_semantic().border.neutral },
+          grid: { stroke: Tailwind_semantic().border.neutral },
         },
         {
           show: props.selectedType === "sets",
           values: (self, ticks) => {
             return ticks.map((rawValue) => rawValue);
           },
-          stroke: Tailwind.semantic().text.primary,
-          ticks: { stroke: Tailwind.semantic().border.neutral },
-          grid: { stroke: Tailwind.semantic().border.neutral },
+          stroke: Tailwind_semantic().text.primary,
+          ticks: { stroke: Tailwind_semantic().border.neutral },
+          grid: { stroke: Tailwind_semantic().border.neutral },
         },
       ],
     };

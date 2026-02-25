@@ -14,7 +14,7 @@ import {
 import { lb } from "lens-shmens";
 import { ButtonIcon } from "./buttonIcon";
 import { IconEdit2 } from "./icons/iconEdit2";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { TextareaAutogrow } from "./textareaAutogrow";
 import {
   Progress_lbProgress,
@@ -33,7 +33,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "./linkButton";
 import { Button } from "./button";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
-import { ImagePreloader } from "../utils/imagePreloader";
+import { ImagePreloader_preload, ImagePreloader_dynohappy } from "../utils/imagePreloader";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -58,7 +58,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
   const forceUpdateEntryIndex = !!props.progress.ui?.forceUpdateEntryIndex;
 
   useEffect(() => {
-    ImagePreloader.preload(ImagePreloader.dynohappy);
+    ImagePreloader_preload(ImagePreloader_dynohappy);
     if (props.program && Program_isEmpty(props.program) && props.progress.entries.length === 0) {
       updateState(
         props.dispatch,
@@ -397,7 +397,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
                   );
                 }}
               >
-                <IconPlus2 size={15} color={Tailwind.colors().lightgray[600]} />
+                <IconPlus2 size={15} color={Tailwind_colors().lightgray[600]} />
               </button>
             </div>
           </Scroller>

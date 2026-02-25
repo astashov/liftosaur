@@ -9,7 +9,7 @@ import { Exercise_onerm } from "../models/exercise";
 import { IScriptBindings } from "../models/progress";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_getState } from "../pages/planner/models/plannerProgramExercise";
 import { LinkButton } from "./linkButton";
 
 interface IProps {
@@ -25,7 +25,7 @@ interface IProps {
 }
 
 export function ProgressStateChanges(props: IProps): JSX.Element | null {
-  const state = PlannerProgramExercise.getState(props.programExercise);
+  const state = PlannerProgramExercise_getState(props.programExercise);
   const { entry, settings, dayData } = props;
   const { units } = settings;
   const result = Program_runExerciseFinishDayScript(

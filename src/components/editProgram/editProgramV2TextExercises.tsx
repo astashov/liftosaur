@@ -2,7 +2,7 @@ import { LensBuilder, lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
-import { PlannerStatsUtils } from "../../pages/planner/models/plannerStatsUtils";
+import { PlannerStatsUtils_dayApproxTimeMs } from "../../pages/planner/models/plannerStatsUtils";
 import { IPlannerUi, IPlannerState, IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { IPlannerProgram, IPlannerProgramDay, ISettings } from "../../types";
@@ -32,7 +32,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
   let approxDayTime: string | undefined;
   if (evaluatedDay.success) {
     approxDayTime = TimeUtils_formatHHMM(
-      PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout || 0)
+      PlannerStatsUtils_dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout || 0)
     );
   }
   return (

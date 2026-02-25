@@ -15,9 +15,9 @@ import { IEvaluatedProgram, Program_getProgramDayExercises, Program_nextHistoryE
 import { IExerciseType, IHistoryEntry, ISettings, IWeight } from "../../../types";
 import { ProgramDetailsExerciseExampleGraph } from "./programDetailsExerciseExampleGraph";
 import { Weight_build } from "../../../models/weight";
-import { PP } from "../../../models/pp";
+import { PP_iterate2 } from "../../../models/pp";
 import { CollectionUtils_compact, CollectionUtils_findBy } from "../../../utils/collection";
-import { PlannerProgramExercise } from "../../planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_toUsed } from "../../planner/models/plannerProgramExercise";
 import { Stats_getEmpty } from "../../../models/stats";
 import { Progress_getEntryId } from "../../../models/progress";
 import { UidFactory_generateUid } from "../../../utils/generator";
@@ -35,7 +35,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
   const exercise = Exercise_get(exerciseType, props.settings.exercises);
   let dayInWeek: number | undefined;
   const weekSetup = props.weekSetup || props.program.weeks.map((w) => ({ name: w.name }));
-  PP.iterate2(props.program.weeks, (ex, weekIndex, dayInWeekIndex, dayIndex) => {
+  PP_iterate2(props.program.weeks, (ex, weekIndex, dayInWeekIndex, dayIndex) => {
     if (ex.key === props.programExerciseKey) {
       dayInWeek = dayInWeekIndex + 1;
       return true;
@@ -54,7 +54,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
       const week = props.program.weeks[weekIndex];
       const programDay = week.days[(dayInWeek ?? 1) - 1];
       const dayExercises = Program_getProgramDayExercises(programDay);
-      const programExercise = PlannerProgramExercise.toUsed(
+      const programExercise = PlannerProgramExercise_toUsed(
         CollectionUtils_findBy(dayExercises, "key", props.programExerciseKey)
       );
       const entry: IHistoryEntry = programExercise

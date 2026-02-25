@@ -1,5 +1,5 @@
 import { GoogleSheetsUtil } from "./googleSheets";
-import { UrlUtils } from "../../src/utils/url";
+import { UrlUtils_build } from "../../src/utils/url";
 import { IDI } from "./di";
 import TurndownService from "turndown";
 
@@ -28,7 +28,7 @@ export class UrlContentFetcher {
 
   public isUrl(input: string): boolean {
     try {
-      const url = UrlUtils.build(input.trim());
+      const url = UrlUtils_build(input.trim());
       return url.protocol === "http:" || url.protocol === "https:";
     } catch {
       return false;

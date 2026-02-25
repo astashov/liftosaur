@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { PlannerHighlighter } from "../plannerHighlighter";
+import { PlannerHighlighter_highlight } from "../plannerHighlighter";
 
 interface IPlannerCodeBlockProps {
   script: string;
@@ -7,6 +7,6 @@ interface IPlannerCodeBlockProps {
 
 export function PlannerCodeBlock(props: IPlannerCodeBlockProps): JSX.Element {
   const { script } = props;
-  const highlightedScript = PlannerHighlighter.highlight(script);
+  const highlightedScript = PlannerHighlighter_highlight(script);
   return <div className="block whitespace-pre code" dangerouslySetInnerHTML={{ __html: highlightedScript }} />;
 }

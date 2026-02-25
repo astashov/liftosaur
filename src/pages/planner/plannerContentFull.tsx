@@ -15,7 +15,11 @@ import { PlannerEditorView } from "./components/plannerEditorView";
 import { PlannerExerciseStats } from "./components/plannerExerciseStats";
 import { PlannerExerciseStatsFull } from "./components/plannerExerciseStatsFull";
 import { PlannerWeekStats } from "./components/plannerWeekStats";
-import { PlannerProgram } from "./models/plannerProgram";
+import {
+  PlannerProgram_evaluateText,
+  PlannerProgram_evaluateFull,
+  PlannerProgram_fullToWeekEvalResult,
+} from "./models/plannerProgram";
 import { IPlannerFullText, IPlannerState, IPlannerUiFocusedExercise } from "./models/types";
 import { IconGraphsE } from "../../components/icons/iconGraphsE";
 import { IconMusclesD } from "../../components/icons/iconMusclesD";
@@ -44,7 +48,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
             if (text == null) {
               return oldWeeks;
             }
-            return PlannerProgram.evaluateText(text);
+            return PlannerProgram_evaluateText(text);
           }),
         lb<IPlannerState>().p("fulltext").record(undefined),
       ],
@@ -62,7 +66,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
   const [showExerciseStats, setShowExerciseStats] = useState(false);
 
   const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
-    return PlannerProgram.evaluateFull(props.fullText.text, props.settings);
+    return PlannerProgram_evaluateFull(props.fullText.text, props.settings);
   }, [props.fullText.text, props.settings.exercises]);
 
   const weekIndex =
@@ -91,7 +95,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
         }
       : undefined;
 
-  const evalResults = PlannerProgram.fullToWeekEvalResult(evaluatedWeeks);
+  const evalResults = PlannerProgram_fullToWeekEvalResult(evaluatedWeeks);
 
   if (evaluatedWeeks.success) {
     for (const week of evaluatedWeeks.data) {

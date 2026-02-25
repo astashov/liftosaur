@@ -4,7 +4,7 @@ import { IconLink } from "../../components/icons/iconLink";
 import { IAccount } from "../../models/account";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { track } from "../../utils/posthog";
-import { Platform } from "../../utils/platform";
+import { Platform_isiOS, Platform_isAndroid } from "../../utils/platform";
 import { Onelink } from "../../components/onelink";
 
 interface IPlannerBannerProps {
@@ -49,8 +49,8 @@ function LoggedInGuideBanner(props: { onAddProgram: () => void; isBannerLoading:
 }
 
 function LoggedOutGuideBanner(props: { userAgent?: string }): JSX.Element {
-  const isiOS = Platform.isiOS(props.userAgent);
-  const isAndroid = Platform.isAndroid(props.userAgent);
+  const isiOS = Platform_isiOS(props.userAgent);
+  const isAndroid = Platform_isAndroid(props.userAgent);
   const isMobile = isiOS || isAndroid;
   return (
     <>

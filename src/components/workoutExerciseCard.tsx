@@ -27,7 +27,11 @@ import { IconKebab } from "./icons/iconKebab";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { Thunk_pushExerciseStatsScreen, Thunk_pushToEditProgramExercise, Thunk_pushScreen } from "../ducks/thunks";
 import { WorkoutExerciseAllSets } from "./workoutExerciseAllSets";
-import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
+import {
+  WorkoutExerciseUtils_getBgColor50,
+  WorkoutExerciseUtils_getBorderColor100,
+  WorkoutExerciseUtils_getBgColor100,
+} from "../utils/workoutExerciseUtils";
 import { DropdownMenu, DropdownMenuItem } from "./dropdownMenu";
 import { IconSwap } from "./icons/iconSwap";
 import { IconTrash } from "./icons/iconTrash";
@@ -50,7 +54,7 @@ import {
   Equipment_getEquipmentNameForExerciseType,
   Equipment_getEquipmentDataForExerciseType,
 } from "../models/equipment";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_currentDescription } from "../pages/planner/models/plannerProgramExercise";
 import { useMemo, useState } from "preact/hooks";
 import { Collector } from "../utils/collector";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
@@ -85,7 +89,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
   const currentEquipmentName = Equipment_getEquipmentNameForExerciseType(props.settings, exercise);
   const currentEquipmentNotes = Equipment_getEquipmentDataForExerciseType(props.settings, exercise)?.notes;
   const exerciseNotes = Exercise_getNotes(exerciseType, props.settings);
-  const description = programExercise ? PlannerProgramExercise.currentDescription(programExercise) : undefined;
+  const description = programExercise ? PlannerProgramExercise_currentDescription(programExercise) : undefined;
   const onerm = Exercise_onerm(exercise, props.settings);
   const hasUnequalWeights = props.entry.sets.some((w) => !Weight_eqNull(w.originalWeight, w.weight));
   const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0];
@@ -109,10 +113,10 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
   return (
     <section
       data-cy={`entry-${StringUtils_dashcase(exercise.name)}`}
-      className={`py-1 border rounded-xl ${WorkoutExerciseUtils.getBgColor50(
+      className={`py-1 border rounded-xl ${WorkoutExerciseUtils_getBgColor50(
         props.entry.sets,
         false
-      )} ${WorkoutExerciseUtils.getBorderColor100(props.entry.sets, false)}`}
+      )} ${WorkoutExerciseUtils_getBorderColor100(props.entry.sets, false)}`}
     >
       <div className="px-4">
         <header className="flex">
@@ -495,7 +499,7 @@ function WorkoutPlatesCalculator(props: IWorkoutPlatesCalculatorProps): JSX.Elem
   return (
     <div className="my-1">
       <div
-        className={`p-1 inline-block ${WorkoutExerciseUtils.getBgColor100(props.entry.sets, false)} rounded-lg`}
+        className={`p-1 inline-block ${WorkoutExerciseUtils_getBgColor100(props.entry.sets, false)} rounded-lg`}
         style={{
           backgroundImage: "url(/images/icon-barbell.svg)",
           backgroundPosition: "10px center",

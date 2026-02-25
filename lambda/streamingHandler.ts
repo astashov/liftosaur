@@ -8,7 +8,7 @@ import { allowedHosts } from "./utils/response";
 import * as Cookie from "cookie";
 import { ILimitedUserDao, UserDao } from "./dao/userDao";
 import { Endpoint, Method, RouteHandler, Router } from "yatro";
-import { UrlUtils } from "../src/utils/url";
+import { UrlUtils_build } from "../src/utils/url";
 import { IEither } from "../src/utils/types";
 import { ClaudeProvider } from "./utils/llms/claude";
 import { IAccount, Account_getFromStorage } from "../src/models/account";
@@ -239,7 +239,7 @@ export const getStreamingHandler = (diBuilder: () => IDI): IHandler => {
     di.log.log("--------> Starting streaming request", path);
     di.log.log("User Agent:", event.headers["user-agent"] || event.headers["User-Agent"] || "");
 
-    const url = UrlUtils.build(path, "http://example.com");
+    const url = UrlUtils_build(path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {
       const value = (event.queryStringParameters || {})[key];
       url.searchParams.set(key, value || "");

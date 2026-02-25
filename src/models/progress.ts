@@ -85,13 +85,23 @@ import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { Equipment_getUnitForExerciseType } from "./equipment";
 import { IByTag } from "../pages/planner/plannerEvaluator";
 import { IPlannerProgramExercise, IPlannerProgramExerciseWithType } from "../pages/planner/models/types";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_getUpdateScript,
+  PlannerProgramExercise_getState,
+  PlannerProgramExercise_currentEvaluatedSetVariationIndex,
+  PlannerProgramExercise_currentDescriptionIndex,
+  PlannerProgramExercise_currentSetVariationIndex,
+  PlannerProgramExercise_programWarmups,
+} from "../pages/planner/models/plannerProgramExercise";
 import { IScreenStack, Screen_current } from "./screen";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ProgramSet_getEvaluatedWeight } from "./programSet";
 import { Stats_getCurrentMovingAverageBodyweight } from "./stats";
 import { IChangeAMRAPAction, ICompleteSetAction } from "../ducks/reducer";
-import { LiveActivityManager } from "../utils/liveActivityManager";
+import {
+  LiveActivityManager_updateProgressLiveActivity,
+  LiveActivityManager_updateLiveActivityForNextEntry,
+} from "../utils/liveActivityManager";
 import { ProgramExercise_hasUserPromptedVars } from "./programExercise";
 import deepmerge from "deepmerge";
 
@@ -699,7 +709,7 @@ export function Progress_updateTimer(
       true
     );
     if (!skipLiveActivityUpdate) {
-      LiveActivityManager.updateProgressLiveActivity(
+      LiveActivityManager_updateProgressLiveActivity(
         program,
         progress,
         settings,
@@ -723,7 +733,7 @@ export function Progress_updateTimer(
       },
     };
     if (!skipLiveActivityUpdate) {
-      LiveActivityManager.updateProgressLiveActivity(
+      LiveActivityManager_updateProgressLiveActivity(
         program,
         progress,
         settings,
@@ -964,14 +974,14 @@ export function Progress_runUpdateScriptForEntry(
   if (setIndex !== -1 && !entry?.sets[setIndex]?.isCompleted) {
     return entry;
   }
-  const script = PlannerProgramExercise.getUpdateScript(programExercise);
+  const script = PlannerProgramExercise_getUpdateScript(programExercise);
   if (!script) {
     return entry;
   }
   const exercise = programExercise.exerciseType;
-  const state = ObjectUtils_clone(PlannerProgramExercise.getState(programExercise));
-  const setVariationIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(programExercise);
-  const descriptionIndex = PlannerProgramExercise.currentDescriptionIndex(programExercise);
+  const state = ObjectUtils_clone(PlannerProgramExercise_getState(programExercise));
+  const setVariationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(programExercise);
+  const descriptionIndex = PlannerProgramExercise_currentDescriptionIndex(programExercise);
   const bindings = Progress_createScriptBindings(
     dayData,
     entry,
@@ -1402,9 +1412,9 @@ export function Progress_applyProgramExercise(
   settings: ISettings,
   forceWarmupSets?: boolean
 ): IHistoryEntry {
-  const variationIndex = PlannerProgramExercise.currentSetVariationIndex(programExercise);
+  const variationIndex = PlannerProgramExercise_currentSetVariationIndex(programExercise);
   const sets = programExercise.evaluatedSetVariations[variationIndex].sets;
-  const programExerciseWarmupSets = PlannerProgramExercise.programWarmups(programExercise, settings);
+  const programExerciseWarmupSets = PlannerProgramExercise_programWarmups(programExercise, settings);
 
   if (progressEntry != null) {
     const newSetsNum = Math.max(progressEntry.sets.length, sets.length);
@@ -1590,7 +1600,7 @@ export function Progress_changeAmrapAction(
     settings.timers.reminder,
     subscription != null && Subscriptions_hasSubscription(subscription)
   );
-  LiveActivityManager.updateLiveActivityForNextEntry(
+  LiveActivityManager_updateLiveActivityForNextEntry(
     newProgress,
     action.entryIndex,
     "workout",
@@ -1657,7 +1667,7 @@ export function Progress_completeSetAction(
     settings.timers.reminder,
     subscription != null && Subscriptions_hasSubscription(subscription)
   );
-  LiveActivityManager.updateLiveActivityForNextEntry(
+  LiveActivityManager_updateLiveActivityForNextEntry(
     newProgress,
     action.entryIndex,
     action.mode,

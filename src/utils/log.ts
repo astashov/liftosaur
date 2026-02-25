@@ -1,5 +1,5 @@
 import RB from "rollbar";
-import { UrlUtils } from "./url";
+import { UrlUtils_build } from "./url";
 import { IAffiliateData } from "../types";
 
 declare let Rollbar: RB;
@@ -16,14 +16,14 @@ export async function LogUtils_log(
 ): Promise<void> {
   let enforce = false;
   if (typeof window !== "undefined") {
-    const currentUrl = UrlUtils.build(window.location.href);
+    const currentUrl = UrlUtils_build(window.location.href);
     enforce = !!currentUrl.searchParams.get("enforce");
   }
   const platform = {
     name: window.lftAndroidVersion ? "android" : window.lftIosVersion ? "ios" : "web",
     version: window.lftAndroidAppVersion || window.lftIosAppVersion,
   };
-  const url = UrlUtils.build(`${__API_HOST__}/api/log`);
+  const url = UrlUtils_build(`${__API_HOST__}/api/log`);
   try {
     fetch(url.toString(), {
       method: "POST",

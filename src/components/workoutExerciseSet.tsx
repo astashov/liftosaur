@@ -7,7 +7,12 @@ import { InputNumber2 } from "./inputNumber2";
 import { InputWeight2 } from "./inputWeight2";
 import { updateProgress } from "../models/state";
 import { LensBuilder } from "lens-shmens";
-import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
+import {
+  WorkoutExerciseUtils_getBorderColor100,
+  WorkoutExerciseUtils_getBgColor50,
+  WorkoutExerciseUtils_getIconColor,
+  WorkoutExerciseUtils_setsStatusToTextColor,
+} from "../utils/workoutExerciseUtils";
 import { SwipeableRow } from "./swipeableRow";
 import { CollectionUtils_removeAt } from "../utils/collection";
 import { Mobile_isMobileFromWindow, Mobile_isPlaywrightFromWindow } from "../../lambda/utils/mobile";
@@ -58,7 +63,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const isMobile = Mobile_isMobileFromWindow();
   const isPlaywright = Mobile_isPlaywrightFromWindow();
   const shouldUseTouch = isMobile && !isPlaywright;
-  const borderClass = ` border-b ${WorkoutExerciseUtils.getBorderColor100([props.set], false)}`;
+  const borderClass = ` border-b ${WorkoutExerciseUtils_getBorderColor100([props.set], false)}`;
   const hasEdit = props.type === "workout";
   const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
 
@@ -74,7 +79,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
     >
       {({ onPointerDown, onPointerMove, onPointerUp, style, close }) => (
         <div
-          className={`will-change-transform relative table-row ${WorkoutExerciseUtils.getBgColor50([set], props.type === "warmup")}`}
+          className={`will-change-transform relative table-row ${WorkoutExerciseUtils_getBgColor50([set], props.type === "warmup")}`}
           data-cy={getDataCy(set)}
           style={style}
           onTouchStart={shouldUseTouch ? onPointerDown : undefined}
@@ -305,7 +310,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 <IconCheckCircle
                   size={24}
                   isChecked={true}
-                  color={WorkoutExerciseUtils.getIconColor([set], props.type === "warmup")}
+                  color={WorkoutExerciseUtils_getIconColor([set], props.type === "warmup")}
                 />
               </button>
             </div>
@@ -468,17 +473,17 @@ function WorkoutExerciseLastSet(props: IWorkoutExerciseLastSetProps): JSX.Elemen
     <div className="inline-block text-sm align-middle">
       {set.label ? <div className="text-xs text-text-secondary">{set.label}</div> : null}
       <div>
-        <span className={`font-semibold ${WorkoutExerciseUtils.setsStatusToTextColor(setStatus)}`}>
+        <span className={`font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
           {set.completedReps != null ? n(set.completedReps) : "-"}
         </span>
         <span className="text-text-secondary"> × </span>
         <span>
-          <span className={`font-semibold ${WorkoutExerciseUtils.setsStatusToTextColor(setStatus)}`}>
+          <span className={`font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
             {set.completedWeight ? <span>{set.completedWeight.value}</span> : "-"}
             <span className="text-xs font-normal">{set.completedWeight?.unit}</span>
           </span>
         </span>
-        <span className={`font-semibold ${WorkoutExerciseUtils.setsStatusToTextColor(setStatus)}`}>
+        <span className={`font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
           {set.completedRpe != null
             ? ` @${n(Math.max(0, set.completedRpe))}+`
             : set.rpe != null

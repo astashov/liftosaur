@@ -58,7 +58,7 @@ import { ICustomExercise, IProgramContentSettings, IPlannerProgram, IPercentage 
 import { ProgramExercise_approxTimeMs, ProgramExercise_applyVariables } from "./programExercise";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { getLatestMigrationVersion } from "../migrations/migrations";
-import { Encoder } from "../utils/encoder";
+import { Encoder_encodeIntoUrl } from "../utils/encoder";
 import { StringUtils_pluralize, StringUtils_hashString } from "../utils/string";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { ProgramToPlanner } from "./programToPlanner";
@@ -68,13 +68,26 @@ import {
   IPlannerProgramExerciseWithType,
 } from "../pages/planner/models/types";
 import memoize from "micro-memoize";
-import { PlannerProgram } from "../pages/planner/models/plannerProgram";
-import { PlannerEvaluator, IByExercise, IByTag } from "../pages/planner/plannerEvaluator";
-import { PP } from "./pp";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { PlannerProgram_switchToUnit } from "../pages/planner/models/plannerProgram";
+import {
+  IByExercise,
+  IByTag,
+  PlannerEvaluator_forceEvaluate,
+  PlannerEvaluator_changeExerciseName,
+} from "../pages/planner/plannerEvaluator";
+import { PP_iterate2, PP_iterate } from "./pp";
+import {
+  PlannerProgramExercise_currentEvaluatedSetVariation,
+  PlannerProgramExercise_programWarmups,
+  PlannerProgramExercise_getProgressScript,
+  PlannerProgramExercise_currentEvaluatedSetVariationIndex,
+  PlannerProgramExercise_currentDescriptionIndex,
+  PlannerProgramExercise_getState,
+  PlannerProgramExercise_createExerciseFromEntry,
+} from "../pages/planner/models/plannerProgramExercise";
 import { CollectionUtils_sortBy, CollectionUtils_uniqBy } from "../utils/collection";
 import { PlannerSyntaxError } from "../pages/planner/plannerExerciseEvaluator";
-import { UrlUtils } from "../utils/url";
+import { UrlUtils_build } from "../utils/url";
 import { Service } from "../api/service";
 import { EditProgram_initPlannerState } from "./editProgram";
 import { ProgramSet_getEvaluatedWeight } from "./programSet";
@@ -244,8 +257,8 @@ export function Program_nextHistoryEntry(
   settings: ISettings
 ): IHistoryEntry {
   const exercise = programExercise.exerciseType;
-  const programSets = PlannerProgramExercise.currentEvaluatedSetVariation(programExercise)?.sets;
-  const warmupSets = PlannerProgramExercise.programWarmups(programExercise, settings);
+  const programSets = PlannerProgramExercise_currentEvaluatedSetVariation(programExercise)?.sets;
+  const warmupSets = PlannerProgramExercise_programWarmups(programExercise, settings);
   const sets: ISet[] = [];
   for (let i = 0; i < programSets.length; i++) {
     const programSet = programSets[i];
@@ -417,9 +430,9 @@ export function Program_runExerciseFinishDayScript(
   },
   string
 > {
-  const script = PlannerProgramExercise.getProgressScript(programExercise) || "";
-  const setVariationIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(programExercise);
-  const descriptionIndex = PlannerProgramExercise.currentDescriptionIndex(programExercise);
+  const script = PlannerProgramExercise_getProgressScript(programExercise) || "";
+  const setVariationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(programExercise);
+  const descriptionIndex = PlannerProgramExercise_currentDescriptionIndex(programExercise);
 
   const bindings = Progress_createScriptBindings(
     dayData,
@@ -478,9 +491,9 @@ export function Program_runFinishDayScript(
   },
   string
 > {
-  const state = PlannerProgramExercise.getState(programExercise);
-  const setVariationIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(programExercise);
-  const descriptionIndex = PlannerProgramExercise.currentDescriptionIndex(programExercise);
+  const state = PlannerProgramExercise_getState(programExercise);
+  const setVariationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(programExercise);
+  const descriptionIndex = PlannerProgramExercise_currentDescriptionIndex(programExercise);
   const bindings = Progress_createScriptBindings(
     dayData,
     entry,
@@ -499,7 +512,7 @@ export function Program_runFinishDayScript(
   };
   const otherStates = ObjectUtils_clone(program.states);
 
-  const script = PlannerProgramExercise.getProgressScript(programExercise) || "";
+  const script = PlannerProgramExercise_getProgressScript(programExercise) || "";
   let updates: ILiftoscriptEvaluatorUpdate[] = [];
   try {
     const runner = new ScriptRunner(
@@ -618,14 +631,14 @@ export function Program_runAllFinishDayScripts(
           if (!Weight_eq(bindings.rm1, onerm)) {
             exerciseData[exerciseKey] = { rm1: Weight_roundTo005(bindings.rm1) };
           }
-          PP.iterate2(newEvaluatedProgram.weeks, (exercise) => {
+          PP_iterate2(newEvaluatedProgram.weeks, (exercise) => {
             if (exercise.key === programExercise.key && exercise.progress) {
               exercise.progress.state = { ...exercise.progress.state, ...entry.state, ...state };
             }
           });
           ProgramExercise_applyVariables(programExercise.key, newEvaluatedProgram, updates, settings);
           for (const key of ObjectUtils_keys(otherStates || {})) {
-            PP.iterate2(newEvaluatedProgram.weeks, (exercise) => {
+            PP_iterate2(newEvaluatedProgram.weeks, (exercise) => {
               if (exercise.tags?.includes(Number(key)) && exercise.progress) {
                 exercise.progress.state = { ...exercise.progress.state, ...otherStates[key] };
               }
@@ -730,7 +743,7 @@ export function Program_cloneProgram(dispatch: IDispatch, program: IProgram, set
         .recordModify((programs) => {
           const newProgram = { ...program, clonedAt: Date.now(), id: newProgramId };
           if (newProgram.planner) {
-            newProgram.planner = PlannerProgram.switchToUnit(newProgram.planner, settings);
+            newProgram.planner = PlannerProgram_switchToUnit(newProgram.planner, settings);
           }
           return [...programs, newProgram];
         }),
@@ -770,7 +783,7 @@ export function Program_getProgramExerciseByTypeWeekAndDay(
   dayInWeek: number
 ): IPlannerProgramExercise | undefined {
   let exercise: IPlannerProgramExercise | undefined;
-  PP.iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex) => {
+  PP_iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex) => {
     if (
       weekIndex + 1 === week &&
       dayInWeekIndex + 1 === dayInWeek &&
@@ -814,7 +827,7 @@ export function Program_forceEvaluate(program: IProgram, settings: ISettings): I
       states: {},
     };
   }
-  const { evaluatedWeeks } = PlannerEvaluator.forceEvaluate(program.planner!, settings);
+  const { evaluatedWeeks } = PlannerEvaluator_forceEvaluate(program.planner!, settings);
   let dayNum = 0;
   const errors: IEvaluatedProgramError[] = [];
   const weeks = planner.weeks.map((week, weekIndex) => {
@@ -841,9 +854,9 @@ export function Program_forceEvaluate(program: IProgram, settings: ISettings): I
     return { name: week.name, description: week.description, days };
   });
   const states: IByTag<IProgramState> = {};
-  PP.iterate(evaluatedWeeks, (exercise) => {
+  PP_iterate(evaluatedWeeks, (exercise) => {
     for (const tag of exercise.tags) {
-      states[tag] = { ...states[tag], ...PlannerProgramExercise.getState(exercise) };
+      states[tag] = { ...states[tag], ...PlannerProgramExercise_getState(exercise) };
     }
   });
   const result: IEvaluatedProgram = {
@@ -862,7 +875,7 @@ export function Program_forceEvaluate(program: IProgram, settings: ISettings): I
 
 export function Program_getNumberOfExerciseInstances(program: IEvaluatedProgram, exerciseKey: string): number {
   let count = 0;
-  PP.iterate2(program.weeks, (exercise) => {
+  PP_iterate2(program.weeks, (exercise) => {
     if (exercise.key === exerciseKey) {
       count += 1;
     }
@@ -885,7 +898,7 @@ export function Program_changeExerciseName(from: string, to: string, program: IP
           days: week.days.map((day) => {
             return {
               ...day,
-              exerciseText: PlannerEvaluator.changeExerciseName(day.exerciseText, from, to, settings),
+              exerciseText: PlannerEvaluator_changeExerciseName(day.exerciseText, from, to, settings),
             };
           }),
         };
@@ -964,7 +977,7 @@ export function Program_getExerciseTypesForWeekDay(
   day: number
 ): IExerciseType[] {
   const exerciseTypes: IExerciseType[] = [];
-  PP.iterate2(program.weeks, (exercise, weekIndex, dayInWeekIndex) => {
+  PP_iterate2(program.weeks, (exercise, weekIndex, dayInWeekIndex) => {
     if (weekIndex + 1 === week && dayInWeekIndex + 1 === day) {
       const exType = exercise.exerciseType;
       if (exType && !exerciseTypes.some((et) => Exercise_eq(et, exType))) {
@@ -1095,7 +1108,7 @@ export function Program_getEvaluatedExercise(
 ): IPlannerProgramExercise | undefined {
   const { weeks: evaluatedWeeks } = Program_evaluate(program, settings);
   let plannerProgramExercise: IPlannerProgramExercise | undefined;
-  PP.iterate2(evaluatedWeeks, (exercise, weekIndex, dayInWeekIndex, dayIndex) => {
+  PP_iterate2(evaluatedWeeks, (exercise, weekIndex, dayInWeekIndex, dayIndex) => {
     if (dayIndex === day - 1 && exercise.key === key) {
       plannerProgramExercise = exercise;
       return true;
@@ -1136,7 +1149,7 @@ export async function Program_exportProgramToLink(
   version: string
 ): Promise<string> {
   const payload = Program_exportProgram(program, settings, version);
-  const url = await Encoder.encodeIntoUrl(JSON.stringify(payload), __HOST__);
+  const url = await Encoder_encodeIntoUrl(JSON.stringify(payload), __HOST__);
   url.pathname = "/program";
   return url.toString();
 }
@@ -1260,13 +1273,13 @@ export async function Program_toUrl(
   userId?: string
 ): Promise<string> {
   const exportedProgram = Program_exportProgram(program, settings);
-  const baseUrl = UrlUtils.build(
+  const baseUrl = UrlUtils_build(
     "/planner",
     typeof window !== "undefined" ? window.location.href : "https://www.liftosaur.com"
   );
   const json = JSON.stringify(exportedProgram);
   const hash = StringUtils_hashString(json);
-  const encodedUrl = await Encoder.encodeIntoUrl(json, baseUrl.toString());
+  const encodedUrl = await Encoder_encodeIntoUrl(json, baseUrl.toString());
   const encodedProgramUrl = encodedUrl.toString();
   if (encodedProgramHashToShortUrl[hash]) {
     return encodedProgramHashToShortUrl[hash];
@@ -1304,7 +1317,7 @@ export function Program_createFromHistoryRecord(
     dayData: dayData,
     name: "Day 1",
     exercises: record.entries.map((e, i) => {
-      return PlannerProgramExercise.createExerciseFromEntry(e, dayData, settings, i);
+      return PlannerProgramExercise_createExerciseFromEntry(e, dayData, settings, i);
     }),
   };
   evaluatedProgram.weeks[0].days[0] = newDay;
@@ -1329,7 +1342,7 @@ export function Program_addDayFromHistoryRecord(
     dayData: newDayData,
     name: `Day ${dayData.day + 1}`,
     exercises: record.entries.map((e, i) => {
-      return PlannerProgramExercise.createExerciseFromEntry(e, newDayData, settings, i);
+      return PlannerProgramExercise_createExerciseFromEntry(e, newDayData, settings, i);
     }),
   };
   evaluatedProgram.weeks[dayData.week - 1].days.splice(dayData.dayInWeek, 0, newDay);
@@ -1350,7 +1363,7 @@ export function Program_getReusingSetsExercises(
   programExercise: IPlannerProgramExercise
 ): IPlannerProgramExercise[] {
   const exercises: IPlannerProgramExercise[] = [];
-  PP.iterate2(evaluatedProgram.weeks, (e) => {
+  PP_iterate2(evaluatedProgram.weeks, (e) => {
     if (
       e.reuse?.exercise?.key === programExercise.key &&
       e.reuse?.exercise.dayData.week === programExercise.dayData.week &&
@@ -1367,7 +1380,7 @@ export function Program_getReusingDescriptionsExercises(
   programExercise: IPlannerProgramExercise
 ): IPlannerProgramExercise[] {
   const exercises: IPlannerProgramExercise[] = [];
-  PP.iterate2(evaluatedProgram.weeks, (e) => {
+  PP_iterate2(evaluatedProgram.weeks, (e) => {
     if (
       e.descriptions.reuse?.exercise?.key === programExercise.key &&
       e.descriptions.reuse?.exercise.dayData.week === programExercise.dayData.week &&
@@ -1384,7 +1397,7 @@ export function Program_getReusingCustomProgressExercises(
   programExercise: IPlannerProgramExercise
 ): IPlannerProgramExercise[] {
   const exercises: IPlannerProgramExercise[] = [];
-  PP.iterate2(evaluatedProgram.weeks, (e) => {
+  PP_iterate2(evaluatedProgram.weeks, (e) => {
     if (e.progress?.type === "custom" && e.progress?.reuse?.fullName === programExercise.fullName) {
       exercises.push(e);
     }
@@ -1397,7 +1410,7 @@ export function Program_getReusingSetProgressExercises(
   programExercise: IPlannerProgramExercise
 ): IPlannerProgramExercise[] {
   const exercises: IPlannerProgramExercise[] = [];
-  PP.iterate2(evaluatedProgram.weeks, (e) => {
+  PP_iterate2(evaluatedProgram.weeks, (e) => {
     if (e.reuse?.fullName === programExercise.fullName && e.progress) {
       exercises.push(e);
     }
@@ -1423,7 +1436,7 @@ export function Program_getReusingUpdateExercises(
   programExercise: IPlannerProgramExercise
 ): IPlannerProgramExercise[] {
   const exercises: IPlannerProgramExercise[] = [];
-  PP.iterate2(evaluatedProgram.weeks, (e) => {
+  PP_iterate2(evaluatedProgram.weeks, (e) => {
     if (e.reuse?.fullName === programExercise.fullName) {
       exercises.push(e);
     }

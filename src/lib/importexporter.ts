@@ -9,9 +9,9 @@ import { IDispatch } from "../ducks/types";
 import { Thunk_importProgram } from "../ducks/thunks";
 import { ObjectUtils_clone, ObjectUtils_pick } from "../utils/object";
 import { ImportFromLink_importFromLink } from "../utils/importFromLink";
-import { UrlUtils } from "../utils/url";
+import { UrlUtils_build } from "../utils/url";
 import { IExportedPlannerProgram } from "../pages/planner/models/types";
-import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { PlannerProgram_convertExportedPlannerToProgram } from "../pages/planner/models/plannerProgram";
 import { Settings_build } from "../models/settings";
 
 export function ImportExporter_exportStorage(storage: IStorage): void {
@@ -35,7 +35,7 @@ export async function ImportExporter_getExportedProgram(
   }
   let exportedProgram: IExportedProgram;
   if (isPlanProgram(parsedMaybeProgram)) {
-    exportedProgram = PlannerProgram.convertExportedPlannerToProgram(parsedMaybeProgram, settings || Settings_build());
+    exportedProgram = PlannerProgram_convertExportedPlannerToProgram(parsedMaybeProgram, settings || Settings_build());
   } else {
     exportedProgram = parsedMaybeProgram;
   }
@@ -70,7 +70,7 @@ export async function ImportExporter_handleUniversalLink(
   link: string,
   client: Window["fetch"]
 ): Promise<void> {
-  const url = UrlUtils.build(link);
+  const url = UrlUtils_build(link);
   if ((url.pathname === "/program" && url.searchParams.has("data")) || url.pathname.startsWith("/p/")) {
     const data = await ImportFromLink_importFromLink(link, client);
     if (data.success) {

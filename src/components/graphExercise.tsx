@@ -7,13 +7,13 @@ import { DateUtils_format } from "../utils/date";
 import { equipmentName, Exercise_eq, Exercise_toKey, Exercise_get } from "../models/exercise";
 import { Weight_convertTo, Weight_build, Weight_getOneRepMax, Weight_isOrPct, Weight_display } from "../models/weight";
 import { IHistoryRecord, IExerciseType, ISettings, IExerciseSelectedType } from "../types";
-import { GraphsPlugins } from "../utils/graphsPlugins";
+import { GraphsPlugins_zoom, GraphsPlugins_programLines } from "../utils/graphsPlugins";
 import { IDispatch } from "../ducks/types";
 import { HtmlUtils_escapeHtml } from "../utils/html";
 import { Reps_volume } from "../models/set";
 import { ObjectUtils_keys } from "../utils/object";
 import { History_getMaxWeightSetFromEntry, History_getMax1RMSetFromEntry } from "../models/history";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 
 interface IGraphProps {
   history: IHistoryRecord[];
@@ -159,14 +159,14 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
       class: "graph-max-weight",
       axes: [
         {
-          stroke: Tailwind.semantic().text.primary,
-          ticks: { stroke: Tailwind.semantic().border.neutral },
-          grid: { stroke: Tailwind.semantic().border.neutral },
+          stroke: Tailwind_semantic().text.primary,
+          ticks: { stroke: Tailwind_semantic().border.neutral },
+          grid: { stroke: Tailwind_semantic().border.neutral },
         },
         {
-          stroke: Tailwind.semantic().text.primary,
-          ticks: { stroke: Tailwind.semantic().border.neutral },
-          grid: { stroke: Tailwind.semantic().border.neutral },
+          stroke: Tailwind_semantic().text.primary,
+          ticks: { stroke: Tailwind_semantic().border.neutral },
+          grid: { stroke: Tailwind_semantic().border.neutral },
         },
       ],
       width: rect.width,
@@ -176,8 +176,8 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
         lock: true,
       },
       plugins: [
-        GraphsPlugins.zoom(),
-        ...(props.isWithProgramLines ? [GraphsPlugins.programLines(result.changeProgramTimes)] : []),
+        GraphsPlugins_zoom(),
+        ...(props.isWithProgramLines ? [GraphsPlugins_programLines(result.changeProgramTimes)] : []),
         {
           hooks: {
             setCursor: [
@@ -283,21 +283,21 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
           label: "Weight",
           show: props.selectedType === "weight",
           value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: Tailwind.colors().red[500],
+          stroke: Tailwind_colors().red[500],
           width: 1,
           spanGaps: true,
         },
         {
           show: false,
           label: "Reps",
-          stroke: Tailwind.colors().yellow[500],
+          stroke: Tailwind_colors().yellow[500],
           width: 1,
         },
         {
           label: "e1RM",
           show: props.isWithOneRm && props.selectedType === "weight",
           value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: Tailwind.colors().blue[500],
+          stroke: Tailwind_colors().blue[500],
           width: 1,
           spanGaps: true,
         },
@@ -305,14 +305,14 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
           label: "Volume",
           show: props.selectedType === "volume",
           value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: Tailwind.colors().red[500],
+          stroke: Tailwind_colors().red[500],
           width: 1,
           spanGaps: true,
         },
         {
           label: "Bodyweight",
           value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: Tailwind.colors().green[500],
+          stroke: Tailwind_colors().green[500],
           width: 1,
           spanGaps: true,
         },

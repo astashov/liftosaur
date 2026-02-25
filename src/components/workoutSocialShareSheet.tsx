@@ -3,7 +3,7 @@ import { IHistoryRecord, ISettings } from "../types";
 import { Button } from "./button";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { IRect } from "../utils/types";
-import { Geometry } from "../utils/geometry";
+import { Geometry_fitRectIntoRect } from "../utils/geometry";
 import { WorkoutShareOutput } from "./workoutShareOutput";
 import { IconCamera } from "./icons/iconCamera";
 import { SendMessage_toIosAndAndroid, SendMessage_toIosAndAndroidWithResult } from "../utils/sendMessage";
@@ -221,7 +221,7 @@ function WorkoutShareImage(props: IWorkoutShareImageProps): JSX.Element {
       const parent = mainRef.current?.parentElement;
       if (parent) {
         const parentRect = { x: 0, y: 0, width: parent.clientWidth, height: parent.clientHeight };
-        const newRect = Geometry.fitRectIntoRect(
+        const newRect = Geometry_fitRectIntoRect(
           { x: 0, y: 0, width: 90, height: props.type === "igfeed" ? 90 : 160 },
           parentRect
         );

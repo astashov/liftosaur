@@ -18,7 +18,7 @@ import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { IEvaluatedProgram, Program_getDayNumber } from "../../models/program";
 import { applyChangesInEditor } from "./editProgramUtils";
 import { IDispatch } from "../../ducks/types";
-import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_onDaysChange } from "./editProgramUi/editProgramUiHelpers";
 
 interface IEditProgramViewProps {
   state: IPlannerState;
@@ -161,7 +161,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
         mode="vertical"
         onDragEnd={(startIndex, endIndex) => {
           applyChangesInEditor(props.plannerDispatch, () => {
-            EditProgramUiHelpers.onDaysChange(
+            EditProgramUiHelpers_onDaysChange(
               props.plannerDispatch,
               props.state.ui,
               currentWeekIndex,

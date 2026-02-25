@@ -4,7 +4,7 @@ import { IPaymentsDashboardData } from "../../../lambda/paymentsDashboard";
 import { StringUtils_truncate } from "../../utils/string";
 import { TimeUtils_formatUTCHHMM } from "../../utils/time";
 import { DateUtils_dayOfWeekStr, DateUtils_formatUTCYYYYMMDD, DateUtils_formatUTCYYYYMMDDHHMM } from "../../utils/date";
-import { PriceUtils } from "../../utils/price";
+import { PriceUtils_exchangeRate } from "../../utils/price";
 
 export interface IPaymentsDashboardContentProps {
   client: Window["fetch"];
@@ -133,7 +133,7 @@ function formatCurrencyWithUSD(amount: number, currency?: string): JSX.Element {
   const formatted = formatCurrency(amount, curr);
 
   if (curr !== "USD") {
-    const conversion = PriceUtils.exchangeRate(amount, curr);
+    const conversion = PriceUtils_exchangeRate(amount, curr);
     if (conversion.success) {
       const usdFormatted = formatCurrency(conversion.value, "USD");
       return (
@@ -276,7 +276,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
       if (payment.paymentType === "refund") {
         dayTotalsByCurrency[curr].refunds += payment.amount;
         currencyTotals[curr].refunds += payment.amount;
-        const usdConversion = PriceUtils.exchangeRate(payment.amount, curr);
+        const usdConversion = PriceUtils_exchangeRate(payment.amount, curr);
         if (usdConversion.success) {
           refundsUSD += usdConversion.value;
           dayRefundsUSD += usdConversion.value;
@@ -284,7 +284,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
       } else {
         dayTotalsByCurrency[curr].total += netAmount;
         currencyTotals[curr].total += netAmount;
-        const usdConversion = PriceUtils.exchangeRate(netAmount, curr);
+        const usdConversion = PriceUtils_exchangeRate(netAmount, curr);
         if (usdConversion.success) {
           totalUSD += usdConversion.value;
           dayTotalUSD += usdConversion.value;
@@ -292,13 +292,13 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
 
         if (isSubscription) {
           dayTotalsByTypeAndCurrency[curr].subscription += netAmount;
-          const usdConv = PriceUtils.exchangeRate(netAmount, curr);
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
           if (usdConv.success) {
             daySubscriptionUSD += usdConv.value;
           }
         } else {
           dayTotalsByTypeAndCurrency[curr].inapp += netAmount;
-          const usdConv = PriceUtils.exchangeRate(netAmount, curr);
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
           if (usdConv.success) {
             dayInappUSD += usdConv.value;
           }
@@ -306,13 +306,13 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
 
         if (platform === "apple") {
           dayTotalsByPlatformAndCurrency[curr].apple += netAmount;
-          const usdConv = PriceUtils.exchangeRate(netAmount, curr);
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
           if (usdConv.success) {
             dayAppleUSD += usdConv.value;
           }
         } else if (platform === "google") {
           dayTotalsByPlatformAndCurrency[curr].google += netAmount;
-          const usdConv = PriceUtils.exchangeRate(netAmount, curr);
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
           if (usdConv.success) {
             dayGoogleUSD += usdConv.value;
           }
@@ -430,8 +430,8 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                   // Convert to USD for sorting
                   const amountA = totalsA.total - totalsA.refunds;
                   const amountB = totalsB.total - totalsB.refunds;
-                  const usdA = currencyA === "USD" ? amountA : PriceUtils.exchangeRate(amountA, currencyA).value;
-                  const usdB = currencyB === "USD" ? amountB : PriceUtils.exchangeRate(amountB, currencyB).value;
+                  const usdA = currencyA === "USD" ? amountA : PriceUtils_exchangeRate(amountA, currencyA).value;
+                  const usdB = currencyB === "USD" ? amountB : PriceUtils_exchangeRate(amountB, currencyB).value;
                   return usdB - usdA; // Descending order
                 })
                 .map(([currency, totals]) => (
@@ -557,8 +557,8 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     // Convert to USD for sorting
                     const amountA = totalsA.total - totalsA.refunds;
                     const amountB = totalsB.total - totalsB.refunds;
-                    const usdA = currencyA === "USD" ? amountA : PriceUtils.exchangeRate(amountA, currencyA).value;
-                    const usdB = currencyB === "USD" ? amountB : PriceUtils.exchangeRate(amountB, currencyB).value;
+                    const usdA = currencyA === "USD" ? amountA : PriceUtils_exchangeRate(amountA, currencyA).value;
+                    const usdB = currencyB === "USD" ? amountB : PriceUtils_exchangeRate(amountB, currencyB).value;
                     return usdB - usdA; // Descending order
                   })
                   .map(([currency, totals]) => {

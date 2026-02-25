@@ -313,157 +313,155 @@ interface IHevyStruct {
   exercises: IHevyStructExercise[];
 }
 
-export class ImportFromHevy {
-  public static convertHevyCsvToHistoryRecords(
-    hevyCsvRaw: string,
-    settings: ISettings
-  ): {
-    historyRecords: IHistoryRecord[];
-    customExercises: Record<string, ICustomExercise>;
-  } {
-    const hevyRecords = Papa.parse<IHevyRecord>(hevyCsvRaw, { header: true }).data;
+export function ImportFromHevy_convertHevyCsvToHistoryRecords(
+  hevyCsvRaw: string,
+  settings: ISettings
+): {
+  historyRecords: IHistoryRecord[];
+  customExercises: Record<string, ICustomExercise>;
+} {
+  const hevyRecords = Papa.parse<IHevyRecord>(hevyCsvRaw, { header: true }).data;
 
-    const hevyWorkouts: IHevyStruct[] = [];
-    for (const workout of ObjectUtils_values(CollectionUtils_groupByKey(hevyRecords, "start_time"))) {
-      if (!workout) {
+  const hevyWorkouts: IHevyStruct[] = [];
+  for (const workout of ObjectUtils_values(CollectionUtils_groupByKey(hevyRecords, "start_time"))) {
+    if (!workout) {
+      continue;
+    }
+    const hevyExercises: IHevyStructExercise[] = [];
+    const exercises = CollectionUtils_groupByKey(workout, "exercise_title");
+    for (const exercise of ObjectUtils_values(exercises)) {
+      if (!exercise) {
         continue;
       }
-      const hevyExercises: IHevyStructExercise[] = [];
-      const exercises = CollectionUtils_groupByKey(workout, "exercise_title");
-      for (const exercise of ObjectUtils_values(exercises)) {
-        if (!exercise) {
-          continue;
-        }
-        const warmupSets = exercise.filter((record) => record.set_type === "warmup");
-        warmupSets.sort((a, b) => (a.set_index ?? 0) - (b.set_index ?? 0));
-        const sets = exercise.filter((record) => record.set_type !== "warmup");
-        sets.sort((a, b) => (a.set_index ?? 0) - (b.set_index ?? 0));
-        hevyExercises.push({
-          exercise_title: exercise[0].exercise_title,
-          exercise_notes: (exercise[0].exercise_notes || "").replace(/\\n/g, "\n"),
-          warmupSets: warmupSets.map((set) => ({
-            weight_lbs: set.weight_lbs != null ? Number(`${set.weight_lbs}`) : undefined,
-            weight_kg: set.weight_kg != null ? Number(`${set.weight_kg}`) : undefined,
-            reps: Number(`${set.reps ?? 1}`),
-          })),
-          sets: sets.map((set) => ({
-            weight_lbs: set.weight_lbs != null ? Number(`${set.weight_lbs}`) : undefined,
-            weight_kg: set.weight_kg != null ? Number(`${set.weight_kg}`) : undefined,
-            reps: Number(`${set.reps ?? 1}`),
-          })),
-        });
-      }
-      hevyWorkouts.push({
-        title: workout[0].title,
-        start_time: workout[0].start_time,
-        end_time: workout[0].end_time,
-        description: (workout[0].description || "").replace(/\\n/g, "\n"),
-        exercises: hevyExercises,
+      const warmupSets = exercise.filter((record) => record.set_type === "warmup");
+      warmupSets.sort((a, b) => (a.set_index ?? 0) - (b.set_index ?? 0));
+      const sets = exercise.filter((record) => record.set_type !== "warmup");
+      sets.sort((a, b) => (a.set_index ?? 0) - (b.set_index ?? 0));
+      hevyExercises.push({
+        exercise_title: exercise[0].exercise_title,
+        exercise_notes: (exercise[0].exercise_notes || "").replace(/\\n/g, "\n"),
+        warmupSets: warmupSets.map((set) => ({
+          weight_lbs: set.weight_lbs != null ? Number(`${set.weight_lbs}`) : undefined,
+          weight_kg: set.weight_kg != null ? Number(`${set.weight_kg}`) : undefined,
+          reps: Number(`${set.reps ?? 1}`),
+        })),
+        sets: sets.map((set) => ({
+          weight_lbs: set.weight_lbs != null ? Number(`${set.weight_lbs}`) : undefined,
+          weight_kg: set.weight_kg != null ? Number(`${set.weight_kg}`) : undefined,
+          reps: Number(`${set.reps ?? 1}`),
+        })),
       });
     }
+    hevyWorkouts.push({
+      title: workout[0].title,
+      start_time: workout[0].start_time,
+      end_time: workout[0].end_time,
+      description: (workout[0].description || "").replace(/\\n/g, "\n"),
+      exercises: hevyExercises,
+    });
+  }
 
-    const customExercises: Record<string, ICustomExercise> = {};
-    const backMap: Partial<Record<string, string>> = {};
-    const historyRecords: IHistoryRecord[] = hevyWorkouts.map((hevyWorkout) => {
-      let startTs: number | undefined;
-      try {
-        startTs = new Date(hevyWorkout.start_time).getTime();
-      } catch (_) {}
-      let endTs: number | undefined;
-      try {
-        endTs = new Date(hevyWorkout.end_time).getTime();
-      } catch (_) {}
-      const entries = hevyWorkout.exercises.map((record, index) => {
-        let exerciseNameAndEquipment = exerciseMapping[record.exercise_title];
-        let exerciseId: string;
-        if (!exerciseNameAndEquipment) {
-          const maybeExerciseId = backMap[record.exercise_title];
-          if (!maybeExerciseId) {
-            exerciseId = UidFactory_generateUid(8);
-            backMap[record.exercise_title] = exerciseId;
-            customExercises[exerciseId] = {
-              vtype: "custom_exercise",
-              id: exerciseId,
-              name: record.exercise_title,
-              isDeleted: false,
-              meta: {
-                bodyParts: [],
-                targetMuscles: [],
-                synergistMuscles: [],
-                sortedEquipment: [],
-              },
-              types: [],
-            };
-          } else {
-            exerciseId = maybeExerciseId;
-          }
-          exerciseNameAndEquipment = [record.exercise_title, undefined];
+  const customExercises: Record<string, ICustomExercise> = {};
+  const backMap: Partial<Record<string, string>> = {};
+  const historyRecords: IHistoryRecord[] = hevyWorkouts.map((hevyWorkout) => {
+    let startTs: number | undefined;
+    try {
+      startTs = new Date(hevyWorkout.start_time).getTime();
+    } catch (_) {}
+    let endTs: number | undefined;
+    try {
+      endTs = new Date(hevyWorkout.end_time).getTime();
+    } catch (_) {}
+    const entries = hevyWorkout.exercises.map((record, index) => {
+      let exerciseNameAndEquipment = exerciseMapping[record.exercise_title];
+      let exerciseId: string;
+      if (!exerciseNameAndEquipment) {
+        const maybeExerciseId = backMap[record.exercise_title];
+        if (!maybeExerciseId) {
+          exerciseId = UidFactory_generateUid(8);
+          backMap[record.exercise_title] = exerciseId;
+          customExercises[exerciseId] = {
+            vtype: "custom_exercise",
+            id: exerciseId,
+            name: record.exercise_title,
+            isDeleted: false,
+            meta: {
+              bodyParts: [],
+              targetMuscles: [],
+              synergistMuscles: [],
+              sortedEquipment: [],
+            },
+            types: [],
+          };
         } else {
-          const [exerciseName] = exerciseNameAndEquipment;
-          const exercise = Exercise_findByName(exerciseName, {})!;
-          exerciseId = exercise.id;
+          exerciseId = maybeExerciseId;
         }
-        const [, equipment] = exerciseNameAndEquipment;
-        const isUnilateral = Exercise_getIsUnilateral({ id: exerciseId, equipment: equipment }, settings);
-        return {
-          vtype: "history_entry" as const,
-          id: Progress_getEntryId({ id: exerciseId, equipment }, UidFactory_generateUid(3)),
-          exercise: { id: exerciseId, equipment: equipment },
-          index,
-          warmupSets: record.warmupSets.map((set, i) => ({
-            vtype: "set" as const,
-            id: UidFactory_generateUid(6),
-            index: i,
-            originalWeight:
-              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-            weight:
-              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-            completedWeight:
-              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-            reps: set.reps ?? 1,
-            completedReps: set.reps ?? 1,
-            completedRepsLeft: isUnilateral ? set.reps : undefined,
-            isUnilateral,
-            isCompleted: true,
-            isAmrap: false,
-            timestamp: startTs,
-          })),
-          sets: record.sets.map((set, i) => ({
-            vtype: "set" as const,
-            id: UidFactory_generateUid(6),
-            index: i,
-            weight:
-              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-            originalWeight:
-              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-            completedWeight:
-              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-            reps: set.reps ?? 1,
-            completedReps: set.reps ?? 1,
-            completedRepsLeft: isUnilateral ? set.reps : undefined,
-            isAmrap: false,
-            timestamp: startTs,
-            isUnilateral,
-            isCompleted: true,
-          })),
-          notes: record.exercise_notes,
-        };
-      });
+        exerciseNameAndEquipment = [record.exercise_title, undefined];
+      } else {
+        const [exerciseName] = exerciseNameAndEquipment;
+        const exercise = Exercise_findByName(exerciseName, {})!;
+        exerciseId = exercise.id;
+      }
+      const [, equipment] = exerciseNameAndEquipment;
+      const isUnilateral = Exercise_getIsUnilateral({ id: exerciseId, equipment: equipment }, settings);
       return {
-        vtype: "history_record",
-        id: endTs ?? Date.now(),
-        date: new Date(endTs ?? Date.now()).toISOString(),
-        startTime: startTs ?? Date.now(),
-        endTime: endTs ?? Date.now(),
-        dayName: hevyWorkout.title,
-        programName: "Hevy",
-        programId: "hevy",
-        day: 1,
-        notes: hevyWorkout.description,
-        entries,
+        vtype: "history_entry" as const,
+        id: Progress_getEntryId({ id: exerciseId, equipment }, UidFactory_generateUid(3)),
+        exercise: { id: exerciseId, equipment: equipment },
+        index,
+        warmupSets: record.warmupSets.map((set, i) => ({
+          vtype: "set" as const,
+          id: UidFactory_generateUid(6),
+          index: i,
+          originalWeight:
+            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
+          weight:
+            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
+          completedWeight:
+            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
+          reps: set.reps ?? 1,
+          completedReps: set.reps ?? 1,
+          completedRepsLeft: isUnilateral ? set.reps : undefined,
+          isUnilateral,
+          isCompleted: true,
+          isAmrap: false,
+          timestamp: startTs,
+        })),
+        sets: record.sets.map((set, i) => ({
+          vtype: "set" as const,
+          id: UidFactory_generateUid(6),
+          index: i,
+          weight:
+            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
+          originalWeight:
+            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
+          completedWeight:
+            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
+          reps: set.reps ?? 1,
+          completedReps: set.reps ?? 1,
+          completedRepsLeft: isUnilateral ? set.reps : undefined,
+          isAmrap: false,
+          timestamp: startTs,
+          isUnilateral,
+          isCompleted: true,
+        })),
+        notes: record.exercise_notes,
       };
     });
+    return {
+      vtype: "history_record",
+      id: endTs ?? Date.now(),
+      date: new Date(endTs ?? Date.now()).toISOString(),
+      startTime: startTs ?? Date.now(),
+      endTime: endTs ?? Date.now(),
+      dayName: hevyWorkout.title,
+      programName: "Hevy",
+      programId: "hevy",
+      day: 1,
+      notes: hevyWorkout.description,
+      entries,
+    };
+  });
 
-    return { historyRecords, customExercises };
-  }
+  return { historyRecords, customExercises };
 }

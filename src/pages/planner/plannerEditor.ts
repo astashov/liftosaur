@@ -30,22 +30,22 @@ import { StringUtils_capitalize } from "../../utils/string";
 import { IAllCustomExercises } from "../../types";
 import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
 import { ObjectUtils_isEqual } from "../../utils/object";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { Settings_build } from "../../models/settings";
 import { Muscle_getMuscleGroupName } from "../../models/muscle";
 
 const buildHighlightStyle = (): HighlightStyle => {
   return HighlightStyle.define([
-    { tag: tags.keyword, color: Tailwind.semantic().syntax.keyword },
-    { tag: [tags.literal, tags.inserted], color: Tailwind.semantic().syntax.literal },
-    { tag: tags.variableName, color: Tailwind.semantic().syntax.variable },
-    { tag: tags.comment, color: Tailwind.semantic().syntax.comment },
-    { tag: tags.blockComment, color: Tailwind.semantic().syntax.blockComment },
-    { tag: tags.atom, color: Tailwind.semantic().syntax.atom },
-    { tag: tags.attributeName, color: Tailwind.semantic().syntax.attributeName },
-    { tag: tags.attributeValue, color: Tailwind.semantic().syntax.attributeValue },
-    { tag: tags.annotation, color: Tailwind.semantic().syntax.annotation },
-    { tag: tags.docComment, color: Tailwind.semantic().syntax.docComment },
+    { tag: tags.keyword, color: Tailwind_semantic().syntax.keyword },
+    { tag: [tags.literal, tags.inserted], color: Tailwind_semantic().syntax.literal },
+    { tag: tags.variableName, color: Tailwind_semantic().syntax.variable },
+    { tag: tags.comment, color: Tailwind_semantic().syntax.comment },
+    { tag: tags.blockComment, color: Tailwind_semantic().syntax.blockComment },
+    { tag: tags.atom, color: Tailwind_semantic().syntax.atom },
+    { tag: tags.attributeName, color: Tailwind_semantic().syntax.attributeName },
+    { tag: tags.attributeValue, color: Tailwind_semantic().syntax.attributeValue },
+    { tag: tags.annotation, color: Tailwind_semantic().syntax.annotation },
+    { tag: tags.docComment, color: Tailwind_semantic().syntax.docComment },
   ]);
 };
 

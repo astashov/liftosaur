@@ -6,7 +6,7 @@ import { IState, updateState } from "./state";
 import { lb } from "lens-shmens";
 import { InternalLink } from "../internalLink";
 import { IconDiscord } from "../components/icons/iconDiscord";
-import { UrlUtils } from "../utils/url";
+import { UrlUtils_build } from "../utils/url";
 import { IconDoc } from "../components/icons/iconDoc";
 import { PlannerCodeBlock } from "../pages/planner/components/plannerCodeBlock";
 import { IconSwap } from "../components/icons/iconSwap";
@@ -2416,7 +2416,7 @@ export function WhatsNew_doesHaveNewUpdates(lastDateStr?: string): boolean {
 }
 
 export function WhatsNew_newUpdates(lastDateStr: string): Record<string, IWhatsNew> {
-  const url = UrlUtils.build(window.location.href);
+  const url = UrlUtils_build(window.location.href);
   const forcedUserEmail = url.searchParams.get("forceuseremail");
   if (forcedUserEmail != null) {
     return {};

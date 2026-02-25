@@ -45,7 +45,7 @@ import { LinkButton } from "./linkButton";
 import { IconTiktok } from "./icons/iconTiktok";
 import { PersonalRecords } from "./personalRecords";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
-import { ImagePreloader } from "../utils/imagePreloader";
+import { ImagePreloader_dynohappy } from "../utils/imagePreloader";
 import { n } from "../utils/math";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 
@@ -104,7 +104,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
       <section className="px-4 text-sm">
         <div className="flex items-center justify-center pb-2">
           <div>
-            <img src={ImagePreloader.dynohappy} className="block" style={{ width: 170, height: 150 }} />
+            <img src={ImagePreloader_dynohappy} className="block" style={{ width: 170, height: 150 }} />
           </div>
         </div>
         <section className="px-4 pb-2 text-center">

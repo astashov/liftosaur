@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   width?: number;
@@ -8,7 +8,7 @@ interface IProps {
 }
 
 export function IconQuestion(props: IProps): JSX.Element {
-  const color = Tailwind.semantic().icon.neutral;
+  const color = Tailwind_semantic().icon.neutral;
   return (
     <svg className={props.className} width={props.width || 20} height={props.height || 20} viewBox="0 0 20 20">
       <path

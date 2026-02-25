@@ -33,7 +33,7 @@ import { IconSwap } from "../icons/iconSwap";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { LinkButton } from "../linkButton";
 import { ModalProgramNextDay } from "../modalProgramNextDay";
-import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
+import { PlannerProgram_evaluate, PlannerProgram_evaluateText } from "../../pages/planner/models/plannerProgram";
 import { Button } from "../button";
 import { BottomSheetEditProgramV2 } from "../bottomSheetEditProgramV2";
 import { IconKebab } from "../icons/iconKebab";
@@ -46,7 +46,7 @@ import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats"
 import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
-import { UrlUtils } from "../../utils/url";
+import { UrlUtils_build } from "../../utils/url";
 import { ClipboardUtils_copy } from "../../utils/clipboard";
 import { EditProgramBottomSheetPicker } from "./editProgramBottomSheetPicker";
 import { pickerStateFromPlannerExercise } from "./editProgramUtils";
@@ -119,7 +119,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const program: IProgram = plannerState.current.program;
   const planner = program.planner!;
   const evaluatedProgram = Program_evaluate(program, props.settings);
-  const { evaluatedWeeks, exerciseFullNames } = PlannerProgram.evaluate(planner, props.settings);
+  const { evaluatedWeeks, exerciseFullNames } = PlannerProgram_evaluate(planner, props.settings);
   const ui = plannerState.ui;
 
   const editExerciseModal = ui.editExerciseModal;
@@ -160,7 +160,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
             isLoggedIn={props.isLoggedIn}
             onExportProgramToLink={() => {
               setShouldShowBottomSheet(false);
-              const url = UrlUtils.build(`/user/p/${props.originalProgram.id}`, __HOST__);
+              const url = UrlUtils_build(`/user/p/${props.originalProgram.id}`, __HOST__);
               ClipboardUtils_copy(url.toString());
               alert(`Copied link to the clipboard: ${url}`);
             }}
@@ -262,7 +262,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
               onClose={() => setShowRevisions(false)}
               onRestore={(text) => {
                 window.isUndoing = true;
-                const weeks = PlannerProgram.evaluateText(text);
+                const weeks = PlannerProgram_evaluateText(text);
                 plannerDispatch(lbPlanner.p("weeks").record(weeks), "stop-is-undoing");
                 setShowRevisions(false);
               }}

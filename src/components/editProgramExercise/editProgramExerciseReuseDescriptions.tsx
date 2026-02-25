@@ -4,9 +4,9 @@ import { IDayData, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IEvaluatedProgram, Program_getReusingDescriptionsExercises } from "../../models/program";
 import { InputSelect } from "../inputSelect";
-import { PP } from "../../models/pp";
+import { PP_iterate2 } from "../../models/pp";
 import { ObjectUtils_entries, ObjectUtils_mapValues, ObjectUtils_keys } from "../../utils/object";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { LinkButton } from "../linkButton";
 import { EditProgramExerciseReuseAtWeekDay } from "./editProgramExerciseReuseAtWeekDay";
 
@@ -23,7 +23,7 @@ function getReuseDescriptionsCandidates(
   dayData: Required<IDayData>
 ): Record<string, IReuseCandidate> {
   const result: Record<string, IReuseCandidate> = {};
-  PP.iterate2(evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
+  PP_iterate2(evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
     if (exercise.key === key && dayData.week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1) {
       return;
     }
@@ -102,7 +102,7 @@ export function EditProgramExerciseReuseDescriptions(props: IEditProgramExercise
           values={reuseDescriptionValues}
           value={reuseDescriptionKey ?? ""}
           onChange={(value) => {
-            return EditProgramUiHelpers.changeCurrentInstanceExercise(
+            return EditProgramUiHelpers_changeCurrentInstanceExercise(
               props.plannerDispatch,
               plannerExercise,
               props.settings,
@@ -186,7 +186,7 @@ export function EditProgramExerciseReuseDescriptions(props: IEditProgramExercise
               className="text-sm"
               name="edit-exercise-override-descriptions"
               onClick={() => {
-                return EditProgramUiHelpers.changeCurrentInstanceExercise(
+                return EditProgramUiHelpers_changeCurrentInstanceExercise(
                   props.plannerDispatch,
                   plannerExercise,
                   props.settings,

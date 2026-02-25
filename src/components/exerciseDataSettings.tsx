@@ -16,7 +16,10 @@ import { ExerciseRM } from "./exerciseRm";
 import { GroupHeader } from "./groupHeader";
 import { InputNumber } from "./inputNumber";
 import { MenuItemEditable } from "./menuItemEditable";
-import { EditEquipment } from "../models/editEquipment";
+import {
+  EditEquipment_setDefaultRoundingForExercise,
+  EditEquipment_setEquipmentForExercise,
+} from "../models/editEquipment";
 import { Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
 
 interface IExerciseDataSettingsProps {
@@ -40,7 +43,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
         max={100}
         value={Exercise_defaultRounding(fullExercise, props.settings)}
         onUpdate={(value) => {
-          EditEquipment.setDefaultRoundingForExercise(props.dispatch, fullExercise, value);
+          EditEquipment_setDefaultRoundingForExercise(props.dispatch, fullExercise, value);
         }}
       />
       <div className="text-xs text-right text-text-secondary">Used when Equipment is not set</div>
@@ -69,7 +72,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
             value={equipment ?? ""}
             values={values}
             onChange={(value) => {
-              EditEquipment.setEquipmentForExercise(
+              EditEquipment_setEquipmentForExercise(
                 fullExercise,
                 value,
                 props.programExerciseIds,

@@ -28,9 +28,9 @@ import {
   IndexedDBUtils_set,
 } from "./utils/indexeddb";
 import { Service } from "./api/service";
-import { UrlUtils } from "./utils/url";
+import { UrlUtils_build } from "./utils/url";
 import { AsyncQueue } from "./utils/asyncQueue";
-import { DeviceId } from "./utils/deviceId";
+import { DeviceId_get } from "./utils/deviceId";
 
 IndexedDBUtils_initializeForSafari();
 
@@ -41,14 +41,14 @@ if ("serviceWorker" in navigator && (typeof window === "undefined" || window.loc
 console.log(DateUtils_formatYYYYMMDDHHMM(Date.now()));
 const client = window.fetch.bind(window);
 const audio = new AudioInterface();
-const url = UrlUtils.build(document.location.href);
+const url = UrlUtils_build(document.location.href);
 const userId = url.searchParams.get("userid") || undefined;
 const adminKey = url.searchParams.get("admin");
 
 async function initialize(loadedData: unknown): Promise<void> {
   try {
     (window as any).loadedData = loadedData;
-    const deviceId = await DeviceId.get();
+    const deviceId = await DeviceId_get();
     const initialState = await getInitialState(client, { url, rawStorage: loadedData as string | undefined, deviceId });
     if (adminKey) {
       initialState.adminKey = adminKey;

@@ -1,7 +1,7 @@
 import { JSX, h, Fragment } from "preact";
 import { useRef, useState, useEffect } from "preact/hooks";
 import { HtmlUtils_getPointX, HtmlUtils_getPointY } from "../utils/html";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IData {
   point: number;
@@ -307,8 +307,8 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
       borderWidth: props.hideBorders ? "0" : "1px 0",
       touchAction: "none",
       position: "absolute",
-      backgroundColor: Tailwind.semantic().background.default,
-      borderColor: Tailwind.semantic().background.default,
+      backgroundColor: Tailwind_semantic().background.default,
+      borderColor: Tailwind_semantic().background.default,
       ...(props.mode === "horizontal" ? { height: "100%" } : { width: "100%" }),
     };
   }

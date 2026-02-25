@@ -14,7 +14,7 @@ import { IDispatch } from "../ducks/types";
 import { LinkButton } from "./linkButton";
 import { useState } from "preact/hooks";
 import { IconSwap } from "./icons/iconSwap";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { memo } from "preact/compat";
 import { ComparerUtils_noFns } from "../utils/comparer";
@@ -73,7 +73,7 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
           <div className="absolute bottom-0 left-0 flex justify-between w-full px-4 pt-4 pb-6 text-sm bg-background-default">
             <div>
               <LinkButton name="change-next-day" data-cy="change-next-day" onClick={() => setShowChangeWorkout(true)}>
-                <IconSwap color={Tailwind.colors().blue[400]} className="inline-block pr-1" />
+                <IconSwap color={Tailwind_colors().blue[400]} className="inline-block pr-1" />
                 Change next workout
               </LinkButton>
             </div>
@@ -85,7 +85,7 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
                   props.dispatch(Thunk_startProgramDay(emptyProgramId));
                 }}
               >
-                <IconPlus2 color={Tailwind.colors().blue[400]} className="inline-block pr-1" />
+                <IconPlus2 color={Tailwind_colors().blue[400]} className="inline-block pr-1" />
                 Ad-Hoc Workout
               </LinkButton>
             </div>

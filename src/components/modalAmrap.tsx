@@ -11,7 +11,10 @@ import { InputWeight } from "./inputWeight";
 import { InputNumber } from "./inputNumber";
 import { MathUtils_round } from "../utils/math";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_getStateMetadata,
+  PlannerProgramExercise_getState,
+} from "../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { Exercise_getIsUnilateral } from "../models/exercise";
 
@@ -51,10 +54,10 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const [rpeInputValue, setRpeInputValue] = useState<number | undefined>(initialRpe);
 
   const stateMetadata = props.programExercise
-    ? PlannerProgramExercise.getStateMetadata(props.programExercise) || {}
+    ? PlannerProgramExercise_getStateMetadata(props.programExercise) || {}
     : {};
   const stateMetadataKeys = ObjectUtils_keys(stateMetadata).filter((k) => stateMetadata[k]?.userPrompted);
-  const state = props.programExercise ? PlannerProgramExercise.getState(props.programExercise) : {};
+  const state = props.programExercise ? PlannerProgramExercise_getState(props.programExercise) : {};
   const initialUserVarInputValues = stateMetadataKeys.reduce<
     Record<keyof typeof stateMetadata, number | IWeight | IPercentage>
   >((memo, k) => {

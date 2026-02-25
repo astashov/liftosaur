@@ -4,7 +4,7 @@ import { execSync } from "child_process";
 import matter from "gray-matter";
 import { programOrder } from "../lambda/dao/programDao";
 import { IExerciseType, IPlannerProgramWeek } from "../src/types";
-import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
+import { PlannerProgram_evaluateFull, PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
 import { CollectionUtils_sortInOrder } from "../src/utils/collection";
 import { Settings_build } from "../src/models/settings";
 import { IProgramIndexEntry } from "../src/models/program";
@@ -55,7 +55,7 @@ function extractExerciseData(liftoscript: string): {
   exercisesRange: [number, number];
 } {
   const settings = Settings_build();
-  const { evaluatedWeeks } = PlannerProgram.evaluateFull(liftoscript, settings);
+  const { evaluatedWeeks } = PlannerProgram_evaluateFull(liftoscript, settings);
 
   const exerciseMap = new Map<string, IExerciseType>();
   let minExercises = Infinity;
@@ -154,7 +154,7 @@ function buildPrograms(): void {
     }
 
     const weeks: IPlannerProgramWeek[] = liftoscript
-      ? PlannerProgram.evaluateText(liftoscript)
+      ? PlannerProgram_evaluateText(liftoscript)
       : [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }];
 
     const { exercises, equipment, exercisesRange } = liftoscript

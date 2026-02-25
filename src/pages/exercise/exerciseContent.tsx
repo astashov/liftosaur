@@ -24,7 +24,7 @@ import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName, Muscle_imag
 import { exerciseDescriptions } from "../../models/exerciseDescriptions";
 import { Markdown } from "../../components/markdown";
 import { forwardRef } from "preact/compat";
-import { UrlUtils } from "../../utils/url";
+import { UrlUtils_build } from "../../utils/url";
 import { ScrollableTabs } from "../../components/scrollableTabs";
 import { GroupHeader } from "../../components/groupHeader";
 import { TopNavMenu } from "../../components/topNavMenu";
@@ -42,7 +42,7 @@ export interface IExerciseContentProps {
 }
 
 export function buildExerciseUrl(exerciseType: IExerciseType, filterTypes: string[]): string {
-  const url = UrlUtils.build(`/exercises/${Exercise_toUrlSlug(exerciseType)}`, "https://www.liftosaur.com");
+  const url = UrlUtils_build(`/exercises/${Exercise_toUrlSlug(exerciseType)}`, "https://www.liftosaur.com");
   const filterTypesParam = filterTypes.join(",");
   if (filterTypesParam) {
     url.searchParams.set("filtertypes", filterTypes.join(",").toLowerCase());

@@ -4,7 +4,7 @@ import { GroupHeader } from "./groupHeader";
 import { MenuItemWrapper } from "./menuItem";
 import { Importer } from "./importer";
 import { useCallback } from "preact/hooks";
-import { ImportFromHevy } from "../utils/importFromHevy";
+import { ImportFromHevy_convertHevyCsvToHistoryRecords } from "../utils/importFromHevy";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
 import { lb } from "lens-shmens";
@@ -26,7 +26,7 @@ export function ModalImportFromOtherApps(props: IProps): JSX.Element {
     let historyRecords: IHistoryRecord[];
     let customExercises: Record<string, ICustomExercise>;
     try {
-      const result = ImportFromHevy.convertHevyCsvToHistoryRecords(contents, props.settings);
+      const result = ImportFromHevy_convertHevyCsvToHistoryRecords(contents, props.settings);
       historyRecords = result.historyRecords;
       customExercises = result.customExercises;
     } catch (error) {

@@ -18,8 +18,16 @@ import {
   IPlannerProgramExerciseEvaluatedSet,
   IPlannerProgramExerciseWithType,
 } from "../pages/planner/models/types";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
-import { PP } from "./pp";
+import {
+  PlannerProgramExercise_getStateMetadata,
+  PlannerProgramExercise_sets,
+  PlannerProgramExercise_currentEvaluatedSetVariation,
+  PlannerProgramExercise_getProgressScript,
+  PlannerProgramExercise_getUpdateScript,
+  PlannerProgramExercise_currentEvaluatedSetVariationIndex,
+  PlannerProgramExercise_currentDescriptionIndex,
+} from "../pages/planner/models/plannerProgramExercise";
+import { PP_iterate2 } from "./pp";
 
 export interface IWeightChange {
   originalWeight: IWeight | IPercentage;
@@ -41,16 +49,16 @@ export interface IProgramExerciseExample {
 }
 
 export function ProgramExercise_hasUserPromptedVars(programExercise: IPlannerProgramExercise): boolean {
-  const stateMetadata = PlannerProgramExercise.getStateMetadata(programExercise) || {};
+  const stateMetadata = PlannerProgramExercise_getStateMetadata(programExercise) || {};
   return ObjectUtils_keys(stateMetadata).some((key) => stateMetadata[key]?.userPrompted);
 }
 
 export function ProgramExercise_getQuickAddSets(programExercise: IPlannerProgramExercise): boolean {
-  return PlannerProgramExercise.sets(programExercise).some((set) => !!set.repRange?.isQuickAddSet);
+  return PlannerProgramExercise_sets(programExercise).some((set) => !!set.repRange?.isQuickAddSet);
 }
 
 export function ProgramExercise_getEnableRpe(programExercise: IPlannerProgramExercise): boolean {
-  return PlannerProgramExercise.sets(programExercise).some((set) => set.rpe != null);
+  return PlannerProgramExercise_sets(programExercise).some((set) => set.rpe != null);
 }
 
 function warmupSetToKey(set: IProgramExerciseWarmupSet): string {
@@ -75,7 +83,7 @@ export function ProgramExercise_groupWarmupsSets(
 
 export function ProgramExercise_approxTimeMs(programExercise: IPlannerProgramExercise, settings: ISettings): number {
   return (
-    PlannerProgramExercise.currentEvaluatedSetVariation(programExercise)?.sets.reduce(
+    PlannerProgramExercise_currentEvaluatedSetVariation(programExercise)?.sets.reduce(
       (memo, set) => memo + ProgramSet_approxTimeMs(set, settings),
       0
     ) || 0
@@ -94,17 +102,17 @@ export function ProgramExercise_doesUse1RM(programExercise: IPlannerProgramExerc
 
 export function ProgramExercise_isUsingVariable(programExercise: IPlannerProgramExercise, name: string): boolean {
   const expressions = CollectionUtils_compact([
-    PlannerProgramExercise.getProgressScript(programExercise),
-    PlannerProgramExercise.getUpdateScript(programExercise),
+    PlannerProgramExercise_getProgressScript(programExercise),
+    PlannerProgramExercise_getUpdateScript(programExercise),
   ]);
   return expressions.some((e) => ScriptRunner.hasKeyword(e, name));
 }
 
 export function ProgramExercise_weightChanges(program: IEvaluatedProgram, programExerciseKey: string): IWeightChange[] {
   const results: Record<string, IWeightChange> = {};
-  PP.iterate2(program.weeks, (exercise) => {
+  PP_iterate2(program.weeks, (exercise) => {
     if (exercise.key === programExerciseKey) {
-      const currentVariationIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(exercise);
+      const currentVariationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(exercise);
       for (let variationIndex = 0; variationIndex < exercise.evaluatedSetVariations.length; variationIndex += 1) {
         const variation = exercise.evaluatedSetVariations[variationIndex];
         for (let setIndex = 0; setIndex < variation.sets.length; setIndex += 1) {
@@ -203,7 +211,7 @@ export function ProgramExercise_applyVariables(
               if (update.value.op === "=") {
                 indexValue = update.value.value - 1;
               } else {
-                const currentSetVariationIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(exercise);
+                const currentSetVariationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(exercise);
                 indexValue = Weight_applyOp(
                   undefined,
                   currentSetVariationIndex,
@@ -222,7 +230,7 @@ export function ProgramExercise_applyVariables(
               if (update.value.op === "=") {
                 indexValue = update.value.value - 1;
               } else {
-                const currentDescriptionIndex = PlannerProgramExercise.currentDescriptionIndex(exercise);
+                const currentDescriptionIndex = PlannerProgramExercise_currentDescriptionIndex(exercise);
                 indexValue = Weight_applyOp(
                   undefined,
                   currentDescriptionIndex,

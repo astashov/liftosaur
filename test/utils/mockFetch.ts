@@ -1,7 +1,7 @@
 import { APIGatewayProxyEventHeaders, APIGatewayProxyEvent } from "aws-lambda";
 import { IHandler } from "../../lambda";
 import { ObjectUtils_keys } from "../../src/utils/object";
-import { UrlUtils } from "../../src/utils/url";
+import { UrlUtils_build } from "../../src/utils/url";
 import JWT from "jsonwebtoken";
 import { NoRetryError } from "../../src/ducks/thunks";
 import fs from "fs";
@@ -32,7 +32,7 @@ export class MockFetch {
     }
     const body = options?.body;
     const headers = { Cookie: `session=${session}`, ...options?.headers };
-    const url = UrlUtils.build(typeof urlStr === "string" ? urlStr : (urlStr as Request).url);
+    const url = UrlUtils_build(typeof urlStr === "string" ? urlStr : (urlStr as Request).url);
     if (url.pathname.startsWith("/programdata/")) {
       const filePath = path.join(__dirname, "../../dist", url.pathname);
       if (!this.hasConnection) {

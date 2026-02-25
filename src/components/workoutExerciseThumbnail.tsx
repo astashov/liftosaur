@@ -2,12 +2,15 @@ import { JSX, h } from "preact";
 import { Exercise_get } from "../models/exercise";
 import { Reps_setsStatus } from "../models/set";
 import { IHistoryEntry, IHistoryRecord, ISettings } from "../types";
-import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
+import {
+  WorkoutExerciseUtils_setsStatusToBorderColor,
+  WorkoutExerciseUtils_setsStatusToColor,
+} from "../utils/workoutExerciseUtils";
 import { ExerciseImage } from "./exerciseImage";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { StringUtils_dashcase } from "../utils/string";
 import { useRef } from "preact/hooks";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 import { ObjectUtils_entries } from "../utils/object";
 
 interface IWorkoutExerciseThumbnailProps {
@@ -34,7 +37,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
   const currentEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const currentSuperset = currentEntry?.superset;
   const isCurrentSuperset = currentSuperset != null && currentSuperset === entry.superset;
-  const borderColor = isCurrent ? "border-purple-600" : WorkoutExerciseUtils.setsStatusToBorderColor(setsStatus);
+  const borderColor = isCurrent ? "border-purple-600" : WorkoutExerciseUtils_setsStatusToBorderColor(setsStatus);
   const exercise = Exercise_get(entry.exercise, props.settings.exercises);
   const ref = useRef<HTMLButtonElement>(null);
   const totalSetsCount = entry.sets.length;
@@ -86,8 +89,8 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
               <IconCheckCircle
                 isChecked={true}
                 size={14}
-                color={WorkoutExerciseUtils.setsStatusToColor(setsStatus)}
-                checkColor={Tailwind.colors().white}
+                color={WorkoutExerciseUtils_setsStatusToColor(setsStatus)}
+                checkColor={Tailwind_colors().white}
               />
             </div>
           )}
@@ -98,7 +101,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
           <div
             className="w-full"
             style={{
-              backgroundColor: isCurrentSuperset ? supersetColor : Tailwind.semantic().background.neutral,
+              backgroundColor: isCurrentSuperset ? supersetColor : Tailwind_semantic().background.neutral,
               height: "2px",
               marginTop: isCurrent ? "3px" : "5px",
             }}

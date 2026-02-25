@@ -12,7 +12,7 @@ import { IconClose } from "./icons/iconClose";
 import { IconApple } from "./icons/iconApple";
 import { Onelink } from "./onelink";
 import { IconInstagramFlat } from "./icons/iconInstagramFlat";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { IconYoutube } from "./icons/iconYoutube";
 import { IconGooglePlay } from "./icons/iconGooglePlay";
 
@@ -112,7 +112,7 @@ export function TopNavMenu(props: {
               </div>
               <div className="flex flex-col gap-3 mb-8">
                 <Onelink className="flex items-center gap-3 text-black no-underline">
-                  <IconApple color={Tailwind.semantic().text.primary} />
+                  <IconApple color={Tailwind_semantic().text.primary} />
                   <span className="text-base">App Store</span>
                 </Onelink>
                 <a
@@ -120,23 +120,23 @@ export function TopNavMenu(props: {
                   target="_blank"
                   className="flex items-center gap-3 text-black no-underline"
                 >
-                  <IconGooglePlay size={20} color={Tailwind.semantic().text.primary} />
+                  <IconGooglePlay size={20} color={Tailwind_semantic().text.primary} />
                   <span className="text-base">Google Play</span>
                 </a>
               </div>
               <div className="pt-6 border-t border-gray-200">
                 <div className="flex items-center justify-center gap-5">
                   <a href="https://www.instagram.com/liftosaurapp" target="_blank">
-                    <IconInstagramFlat size={24} color={Tailwind.semantic().text.primary} />
+                    <IconInstagramFlat size={24} color={Tailwind_semantic().text.primary} />
                   </a>
                   <a href="https://x.com/liftosaur" target="_blank">
-                    <IconYoutube size={24} color={Tailwind.semantic().text.primary} />
+                    <IconYoutube size={24} color={Tailwind_semantic().text.primary} />
                   </a>
                   <a href="https://www.reddit.com/r/liftosaur" target="_blank">
-                    <IconReddit size={24} color={Tailwind.semantic().text.primary} />
+                    <IconReddit size={24} color={Tailwind_semantic().text.primary} />
                   </a>
                   <a href="https://discord.gg/AAh3cvdBRs" target="_blank">
-                    <IconDiscord size={24} color={Tailwind.semantic().text.primary} />
+                    <IconDiscord size={24} color={Tailwind_semantic().text.primary} />
                   </a>
                 </div>
               </div>
@@ -220,30 +220,30 @@ function DesktopNav(props: IDesktopNavProps): JSX.Element {
           <div className="flex items-center gap-4 shrink-0">
             <a href="https://www.instagram.com/liftosaurapp" target="_blank">
               <IconInstagramFlat
-                color={props.isWhite ? Tailwind.semantic().icon.white : Tailwind.semantic().text.primary}
+                color={props.isWhite ? Tailwind_semantic().icon.white : Tailwind_semantic().text.primary}
               />
             </a>
             <a href="https://www.youtube.com/@Liftosaur" target="_blank">
               <IconYoutube
-                color={props.isWhite ? Tailwind.semantic().icon.white : Tailwind.semantic().text.primary}
-                secondaryColor={props.isWhite ? Tailwind.semantic().icon.purple : Tailwind.semantic().icon.white}
+                color={props.isWhite ? Tailwind_semantic().icon.white : Tailwind_semantic().text.primary}
+                secondaryColor={props.isWhite ? Tailwind_semantic().icon.purple : Tailwind_semantic().icon.white}
               />
             </a>
             <a href="https://www.reddit.com/r/liftosaur" target="_blank">
               <IconReddit
-                color={props.isWhite ? Tailwind.semantic().icon.white : Tailwind.semantic().text.primary}
-                secondaryColor={props.isWhite ? Tailwind.semantic().icon.purple : Tailwind.semantic().icon.white}
+                color={props.isWhite ? Tailwind_semantic().icon.white : Tailwind_semantic().text.primary}
+                secondaryColor={props.isWhite ? Tailwind_semantic().icon.purple : Tailwind_semantic().icon.white}
               />
             </a>
             <a href="https://discord.gg/AAh3cvdBRs" target="_blank">
-              <IconDiscord color={props.isWhite ? Tailwind.semantic().icon.white : Tailwind.semantic().text.primary} />
+              <IconDiscord color={props.isWhite ? Tailwind_semantic().icon.white : Tailwind_semantic().text.primary} />
             </a>
             <div className="bg-gray-300" style={{ width: "1px", height: "1.5rem" }} />
             {props.isLoggedIn ? (
               <button onClick={() => props.onAccountClick()} className="p-1">
                 <IconUser
                   size={20}
-                  color={props.isWhite ? Tailwind.colors().green[400] : Tailwind.colors().green[700]}
+                  color={props.isWhite ? Tailwind_colors().green[400] : Tailwind_colors().green[700]}
                 />
               </button>
             ) : (

@@ -3,9 +3,14 @@ import { expect } from "chai";
 import { MockReducer } from "./utils/mockReducer";
 import { Thunk_sync2 } from "../src/ducks/thunks";
 import sinon from "sinon";
-import { Encoder } from "../src/utils/encoder";
-import { NodeEncoder } from "../lambda/utils/nodeEncoder";
-import { SyncTestUtils } from "./utils/syncTestUtils";
+import * as encoder from "../src/utils/encoder";
+import { NodeEncoder_encode } from "../lambda/utils/nodeEncoder";
+import {
+  SyncTestUtils_initTheApp,
+  SyncTestUtils_startWorkout,
+  SyncTestUtils_completeCurrentProgramRepsActions,
+  SyncTestUtils_finishWorkout,
+} from "./utils/syncTestUtils";
 import { lb } from "lens-shmens";
 import { IHistoryRecord } from "../src/types";
 import { Progress_getProgress } from "../src/models/progress";
@@ -34,8 +39,8 @@ describe("sync progress", () => {
       ts += 1;
       return ts;
     });
-    sandbox.stub(Encoder, "encode").callsFake((...args) => {
-      return NodeEncoder.encode(...args);
+    sandbox.stub(encoder, "Encoder_encode").callsFake((...args: [string]) => {
+      return NodeEncoder_encode(...args);
     });
   });
 
@@ -44,17 +49,17 @@ describe("sync progress", () => {
   });
 
   it("starting progress on 2 devices independently picks latest workout", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
-    await SyncTestUtils.startWorkout(mockReducer);
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
-    await SyncTestUtils.startWorkout(mockReducer2);
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[3, 4]]));
+    await SyncTestUtils_startWorkout(mockReducer);
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await SyncTestUtils_startWorkout(mockReducer2);
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[3, 4]]));
     await mockReducer.run([Thunk_sync2({ force: true })]);
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
     await mockReducer2.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run(
-      SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [undefined, 4, 3], [3, 3]])
+      SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [undefined, 4, 3], [3, 3]])
     );
     await mockReducer.run([Thunk_sync2({ force: true })]);
     const completedSets = Progress_getProgress(mockReducer.state)?.entries.map((e) =>
@@ -68,18 +73,18 @@ describe("sync progress", () => {
   });
 
   it("finishing 2 progress without network should resolve in single workout", async () => {
-    const { mockReducer, env, mockFetch } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env, mockFetch } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
-    await SyncTestUtils.startWorkout(mockReducer);
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
-    await SyncTestUtils.startWorkout(mockReducer2);
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[3, 4, 3]]));
+    await SyncTestUtils_startWorkout(mockReducer);
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await SyncTestUtils_startWorkout(mockReducer2);
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[3, 4, 3]]));
     await mockReducer.run([Thunk_sync2({ force: true })]);
     mockFetch.hasConnection = false;
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [1, 1]]));
-    await SyncTestUtils.finishWorkout(mockReducer);
-    await SyncTestUtils.finishWorkout(mockReducer2);
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [1, 1]]));
+    await SyncTestUtils_finishWorkout(mockReducer);
+    await SyncTestUtils_finishWorkout(mockReducer2);
     mockFetch.hasConnection = true;
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
@@ -127,18 +132,18 @@ describe("sync progress", () => {
   });
 
   it("completing sets on different entries from different devices preserves both", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
     // Device A completes entry 0 sets
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
 
     // Device B completes entry 1 sets
     await mockReducer2.run([Thunk_sync2({ force: true })]);
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4, 4]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4, 4]]));
 
     // Sync and verify both entries have their sets preserved
     await mockReducer.run([Thunk_sync2({ force: true })]);
@@ -167,19 +172,19 @@ describe("sync progress", () => {
   });
 
   it("different sets on same entry from different devices merge correctly", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
     // Device A completes sets 0 and 1 on entry 0
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5]]));
 
     // Device B completes set 2 on entry 0 (the AMRAP set)
     await mockReducer2.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run(
-      SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[undefined, undefined, 8]])
+      SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[undefined, undefined, 8]])
     );
 
     // Sync both devices
@@ -200,10 +205,10 @@ describe("sync progress", () => {
   });
 
   it("notes field syncs independently from sets", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
     // Device A adds notes to entry 0
@@ -217,7 +222,7 @@ describe("sync progress", () => {
 
     // Device B completes sets on entry 0
     await mockReducer2.run([Thunk_sync2({ force: true })]);
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[5, 5, 5]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[5, 5, 5]]));
 
     // Sync
     await mockReducer.run([Thunk_sync2({ force: true })]);
@@ -238,10 +243,10 @@ describe("sync progress", () => {
   });
 
   it("warmupSets and state sync independently", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
     // Device A modifies warmupSets
@@ -290,10 +295,10 @@ describe("sync progress", () => {
   });
 
   it("progress timer fields sync independently", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
     // Device A updates timer
@@ -326,19 +331,19 @@ describe("sync progress", () => {
   });
 
   it("start workout on device A, continue on device B", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
     // Start on device A
-    await SyncTestUtils.startWorkout(mockReducer);
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5]]));
+    await SyncTestUtils_startWorkout(mockReducer);
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5]]));
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
     // Continue on device B
     await mockReducer2.run([Thunk_sync2({ force: true })]);
     expect(mockReducer2.state.storage.progress).to.not.be.undefined;
     await mockReducer2.run(
-      SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[undefined, undefined, 8]])
+      SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[undefined, undefined, 8]])
     );
 
     // Sync back
@@ -358,11 +363,11 @@ describe("sync progress", () => {
   });
 
   it("three-way sync between devices", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
     const mockReducer3 = MockReducer.clone(mockReducer, "web_789", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
     // All devices sync to get the progress
@@ -370,9 +375,9 @@ describe("sync progress", () => {
     await mockReducer3.run([Thunk_sync2({ force: true })]);
 
     // Each device completes different entries
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4, 4]]));
-    await mockReducer3.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer3.state, [[], [], [3, 3, 3]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4, 4]]));
+    await mockReducer3.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer3.state, [[], [], [3, 3, 3]]));
 
     // Sync all devices
     await mockReducer.run([Thunk_sync2({ force: true })]);
@@ -410,16 +415,16 @@ describe("sync progress", () => {
   });
 
   it("finish workout on device A while device B continues editing", async () => {
-    const { mockReducer, env, mockFetch } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env, mockFetch } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device A completes and finishes
     await mockReducer.run(
-      SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [
+      SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [
         [5, 5, 5],
         [5, 5, 5],
         [5, 5, 5],
@@ -427,7 +432,7 @@ describe("sync progress", () => {
     );
 
     mockFetch.hasConnection = false;
-    await SyncTestUtils.finishWorkout(mockReducer);
+    await SyncTestUtils_finishWorkout(mockReducer);
 
     // Device B makes edits without knowing A finished
     await mockReducer2.run([
@@ -454,18 +459,18 @@ describe("sync progress", () => {
 
   // Section 2: Set-Level Granular Syncing
   it("adding AMRAP reps on one device while failing set on another preserves AMRAP winner", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device A completes first two sets normally, then does AMRAP on third set with 10 reps
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 10]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 10]]));
 
     // Device B fails the first set (only 3 reps instead of 5)
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[3]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[3]]));
 
     // Sync both devices
     await mockReducer.run([Thunk_sync2({ force: true })]);
@@ -488,10 +493,10 @@ describe("sync progress", () => {
 
   // Section 4: Concurrent Edit Conflict Resolution
   it("same field edited on 2 devices simultaneously picks later timestamp", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
@@ -523,18 +528,18 @@ describe("sync progress", () => {
   });
 
   it("same set edited on 2 devices with vector clocks picks correct winner", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device A completes set 0 with 5 reps
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5]]));
 
     // Device B completes set 0 with 3 reps (different value, later timestamp)
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[3]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[3]]));
 
     // Sync
     await mockReducer.run([Thunk_sync2({ force: true })]);
@@ -548,15 +553,15 @@ describe("sync progress", () => {
   });
 
   it("concurrent edits with vector clocks merge device counts correctly", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device A makes multiple edits to entry 0
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5]]));
     await mockReducer.run([
       {
         type: "UpdateProgress",
@@ -566,7 +571,7 @@ describe("sync progress", () => {
     ]);
 
     // Device B makes multiple edits to entry 1
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4]]));
     await mockReducer2.run([
       {
         type: "UpdateProgress",
@@ -598,10 +603,10 @@ describe("sync progress", () => {
   });
 
   it("vector clock comparison when device A ahead on one field, B ahead on another", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
@@ -649,23 +654,23 @@ describe("sync progress", () => {
   });
 
   it("three devices editing concurrently resolves to correct final state", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
     const mockReducer3 = MockReducer.clone(mockReducer, "web_789", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
     await mockReducer3.run([Thunk_sync2({ force: true })]);
 
     // Device A edits entry 0
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
 
     // Device B edits entry 1
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4, 4]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4, 4]]));
 
     // Device C edits entry 2 and also entry 0 set 0 (conflict with A)
-    await mockReducer3.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer3.state, [[3], [], [6, 6, 6]]));
+    await mockReducer3.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer3.state, [[3], [], [6, 6, 6]]));
 
     // Sync all three devices multiple times to ensure convergence
     await mockReducer.run([Thunk_sync2({ force: true })]);
@@ -707,10 +712,10 @@ describe("sync progress", () => {
 
   // Section 5: Progress Lifecycle Transitions
   it("finish workout offline, sync, ensure progress cleared on all devices", async () => {
-    const { mockReducer, env, mockFetch } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env, mockFetch } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
@@ -721,13 +726,13 @@ describe("sync progress", () => {
     // Device A goes offline and finishes workout
     mockFetch.hasConnection = false;
     await mockReducer.run(
-      SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [
+      SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [
         [5, 5, 5],
         [5, 5, 5],
         [5, 5, 5],
       ])
     );
-    await SyncTestUtils.finishWorkout(mockReducer);
+    await SyncTestUtils_finishWorkout(mockReducer);
 
     // Device A has no progress, history has 1 record
     expect(Progress_getProgress(mockReducer.state)).to.be.undefined;
@@ -749,15 +754,15 @@ describe("sync progress", () => {
   });
 
   it("cancel workout on device A while device B syncs mid-workout", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device B makes some progress
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[5, 5]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[5, 5]]));
 
     // Device A cancels the workout (clears progress)
     await mockReducer.run([{ type: "CancelProgress" }]);
@@ -777,22 +782,22 @@ describe("sync progress", () => {
   });
 
   it("device A restarts progress while device B has old progress - startTime version picks winner", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
     // Start workout on both devices
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     const originalStartTime = Progress_getProgress(mockReducer.state)!.startTime;
 
     // Device B makes some progress
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[5, 5, 5]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[5, 5, 5]]));
 
     // Device A cancels and starts a new workout (different startTime = different ID)
     await mockReducer.run([{ type: "CancelProgress" }]);
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
 
     const newStartTime = Progress_getProgress(mockReducer.state)!.startTime;
     expect(newStartTime).to.not.equal(originalStartTime);
@@ -816,15 +821,15 @@ describe("sync progress", () => {
 
   // Section 6: History Entry ID Versioning
   it("replacing entry entirely (different id) uses ID version to pick winner", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device A modifies entry 0's sets
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
 
     // Device B replaces entry 0 entirely by changing its exercise (simulated by changing the id)
     const newEntryId = "newExercise_barbell";
@@ -853,16 +858,16 @@ describe("sync progress", () => {
   });
 
   it("merging when entry IDs match but different field versions", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Both devices have same entry ID, but modify different fields
     // Device A modifies sets
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
 
     // Device B modifies notes and state (different fields of same entry)
     await mockReducer2.run([
@@ -899,10 +904,10 @@ describe("sync progress", () => {
   });
 
   it("concurrent entry replacement across devices picks correct winner by ID version", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
@@ -947,12 +952,12 @@ describe("sync progress", () => {
 
   // Section 7: Multi-Device Scenarios
   it("four devices syncing progress changes converge to same state", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
     const mockReducer3 = MockReducer.clone(mockReducer, "web_789", env);
     const mockReducer4 = MockReducer.clone(mockReducer, "web_012", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
     await mockReducer3.run([Thunk_sync2({ force: true })]);
@@ -960,13 +965,13 @@ describe("sync progress", () => {
 
     // Each device edits different parts
     // Device A: entry 0, set 0
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5]]));
 
     // Device B: entry 0, set 1
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[undefined, 4]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[undefined, 4]]));
 
     // Device C: entry 1, set 0
-    await mockReducer3.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer3.state, [[], [3]]));
+    await mockReducer3.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer3.state, [[], [3]]));
 
     // Device D: entry 2, notes
     await mockReducer4.run([
@@ -1020,11 +1025,11 @@ describe("sync progress", () => {
   });
 
   it("device joins mid-workout, receives current progress state", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
 
     // Device A starts workout and makes progress
-    await SyncTestUtils.startWorkout(mockReducer);
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await SyncTestUtils_startWorkout(mockReducer);
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
     await mockReducer.run([
       {
         type: "UpdateProgress",
@@ -1045,7 +1050,7 @@ describe("sync progress", () => {
     expect(progress2.notes).to.equal("Workout notes");
 
     // Device B can continue the workout
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4, 4]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4, 4]]));
     await mockReducer2.run([Thunk_sync2({ force: true })]);
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
@@ -1056,10 +1061,10 @@ describe("sync progress", () => {
   });
 
   it("device reconnects after long offline period, merges correctly", async () => {
-    const { mockReducer, env, mockFetch } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env, mockFetch } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
@@ -1067,7 +1072,7 @@ describe("sync progress", () => {
     mockFetch.hasConnection = false;
 
     // Device A makes many changes while B is offline
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
     await mockReducer.run([
       {
         type: "UpdateProgress",
@@ -1075,7 +1080,7 @@ describe("sync progress", () => {
         desc: "Note 1",
       },
     ]);
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [4, 4, 4]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [4, 4, 4]]));
     await mockReducer.run([
       {
         type: "UpdateProgress",
@@ -1085,7 +1090,7 @@ describe("sync progress", () => {
     ]);
 
     // Device B makes changes while offline (on different entries)
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[], [], [3, 3, 3]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[], [], [3, 3, 3]]));
     await mockReducer2.run([
       {
         type: "UpdateProgress",
@@ -1121,13 +1126,13 @@ describe("sync progress", () => {
 
   // Section 8: Network Edge Cases
   it("sync failure mid-update preserves local changes", async () => {
-    const { mockReducer, mockFetch } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, mockFetch } = await SyncTestUtils_initTheApp("web_123");
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
     // Make local changes
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
 
     const progressBeforeFailedSync = Progress_getProgress(mockReducer.state)!;
     expect(progressBeforeFailedSync.entries[0].sets[0].completedReps).to.equal(5);
@@ -1155,23 +1160,23 @@ describe("sync progress", () => {
   });
 
   it("intermittent connectivity during workout maintains eventual consistency", async () => {
-    const { mockReducer, env, mockFetch } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env, mockFetch } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device A makes changes, syncs
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5]]));
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
     // Network goes down
     mockFetch.hasConnection = false;
 
     // Both devices make changes while offline
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[undefined, 5]]));
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[], [4]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[undefined, 5]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[], [4]]));
 
     // Network comes back
     mockFetch.hasConnection = true;
@@ -1184,7 +1189,7 @@ describe("sync progress", () => {
 
     // Device A makes more changes
     await mockReducer.run(
-      SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[undefined, undefined, 5]])
+      SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[undefined, undefined, 5]])
     );
 
     // Network comes back
@@ -1207,10 +1212,10 @@ describe("sync progress", () => {
   });
 
   it("device goes offline, makes many changes, reconnects - all changes sync", async () => {
-    const { mockReducer, env, mockFetch } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env, mockFetch } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
@@ -1218,7 +1223,7 @@ describe("sync progress", () => {
     mockFetch.hasConnection = false;
 
     // Complete all sets on entry 0
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
     // Add notes to entry 0
     await mockReducer.run([
       {
@@ -1228,7 +1233,7 @@ describe("sync progress", () => {
       },
     ]);
     // Complete all sets on entry 1
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [4, 4, 4]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [4, 4, 4]]));
     // Add notes to entry 1
     await mockReducer.run([
       {
@@ -1238,7 +1243,7 @@ describe("sync progress", () => {
       },
     ]);
     // Complete all sets on entry 2
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [], [3, 3, 3]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [], [3, 3, 3]]));
     // Add workout-level notes
     await mockReducer.run([
       {
@@ -1279,22 +1284,22 @@ describe("sync progress", () => {
   });
 
   it("partial sync recovery - device recovers after interrupted sync", async () => {
-    const { mockReducer, env, mockFetch } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env, mockFetch } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device A makes changes
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
 
     // Sync starts but connection drops mid-way (simulated by syncing then going offline)
     await mockReducer.run([Thunk_sync2({ force: true })]);
     mockFetch.hasConnection = false;
 
     // Device A makes more changes while offline
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [4, 4, 4]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [4, 4, 4]]));
 
     // Device B syncs (gets A's first batch of changes)
     mockFetch.hasConnection = true;
@@ -1316,15 +1321,15 @@ describe("sync progress", () => {
 
   // Section 12: Edge Cases - Data Integrity
   it("missing _versions field gets regenerated with fillVersions", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device A makes changes
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
 
     // Verify versions exist
     expect(mockReducer.state.storage._versions).to.not.be.undefined;
@@ -1341,19 +1346,19 @@ describe("sync progress", () => {
   });
 
   it("version with higher timestamp but concurrent vector clock resolves correctly", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device A makes multiple edits to build up vector clock
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5]]));
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[undefined, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[undefined, 5]]));
 
     // Device B makes one edit (lower vector clock count for its device, but will have later timestamp)
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[3]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[3]]));
 
     // Sync - concurrent case: A has higher count for web_123, B has higher count for web_456
     // In concurrent cases, the later timestamp typically wins
@@ -1371,15 +1376,15 @@ describe("sync progress", () => {
   });
 
   it("deleting and re-adding items handles version correctly", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device A completes sets
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
     // Device B also has the completed sets now
@@ -1388,7 +1393,7 @@ describe("sync progress", () => {
 
     // Device A cancels and restarts (effectively deleting and re-adding progress)
     await mockReducer.run([{ type: "CancelProgress" }]);
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
 
     // Device B syncs - should get the new fresh progress
@@ -1400,10 +1405,10 @@ describe("sync progress", () => {
   });
 
   it("large number of concurrent edits still converges", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
@@ -1430,8 +1435,8 @@ describe("sync progress", () => {
     }
 
     // Complete sets on different entries
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4, 4]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[], [4, 4, 4]]));
 
     // Sync multiple times to ensure convergence
     for (let i = 0; i < 3; i++) {
@@ -1456,10 +1461,10 @@ describe("sync progress", () => {
 
   // Section 13: Validation and Recovery
   it("merging progress with mismatched entry counts handles gracefully", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
@@ -1467,10 +1472,10 @@ describe("sync progress", () => {
     expect(Progress_getProgress(mockReducer.state)!.entries.length).to.equal(3);
 
     // Device A modifies entry 0
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
 
     // Device B modifies entry 2
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[], [], [3, 3, 3]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[], [], [3, 3, 3]]));
 
     // Sync
     await mockReducer.run([Thunk_sync2({ force: true })]);
@@ -1489,10 +1494,10 @@ describe("sync progress", () => {
   });
 
   it("entries array reordering after merge maintains correct index order", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
@@ -1500,12 +1505,12 @@ describe("sync progress", () => {
     const originalEntries = Progress_getProgress(mockReducer.state)!.entries.map((e) => e.exercise.id);
 
     // Device A modifies entries in order 0, 1, 2
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5], [4], [3]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5], [4], [3]]));
 
     // Device B modifies entries in reverse order 2, 1, 0
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[], [], [6]]));
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[], [7]]));
-    await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer2.state, [[8]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[], [], [6]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[], [7]]));
+    await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer2.state, [[8]]));
 
     // Sync
     await mockReducer.run([Thunk_sync2({ force: true })]);
@@ -1525,15 +1530,15 @@ describe("sync progress", () => {
   });
 
   it("sets array reordering after merge maintains correct index order", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 
     // Device A modifies sets in order 0, 1, 2
-    await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+    await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
 
     // Device B modifies sets in reverse order (set 2 first, then 1, then 0)
     // Using individual updates to ensure different order
@@ -1572,10 +1577,10 @@ describe("sync progress", () => {
   });
 
   it("sync preserves data integrity after rapid successive edits", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
 
-    await SyncTestUtils.startWorkout(mockReducer);
+    await SyncTestUtils_startWorkout(mockReducer);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     await mockReducer2.run([Thunk_sync2({ force: true })]);
 

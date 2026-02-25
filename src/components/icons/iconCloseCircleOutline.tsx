@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   size?: number;
@@ -9,8 +9,8 @@ interface IProps {
 
 export function IconCloseCircleOutline(props: IProps = {}): JSX.Element {
   const size = props.size ?? 20;
-  const color = props.color ?? Tailwind.semantic().icon.neutral;
-  const bgColor = props.bgColor ?? Tailwind.semantic().background.subtle;
+  const color = props.color ?? Tailwind_semantic().icon.neutral;
+  const bgColor = props.bgColor ?? Tailwind_semantic().background.subtle;
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="32" height="32" rx="16" fill={bgColor} />

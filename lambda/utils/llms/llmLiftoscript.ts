@@ -2,7 +2,7 @@ import { ILLMProvider } from "./llmTypes";
 import { IAccount } from "../../../src/models/account";
 import { IDI } from "../di";
 import { AiLogsDao } from "../../dao/aiLogsDao";
-import { LlmPrompt } from "./llmPrompt";
+import { LlmPrompt_getSystemPrompt, LlmPrompt_getUserPrompt } from "./llmPrompt";
 
 export class LlmLiftoscript {
   constructor(
@@ -20,8 +20,8 @@ export class LlmLiftoscript {
 
     try {
       for await (const event of this.provider.generate(
-        LlmPrompt.getSystemPrompt(),
-        LlmPrompt.getUserPrompt(programContent)
+        LlmPrompt_getSystemPrompt(),
+        LlmPrompt_getUserPrompt(programContent)
       )) {
         if (event.type === "result") {
           fullResponse += event.data;

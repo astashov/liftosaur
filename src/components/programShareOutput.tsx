@@ -1,11 +1,14 @@
 import { h, JSX, ComponentChildren, Ref } from "preact";
 import { ISettings, IPlannerProgram, IPlannerProgramWeek, IPlannerProgramDay } from "../types";
-import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { PlannerProgram_evaluate } from "../pages/planner/models/plannerProgram";
 import { StringUtils_pluralize } from "../utils/string";
 import { ExerciseImage } from "./exerciseImage";
 import { equipmentName, Exercise_findByNameAndEquipment, Exercise_toKey } from "../models/exercise";
 import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_sets,
+  PlannerProgramExercise_progressionType,
+} from "../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerProgramExerciseSet } from "../pages/planner/models/types";
 import { Markdown } from "./markdown";
 import { Weight_print } from "../models/weight";
@@ -46,7 +49,7 @@ function Card(props: { children: ComponentChildren }): JSX.Element {
 export const ProgramShareOutput = forwardRef(
   (props: IProgramShareOutputProps, ref: Ref<HTMLDivElement>): JSX.Element => {
     const options = props.options;
-    const { evaluatedWeeks } = PlannerProgram.evaluate(props.program, props.settings);
+    const { evaluatedWeeks } = PlannerProgram_evaluate(props.program, props.settings);
     const minDays = Math.min(...evaluatedWeeks.map((week) => week.length));
     const maxDays = Math.max(...evaluatedWeeks.map((week) => week.length));
     const contentRef = useRef<HTMLDivElement>();
@@ -198,7 +201,7 @@ interface IWorkoutProps {
 function Workout(props: IWorkoutProps): JSX.Element {
   const { week, day, exercises } = props;
   const setsNumber = exercises
-    .map((e) => PlannerProgramExercise.sets(e).reduce((m, a) => m + (a.repRange?.numberOfSets || 0), 0))
+    .map((e) => PlannerProgramExercise_sets(e).reduce((m, a) => m + (a.repRange?.numberOfSets || 0), 0))
     .reduce((a, b) => a + b, 0);
   return (
     <Card>
@@ -247,7 +250,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
                 <div className={`flex gap-2 items-center w-full`}>
                   <div className="flex-1 font-bold">{plannerProgramExercise.fullName}</div>
                   <div className="pr-2">
-                    {PlannerProgramExercise.sets(plannerProgramExercise).map((set) => {
+                    {PlannerProgramExercise_sets(plannerProgramExercise).map((set) => {
                       return <Set set={set} />;
                     })}
                   </div>
@@ -335,7 +338,7 @@ interface IProgressionProps {
 }
 
 export function Progression(props: IProgressionProps): JSX.Element | null {
-  const type = PlannerProgramExercise.progressionType(props.exercise);
+  const type = PlannerProgramExercise_progressionType(props.exercise);
   if (type == null) {
     return null;
   }

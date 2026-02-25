@@ -11,7 +11,13 @@ import {
   isIdVersion,
   IIdVersion,
 } from "./types";
-import { VersionTrackerUtils } from "./utils";
+import {
+  VersionTrackerUtils_asVersionsObject,
+  VersionTrackerUtils_mergeFieldVersions,
+  VersionTrackerUtils_ensureVersionsObject,
+  VersionTrackerUtils_pickWinningIdVersion,
+  VersionTrackerUtils_NUKEDELETED_THRESHOLD,
+} from "./utils";
 
 export class VersionTrackerMergeVersions<TAtomicType extends string, TControlledType extends string> {
   private readonly versionTypes: IVersionTypes<TAtomicType, TControlledType>;
@@ -22,8 +28,8 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
 
   public run<T>(fullVersions: IVersions<T>, versionDiff: IVersions<T>): IVersions<T> {
     const result = ObjectUtils_clone(fullVersions);
-    const resultObj = VersionTrackerUtils.asVersionsObject(result);
-    const diffObj = VersionTrackerUtils.asVersionsObject(versionDiff);
+    const resultObj = VersionTrackerUtils_asVersionsObject(result);
+    const diffObj = VersionTrackerUtils_asVersionsObject(versionDiff);
 
     for (const key of Object.keys(diffObj)) {
       const fullVersion = resultObj[key];
@@ -48,7 +54,7 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
     }
 
     if (isFieldVersion(fullVersion) && isFieldVersion(diffVersion)) {
-      const newVersion = VersionTrackerUtils.mergeFieldVersions(fullVersion, diffVersion);
+      const newVersion = VersionTrackerUtils_mergeFieldVersions(fullVersion, diffVersion);
       return newVersion;
     }
 
@@ -62,7 +68,7 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
     }
 
     if (isVersionsObject(diffVersion)) {
-      const fullObj = VersionTrackerUtils.ensureVersionsObject(fullVersion);
+      const fullObj = VersionTrackerUtils_ensureVersionsObject(fullVersion);
 
       // Check if both have ID versions (controlled types with different identities)
       const fullIdVersion = this.findIdVersion(fullObj);
@@ -70,7 +76,7 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
 
       if (fullIdVersion && diffIdVersion && fullIdVersion.value !== diffIdVersion.value) {
         // Different controlled objects - pick winner by timestamp
-        const winner = VersionTrackerUtils.pickWinningIdVersion(fullIdVersion, diffIdVersion);
+        const winner = VersionTrackerUtils_pickWinningIdVersion(fullIdVersion, diffIdVersion);
         if (winner === diffIdVersion) {
           // diff wins - use diff versions entirely
           return diffVersion;
@@ -117,7 +123,7 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
     const result: ICollectionVersions = {
       items: { ...(fullCollection?.items || {}) },
       deleted: nukedeleted != null ? {} : { ...(fullCollection?.deleted || {}), ...(diffCollection?.deleted || {}) },
-      ...(nukedeleted != null && nukedeleted < VersionTrackerUtils.NUKEDELETED_THRESHOLD
+      ...(nukedeleted != null && nukedeleted < VersionTrackerUtils_NUKEDELETED_THRESHOLD
         ? { nukedeleted: nukedeleted + 1 }
         : {}),
     };

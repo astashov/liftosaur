@@ -572,8 +572,16 @@ export function Weight_op(
   throw new Error(`Can't apply operation to ${a} and ${b}`);
 }
 
-export function Weight_operation(weight: IWeight, value: IWeight | number, o: (a: number, b: number) => number): IWeight;
-export function Weight_operation(weight: IWeight | number, value: IWeight, o: (a: number, b: number) => number): IWeight;
+export function Weight_operation(
+  weight: IWeight,
+  value: IWeight | number,
+  o: (a: number, b: number) => number
+): IWeight;
+export function Weight_operation(
+  weight: IWeight | number,
+  value: IWeight,
+  o: (a: number, b: number) => number
+): IWeight;
 export function Weight_operation(
   weight: IWeight | number,
   value: IWeight | number,

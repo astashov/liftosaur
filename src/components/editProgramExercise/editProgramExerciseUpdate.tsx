@@ -4,11 +4,11 @@ import { IProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { LinkButton } from "../linkButton";
 import { IEvaluatedProgram, Program_evaluate, Program_getReusingUpdateExercises } from "../../models/program";
-import { PP } from "../../models/pp";
+import { PP_iterate2 } from "../../models/pp";
 import { MenuItemWrapper } from "../menuItem";
 import { InputSelect } from "../inputSelect";
 import { lb } from "lens-shmens";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeFirstInstance } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { useState } from "preact/hooks";
 import { ObjectUtils_entries } from "../../utils/object";
 import { ModalEditUpdateScript } from "./progressions/modalEditUpdateScript";
@@ -29,7 +29,7 @@ function getUpdateReuseCandidates(
   evaluatedProgram: IEvaluatedProgram
 ): [string, string][] {
   const result: Record<string, string> = { "": "None" };
-  PP.iterate2(evaluatedProgram.weeks, (exercise) => {
+  PP_iterate2(evaluatedProgram.weeks, (exercise) => {
     if (exercise.key === key) {
       return;
     }
@@ -110,7 +110,7 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
           onChange={(script) => {
             props.plannerDispatch(
               lbProgram.recordModify((program) => {
-                return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
+                return EditProgramUiHelpers_changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
                   e.update = {
                     ...e.update,
                     type: "custom",
@@ -205,7 +205,7 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
                     onChange={(fullName) => {
                       props.plannerDispatch(
                         lbProgram.recordModify((program) => {
-                          return EditProgramUiHelpers.changeFirstInstance(
+                          return EditProgramUiHelpers_changeFirstInstance(
                             program,
                             plannerExercise,
                             props.settings,

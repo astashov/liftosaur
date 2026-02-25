@@ -1,11 +1,11 @@
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_disableSubscriptions } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("enters stats and shows graphs", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
   await page.goto(startpage + "?skipintro=1&nosync=true");
   await page.click("button:has-text('Basic Beginner Routine')");
-  await PlaywrightUtils.disableSubscriptions(page);
+  await PlaywrightUtils_disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
 
   await page.getByTestId("footer-me").click();

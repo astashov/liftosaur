@@ -8,7 +8,7 @@ import { equipmentName } from "../../src/models/exercise";
 import { Program_exerciseRangeFormat } from "../../src/models/program";
 import { StringUtils_pluralize } from "../../src/utils/string";
 import { IEither } from "../../src/utils/types";
-import { Tailwind } from "../../src/utils/tailwindConfig";
+import { Tailwind_semantic } from "../../src/utils/tailwindConfig";
 
 let resvgInitialized = false;
 async function initResvgWasm(): Promise<void> {
@@ -56,7 +56,7 @@ function truncate(text: string, maxLen: number): string {
   return text.slice(0, maxLen - 1) + "\u2026";
 }
 
-const sem = Tailwind.semantic();
+const sem = Tailwind_semantic();
 const ICON_COLOR = sem.icon.neutralsubtle;
 
 function iconWatch(width: number, height: number): ISatoriNode {

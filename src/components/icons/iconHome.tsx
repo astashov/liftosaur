@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IInnerProps {
   size?: number;
@@ -18,7 +18,7 @@ export function IconHome(props: IProps): JSX.Element {
 
 export function IconHomeUnselected(props: IInnerProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.semantic().icon.neutral;
+  const color = props.color ?? Tailwind_semantic().icon.neutral;
   return (
     <svg
       width={size}
@@ -40,7 +40,7 @@ export function IconHomeUnselected(props: IInnerProps): JSX.Element {
 
 export function IconHomeSelected(props: IInnerProps): JSX.Element {
   const size = props.size ?? 24;
-  const color = props.color ?? Tailwind.semantic().icon.purple;
+  const color = props.color ?? Tailwind_semantic().icon.purple;
   return (
     <svg
       width={size}

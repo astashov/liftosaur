@@ -12,7 +12,7 @@ import { Share_generateLink } from "../models/share";
 import { History_calories } from "../models/history";
 import { IconTiktok } from "./icons/iconTiktok";
 import { SendMessage_isIos, SendMessage_toIosAndAndroid } from "../utils/sendMessage";
-import { HealthSync } from "../lib/healthSync";
+import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { IconHeart } from "./icons/iconHeart";
 
 interface IProps {
@@ -29,7 +29,7 @@ export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
   const [shouldShowShareSheet, setShouldShowShareSheet] = useState<boolean>(false);
 
   const healthName = SendMessage_isIos() ? "Apple Health" : "Google Health";
-  const shouldShowHealthSync = HealthSync.eligibleForAppleHealth() || HealthSync.eligibleForGoogleHealth();
+  const shouldShowHealthSync = HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth();
   return (
     <div>
       <BottomSheet isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>

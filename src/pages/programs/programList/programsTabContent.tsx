@@ -5,7 +5,7 @@ import { ISettings } from "../../../types";
 import { StringUtils_pluralize } from "../../../utils/string";
 import { IProgramIndexEntry } from "../../../models/program";
 import { IconMagnifyingGlass } from "../../../components/icons/iconMagnifyingGlass";
-import { Tailwind } from "../../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 interface IProgramsTabContentProps {
   programs: IProgramIndexEntry[];
@@ -51,7 +51,7 @@ function ProgramSearchField(props: IProgramSearchFieldProps): JSX.Element {
   return (
     <div className="relative">
       <IconMagnifyingGlass
-        color={Tailwind.semantic().icon.neutralsubtle}
+        color={Tailwind_semantic().icon.neutralsubtle}
         size={16}
         className="absolute transform -translate-y-1/2 left-3 top-1/2"
       />

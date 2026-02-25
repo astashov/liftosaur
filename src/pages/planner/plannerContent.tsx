@@ -4,7 +4,7 @@ import { IPlannerState } from "./models/types";
 import { LinkInlineInput } from "../../components/inlineInput";
 import { lb, lf } from "lens-shmens";
 import { HtmlUtils_escapeHtml } from "../../utils/html";
-import { Encoder } from "../../utils/encoder";
+import { Encoder_encodeIntoUrl } from "../../utils/encoder";
 import { useEffect, useState } from "preact/hooks";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { ModalPlannerSettings } from "./components/modalPlannerSettings";
@@ -26,7 +26,14 @@ import {
   IStats,
 } from "../../types";
 import { Service } from "../../api/service";
-import { PlannerProgram } from "./models/plannerProgram";
+import {
+  PlannerProgram_isValid,
+  PlannerProgram_hasNonSelectedWeightUnit,
+  PlannerProgram_switchToUnit,
+  PlannerProgram_generateFullText,
+  PlannerProgram_evaluateText,
+  PlannerProgram_replaceAndValidateExercise,
+} from "./models/plannerProgram";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
 import { PlannerCodeBlock } from "./components/plannerCodeBlock";
 import { IconHelp } from "../../components/icons/iconHelp";
@@ -40,7 +47,7 @@ import { UidFactory_generateUid } from "../../utils/generator";
 import { IconPreview } from "../../components/icons/iconPreview";
 import { IAccount } from "../../models/account";
 import { PlannerBanner } from "./plannerBanner";
-import { UrlUtils } from "../../utils/url";
+import { UrlUtils_build, UrlUtils_buildSafe } from "../../utils/url";
 import { ProgramQrCode } from "../../components/programQrCode";
 import { Button } from "../../components/button";
 import { IconSpinner } from "../../components/icons/iconSpinner";
@@ -99,7 +106,7 @@ function isChanged(state: IPlannerState): boolean {
 
 function getCurrentUrl(): string | undefined {
   if (typeof window !== "undefined") {
-    const url = UrlUtils.build(window.location.href);
+    const url = UrlUtils_build(window.location.href);
     if (/p\/[a-z0-9]+/.test(url.pathname)) {
       url.search = "";
       url.hash = "";
@@ -111,7 +118,7 @@ function getCurrentUrl(): string | undefined {
 
 function getCurrentSource(): string | undefined {
   if (typeof window !== "undefined") {
-    const urlResult = UrlUtils.buildSafe(window.location.href);
+    const urlResult = UrlUtils_buildSafe(window.location.href);
     if (urlResult.success) {
       const url = urlResult.data;
       return url.searchParams.get("s") || undefined;
@@ -222,7 +229,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     setShowHelp(typeof window !== "undefined" && window.localStorage.getItem("hide-planner-help") !== "true");
     if (props.initialProgram) {
       const exportProgram = Program_exportProgram(state.current.program, settings);
-      Encoder.encodeIntoUrl(JSON.stringify(exportProgram), window.location.href).then(() => {
+      Encoder_encodeIntoUrl(JSON.stringify(exportProgram), window.location.href).then(() => {
         dispatch(
           lb<IPlannerState>().p("initialEncodedProgram").record(JSON.stringify(exportProgram)),
           "Set initial encoded program"
@@ -258,7 +265,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const program = state.current.program;
 
   const modalExerciseUi = state.ui.modalExercise;
-  const isInvalid = !PlannerProgram.isValid(planner, settings);
+  const isInvalid = !PlannerProgram_isValid(planner, settings);
 
   const script = "Squat / 3x3-5\nRomanian Deadlift / 3x8";
   const maxWidth = "1200px";
@@ -377,11 +384,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 settings
               );
               const pg = exportProgram.program;
-              if (pg.planner && PlannerProgram.hasNonSelectedWeightUnit(pg.planner, settings)) {
+              if (pg.planner && PlannerProgram_hasNonSelectedWeightUnit(pg.planner, settings)) {
                 const fromUnit = Weight_oppositeUnit(settings.units);
                 const toUnit = settings.units;
                 if (confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)) {
-                  pg.planner = PlannerProgram.switchToUnit(pg.planner, settings);
+                  pg.planner = PlannerProgram_switchToUnit(pg.planner, settings);
                 }
               }
               setIsBannerLoading(true);
@@ -510,7 +517,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                     dispatch(
                       lb<IPlannerState>()
                         .p("fulltext")
-                        .record({ text: PlannerProgram.generateFullText(planner.weeks) }),
+                        .record({ text: PlannerProgram_generateFullText(planner.weeks) }),
                       "Edit full program"
                     )
                   }
@@ -529,8 +536,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 encodedProgram={async () => {
                   track({ name: "copy_link" });
                   const exportProgram = Program_exportProgram(program, settings);
-                  const baseUrl = UrlUtils.build("/planner", window.location.href);
-                  const encodedUrl = await Encoder.encodeIntoUrl(JSON.stringify(exportProgram), baseUrl.toString());
+                  const baseUrl = UrlUtils_build("/planner", window.location.href);
+                  const encodedUrl = await Encoder_encodeIntoUrl(JSON.stringify(exportProgram), baseUrl.toString());
                   return encodedUrl.toString();
                 }}
               />
@@ -675,23 +682,23 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 const newPlanner: IPlannerProgram = {
                   vtype: "planner",
                   name: state.current.program.name,
-                  weeks: PlannerProgram.evaluateText(state.fulltext.text),
+                  weeks: PlannerProgram_evaluateText(state.fulltext.text),
                 };
                 const newProgram = { ...program, planner: newPlanner };
-                const newProgramResult = PlannerProgram.replaceAndValidateExercise(
+                const newProgramResult = PlannerProgram_replaceAndValidateExercise(
                   newProgram,
                   modalExerciseUi.exerciseKey,
                   exerciseType,
                   settings
                 );
                 if (newProgramResult.success && newProgramResult.data.planner) {
-                  const newText = PlannerProgram.generateFullText(newProgramResult.data.planner.weeks);
+                  const newText = PlannerProgram_generateFullText(newProgramResult.data.planner.weeks);
                   dispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)], "Update fulltext");
                 } else if (!newProgramResult.success) {
                   alert(newProgramResult.error);
                 }
               } else {
-                const newProgramResult = PlannerProgram.replaceAndValidateExercise(
+                const newProgramResult = PlannerProgram_replaceAndValidateExercise(
                   program,
                   modalExerciseUi.exerciseKey,
                   exerciseType,
@@ -820,7 +827,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           onClose={() => setShowRevisions(false)}
           onRestore={(text) => {
             window.isUndoing = true;
-            dispatch([lbProgram.p("weeks").record(PlannerProgram.evaluateText(text))], "Restore program");
+            dispatch([lbProgram.p("weeks").record(PlannerProgram_evaluateText(text))], "Restore program");
             setShowRevisions(false);
             dispatch([lb<IPlannerState>().p("fulltext").record(undefined)], "stop-is-undoing");
           }}

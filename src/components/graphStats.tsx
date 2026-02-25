@@ -15,9 +15,9 @@ import {
 import { Length_convertTo } from "../models/length";
 import { Stats_name } from "../models/stats";
 import { DateUtils_format } from "../utils/date";
-import { GraphsPlugins } from "../utils/graphsPlugins";
+import { GraphsPlugins_zoom } from "../utils/graphsPlugins";
 import { IPercentageUnit } from "../types";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 
 interface IGraphStatsProps {
   collection: [number, number][];
@@ -88,14 +88,14 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
       height: rect.height,
       axes: [
         {
-          stroke: Tailwind.semantic().text.primary,
-          ticks: { stroke: Tailwind.semantic().border.neutral },
-          grid: { stroke: Tailwind.semantic().border.neutral },
+          stroke: Tailwind_semantic().text.primary,
+          ticks: { stroke: Tailwind_semantic().border.neutral },
+          grid: { stroke: Tailwind_semantic().border.neutral },
         },
         {
-          stroke: Tailwind.semantic().text.primary,
-          ticks: { stroke: Tailwind.semantic().border.neutral },
-          grid: { stroke: Tailwind.semantic().border.neutral },
+          stroke: Tailwind_semantic().text.primary,
+          ticks: { stroke: Tailwind_semantic().border.neutral },
+          grid: { stroke: Tailwind_semantic().border.neutral },
         },
       ],
       cursor: {
@@ -103,7 +103,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
         lock: true,
       },
       plugins: [
-        GraphsPlugins.zoom(),
+        GraphsPlugins_zoom(),
         {
           hooks: {
             setCursor: [
@@ -137,14 +137,14 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
         {
           label: props.statsKey === "weight" ? "Weight" : props.statsKey === "bodyfat" ? "Percentage" : "Size",
           value: (self, rawValue) => `${rawValue} ${props.units}`,
-          stroke: Tailwind.colors().red[500],
+          stroke: Tailwind_colors().red[500],
           width: 1,
         },
         movingAverageWindowSize != null
           ? {
               label: "Moving Average",
               value: (self, rawValue) => `${rawValue} ${props.units}`,
-              stroke: Tailwind.colors().blue[500],
+              stroke: Tailwind_colors().blue[500],
               width: 1,
             }
           : {},

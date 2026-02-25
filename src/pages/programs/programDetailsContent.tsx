@@ -24,7 +24,7 @@ import { IconKettlebellSmall } from "../../components/icons/iconKettlebellSmall"
 import { Equipment_currentEquipment } from "../../models/equipment";
 import { equipmentName } from "../../models/exercise";
 import { StringUtils_pluralize } from "../../utils/string";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_colors } from "../../utils/tailwindConfig";
 
 export interface IProgramDetailsContentProps {
   program: IProgram;
@@ -125,7 +125,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
                     </div>
                   )}
                   <div className="flex mb-2 text-sm text-text-secondary">
-                    <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mt-0.5 mr-1" />
+                    <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="block mt-0.5 mr-1" />
                     <div>
                       {weeksCount > 1 && `${weeksCount} ${StringUtils_pluralize("week", weeksCount)}, `}
                       {indexEntry?.frequency ? `${indexEntry.frequency}x/week` : ""}
@@ -135,7 +135,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
                   </div>
                   {equipment.length > 0 && (
                     <div className="flex mb-2 text-sm text-text-secondary">
-                      <IconKettlebellSmall color={Tailwind.colors().lightgray[600]} className="block mt-0.5 mr-1" />
+                      <IconKettlebellSmall color={Tailwind_colors().lightgray[600]} className="block mt-0.5 mr-1" />
                       <div>{equipment.join(", ")}</div>
                     </div>
                   )}

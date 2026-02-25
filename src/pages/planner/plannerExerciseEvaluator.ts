@@ -34,10 +34,13 @@ import { Progress_createEmptyScriptBindings, Progress_createScriptFunctions } fr
 import { LiftoscriptSyntaxError, LiftoscriptEvaluator } from "../../liftoscriptEvaluator";
 import { Weight_parse, Weight_buildPct, Weight_print, Weight_smartConvert } from "../../models/weight";
 import { MathUtils_roundFloat } from "../../utils/math";
-import { PlannerKey } from "./plannerKey";
+import { PlannerKey_fromFullName } from "./plannerKey";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { ObjectUtils_pick, ObjectUtils_isEqual } from "../../utils/object";
-import { PlannerProgramExercise } from "./models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_buildProgress,
+  PlannerProgramExercise_shortNameFromFullName,
+} from "./models/plannerProgramExercise";
 import memoize from "micro-memoize";
 import { StringUtils_unindent } from "../../utils/string";
 
@@ -567,7 +570,7 @@ export class PlannerExerciseEvaluator {
       if (valueNode == null) {
         const none = expr.getChild(PlannerNodeName.None);
         if (none != null) {
-          return PlannerProgramExercise.buildProgress("none", []);
+          return PlannerProgramExercise_buildProgress("none", []);
         } else {
           throw this.error(`Missing value for the property 'progress'`, expr);
         }
@@ -620,12 +623,12 @@ export class PlannerExerciseEvaluator {
           ?.getChild(PlannerNodeName.ReuseSection)
           ?.getChild(PlannerNodeName.ExerciseName);
         const body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
-        return PlannerProgramExercise.buildProgress(type, fnArgs, {
+        return PlannerProgramExercise_buildProgress(type, fnArgs, {
           script,
           reuseFullname: body,
         });
       } else {
-        return PlannerProgramExercise.buildProgress(type, fnArgs);
+        return PlannerProgramExercise_buildProgress(type, fnArgs);
       }
     } else {
       assert(PlannerNodeName.ExerciseProperty);
@@ -947,8 +950,8 @@ export class PlannerExerciseEvaluator {
       const fullName = this.getValue(nameNode);
       // eslint-disable-next-line prefer-const
       let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings.exercises);
-      const key = PlannerKey.fromFullName(fullName, this.settings.exercises);
-      const shortName = PlannerProgramExercise.shortNameFromFullName(fullName, this.settings);
+      const key = PlannerKey_fromFullName(fullName, this.settings.exercises);
+      const shortName = PlannerProgramExercise_shortNameFromFullName(fullName, this.settings);
       const exercise = Exercise_findByNameAndEquipment(shortName, this.settings.exercises);
       let notused = this.getIsNotUsed(expr);
       const sectionNodes = expr.getChildren(PlannerNodeName.ExerciseSection);
@@ -1243,7 +1246,7 @@ export class PlannerExerciseEvaluator {
         ongoingDescriptions = false;
         const nameNode = child.getChild(PlannerNodeName.ExerciseName)!;
         const fullName = this.getValue(nameNode);
-        const key = PlannerKey.fromFullName(fullName, this.settings.exercises);
+        const key = PlannerKey_fromFullName(fullName, this.settings.exercises);
         const repeat = this.getRepeat(child);
         const repeatRanges = this.getRepeatRanges(repeat);
         const order = this.getOrder(child);

@@ -15,7 +15,7 @@ import {
 import { CollectionUtils_sort, CollectionUtils_nonnull } from "../utils/collection";
 import { ObjectUtils_values } from "../utils/object";
 import { StringUtils_pluralize } from "../utils/string";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { ExerciseImage } from "./exerciseImage";
 import { IconCalendarSmall } from "./icons/iconCalendarSmall";
 import { IconKettlebellSmall } from "./icons/iconKettlebellSmall";
@@ -144,7 +144,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
               ))}
           </div>
           <div className="flex mb-1 text-text-secondary">
-            <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
+            <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="block mr-1" />{" "}
             <div className="text-xs">
               {evaluatedProgram.weeks.length > 1 &&
                 `${evaluatedProgram.weeks.length} ${StringUtils_pluralize("week", evaluatedProgram.weeks.length)}, `}
@@ -152,7 +152,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
             </div>
           </div>
           <div className="flex text-text-secondary">
-            <IconKettlebellSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
+            <IconKettlebellSmall color={Tailwind_colors().lightgray[600]} className="block mr-1" />{" "}
             <div className="text-xs">{equipment.join(", ")}</div>
           </div>
         </div>

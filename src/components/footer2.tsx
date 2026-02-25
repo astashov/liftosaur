@@ -7,7 +7,7 @@ import { IconGraphs } from "./icons/iconGraphs";
 import { IconHome } from "./icons/iconHome";
 import { useCallback, useState } from "preact/hooks";
 import { IconMe } from "./icons/iconMe";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { IconDoc2 } from "./icons/iconDoc2";
 import { BottomSheetNextWorkout } from "./bottomSheetNextWorkout";
 import { INavCommon } from "../models/state";
@@ -31,8 +31,8 @@ function getHasErrorsInProgram(navCommon: INavCommon): boolean {
 }
 
 export function Footer2View(props: IFooterProps): JSX.Element {
-  const activeColor = Tailwind.semantic().icon.purple;
-  const inactiveColor = Tailwind.semantic().icon.neutral;
+  const activeColor = Tailwind_semantic().icon.purple;
+  const inactiveColor = Tailwind_semantic().icon.neutral;
   const screen = Screen_currentName(props.navCommon.screenStack);
   const [showNextWorkoutSheet, setShowNextWorkoutSheet] = useState(false);
   const onClose = useCallback(() => setShowNextWorkoutSheet(false), []);
@@ -144,10 +144,10 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                 const color = isActive
                   ? undefined
                   : props.navCommon.userId
-                    ? Tailwind.colors().green[600]
+                    ? Tailwind_colors().green[600]
                     : isUserLoading
-                      ? Tailwind.colors().lightgray[600]
-                      : Tailwind.colors().red[600];
+                      ? Tailwind_colors().lightgray[600]
+                      : Tailwind_colors().red[600];
                 return <IconMe isSelected={isActive} color={color} />;
               }}
               text="Me"

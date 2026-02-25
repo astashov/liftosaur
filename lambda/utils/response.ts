@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { UrlUtils } from "../../src/utils/url";
+import { UrlUtils_build } from "../../src/utils/url";
 import { localdomain } from "../../src/localdomain";
 
 export const allowedHosts = [
@@ -24,7 +24,7 @@ export function ResponseUtils_json(
 
 export function ResponseUtils_getHeaders(event: APIGatewayProxyEvent): Record<string, string> {
   const origin = event.headers.Origin || event.headers.origin || "http://example.com";
-  const url = UrlUtils.build(origin);
+  const url = UrlUtils_build(origin);
   let headers: Record<string, string> = {
     "content-type": "application/json",
   };

@@ -30,7 +30,7 @@ import { Input } from "./input";
 import { IconFilter } from "./icons/iconFilter";
 import { HelpStats } from "./help/helpStats";
 import { SendMessage_toIosAndAndroid, SendMessage_isIos } from "../utils/sendMessage";
-import { HealthSync } from "../lib/healthSync";
+import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { MenuItemEditable } from "./menuItemEditable";
 
 interface IProps {
@@ -172,8 +172,8 @@ export function ScreenStats(props: IProps): JSX.Element {
     updates = { ...updates, ...saveLength() };
     updates = { ...updates, ...savePercentage() };
     if (
-      (HealthSync.eligibleForAppleHealth() && syncToAppleHealth) ||
-      (HealthSync.eligibleForGoogleHealth() && syncToGoogleHealth)
+      (HealthSync_eligibleForAppleHealth() && syncToAppleHealth) ||
+      (HealthSync_eligibleForGoogleHealth() && syncToGoogleHealth)
     ) {
       const updatesForHealthSync = getUpdatesForHealthSync(updates);
       SendMessage_toIosAndAndroid({ type: "finishMeasurements", ...updatesForHealthSync });
@@ -386,7 +386,7 @@ export function ScreenStats(props: IProps): JSX.Element {
             }
           />
         )}
-        {HealthSync.eligibleForAppleHealth() && (
+        {HealthSync_eligibleForAppleHealth() && (
           <div>
             <MenuItemEditable
               name="Sync to Apple Health"
@@ -398,7 +398,7 @@ export function ScreenStats(props: IProps): JSX.Element {
             />
           </div>
         )}
-        {HealthSync.eligibleForGoogleHealth() && (
+        {HealthSync_eligibleForGoogleHealth() && (
           <div>
             <MenuItemEditable
               name="Sync to Google Health Connect"

@@ -3,7 +3,7 @@ import { ISettings } from "../../types";
 import { Exercise_allExpanded, Exercise_find, Exercise_fullName } from "../../models/exercise";
 import { MenuItemWrapper } from "../menuItem";
 import { ExerciseImage } from "../exerciseImage";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_colors } from "../../utils/tailwindConfig";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { useState, useEffect } from "preact/hooks";
 import { StringUtils_fuzzySearch } from "../../utils/string";
@@ -65,7 +65,7 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
           <h3 className="pt-1 pb-3 text-base font-semibold text-center">Pick Exercise Image</h3>
           <div className="flex items-center flex-1 gap-2 p-2 rounded-lg bg-background-neutral">
             <div>
-              <IconMagnifyingGlass size={18} color={Tailwind.colors().lightgray[600]} />
+              <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
             </div>
             <div className="flex-1">
               <input

@@ -7,7 +7,7 @@ import { useState } from "preact/hooks";
 import { StringUtils_unindent, StringUtils_indent } from "../../../utils/string";
 import { ScriptRunner } from "../../../parser";
 import { ISettings } from "../../../types";
-import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_getState } from "../../../pages/planner/models/plannerProgramExercise";
 
 interface IModalEditUpdateScriptProps {
   onClose: () => void;
@@ -28,7 +28,7 @@ export function ModalEditUpdateScript(props: IModalEditUpdateScriptProps): JSX.E
   if (!update) {
     return <></>;
   }
-  const ownState = PlannerProgramExercise.getState(props.plannerExercise);
+  const ownState = PlannerProgramExercise_getState(props.plannerExercise);
   let initialScript = cleanScript(update.script);
   initialScript = initialScript ? StringUtils_unindent(initialScript) : initialScript;
   const [script, setScript] = useState(initialScript);

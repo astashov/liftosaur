@@ -1,8 +1,8 @@
 import { h, JSX } from "preact";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 export function IconHandle(): JSX.Element {
-  const color = Tailwind.semantic().icon.neutral;
+  const color = Tailwind_semantic().icon.neutral;
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" version="1.1">
       <path

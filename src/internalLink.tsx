@@ -7,7 +7,7 @@ import {
   SendMessage_androidAppVersion,
   SendMessage_toAndroid,
 } from "./utils/sendMessage";
-import { UrlUtils } from "./utils/url";
+import { UrlUtils_build } from "./utils/url";
 
 interface IProps {
   href: string;
@@ -23,7 +23,7 @@ export function InternalLink(props: IProps): JSX.Element {
         <button
           className={`block w-full ${props.className} nm-${props.name}`}
           onClick={() => {
-            const url = UrlUtils.build(props.href, window.location.href.replace("liftosaur://", "https://"));
+            const url = UrlUtils_build(props.href, window.location.href.replace("liftosaur://", "https://"));
             SendMessage_toIos({ type: "openUrl", url: url.toString() });
           }}
         >
@@ -42,7 +42,7 @@ export function InternalLink(props: IProps): JSX.Element {
       <button
         className={`block w-full ${props.className} nm-${props.name}`}
         onClick={() => {
-          const url = UrlUtils.build(props.href, window.location.href);
+          const url = UrlUtils_build(props.href, window.location.href);
           SendMessage_toAndroid({ type: "openUrl", url: url.toString() });
         }}
       >

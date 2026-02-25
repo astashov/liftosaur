@@ -1,5 +1,5 @@
 import { ILLMProvider } from "./llmTypes";
-import { HttpStreaming } from "./httpStreaming";
+import { HttpStreaming_streamRequest } from "./httpStreaming";
 
 export class ClaudeProvider implements ILLMProvider {
   constructor(
@@ -37,7 +37,7 @@ export class ClaudeProvider implements ILLMProvider {
     try {
       let fullContent = "";
 
-      const stream = HttpStreaming.streamRequest({
+      const stream = HttpStreaming_streamRequest({
         hostname: "api.anthropic.com",
         path: "/v1/messages",
         method: "POST",

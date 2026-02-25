@@ -8,7 +8,7 @@ import {
   builtinProgramFrequencies,
   builtinProgramGoals,
 } from "../models/builtinPrograms";
-import { IProgramFilter, IProgramSort, ProgramFilter } from "../utils/programFilter";
+import { IProgramFilter, IProgramSort, ProgramFilter_sort, ProgramFilter_filter } from "../utils/programFilter";
 import { SelectLink } from "./selectLink";
 import { ExerciseImageUtils_exists } from "../models/exerciseImage";
 import {
@@ -18,7 +18,7 @@ import {
   Program_exerciseRangeFormat,
 } from "../models/program";
 import { StringUtils_pluralize } from "../utils/string";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { ExerciseImage } from "./exerciseImage";
 import { IconCalendarSmall } from "./icons/iconCalendarSmall";
 import { IconKettlebellSmall } from "./icons/iconKettlebellSmall";
@@ -43,7 +43,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
   const [sort, setSort] = useState<IProgramSort>(undefined);
   const [selectedProgram, setSelectedProgram] = useState<IProgram | undefined>(undefined);
 
-  const entries = ProgramFilter.sort(ProgramFilter.filter(props.programsIndex, filter), sort);
+  const entries = ProgramFilter_sort(ProgramFilter_filter(props.programsIndex, filter), sort);
 
   return (
     <>
@@ -178,7 +178,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
             ))}
         </div>
         <div className="flex mb-1 text-text-secondary">
-          <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
+          <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="block mr-1" />{" "}
           <div className="text-xs">
             {numberOfWeeks > 1 && `${numberOfWeeks} ${StringUtils_pluralize("week", numberOfWeeks)}, `}
             {entry.frequency ? `${entry.frequency}x/week, ` : ""}
@@ -186,7 +186,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
           </div>
         </div>
         <div className="flex text-text-secondary">
-          <IconKettlebellSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
+          <IconKettlebellSmall color={Tailwind_colors().lightgray[600]} className="block mr-1" />{" "}
           <div className="text-xs">{equipment.join(", ")}</div>
         </div>
       </div>

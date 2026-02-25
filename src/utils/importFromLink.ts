@@ -1,7 +1,7 @@
 import { IEither } from "./types";
-import { Encoder } from "./encoder";
+import { Encoder_decode } from "./encoder";
 import { Service } from "../api/service";
-import { UrlUtils } from "./url";
+import { UrlUtils_build } from "./url";
 
 export interface IImportLinkData {
   decoded: string;
@@ -15,7 +15,7 @@ export async function ImportFromLink_importFromLink(
 ): Promise<IEither<{ decoded: string; source?: string; userid?: string }, string[]>> {
   let url: URL;
   try {
-    url = UrlUtils.build(link);
+    url = UrlUtils_build(link);
   } catch (e) {
     return { success: false, error: ["Invalid link"] };
   }
@@ -51,7 +51,7 @@ export async function ImportFromLink_importFromLink(
 
 async function getDecodedData(base64: string): Promise<IEither<string, string[]>> {
   try {
-    const decoded = await Encoder.decode(base64);
+    const decoded = await Encoder_decode(base64);
     return { success: true, data: decoded };
   } catch (e) {
     return { success: false, error: ["Error decoding the link"] };

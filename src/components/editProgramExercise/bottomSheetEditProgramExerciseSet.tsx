@@ -10,7 +10,7 @@ import { lb } from "lens-shmens";
 import { BottomSheet } from "../bottomSheet";
 import { MenuItemEditable } from "../menuItemEditable";
 import { IEvaluatedProgram } from "../../models/program";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeCurrentInstance2 } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { Weight_build } from "../../models/weight";
 
 interface IBottomSheetEditProgramExerciseSetProps {
@@ -47,7 +47,7 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
     }
     props.plannerDispatch(
       lbProgram.recordModify((program) => {
-        return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, props.settings, true, (ex) => {
+        return EditProgramUiHelpers_changeCurrentInstance2(program, plannerExercise, props.settings, true, (ex) => {
           const setVariation = ex.evaluatedSetVariations[setVariationIndex];
           const s = setVariation.sets[setIndex];
           cb(s);

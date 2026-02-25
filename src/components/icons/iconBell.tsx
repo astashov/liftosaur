@@ -1,12 +1,12 @@
 import { h, JSX } from "preact";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   color?: string;
 }
 
 export function IconBell(props: IProps): JSX.Element {
-  const color = props.color || Tailwind.semantic().icon.neutral;
+  const color = props.color || Tailwind_semantic().icon.neutral;
   return (
     <svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path

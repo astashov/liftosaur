@@ -12,7 +12,7 @@ import { Mobile_isMobileFromWindow, Mobile_isPlaywrightFromWindow } from "../../
 import { InputNumber2 } from "../inputNumber2";
 import { InputWeight2 } from "../inputWeight2";
 import { lb } from "lens-shmens";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeCurrentInstance2 } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { CollectionUtils_removeAt } from "../../utils/collection";
 import { StateUpdater } from "preact/hooks";
 
@@ -75,7 +75,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
     }
     props.plannerDispatch(
       lbProgram.recordModify((program) => {
-        return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, props.settings, true, (ex) => {
+        return EditProgramUiHelpers_changeCurrentInstance2(program, plannerExercise, props.settings, true, (ex) => {
           const setVariation = ex.evaluatedSetVariations[setVariationIndex];
           const s = setVariation.sets[setIndex];
           cb(s);
@@ -119,7 +119,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                 close();
                 props.plannerDispatch(
                   lbProgram.recordModify((program) => {
-                    return EditProgramUiHelpers.changeCurrentInstance2(
+                    return EditProgramUiHelpers_changeCurrentInstance2(
                       program,
                       plannerExercise,
                       props.settings,

@@ -10,7 +10,7 @@ import { IPersonalRecords, History_getNumberOfPersonalRecords } from "../models/
 import { CollectionUtils_compact } from "../utils/collection";
 import { memo, useLayoutEffect, useRef } from "preact/compat";
 import { ComparerUtils_noFns } from "../utils/comparer";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { Progress_isCurrent } from "../models/progress";
 
 interface IMonthCalendarProps {
@@ -124,7 +124,7 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
                       key={yyyymmdd}
                       data-first-day-of-week={thisFirstDayOfWeek}
                       class="flex items-center justify-center text-text-primary p-2"
-                      style={{ background: isSelectedWeek ? Tailwind.semantic().background.subtle : "transparent" }}
+                      style={{ background: isSelectedWeek ? Tailwind_semantic().background.subtle : "transparent" }}
                       onClick={() => {
                         if (historyRecord != null) {
                           props.onClick(historyRecord);

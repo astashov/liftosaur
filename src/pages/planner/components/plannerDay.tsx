@@ -11,7 +11,7 @@ import { getExerciseForStats, PlannerExerciseStats } from "./plannerExerciseStat
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { Exercise_findByName } from "../../../models/exercise";
 import { TimeUtils_formatHHMM } from "../../../utils/time";
-import { PlannerStatsUtils } from "../models/plannerStatsUtils";
+import { PlannerStatsUtils_dayApproxTimeMs } from "../models/plannerStatsUtils";
 import { IconWatch } from "../../../components/icons/iconWatch";
 import { Service } from "../../../api/service";
 import { PlannerEditorCustomCta } from "./plannerEditorCustomCta";
@@ -49,7 +49,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
       }
     }
     approxDayTime = TimeUtils_formatHHMM(
-      PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout ?? 180)
+      PlannerStatsUtils_dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout ?? 180)
     );
   }
   const showProgramDescription = day.description != null;

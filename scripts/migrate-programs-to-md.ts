@@ -2,7 +2,7 @@ import { buildDi } from "../lambda/utils/di";
 import { LogUtil } from "../lambda/utils/log";
 import fetch from "node-fetch";
 import { ProgramDao } from "../lambda/dao/programDao";
-import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
+import { PlannerProgram_generateFullText } from "../src/pages/planner/models/plannerProgram";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -57,7 +57,7 @@ async function main(): Promise<void> {
 
     let liftoscript = "";
     if (program.planner) {
-      liftoscript = PlannerProgram.generateFullText(program.planner.weeks);
+      liftoscript = PlannerProgram_generateFullText(program.planner.weeks);
     }
 
     const description = program.description || "";

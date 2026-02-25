@@ -12,14 +12,18 @@ import {
 } from "../../../models/exercise";
 import { Weight_rpeMultiplier } from "../../../models/weight";
 import { ISettings } from "../../../types";
-import { PlannerProgramExercise } from "../models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_numberOfSets,
+  PlannerProgramExercise_numberOfSetsThisWeek,
+  PlannerProgramExercise_sets,
+} from "../models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerState } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
 import { LinkButton } from "../../../components/linkButton";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb } from "lens-shmens";
-import { PlannerKey } from "../plannerKey";
+import { PlannerKey_fromPlannerExercise } from "../plannerKey";
 import { IconExternalLink } from "../../../components/icons/iconExternalLink";
 import { ExerciseImageUtils_exists } from "../../../models/exerciseImage";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
@@ -116,7 +120,7 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
                 name="planner-swap-exercise"
                 data-cy="planner-swap-exercise"
                 onClick={() => {
-                  const exerciseKey = PlannerKey.fromPlannerExercise(evaluatedExercise, props.settings);
+                  const exerciseKey = PlannerKey_fromPlannerExercise(evaluatedExercise, props.settings);
                   props.dispatch(
                     [
                       lb<IPlannerState>()
@@ -145,11 +149,11 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
           )}
           <div>
             <span className="text-text-secondary">Sets this day: </span>
-            <span>{PlannerProgramExercise.numberOfSets(evaluatedExercise)}</span>
+            <span>{PlannerProgramExercise_numberOfSets(evaluatedExercise)}</span>
           </div>
           <div>
             <span className="text-text-secondary">Sets this week: </span>
-            <span>{PlannerProgramExercise.numberOfSetsThisWeek(evaluatedExercise.name, evaluatedWeek)}</span>
+            <span>{PlannerProgramExercise_numberOfSetsThisWeek(evaluatedExercise.name, evaluatedWeek)}</span>
           </div>
         </div>
       </div>
@@ -228,7 +232,7 @@ function getIntensityPerWeeks(
     if (!exercise) {
       continue;
     }
-    const weights = PlannerProgramExercise.sets(exercise).map((s) => {
+    const weights = PlannerProgramExercise_sets(exercise).map((s) => {
       const weight = s.percentage
         ? s.percentage * 100
         : Weight_rpeMultiplier(s.repRange?.maxrep ?? 1, s.rpe ?? 10) * 100;
@@ -257,7 +261,7 @@ function getVolumePerWeeks(
       continue;
     }
     const volume = Number(
-      PlannerProgramExercise.sets(exercise)
+      PlannerProgramExercise_sets(exercise)
         .reduce((acc, s) => {
           if (!s.repRange) {
             return acc;

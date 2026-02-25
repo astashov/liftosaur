@@ -1,6 +1,9 @@
 import { JSX, h, Fragment } from "preact";
 import { Weight_print } from "../../models/weight";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_progressionType,
+  PlannerProgramExercise_getState,
+} from "../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IEvaluatedProgram, Program_getReusingProgressExercises } from "../../models/program";
 
@@ -58,7 +61,7 @@ interface IProgressionProps {
 }
 
 function Progression(props: IProgressionProps): JSX.Element {
-  const type = props.progressExercise ? PlannerProgramExercise.progressionType(props.progressExercise) : undefined;
+  const type = props.progressExercise ? PlannerProgramExercise_progressionType(props.progressExercise) : undefined;
   if (type == null) {
     return <div />;
   }
@@ -105,7 +108,7 @@ function Progression(props: IProgressionProps): JSX.Element {
         </div>
       );
     case "custom":
-      const state = PlannerProgramExercise.getState(props.originalExercise);
+      const state = PlannerProgramExercise_getState(props.originalExercise);
       return (
         <div>
           <strong>Custom Progression</strong>

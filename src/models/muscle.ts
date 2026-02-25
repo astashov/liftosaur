@@ -19,7 +19,7 @@ import {
 import { ISettings, IMuscle, IDayData, IScreenMuscle, IStats, screenMuscles, IMuscleGroupsSettings } from "../types";
 import { StringUtils_dashcase, StringUtils_capitalize } from "../utils/string";
 import { IPlannerProgramExerciseWithType } from "../pages/planner/models/types";
-import { SetUtils } from "../utils/setUtils";
+import { SetUtils_areEqual } from "../utils/setUtils";
 import { UidFactory_generateUid } from "../utils/generator";
 
 export type IScreenMusclePointsColl = Partial<Record<IScreenMuscle, number>>;
@@ -180,7 +180,7 @@ export function Muscle_getMuscleGroupName(muscleGroup: IScreenMuscle, settings: 
 
 export function Muscle_isDefaultMuscles(muscleGroup: IScreenMuscle, muscles: IMuscle[]): boolean {
   const defaultMuscles = screenMuscleToMuscleMapping[muscleGroup as IScreenMuscle] ?? [];
-  return SetUtils.areEqual(new Set(defaultMuscles), new Set(muscles));
+  return SetUtils_areEqual(new Set(defaultMuscles), new Set(muscles));
 }
 
 export function Muscle_getAvailableMuscleGroups(settings: ISettings): IScreenMuscle[] {

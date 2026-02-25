@@ -1,4 +1,9 @@
-import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import {
+  PlannerProgram_generateFullText,
+  PlannerProgram_topLineItems,
+  PlannerProgram_groupedTopLines,
+  PlannerProgram_compact,
+} from "../pages/planner/models/plannerProgram";
 import {
   IDayData,
   IPercentage,
@@ -19,7 +24,13 @@ import {
   Weight_build,
   Weight_printNull,
 } from "./weight";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_currentEvaluatedSetVariationIndex,
+  PlannerProgramExercise_getOnlyChangedState,
+  PlannerProgramExercise_getState,
+  PlannerProgramExercise_getStateMetadata,
+  PlannerProgramExercise_sets,
+} from "../pages/planner/models/plannerProgramExercise";
 import {
   IPlannerProgramExercise,
   IPlannerProgramExerciseEvaluatedSet,
@@ -29,8 +40,8 @@ import {
 import { IEvaluatedProgram, Program_getProgramExercise } from "./program";
 import { Exercise_get, Exercise_fullName } from "./exercise";
 import { CollectionUtils_compact } from "../utils/collection";
-import { PP } from "./pp";
-import { PlannerKey } from "../pages/planner/plannerKey";
+import { PP_iterate2 } from "./pp";
+import { PlannerKey_fromFullName, PlannerKey_fromPlannerExercise } from "../pages/planner/plannerKey";
 import { IPlannerTopLineItem } from "../pages/planner/plannerExerciseEvaluator";
 
 interface IPlannerToProgram2Globals {
@@ -86,8 +97,8 @@ export class ProgramToPlanner {
       dereuseDecisions.add("sets");
     }
     if (
-      PlannerProgramExercise.currentEvaluatedSetVariationIndex(programExercise) !==
-      PlannerProgramExercise.currentEvaluatedSetVariationIndex(reuseExercise)
+      PlannerProgramExercise_currentEvaluatedSetVariationIndex(programExercise) !==
+      PlannerProgramExercise_currentEvaluatedSetVariationIndex(reuseExercise)
     ) {
       dereuseDecisions.add("sets");
     }
@@ -98,7 +109,7 @@ export class ProgramToPlanner {
         (programExercise.progress.reuse
           ? programExercise.progress.reuse?.fullName !== reuseExercise.fullName
           : programExercise.progress.script !== reuseExercise.progress.script) ||
-        Object.keys(PlannerProgramExercise.getOnlyChangedState(programExercise)).length > 0
+        Object.keys(PlannerProgramExercise_getOnlyChangedState(programExercise)).length > 0
       ) {
         dereuseDecisions.add("progress");
       }
@@ -204,7 +215,7 @@ export class ProgramToPlanner {
       const groupedDay = groupedTopLine[add.dayData.week - 1]?.[add.dayData.dayInWeek - 1];
       if (groupedDay) {
         groupedDay.splice(add.index, 0, [
-          { type: "exercise", value: PlannerKey.fromFullName(add.fullName, this.settings.exercises) },
+          { type: "exercise", value: PlannerKey_fromFullName(add.fullName, this.settings.exercises) },
         ]);
       }
     }
@@ -288,14 +299,14 @@ export class ProgramToPlanner {
     if (this.program.errors.length > 0) {
       const error = this.program.errors[0];
       const msg = `There's an error during evaluating a program, week ${error.dayData.week}, day: ${error.dayData.dayInWeek}. Please fix it to proceed.\n\n${error.error.toString()}`;
-      console.log(PlannerProgram.generateFullText(plannerProgram.weeks));
+      console.log(PlannerProgram_generateFullText(plannerProgram.weeks));
       if (typeof window !== "undefined" && window.alert != null) {
         window.alert(msg);
       }
       throw error.error;
     }
-    const topLineMap = PlannerProgram.topLineItems(plannerProgram, this.settings);
-    let groupedTopLineMap = PlannerProgram.groupedTopLines(topLineMap);
+    const topLineMap = PlannerProgram_topLineItems(plannerProgram, this.settings);
+    let groupedTopLineMap = PlannerProgram_groupedTopLines(topLineMap);
     groupedTopLineMap = opts.reorder ? this.reorderGroupedTopLine(groupedTopLineMap, opts.reorder) : groupedTopLineMap;
     groupedTopLineMap = opts.add ? this.addGroupedTopLine(groupedTopLineMap, opts.add) : groupedTopLineMap;
     let dayIndex = 0;
@@ -527,13 +538,13 @@ export class ProgramToPlanner {
     }
     const result: IPlannerProgram = { vtype: "planner", name: this.program.name, weeks: plannerWeeks };
     const repeatingExercises = new Set<string>();
-    PP.iterate2(this.program.weeks, (exercise) => {
+    PP_iterate2(this.program.weeks, (exercise) => {
       if (exercise.repeat != null && exercise.repeat.length > 0) {
-        const key = PlannerKey.fromPlannerExercise(exercise, this.settings);
+        const key = PlannerKey_fromPlannerExercise(exercise, this.settings);
         repeatingExercises.add(key);
       }
     });
-    const newPlanner = PlannerProgram.compact(this.program.planner, result, this.settings, repeatingExercises);
+    const newPlanner = PlannerProgram_compact(this.program.planner, result, this.settings, repeatingExercises);
     // console.log(PlannerProgram.generateFullText(newPlanner.weeks));
     return newPlanner;
   }
@@ -607,10 +618,10 @@ export class ProgramToPlanner {
       return "";
     }
     let progressStr = `progress: ${progress.type}`;
-    const state = PlannerProgramExercise.getState(programExercise);
-    const stateMetadata = PlannerProgramExercise.getStateMetadata(programExercise);
+    const state = PlannerProgramExercise_getState(programExercise);
+    const stateMetadata = PlannerProgramExercise_getStateMetadata(programExercise);
     if (progress.type === "custom") {
-      const onlyChangedState = PlannerProgramExercise.getOnlyChangedState(programExercise);
+      const onlyChangedState = PlannerProgramExercise_getOnlyChangedState(programExercise);
       progressStr += `(${ObjectUtils_entries(onlyChangedState)
         .map(([k, v]) => {
           return `${k}${stateMetadata[k]?.userPrompted ? "+" : ""}: ${Weight_print(v)}`;
@@ -715,7 +726,7 @@ export class ProgramToPlanner {
     index: number
   ): [IPlannerProgramExerciseEvaluatedSet, number][] {
     if (sets.length === 0) {
-      const originalSets = PlannerProgramExercise.sets(exercise, index)[0];
+      const originalSets = PlannerProgramExercise_sets(exercise, index)[0];
       return [
         [
           {

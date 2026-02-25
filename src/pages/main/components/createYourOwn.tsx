@@ -14,11 +14,11 @@ import { Settings_build } from "../../../models/settings";
 import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, IProgram, ISettings, IStats } from "../../../types";
 import { useLensReducer } from "../../../utils/useLensReducer";
 import { PlannerEditorView } from "../../planner/components/plannerEditorView";
-import { PlannerProgram } from "../../planner/models/plannerProgram";
+import { PlannerProgram_evaluate } from "../../planner/models/plannerProgram";
 import { IPlannerState } from "../../planner/models/types";
 import { track } from "../../../utils/posthog";
 import { IconEditor } from "../../../components/icons/iconEditor";
-import { Tailwind } from "../../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 export function CreateYourOwn(): JSX.Element {
   return (
@@ -26,7 +26,7 @@ export function CreateYourOwn(): JSX.Element {
       <div className="flex justify-center w-full px-4 mb-2">
         <div className="flex items-center gap-2 text-icon-purple">
           <div>
-            <IconEditor color={Tailwind.semantic().icon.purple} />
+            <IconEditor color={Tailwind_semantic().icon.purple} />
           </div>
           <div className="font-semibold">Workout Editor</div>
         </div>
@@ -91,7 +91,7 @@ Bench Press / 3x8 100lb / progress: dp(5lb, 8, 12)
   const planner = state.current.program.planner!;
   const lbDay = lb<IPlannerState>().p("current").pi("program").pi("planner").p("weeks").i(0).p("days").i(0);
   const { evaluatedWeeks, exerciseFullNames } = useMemo(
-    () => PlannerProgram.evaluate(planner, settings),
+    () => PlannerProgram_evaluate(planner, settings),
     [state.current.program]
   );
   const evaluatedDay = evaluatedWeeks[0][0];
@@ -103,8 +103,8 @@ Bench Press / 3x8 100lb / progress: dp(5lb, 8, 12)
         <div className="mt-2 mb-2 text-2xl font-bold md:mt-8">See it in action:</div>
         <div className="mb-4 leading-relaxed">
           Change the sets, reps or weight or add "Bicep Curl /{" "}
-          <span style={{ color: Tailwind.semantic().syntax.atom }}>3x10</span> /{" "}
-          <span style={{ color: Tailwind.semantic().syntax.atom }}>12</span>" on a new line.
+          <span style={{ color: Tailwind_semantic().syntax.atom }}>3x10</span> /{" "}
+          <span style={{ color: Tailwind_semantic().syntax.atom }}>12</span>" on a new line.
         </div>
         <PlannerEditorView
           name="Exercises"

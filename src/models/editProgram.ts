@@ -12,8 +12,8 @@ import { updateState, IState } from "./state";
 import { IProgram, IDayData, IProgramState, ISettings } from "../types";
 import { updateStateVariable } from "./editProgramLenses";
 import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerState } from "../pages/planner/models/types";
-import { PP } from "./pp";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { PP_iterate2 } from "./pp";
+import { PlannerProgramExercise_getState } from "../pages/planner/models/plannerProgramExercise";
 import { ProgramToPlanner } from "./programToPlanner";
 import { Thunk_pushToEditProgram } from "../ducks/thunks";
 
@@ -22,7 +22,7 @@ export function EditProgram_properlyUpdateStateVariableInPlace(
   programExercise: IPlannerProgramExercise,
   values: Partial<IProgramState>
 ): IEvaluatedProgram {
-  const state = PlannerProgramExercise.getState(programExercise);
+  const state = PlannerProgramExercise_getState(programExercise);
   values = ObjectUtils_diff(state, values);
   if (ObjectUtils_keys(values).length === 0) {
     return program;
@@ -31,7 +31,7 @@ export function EditProgram_properlyUpdateStateVariableInPlace(
     return program;
   }
   const newEvalutedProgram = ObjectUtils_clone(program);
-  PP.iterate2(newEvalutedProgram.weeks, (ex) => {
+  PP_iterate2(newEvalutedProgram.weeks, (ex) => {
     if (ex.key === programExercise.key) {
       const progress = ex.progress;
       if (progress) {

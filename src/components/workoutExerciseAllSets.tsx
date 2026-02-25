@@ -17,9 +17,9 @@ import { lb, LensBuilder } from "lens-shmens";
 import { WorkoutExerciseSet } from "./workoutExerciseSet";
 import { Reps_isFinishedSet, Reps_addSet } from "../models/set";
 import { IconPlus2 } from "./icons/iconPlus2";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
-import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
+import { WorkoutExerciseUtils_getBgColor100 } from "../utils/workoutExerciseUtils";
 import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
 import { IconSwapSmall } from "./icons/iconSwapSmall";
 import { ProgressStateChanges } from "./progressStateChanges";
@@ -66,7 +66,7 @@ function getTargetColumnLabel(targetType: ITargetType): string {
 export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Element {
   const warmupSets = props.entry.warmupSets;
   const sets = props.entry.sets;
-  const buttonBgColor = WorkoutExerciseUtils.getBgColor100(sets, false);
+  const buttonBgColor = WorkoutExerciseUtils_getBgColor100(sets, false);
   const nextSetIndex = [...warmupSets, ...sets].findIndex((s) => !Reps_isFinishedSet(s));
   const exerciseUnit =
     sets[0]?.completedWeight?.unit ??
@@ -87,7 +87,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
               <button onClick={props.onTargetClick} className="inline-block w-full text-left">
                 {targetLabel ? <span className="mr-1">{targetLabel}</span> : <></>}
                 {props.onTargetClick && (
-                  <IconSwapSmall className="inline-block" size={12} color={Tailwind.colors().lightgray[600]} />
+                  <IconSwapSmall className="inline-block" size={12} color={Tailwind_colors().lightgray[600]} />
                 )}
               </button>
             </div>
@@ -188,7 +188,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             }}
           >
             <span>
-              <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().blue[400]} />
+              <IconPlus2 size={10} className="inline-block" color={Tailwind_colors().blue[400]} />
             </span>
             <span className="ml-2">Add Warmup Set</span>
           </button>
@@ -211,7 +211,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             }}
           >
             <span>
-              <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().blue[400]} />
+              <IconPlus2 size={10} className="inline-block" color={Tailwind_colors().blue[400]} />
             </span>
             <span className="ml-2">Add Set</span>
           </button>

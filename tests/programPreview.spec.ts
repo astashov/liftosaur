@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_finishExercise } from "./playwrightUtils";
 
 test("Program Preview", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
@@ -28,7 +28,7 @@ test("Program Preview", async ({ page }) => {
   await page.getByTestId("modal-edit-mode-save-statvars").click();
   await page.getByTestId("menu-item-value-enable-playground").click();
 
-  await PlaywrightUtils.finishExercise(
+  await PlaywrightUtils_finishExercise(
     page,
     "bent-over-row",
     [1, 1, { amrap: { reps: 5 } }],

@@ -8,7 +8,10 @@ import { ObjectUtils_keys } from "../../utils/object";
 import { ExerciseRM } from "../exerciseRm";
 import { Exercise_get } from "../../models/exercise";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_getState,
+  PlannerProgramExercise_getStateMetadata,
+} from "../../pages/planner/models/plannerProgramExercise";
 
 interface IProgramPreviewPlaygroundExerciseEditModalProps {
   programExercise: IPlannerProgramExercise;
@@ -23,8 +26,8 @@ export function ProgramPreviewPlaygroundExerciseEditModal(
   props: IProgramPreviewPlaygroundExerciseEditModalProps
 ): JSX.Element | null {
   const programExercise = props.programExercise;
-  const state = PlannerProgramExercise.getState(props.programExercise);
-  const stateMetadata = PlannerProgramExercise.getStateMetadata(props.programExercise);
+  const state = PlannerProgramExercise_getState(props.programExercise);
+  const stateMetadata = PlannerProgramExercise_getStateMetadata(props.programExercise);
   const hasStateVariables = ObjectUtils_keys(state).length > 0;
   if (!programExercise.exerciseType) {
     return null;

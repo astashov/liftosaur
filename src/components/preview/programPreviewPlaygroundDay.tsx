@@ -22,7 +22,7 @@ import { StringUtils_dashcase } from "../../utils/string";
 import { Exercise_toKey } from "../../models/exercise";
 import { Weight_build } from "../../models/weight";
 import { Markdown } from "../markdown";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_getState } from "../../pages/planner/models/plannerProgramExercise";
 import { Scroller } from "../scroller";
 import { WorkoutExerciseThumbnail } from "../workoutExerciseThumbnail";
 import { BottomSheetEditTarget } from "../bottomSheetEditTarget";
@@ -170,7 +170,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
                 .find((e) => e.key === editModalProgramExerciseId),
               {
                 [stateKey]: Program_stateValue(
-                  PlannerProgramExercise.getState(editModalProgramExercise),
+                  PlannerProgramExercise_getState(editModalProgramExercise),
                   stateKey,
                   newValue
                 ),

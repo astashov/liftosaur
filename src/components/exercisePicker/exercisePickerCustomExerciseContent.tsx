@@ -3,7 +3,7 @@ import { ISettings, ICustomExercise, IMuscle, exerciseKinds, IExerciseKind } fro
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { Input2 } from "../input2";
 import { IconAi } from "../icons/iconAi";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
@@ -194,7 +194,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               ) : (
                 <>
                   <div>
-                    <IconAi color={Tailwind.semantic().icon.blue} />
+                    <IconAi color={Tailwind_semantic().icon.blue} />
                   </div>
                   <div className="ml-1">Autofill Muscles and Types</div>
                 </>

@@ -66,18 +66,22 @@ import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils_log } from "../utils/log";
 import { lg } from "../utils/posthog";
 import { RollbarUtils_config } from "../utils/rollbar";
-import { UrlUtils } from "../utils/url";
-import { ImportFromLiftosaur } from "../utils/importFromLiftosaur";
-import { Sync } from "../utils/sync";
+import { UrlUtils_build } from "../utils/url";
+import { ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords } from "../utils/importFromLiftosaur";
+import { Sync_getStorageUpdate2 } from "../utils/sync";
 import { ObjectUtils_values, ObjectUtils_filter, ObjectUtils_clone } from "../utils/object";
 import { EditStats_uploadHealthStats } from "../models/editStats";
-import { HealthSync } from "../lib/healthSync";
-import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
+import {
+  PlannerProgram_generateFullText,
+  PlannerProgram_hasNonSelectedWeightUnit,
+  PlannerProgram_switchToUnit,
+} from "../pages/planner/models/plannerProgram";
 import { Weight_oppositeUnit } from "../models/weight";
 import { EditProgram_initPlannerProgramExerciseState } from "../models/editProgram";
 import { ICollectionVersions } from "../models/versionTracker";
-import { DeviceId } from "../utils/deviceId";
-import { LiveActivityManager } from "../utils/liveActivityManager";
+import { DeviceId_get } from "../utils/deviceId";
+import { LiveActivityManager_updateProgressLiveActivity } from "../utils/liveActivityManager";
 
 declare let Rollbar: RB;
 
@@ -87,7 +91,7 @@ export class NoRetryError extends Error {
 
 export function Thunk_googleSignIn(cb?: () => void): IThunk {
   return async (dispatch, getState, env) => {
-    const url = UrlUtils.build(window.location.href);
+    const url = UrlUtils_build(window.location.href);
     const forcedUserEmail = url.searchParams.get("forceuseremail");
     if (forcedUserEmail == null) {
       const accessToken = await getGoogleAccessToken();
@@ -353,7 +357,7 @@ async function _sync2(
     }
   } else {
     dispatch(Thunk_postevent("sync-storage-update", { force: args?.force ? "true" : "false" }));
-    const storageUpdate = Sync.getStorageUpdate2(state.storage, state.lastSyncedStorage, state.deviceId);
+    const storageUpdate = Sync_getStorageUpdate2(state.storage, state.lastSyncedStorage, state.deviceId);
     if (args?.force || storageUpdate.storage) {
       const lastSyncedStorage = state.storage;
       const result = await env.service.postSync({
@@ -420,8 +424,8 @@ export function Thunk_syncHealthKit(cb?: () => void): IThunk {
   return async (dispatch, getState, env) => {
     const state = getState();
     if (
-      !(state.storage.settings.appleHealthSyncMeasurements && HealthSync.eligibleForAppleHealth()) &&
-      !(state.storage.settings.googleHealthSyncMeasurements && HealthSync.eligibleForGoogleHealth())
+      !(state.storage.settings.appleHealthSyncMeasurements && HealthSync_eligibleForAppleHealth()) &&
+      !(state.storage.settings.googleHealthSyncMeasurements && HealthSync_eligibleForGoogleHealth())
     ) {
       if (cb != null) {
         cb();
@@ -520,7 +524,7 @@ export function Thunk_updateLiveActivity(
     if (!program) {
       return;
     }
-    LiveActivityManager.updateProgressLiveActivity(
+    LiveActivityManager_updateProgressLiveActivity(
       program,
       progress,
       state.storage.settings,
@@ -728,7 +732,7 @@ export function Thunk_fetchStorage(storageId?: string): IThunk {
     if (getState().errors.corruptedstorage == null) {
       const result = await load(dispatch, "Loading from cloud", () => {
         const state = getState();
-        const url = typeof window !== "undefined" ? UrlUtils.build(window.location.href) : undefined;
+        const url = typeof window !== "undefined" ? UrlUtils_build(window.location.href) : undefined;
         const userId = url != null ? url.searchParams.get("userid") : state.user?.id;
         return env.service.getStorage(state.storage.tempUserId, userId || undefined, storageId, state.adminKey);
       });
@@ -1028,7 +1032,7 @@ export function Thunk_exportProgramsToText(): IThunk {
         continue;
       }
       text += `======= ${program.name} =======\n\n`;
-      text += PlannerProgram.generateFullText(program.planner.weeks);
+      text += PlannerProgram_generateFullText(program.planner.weeks);
       text += `\n\n\n`;
     }
     Exporter_toFile(`liftosaur_all_programs_${DateUtils_formatYYYYMMDD(Date.now())}.txt`, text);
@@ -1059,7 +1063,7 @@ export function Thunk_importCsvData(rawCsv: string): IThunk {
   return async (dispatch, getState, env) => {
     try {
       dispatch(Thunk_postevent("import-csv-data"));
-      const { historyRecords, customExercises } = ImportFromLiftosaur.convertLiftosaurCsvToHistoryRecords(
+      const { historyRecords, customExercises } = ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(
         rawCsv,
         getState().storage.settings
       );
@@ -1163,11 +1167,11 @@ export function Thunk_importProgram(importLinkData: IImportLinkData): IThunk {
       if (hasExistingProgram && !confirm("Program with the same id already exists, do you want to overwrite it?")) {
         return;
       }
-      if (newProgram.planner && PlannerProgram.hasNonSelectedWeightUnit(newProgram.planner, state.storage.settings)) {
+      if (newProgram.planner && PlannerProgram_hasNonSelectedWeightUnit(newProgram.planner, state.storage.settings)) {
         const fromUnit = Weight_oppositeUnit(state.storage.settings.units);
         const toUnit = state.storage.settings.units;
         if (confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)) {
-          newProgram.planner = PlannerProgram.switchToUnit(newProgram.planner, state.storage.settings);
+          newProgram.planner = PlannerProgram_switchToUnit(newProgram.planner, state.storage.settings);
         }
       }
       updateState(
@@ -1552,7 +1556,7 @@ async function handleLogin(
       } else {
         dispatch(Thunk_postevent("login-different-user"));
         storage.subscription.key = result.key;
-        const newState = await getInitialState(client, { storage, deviceId: await DeviceId.get() });
+        const newState = await getInitialState(client, { storage, deviceId: await DeviceId_get() });
         newState.lastSyncedStorage = ObjectUtils_clone(newState.storage);
         newState.user = { id: result.user_id, email: result.email };
         dispatch({ type: "ReplaceState", state: newState });

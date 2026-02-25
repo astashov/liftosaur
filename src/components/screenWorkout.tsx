@@ -60,7 +60,7 @@ import { ILensDispatch } from "../utils/useLensReducer";
 import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../models/settings";
 import { BottomSheetWorkoutSuperset } from "./bottomSheetWorkoutSuperset";
 import { Reps_findNextSetIndex } from "../models/set";
-import { HealthSync } from "../lib/healthSync";
+import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 
 interface IScreenWorkoutProps {
@@ -208,8 +208,8 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                       props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
                       const healthName = SendMessage_isIos() ? "Apple Health" : "Google Health";
                       const shouldSyncToHealth =
-                        ((HealthSync.eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
-                          (HealthSync.eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout)) &&
+                        ((HealthSync_eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
+                          (HealthSync_eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout)) &&
                         (!props.settings.healthConfirmation ||
                           confirm(`Do you want to sync this workout to ${healthName}?`));
                       SendMessage_toIosAndAndroid({

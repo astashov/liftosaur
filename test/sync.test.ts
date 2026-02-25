@@ -9,9 +9,18 @@ import { userTableNames, IUserDao } from "../lambda/dao/userDao";
 import { lb } from "lens-shmens";
 import sinon from "sinon";
 import { EditStats_deleteWeightStat } from "../src/models/editStats";
-import { Encoder } from "../src/utils/encoder";
-import { NodeEncoder } from "../lambda/utils/nodeEncoder";
-import { SyncTestUtils } from "./utils/syncTestUtils";
+import * as encoder from "../src/utils/encoder";
+import { NodeEncoder_encode } from "../lambda/utils/nodeEncoder";
+import {
+  SyncTestUtils_initTheAppAndRecordWorkout,
+  SyncTestUtils_logWorkout,
+  SyncTestUtils_logStat,
+  SyncTestUtils_mockDispatch,
+  SyncTestUtils_initTheApp,
+  SyncTestUtils_startWorkout,
+  SyncTestUtils_completeCurrentProgramRepsActions,
+  SyncTestUtils_finishWorkout,
+} from "./utils/syncTestUtils";
 import { Progress_getProgress } from "../src/models/progress";
 
 describe("sync", () => {
@@ -36,8 +45,8 @@ describe("sync", () => {
       ts += 1;
       return ts;
     });
-    sandbox.stub(Encoder, "encode").callsFake((...args) => {
-      return NodeEncoder.encode(...args);
+    sandbox.stub(encoder, "Encoder_encode").callsFake((...args: [string]) => {
+      return NodeEncoder_encode(...args);
     });
   });
 
@@ -46,7 +55,7 @@ describe("sync", () => {
   });
 
   it("properly runs appendable safe syncs", async () => {
-    const { di, mockReducer, log } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const { di, mockReducer, log } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
 
     // With progress being tracked as part of storage, there will be more safe updates
     expect(log.logs.filter((l) => l === "Fetch: Safe update").length).to.be.greaterThan(0);
@@ -61,9 +70,9 @@ describe("sync", () => {
   });
 
   it("merge history and settings update", async () => {
-    const { mockReducer, log, env, di } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const { mockReducer, log, env, di } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
-    await SyncTestUtils.logWorkout(mockReducer2, basicBeginnerProgram, [
+    await SyncTestUtils_logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],
       [5, 5, 5],
@@ -90,14 +99,14 @@ describe("sync", () => {
   });
 
   it("merge 2 history updates", async () => {
-    const { mockReducer, log, env, di } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const { mockReducer, log, env, di } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
-    await SyncTestUtils.logWorkout(mockReducer2, basicBeginnerProgram, [
+    await SyncTestUtils_logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],
       [5, 5, 5],
     ]);
-    await SyncTestUtils.logWorkout(mockReducer, basicBeginnerProgram, [
+    await SyncTestUtils_logWorkout(mockReducer, basicBeginnerProgram, [
       [5, 4, 3],
       [5, 4, 3],
       [5, 4, 3],
@@ -112,37 +121,37 @@ describe("sync", () => {
   });
 
   it("deletes the stats properly during merging", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
-    await SyncTestUtils.logStat(mockReducer2, 100);
-    await SyncTestUtils.logStat(mockReducer, 120);
-    await SyncTestUtils.logStat(mockReducer2, 130);
-    await SyncTestUtils.logStat(mockReducer, 140);
+    await SyncTestUtils_logStat(mockReducer2, 100);
+    await SyncTestUtils_logStat(mockReducer, 120);
+    await SyncTestUtils_logStat(mockReducer2, 130);
+    await SyncTestUtils_logStat(mockReducer, 140);
 
     let weights = mockReducer.state.storage.stats.weight.weight || [];
     const weight130Index = weights.findIndex((w) => w.value.value === 130) ?? 0;
     await mockReducer.run([
-      SyncTestUtils.mockDispatch((ds) =>
+      SyncTestUtils_mockDispatch((ds) =>
         EditStats_deleteWeightStat(ds, "weight", weight130Index, weights[weight130Index].timestamp)
       ),
     ]);
     weights = mockReducer.state.storage.stats.weight.weight || [];
     const weight140Index = weights.findIndex((w) => w.value.value === 140) ?? 0;
     await mockReducer.run([
-      SyncTestUtils.mockDispatch((ds) =>
+      SyncTestUtils_mockDispatch((ds) =>
         EditStats_deleteWeightStat(ds, "weight", weight140Index, weights[weight140Index].timestamp)
       ),
     ]);
-    await SyncTestUtils.logStat(mockReducer2, 150);
+    await SyncTestUtils_logStat(mockReducer2, 150);
     expect((mockReducer2.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     expect((mockReducer.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
   });
 
   it("cancels sync if not the latest version", async () => {
-    const { mockReducer, env } = await SyncTestUtils.initTheAppAndRecordWorkout("web_123");
+    const { mockReducer, env } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
     const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
-    await SyncTestUtils.logWorkout(mockReducer2, basicBeginnerProgram, [
+    await SyncTestUtils_logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
       [5, 5, 5],
       [5, 5, 5],
@@ -168,17 +177,17 @@ describe("sync", () => {
 
   describe("progress", () => {
     it("starting progress on 2 devices independently picks latest workout", async () => {
-      const { mockReducer, env } = await SyncTestUtils.initTheApp("web_123");
+      const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
       const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
-      await SyncTestUtils.startWorkout(mockReducer);
-      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
-      await SyncTestUtils.startWorkout(mockReducer2);
-      await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[3, 4]]));
+      await SyncTestUtils_startWorkout(mockReducer);
+      await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+      await SyncTestUtils_startWorkout(mockReducer2);
+      await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[3, 4]]));
       await mockReducer.run([Thunk_sync2({ force: true })]);
-      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
+      await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
       await mockReducer2.run([Thunk_sync2({ force: true })]);
       await mockReducer2.run(
-        SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [undefined, 4, 3], [3, 3]])
+        SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [undefined, 4, 3], [3, 3]])
       );
       await mockReducer.run([Thunk_sync2({ force: true })]);
       const completedSets = Progress_getProgress(mockReducer.state)?.entries.map((e) =>
@@ -192,18 +201,18 @@ describe("sync", () => {
     });
 
     it("finishing 2 progress without network should resolve in single workout", async () => {
-      const { mockReducer, env, mockFetch } = await SyncTestUtils.initTheApp("web_123");
+      const { mockReducer, env, mockFetch } = await SyncTestUtils_initTheApp("web_123");
       const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
-      await SyncTestUtils.startWorkout(mockReducer);
-      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
-      await SyncTestUtils.startWorkout(mockReducer2);
-      await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[3, 4, 3]]));
+      await SyncTestUtils_startWorkout(mockReducer);
+      await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
+      await SyncTestUtils_startWorkout(mockReducer2);
+      await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[3, 4, 3]]));
       await mockReducer.run([Thunk_sync2({ force: true })]);
       mockFetch.hasConnection = false;
-      await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
-      await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [1, 1]]));
-      await SyncTestUtils.finishWorkout(mockReducer);
-      await SyncTestUtils.finishWorkout(mockReducer2);
+      await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
+      await mockReducer2.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[], [1, 1]]));
+      await SyncTestUtils_finishWorkout(mockReducer);
+      await SyncTestUtils_finishWorkout(mockReducer2);
       mockFetch.hasConnection = true;
       await mockReducer.run([Thunk_sync2({ force: true })]);
       await mockReducer2.run([Thunk_sync2({ force: true })]);

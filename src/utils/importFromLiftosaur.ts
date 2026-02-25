@@ -62,185 +62,183 @@ function getUnit(val: string): "kg" | "lb" {
   }
 }
 
-export class ImportFromLiftosaur {
-  public static convertLiftosaurCsvToHistoryRecords(
-    liftosaurCsvRaw: string,
-    settings: ISettings
-  ): {
-    historyRecords: IHistoryRecord[];
-    customExercises: Record<string, ICustomExercise>;
-  } {
-    const liftosaurRecords = Papa.parse<ILiftosaurRecord>(liftosaurCsvRaw, {
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: (_, i) => {
-        const keys: (keyof ILiftosaurRecord)[] = [
-          "workoutDateTime",
-          "program",
-          "dayname",
-          "exercise",
-          "isWarmupSet",
-          "requiredReps",
-          "completedReps",
-          "isAmrap",
-          "rpe",
-          "completedRpe",
-          "logRpe",
-          "weightValue",
-          "weightUnit",
-          "completedWeightValue",
-          "completedWeightUnit",
-          "askWeight",
-          "completedRepsTime",
-          "targetMuscles",
-          "synergistMuscles",
-          "notes",
-        ];
-        return keys[i];
-      },
-    }).data;
+export function ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(
+  liftosaurCsvRaw: string,
+  settings: ISettings
+): {
+  historyRecords: IHistoryRecord[];
+  customExercises: Record<string, ICustomExercise>;
+} {
+  const liftosaurRecords = Papa.parse<ILiftosaurRecord>(liftosaurCsvRaw, {
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: (_, i) => {
+      const keys: (keyof ILiftosaurRecord)[] = [
+        "workoutDateTime",
+        "program",
+        "dayname",
+        "exercise",
+        "isWarmupSet",
+        "requiredReps",
+        "completedReps",
+        "isAmrap",
+        "rpe",
+        "completedRpe",
+        "logRpe",
+        "weightValue",
+        "weightUnit",
+        "completedWeightValue",
+        "completedWeightUnit",
+        "askWeight",
+        "completedRepsTime",
+        "targetMuscles",
+        "synergistMuscles",
+        "notes",
+      ];
+      return keys[i];
+    },
+  }).data;
 
-    const groupedRecords = CollectionUtils_groupByKey(liftosaurRecords, "workoutDateTime");
-    const customExercises: Record<string, ICustomExercise> = {};
-    const historyRecords = CollectionUtils_compact(ObjectUtils_values(groupedRecords)).map((records) => {
-      const rawEntries = CollectionUtils_compact(ObjectUtils_values(CollectionUtils_groupByKey(records, "exercise")));
-      const entries = rawEntries.map((rawSets, index) => {
-        const firstSet = rawSets[0];
-        const exerciseName = firstSet.exercise || "Unknown";
-        const exercise = Exercise_findByNameAndEquipment(exerciseName, settings.exercises);
-        let exerciseId: string;
-        let exerciseEquipment: string | undefined = undefined;
-        if (exercise) {
-          exerciseId = exercise.id;
-          exerciseEquipment = exercise.equipment;
-        } else {
-          const id = StringUtils_dashcase(exerciseName || "exercise");
-          customExercises[id] = {
-            vtype: "custom_exercise",
-            id,
-            name: exerciseName,
-            isDeleted: false,
-            meta: {
-              bodyParts: [],
-              targetMuscles: ((firstSet.targetMuscles || "")
-                .split(",")
-                .filter((m) => availableMuscles.indexOf(m as IMuscle) !== -1) || []) as IMuscle[],
-              synergistMuscles: ((firstSet.synergistMuscles || "")
-                .split(",")
-                .filter((m) => availableMuscles.indexOf(m as IMuscle) !== -1) || []) as IMuscle[],
-              sortedEquipment: [],
-            },
-            types: [],
-          };
-          exerciseId = id;
-        }
-
-        const rawWarmupSets = rawSets.filter((set) => set.isWarmupSet === "1");
-        const rawWorkoutSets = rawSets.filter((set) => set.isWarmupSet !== "1");
-        const exerciseType: IExerciseType = { id: exerciseId, equipment: exerciseEquipment };
-        const isUnilateral = Exercise_getIsUnilateral(exerciseType, settings);
-
-        const entry: IHistoryEntry = {
-          vtype: "history_entry",
-          id: Progress_getEntryId(exerciseType, UidFactory_generateUid(3)),
-          exercise: exerciseType,
-          index,
-          warmupSets: rawWarmupSets.map((set, i) => {
-            const weight =
-              set.weightValue && set.weightUnit
-                ? Weight_build(getNumber(set.weightValue), getUnit(set.weightUnit))
-                : undefined;
-            const completedReps = set.completedReps ? getNumber(set.completedReps) : undefined;
-            const completedWeight =
-              set.completedWeightValue && set.completedWeightUnit
-                ? Weight_build(getNumber(set.completedWeightValue), getUnit(set.completedWeightUnit))
-                : undefined;
-            const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
-            return {
-              vtype: "set",
-              id: UidFactory_generateUid(6),
-              index: i,
-              reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
-              completedReps: completedReps,
-              isAmrap: set.isAmrap === "1",
-              rpe: set.rpe ? getNumber(set.rpe) : undefined,
-              completedRpe: completedRpe,
-              completedRepsLeft: isUnilateral ? completedReps : undefined,
-              isUnilateral,
-              logRpe: set.logRpe === "1",
-              weight: weight,
-              originalWeight: weight,
-              completedWeight: completedWeight,
-              askWeight: set.askWeight === "1",
-              label: "",
-              timestamp: getTimestamp(set.completedRepsTime) || getTimestamp(set.workoutDateTime),
-              isCompleted: completedReps != null || completedWeight != null || completedRpe != null,
-            };
-          }),
-          sets: rawWorkoutSets.map((set, i) => {
-            const weight =
-              set.weightValue && set.weightUnit
-                ? Weight_build(getNumber(set.weightValue), getUnit(set.weightUnit))
-                : undefined;
-            const completedReps = set.completedReps ? getNumber(set.completedReps) : undefined;
-            const completedWeight =
-              set.completedWeightValue && set.completedWeightUnit
-                ? Weight_build(getNumber(set.completedWeightValue), getUnit(set.completedWeightUnit))
-                : undefined;
-            const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
-            return {
-              vtype: "set",
-              id: UidFactory_generateUid(6),
-              index: i,
-              reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
-              completedReps: completedReps,
-              isAmrap: set.isAmrap === "1",
-              rpe: set.rpe ? getNumber(set.rpe) : undefined,
-              completedRepsLeft: isUnilateral ? completedReps : undefined,
-              completedRpe: completedRpe,
-              logRpe: set.logRpe === "1",
-              weight: weight,
-              isUnilateral,
-              originalWeight: weight,
-              completedWeight: completedWeight,
-              askWeight: set.askWeight === "1",
-              label: "",
-              timestamp: getTimestamp(set.completedRepsTime) || getTimestamp(set.workoutDateTime),
-              isCompleted: completedReps != null || completedWeight != null || completedRpe != null,
-            };
-          }),
-          notes: firstSet.notes,
+  const groupedRecords = CollectionUtils_groupByKey(liftosaurRecords, "workoutDateTime");
+  const customExercises: Record<string, ICustomExercise> = {};
+  const historyRecords = CollectionUtils_compact(ObjectUtils_values(groupedRecords)).map((records) => {
+    const rawEntries = CollectionUtils_compact(ObjectUtils_values(CollectionUtils_groupByKey(records, "exercise")));
+    const entries = rawEntries.map((rawSets, index) => {
+      const firstSet = rawSets[0];
+      const exerciseName = firstSet.exercise || "Unknown";
+      const exercise = Exercise_findByNameAndEquipment(exerciseName, settings.exercises);
+      let exerciseId: string;
+      let exerciseEquipment: string | undefined = undefined;
+      if (exercise) {
+        exerciseId = exercise.id;
+        exerciseEquipment = exercise.equipment;
+      } else {
+        const id = StringUtils_dashcase(exerciseName || "exercise");
+        customExercises[id] = {
+          vtype: "custom_exercise",
+          id,
+          name: exerciseName,
+          isDeleted: false,
+          meta: {
+            bodyParts: [],
+            targetMuscles: ((firstSet.targetMuscles || "")
+              .split(",")
+              .filter((m) => availableMuscles.indexOf(m as IMuscle) !== -1) || []) as IMuscle[],
+            synergistMuscles: ((firstSet.synergistMuscles || "")
+              .split(",")
+              .filter((m) => availableMuscles.indexOf(m as IMuscle) !== -1) || []) as IMuscle[],
+            sortedEquipment: [],
+          },
+          types: [],
         };
-        return entry;
-      });
-      const firstRecord = records[0];
-      let endTime = CollectionUtils_sortBy(
-        entries.flatMap((e) => e.warmupSets.concat(e.sets)).map((s) => ({ t: getNumber(`${s.timestamp}` || "0") })),
-        "t",
-        true
-      )[0]?.t;
-      const startTime = getTimestamp(firstRecord.workoutDateTime);
-      if (endTime == null || endTime < startTime) {
-        endTime = startTime;
+        exerciseId = id;
       }
-      const historyRecord: IHistoryRecord = {
-        vtype: "history_record",
-        date: new Date(startTime).toISOString(),
-        day: 1,
-        dayName: `${firstRecord.dayname}` || "Workout",
-        programName: `${firstRecord.program}` || "CSV Import",
-        intervals: [[startTime, endTime]],
-        entries,
-        id: startTime,
-        programId: StringUtils_dashcase(firstRecord.program || "csv"),
-        startTime: startTime,
-        dayInWeek: 1,
-        endTime: endTime,
-        notes: "",
-      };
-      return historyRecord;
-    });
 
-    return { historyRecords, customExercises };
-  }
+      const rawWarmupSets = rawSets.filter((set) => set.isWarmupSet === "1");
+      const rawWorkoutSets = rawSets.filter((set) => set.isWarmupSet !== "1");
+      const exerciseType: IExerciseType = { id: exerciseId, equipment: exerciseEquipment };
+      const isUnilateral = Exercise_getIsUnilateral(exerciseType, settings);
+
+      const entry: IHistoryEntry = {
+        vtype: "history_entry",
+        id: Progress_getEntryId(exerciseType, UidFactory_generateUid(3)),
+        exercise: exerciseType,
+        index,
+        warmupSets: rawWarmupSets.map((set, i) => {
+          const weight =
+            set.weightValue && set.weightUnit
+              ? Weight_build(getNumber(set.weightValue), getUnit(set.weightUnit))
+              : undefined;
+          const completedReps = set.completedReps ? getNumber(set.completedReps) : undefined;
+          const completedWeight =
+            set.completedWeightValue && set.completedWeightUnit
+              ? Weight_build(getNumber(set.completedWeightValue), getUnit(set.completedWeightUnit))
+              : undefined;
+          const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
+          return {
+            vtype: "set",
+            id: UidFactory_generateUid(6),
+            index: i,
+            reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
+            completedReps: completedReps,
+            isAmrap: set.isAmrap === "1",
+            rpe: set.rpe ? getNumber(set.rpe) : undefined,
+            completedRpe: completedRpe,
+            completedRepsLeft: isUnilateral ? completedReps : undefined,
+            isUnilateral,
+            logRpe: set.logRpe === "1",
+            weight: weight,
+            originalWeight: weight,
+            completedWeight: completedWeight,
+            askWeight: set.askWeight === "1",
+            label: "",
+            timestamp: getTimestamp(set.completedRepsTime) || getTimestamp(set.workoutDateTime),
+            isCompleted: completedReps != null || completedWeight != null || completedRpe != null,
+          };
+        }),
+        sets: rawWorkoutSets.map((set, i) => {
+          const weight =
+            set.weightValue && set.weightUnit
+              ? Weight_build(getNumber(set.weightValue), getUnit(set.weightUnit))
+              : undefined;
+          const completedReps = set.completedReps ? getNumber(set.completedReps) : undefined;
+          const completedWeight =
+            set.completedWeightValue && set.completedWeightUnit
+              ? Weight_build(getNumber(set.completedWeightValue), getUnit(set.completedWeightUnit))
+              : undefined;
+          const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
+          return {
+            vtype: "set",
+            id: UidFactory_generateUid(6),
+            index: i,
+            reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
+            completedReps: completedReps,
+            isAmrap: set.isAmrap === "1",
+            rpe: set.rpe ? getNumber(set.rpe) : undefined,
+            completedRepsLeft: isUnilateral ? completedReps : undefined,
+            completedRpe: completedRpe,
+            logRpe: set.logRpe === "1",
+            weight: weight,
+            isUnilateral,
+            originalWeight: weight,
+            completedWeight: completedWeight,
+            askWeight: set.askWeight === "1",
+            label: "",
+            timestamp: getTimestamp(set.completedRepsTime) || getTimestamp(set.workoutDateTime),
+            isCompleted: completedReps != null || completedWeight != null || completedRpe != null,
+          };
+        }),
+        notes: firstSet.notes,
+      };
+      return entry;
+    });
+    const firstRecord = records[0];
+    let endTime = CollectionUtils_sortBy(
+      entries.flatMap((e) => e.warmupSets.concat(e.sets)).map((s) => ({ t: getNumber(`${s.timestamp}` || "0") })),
+      "t",
+      true
+    )[0]?.t;
+    const startTime = getTimestamp(firstRecord.workoutDateTime);
+    if (endTime == null || endTime < startTime) {
+      endTime = startTime;
+    }
+    const historyRecord: IHistoryRecord = {
+      vtype: "history_record",
+      date: new Date(startTime).toISOString(),
+      day: 1,
+      dayName: `${firstRecord.dayname}` || "Workout",
+      programName: `${firstRecord.program}` || "CSV Import",
+      intervals: [[startTime, endTime]],
+      entries,
+      id: startTime,
+      programId: StringUtils_dashcase(firstRecord.program || "csv"),
+      startTime: startTime,
+      dayInWeek: 1,
+      endTime: endTime,
+      notes: "",
+    };
+    return historyRecord;
+  });
+
+  return { historyRecords, customExercises };
 }

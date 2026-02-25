@@ -10,11 +10,16 @@ import { ExerciseImage } from "../exerciseImage";
 import { equipmentName, IExercise, Exercise_findByName } from "../../models/exercise";
 import { IconEdit2 } from "../icons/iconEdit2";
 import { lb } from "lens-shmens";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_repeatToRangeStr,
+  PlannerProgramExercise_warmups,
+  PlannerProgramExercise_defaultWarmups,
+  PlannerProgramExercise_warmupSetsToDisplaySets,
+} from "../../pages/planner/models/plannerProgramExercise";
 import { HistoryRecordSet } from "../historyRecordSets";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
 import { IconTrash } from "../icons/iconTrash";
-import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_deleteCurrentInstance } from "./editProgramUi/editProgramUiHelpers";
 import { IconGraphsE } from "../icons/iconGraphsE";
 import { IconSwap } from "../icons/iconSwap";
 import { Thunk_pushToEditProgramExercise } from "../../ducks/thunks";
@@ -50,7 +55,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
   );
   const exercise = Exercise_findByName(props.plannerExercise.name, props.settings.exercises);
 
-  const repeatStr = PlannerProgramExercise.repeatToRangeStr(props.plannerExercise);
+  const repeatStr = PlannerProgramExercise_repeatToRangeStr(props.plannerExercise);
   const order = props.plannerExercise.order !== 0 ? props.plannerExercise.order : undefined;
   const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
 
@@ -209,9 +214,9 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
   const exercise = props.exercise;
   const exerciseType = exercise != null ? { id: exercise.id, equipment: props.plannerExercise.equipment } : undefined;
   const warmupSets =
-    PlannerProgramExercise.warmups(plannerExercise) ||
-    (exercise != null ? PlannerProgramExercise.defaultWarmups(exercise, props.settings) : []);
-  const displayWarmupSets = PlannerProgramExercise.warmupSetsToDisplaySets(warmupSets);
+    PlannerProgramExercise_warmups(plannerExercise) ||
+    (exercise != null ? PlannerProgramExercise_defaultWarmups(exercise, props.settings) : []);
+  const displayWarmupSets = PlannerProgramExercise_warmupSetsToDisplaySets(warmupSets);
   const reusingSets = plannerExercise.reuse?.fullName;
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const supersetGroup = props.plannerExercise.superset?.name;
@@ -344,7 +349,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
               onClick={() => {
                 props.plannerDispatch(
                   lbProgram.recordModify((program) => {
-                    return EditProgramUiHelpers.deleteCurrentInstance(
+                    return EditProgramUiHelpers_deleteCurrentInstance(
                       program,
                       plannerExercise.dayData,
                       plannerExercise.fullName,

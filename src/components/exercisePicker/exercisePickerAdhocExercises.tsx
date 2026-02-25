@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_colors, Tailwind_semantic } from "../../utils/tailwindConfig";
 import { IconFilter2 } from "../icons/iconFilter2";
 import {
   Exercise_filterCustomExercises,
@@ -20,7 +20,15 @@ import { LinkButton } from "../linkButton";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { exercisePickerSortNames } from "./exercisePickerFilter";
-import { ExercisePickerUtils } from "./exercisePickerUtils";
+import {
+  ExercisePickerUtils_getAllFilterNames,
+  ExercisePickerUtils_filterCustomExercises,
+  ExercisePickerUtils_sortCustomExercises,
+  ExercisePickerUtils_getIsMultiselect,
+  ExercisePickerUtils_chooseAdhocExercise,
+  ExercisePickerUtils_filterExercises,
+  ExercisePickerUtils_sortExercises,
+} from "./exercisePickerUtils";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
 
 interface IProps {
@@ -61,14 +69,14 @@ interface ISearchAndFilterProps {
 }
 
 function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
-  const filterNames = ExercisePickerUtils.getAllFilterNames(props.state.filters, props.settings);
+  const filterNames = ExercisePickerUtils_getAllFilterNames(props.state.filters, props.settings);
   const isFiltered = filterNames.length > 0;
   return (
     <div className="my-1">
       <div className="flex items-center gap-2 mx-4">
         <label className="flex items-center flex-1 gap-2 p-2 rounded-lg bg-background-neutral">
           <div>
-            <IconMagnifyingGlass size={18} color={Tailwind.colors().lightgray[600]} />
+            <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
           </div>
           <div className="flex-1">
             <input
@@ -102,7 +110,7 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
                 {filterNames.length}
               </span>
             )}
-            <IconFilter2 color={isFiltered ? Tailwind.semantic().icon.purple : Tailwind.semantic().icon.neutral} />
+            <IconFilter2 color={isFiltered ? Tailwind_semantic().icon.purple : Tailwind_semantic().icon.neutral} />
           </button>
         </div>
       </div>
@@ -149,13 +157,13 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
   if (props.state.search) {
     exercises = Exercise_filterCustomExercises(exercises, props.state.search);
   }
-  exercises = ExercisePickerUtils.filterCustomExercises(exercises, props.state.filters);
+  exercises = ExercisePickerUtils_filterCustomExercises(exercises, props.state.filters);
   let exercisesList = CollectionUtils_compact(ObjectUtils_values(exercises));
   if (props.state.filters.isStarred) {
     exercisesList = exercisesList.filter((e) => props.settings.starredExercises?.[Exercise_toKey(e)]);
   }
   exercisesList = exercisesList.filter((e) => !e.isDeleted);
-  exercisesList = ExercisePickerUtils.sortCustomExercises(exercisesList, props.settings, props.state);
+  exercisesList = ExercisePickerUtils_sortCustomExercises(exercisesList, props.settings, props.state);
 
   return (
     <div className="py-2">
@@ -194,7 +202,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
             (exrcs) => "exerciseType" in exrcs && Exercise_eq(exrcs.exerciseType, e)
           );
           const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, e));
-          const isMultiselect = ExercisePickerUtils.getIsMultiselect(props.state);
+          const isMultiselect = ExercisePickerUtils_getIsMultiselect(props.state);
           const isSelected = props.state.selectedExercises.some(
             (exrcs) => exrcs.type === "adhoc" && Exercise_eq(exrcs.exerciseType, e)
           );
@@ -215,7 +223,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
                 exercise={ex}
                 isSelected={isSelected}
                 onChoose={(key) => {
-                  ExercisePickerUtils.chooseAdhocExercise(props.dispatch, key, props.state);
+                  ExercisePickerUtils_chooseAdhocExercise(props.dispatch, key, props.state);
                 }}
                 onEdit={() => {
                   props.dispatch(
@@ -251,16 +259,16 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
   if (props.state.search) {
     exercises = Exercise_filterExercises(exercises, props.state.search);
   }
-  exercises = ExercisePickerUtils.filterExercises(exercises, props.state.filters, props.settings);
+  exercises = ExercisePickerUtils_filterExercises(exercises, props.state.filters, props.settings);
   if (props.state.filters.isStarred) {
     exercises = exercises.filter((e) => props.settings.starredExercises?.[Exercise_toKey(e)]);
   }
-  exercises = ExercisePickerUtils.sortExercises(exercises, props.settings, props.state);
+  exercises = ExercisePickerUtils_sortExercises(exercises, props.settings, props.state);
   return (
     <div className="py-2">
       <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4">
         {exercises.map((e) => {
-          const isMultiselect = ExercisePickerUtils.getIsMultiselect(props.state);
+          const isMultiselect = ExercisePickerUtils_getIsMultiselect(props.state);
           const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, e));
           const isSelectedAlready = props.state.selectedExercises.some(
             (ex) => "exerciseType" in ex && Exercise_eq(ex.exerciseType, e)
@@ -283,7 +291,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
                 isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
                 isSelected={isSelected}
                 onChoose={(key) => {
-                  ExercisePickerUtils.chooseAdhocExercise(props.dispatch, key, props.state);
+                  ExercisePickerUtils_chooseAdhocExercise(props.dispatch, key, props.state);
                 }}
                 showMuscles={props.state.showMuscles}
                 settings={props.settings}

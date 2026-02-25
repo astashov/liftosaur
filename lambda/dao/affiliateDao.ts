@@ -12,7 +12,7 @@ import {
   CollectionUtils_sortByMultiple,
 } from "../../src/utils/collection";
 import { IAffiliateData } from "../../src/pages/affiliateDashboard/affiliateDashboardContent";
-import { PriceUtils } from "../../src/utils/price";
+import { PriceUtils_exchangeRate } from "../../src/utils/price";
 
 const tableNames = {
   dev: {
@@ -170,7 +170,7 @@ export class AffiliateDao {
   }
 
   private getDollarAmount(payment: IPaymentDao): number {
-    const conversion = PriceUtils.exchangeRate(payment.amount, payment.currency || "USD");
+    const conversion = PriceUtils_exchangeRate(payment.amount, payment.currency || "USD");
     return conversion.success ? conversion.value : 0;
   }
 

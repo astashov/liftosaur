@@ -1,11 +1,11 @@
 import { JSX, h, Fragment } from "preact";
 import { lb } from "lens-shmens";
 import { Weight_build } from "../../../models/weight";
-import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_progressionType } from "../../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../../pages/planner/models/types";
 import { IProgram, ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { EditProgramUiHelpers } from "../../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeFirstInstance } from "../../editProgram/editProgramUi/editProgramUiHelpers";
 import { InputNumber2 } from "../../inputNumber2";
 import { InputWeight2 } from "../../inputWeight2";
 import { LinkButton } from "../../linkButton";
@@ -19,7 +19,7 @@ interface ILinearProgressSettingsProps {
 
 export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX.Element {
   const { plannerExercise, settings } = props;
-  const progression = PlannerProgramExercise.progressionType(plannerExercise);
+  const progression = PlannerProgramExercise_progressionType(plannerExercise);
   if (progression?.type !== "linear") {
     return <div />;
   }
@@ -39,7 +39,7 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
             onInput={(value) => {
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
-                  return EditProgramUiHelpers.changeFirstInstance(
+                  return EditProgramUiHelpers_changeFirstInstance(
                     program,
                     plannerExercise,
                     props.settings,
@@ -69,7 +69,7 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
             onInput={(value) => {
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
-                  return EditProgramUiHelpers.changeFirstInstance(
+                  return EditProgramUiHelpers_changeFirstInstance(
                     program,
                     plannerExercise,
                     props.settings,
@@ -102,7 +102,7 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                 onInput={(value) => {
                   props.plannerDispatch(
                     lbProgram.recordModify((program) => {
-                      return EditProgramUiHelpers.changeFirstInstance(
+                      return EditProgramUiHelpers_changeFirstInstance(
                         program,
                         plannerExercise,
                         props.settings,
@@ -139,7 +139,7 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                 onInput={(value) => {
                   props.plannerDispatch(
                     lbProgram.recordModify((program) => {
-                      return EditProgramUiHelpers.changeFirstInstance(
+                      return EditProgramUiHelpers_changeFirstInstance(
                         program,
                         plannerExercise,
                         props.settings,
@@ -169,7 +169,7 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                 onInput={(value) => {
                   props.plannerDispatch(
                     lbProgram.recordModify((program) => {
-                      return EditProgramUiHelpers.changeFirstInstance(
+                      return EditProgramUiHelpers_changeFirstInstance(
                         program,
                         plannerExercise,
                         props.settings,
@@ -202,7 +202,7 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                     onInput={(value) => {
                       props.plannerDispatch(
                         lbProgram.recordModify((program) => {
-                          return EditProgramUiHelpers.changeFirstInstance(
+                          return EditProgramUiHelpers_changeFirstInstance(
                             program,
                             plannerExercise,
                             props.settings,
@@ -232,7 +232,7 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
           onClick={() => {
             props.plannerDispatch(
               lbProgram.recordModify((program) => {
-                return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
+                return EditProgramUiHelpers_changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
                   const state = e.progress?.state;
                   if (state) {
                     state.failures = (progression.failuresRequired || 0) > 0 ? 0 : 1;

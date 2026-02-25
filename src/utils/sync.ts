@@ -42,43 +42,45 @@ export interface IStorageUpdate2 {
   originalId?: IStorage["originalId"];
 }
 
-export class Sync {
-  public static getStorageUpdate2(currentStorage: IStorage, lastStorage: IStorage, deviceId?: string): IStorageUpdate2 {
-    const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
-    const versionsDiff = versionTracker.diffVersions(lastStorage._versions, currentStorage._versions || {});
-    if (versionsDiff) {
-      const storageDiff = versionTracker.extractByVersions(currentStorage, versionsDiff);
-      const filledVersionsDiff = versionTracker.fillVersions(storageDiff, versionsDiff, Date.now());
-      let programs = storageDiff.programs;
-      const programIds = (storageDiff.programs || []).map((p) => p.id);
-      if (programIds.length !== new Set(programIds).size) {
-        const duplicatedPrograms = CollectionUtils_compact(
-          ObjectUtils_values(
-            ObjectUtils_filter(
-              CollectionUtils_groupByKey(storageDiff.programs || [], "id"),
-              (k, v) => v != null && v.length > 1
-            )
+export function Sync_getStorageUpdate2(
+  currentStorage: IStorage,
+  lastStorage: IStorage,
+  deviceId?: string
+): IStorageUpdate2 {
+  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
+  const versionsDiff = versionTracker.diffVersions(lastStorage._versions, currentStorage._versions || {});
+  if (versionsDiff) {
+    const storageDiff = versionTracker.extractByVersions(currentStorage, versionsDiff);
+    const filledVersionsDiff = versionTracker.fillVersions(storageDiff, versionsDiff, Date.now());
+    let programs = storageDiff.programs;
+    const programIds = (storageDiff.programs || []).map((p) => p.id);
+    if (programIds.length !== new Set(programIds).size) {
+      const duplicatedPrograms = CollectionUtils_compact(
+        ObjectUtils_values(
+          ObjectUtils_filter(
+            CollectionUtils_groupByKey(storageDiff.programs || [], "id"),
+            (k, v) => v != null && v.length > 1
           )
-        );
-        const duplicateInfo = duplicatedPrograms.map((arr) => {
-          const isEqual = arr.every((p) => ObjectUtils_isEqual(arr[0], p));
-          return { id: arr[0].id, name: arr.map((p) => p.name), isEqual };
-        });
-        lg("duplicate-programs", { info: JSON.stringify(duplicateInfo) });
-        programs = CollectionUtils_compact(duplicatedPrograms.map((arr) => arr[arr.length - 1]));
-        storageDiff.programs = programs;
-      }
-      return {
-        version: currentStorage.version,
-        originalId: currentStorage.originalId,
-        versions: filledVersionsDiff,
-        storage: storageDiff,
-      };
-    } else {
-      return {
-        version: currentStorage.version,
-        originalId: currentStorage.originalId,
-      };
+        )
+      );
+      const duplicateInfo = duplicatedPrograms.map((arr) => {
+        const isEqual = arr.every((p) => ObjectUtils_isEqual(arr[0], p));
+        return { id: arr[0].id, name: arr.map((p) => p.name), isEqual };
+      });
+      lg("duplicate-programs", { info: JSON.stringify(duplicateInfo) });
+      programs = CollectionUtils_compact(duplicatedPrograms.map((arr) => arr[arr.length - 1]));
+      storageDiff.programs = programs;
     }
+    return {
+      version: currentStorage.version,
+      originalId: currentStorage.originalId,
+      versions: filledVersionsDiff,
+      storage: storageDiff,
+    };
+  } else {
+    return {
+      version: currentStorage.version,
+      originalId: currentStorage.originalId,
+    };
   }
 }

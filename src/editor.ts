@@ -7,14 +7,14 @@ import { highlightSelectionMatches } from "@codemirror/search";
 import { IProgramState } from "./types";
 import { tags } from "@lezer/highlight";
 import { buildLiftoscriptLanguageSupport } from "./liftoscriptCodemirror";
-import { Tailwind } from "./utils/tailwindConfig";
+import { Tailwind_semantic } from "./utils/tailwindConfig";
 
 const buildHighlightStyle = (): HighlightStyle => {
   return HighlightStyle.define([
-    { tag: tags.keyword, color: Tailwind.semantic().syntax.keyword },
-    { tag: [tags.literal, tags.inserted], color: Tailwind.semantic().syntax.literal },
-    { tag: tags.variableName, color: Tailwind.semantic().syntax.variable },
-    { tag: tags.comment, color: Tailwind.semantic().syntax.comment },
+    { tag: tags.keyword, color: Tailwind_semantic().syntax.keyword },
+    { tag: [tags.literal, tags.inserted], color: Tailwind_semantic().syntax.literal },
+    { tag: tags.variableName, color: Tailwind_semantic().syntax.variable },
+    { tag: tags.comment, color: Tailwind_semantic().syntax.comment },
   ]);
 };
 

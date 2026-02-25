@@ -8,8 +8,11 @@ import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IPlannerProgramExerciseWithType, IPlannerState } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
-import { PlannerKey } from "../plannerKey";
-import { PlannerProgramExercise } from "../models/plannerProgramExercise";
+import { PlannerKey_fromPlannerExercise } from "../plannerKey";
+import {
+  PlannerProgramExercise_toUsed,
+  PlannerProgramExercise_currentEvaluatedSetVariation,
+} from "../models/plannerProgramExercise";
 
 interface IPlannerExerciseStatsFullProps {
   settings: ISettings;
@@ -55,7 +58,7 @@ export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps):
           name="planner-swap-exercise"
           data-cy="planner-swap-exercise"
           onClick={() => {
-            const exerciseKey = PlannerKey.fromPlannerExercise(evaluatedExercise, props.settings);
+            const exerciseKey = PlannerKey_fromPlannerExercise(evaluatedExercise, props.settings);
             props.dispatch(
               [
                 lb<IPlannerState>()
@@ -123,14 +126,14 @@ function getIntensityPerWeeks(
     let exercise: IPlannerProgramExerciseWithType | undefined;
     const evaluatedDay = evaluatedWeek[dayIndex] as IPlannerEvalResult | undefined;
     if (evaluatedDay?.success) {
-      exercise = PlannerProgramExercise.toUsed(
+      exercise = PlannerProgramExercise_toUsed(
         evaluatedDay.data.find((e) => e.name === exerciseName && e.exerciseType != null)
       );
     }
     if (!exercise) {
       continue;
     }
-    const setVariation = PlannerProgramExercise.currentEvaluatedSetVariation(exercise);
+    const setVariation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
     const weights = setVariation.sets.map((s) => {
       const weight = Weight_evaluateWeight(
         s.weight ?? Weight_build(0, settings.units),
@@ -157,14 +160,14 @@ function getVolumePerWeeks(
     let exercise: IPlannerProgramExerciseWithType | undefined;
     const evaluatedDay = evaluatedWeek[dayIndex] as IPlannerEvalResult | undefined;
     if (evaluatedDay?.success) {
-      exercise = PlannerProgramExercise.toUsed(
+      exercise = PlannerProgramExercise_toUsed(
         evaluatedDay.data.find((e) => e.name === exerciseName && e.exerciseType != null)
       );
     }
     if (!exercise) {
       continue;
     }
-    const setVariation = PlannerProgramExercise.currentEvaluatedSetVariation(exercise);
+    const setVariation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
     const volume = Number(
       setVariation.sets
         .reduce((acc, s) => {

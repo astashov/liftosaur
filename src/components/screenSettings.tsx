@@ -36,13 +36,13 @@ import { ModalImportFromOtherApps } from "./modalImportFromOtherApps";
 import { ModalAffiliate } from "./modalAffiliate";
 import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
-import { HealthSync } from "../lib/healthSync";
+import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { INavCommon } from "../models/state";
 import { Stats_getCurrentBodyweight, Stats_getCurrentBodyfat, Stats_isEmpty } from "../models/stats";
 import { Weight_print } from "../models/weight";
-import { ImagePreloader } from "../utils/imagePreloader";
+import { ImagePreloader_preload, ImagePreloader_dynoflex } from "../utils/imagePreloader";
 import { Settings_getTheme, Settings_applyTheme } from "../models/settings";
-import { Features } from "../utils/features";
+import { Features_isEnabled } from "../utils/features";
 
 interface IProps {
   dispatch: IDispatch;
@@ -64,7 +64,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (Stats_isEmpty(props.stats)) {
-      ImagePreloader.preload(ImagePreloader.dynoflex);
+      ImagePreloader_preload(ImagePreloader_dynoflex);
     }
   }, []);
 
@@ -397,17 +397,17 @@ export function ScreenSettings(props: IProps): JSX.Element {
               )}
           </div>
         )}
-        {(HealthSync.eligibleForAppleHealth() || HealthSync.eligibleForGoogleHealth()) && (
+        {(HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth()) && (
           <>
             <GroupHeader name="Sync" topPadding={true} />
-            {HealthSync.eligibleForGoogleHealth() && (
+            {HealthSync_eligibleForGoogleHealth() && (
               <MenuItem
                 shouldShowRightArrow={true}
                 name="Google Health Connect"
                 onClick={() => props.dispatch(Thunk_pushScreen("googleHealth"))}
               />
             )}
-            {HealthSync.eligibleForAppleHealth() && (
+            {HealthSync_eligibleForAppleHealth() && (
               <MenuItem
                 shouldShowRightArrow={true}
                 name="Apple Health"
@@ -460,7 +460,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
             });
           }}
         />
-        {Features.isEnabled("affiliates", props.user?.id ?? props.tempUserId) && (
+        {Features_isEnabled("affiliates", props.user?.id ?? props.tempUserId) && (
           <>
             <GroupHeader name="Earn money with Liftosaur" topPadding={true} />
             <MenuItem

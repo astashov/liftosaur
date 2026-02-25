@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   style?: { [key: string]: string | number };
@@ -10,7 +10,7 @@ interface IProps {
 }
 
 export function IconDoc(props: IProps): JSX.Element {
-  const color = props.color || Tailwind.semantic().icon.neutral;
+  const color = props.color || Tailwind_semantic().icon.neutral;
   const width = props.width || 17;
   const height = props.height || 22;
   return (

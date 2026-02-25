@@ -11,7 +11,16 @@ import {
   isCollectionVersions,
   isVersionsObject,
 } from "./types";
-import { VersionTrackerUtils } from "./utils";
+import {
+  VersionTrackerUtils_compareVersions,
+  VersionTrackerUtils_normalizeVersion,
+  VersionTrackerUtils_isRecord,
+  VersionTrackerUtils_isControlledType,
+  VersionTrackerUtils_getIdVersionFromVersions,
+  VersionTrackerUtils_pickWinningIdVersion,
+  VersionTrackerUtils_ensureVersionsObject,
+  VersionTrackerUtils_getId,
+} from "./utils";
 
 export class VersionTrackerMergeByVersions<TAtomicType extends string, TControlledType extends string> {
   private readonly versionTypes: IVersionTypes<TAtomicType, TControlledType>;
@@ -42,12 +51,12 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         if (fullVersion === undefined || !isFieldVersion(fullVersion)) {
           delete result[key];
         } else {
-          const comparison = VersionTrackerUtils.compareVersions(diffVersion, fullVersion);
+          const comparison = VersionTrackerUtils_compareVersions(diffVersion, fullVersion);
           if (comparison === "a_newer") {
             delete result[key];
           } else if (comparison === "concurrent") {
-            const diffNorm = VersionTrackerUtils.normalizeVersion(diffVersion);
-            const fullNorm = VersionTrackerUtils.normalizeVersion(fullVersion);
+            const diffNorm = VersionTrackerUtils_normalizeVersion(diffVersion);
+            const fullNorm = VersionTrackerUtils_normalizeVersion(fullVersion);
             if (diffNorm.t > fullNorm.t) {
               delete result[key];
             }
@@ -67,13 +76,13 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
     path: string
   ): unknown {
     if (isFieldVersion(diffVersion) && isFieldVersion(fullVersion)) {
-      const comparison = VersionTrackerUtils.compareVersions(diffVersion, fullVersion);
+      const comparison = VersionTrackerUtils_compareVersions(diffVersion, fullVersion);
       if (comparison === "a_newer") {
         return extractedValue;
       }
       if (comparison === "concurrent") {
-        const diffNorm = VersionTrackerUtils.normalizeVersion(diffVersion);
-        const fullNorm = VersionTrackerUtils.normalizeVersion(fullVersion);
+        const diffNorm = VersionTrackerUtils_normalizeVersion(diffVersion);
+        const fullNorm = VersionTrackerUtils_normalizeVersion(fullVersion);
         if (diffNorm.t > fullNorm.t) {
           return extractedValue;
         }
@@ -87,8 +96,8 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
       }
 
       if (
-        VersionTrackerUtils.isRecord(fullValue) &&
-        VersionTrackerUtils.isRecord(extractedValue) &&
+        VersionTrackerUtils_isRecord(fullValue) &&
+        VersionTrackerUtils_isRecord(extractedValue) &&
         isVersionsObject(diffVersion)
       ) {
         return this.run(fullValue, {}, diffVersion, extractedValue);
@@ -101,18 +110,18 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
       return this.mergeCollectionByVersion(fullValue, fullCollection, diffVersion, extractedValue);
     }
 
-    if (isVersionsObject(diffVersion) && VersionTrackerUtils.isRecord(extractedValue)) {
-      if (VersionTrackerUtils.isControlledType(extractedValue, this.versionTypes)) {
+    if (isVersionsObject(diffVersion) && VersionTrackerUtils_isRecord(extractedValue)) {
+      if (VersionTrackerUtils_isControlledType(extractedValue, this.versionTypes)) {
         const fullVersionObj = isVersionsObject(fullVersion) ? fullVersion : undefined;
         const diffVersionObj = diffVersion;
 
         // Get ID versions from both full and diff to determine the winner
-        const fullIdVersion = VersionTrackerUtils.getIdVersionFromVersions(
+        const fullIdVersion = VersionTrackerUtils_getIdVersionFromVersions(
           extractedValue.vtype,
           fullVersionObj,
           this.versionTypes
         );
-        const diffIdVersion = VersionTrackerUtils.getIdVersionFromVersions(
+        const diffIdVersion = VersionTrackerUtils_getIdVersionFromVersions(
           extractedValue.vtype,
           diffVersionObj,
           this.versionTypes
@@ -120,7 +129,7 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
 
         // If both have ID versions with different values, determine which one wins
         if (fullIdVersion && diffIdVersion && fullIdVersion.value !== diffIdVersion.value) {
-          const winner = VersionTrackerUtils.pickWinningIdVersion(fullIdVersion, diffIdVersion);
+          const winner = VersionTrackerUtils_pickWinningIdVersion(fullIdVersion, diffIdVersion);
           if (winner === fullIdVersion) {
             // Full wins - keep full value, ignore extracted
             return fullValue;
@@ -132,7 +141,7 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         const controlledFields = this.versionTypes.controlledFields[extractedValue.vtype] || [];
         const controlledFieldSet = new Set(controlledFields);
 
-        const mergedItem: Record<string, unknown> = VersionTrackerUtils.isRecord(fullValue) ? { ...fullValue } : {};
+        const mergedItem: Record<string, unknown> = VersionTrackerUtils_isRecord(fullValue) ? { ...fullValue } : {};
 
         // Copy non-controlled fields from extractedValue if they don't exist in mergedItem
         for (const field in extractedValue) {
@@ -145,19 +154,19 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
           if (field in diffVersion) {
             const diffFieldVersion = diffVersion[field];
             const fullFieldVersion = fullVersionObj?.[field];
-            const fullFieldValue = VersionTrackerUtils.isRecord(fullValue) ? fullValue[field] : undefined;
+            const fullFieldValue = VersionTrackerUtils_isRecord(fullValue) ? fullValue[field] : undefined;
             const extractedFieldValue = extractedValue[field];
 
             if (isFieldVersion(diffFieldVersion)) {
               if (fullFieldVersion === undefined || !isFieldVersion(fullFieldVersion)) {
                 mergedItem[field] = extractedFieldValue;
               } else {
-                const comparison = VersionTrackerUtils.compareVersions(diffFieldVersion, fullFieldVersion);
+                const comparison = VersionTrackerUtils_compareVersions(diffFieldVersion, fullFieldVersion);
                 if (comparison === "a_newer") {
                   mergedItem[field] = extractedFieldValue;
                 } else if (comparison === "concurrent") {
-                  const diffNorm = VersionTrackerUtils.normalizeVersion(diffFieldVersion);
-                  const fullNorm = VersionTrackerUtils.normalizeVersion(fullFieldVersion);
+                  const diffNorm = VersionTrackerUtils_normalizeVersion(diffFieldVersion);
+                  const fullNorm = VersionTrackerUtils_normalizeVersion(fullFieldVersion);
                   if (diffNorm.t > fullNorm.t) {
                     mergedItem[field] = extractedFieldValue;
                   }
@@ -171,7 +180,7 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
                 diffFieldVersion,
                 extractedFieldValue
               );
-            } else if (isVersionsObject(diffFieldVersion) && VersionTrackerUtils.isRecord(extractedFieldValue)) {
+            } else if (isVersionsObject(diffFieldVersion) && VersionTrackerUtils_isRecord(extractedFieldValue)) {
               mergedItem[field] = this.mergeFieldByVersion(
                 fullFieldValue,
                 fullFieldVersion,
@@ -193,8 +202,8 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         return mergedItem;
       }
 
-      if (VersionTrackerUtils.isRecord(fullValue)) {
-        const fullVersionObj = VersionTrackerUtils.ensureVersionsObject(fullVersion);
+      if (VersionTrackerUtils_isRecord(fullValue)) {
+        const fullVersionObj = VersionTrackerUtils_ensureVersionsObject(fullVersion);
         return this.run(fullValue, fullVersionObj, diffVersion, extractedValue);
       } else {
         return extractedValue ?? fullValue;
@@ -219,21 +228,21 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         ]);
     if (Array.isArray(fullValue) && Array.isArray(extractedValue)) {
       const dedupedFull = CollectionUtils_uniqByExpr(fullValue, (item) =>
-        VersionTrackerUtils.getId(item, this.versionTypes)
+        VersionTrackerUtils_getId(item, this.versionTypes)
       );
       const dedupedExtracted = CollectionUtils_uniqByExpr(extractedValue, (item) =>
-        VersionTrackerUtils.getId(item, this.versionTypes)
+        VersionTrackerUtils_getId(item, this.versionTypes)
       );
       const result: unknown[] = [];
       const processedIds = new Set<string>();
 
       for (const extractedItem of dedupedExtracted) {
-        const itemId = VersionTrackerUtils.getId(extractedItem, this.versionTypes);
+        const itemId = VersionTrackerUtils_getId(extractedItem, this.versionTypes);
         if (itemId && !deletedKeys.has(itemId)) {
           processedIds.add(itemId);
           const diffItemVersion = diffVersion?.items?.[itemId];
           const fullItemVersion = fullVersion?.items?.[itemId];
-          const fullItem = dedupedFull.find((item) => VersionTrackerUtils.getId(item, this.versionTypes) === itemId);
+          const fullItem = dedupedFull.find((item) => VersionTrackerUtils_getId(item, this.versionTypes) === itemId);
 
           if (
             isVersionsObject(diffItemVersion) &&
@@ -263,14 +272,14 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
       }
 
       for (const fullItem of dedupedFull) {
-        const itemId = VersionTrackerUtils.getId(fullItem, this.versionTypes);
+        const itemId = VersionTrackerUtils_getId(fullItem, this.versionTypes);
         if (itemId && !processedIds.has(itemId) && !deletedKeys.has(itemId)) {
           result.push(fullItem);
         }
       }
 
       return result;
-    } else if (VersionTrackerUtils.isRecord(fullValue) && VersionTrackerUtils.isRecord(extractedValue)) {
+    } else if (VersionTrackerUtils_isRecord(fullValue) && VersionTrackerUtils_isRecord(extractedValue)) {
       const result: Record<string, unknown> = {};
 
       for (const [key, value] of Object.entries(fullValue)) {
@@ -287,8 +296,8 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         if (
           isVersionsObject(diffItemVersion) &&
           isVersionsObject(fullItemVersion) &&
-          VersionTrackerUtils.isRecord(fullItem) &&
-          VersionTrackerUtils.isRecord(value)
+          VersionTrackerUtils_isRecord(fullItem) &&
+          VersionTrackerUtils_isRecord(value)
         ) {
           const mergedItem = this.mergeFieldByVersion(fullItem, fullItemVersion, diffItemVersion, value, `item:${key}`);
           result[key] = mergedItem;
@@ -308,13 +317,13 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
     fullVersion: IVersionsObject | IFieldVersion | undefined
   ): boolean {
     if (isFieldVersion(diffVersion) && isFieldVersion(fullVersion)) {
-      const comparison = VersionTrackerUtils.compareVersions(diffVersion, fullVersion);
+      const comparison = VersionTrackerUtils_compareVersions(diffVersion, fullVersion);
       if (comparison === "a_newer") {
         return true;
       }
       if (comparison === "concurrent") {
-        const diffNorm = VersionTrackerUtils.normalizeVersion(diffVersion);
-        const fullNorm = VersionTrackerUtils.normalizeVersion(fullVersion);
+        const diffNorm = VersionTrackerUtils_normalizeVersion(diffVersion);
+        const fullNorm = VersionTrackerUtils_normalizeVersion(fullVersion);
         return diffNorm.t > fullNorm.t;
       }
       return false;

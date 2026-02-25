@@ -2,19 +2,26 @@ import { h, JSX } from "preact";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../pages/planner/models/types";
 import { IPercentage, IPlannerProgram, ISettings, IWeight } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_degroupWarmupSets,
+  PlannerProgramExercise_defaultWarmups,
+  PlannerProgramExercise_warmupSetsToDisplaySets,
+} from "../../pages/planner/models/plannerProgramExercise";
 import { Exercise_findByName } from "../../models/exercise";
 import { lb } from "lens-shmens";
 import { LinkButton } from "../linkButton";
 import { HistoryRecordSet } from "../historyRecordSets";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import {
+  EditProgramUiHelpers_changeFirstInstance,
+  EditProgramUiHelpers_changeAllInstances,
+} from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { ObjectUtils_clone } from "../../utils/object";
 import { SwipeableRow } from "../swipeableRow";
 import { Mobile_isMobileFromWindow, Mobile_isPlaywrightFromWindow } from "../../../lambda/utils/mobile";
 import { InputNumber2 } from "../inputNumber2";
 import { InputWeight2 } from "../inputWeight2";
 import { IconPlus2 } from "../icons/iconPlus2";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_colors } from "../../utils/tailwindConfig";
 import { Weight_buildPct } from "../../models/weight";
 import { CollectionUtils_removeAt } from "../../utils/collection";
 
@@ -31,8 +38,8 @@ function changeWeight(
   setIndex: number,
   value: IWeight | IPercentage
 ): IPlannerProgram {
-  return EditProgramUiHelpers.changeFirstInstance(planner, plannerExercise, settings, true, (e) => {
-    e.warmupSets = PlannerProgramExercise.degroupWarmupSets(e.warmupSets || []);
+  return EditProgramUiHelpers_changeFirstInstance(planner, plannerExercise, settings, true, (e) => {
+    e.warmupSets = PlannerProgramExercise_degroupWarmupSets(e.warmupSets || []);
     if (e.warmupSets[setIndex] != null) {
       if (value.unit === "%") {
         e.warmupSets[setIndex].percentage = value.value;
@@ -52,8 +59,8 @@ function changeReps(
   setIndex: number,
   value: number
 ): IPlannerProgram {
-  return EditProgramUiHelpers.changeFirstInstance(planner, plannerExercise, settings, true, (e) => {
-    e.warmupSets = PlannerProgramExercise.degroupWarmupSets(e.warmupSets || []);
+  return EditProgramUiHelpers_changeFirstInstance(planner, plannerExercise, settings, true, (e) => {
+    e.warmupSets = PlannerProgramExercise_degroupWarmupSets(e.warmupSets || []);
     if (e.warmupSets[setIndex] != null) {
       e.warmupSets[setIndex].reps = value;
     }
@@ -64,13 +71,13 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
   const { plannerExercise } = props;
 
   const ownWarmups = plannerExercise.warmupSets
-    ? PlannerProgramExercise.degroupWarmupSets(plannerExercise.warmupSets)
+    ? PlannerProgramExercise_degroupWarmupSets(plannerExercise.warmupSets)
     : undefined;
   const reuseWarmups = plannerExercise.reuse?.exercise?.warmupSets;
   const exercise = Exercise_findByName(plannerExercise.name, props.settings.exercises);
-  const defaultWarmups = exercise ? PlannerProgramExercise.defaultWarmups(exercise, props.settings) : [];
+  const defaultWarmups = exercise ? PlannerProgramExercise_defaultWarmups(exercise, props.settings) : [];
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
-  const displayWarmupSets = PlannerProgramExercise.warmupSetsToDisplaySets(
+  const displayWarmupSets = PlannerProgramExercise_warmupSetsToDisplaySets(
     ownWarmups || reuseWarmups || defaultWarmups
   );
   const isMobile = Mobile_isMobileFromWindow();
@@ -90,7 +97,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
                   if (ownWarmups == null) {
-                    return EditProgramUiHelpers.changeFirstInstance(
+                    return EditProgramUiHelpers_changeFirstInstance(
                       program,
                       plannerExercise,
                       props.settings,
@@ -100,7 +107,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                       }
                     );
                   } else {
-                    return EditProgramUiHelpers.changeAllInstances(
+                    return EditProgramUiHelpers_changeAllInstances(
                       program,
                       plannerExercise.fullName,
                       props.settings,
@@ -268,13 +275,13 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                                 close();
                                 props.plannerDispatch(
                                   lbProgram.recordModify((program) => {
-                                    return EditProgramUiHelpers.changeFirstInstance(
+                                    return EditProgramUiHelpers_changeFirstInstance(
                                       program,
                                       plannerExercise,
                                       props.settings,
                                       true,
                                       (e) => {
-                                        e.warmupSets = PlannerProgramExercise.degroupWarmupSets(e.warmupSets || []);
+                                        e.warmupSets = PlannerProgramExercise_degroupWarmupSets(e.warmupSets || []);
                                         e.warmupSets = CollectionUtils_removeAt(e.warmupSets, setIndex);
                                       }
                                     );
@@ -302,7 +309,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
               onClick={() => {
                 props.plannerDispatch(
                   lbProgram.recordModify((program) => {
-                    return EditProgramUiHelpers.changeFirstInstance(
+                    return EditProgramUiHelpers_changeFirstInstance(
                       program,
                       plannerExercise,
                       props.settings,
@@ -332,7 +339,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
               }}
             >
               <span>
-                <IconPlus2 size={10} className="inline-block" color={Tailwind.colors().blue[400]} />
+                <IconPlus2 size={10} className="inline-block" color={Tailwind_colors().blue[400]} />
               </span>
               <span className="ml-2">Add Warmup Set</span>
             </button>

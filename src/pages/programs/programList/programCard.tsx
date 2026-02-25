@@ -10,7 +10,7 @@ import { ExerciseImageUtils_exists } from "../../../models/exerciseImage";
 import { IProgramIndexEntry, Program_exerciseRangeFormat } from "../../../models/program";
 import { ISettings } from "../../../types";
 import { StringUtils_pluralize } from "../../../utils/string";
-import { Tailwind } from "../../../utils/tailwindConfig";
+import { Tailwind_colors } from "../../../utils/tailwindConfig";
 
 interface IProgramCardProps {
   program: IProgramIndexEntry;
@@ -59,7 +59,7 @@ export function ProgramCard(props: IProgramCardProps): JSX.Element {
         </div>
 
         <div className="flex mb-1 text-text-secondary">
-          <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mt-0.5 mr-1" />
+          <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="block mt-0.5 mr-1" />
           <div className="text-xs">
             {(program.weeksCount ?? 0) > 1 &&
               `${program.weeksCount} ${StringUtils_pluralize("week", program.weeksCount ?? 0)}, `}
@@ -69,7 +69,7 @@ export function ProgramCard(props: IProgramCardProps): JSX.Element {
         </div>
         {equipment.length > 0 && (
           <div className="flex text-text-secondary">
-            <IconKettlebellSmall color={Tailwind.colors().lightgray[600]} className="block mt-0.5 mr-1" />
+            <IconKettlebellSmall color={Tailwind_colors().lightgray[600]} className="block mt-0.5 mr-1" />
             <div className="text-xs">{equipment.join(", ")}</div>
           </div>
         )}

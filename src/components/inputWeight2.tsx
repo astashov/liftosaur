@@ -14,7 +14,7 @@ import {
   Weight_formatOneSide,
 } from "../models/weight";
 import { IconBarbellSide } from "./icons/iconBarbellSide";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
 
@@ -153,7 +153,7 @@ function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
   return (
     <div className="flex items-center w-full gap-1 text-xs text-text-secondary">
       <div>
-        <IconBarbellSide size={13} color={Tailwind.colors().blue[400]} />
+        <IconBarbellSide size={13} color={Tailwind_colors().blue[400]} />
       </div>
       <div>
         <span>Plates: </span>

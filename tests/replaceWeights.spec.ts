@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_type,
+} from "./playwrightUtils";
 
 test("replaces weights", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
@@ -11,8 +16,8 @@ test("replaces weights", async ({ page }) => {
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
-  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
-  await PlaywrightUtils.typeCodeMirror(
+  await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils_typeCodeMirror(
     page,
     "planner-editor",
     `# Week 1
@@ -71,10 +76,10 @@ Bicep Curl / 1x8 80lb`
   await page.getByTestId("input-set-weight-field").nth(3).click();
   await page.getByTestId("keyboard-rm-calculator").click();
 
-  await PlaywrightUtils.type("3", () => page.getByTestId("rep-max-calculator-known-reps"));
-  await PlaywrightUtils.type("8", () => page.getByTestId("rep-max-calculator-known-rpe"));
-  await PlaywrightUtils.type("5", () => page.getByTestId("rep-max-calculator-target-reps"));
-  await PlaywrightUtils.type("7", () => page.getByTestId("rep-max-calculator-target-rpe"));
+  await PlaywrightUtils_type("3", () => page.getByTestId("rep-max-calculator-known-reps"));
+  await PlaywrightUtils_type("8", () => page.getByTestId("rep-max-calculator-known-rpe"));
+  await PlaywrightUtils_type("5", () => page.getByTestId("rep-max-calculator-target-reps"));
+  await PlaywrightUtils_type("7", () => page.getByTestId("rep-max-calculator-target-rpe"));
 
   await page.getByTestId("rep-max-calculator-submit").click();
   await expect(page.getByTestId("input-set-weight-field").nth(3)).toHaveText("182 lb");

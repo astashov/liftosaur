@@ -52,7 +52,7 @@ import { SendMessage_toIosAndAndroid } from "../utils/sendMessage";
 import memoize from "micro-memoize";
 import { DateUtils_firstDayOfWeekTimestamp, DateUtils_formatYYYYMMDD } from "../utils/date";
 import { IEvaluatedProgram, Program_getProgramExerciseForKeyAndDay } from "./program";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_getState } from "../pages/planner/models/plannerProgramExercise";
 import { Muscle_getAvailableMuscleGroups } from "./muscle";
 
 export interface IHistoricalEntries {
@@ -119,7 +119,7 @@ export function History_finishProgramDay(
           }),
         };
         if (programExercise != null) {
-          const state = PlannerProgramExercise.getState(programExercise);
+          const state = PlannerProgramExercise_getState(programExercise);
           const useRm1 = ProgramExercise_isUsingVariable(programExercise, "rm1");
           entry = {
             ...entry,

@@ -8,7 +8,7 @@ import {
 import { ISettings } from "../../types";
 import { ObjectUtils_keys } from "../../utils/object";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
 
 interface IEditProgramExerciseReuseAtWeekDayProps {
   reuseCandidate: IReuseCandidate;
@@ -42,7 +42,7 @@ export function EditProgramExerciseReuseAtWeekDay(props: IEditProgramExerciseReu
         onChange={(event) => {
           const target = event.target as HTMLSelectElement | undefined;
           const valueStr = target?.value;
-          EditProgramUiHelpers.changeCurrentInstanceExercise(
+          EditProgramUiHelpers_changeCurrentInstanceExercise(
             props.plannerDispatch,
             plannerExercise,
             props.settings,
@@ -68,7 +68,7 @@ export function EditProgramExerciseReuseAtWeekDay(props: IEditProgramExerciseReu
         onChange={(event) => {
           const target = event.target as HTMLSelectElement | undefined;
           const valueStr = target?.value;
-          EditProgramUiHelpers.changeCurrentInstanceExercise(
+          EditProgramUiHelpers_changeCurrentInstanceExercise(
             props.plannerDispatch,
             plannerExercise,
             props.settings,

@@ -6,7 +6,10 @@ import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from
 import { IExerciseType, IHistoryEntry, ISettings, IStats } from "../types";
 import { ObjectUtils_filter, ObjectUtils_keys } from "../utils/object";
 import { equipmentName, Exercise_eq, Exercise_defaultRounding } from "../models/exercise";
-import { EditEquipment } from "../models/editEquipment";
+import {
+  EditEquipment_setEquipmentForExercise,
+  EditEquipment_setDefaultRoundingForExercise,
+} from "../models/editEquipment";
 import { CollectionUtils_compact } from "../utils/collection";
 import { InputNumber } from "./inputNumber";
 import { EquipmentSettingsValues } from "./equipmentSettings";
@@ -52,7 +55,7 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
             ]),
           ]}
           onChange={(value) => {
-            EditEquipment.setEquipmentForExercise(
+            EditEquipment_setEquipmentForExercise(
               props.exercise,
               value === "" ? undefined : value,
               programExerciseIds,
@@ -71,7 +74,7 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
               max={100}
               value={Exercise_defaultRounding(props.exercise, props.settings)}
               onUpdate={(value) => {
-                EditEquipment.setDefaultRoundingForExercise(props.dispatch, props.exercise, value);
+                EditEquipment_setDefaultRoundingForExercise(props.dispatch, props.exercise, value);
               }}
             />
           ) : (

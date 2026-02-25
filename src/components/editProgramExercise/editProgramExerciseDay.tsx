@@ -8,7 +8,12 @@ import { Button } from "../button";
 import { IconKebab } from "../icons/iconKebab";
 import { useState } from "preact/hooks";
 import { DropdownMenu, DropdownMenuItem } from "../dropdownMenu";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import {
+  EditProgramUiHelpers_changeCurrentInstanceExercise,
+  EditProgramUiHelpers_deleteCurrentInstance,
+  EditProgramUiHelpers_changeRepeating,
+  EditProgramUiHelpers_addInstance,
+} from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { ObjectUtils_clone } from "../../utils/object";
 import { lb } from "lens-shmens";
 
@@ -61,7 +66,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                   isTop={true}
                   onClick={() => {
                     setIsKebabMenuOpen(false);
-                    EditProgramUiHelpers.changeCurrentInstanceExercise(
+                    EditProgramUiHelpers_changeCurrentInstanceExercise(
                       props.plannerDispatch,
                       plannerExercise,
                       props.settings,
@@ -84,7 +89,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                     data-cy="program-exercise-toggle-set-variations"
                     onClick={() => {
                       setIsKebabMenuOpen(false);
-                      EditProgramUiHelpers.changeCurrentInstanceExercise(
+                      EditProgramUiHelpers_changeCurrentInstanceExercise(
                         props.plannerDispatch,
                         plannerExercise,
                         props.settings,
@@ -110,7 +115,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                     };
                     props.plannerDispatch(
                       lbProgram.recordModify((program) => {
-                        return EditProgramUiHelpers.deleteCurrentInstance(
+                        return EditProgramUiHelpers_deleteCurrentInstance(
                           program,
                           dayData,
                           props.fullName,
@@ -135,7 +140,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                       if (showRepeat) {
                         props.plannerDispatch(
                           lbProgram.recordModify((program) => {
-                            return EditProgramUiHelpers.changeRepeating(
+                            return EditProgramUiHelpers_changeRepeating(
                               program,
                               plannerExercise.dayData,
                               plannerExercise.dayData.week,
@@ -159,7 +164,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                   data-cy="edit-menu-exercise-toggle-order"
                   onClick={() => {
                     if (showOrder) {
-                      EditProgramUiHelpers.changeCurrentInstanceExercise(
+                      EditProgramUiHelpers_changeCurrentInstanceExercise(
                         props.plannerDispatch,
                         plannerExercise,
                         props.settings,
@@ -178,7 +183,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                   data-cy="edit-menu-exercise-toggle-supersets"
                   onClick={() => {
                     if (showSupersets) {
-                      EditProgramUiHelpers.changeCurrentInstanceExercise(
+                      EditProgramUiHelpers_changeCurrentInstanceExercise(
                         props.plannerDispatch,
                         plannerExercise,
                         props.settings,
@@ -225,7 +230,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
               };
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
-                  return EditProgramUiHelpers.addInstance(
+                  return EditProgramUiHelpers_addInstance(
                     program,
                     dayData,
                     props.fullName,

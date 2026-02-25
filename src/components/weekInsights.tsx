@@ -1,8 +1,8 @@
 import { JSX, h } from "preact";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
-import { WeekInsightsUtils } from "../utils/weekInsightsUtils";
+import { WeekInsightsUtils_calculateSetResults } from "../utils/weekInsightsUtils";
 import { IconFire } from "./icons/iconFire";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { LinkButton } from "./linkButton";
 import { useState } from "preact/hooks";
 import { IPersonalRecords, History_getNumberOfPersonalRecords } from "../models/history";
@@ -36,8 +36,8 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
   const isCurrentWeek =
     DateUtils_firstDayOfWeekTimestamp(new Date(), props.settings.startWeekFromMonday) === props.selectedFirstDayOfWeek;
 
-  const setResults = WeekInsightsUtils.calculateSetResults(props.thisWeekHistory, props.settings);
-  const lastSetResults = WeekInsightsUtils.calculateSetResults(props.lastWeekHistory, props.settings);
+  const setResults = WeekInsightsUtils_calculateSetResults(props.thisWeekHistory, props.settings);
+  const lastSetResults = WeekInsightsUtils_calculateSetResults(props.lastWeekHistory, props.settings);
   const numberOfPrs = History_getNumberOfPersonalRecords(props.thisWeekHistory, props.prs);
   const historyRecord = props.thisWeekHistory[0];
   if (!historyRecord) {
@@ -52,7 +52,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
       >
         <div className="flex items-center h-8 gap-1" style={{ marginBottom: "3px" }}>
           <span>
-            <IconCrown className="inline-block" size={16} color={Tailwind.colors().yellow[600]} />
+            <IconCrown className="inline-block" size={16} color={Tailwind_colors().yellow[600]} />
           </span>
           <span className="text-sm font-semibold text-icon-yellow" style={{ marginTop: "3px" }}>
             See Week Insights
@@ -73,7 +73,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
         <div className="flex gap-4">
           <div className="flex items-center gap-1">
             <span>
-              <IconFire className="inline-block" size={16} color={Tailwind.colors().yellow[600]} />
+              <IconFire className="inline-block" size={16} color={Tailwind_colors().yellow[600]} />
             </span>
             <span className="text-sm font-semibold" style={{ marginTop: "3px" }}>
               {formattedRange}

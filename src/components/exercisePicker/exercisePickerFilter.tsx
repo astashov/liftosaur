@@ -21,7 +21,7 @@ import { CollectionUtils_remove } from "../../utils/collection";
 import { StringUtils_capitalize } from "../../utils/string";
 import { ScrollableTabs } from "../scrollableTabs";
 import { Muscle_getAvailableMuscleGroups, Muscle_getMusclesFromScreenMuscle } from "../../models/muscle";
-import { ExercisePickerUtils } from "./exercisePickerUtils";
+import { ExercisePickerUtils_getSelectedMuscleGroupNames } from "./exercisePickerUtils";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
 import { ExercisePickerOptions } from "./exercisePickerOptions";
 import { MuscleGroupImage } from "../muscleGroupImage";
@@ -222,7 +222,7 @@ interface IFilterMusclesProps<T extends string> {
 function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Element {
   const selectedValues = props.state.filters?.muscles || [];
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
-  const selectedMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroupNames(selectedValues, props.settings);
+  const selectedMuscleGroups = ExercisePickerUtils_getSelectedMuscleGroupNames(selectedValues, props.settings);
 
   return (
     <div className="px-4 py-2 border-b border-background-subtle">

@@ -6,7 +6,7 @@ import { IEvaluatedProgram, Program_getSupersetExercises } from "../../models/pr
 import { useState } from "preact/hooks";
 import { BottomSheetEditProgramExerciseSuperset } from "./bottomSheetEditProgramExerciseSuperset";
 import { LinkButton } from "../linkButton";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
 
 interface IEditProgramExerciseSupersetsProps {
   plannerExercise: IPlannerProgramExercise;
@@ -53,7 +53,7 @@ export function EditProgramExerciseSupersets(props: IEditProgramExerciseSuperset
           evaluatedProgram={props.evaluatedProgram}
           settings={props.settings}
           onSelect={(group: string | undefined) => {
-            EditProgramUiHelpers.changeCurrentInstanceExercise(
+            EditProgramUiHelpers_changeCurrentInstanceExercise(
               props.plannerDispatch,
               props.plannerExercise,
               props.settings,

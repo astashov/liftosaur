@@ -61,7 +61,7 @@ import {
   ObjectUtils_isNotEmpty,
   ObjectUtils_keys,
 } from "../utils/object";
-import { UrlUtils } from "../utils/url";
+import { UrlUtils_build } from "../utils/url";
 import { DateUtils_formatHHMMSS } from "../utils/date";
 import { IReducerOnAction } from "./types";
 import { Thunk_sync2 } from "./thunks";
@@ -71,7 +71,7 @@ import { Exercise_toKey } from "../models/exercise";
 import { SendMessage_isIos, SendMessage_toIosAndAndroid } from "../utils/sendMessage";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
-import { EditProgramUiHelpers } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_getChangedKeys } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
 import { c } from "../utils/types";
 import { ICollectionVersions } from "../models/versionTracker";
 import { lg } from "../utils/posthog";
@@ -83,12 +83,12 @@ declare let __COMMIT_HASH__: string;
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
-    ? !!UrlUtils.build(window.location.href).searchParams.get("log")
+    ? !!UrlUtils_build(window.location.href).searchParams.get("log")
     : false;
 
 const shouldSkipIntro =
   typeof window !== "undefined" && window?.location
-    ? !!UrlUtils.build(window.location.href).searchParams.get("skipintro")
+    ? !!UrlUtils_build(window.location.href).searchParams.get("skipintro")
     : false;
 
 export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<string> {
@@ -104,7 +104,7 @@ export async function getInitialState(
   client: Window["fetch"],
   args?: { url?: URL; rawStorage?: string; storage?: IStorage; deviceId?: string }
 ): Promise<IState> {
-  const url = args?.url || UrlUtils.build(document.location.href);
+  const url = args?.url || UrlUtils_build(document.location.href);
   const messageerror = url.searchParams.get("messageerror") || undefined;
   const messagesuccess = url.searchParams.get("messagesuccess") || undefined;
   const nosync = url.searchParams.get("nosync") === "true";
@@ -427,7 +427,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
         const newPlannerState =
           newScreenData.name === "editProgramExercise" ? newScreenData.params?.plannerState : undefined;
         if (oldPlannerState != null && newPlannerState != null && oldExerciseKey != null && newExerciseKey != null) {
-          const changedKeys = EditProgramUiHelpers.getChangedKeys(
+          const changedKeys = EditProgramUiHelpers_getChangedKeys(
             oldPlannerState.current.program.planner!,
             newPlannerState.current.program.planner!,
             newState.storage.settings

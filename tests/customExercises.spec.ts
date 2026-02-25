@@ -1,12 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_disableSubscriptions, PlaywrightUtils_swipeLeft } from "./playwrightUtils";
 
 test("CRUD custom exercises", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
   page.on("dialog", (dialog) => dialog.accept());
 
   await page.getByTestId("create-program").click({ force: true });
-  PlaywrightUtils.disableSubscriptions(page);
+  PlaywrightUtils_disableSubscriptions(page);
 
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
@@ -27,13 +27,13 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("edit-exercise").click();
   await page.getByTestId("edit-exercise-warmups-customize").click();
 
-  await PlaywrightUtils.swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
+  await PlaywrightUtils_swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
   await page.getByTestId("delete-warmup-set").nth(0).click();
 
-  await PlaywrightUtils.swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
+  await PlaywrightUtils_swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
   await page.getByTestId("delete-warmup-set").nth(0).click();
 
-  await PlaywrightUtils.swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
+  await PlaywrightUtils_swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
   await page.getByTestId("delete-warmup-set").nth(0).click();
 
   await page.getByTestId("save-program-exercise").click();

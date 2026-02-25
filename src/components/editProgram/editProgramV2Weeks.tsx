@@ -14,12 +14,12 @@ import { IconArrowRight } from "../icons/iconArrowRight";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
 import { IconHandle } from "../icons/iconHandle";
 import { IconTrash } from "../icons/iconTrash";
-import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
+import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import { Button } from "../button";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { LinkButton } from "../linkButton";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
-import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_onDaysChange } from "./editProgramUi/editProgramUiHelpers";
 
 export interface IPlannerContentWeeksProps {
   state: IPlannerState;
@@ -68,7 +68,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
   const ui = props.state.ui;
 
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
-  const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, props.settings);
+  const { evaluatedWeeks } = PlannerProgram_evaluate(plannerProgram, props.settings);
 
   return (
     <div>
@@ -241,7 +241,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                         items={week.days}
                         mode="vertical"
                         onDragEnd={(startIndex, endIndex) => {
-                          EditProgramUiHelpers.onDaysChange(
+                          EditProgramUiHelpers_onDaysChange(
                             props.plannerDispatch,
                             props.state.ui,
                             weekIndex,

@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   style?: { [key: string]: string | number };
@@ -10,7 +10,7 @@ interface IProps {
 
 export function IconArrowDown3(props: IProps): JSX.Element {
   const size = props.size || 18;
-  const color = props.color || Tailwind.semantic().icon.purple;
+  const color = props.color || Tailwind_semantic().icon.purple;
   return (
     <svg
       style={props.style}

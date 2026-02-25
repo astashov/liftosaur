@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_finishExercise,
+} from "./playwrightUtils";
 
 test("negative weights", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
@@ -10,8 +15,8 @@ test("negative weights", async ({ page }) => {
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
-  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
-  await PlaywrightUtils.typeCodeMirror(
+  await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils_typeCodeMirror(
     page,
     "planner-editor",
     `# Week 1
@@ -31,8 +36,8 @@ Triceps Dip, Leverage Machine / 2x3-5 -20lb / progress: lp(30lb)`
   await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("-40");
   await expect(page.getByTestId("input-set-weight-field").nth(1)).toHaveText("-40");
 
-  await PlaywrightUtils.finishExercise(page, "pull-up", [1, 1]);
-  await PlaywrightUtils.finishExercise(page, "triceps-dip", [1, 1]);
+  await PlaywrightUtils_finishExercise(page, "pull-up", [1, 1]);
+  await PlaywrightUtils_finishExercise(page, "triceps-dip", [1, 1]);
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();

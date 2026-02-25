@@ -12,7 +12,7 @@ import { Modal } from "./modal";
 import { Link } from "./link";
 import { ObjectUtils_filter, ObjectUtils_values } from "../utils/object";
 import { ModalDebug } from "./modalDebug";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 
 interface INavbarCenterProps {
   title: ComponentChildren;
@@ -80,12 +80,12 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
                 }
               }}
             >
-              <IconBack color={Tailwind.semantic().icon.neutral} />
+              <IconBack color={Tailwind_semantic().icon.neutral} />
             </button>
           ) : undefined}
           {isLoading ? (
             <span className="pl-2">
-              <IconSpinner width={20} height={20} color={Tailwind.semantic().icon.neutral} />
+              <IconSpinner width={20} height={20} color={Tailwind_semantic().icon.neutral} />
             </span>
           ) : null}
         </div>
@@ -111,7 +111,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           {props.rightButtons}
           {props.helpContent && (
             <button className="p-2 nm-navbar-help" onClick={() => setShouldShowModalHelp(true)}>
-              <IconHelp color={Tailwind.semantic().icon.neutral} />
+              <IconHelp color={Tailwind_semantic().icon.neutral} />
             </button>
           )}
         </div>
@@ -143,7 +143,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
                   )
                 }
               >
-                <IconClose size={16} color={Tailwind.colors().white} />
+                <IconClose size={16} color={Tailwind_colors().white} />
               </button>
             </div>
           </div>

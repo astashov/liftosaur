@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { IPlannerState } from "../models/types";
 import { PlannerStats } from "./plannerStats";
-import { PlannerStatsUtils } from "../models/plannerStatsUtils";
+import { PlannerStatsUtils_calculateSetResults } from "../models/plannerStatsUtils";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { ISettings } from "../../../types";
@@ -18,7 +18,7 @@ export function PlannerWeekStats(props: IPlannerWeekStatsProps): JSX.Element {
   const { settings } = props;
 
   const evaluatedDays = props.evaluatedDays;
-  const setResults = PlannerStatsUtils.calculateSetResults(evaluatedDays, settings);
+  const setResults = PlannerStatsUtils_calculateSetResults(evaluatedDays, settings);
 
   return (
     <div>

@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import UPlot from "uplot";
 import { useRef, useEffect } from "preact/hooks";
 import { IHistoryEntry } from "../../../types";
-import { GraphsPlugins } from "../../../utils/graphsPlugins";
+import { GraphsPlugins_zoom } from "../../../utils/graphsPlugins";
 
 interface IProgramDetailsExerciseExampleGraphProps {
   title: string;
@@ -41,7 +41,7 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
           spanGaps: true,
         },
       ],
-      plugins: [GraphsPlugins.zoom()],
+      plugins: [GraphsPlugins_zoom()],
       scales: {
         x: {
           time: false,

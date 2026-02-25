@@ -10,7 +10,7 @@ import {
 } from "../../models/exercise";
 import { ISettings, IExerciseType } from "../../types";
 import { StringUtils_dashcase, StringUtils_capitalize } from "../../utils/string";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { ExerciseImage } from "../exerciseImage";
 import { IconEdit2 } from "../icons/iconEdit2";
 import { IconStar } from "../icons/iconStar";
@@ -66,7 +66,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
               <IconStar
                 size={20}
                 isSelected={isStarred}
-                color={isStarred ? Tailwind.semantic().icon.purple : Tailwind.semantic().icon.neutral}
+                color={isStarred ? Tailwind_semantic().icon.purple : Tailwind_semantic().icon.neutral}
               />
             </div>
           )}
