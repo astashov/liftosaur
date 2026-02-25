@@ -2453,4 +2453,3 @@ export function WhatsNew_newUpdates(lastDateStr: string): Record<string, IWhatsN
     return memo;
   }, {});
 }
-

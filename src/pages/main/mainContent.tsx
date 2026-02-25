@@ -41,14 +41,14 @@ export function MainContent(props: IMainContentProps): JSX.Element {
   return (
     <div>
       <div className="relative z-10">
-        <TopNavMenu client={props.client} account={props.account} maxWidth={1200} current="/#programs" />
+        <TopNavMenu client={props.client} isLoggedIn={!!props.account} maxWidth={1200} current="/#programs" />
         <Hero userAgent={props.userAgent} testimonials={props.testimonials} />
         <CreateYourOwn />
         <BuiltinPrograms />
         <TrackProgress />
         <EditOnDesktop />
         <TestimonialsView testimonials={props.testimonials} />
-        <FooterPage maxWidth={1200} account={props.account} />
+        <FooterPage maxWidth={1200} />
       </div>
     </div>
   );

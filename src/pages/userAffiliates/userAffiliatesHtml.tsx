@@ -28,7 +28,7 @@ export function UserAffiliatesHtml(props: IUserAffiliatesHtmlProps): JSX.Element
       maxWidth={1200}
       title="Affiliate Program | Liftosaur"
       canonical={`https://www.liftosaur.com/user/affiliates`}
-      account={props.account}
+      isLoggedIn={!!props.account}
       url={`/user/affiliates`}
       ogTitle="Liftosaur: Affiliate Program"
       description="Track your affiliate program earnings and statistics"

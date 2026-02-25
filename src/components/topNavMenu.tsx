@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import { IconHamburger } from "./icons/iconHamburger";
 import { Account } from "./account";
 import { IconUser } from "./icons/iconUser";
@@ -15,19 +15,19 @@ import { IconInstagramFlat } from "./icons/iconInstagramFlat";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { IconYoutube } from "./icons/iconYoutube";
 import { IconGooglePlay } from "./icons/iconGooglePlay";
+import { IconSpinner } from "./icons/iconSpinner";
 
 export function TopNavMenu(props: {
   client: Window["fetch"];
   maxWidth: number;
   current?: string;
-  account?: IAccount;
+  isLoggedIn: boolean;
   mobileRight?: JSX.Element;
   isWhite?: boolean;
 }): JSX.Element {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
-  const service = new Service(props.client);
-  const isLoggedIn = !!props.account;
+  const isLoggedIn = props.isLoggedIn;
 
   return (
     <nav className="w-full mx-auto">
@@ -152,9 +152,7 @@ export function TopNavMenu(props: {
           isWhite={props.isWhite}
         />
       </div>
-      {isAccountModalOpen && (
-        <ModalAccount account={props.account} service={service} onClose={() => setIsAccountModalOpen(false)} />
-      )}
+      <ModalAccount isHidden={!isAccountModalOpen} client={props.client} onClose={() => setIsAccountModalOpen(false)} />
     </nav>
   );
 }
@@ -262,15 +260,34 @@ function DesktopNav(props: IDesktopNavProps): JSX.Element {
 }
 
 interface IModalAccountProps {
-  account?: IAccount;
-  service: Service;
+  client: Window["fetch"];
+  isHidden: boolean;
   onClose: () => void;
 }
 
 function ModalAccount(props: IModalAccountProps): JSX.Element {
+  const [account, setAccount] = useState<IAccount | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!props.isHidden && account == null && isLoading) {
+      const service = new Service(props.client);
+      service.getUserContext().then((ctx) => {
+        setAccount(ctx.account);
+        setIsLoading(false);
+      });
+    }
+  }, [props.isHidden]);
+
   return (
-    <Modal onClose={props.onClose} shouldShowClose={true}>
-      <Account account={props.account} client={props.service.client} />
+    <Modal isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
+      {isLoading ? (
+        <div className="py-8 text-center">
+          <IconSpinner width={20} height={20} />
+        </div>
+      ) : (
+        <Account account={account} client={props.client} />
+      )}
     </Modal>
   );
 }

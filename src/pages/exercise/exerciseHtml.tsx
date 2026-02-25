@@ -29,7 +29,7 @@ export function ExerciseHtml(props: IProps): JSX.Element {
       maxWidth={1200}
       title={title}
       canonical={url}
-      account={props.account}
+      isLoggedIn={!!props.account}
       description="Description of the exercise, how to perform it with proper form, muscles worked, and with what exercises you can substitute it."
       ogUrl={url}
       ogImage={`https://www.liftosaur.com${ExerciseImageUtils_ogImageUrl(data.exerciseType)}`}

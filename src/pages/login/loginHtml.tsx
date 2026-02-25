@@ -24,7 +24,7 @@ export function LoginHtml(props: IProps): JSX.Element {
       description="The app that allows you to build weightlifting programs or pick built-in ones and track your progress"
       ogUrl="https://www.liftosaur.com/login"
       data={data}
-      account={props.account}
+      isLoggedIn={!!props.account}
       client={client}
       url={"/login"}
       redditPixel={true}

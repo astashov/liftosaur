@@ -14,7 +14,7 @@ interface IData {
 function main(): void {
   HydrateUtils_hydratePage<IData>((pageWrapperProps, data) => (
     <PageWrapper {...pageWrapperProps}>
-      <ProgramDetailsContent {...data} client={window.fetch.bind(window)} account={pageWrapperProps.account} />
+      <ProgramDetailsContent {...data} client={window.fetch.bind(window)} />
     </PageWrapper>
   ));
 }

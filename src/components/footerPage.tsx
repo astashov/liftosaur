@@ -1,5 +1,4 @@
 import { JSX, h } from "preact";
-import { IAccount } from "../models/account";
 import { IconInstagramFlat } from "./icons/iconInstagramFlat";
 import { IconYoutube } from "./icons/iconYoutube";
 import { IconReddit } from "./icons/iconReddit";
@@ -7,7 +6,6 @@ import { IconDiscord } from "./icons/iconDiscord";
 
 interface IProps {
   maxWidth?: number;
-  account?: IAccount;
 }
 
 const footerLinks: [string, string][] = [

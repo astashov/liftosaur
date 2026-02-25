@@ -1,6 +1,5 @@
 import { JSX, h, ComponentChildren } from "preact";
 import { FooterPage } from "./footerPage";
-import { IAccount } from "../models/account";
 import { TopNavMenu } from "./topNavMenu";
 
 export interface IPageWrapperProps {
@@ -10,7 +9,7 @@ export interface IPageWrapperProps {
   maxWidth?: number;
   maxBodyWidth?: number;
   children?: ComponentChildren;
-  account?: IAccount;
+  isLoggedIn?: boolean;
   client: Window["fetch"];
 }
 
@@ -21,7 +20,7 @@ export function PageWrapper(props: IPageWrapperProps): JSX.Element {
         <TopNavMenu
           maxWidth={props.maxWidth || 1200}
           current={props.url}
-          account={props.account}
+          isLoggedIn={!!props.isLoggedIn}
           client={props.client}
         />
       )}
@@ -31,7 +30,7 @@ export function PageWrapper(props: IPageWrapperProps): JSX.Element {
       >
         {props.children}
       </div>
-      {!props.skipFooter && <FooterPage maxWidth={props.maxWidth || 800} account={props.account} />}
+      {!props.skipFooter && <FooterPage maxWidth={props.maxWidth || 800} />}
     </div>
   );
 }

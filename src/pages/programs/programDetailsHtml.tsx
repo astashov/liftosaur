@@ -44,7 +44,7 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
         <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/themes/prism.min.css" rel="stylesheet" />
       }
       client={client}
-      account={props.account}
+      isLoggedIn={!!props.account}
     >
       <ProgramDetailsContent {...props} client={props.client} />
     </Page>

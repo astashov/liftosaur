@@ -1703,6 +1703,19 @@ const getAllProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   };
 };
 
+const getUserContextEndpoint = Endpoint.build("/api/usercontext");
+const getUserContextHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getUserContextEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const user = await getCurrentLimitedUser(event, di);
+  if (user == null) {
+    return ResponseUtils_json(200, event, { account: null, units: null });
+  }
+  const account = Account_getFromStorage(user.id, user.email, user.storage);
+  return ResponseUtils_json(200, event, { account, units: user.storage.settings.units });
+};
+
 const getProgramDetailsEndpoint = Endpoint.build("/programs/:id");
 const getProgramDetailsHandler: RouteHandler<
   IPayload,
@@ -2753,6 +2766,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getAdminLogsEndpoint, getAdminLogsHandler)
       .get(getAllProgramsEndpoint, getAllProgramsHandler)
       .get(getProgramDetailsEndpoint, getProgramDetailsHandler)
+      .get(getUserContextEndpoint, getUserContextHandler)
       .get(getProgramImageEndpoint, getProgramImageHandler)
       .post(postCreateCouponEndpoint, postCreateCouponHandler)
       .post(postClaimCouponEndpoint, postClaimCouponHandler)

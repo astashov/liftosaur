@@ -26,7 +26,7 @@ export function MainHtml(props: IProps): JSX.Element {
       canonical="https://www.liftosaur.com"
       ogUrl="https://www.liftosaur.com"
       data={data}
-      account={props.account}
+      isLoggedIn={!!props.account}
       client={client}
       url={"/new"}
       redditPixel={true}

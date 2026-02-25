@@ -99,7 +99,7 @@ export function ExerciseContent(props: IExerciseContentProps): JSX.Element {
       <TopNavMenu
         maxWidth={maxWidth}
         current="/exercises"
-        account={props.account}
+        isLoggedIn={!!props.account}
         client={props.client}
         mobileRight={
           <div className="flex items-center gap-2">
@@ -149,7 +149,7 @@ export function ExerciseContent(props: IExerciseContentProps): JSX.Element {
           </div>
         </div>
       </div>
-      <FooterPage maxWidth={maxWidth} account={props.account} />
+      <FooterPage maxWidth={maxWidth} />
       {isMusclesOpen && (
         <Modal onClose={() => setIsMusclesOpen(false)} shouldShowClose={true} isFullWidth={true}>
           <MuscleGroups

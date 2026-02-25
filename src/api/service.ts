@@ -1,4 +1,5 @@
-import { IStorage, IHistoryRecord, ISettings, IMuscleGeneratorResponse, IPlannerProgramWeek } from "../types";
+import { IStorage, IHistoryRecord, ISettings, IUnit, IMuscleGeneratorResponse, IPlannerProgramWeek } from "../types";
+import { IAccount } from "../models/account";
 import { IEither } from "../utils/types";
 import { UrlUtils_build } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
@@ -669,5 +670,17 @@ export class Service {
     } catch (error) {
       yield { type: "error", data: error instanceof Error ? error.message : "Unknown error" };
     }
+  }
+
+  public async getUserContext(): Promise<{ account?: IAccount; units?: IUnit }> {
+    const result = await this.client(`${__API_HOST__}/api/usercontext`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (result.ok) {
+      const json = await result.json();
+      return { account: json.account || undefined, units: json.units || undefined };
+    }
+    return {};
   }
 }

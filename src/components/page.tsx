@@ -1,5 +1,4 @@
 import { JSX, h } from "preact";
-import { IAccount } from "../models/account";
 import { IPageWrapperProps, PageWrapper } from "./pageWrapper";
 
 export interface IJsonLdArticle {
@@ -136,7 +135,7 @@ interface IProps<T> extends IPageWrapperProps {
   jsonLd?: IJsonLd[];
   data: T;
   postHead?: JSX.Element;
-  account?: IAccount;
+  isLoggedIn?: boolean;
   nowrapper?: boolean;
   redditPixel?: boolean;
 }
@@ -152,7 +151,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
     maxBodyWidth: props.maxBodyWidth,
     url: props.url,
     skipFooter: props.skipFooter,
-    account: props.account,
+    isLoggedIn: props.isLoggedIn,
     client: props.client,
   };
   return (
@@ -204,9 +203,27 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         {props.jsonLd?.map((ld) => (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdToSchema(ld)) }} />
         ))}
-        <link rel="preload" href="/fonts/Poppins-Regular.latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/Poppins-SemiBold.latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/Poppins-Bold.latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link
+          rel="preload"
+          href="/fonts/Poppins-Regular.latin.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/Poppins-SemiBold.latin.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/Poppins-Bold.latin.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         {props.postHead}
       </head>
       <body>

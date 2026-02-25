@@ -26,7 +26,7 @@ export function PlannerHtml(props: IProps): JSX.Element {
 
   return (
     <Page
-      account={props.account}
+      isLoggedIn={!!props.account}
       css={["planner"]}
       js={["planner"]}
       maxWidth={1200}

@@ -24,7 +24,7 @@ export function RepMaxHtml(props: IProps): JSX.Element {
       maxWidth={1200}
       title={title}
       canonical={url}
-      account={account}
+      isLoggedIn={!!account}
       description={`Calculate your ${repsWord} rep max from known weight and reps. It's often useful as an entry weight for various weightlifting programs.`}
       ogUrl={url}
       data={data}

@@ -20,7 +20,7 @@ export function AllExercisesHtml(props: IProps): JSX.Element {
       maxWidth={1200}
       title={title}
       canonical={url}
-      account={props.account}
+      isLoggedIn={!!props.account}
       description="List of all available exercises, with their type, target and synergist muscle groups."
       ogUrl={url}
       data={data}
