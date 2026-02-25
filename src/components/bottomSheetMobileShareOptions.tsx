@@ -7,11 +7,11 @@ import { useState } from "preact/hooks";
 import { WorkoutSocialShareSheet } from "./workoutSocialShareSheet";
 import { WorkoutShareBottomSheetItem } from "./workoutShareBottomSheetItem";
 import { IconLink } from "./icons/iconLink";
-import { ClipboardUtils } from "../utils/clipboard";
-import { Share } from "../models/share";
-import { History } from "../models/history";
+import { ClipboardUtils_copy } from "../utils/clipboard";
+import { Share_generateLink } from "../models/share";
+import { History_calories } from "../models/history";
 import { IconTiktok } from "./icons/iconTiktok";
-import { SendMessage } from "../utils/sendMessage";
+import { SendMessage_isIos, SendMessage_toIosAndAndroid } from "../utils/sendMessage";
 import { HealthSync } from "../lib/healthSync";
 import { IconHeart } from "./icons/iconHeart";
 
@@ -28,7 +28,7 @@ export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
   const [shareType, setShareType] = useState<"igstory" | "igfeed" | "tiktok">("igstory");
   const [shouldShowShareSheet, setShouldShowShareSheet] = useState<boolean>(false);
 
-  const healthName = SendMessage.isIos() ? "Apple Health" : "Google Health";
+  const healthName = SendMessage_isIos() ? "Apple Health" : "Google Health";
   const shouldShowHealthSync = HealthSync.eligibleForAppleHealth() || HealthSync.eligibleForGoogleHealth();
   return (
     <div>
@@ -75,10 +75,10 @@ export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
               description={""}
               icon={<IconHeart size={24} />}
               onClick={() => {
-                SendMessage.toIosAndAndroid({
+                SendMessage_toIosAndAndroid({
                   type: "finishWorkout",
                   healthSync: "true",
-                  calories: `${History.calories(props.record)}`,
+                  calories: `${History_calories(props.record)}`,
                   intervals: JSON.stringify(props.record.intervals),
                 });
                 props.onClose();
@@ -92,8 +92,8 @@ export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
             icon={<IconLink />}
             onClick={() => {
               if (props.userId) {
-                const link = Share.generateLink(props.userId, props.record.id);
-                ClipboardUtils.copy(link);
+                const link = Share_generateLink(props.userId, props.record.id);
+                ClipboardUtils_copy(link);
                 alert("Copied!");
               } else {
                 alert("You should be logged in to copy link to a workout");

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DateUtils } from "./date";
+import { DateUtils_formatYYYYMMDDHHMM } from "./date";
 import { lg } from "./posthog";
 
 export interface IAsyncQueueOptions {
@@ -118,7 +118,7 @@ export class AsyncQueue {
   }
 
   private addLog(name: string, extra?: Record<string, string | number>): void {
-    const currentTime = DateUtils.formatYYYYMMDDHHMM(Date.now(), "-");
+    const currentTime = DateUtils_formatYYYYMMDDHHMM(Date.now(), "-");
     this.logs.push([currentTime, name, extra || {}]);
     if (this.logs.length > 1000) {
       this.logs.shift();

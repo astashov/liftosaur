@@ -9,7 +9,12 @@ import { Footer2View } from "./footer2";
 import { NavbarView } from "./navbar";
 import { HelpTimers } from "./help/helpTimers";
 import { GroupHeader } from "./groupHeader";
-import { SendMessage } from "../utils/sendMessage";
+import {
+  SendMessage_isIos,
+  SendMessage_iosVersion,
+  SendMessage_isAndroid,
+  SendMessage_androidAppVersion,
+} from "../utils/sendMessage";
 
 interface IProps {
   dispatch: IDispatch;
@@ -61,8 +66,8 @@ export function ScreenTimers(props: IProps): JSX.Element {
           valueUnits="sec"
           onChange={onChange("superset")}
         />
-        {((SendMessage.isIos() && SendMessage.iosVersion() >= 10) ||
-          (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 19)) && (
+        {((SendMessage_isIos() && SendMessage_iosVersion() >= 10) ||
+          (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 19)) && (
           <>
             <GroupHeader name="Reminders" topPadding={true} />
             <MenuItemEditable

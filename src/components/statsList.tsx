@@ -1,13 +1,23 @@
 import { h, JSX, Fragment } from "preact";
 import { useState } from "preact/hooks";
 import { IDispatch } from "../ducks/types";
-import { EditStats } from "../models/editStats";
-import { Length } from "../models/length";
-import { Stats } from "../models/stats";
-import { Weight } from "../models/weight";
+import {
+  EditStats_changeStatWeightTimestamp,
+  EditStats_changeStatPercentageTimestamp,
+  EditStats_changeStatLengthTimestamp,
+  EditStats_changeStatWeightValue,
+  EditStats_changeStatPercentageValue,
+  EditStats_changeStatLengthValue,
+  EditStats_deleteWeightStat,
+  EditStats_deletePercentageStat,
+  EditStats_deleteLengthStat,
+} from "../models/editStats";
+import { Length_is, Length_convertTo, Length_build } from "../models/length";
+import { Stats_name } from "../models/stats";
+import { Weight_is, Weight_convertTo, Weight_build } from "../models/weight";
 import { ILength, IPercentage, ISettings, IStats, IStatsKey, ISubscription, IWeight } from "../types";
-import { DateUtils } from "../utils/date";
-import { ObjectUtils } from "../utils/object";
+import { DateUtils_formatYYYYMMDD } from "../utils/date";
+import { ObjectUtils_keys } from "../utils/object";
 import { MenuItemWrapper } from "./menuItem";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -15,10 +25,10 @@ import { GraphStats, getWeightDataForGraph, getLengthDataForGraph, getPercentage
 import { IconTrash } from "./icons/iconTrash";
 import { Locker } from "./locker";
 import { Button } from "./button";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
-import { Subscriptions } from "../utils/subscriptions";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { ImagePreloader } from "../utils/imagePreloader";
 
 interface IProps {
@@ -59,9 +69,9 @@ function getValues(stats: IStats, key: IStatsKey): IValue[] {
 
 export function StatsList(props: IProps): JSX.Element {
   const statsKeys: IStatsKey[] = [
-    ...ObjectUtils.keys(props.stats.weight).filter((k) => (props.stats.weight[k] || []).length > 0),
-    ...ObjectUtils.keys(props.stats.percentage).filter((k) => (props.stats.percentage[k] || []).length > 0),
-    ...ObjectUtils.keys(props.stats.length).filter((k) => (props.stats.length[k] || []).length > 0),
+    ...ObjectUtils_keys(props.stats.weight).filter((k) => (props.stats.weight[k] || []).length > 0),
+    ...ObjectUtils_keys(props.stats.percentage).filter((k) => (props.stats.percentage[k] || []).length > 0),
+    ...ObjectUtils_keys(props.stats.length).filter((k) => (props.stats.length[k] || []).length > 0),
   ];
   const [selectedKey, setSelectedKey] = useState<IStatsKey>(props.initialKey || statsKeys[0] || "weight");
   const movingAverageWindowSize = props.settings.graphOptions[selectedKey]?.movingAverageWindowSize;
@@ -81,7 +91,7 @@ export function StatsList(props: IProps): JSX.Element {
             name="add-measurements"
             data-cy="add-measurements"
             kind="purple"
-            onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
+            onClick={() => props.dispatch(Thunk_pushScreen("stats"))}
           >
             Add measurements
           </Button>
@@ -108,7 +118,7 @@ export function StatsList(props: IProps): JSX.Element {
           name="add-measurements"
           data-cy="add-measurements"
           kind="purple"
-          onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
+          onClick={() => props.dispatch(Thunk_pushScreen("stats"))}
         >
           Add measurements
         </Button>
@@ -118,12 +128,12 @@ export function StatsList(props: IProps): JSX.Element {
         type="select"
         name="Type"
         value={selectedKey}
-        values={statsKeys.map((key) => [key, Stats.name(key)])}
+        values={statsKeys.map((key) => [key, Stats_name(key)])}
         onChange={(value) => {
           setSelectedKey(value as IStatsKey);
         }}
       />
-      {Subscriptions.hasSubscription(props.subscription) && (
+      {Subscriptions_hasSubscription(props.subscription) && (
         <MenuItemEditable
           name="Moving Average Window Size"
           type="select"
@@ -172,17 +182,17 @@ export function StatsList(props: IProps): JSX.Element {
       {values.length === 0 ? (
         <>
           <div className="py-12 text-xl text-center text-text-secondary">
-            No {Stats.name(selectedKey)} measurements added yet
+            No {Stats_name(selectedKey)} measurements added yet
           </div>
         </>
       ) : (
         <>
           <GroupHeader name="List of measurements" topPadding={false} />
           {values.map((value) => {
-            const convertedValue = Weight.is(value.value)
-              ? Weight.convertTo(value.value, props.settings.units)
-              : Length.is(value.value)
-                ? Length.convertTo(value.value, props.settings.lengthUnits)
+            const convertedValue = Weight_is(value.value)
+              ? Weight_convertTo(value.value, props.settings.units)
+              : Length_is(value.value)
+                ? Length_convertTo(value.value, props.settings.lengthUnits)
                 : value.value;
             return (
               <MenuItemWrapper key={`${selectedKey}-${value.timestamp}`} name={`${selectedKey}-${value.timestamp}`}>
@@ -196,15 +206,15 @@ export function StatsList(props: IProps): JSX.Element {
                         const date = Date.parse(e.currentTarget.value + "T00:00:00");
                         if (!isNaN(date)) {
                           if (selectedKey === "weight") {
-                            EditStats.changeStatWeightTimestamp(props.dispatch, selectedKey, value.index, date);
+                            EditStats_changeStatWeightTimestamp(props.dispatch, selectedKey, value.index, date);
                           } else if (selectedKey === "bodyfat") {
-                            EditStats.changeStatPercentageTimestamp(props.dispatch, selectedKey, value.index, date);
+                            EditStats_changeStatPercentageTimestamp(props.dispatch, selectedKey, value.index, date);
                           } else {
-                            EditStats.changeStatLengthTimestamp(props.dispatch, selectedKey, value.index, date);
+                            EditStats_changeStatLengthTimestamp(props.dispatch, selectedKey, value.index, date);
                           }
                         }
                       }}
-                      value={DateUtils.formatYYYYMMDD(value.timestamp)}
+                      value={DateUtils_formatYYYYMMDD(value.timestamp)}
                     />
                   </div>
                   <div className="flex flex-1">
@@ -218,14 +228,14 @@ export function StatsList(props: IProps): JSX.Element {
                         const num = parseFloat(e.currentTarget.value);
                         if (!isNaN(num)) {
                           if (selectedKey === "weight") {
-                            const v = Weight.build(num, props.settings.units);
-                            EditStats.changeStatWeightValue(props.dispatch, selectedKey, value.index, v);
+                            const v = Weight_build(num, props.settings.units);
+                            EditStats_changeStatWeightValue(props.dispatch, selectedKey, value.index, v);
                           } else if (selectedKey === "bodyfat") {
                             const v: IPercentage = { value: num, unit: "%" };
-                            EditStats.changeStatPercentageValue(props.dispatch, selectedKey, value.index, v);
+                            EditStats_changeStatPercentageValue(props.dispatch, selectedKey, value.index, v);
                           } else {
-                            const v = Length.build(num, props.settings.lengthUnits);
-                            EditStats.changeStatLengthValue(props.dispatch, selectedKey, value.index, v);
+                            const v = Length_build(num, props.settings.lengthUnits);
+                            EditStats_changeStatLengthValue(props.dispatch, selectedKey, value.index, v);
                           }
                         }
                       }}
@@ -241,11 +251,11 @@ export function StatsList(props: IProps): JSX.Element {
                       onClick={() => {
                         if (confirm("Are you sure?")) {
                           if (selectedKey === "weight") {
-                            EditStats.deleteWeightStat(props.dispatch, selectedKey, value.index, value.timestamp);
+                            EditStats_deleteWeightStat(props.dispatch, selectedKey, value.index, value.timestamp);
                           } else if (selectedKey === "bodyfat") {
-                            EditStats.deletePercentageStat(props.dispatch, selectedKey, value.index, value.timestamp);
+                            EditStats_deletePercentageStat(props.dispatch, selectedKey, value.index, value.timestamp);
                           } else {
-                            EditStats.deleteLengthStat(props.dispatch, selectedKey, value.index, value.timestamp);
+                            EditStats_deleteLengthStat(props.dispatch, selectedKey, value.index, value.timestamp);
                           }
                         }
                       }}

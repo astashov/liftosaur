@@ -1,15 +1,15 @@
 import { h, JSX } from "preact";
 import { IEvaluatedProgram, IEvaluatedProgramWeek } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_keys } from "../../utils/object";
 import { ExerciseImage } from "../exerciseImage";
 import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { HistoryRecordSet } from "../historyRecordSets";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { Exercise } from "../../models/exercise";
+import { Exercise_eq } from "../../models/exercise";
 import { ExercisePickerUtils } from "./exercisePickerUtils";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_dashcase } from "../../utils/string";
 
 interface IProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -34,7 +34,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
 
   return (
     <div>
-      {ObjectUtils.keys(exercisesToDays).map((exerciseKey) => {
+      {ObjectUtils_keys(exercisesToDays).map((exerciseKey) => {
         const exercises = exercisesToDays[exerciseKey];
         const exerciseType = exercises[0].exerciseType;
         if (exerciseType == null) {
@@ -49,15 +49,15 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
             return (
               ex.type === "program" &&
               anExerciseType &&
-              Exercise.eq(ex.exerciseType, anExerciseType) &&
+              Exercise_eq(ex.exerciseType, anExerciseType) &&
               ex.week === exercise.dayData.week &&
               ex.dayInWeek === exercise.dayData.dayInWeek
             );
           });
           const isDisabled = props.state.selectedExercises.some(
-            (ex) => "exerciseType" in ex && Exercise.eq(ex.exerciseType, anExerciseType)
+            (ex) => "exerciseType" in ex && Exercise_eq(ex.exerciseType, anExerciseType)
           );
-          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, anExerciseType));
+          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, anExerciseType));
           return isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
         });
         return (
@@ -83,15 +83,15 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                   return (
                     ex.type === "program" &&
                     anExerciseType &&
-                    Exercise.eq(ex.exerciseType, anExerciseType) &&
+                    Exercise_eq(ex.exerciseType, anExerciseType) &&
                     ex.week === exercise.dayData.week &&
                     ex.dayInWeek === exercise.dayData.dayInWeek
                   );
                 });
                 const isDisabled = props.state.selectedExercises.some(
-                  (ex) => "exerciseType" in ex && Exercise.eq(ex.exerciseType, anExerciseType)
+                  (ex) => "exerciseType" in ex && Exercise_eq(ex.exerciseType, anExerciseType)
                 );
-                const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, anExerciseType));
+                const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, anExerciseType));
                 const currentSetVariation = PlannerProgramExercise.currentEvaluatedSetVariation(exercise);
                 const displayGroups = PlannerProgramExercise.evaluatedSetsToDisplaySets(
                   currentSetVariation.sets,
@@ -115,7 +115,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                                 type="radio"
                                 disabled={isUsedForDay}
                                 name={`picker-program-exercise-${exercise.dayData.week}`}
-                                data-cy={`exercise-picker-program-${StringUtils.dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`}
+                                data-cy={`exercise-picker-program-${StringUtils_dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`}
                                 value={JSON.stringify({
                                   key: exercise.key,
                                   week: exercise.dayData.week,
@@ -139,7 +139,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                                 checked={isSelected}
                                 disabled={isUsedForDay || (isDisabled && !isSelected)}
                                 className="checkbox checkbox-purple text-text-purple"
-                                data-cy={`exercise-picker-program-${StringUtils.dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`}
+                                data-cy={`exercise-picker-program-${StringUtils_dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`}
                                 type="checkbox"
                                 onChange={() => {
                                   ExercisePickerUtils.chooseProgramExercise(

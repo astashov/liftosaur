@@ -3,7 +3,7 @@ import { IDispatch } from "../ducks/types";
 import { Button } from "./button";
 import { updateSettings } from "../models/state";
 import { ISettings } from "../types";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { lb } from "lens-shmens";
 
 interface IProps {
@@ -50,7 +50,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
               className="w-full"
               name="see-how-it-works"
               kind="purple"
-              onClick={() => props.dispatch(Thunk.pushScreen("setupequipment"))}
+              onClick={() => props.dispatch(Thunk_pushScreen("setupequipment"))}
             >
               Continue
             </Button>

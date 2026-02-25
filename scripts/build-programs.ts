@@ -5,8 +5,8 @@ import matter from "gray-matter";
 import { programOrder } from "../lambda/dao/programDao";
 import { IExerciseType, IPlannerProgramWeek } from "../src/types";
 import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
-import { CollectionUtils } from "../src/utils/collection";
-import { Settings } from "../src/models/settings";
+import { CollectionUtils_sortInOrder } from "../src/utils/collection";
+import { Settings_build } from "../src/models/settings";
 import { IProgramIndexEntry } from "../src/models/program";
 
 const programsSources = [
@@ -54,7 +54,7 @@ function extractExerciseData(liftoscript: string): {
   equipment: string[];
   exercisesRange: [number, number];
 } {
-  const settings = Settings.build();
+  const settings = Settings_build();
   const { evaluatedWeeks } = PlannerProgram.evaluateFull(liftoscript, settings);
 
   const exerciseMap = new Map<string, IExerciseType>();
@@ -212,7 +212,7 @@ function buildPrograms(): void {
     console.log(`  ✓ ${id}`);
   }
 
-  const sorted = CollectionUtils.sortInOrder(index, "id", programOrder);
+  const sorted = CollectionUtils_sortInOrder(index, "id", programOrder);
 
   fs.mkdirSync(programsOutputDir, { recursive: true });
   fs.writeFileSync(path.join(outputDir, "index.json"), JSON.stringify(sorted));

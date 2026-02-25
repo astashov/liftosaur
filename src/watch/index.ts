@@ -9,11 +9,27 @@ void BUNDLE_VERSION_WATCH_IOS;
 // eslint-disable-next-line no-void
 void BUNDLE_VERSION_WATCH_ANDROID;
 
-import { Program } from "../models/program";
-import { Exercise } from "../models/exercise";
-import { Storage } from "../models/storage";
-import { History } from "../models/history";
-import { Reps } from "../models/set";
+import {
+  Program_evaluate,
+  Program_nextHistoryRecordFromEvaluated,
+  Program_getProgramExercise,
+  Program_getCurrentProgram,
+} from "../models/program";
+import { Exercise_get, Exercise_getIsUnilateral, Exercise_toKey } from "../models/exercise";
+import { Storage_validateStorage, Storage_updateVersions, Storage_mergeStorage } from "../models/storage";
+import {
+  History_isPaused,
+  History_pauseWorkout,
+  History_resumeWorkout,
+  History_workoutTime,
+  History_totalRecordWeight,
+  History_totalRecordSets,
+  History_totalRecordReps,
+  History_getStartedEntries,
+  History_collectMuscleGroups,
+  History_calories,
+} from "../models/history";
+import { Reps_setWarmupStatus, Reps_setsStatus, Reps_findNextEntryAndSetIndex, Reps_addSet } from "../models/set";
 import { Sync, IStorageUpdate2 } from "../utils/sync";
 import {
   IStorage,
@@ -33,19 +49,33 @@ import {
 import { IEither } from "../utils/types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { runMigrations, unrunMigrations } from "../migrations/runner";
-import { ExerciseImageUtils } from "../models/exerciseImage";
-import { Weight } from "../models/weight";
-import { Progress } from "../models/progress";
-import { Equipment } from "../models/equipment";
+import { ExerciseImageUtils_url } from "../models/exerciseImage";
+import {
+  Weight_calculatePlates,
+  Weight_formatOneSide,
+  Weight_increment,
+  Weight_decrement,
+  Weight_round,
+  Weight_is,
+  Weight_isPct,
+} from "../models/weight";
+import {
+  Progress_finishWorkout,
+  Progress_completeSetAction,
+  Progress_updateTimer,
+  Progress_changeAmrapAction,
+  Progress_stopTimerPure,
+} from "../models/progress";
+import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_keys } from "../utils/object";
 import { Collector } from "../utils/collector";
-import { Muscle } from "../models/muscle";
-import { SendMessage } from "../utils/sendMessage";
+import { Muscle_getMuscleGroupName } from "../models/muscle";
+import { SendMessage_toIos } from "../utils/sendMessage";
 import { LiveActivityManager } from "../utils/liveActivityManager";
-import { Subscriptions } from "../utils/subscriptions";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { lg } from "../utils/posthog";
-import { CollectionUtils } from "../utils/collection";
+import { CollectionUtils_uniqByExpr } from "../utils/collection";
 
 export interface IWatchHistoryRecord {
   dayName: string;
@@ -172,9 +202,9 @@ function setToWatchSet(
   const weightForPlates = set.completedWeight ?? set.weight;
   if (weightForPlates) {
     const unit = weightForPlates.unit;
-    const { plates: platesArr } = Weight.calculatePlates(weightForPlates, settings, unit, exerciseType);
+    const { plates: platesArr } = Weight_calculatePlates(weightForPlates, settings, unit, exerciseType);
     if (platesArr.length > 0) {
-      plates = Weight.formatOneSide(settings, platesArr, exerciseType);
+      plates = Weight_formatOneSide(settings, platesArr, exerciseType);
     }
   }
   return {
@@ -193,7 +223,7 @@ function setToWatchSet(
     completedRepsLeft: isUnilateral ? set.completedRepsLeft : undefined,
     completedWeight: set.completedWeight,
     completedRpe: set.completedRpe,
-    status: isWarmup ? Reps.setWarmupStatus([set]) : Reps.setsStatus([set]),
+    status: isWarmup ? Reps_setWarmupStatus([set]) : Reps_setsStatus([set]),
     plates,
     isWarmup,
     isUnilateral,
@@ -211,7 +241,7 @@ let hasValidatedOnceThisSession: boolean = false; // Only validate once per app 
 interface ICachedEvaluatedProgram {
   programId: string;
   plannerText: string;
-  evaluatedProgram: ReturnType<typeof Program.evaluate>;
+  evaluatedProgram: ReturnType<typeof Program_evaluate>;
 }
 let cachedEvaluatedProgram: ICachedEvaluatedProgram | null = null;
 
@@ -219,7 +249,7 @@ function getProgram(storage: IStorage): IProgram | undefined {
   return storage.programs.find((p) => p.id === storage.currentProgramId);
 }
 
-function getEvaluatedProgram(storage: IStorage): ReturnType<typeof Program.evaluate> | undefined {
+function getEvaluatedProgram(storage: IStorage): ReturnType<typeof Program_evaluate> | undefined {
   const program = getProgram(storage);
   if (!program) {
     return undefined;
@@ -241,7 +271,7 @@ function getEvaluatedProgram(storage: IStorage): ReturnType<typeof Program.evalu
 
   // Evaluate and cache
   const evalStart = Date.now();
-  const evaluatedProgram = Program.evaluate(program, storage.settings);
+  const evaluatedProgram = Program_evaluate(program, storage.settings);
   const evalTime = Date.now() - evalStart;
   if (evalTime > 100) {
     console.log(`[PERF] Program.evaluate took ${evalTime}ms`);
@@ -288,7 +318,7 @@ function parseStorageSync(
 
   if (!hasValidatedOnceThisSession) {
     const validateStart = Date.now();
-    const result = Storage.validateStorage(data);
+    const result = Storage_validateStorage(data);
     const validateTime = Date.now() - validateStart;
     if (validateTime > 50) {
       console.log(`[PERF] validateStorage took ${validateTime}ms`);
@@ -362,7 +392,7 @@ class LiftosaurWatch {
         return { success: false, error: newStorageResult.error };
       }
       const newStorage = newStorageResult.data;
-      const newVersions = Storage.updateVersions(storage, newStorage, deviceId);
+      const newVersions = Storage_updateVersions(storage, newStorage, deviceId);
       newStorage._versions = newVersions;
       cachedStorage = newStorage;
       cachedStorageVersion += 1;
@@ -381,7 +411,7 @@ class LiftosaurWatch {
         return { success: false, error: newStorageResult.error };
       }
       const newStorage = newStorageResult.data;
-      const newVersions = Storage.updateVersions(storage, newStorage, deviceId);
+      const newVersions = Storage_updateVersions(storage, newStorage, deviceId);
       newStorage._versions = newVersions;
       return { success: true, data: newStorage };
     });
@@ -391,15 +421,15 @@ class LiftosaurWatch {
     entry: { exercise: IExerciseType; warmupSets?: ISet[]; sets: ISet[] },
     settings: ISettings
   ): IWatchHistoryEntry {
-    const exercise = Exercise.get(entry.exercise, settings.exercises);
-    const imageUrl = ExerciseImageUtils.url(exercise, "small", settings);
-    const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
+    const exercise = Exercise_get(entry.exercise, settings.exercises);
+    const imageUrl = ExerciseImageUtils_url(exercise, "small", settings);
+    const isUnilateral = Exercise_getIsUnilateral(entry.exercise, settings);
     const warmupSets = (entry.warmupSets || []).map((set) =>
       setToWatchSet(set, entry.exercise, settings, true, isUnilateral)
     );
     const workoutSets = entry.sets.map((set) => setToWatchSet(set, entry.exercise, settings, false, isUnilateral));
     return {
-      id: Exercise.toKey(entry.exercise),
+      id: Exercise_toKey(entry.exercise),
       name: exercise.name,
       imageUrl,
       sets: [...warmupSets, ...workoutSets],
@@ -428,7 +458,7 @@ class LiftosaurWatch {
       }
       const settings = storage.settings;
 
-      const historyRecord = Program.nextHistoryRecordFromEvaluated(evaluatedProgram, settings, storage.stats);
+      const historyRecord = Program_nextHistoryRecordFromEvaluated(evaluatedProgram, settings, storage.stats);
       const watchWorkout = this.convertHistoryRecordToWatchHistoryRecord(historyRecord, settings);
       return { success: true, data: watchWorkout };
     });
@@ -443,7 +473,7 @@ class LiftosaurWatch {
 
   public static hasSubscription(storageJson: string): string {
     return this.getStorage<{ hasSubscription: boolean }>(storageJson, (storage) => {
-      const has = Subscriptions.hasSubscription(storage.subscription);
+      const has = Subscriptions_hasSubscription(storage.subscription);
       return { success: true, data: { hasSubscription: has } };
     });
   }
@@ -455,7 +485,7 @@ class LiftosaurWatch {
         return { success: false, error: "No progress to finish" };
       }
       lg("watch-finish-workout");
-      const newStorage = Progress.finishWorkout(storage, progress);
+      const newStorage = Progress_finishWorkout(storage, progress);
       return { success: true, data: newStorage };
     });
   }
@@ -469,7 +499,7 @@ class LiftosaurWatch {
 
       lg("watch-start-workout");
       const settings = storage.settings;
-      const newProgress = Program.nextHistoryRecordFromEvaluated(evaluatedProgram, settings, storage.stats);
+      const newProgress = Program_nextHistoryRecordFromEvaluated(evaluatedProgram, settings, storage.stats);
       const updatedStorage: IStorage = {
         ...storage,
         progress: [newProgress],
@@ -518,7 +548,7 @@ class LiftosaurWatch {
     try {
       const currentStorage = JSON.parse(currentStorageJson) as IStorage;
       const incomingStorage = JSON.parse(incomingStorageJson) as IStorage;
-      const merged = Storage.mergeStorage(currentStorage, incomingStorage, deviceId);
+      const merged = Storage_mergeStorage(currentStorage, incomingStorage, deviceId);
       // Update cache with merged result so next operation doesn't need to re-validate
       cachedStorage = merged;
       cachedStorageVersion += 1;
@@ -570,7 +600,7 @@ class LiftosaurWatch {
       console.log(`Main App: complete set entryIndex: ${entryIndex}, setIndex: ${setIndex}`);
       const evaluatedProgram = getEvaluatedProgram(storage);
       const programExercise = evaluatedProgram
-        ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+        ? Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
         : undefined;
 
       const set = isWarmup ? entry.warmupSets[adjustedSetIndex] : entry.sets[adjustedSetIndex];
@@ -589,7 +619,7 @@ class LiftosaurWatch {
         );
         return { success: true, data: storage };
       }
-      const newProgress = Progress.completeSetAction(
+      const newProgress = Progress_completeSetAction(
         storage.settings,
         storage.stats,
         progress,
@@ -653,7 +683,7 @@ class LiftosaurWatch {
           );
         }
       } else {
-        const newProgress = Progress.updateTimer(
+        const newProgress = Progress_updateTimer(
           progress,
           program,
           action === "increase" ? timer + 15 : Math.max(0, timer - 15),
@@ -696,10 +726,10 @@ class LiftosaurWatch {
 
       const evaluatedProgram = getEvaluatedProgram(storage);
       const programExercise = evaluatedProgram
-        ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+        ? Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
         : undefined;
       lg("watch-complete-set");
-      const newProgress = Progress.completeSetAction(
+      const newProgress = Progress_completeSetAction(
         storage.settings,
         storage.stats,
         progress,
@@ -803,7 +833,7 @@ class LiftosaurWatch {
       const unit =
         set.completedWeight?.unit ??
         set.weight?.unit ??
-        Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
+        Equipment_getUnitOrDefaultForExerciseType(settings, exerciseType);
       return {
         ...set,
         completedWeight: { value: weightValue, unit },
@@ -822,7 +852,7 @@ class LiftosaurWatch {
         return { success: false, error: "Entry not found" };
       }
       const mode = setIndex < (entry.warmupSets?.length || 0) ? "warmup" : "workout";
-      const result = Reps.findNextEntryAndSetIndex(progress, entryIndex, mode);
+      const result = Reps_findNextEntryAndSetIndex(progress, entryIndex, mode);
       return { success: true, data: result };
     });
   }
@@ -843,7 +873,7 @@ class LiftosaurWatch {
     // Generate weights going up
     let w = currentWeight;
     for (let i = 0; i < countUp; i++) {
-      const nextW = Weight.increment(w, settings, exerciseType);
+      const nextW = Weight_increment(w, settings, exerciseType);
       if (nextW.value === w.value) {
         break;
       }
@@ -854,7 +884,7 @@ class LiftosaurWatch {
     // Generate weights going down
     w = currentWeight;
     for (let i = 0; i < countDown; i++) {
-      const prevW = Weight.decrement(w, settings, exerciseType);
+      const prevW = Weight_decrement(w, settings, exerciseType);
       if (prevW.value === w.value || prevW.value <= 0) {
         break;
       }
@@ -862,9 +892,9 @@ class LiftosaurWatch {
       w = prevW;
     }
 
-    const roundedValue = Weight.round(currentWeight, settings, unit, exerciseType).value;
+    const roundedValue = Weight_round(currentWeight, settings, unit, exerciseType).value;
     const combined = [...weightsDown, roundedValue, ...weightsUp];
-    const weights = CollectionUtils.uniqByExpr(combined, (v) => v);
+    const weights = CollectionUtils_uniqByExpr(combined, (v) => v);
     const currentIndex = weights.indexOf(roundedValue);
 
     return { weights, currentIndex };
@@ -889,7 +919,7 @@ class LiftosaurWatch {
       }
 
       const resolvedUnit =
-        (unit as IUnit) || Equipment.getUnitOrDefaultForExerciseType(storage.settings, entry.exercise);
+        (unit as IUnit) || Equipment_getUnitOrDefaultForExerciseType(storage.settings, entry.exercise);
       const result = this.generateValidWeightsArray(
         storage.settings,
         entry.exercise,
@@ -926,8 +956,8 @@ class LiftosaurWatch {
       }
 
       const settings = storage.settings;
-      const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
-      const weightUnit = set.weight?.unit ?? Equipment.getUnitOrDefaultForExerciseType(settings, entry.exercise);
+      const isUnilateral = Exercise_getIsUnilateral(entry.exercise, settings);
+      const weightUnit = set.weight?.unit ?? Equipment_getUnitOrDefaultForExerciseType(settings, entry.exercise);
 
       // Generate valid weights for the main weight field
       let validWeights: number[] | undefined;
@@ -944,20 +974,20 @@ class LiftosaurWatch {
       if (modalData.userVars) {
         const evaluatedProgram = getEvaluatedProgram(storage);
         const programExercise = evaluatedProgram
-          ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+          ? Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
           : undefined;
 
         if (programExercise) {
           const stateMetadata = PlannerProgramExercise.getStateMetadata(programExercise) || {};
           const state = PlannerProgramExercise.getState(programExercise);
-          for (const key of ObjectUtils.keys(stateMetadata)) {
+          for (const key of ObjectUtils_keys(stateMetadata)) {
             if (stateMetadata[key]?.userPrompted) {
               const value = state[key];
               if (typeof value === "number") {
                 userPromptedVars.push({ name: key, value });
-              } else if (Weight.is(value)) {
+              } else if (Weight_is(value)) {
                 userPromptedVars.push({ name: key, value: value.value, unit: value.unit });
-              } else if (Weight.isPct(value)) {
+              } else if (Weight_isPct(value)) {
                 userPromptedVars.push({ name: key, value: value.value, unit: "%" });
               }
             }
@@ -1022,13 +1052,13 @@ class LiftosaurWatch {
       // Get program exercise for running update script
       const evaluatedProgram = getEvaluatedProgram(storage);
       const programExercise = evaluatedProgram
-        ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+        ? Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
         : undefined;
 
       // Build the action similar to ChangeAMRAPAction
       let weightValue: IWeight | undefined;
       if (completedWeight != null) {
-        const weightUnit = set.weight?.unit ?? Equipment.getUnitOrDefaultForExerciseType(settings, entry.exercise);
+        const weightUnit = set.weight?.unit ?? Equipment_getUnitOrDefaultForExerciseType(settings, entry.exercise);
         weightValue = { value: completedWeight, unit: weightUnit };
       }
 
@@ -1043,7 +1073,7 @@ class LiftosaurWatch {
       }
 
       // Use Progress.changeAmrapAction which handles all the logic
-      const newProgress = Progress.changeAmrapAction(
+      const newProgress = Progress_changeAmrapAction(
         settings,
         storage.stats,
         progress,
@@ -1106,14 +1136,14 @@ class LiftosaurWatch {
         return { success: false, error: "No active timer" };
       }
 
-      const program = Program.getCurrentProgram(storage);
+      const program = Program_getCurrentProgram(storage);
       if (!program) {
         return { success: false, error: "No current program" };
       }
 
       lg("watch-adjust-rest-timer");
       const newTimer = progress.timer + adjustment;
-      const newProgress = Progress.updateTimer(
+      const newProgress = Progress_updateTimer(
         progress,
         program,
         newTimer,
@@ -1137,7 +1167,7 @@ class LiftosaurWatch {
       }
 
       lg("watch-cancel-rest-timer");
-      const newProgress = Progress.stopTimerPure(progress);
+      const newProgress = Progress_stopTimerPure(progress);
       const newStorage: IStorage = { ...storage, progress: [newProgress] };
       return { success: true, data: newStorage };
     });
@@ -1159,7 +1189,7 @@ class LiftosaurWatch {
       return {
         success: true,
         data: {
-          isPaused: History.isPaused(progress.intervals),
+          isPaused: History_isPaused(progress.intervals),
           intervals,
           startTime: progress.startTime,
         },
@@ -1174,7 +1204,7 @@ class LiftosaurWatch {
         return { success: false, error: "No active workout" };
       }
 
-      const newIntervals = History.pauseWorkout(progress.intervals);
+      const newIntervals = History_pauseWorkout(progress.intervals);
       if (newIntervals !== progress.intervals) {
         lg("watch-pause-workout");
         const newProgress = { ...progress, intervals: newIntervals };
@@ -1192,11 +1222,11 @@ class LiftosaurWatch {
         return { success: false, error: "No active workout" };
       }
 
-      const newIntervals = History.resumeWorkout(
+      const newIntervals = History_resumeWorkout(
         progress,
         false,
         undefined,
-        Subscriptions.hasSubscription(storage.subscription)
+        Subscriptions_hasSubscription(storage.subscription)
       );
       if (newIntervals !== progress.intervals) {
         lg("watch-resume-workout");
@@ -1220,8 +1250,8 @@ class LiftosaurWatch {
       }
 
       lg("watch-add-set");
-      const isUnilateral = Exercise.getIsUnilateral(entry.exercise, storage.settings);
-      const newSets = Reps.addSet(entry.sets, isUnilateral, undefined, false);
+      const isUnilateral = Exercise_getIsUnilateral(entry.exercise, storage.settings);
+      const newSets = Reps_addSet(entry.sets, isUnilateral, undefined, false);
 
       const newEntries = [...progress.entries];
       newEntries[entryIndex] = { ...entry, sets: newSets };
@@ -1281,26 +1311,26 @@ class LiftosaurWatch {
       const settings = storage.settings;
 
       // Calculate stats using History helpers
-      const timeMs = History.workoutTime(record);
-      const volume = History.totalRecordWeight(record, settings.units);
-      const totalSets = History.totalRecordSets(record);
-      const totalReps = History.totalRecordReps(record);
+      const timeMs = History_workoutTime(record);
+      const volume = History_totalRecordWeight(record, settings.units);
+      const totalSets = History_totalRecordSets(record);
+      const totalReps = History_totalRecordReps(record);
 
       // Convert started entries to watch format
-      const startedEntries = History.getStartedEntries(record);
+      const startedEntries = History_getStartedEntries(record);
       const exercises = startedEntries.map((entry) => this.convertHistoryEntryToWatchEntry(entry, settings));
 
       // Calculate muscle groups using History.collectMuscleGroups
-      const historyCollector = Collector.build([record]).addFn(History.collectMuscleGroups(settings));
+      const historyCollector = Collector.build([record]).addFn(History_collectMuscleGroups(settings));
       const [muscleGroupsData] = historyCollector.run();
       const muscleGroups: IWatchMuscleGroup[] = [];
-      for (const mg of ObjectUtils.keys(muscleGroupsData) as IScreenMuscle[]) {
+      for (const mg of ObjectUtils_keys(muscleGroupsData) as IScreenMuscle[]) {
         if (mg !== "total") {
           const values = muscleGroupsData[mg];
           const sets = values[2][0];
           if (sets > 0) {
             muscleGroups.push({
-              name: Muscle.getMuscleGroupName(mg, settings),
+              name: Muscle_getMuscleGroupName(mg, settings),
               sets: Math.round(sets * 10) / 10,
             });
           }
@@ -1340,10 +1370,10 @@ class LiftosaurWatch {
       const settings = storage.settings;
 
       const healthSync = !!settings.appleHealthSyncWorkout;
-      const calories = History.calories(record);
+      const calories = History_calories(record);
       const intervals = record.intervals || [[record.startTime, record.endTime || Date.now()]];
 
-      SendMessage.toIos({
+      SendMessage_toIos({
         type: "finishWorkout",
         healthSync: healthSync ? "true" : "false",
         calories: `${calories}`,

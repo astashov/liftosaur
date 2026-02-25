@@ -1,8 +1,8 @@
 import "./models/state";
 import { ScriptRunner } from "./parser";
-import { Progress, IScriptBindings } from "./models/progress";
-import { Settings } from "./models/settings";
-import { Weight } from "./models/weight";
+import { IScriptBindings, Progress_createScriptFunctions } from "./models/progress";
+import { Settings_build } from "./models/settings";
+import { Weight_build } from "./models/weight";
 
 const program = `r[state.foo]`;
 
@@ -55,12 +55,12 @@ const bindings: IScriptBindings = {
   completedNumberOfSets: 3,
   setIndex: 1,
   setVariationIndex: 1,
-  bodyweight: Weight.build(0, "lb"),
+  bodyweight: Weight_build(0, "lb"),
   descriptionIndex: 1,
-  rm1: Weight.build(100, "lb"),
+  rm1: Weight_build(100, "lb"),
 };
 
-const fns = Progress.createScriptFunctions(Settings.build());
+const fns = Progress_createScriptFunctions(Settings_build());
 
 const state = { foo: 2 };
 

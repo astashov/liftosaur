@@ -2,17 +2,17 @@
 import { h, JSX } from "preact";
 import UPlot from "uplot";
 import { useRef, useEffect, useState } from "preact/hooks";
-import { CollectionUtils } from "../utils/collection";
-import { DateUtils } from "../utils/date";
-import { Exercise, equipmentName } from "../models/exercise";
-import { Weight } from "../models/weight";
+import { CollectionUtils_sort, CollectionUtils_inGroupsOf } from "../utils/collection";
+import { DateUtils_format } from "../utils/date";
+import { equipmentName, Exercise_eq, Exercise_toKey, Exercise_get } from "../models/exercise";
+import { Weight_convertTo, Weight_build, Weight_getOneRepMax, Weight_isOrPct, Weight_display } from "../models/weight";
 import { IHistoryRecord, IExerciseType, ISettings, IExerciseSelectedType } from "../types";
 import { GraphsPlugins } from "../utils/graphsPlugins";
 import { IDispatch } from "../ducks/types";
-import { HtmlUtils } from "../utils/html";
-import { Reps } from "../models/set";
-import { ObjectUtils } from "../utils/object";
-import { History } from "../models/history";
+import { HtmlUtils_escapeHtml } from "../utils/html";
+import { Reps_volume } from "../models/set";
+import { ObjectUtils_keys } from "../utils/object";
+import { History_getMaxWeightSetFromEntry, History_getMax1RMSetFromEntry } from "../models/history";
 import { Tailwind } from "../utils/tailwindConfig";
 
 interface IGraphProps {
@@ -45,28 +45,28 @@ function getData(
   const changeProgramTimes: [number, string][] = [];
   let currentProgram: string | undefined = undefined;
   const historyRecords: { [key: number]: IHistoryRecord } = {};
-  const normalizedData = CollectionUtils.sort(history, (a, b) => a.startTime - b.startTime).reduce<
+  const normalizedData = CollectionUtils_sort(history, (a, b) => a.startTime - b.startTime).reduce<
     [number, number | null, number | null, number | null, number | null, number | null][]
   >((memo, i) => {
     if (!currentProgram || currentProgram !== i.programName) {
       currentProgram = i.programName;
       changeProgramTimes.push([new Date(Date.parse(i.date)).getTime() / 1000, currentProgram]);
     }
-    const entry = i.entries.filter((e) => Exercise.eq(e.exercise, exerciseType))[0];
+    const entry = i.entries.filter((e) => Exercise_eq(e.exercise, exerciseType))[0];
     if (entry != null) {
-      const maxSet = History.getMaxWeightSetFromEntry(entry);
-      const maxe1RMSet = History.getMax1RMSetFromEntry(entry);
-      const volume = Reps.volume(entry.sets, settings.units);
+      const maxSet = History_getMaxWeightSetFromEntry(entry);
+      const maxe1RMSet = History_getMax1RMSetFromEntry(entry);
+      const volume = Reps_volume(entry.sets, settings.units);
       if (maxSet != null) {
-        const convertedWeight = Weight.convertTo(
-          maxSet.completedWeight ?? maxSet.weight ?? Weight.build(0, settings.units),
+        const convertedWeight = Weight_convertTo(
+          maxSet.completedWeight ?? maxSet.weight ?? Weight_build(0, settings.units),
           settings.units
         );
         let onerm = null;
         if (isWithOneRm) {
           const set = maxe1RMSet || maxSet;
-          onerm = Weight.getOneRepMax(
-            Weight.convertTo(set.completedWeight ?? set.weight ?? Weight.build(0, settings.units), settings.units),
+          onerm = Weight_getOneRepMax(
+            Weight_convertTo(set.completedWeight ?? set.weight ?? Weight_build(0, settings.units), settings.units),
             set.completedReps || 0,
             set.completedRpe ?? set.rpe ?? 10
           ).value;
@@ -75,7 +75,7 @@ function getData(
         historyRecords[timestamp] = i;
         memo.push([
           timestamp,
-          Weight.convertTo(convertedWeight, settings.units).value,
+          Weight_convertTo(convertedWeight, settings.units).value,
           maxSet.completedReps!,
           onerm,
           volume.value,
@@ -90,7 +90,7 @@ function getData(
   >((i) => {
     return [i[0], null, null, null, null, i[1]];
   });
-  const sorted = CollectionUtils.sort(
+  const sorted = CollectionUtils_sort(
     normalizedData.concat(normalizedBodyweightData),
     (a, b) => (a[0] || 0) - (b[0] || 0)
   );
@@ -143,11 +143,11 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   const selectedHistoryRecordRef = useRef<IHistoryRecord | undefined>(null);
-  const graphGoToHistoryRecordFnName = `graphGoToHistoryRecord${Exercise.toKey(props.exercise)}`;
+  const graphGoToHistoryRecordFnName = `graphGoToHistoryRecord${Exercise_toKey(props.exercise)}`;
   const units = props.settings.units;
   useEffect(() => {
     const rect = graphRef.current.getBoundingClientRect();
-    const exercise = Exercise.get(props.exercise, props.settings.exercises);
+    const exercise = Exercise_get(props.exercise, props.settings.exercises);
     const result = getData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData);
     const data = result.data;
     const dataMaxX = data[0]?.[data[0].length - 1] || new Date(0).getTime() / 1000;
@@ -195,7 +195,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                 let text: string;
                 if (weight != null && units != null && reps != null) {
                   if (props.selectedType === "weight") {
-                    text = `<div><div class="text-center">${DateUtils.format(
+                    text = `<div><div class="text-center">${DateUtils_format(
                       date
                     )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
                     if (props.isWithOneRm && onerm != null) {
@@ -206,7 +206,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                     }
                     text += "</span>";
                   } else {
-                    text = `<div><div class="text-center">${DateUtils.format(
+                    text = `<div><div class="text-center">${DateUtils_format(
                       date
                     )}, Volume: <strong>${volume} ${units}s</strong>`;
                     if (historyRecord != null && dispatch) {
@@ -215,22 +215,22 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                     text += "</span>";
                   }
                 } else if (bodyweight != null) {
-                  text = `<span>${DateUtils.format(date)}, Bodyweight - <strong>${bodyweight}</strong> ${units}</div>`;
+                  text = `<span>${DateUtils_format(date)}, Bodyweight - <strong>${bodyweight}</strong> ${units}</div>`;
                 } else {
                   return;
                 }
                 text += "</div>";
                 const entryNotes = (historyRecord?.entries || [])
-                  .filter((e) => Exercise.eq(props.exercise, e.exercise))
+                  .filter((e) => Exercise_eq(props.exercise, e.exercise))
                   .map((e) => e.notes)
                   .filter((e) => e);
                 if (historyRecord?.notes || entryNotes.length > 0) {
                   text += "<div class='text-sm text-text-secondary'>";
                   if (entryNotes.length > 0) {
-                    text += `<ul>${entryNotes.map((e) => `<li>${HtmlUtils.escapeHtml(e || "")}</li>`)}</ul>`;
+                    text += `<ul>${entryNotes.map((e) => `<li>${HtmlUtils_escapeHtml(e || "")}</li>`)}</ul>`;
                   }
                   if (historyRecord?.notes) {
-                    text += `<div><span class='font-bold'>Workout: </span><span>${HtmlUtils.escapeHtml(
+                    text += `<div><span class='font-bold'>Workout: </span><span>${HtmlUtils_escapeHtml(
                       historyRecord.notes || ""
                     )}</span></div>`;
                   }
@@ -240,19 +240,19 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                 const entries = (historyRecord?.entries || []).filter((e) => e.exercise.id === props.exercise.id);
                 const stateVars = [];
                 for (const entry of entries) {
-                  for (const key of ObjectUtils.keys(entry.state || {})) {
+                  for (const key of ObjectUtils_keys(entry.state || {})) {
                     const value = entry.state?.[key];
-                    const displayValue = Weight.isOrPct(value) ? Weight.display(value) : value;
+                    const displayValue = Weight_isOrPct(value) ? Weight_display(value) : value;
                     stateVars.push(`${key}: <strong>${displayValue}</strong>`);
                   }
-                  for (const key of ObjectUtils.keys(entry.vars || {})) {
+                  for (const key of ObjectUtils_keys(entry.vars || {})) {
                     const name = { rm1: "1 Rep Max" }[key] || key;
                     const value = entry.vars?.[key];
-                    const displayValue = Weight.isOrPct(value) ? Weight.display(value) : value;
+                    const displayValue = Weight_isOrPct(value) ? Weight_display(value) : value;
                     stateVars.push(`${name}: <strong>${displayValue}</strong>`);
                   }
                 }
-                const groups = CollectionUtils.inGroupsOf(2, stateVars);
+                const groups = CollectionUtils_inGroupsOf(2, stateVars);
                 if (groups.length > 0) {
                   text += `<ul>${groups
                     .map(([a, b]) => {

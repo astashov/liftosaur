@@ -6,7 +6,7 @@ import {
   IPlannerExerciseState,
 } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_keys } from "../../utils/object";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 
@@ -52,7 +52,7 @@ export function EditProgramExerciseReuseAtWeekDay(props: IEditProgramExerciseReu
           );
         }}
       >
-        {[...(currentWeek ? [""] : []), ...ObjectUtils.keys(reuseCandidateWeeksAndDays || {})].map((w) => {
+        {[...(currentWeek ? [""] : []), ...ObjectUtils_keys(reuseCandidateWeeksAndDays || {})].map((w) => {
           return (
             <option value={w} selected={(week ?? "") === w}>
               {w === "" ? "Same" : w}

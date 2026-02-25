@@ -3,11 +3,19 @@ import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { Tailwind } from "../../utils/tailwindConfig";
 import { IconFilter2 } from "../icons/iconFilter2";
-import { Exercise } from "../../models/exercise";
-import { StringUtils } from "../../utils/string";
-import { ObjectUtils } from "../../utils/object";
+import {
+  Exercise_filterCustomExercises,
+  Exercise_toKey,
+  Exercise_createCustomExercise,
+  Exercise_get,
+  Exercise_eq,
+  Exercise_allExpanded,
+  Exercise_filterExercises,
+} from "../../models/exercise";
+import { StringUtils_dashcase } from "../../utils/string";
+import { ObjectUtils_values, ObjectUtils_clone } from "../../utils/object";
 import { GroupHeader } from "../groupHeader";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_compact } from "../../utils/collection";
 import { LinkButton } from "../linkButton";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
@@ -139,12 +147,12 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
   let exercises = props.settings.exercises;
 
   if (props.state.search) {
-    exercises = Exercise.filterCustomExercises(exercises, props.state.search);
+    exercises = Exercise_filterCustomExercises(exercises, props.state.search);
   }
   exercises = ExercisePickerUtils.filterCustomExercises(exercises, props.state.filters);
-  let exercisesList = CollectionUtils.compact(ObjectUtils.values(exercises));
+  let exercisesList = CollectionUtils_compact(ObjectUtils_values(exercises));
   if (props.state.filters.isStarred) {
-    exercisesList = exercisesList.filter((e) => props.settings.starredExercises?.[Exercise.toKey(e)]);
+    exercisesList = exercisesList.filter((e) => props.settings.starredExercises?.[Exercise_toKey(e)]);
   }
   exercisesList = exercisesList.filter((e) => !e.isDeleted);
   exercisesList = ExercisePickerUtils.sortCustomExercises(exercisesList, props.settings, props.state);
@@ -167,7 +175,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
                 [
                   lb<IExercisePickerState>()
                     .p("editCustomExercise")
-                    .record(Exercise.createCustomExercise("", [], [], [])),
+                    .record(Exercise_createCustomExercise("", [], [], [])),
                   lb<IExercisePickerState>()
                     .p("screenStack")
                     .recordModify((stack) => [...stack, "customExercise"]),
@@ -181,18 +189,18 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
         }
       >
         {exercisesList.map((e) => {
-          const ex = Exercise.get({ id: e.id }, props.settings.exercises);
+          const ex = Exercise_get({ id: e.id }, props.settings.exercises);
           const isSelectedAlready = props.state.selectedExercises.some(
-            (exrcs) => "exerciseType" in exrcs && Exercise.eq(exrcs.exerciseType, e)
+            (exrcs) => "exerciseType" in exrcs && Exercise_eq(exrcs.exerciseType, e)
           );
-          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, e));
+          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, e));
           const isMultiselect = ExercisePickerUtils.getIsMultiselect(props.state);
           const isSelected = props.state.selectedExercises.some(
-            (exrcs) => exrcs.type === "adhoc" && Exercise.eq(exrcs.exerciseType, e)
+            (exrcs) => exrcs.type === "adhoc" && Exercise_eq(exrcs.exerciseType, e)
           );
           return (
             <section
-              key={Exercise.toKey(e)}
+              key={Exercise_toKey(e)}
               data-cy={`menu-item-${e.id}`}
               className={`w-full py-1 pl-4 pr-2 text-left border-b border-border-neutral ${isSelected ? "bg-background-purpledark" : ""}`}
               onClick={() => {}}
@@ -215,7 +223,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
                       lb<IExercisePickerState>()
                         .p("screenStack")
                         .recordModify((stack) => [...stack, "customExercise"]),
-                      lb<IExercisePickerState>().p("editCustomExercise").record(ObjectUtils.clone(e)),
+                      lb<IExercisePickerState>().p("editCustomExercise").record(ObjectUtils_clone(e)),
                     ],
                     `Navigate to edit custom exercise screen for ${e.name}`
                   );
@@ -239,13 +247,13 @@ interface IBuiltinExercisesProps {
 }
 
 function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
-  let exercises = Exercise.allExpanded({});
+  let exercises = Exercise_allExpanded({});
   if (props.state.search) {
-    exercises = Exercise.filterExercises(exercises, props.state.search);
+    exercises = Exercise_filterExercises(exercises, props.state.search);
   }
   exercises = ExercisePickerUtils.filterExercises(exercises, props.state.filters, props.settings);
   if (props.state.filters.isStarred) {
-    exercises = exercises.filter((e) => props.settings.starredExercises?.[Exercise.toKey(e)]);
+    exercises = exercises.filter((e) => props.settings.starredExercises?.[Exercise_toKey(e)]);
   }
   exercises = ExercisePickerUtils.sortExercises(exercises, props.settings, props.state);
   return (
@@ -253,18 +261,18 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
       <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4">
         {exercises.map((e) => {
           const isMultiselect = ExercisePickerUtils.getIsMultiselect(props.state);
-          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise.eq(et, e));
+          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, e));
           const isSelectedAlready = props.state.selectedExercises.some(
-            (ex) => "exerciseType" in ex && Exercise.eq(ex.exerciseType, e)
+            (ex) => "exerciseType" in ex && Exercise_eq(ex.exerciseType, e)
           );
           const isSelected = props.state.selectedExercises.some(
-            (ex) => ex.type === "adhoc" && Exercise.eq(ex.exerciseType, e)
+            (ex) => ex.type === "adhoc" && Exercise_eq(ex.exerciseType, e)
           );
           return (
             <section
-              key={Exercise.toKey(e)}
-              data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
-                e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
+              key={Exercise_toKey(e)}
+              data-cy={`menu-item-${StringUtils_dashcase(e.name)}${
+                e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""
               }`}
               className={`w-full py-1 pl-4 pr-2 text-left border-b border-border-neutral ${isSelected ? "bg-background-purpledark" : ""}`}
               onClick={() => {}}

@@ -1,8 +1,8 @@
 import "mocha";
 import { expect } from "chai";
-import { History } from "../src/models/history";
+import { History_getMaxWeightSetFromEntry } from "../src/models/history";
 import { IHistoryEntry } from "../src/types";
-import { UidFactory } from "../src/utils/generator";
+import { UidFactory_generateUid } from "../src/utils/generator";
 
 describe("History", () => {
   describe(".getMaxSet()", () => {
@@ -14,7 +14,7 @@ describe("History", () => {
         sets: [
           {
             vtype: "set",
-            id: UidFactory.generateUid(6),
+            id: UidFactory_generateUid(6),
             index: 0,
             reps: 10,
             completedReps: 10,
@@ -24,7 +24,7 @@ describe("History", () => {
           },
           {
             vtype: "set",
-            id: UidFactory.generateUid(6),
+            id: UidFactory_generateUid(6),
             index: 1,
             reps: 5,
             completedReps: 5,
@@ -35,7 +35,7 @@ describe("History", () => {
           {
             vtype: "set",
             index: 2,
-            id: UidFactory.generateUid(6),
+            id: UidFactory_generateUid(6),
             reps: 5,
             completedReps: 6,
             isAmrap: true,
@@ -46,7 +46,7 @@ describe("History", () => {
         ],
         warmupSets: [],
       };
-      const maxSet = History.getMaxWeightSetFromEntry(entry);
+      const maxSet = History_getMaxWeightSetFromEntry(entry);
       expect(maxSet?.weight?.value).to.eql(50);
       expect(maxSet?.completedReps).to.eql(6);
     });

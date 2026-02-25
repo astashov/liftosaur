@@ -1,15 +1,15 @@
-import { Exercise } from "../models/exercise";
-import { ExerciseImageUtils } from "../models/exerciseImage";
-import { Program } from "../models/program";
-import { ProgramExercise } from "../models/programExercise";
-import { Progress } from "../models/progress";
-import { ISetsStatus, Reps } from "../models/set";
-import { Weight } from "../models/weight";
+import { Exercise_get, Exercise_getIsUnilateral, Exercise_fullName } from "../models/exercise";
+import { ExerciseImageUtils_url } from "../models/exerciseImage";
+import { Program_evaluate, Program_getProgramExercise } from "../models/program";
+import { ProgramExercise_hasUserPromptedVars } from "../models/programExercise";
+import { Progress_shouldShowAmrapModal, Progress_getNextEntry } from "../models/progress";
+import { ISetsStatus, Reps_setsStatus, Reps_findNextSetIndex } from "../models/set";
+import { Weight_calculatePlates, Weight_print, Weight_formatOneSide } from "../models/weight";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { n } from "./math";
-import { SendMessage } from "./sendMessage";
-import { Subscriptions } from "./subscriptions";
+import { SendMessage_print, SendMessage_toIosAndAndroid } from "./sendMessage";
+import { Subscriptions_hasSubscription } from "./subscriptions";
 import { UrlUtils } from "./url";
 
 declare const __HOST__: string;
@@ -66,7 +66,7 @@ export class LiveActivityManager {
     if (!entry) {
       return undefined;
     }
-    const exercise = Exercise.get(entry.exercise, settings.exercises);
+    const exercise = Exercise_get(entry.exercise, settings.exercises);
     const allSets = [...entry.warmupSets, ...entry.sets];
     const set = allSets[setIndex];
     if (setIndex === -1 || !set) {
@@ -75,14 +75,14 @@ export class LiveActivityManager {
     const isNextSetWarmup = setIndex < entry.warmupSets.length;
     const weightForPlates = set.completedWeight ?? set.weight;
     const plates = weightForPlates
-      ? Weight.calculatePlates(weightForPlates, settings, weightForPlates.unit || settings.units, entry.exercise)
+      ? Weight_calculatePlates(weightForPlates, settings, weightForPlates.unit || settings.units, entry.exercise)
       : undefined;
-    let exerciseImageUrl = ExerciseImageUtils.url(exercise, "small", settings);
+    let exerciseImageUrl = ExerciseImageUtils_url(exercise, "small", settings);
     if (exerciseImageUrl) {
       exerciseImageUrl = UrlUtils.build(exerciseImageUrl, __HOST__)?.toString();
     }
-    const hasUserPromptedVars = !!(programExercise && ProgramExercise.hasUserPromptedVars(programExercise));
-    const canCompleteFromLiveActivity = !Progress.shouldShowAmrapModal(
+    const hasUserPromptedVars = !!(programExercise && ProgramExercise_hasUserPromptedVars(programExercise));
+    const canCompleteFromLiveActivity = !Progress_shouldShowAmrapModal(
       entry,
       isNextSetWarmup ? setIndex : setIndex - entry.warmupSets.length,
       isNextSetWarmup ? "warmup" : "workout",
@@ -90,32 +90,32 @@ export class LiveActivityManager {
       settings
     );
 
-    const isUnilateral = Exercise.getIsUnilateral(entry.exercise, settings);
+    const isUnilateral = Exercise_getIsUnilateral(entry.exercise, settings);
     const currentReps =
       isUnilateral && set.completedRepsLeft != null
         ? `${set.completedRepsLeft}/${set.completedReps ?? set.reps ?? 0}`
         : (set.completedReps ?? set.reps);
     const currentWeight = set.completedWeight ?? set.weight;
     const state: ILiveActivityEntry = {
-      exerciseName: Exercise.fullName(exercise, settings),
+      exerciseName: Exercise_fullName(exercise, settings),
       exerciseImageUrl,
       currentSet: setIndex + 1,
       totalSets: allSets.length,
       entryIndex: progress.entries.indexOf(entry),
       setIndex,
       completedSets: allSets.map((s, i) => ({
-        status: Reps.setsStatus([s]),
+        status: Reps_setsStatus([s]),
         isWarmup: i < entry.warmupSets.length,
       })),
       targetReps: set.reps ? `${n(set.reps)}${set.isAmrap ? "+" : ""}` : undefined,
-      targetWeight: set.weight ? `${Weight.print(set.weight)}${set.askWeight ? "+" : ""}` : undefined,
+      targetWeight: set.weight ? `${Weight_print(set.weight)}${set.askWeight ? "+" : ""}` : undefined,
       targetRPE: set.rpe != null ? `${n(set.rpe)}${set.logRpe ? "+" : ""}` : undefined,
       targetTimer: set.timer != null ? set.timer.toString() : undefined,
       plates:
         (plates?.plates || []).length > 0
-          ? Weight.formatOneSide(settings, plates?.plates || [], entry.exercise)
+          ? Weight_formatOneSide(settings, plates?.plates || [], entry.exercise)
           : "None",
-      currentWeight: currentWeight != null ? Weight.print(currentWeight) : undefined,
+      currentWeight: currentWeight != null ? Weight_print(currentWeight) : undefined,
       currentReps: currentReps != null ? currentReps.toString() : undefined,
       isWarmup: isNextSetWarmup,
       canCompleteFromLiveActivity,
@@ -134,10 +134,10 @@ export class LiveActivityManager {
     restTimerSince: number | undefined
   ): void {
     const entry = entryIndex != null ? progress.entries[entryIndex] : undefined;
-    const evaluatedProgram = program ? Program.evaluate(program, settings) : undefined;
+    const evaluatedProgram = program ? Program_evaluate(program, settings) : undefined;
     const programExercise =
       evaluatedProgram && entry
-        ? Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+        ? Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
         : undefined;
     LiveActivityManager.updateLiveActivity(
       progress,
@@ -161,7 +161,7 @@ export class LiveActivityManager {
     settings: ISettings,
     subscription?: ISubscription
   ): void {
-    if (!subscription || !Subscriptions.hasSubscription(subscription)) {
+    if (!subscription || !Subscriptions_hasSubscription(subscription)) {
       return;
     }
     const liveActivityEntry = this.getLiveActivityEntry(progress, entryIndex, setIndex, programExercise, settings);
@@ -177,10 +177,10 @@ export class LiveActivityManager {
           : undefined,
       ignoreDoNotDisturb: !!settings.ignoreDoNotDisturb,
     };
-    SendMessage.print(
+    SendMessage_print(
       `Main App: Updating live activity for ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex})`
     );
-    SendMessage.toIosAndAndroid({ type: "updateLiveActivity", data: JSON.stringify(attributes) });
+    SendMessage_toIosAndAndroid({ type: "updateLiveActivity", data: JSON.stringify(attributes) });
   }
 
   public static updateLiveActivityForNextEntry(
@@ -195,9 +195,9 @@ export class LiveActivityManager {
     if (!currentEntry) {
       return;
     }
-    const nextEntry = Progress.getNextEntry(progress, currentEntry, mode, true);
+    const nextEntry = Progress_getNextEntry(progress, currentEntry, mode, true);
     const nextEntryIndex = nextEntry ? progress.entries.indexOf(nextEntry) : undefined;
-    const nextSetIndex = nextEntry ? Reps.findNextSetIndex(nextEntry) : undefined;
+    const nextSetIndex = nextEntry ? Reps_findNextSetIndex(nextEntry) : undefined;
     this.updateLiveActivity(
       progress,
       nextEntryIndex,

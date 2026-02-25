@@ -3,12 +3,24 @@ import { useRef, useState, useEffect } from "preact/hooks";
 import { ExerciseImage } from "../../components/exerciseImage";
 import { ExerciseItem } from "../../components/modalExercise";
 import { Multiselect } from "../../components/multiselect";
-import { equipmentName, Exercise, IExercise } from "../../models/exercise";
-import { Settings } from "../../models/settings";
+import {
+  equipmentName,
+  IExercise,
+  Exercise_toUrlSlug,
+  Exercise_get,
+  Exercise_reverseName,
+  Exercise_toKey,
+  Exercise_filterExercisesByNameAndType,
+  Exercise_targetMusclesGroups,
+  Exercise_synergistMusclesGroups,
+  Exercise_targetMuscles,
+  Exercise_synergistMuscles,
+} from "../../models/exercise";
+import { Settings_build } from "../../models/settings";
 import { equipments, exerciseKinds, IExerciseType, IMuscle } from "../../types";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_capitalize } from "../../utils/string";
 import { muscleDescriptions } from "../../models/muscleDescriptions";
-import { Muscle } from "../../models/muscle";
+import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName, Muscle_imageUrl } from "../../models/muscle";
 import { exerciseDescriptions } from "../../models/exerciseDescriptions";
 import { Markdown } from "../../components/markdown";
 import { forwardRef } from "preact/compat";
@@ -30,7 +42,7 @@ export interface IExerciseContentProps {
 }
 
 export function buildExerciseUrl(exerciseType: IExerciseType, filterTypes: string[]): string {
-  const url = UrlUtils.build(`/exercises/${Exercise.toUrlSlug(exerciseType)}`, "https://www.liftosaur.com");
+  const url = UrlUtils.build(`/exercises/${Exercise_toUrlSlug(exerciseType)}`, "https://www.liftosaur.com");
   const filterTypesParam = filterTypes.join(",");
   if (filterTypesParam) {
     url.searchParams.set("filtertypes", filterTypes.join(",").toLowerCase());
@@ -45,8 +57,8 @@ export function ExerciseContent(props: IExerciseContentProps): JSX.Element {
   const [filterTypes, setFilterTypes] = useState<string[]>(props.filterTypes);
   const [isMusclesOpen, setIsMusclesOpen] = useState(false);
   const [isExercisesOpen, setIsExercisesOpen] = useState(false);
-  const exercise = Exercise.get(exerciseType, {});
-  const name = Exercise.reverseName(exercise);
+  const exercise = Exercise_get(exerciseType, {});
+  const name = Exercise_reverseName(exercise);
   const column1Ref = useRef<HTMLDivElement>(null);
   const column2Ref = useRef<HTMLDivElement>(null);
   const column3Ref = useRef<HTMLDivElement>(null);
@@ -182,7 +194,7 @@ interface IExerciseDescriptionProps {
 }
 
 function ExerciseDescription(props: IExerciseDescriptionProps): JSX.Element {
-  const key = Exercise.toKey(props.exerciseType).toLowerCase();
+  const key = Exercise_toKey(props.exerciseType).toLowerCase();
   const content = exerciseDescriptions[key]?.content;
   const video = exerciseDescriptions[key]?.video;
   if (!content) {
@@ -239,8 +251,8 @@ const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivEl
   const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>("");
   const [length, setLength] = useState<number | undefined>(20);
-  const settings = Settings.build();
-  const exercises = Exercise.filterExercisesByNameAndType(
+  const settings = Settings_build();
+  const exercises = Exercise_filterExercisesByNameAndType(
     settings,
     filter,
     filterTypes,
@@ -254,8 +266,8 @@ const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivEl
 
   const filterOptions = [
     ...equipments.map((e) => equipmentName(e)),
-    ...exerciseKinds.map(StringUtils.capitalize),
-    ...Muscle.getAvailableMuscleGroups(settings).map((mg) => Muscle.getMuscleGroupName(mg, settings)),
+    ...exerciseKinds.map(StringUtils_capitalize),
+    ...Muscle_getAvailableMuscleGroups(settings).map((mg) => Muscle_getMuscleGroupName(mg, settings)),
   ];
 
   const selectedOptions = new Set(
@@ -311,8 +323,8 @@ const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivEl
 
       <div ref={props.insideModal ? undefined : ref} className={`${props.insideModal ? "" : "h-0"} overflow-y-auto`}>
         {exercises.map((exercise) => {
-          const key = Exercise.toKey(exercise);
-          const currentKey = Exercise.toKey(props.exercise);
+          const key = Exercise_toKey(exercise);
+          const currentKey = Exercise_toKey(props.exercise);
           return (
             <a
               href={buildExerciseUrl(exercise, filterTypes)}
@@ -378,19 +390,19 @@ export interface IMuscleGroupsProps {
 }
 
 function MuscleGroups(props: IMuscleGroupsProps): JSX.Element {
-  const settings = Settings.build();
-  const exercise = Exercise.get(props.exerciseType, {});
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((m) =>
-    Muscle.getMuscleGroupName(m, settings)
+  const settings = Settings_build();
+  const exercise = Exercise_get(props.exerciseType, {});
+  const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings).map((m) =>
+    Muscle_getMuscleGroupName(m, settings)
   );
-  const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings)
-    .map((m) => Muscle.getMuscleGroupName(m, settings))
+  const synergistMuscleGroups = Exercise_synergistMusclesGroups(exercise, settings)
+    .map((m) => Muscle_getMuscleGroupName(m, settings))
     .filter((m) => targetMuscleGroups.indexOf(m) === -1);
-  const targetMuscles = Exercise.targetMuscles(exercise, settings);
-  const synergistMuscles = Exercise.synergistMuscles(exercise, settings).filter((m) => targetMuscles.indexOf(m) === -1);
+  const targetMuscles = Exercise_targetMuscles(exercise, settings);
+  const synergistMuscles = Exercise_synergistMuscles(exercise, settings).filter((m) => targetMuscles.indexOf(m) === -1);
   const [selectedMuscle, setSelectedMuscle] = useState<[IMuscle, boolean] | undefined>(undefined);
 
-  const types = exercise.types.map((t) => StringUtils.capitalize(t));
+  const types = exercise.types.map((t) => StringUtils_capitalize(t));
 
   return (
     <div className="pb-8">
@@ -496,7 +508,7 @@ function MuscleDescription(props: { muscle: IMuscle; insideModal: boolean }): JS
     <div className="px-2 py-4 pr-4" style={{ width: props.insideModal ? "100%" : "560px" }}>
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="w-full text-center sm:w-48" style={{ minHeight: "8rem" }}>
-          <img src={Muscle.imageUrl(props.muscle)} className="inline-block w-32 sm:w-full" />
+          <img src={Muscle_imageUrl(props.muscle)} className="inline-block w-32 sm:w-full" />
         </div>
         <div className="flex-1 text-left">
           <div className="font-bold">{props.muscle}</div>

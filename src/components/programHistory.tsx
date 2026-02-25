@@ -4,22 +4,22 @@ import { IProgram, IHistoryRecord, ISettings, ISubscription } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
 import { Surface } from "./surface";
 import { Footer2View } from "./footer2";
-import { DateUtils } from "../utils/date";
+import { DateUtils_firstDayOfWeekTimestamp } from "../utils/date";
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { HistoryRecordsList } from "./historyRecordsList";
-import { History } from "../models/history";
-import { Screen } from "../models/screen";
+import { History_getHistoryRecordsForTimerange, History_getPersonalRecords } from "../models/history";
+import { Screen_current } from "../models/screen";
 import { WeekInsights } from "./weekInsights";
 import { ModalPlannerSettings } from "../pages/planner/components/modalPlannerSettings";
 import { lb } from "lens-shmens";
 import { WeekCalendar } from "./weekCalendar";
 import { BottomSheetMonthCalendar } from "./bottomSheetMonthCalendar";
 import { HistoryRecordsNullState } from "./historyRecordsNullState";
-import { CollectionUtils } from "../utils/collection";
-import { ObjectUtils } from "../utils/object";
-import { Progress } from "../models/progress";
+import { CollectionUtils_sort } from "../utils/collection";
+import { ObjectUtils_keys } from "../utils/object";
+import { Progress_isCurrent } from "../models/progress";
 import { useGradualList } from "../utils/useGradualList";
-import { Program } from "../models/program";
+import { Program_nextHistoryRecord } from "../models/program";
 import { BottomSheetOrModalMuscleGroupsContent } from "./bottomSheetOrModalMuscleGroupsContent";
 
 interface IProps {
@@ -43,8 +43,8 @@ function getWeeksData(history: IHistoryRecord[], startWeekFromMonday?: boolean):
   const historyRecordDateToFirstDayOfWeek: Partial<Record<number, number>> = {};
   const firstDayOfWeekToHistoryRecord: Partial<Record<number, IHistoryRecord>> = {};
   for (const record of history) {
-    if (!Progress.isCurrent(record)) {
-      const firstDayOfWeek = DateUtils.firstDayOfWeekTimestamp(record.id, startWeekFromMonday);
+    if (!Progress_isCurrent(record)) {
+      const firstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(record.id, startWeekFromMonday);
       if (firstDayOfWeekToHistoryRecord[firstDayOfWeek] == null) {
         firstDayOfWeekToHistoryRecord[firstDayOfWeek] = record;
       }
@@ -54,10 +54,10 @@ function getWeeksData(history: IHistoryRecord[], startWeekFromMonday?: boolean):
   }
   if (firstDayOfWeeksSet.size === 0) {
     const today = new Date();
-    const firstDayOfWeek = DateUtils.firstDayOfWeekTimestamp(today.getTime(), startWeekFromMonday);
+    const firstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(today.getTime(), startWeekFromMonday);
     firstDayOfWeeksSet.add(firstDayOfWeek);
   }
-  const firstDayOfWeeks = CollectionUtils.sort(Array.from(firstDayOfWeeksSet));
+  const firstDayOfWeeks = CollectionUtils_sort(Array.from(firstDayOfWeeksSet));
   return {
     firstDayOfWeeks,
     historyRecordDateToFirstDayOfWeek,
@@ -70,25 +70,25 @@ export function getWeekHistory(
   firstDayOfWeek: number,
   startWeekFromMonday?: boolean
 ): IHistoryRecord[] {
-  return History.getHistoryRecordsForTimerange(history, firstDayOfWeek, "week", startWeekFromMonday);
+  return History_getHistoryRecordsForTimerange(history, firstDayOfWeek, "week", startWeekFromMonday);
 }
 
 export function ProgramHistoryView(props: IProps): JSX.Element {
   const dispatch = props.dispatch;
   const sortedHistory = useMemo(() => {
-    const history = CollectionUtils.sort(props.history, (a, b) => {
+    const history = CollectionUtils_sort(props.history, (a, b) => {
       return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
     });
     if (props.progress) {
       history.unshift(props.progress);
     } else if (props.program && history.length > 0) {
-      const nextHistoryRecord = Program.nextHistoryRecord(props.program, props.settings, props.navCommon.stats);
+      const nextHistoryRecord = Program_nextHistoryRecord(props.program, props.settings, props.navCommon.stats);
       history.unshift(nextHistoryRecord);
     }
     return history;
   }, [props.history, props.progress, props.program, props.settings]);
   const surfaceRef = useRef<HTMLElement>(null);
-  const screenData = Screen.current(props.navCommon.screenStack);
+  const screenData = Screen_current(props.navCommon.screenStack);
   const initialHistoryRecordId = screenData.name === "main" ? screenData.params?.historyRecordId : undefined;
   let initialShift =
     initialHistoryRecordId != null ? sortedHistory.findIndex((record) => record.id === initialHistoryRecordId) : -1;
@@ -117,7 +117,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const historyRecordsListRef = useRef<HTMLDivElement>(null);
   const [selectedWeekCalendarFirstDayOfWeek, setSelectedWeekCalendarFirstDayOfWeek] = useState(selectedFirstDayOfWeek);
 
-  const prs = History.getPersonalRecords(props.history);
+  const prs = History_getPersonalRecords(props.history);
   const thisWeekHistory = getWeekHistory(sortedHistory, selectedFirstDayOfWeek, props.settings.startWeekFromMonday);
   const lastWeekHistory = getWeekHistory(sortedHistory, previousWeekFirstDay, props.settings.startWeekFromMonday);
   const loadingItems = props.navCommon.loading.items;
@@ -143,7 +143,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       return memo;
     }, {});
     function scrollHandler(e: Event): void {
-      for (const scrollPos of ObjectUtils.keys(scrollPosToFirstDayOfWeek)) {
+      for (const scrollPos of ObjectUtils_keys(scrollPosToFirstDayOfWeek)) {
         if (scrollPos >= window.scrollY) {
           const firstDayOfWeek = scrollPosToFirstDayOfWeek[scrollPos];
           if (firstDayOfWeek != null && firstDayOfWeek !== selectedFirstDayOfWeekRef.current) {
@@ -282,7 +282,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
               history={visibleHistory}
               firstDayOfWeeks={firstDayOfWeeks}
               prs={prs}
-              isOngoing={!!(props.progress && Progress.isCurrent(props.progress))}
+              isOngoing={!!(props.progress && Progress_isCurrent(props.progress))}
               program={props.program}
               subscription={props.subscription}
               settings={props.settings}

@@ -1,13 +1,13 @@
 import { getRawHandler } from "../../lambda";
 import { getInitialState, IAction } from "../../src/ducks/reducer";
-import { Thunk } from "../../src/ducks/thunks";
+import { Thunk_fetchInitial, Thunk_sync2 } from "../../src/ducks/thunks";
 import { IDispatch, IThunk } from "../../src/ducks/types";
 import { MockAudioInterface } from "../../src/lib/audioInterface";
-import { EditStats } from "../../src/models/editStats";
+import { EditStats_addWeightStats } from "../../src/models/editStats";
 import { Service } from "../../src/api/service";
-import { Program } from "../../src/models/program";
-import { Storage } from "../../src/models/storage";
-import { Settings } from "../../src/models/settings";
+import { Program_evaluate, Program_getProgramExercise, Program_cloneProgram } from "../../src/models/program";
+import { Storage_getDefault } from "../../src/models/storage";
+import { Settings_build } from "../../src/models/settings";
 import { IEnv, IState } from "../../src/models/state";
 import { basicBeginnerProgram } from "../../src/programs/basicBeginnerProgram";
 import { IProgram, IHistoryRecord } from "../../src/types";
@@ -18,7 +18,7 @@ import { IMockFetchLog, MockFetch } from "./mockFetch";
 import { MockLogUtil } from "./mockLogUtil";
 import { MockReducer } from "./mockReducer";
 import { lb } from "lens-shmens";
-import { Progress } from "../../src/models/progress";
+import { Progress_getProgress } from "../../src/models/progress";
 
 export class SyncTestUtils {
   public static mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
@@ -47,14 +47,14 @@ export class SyncTestUtils {
     reps: number[][]
   ): Promise<void> {
     await this.startWorkout(mockReducer);
-    await mockReducer.run([...this.completeRepsActions(program, Progress.getProgress(mockReducer.state)!, reps)]);
+    await mockReducer.run([...this.completeRepsActions(program, Progress_getProgress(mockReducer.state)!, reps)]);
     await this.finishWorkout(mockReducer);
   }
 
   public static async logStat(mockReducer: MockReducer<IState, IAction, IEnv>, bodyweight: number): Promise<void> {
     await mockReducer.run([
       this.mockDispatch((ds) =>
-        EditStats.addWeightStats(ds, {
+        EditStats_addWeightStats(ds, {
           weight: { value: bodyweight, unit: "kg" },
         })
       ),
@@ -63,7 +63,7 @@ export class SyncTestUtils {
 
   public static completeCurrentProgramRepsActions(state: IState, reps: (number | undefined)[][]): IAction[] {
     const program = state.storage.programs.find((p) => p.id === state.storage.currentProgramId)!;
-    const progress = Progress.getProgress(state)!;
+    const progress = Progress_getProgress(state)!;
     return this.completeRepsActions(program, progress, reps);
   }
 
@@ -72,7 +72,7 @@ export class SyncTestUtils {
     progress: IHistoryRecord,
     reps: (number | undefined)[][]
   ): IAction[] {
-    const evaluatedProgram = Program.evaluate(program, Settings.build());
+    const evaluatedProgram = Program_evaluate(program, Settings_build());
     const setActions: IAction[] = [];
     for (let entryIndex = 0; entryIndex < reps.length; entryIndex += 1) {
       const entrySets = reps[entryIndex];
@@ -83,7 +83,7 @@ export class SyncTestUtils {
         }
         const entry = progress.entries[entryIndex];
         const set = entry.sets[setIndex];
-        const programExercise = Program.getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId);
+        const programExercise = Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId);
         if (set.isAmrap) {
           setActions.push({
             type: "CompleteSetAction",
@@ -138,7 +138,7 @@ export class SyncTestUtils {
     mockReducer: MockReducer<IState, IAction, IEnv>;
     env: IEnv;
   }> {
-    const aStorage = { ...Storage.getDefault(), email: "admin@example.com" };
+    const aStorage = { ...Storage_getDefault(), email: "admin@example.com" };
     const log = new MockLogUtil();
     const fetchLogs: IMockFetchLog[] = [];
     const mockFetch = new MockFetch(aStorage.tempUserId, fetchLogs);
@@ -162,10 +162,10 @@ export class SyncTestUtils {
     const url = UrlUtils.build("https://www.liftosaur.com");
     const initialState = await getInitialState(fetch, { url, storage: aStorage, deviceId });
     const mockReducer = MockReducer.build(initialState, env);
-    await mockReducer.run([Thunk.fetchInitial(), Thunk.sync2({ force: true })]);
+    await mockReducer.run([Thunk_fetchInitial(), Thunk_sync2({ force: true })]);
 
     await mockReducer.run([
-      this.mockDispatch((ds) => Program.cloneProgram(ds, basicBeginnerProgram, initialState.storage.settings)),
+      this.mockDispatch((ds) => Program_cloneProgram(ds, basicBeginnerProgram, initialState.storage.settings)),
     ]);
     return { di, mockFetch, log, mockReducer, env };
   }

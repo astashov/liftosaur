@@ -1,4 +1,4 @@
-import { ISetsStatus, Reps } from "../models/set";
+import { ISetsStatus, Reps_isFinished, Reps_isCompleted, Reps_isInRangeCompleted } from "../models/set";
 import { ISet } from "../types";
 import { Tailwind } from "./tailwindConfig";
 
@@ -7,13 +7,13 @@ export class WorkoutExerciseUtils {
     if (sets.length === 0) {
       return "purple";
     }
-    if (Reps.isFinished(sets)) {
+    if (Reps_isFinished(sets)) {
       if (isWarmup) {
         return "green";
       } else {
-        if (Reps.isCompleted(sets)) {
+        if (Reps_isCompleted(sets)) {
           return "green";
-        } else if (Reps.isInRangeCompleted(sets)) {
+        } else if (Reps_isInRangeCompleted(sets)) {
           return "yellow";
         } else {
           return "red";

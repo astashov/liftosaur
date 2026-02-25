@@ -7,7 +7,7 @@ import { SetNumber } from "./editProgramSets";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { ExerciseImage } from "../exerciseImage";
-import { equipmentName, Exercise, IExercise } from "../../models/exercise";
+import { equipmentName, IExercise, Exercise_findByName } from "../../models/exercise";
 import { IconEdit2 } from "../icons/iconEdit2";
 import { lb } from "lens-shmens";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
@@ -17,10 +17,14 @@ import { IconTrash } from "../icons/iconTrash";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { IconGraphsE } from "../icons/iconGraphsE";
 import { IconSwap } from "../icons/iconSwap";
-import { Thunk } from "../../ducks/thunks";
+import { Thunk_pushToEditProgramExercise } from "../../ducks/thunks";
 import { IDispatch } from "../../ducks/types";
 import { EditProgramUiProgress } from "./editProgramUiProgress";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import {
+  IEvaluatedProgram,
+  Program_getNumberOfExerciseInstances,
+  Program_getSupersetExercises,
+} from "../../models/program";
 import { EditProgramUiUpdate } from "./editProgramUiUpdate";
 import { EditProgramUiExerciseSetVariations } from "./editProgramUiExerciseSetVariations";
 import { EditProgramUiExerciseDescriptions } from "./editProgramUiExerciseDescriptions";
@@ -44,7 +48,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
   const isCollapsed = props.ui.exerciseUi.collapsed.has(
     `${props.plannerExercise.key}-${props.plannerExercise.dayData.week - 1}-${props.plannerExercise.dayData.dayInWeek - 1}`
   );
-  const exercise = Exercise.findByName(props.plannerExercise.name, props.settings.exercises);
+  const exercise = Exercise_findByName(props.plannerExercise.name, props.settings.exercises);
 
   const repeatStr = PlannerProgramExercise.repeatToRangeStr(props.plannerExercise);
   const order = props.plannerExercise.order !== 0 ? props.plannerExercise.order : undefined;
@@ -90,7 +94,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
             className="p-2"
             data-cy="edit-exercise-swap"
             onClick={() => {
-              const numberOfExerciseInstances = Program.getNumberOfExerciseInstances(
+              const numberOfExerciseInstances = Program_getNumberOfExerciseInstances(
                 props.evaluatedProgram,
                 props.plannerExercise.key
               );
@@ -211,7 +215,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
   const reusingSets = plannerExercise.reuse?.fullName;
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const supersetGroup = props.plannerExercise.superset?.name;
-  const supersetExercises = Program.getSupersetExercises(props.evaluatedProgram, props.plannerExercise);
+  const supersetExercises = Program_getSupersetExercises(props.evaluatedProgram, props.plannerExercise);
 
   return (
     <div>
@@ -306,7 +310,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                   "Focus on exercise day"
                 );
                 props.dispatch(
-                  Thunk.pushToEditProgramExercise(props.plannerExercise.key, props.plannerExercise.dayData)
+                  Thunk_pushToEditProgramExercise(props.plannerExercise.key, props.plannerExercise.dayData)
                 );
               }}
             >

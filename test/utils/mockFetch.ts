@@ -1,6 +1,6 @@
 import { APIGatewayProxyEventHeaders, APIGatewayProxyEvent } from "aws-lambda";
 import { IHandler } from "../../lambda";
-import { ObjectUtils } from "../../src/utils/object";
+import { ObjectUtils_keys } from "../../src/utils/object";
 import { UrlUtils } from "../../src/utils/url";
 import JWT from "jsonwebtoken";
 import { NoRetryError } from "../../src/ducks/thunks";
@@ -125,7 +125,7 @@ class MockHeaders implements Headers {
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public forEach(callbackfn: (value: string, key: string, parent: Headers) => void, thisArg?: any): void {
-    for (const key of ObjectUtils.keys(this.headers)) {
+    for (const key of ObjectUtils_keys(this.headers)) {
       const value = this.headers[key];
       callbackfn(value, key, this);
     }

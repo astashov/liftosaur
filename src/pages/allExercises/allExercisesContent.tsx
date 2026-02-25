@@ -2,12 +2,12 @@ import { h, JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { ExerciseItem } from "../../components/modalExercise";
 import { Multiselect } from "../../components/multiselect";
-import { equipmentName, Exercise } from "../../models/exercise";
-import { Settings } from "../../models/settings";
+import { equipmentName, Exercise_filterExercisesByNameAndType, Exercise_toKey } from "../../models/exercise";
+import { Settings_build } from "../../models/settings";
 import { equipments, exerciseKinds } from "../../types";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_capitalize } from "../../utils/string";
 import { buildExerciseUrl } from "../exercise/exerciseContent";
-import { Muscle } from "../../models/muscle";
+import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "../../models/muscle";
 
 export interface IAllExercisesContentProps {
   client: Window["fetch"];
@@ -17,12 +17,12 @@ export function AllExercisesContent(props: IAllExercisesContentProps): JSX.Eleme
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
   const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>("");
-  const settings = Settings.build();
-  const exercises = Exercise.filterExercisesByNameAndType(settings, filter, filterTypes, false);
+  const settings = Settings_build();
+  const exercises = Exercise_filterExercisesByNameAndType(settings, filter, filterTypes, false);
   const filterOptions = [
     ...equipments.map((e) => equipmentName(e)),
-    ...exerciseKinds.map(StringUtils.capitalize),
-    ...Muscle.getAvailableMuscleGroups(settings).map((mg) => Muscle.getMuscleGroupName(mg, settings)),
+    ...exerciseKinds.map(StringUtils_capitalize),
+    ...Muscle_getAvailableMuscleGroups(settings).map((mg) => Muscle_getMuscleGroupName(mg, settings)),
   ];
 
   return (
@@ -51,7 +51,7 @@ export function AllExercisesContent(props: IAllExercisesContentProps): JSX.Eleme
 
       <div>
         {exercises.map((exercise) => {
-          const key = Exercise.toKey(exercise);
+          const key = Exercise_toKey(exercise);
           return (
             <a
               href={buildExerciseUrl(exercise, filterTypes)}

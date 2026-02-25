@@ -3,20 +3,20 @@ import { IPlannerProgramExercise, IPlannerExerciseState } from "../../pages/plan
 import { IPercentage, IPlannerProgram, ISettings, IWeight } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
-import { Exercise } from "../../models/exercise";
+import { Exercise_findByName } from "../../models/exercise";
 import { lb } from "lens-shmens";
 import { LinkButton } from "../linkButton";
 import { HistoryRecordSet } from "../historyRecordSets";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_clone } from "../../utils/object";
 import { SwipeableRow } from "../swipeableRow";
-import { Mobile } from "../../../lambda/utils/mobile";
+import { Mobile_isMobileFromWindow, Mobile_isPlaywrightFromWindow } from "../../../lambda/utils/mobile";
 import { InputNumber2 } from "../inputNumber2";
 import { InputWeight2 } from "../inputWeight2";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { Tailwind } from "../../utils/tailwindConfig";
-import { Weight } from "../../models/weight";
-import { CollectionUtils } from "../../utils/collection";
+import { Weight_buildPct } from "../../models/weight";
+import { CollectionUtils_removeAt } from "../../utils/collection";
 
 interface IEditProgramExerciseWarmupsProps {
   plannerExercise: IPlannerProgramExercise;
@@ -67,14 +67,14 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
     ? PlannerProgramExercise.degroupWarmupSets(plannerExercise.warmupSets)
     : undefined;
   const reuseWarmups = plannerExercise.reuse?.exercise?.warmupSets;
-  const exercise = Exercise.findByName(plannerExercise.name, props.settings.exercises);
+  const exercise = Exercise_findByName(plannerExercise.name, props.settings.exercises);
   const defaultWarmups = exercise ? PlannerProgramExercise.defaultWarmups(exercise, props.settings) : [];
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const displayWarmupSets = PlannerProgramExercise.warmupSetsToDisplaySets(
     ownWarmups || reuseWarmups || defaultWarmups
   );
-  const isMobile = Mobile.isMobileFromWindow();
-  const isPlaywright = Mobile.isPlaywrightFromWindow();
+  const isMobile = Mobile_isMobileFromWindow();
+  const isPlaywright = Mobile_isPlaywrightFromWindow();
   const shouldUseTouch = isMobile && !isPlaywright;
 
   return (
@@ -96,7 +96,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                       props.settings,
                       true,
                       (e) => {
-                        e.warmupSets = ObjectUtils.clone(reuseWarmups) || defaultWarmups;
+                        e.warmupSets = ObjectUtils_clone(reuseWarmups) || defaultWarmups;
                       }
                     );
                   } else {
@@ -247,7 +247,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                               }}
                               subscription={undefined}
                               value={
-                                set.weight ? set.weight : set.percentage ? Weight.buildPct(set.percentage) : undefined
+                                set.weight ? set.weight : set.percentage ? Weight_buildPct(set.percentage) : undefined
                               }
                               max={9999}
                               min={-9999}
@@ -275,7 +275,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                                       true,
                                       (e) => {
                                         e.warmupSets = PlannerProgramExercise.degroupWarmupSets(e.warmupSets || []);
-                                        e.warmupSets = CollectionUtils.removeAt(e.warmupSets, setIndex);
+                                        e.warmupSets = CollectionUtils_removeAt(e.warmupSets, setIndex);
                                       }
                                     );
                                   }),

@@ -1,6 +1,23 @@
 import { lb } from "lens-shmens";
-import { equipmentName, Exercise, IExercise } from "../../models/exercise";
-import { Muscle } from "../../models/muscle";
+import {
+  equipmentName,
+  IExercise,
+  Exercise_targetMuscles,
+  Exercise_synergistMuscles,
+  Exercise_get,
+  Exercise_similarRating,
+  Exercise_targetMusclesGroups,
+  Exercise_eq,
+  Exercise_toKey,
+  Exercise_fromKey,
+  Exercise_fullName,
+} from "../../models/exercise";
+import {
+  Muscle_getAvailableMuscleGroups,
+  Muscle_getMusclesFromScreenMuscle,
+  Muscle_getScreenMusclesFromMuscle,
+  Muscle_getMuscleGroupName,
+} from "../../models/muscle";
 import {
   IAllCustomExercises,
   ICustomExercise,
@@ -14,33 +31,33 @@ import {
   ISettings,
   IShortDayData,
 } from "../../types";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_filter } from "../../utils/object";
 import { SetUtils } from "../../utils/setUtils";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_capitalize } from "../../utils/string";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IEvaluatedProgram } from "../../models/program";
 import { PP } from "../../models/pp";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_sort } from "../../utils/collection";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { Equipment } from "../../models/equipment";
+import { Equipment_getCurrentGym } from "../../models/equipment";
 
 export class ExercisePickerUtils {
   public static getSelectedMuscleGroupNames(selectedValues: IMuscle[], settings: ISettings): string[] {
-    const currentGroups = Muscle.getAvailableMuscleGroups(settings).filter((muscleGroup) => {
-      const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup, settings);
+    const currentGroups = Muscle_getAvailableMuscleGroups(settings).filter((muscleGroup) => {
+      const muscles = Muscle_getMusclesFromScreenMuscle(muscleGroup, settings);
       return muscles.every((muscle) => selectedValues.includes(muscle));
     });
     const currentMuscles = selectedValues.filter((muscle) => {
-      const group = Muscle.getScreenMusclesFromMuscle(muscle, settings)?.[0];
+      const group = Muscle_getScreenMusclesFromMuscle(muscle, settings)?.[0];
       return group && !currentGroups.includes(group);
     });
-    return [...currentGroups.map((g) => Muscle.getMuscleGroupName(g, settings)), ...currentMuscles];
+    return [...currentGroups.map((g) => Muscle_getMuscleGroupName(g, settings)), ...currentMuscles];
   }
 
   public static getAllFilterNames(filters: IExercisePickerFilters, settings: ISettings): string[] {
     return [
       ...(filters.equipment || []).map((f) => equipmentName(f)),
-      ...(filters.type || []).map((m) => StringUtils.capitalize(m)),
+      ...(filters.type || []).map((m) => StringUtils_capitalize(m)),
       ...ExercisePickerUtils.getSelectedMuscleGroupNames(filters.muscles || [], settings),
     ];
   }
@@ -62,7 +79,7 @@ export class ExercisePickerUtils {
     if (allFilters.length === 0 && settings.workoutSettings.shouldShowInvisibleEquipment) {
       return exercises;
     }
-    const gymEquipment = Equipment.getCurrentGym(settings).equipment;
+    const gymEquipment = Equipment_getCurrentGym(settings).equipment;
     return exercises.filter((exercise) => {
       if (!exercise) {
         return false;
@@ -86,7 +103,7 @@ export class ExercisePickerUtils {
       }
       if (musclesSet.size > 0) {
         const muscles = new Set(
-          Exercise.targetMuscles(exercise, settings).concat(Exercise.synergistMuscles(exercise, settings))
+          Exercise_targetMuscles(exercise, settings).concat(Exercise_synergistMuscles(exercise, settings))
         );
         result = result && SetUtils.containsAnyValues(muscles, musclesSet);
       }
@@ -95,14 +112,14 @@ export class ExercisePickerUtils {
   }
 
   public static getSelectedMuscleGroups(selectedValues: IMuscle[], settings: ISettings): IScreenMuscle[] {
-    return Muscle.getAvailableMuscleGroups(settings).filter((muscleGroup) => {
-      const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup, settings);
+    return Muscle_getAvailableMuscleGroups(settings).filter((muscleGroup) => {
+      const muscles = Muscle_getMusclesFromScreenMuscle(muscleGroup, settings);
       return muscles.every((muscle) => selectedValues.includes(muscle));
     });
   }
 
   public static sortExercises(exercises: IExercise[], settings: ISettings, state: IExercisePickerState): IExercise[] {
-    return CollectionUtils.sort(exercises, (a, b) => {
+    return CollectionUtils_sort(exercises, (a, b) => {
       return ExercisePickerUtils.getSortRating(a, b, settings, state);
     });
   }
@@ -112,9 +129,9 @@ export class ExercisePickerUtils {
     settings: ISettings,
     state: IExercisePickerState
   ): ICustomExercise[] {
-    return CollectionUtils.sort(customExercises, (aE, bE) => {
-      const a = Exercise.get(aE, settings.exercises);
-      const b = Exercise.get(bE, settings.exercises);
+    return CollectionUtils_sort(customExercises, (aE, bE) => {
+      const a = Exercise_get(aE, settings.exercises);
+      const b = Exercise_get(bE, settings.exercises);
       return ExercisePickerUtils.getSortRating(a, b, settings, state);
     });
   }
@@ -125,13 +142,13 @@ export class ExercisePickerUtils {
     const currentExerciseType = state.exerciseType;
     const exerciseType = currentExerciseType;
     if (sort === "similar_muscles" && exerciseType) {
-      const aRating = Exercise.similarRating(exerciseType, a, settings);
-      const bRating = Exercise.similarRating(exerciseType, b, settings);
+      const aRating = Exercise_similarRating(exerciseType, a, settings);
+      const bRating = Exercise_similarRating(exerciseType, b, settings);
       return bRating - aRating;
     } else if ((filters.muscles || []).length > 0) {
       const filterMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroups(filters.muscles || [], settings);
-      const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, settings);
-      const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, settings);
+      const aTargetMuscleGroups = Exercise_targetMusclesGroups(a, settings);
+      const bTargetMuscleGroups = Exercise_targetMusclesGroups(b, settings);
       if (
         aTargetMuscleGroups.some((m) => filterMuscleGroups.indexOf(m) !== -1) &&
         bTargetMuscleGroups.every((m) => filterMuscleGroups.indexOf(m) === -1)
@@ -158,7 +175,7 @@ export class ExercisePickerUtils {
     if (allFilters.length === 0) {
       return customExercises;
     }
-    return ObjectUtils.filter(customExercises, (_id, exercise) => {
+    return ObjectUtils_filter(customExercises, (_id, exercise) => {
       if (!exercise) {
         return false;
       }
@@ -187,7 +204,7 @@ export class ExercisePickerUtils {
     const isInExercises = state.selectedExercises.some((e) => {
       return (
         "exerciseType" in e &&
-        Exercise.eq(e.exerciseType, exerciseType) &&
+        Exercise_eq(e.exerciseType, exerciseType) &&
         (e.type === "adhoc" || e.week !== week || e.dayInWeek !== dayInWeek)
       );
     });
@@ -202,13 +219,13 @@ export class ExercisePickerUtils {
             exercises.some(
               (e) =>
                 "exerciseType" in e &&
-                Exercise.eq(e.exerciseType, exerciseType) &&
+                Exercise_eq(e.exerciseType, exerciseType) &&
                 e.type === "program" &&
                 e.week === week &&
                 e.dayInWeek === dayInWeek
             )
           ) {
-            return exercises.filter((e) => e.type !== "program" || !Exercise.eq(e.exerciseType, exerciseType));
+            return exercises.filter((e) => e.type !== "program" || !Exercise_eq(e.exerciseType, exerciseType));
           } else {
             if (isMultiselect) {
               return [...exercises, { type: "program", exerciseType, week, dayInWeek }];
@@ -217,7 +234,7 @@ export class ExercisePickerUtils {
             }
           }
         }),
-      `Toggle selection of program exercise ${Exercise.toKey(exerciseType)}[${week}:${dayInWeek}]`
+      `Toggle selection of program exercise ${Exercise_toKey(exerciseType)}[${week}:${dayInWeek}]`
     );
   }
 
@@ -232,9 +249,9 @@ export class ExercisePickerUtils {
   ): void {
     const selectedExercises = state.selectedExercises;
     const isMultiselect = ExercisePickerUtils.getIsMultiselect(state);
-    const exerciseType = Exercise.fromKey(key);
+    const exerciseType = Exercise_fromKey(key);
     const isInProgramExercises = selectedExercises.some(
-      (e) => e.type === "program" && Exercise.eq(e.exerciseType, exerciseType)
+      (e) => e.type === "program" && Exercise_eq(e.exerciseType, exerciseType)
     );
     if (isMultiselect && isInProgramExercises) {
       return;
@@ -243,8 +260,8 @@ export class ExercisePickerUtils {
       lb<IExercisePickerState>()
         .p("selectedExercises")
         .recordModify((exercises) => {
-          if (isMultiselect && exercises.some((e) => e.type === "adhoc" && Exercise.eq(e.exerciseType, exerciseType))) {
-            return exercises.filter((e) => e.type !== "adhoc" || !Exercise.eq(e.exerciseType, exerciseType));
+          if (isMultiselect && exercises.some((e) => e.type === "adhoc" && Exercise_eq(e.exerciseType, exerciseType))) {
+            return exercises.filter((e) => e.type !== "adhoc" || !Exercise_eq(e.exerciseType, exerciseType));
           } else {
             if (isMultiselect) {
               return [...exercises, { type: "adhoc", exerciseType, label: state.label }];
@@ -262,14 +279,14 @@ export class ExercisePickerUtils {
     program: IEvaluatedProgram,
     settings: ISettings
   ): string {
-    const exerciseType = Exercise.get(exercise.exerciseType, settings.exercises);
+    const exerciseType = Exercise_get(exercise.exerciseType, settings.exercises);
     if (!exerciseType) {
       return "";
     }
-    const name = Exercise.fullName(exerciseType, settings);
+    const name = Exercise_fullName(exerciseType, settings);
     let count = 0;
     PP.iterate2(program.weeks, (e) => {
-      if (e.exerciseType && Exercise.eq(e.exerciseType, exercise.exerciseType)) {
+      if (e.exerciseType && Exercise_eq(e.exerciseType, exercise.exerciseType)) {
         count += 1;
       }
       if (count > 1) {

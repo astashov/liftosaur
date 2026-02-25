@@ -16,21 +16,28 @@ import {
   IProgram,
   ISettings,
 } from "../../../types";
-import { ObjectUtils } from "../../../utils/object";
+import { ObjectUtils_isEqual, ObjectUtils_clone, ObjectUtils_filter } from "../../../utils/object";
 import { PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
-import { IEvaluatedProgram, IExportedProgram, Program } from "../../../models/program";
+import {
+  IEvaluatedProgram,
+  IExportedProgram,
+  Program_evaluate,
+  Program_create,
+  Program_getAllProgramExercises,
+  Program_exportedPlannerProgramToExportedProgram,
+} from "../../../models/program";
 import { PlannerEvaluator } from "../plannerEvaluator";
 import { IWeightChange } from "../../../models/programExercise";
-import { Storage } from "../../../models/storage";
-import { Weight } from "../../../models/weight";
+import { Storage_getDefault, Storage_get } from "../../../models/storage";
+import { Weight_eqNull } from "../../../models/weight";
 import { PP } from "../../../models/pp";
 import { IEither } from "../../../utils/types";
 import { getLatestMigrationVersion } from "../../../migrations/migrations";
 import { ProgramToPlanner } from "../../../models/programToPlanner";
 import { PlannerKey } from "../plannerKey";
-import { UidFactory } from "../../../utils/generator";
-import { CollectionUtils } from "../../../utils/collection";
+import { UidFactory_generateUid } from "../../../utils/generator";
+import { CollectionUtils_compact } from "../../../utils/collection";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -60,15 +67,15 @@ export class PlannerProgram {
     programExerciseId: string,
     weightChanges: IWeightChange[]
   ): IEvaluatedProgram {
-    if (weightChanges.every((wc) => ObjectUtils.isEqual(wc.originalWeight, wc.weight))) {
+    if (weightChanges.every((wc) => ObjectUtils_isEqual(wc.originalWeight, wc.weight))) {
       return program;
     }
-    const newEvalutedProgram = ObjectUtils.clone(program);
+    const newEvalutedProgram = ObjectUtils_clone(program);
     PP.iterate2(newEvalutedProgram.weeks, (ex) => {
       if (ex.key === programExerciseId) {
         for (const setVariation of ex.evaluatedSetVariations) {
           for (const set of setVariation.sets) {
-            const weightChange = weightChanges.find((wc) => Weight.eqNull(wc.originalWeight, set.weight));
+            const weightChange = weightChanges.find((wc) => Weight_eqNull(wc.originalWeight, set.weight));
             if (weightChange != null) {
               set.weight = weightChange.weight;
             }
@@ -87,14 +94,14 @@ export class PlannerProgram {
     settings: ISettings,
     dayData?: Required<IDayData>
   ): IPlannerProgram {
-    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
-    const allExercises = Program.getAllProgramExercises(evaluatedProgram);
+    const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
+    const allExercises = Program_getAllProgramExercises(evaluatedProgram);
     let labelSuffix: string | undefined = undefined;
     let noConflicts = false;
 
     function getLabel(label?: string): string | undefined {
       return (newLabel ?? label) || labelSuffix
-        ? CollectionUtils.compact([newLabel ?? label, labelSuffix]).join("-")
+        ? CollectionUtils_compact([newLabel ?? label, labelSuffix]).join("-")
         : undefined;
     }
 
@@ -115,7 +122,7 @@ export class PlannerProgram {
       });
       if (conflictingExercises.length > 0) {
         noConflicts = false;
-        labelSuffix = UidFactory.generateUid(3);
+        labelSuffix = UidFactory_generateUid(3);
       } else {
         noConflicts = true;
       }
@@ -188,7 +195,7 @@ export class PlannerProgram {
     ) => IPlannerTopLineItem
   ): IPlannerProgram {
     let dayIndex = 0;
-    const plannerProgram = ObjectUtils.clone(aPlannerProgram);
+    const plannerProgram = ObjectUtils_clone(aPlannerProgram);
     const mapping = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {
         const tree = plannerExerciseParser.parse(day.exerciseText);
@@ -263,7 +270,7 @@ export class PlannerProgram {
   }
 
   public static switchToUnit(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerProgram {
-    const newPlannerProgram = ObjectUtils.clone(plannerProgram);
+    const newPlannerProgram = ObjectUtils_clone(plannerProgram);
     for (const week of newPlannerProgram.weeks) {
       for (const day of week.days) {
         const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday");
@@ -295,8 +302,8 @@ export class PlannerProgram {
   ): IPlannerProgram {
     let dayIndex = 0;
     const repeatingExercises = new Set<string>();
-    const { evaluatedWeeks } = PlannerProgram.evaluate(ObjectUtils.clone(oldPlannerProgram), settings);
-    const { evaluatedWeeks: newEvaluatedWeeks } = PlannerProgram.evaluate(ObjectUtils.clone(plannerProgram), settings);
+    const { evaluatedWeeks } = PlannerProgram.evaluate(ObjectUtils_clone(oldPlannerProgram), settings);
+    const { evaluatedWeeks: newEvaluatedWeeks } = PlannerProgram.evaluate(ObjectUtils_clone(plannerProgram), settings);
     for (const ev of [evaluatedWeeks, newEvaluatedWeeks]) {
       PP.iterate(ev, (exercise) => {
         if (exercise.repeat != null && exercise.repeat.length > 0) {
@@ -350,7 +357,7 @@ export class PlannerProgram {
                   e.value !== line.value ||
                   e.sectionsToReuse !== line.sectionsToReuse ||
                   e.exerciseIndex !== line.exerciseIndex ||
-                  !ObjectUtils.isEqual(e.descriptions || [], line.descriptions || [])
+                  !ObjectUtils_isEqual(e.descriptions || [], line.descriptions || [])
                 ) {
                   return false;
                 }
@@ -585,7 +592,7 @@ export class PlannerProgram {
     exercises: IAllCustomExercises,
     evaluatedWeeks: IPlannerEvalResult[][]
   ): IAllCustomExercises {
-    return ObjectUtils.filter(exercises, (_id, ex) => {
+    return ObjectUtils_filter(exercises, (_id, ex) => {
       if (!ex) {
         return false;
       }
@@ -599,7 +606,7 @@ export class PlannerProgram {
   }
 
   public static usedEquipment(equipment: IAllEquipment, evaluatedWeeks: IPlannerEvalResult[][]): IAllEquipment {
-    return ObjectUtils.filter(equipment, (key, value) => {
+    return ObjectUtils_filter(equipment, (key, value) => {
       return evaluatedWeeks.some((week) => {
         return week.some((day) => {
           return day.success && day.data.some((d) => d.equipment?.toLowerCase() === key);
@@ -612,7 +619,7 @@ export class PlannerProgram {
     planner: IExportedPlannerProgram,
     settings: ISettings
   ): IExportedProgram {
-    const newProgram = Program.create(planner.program.name, planner.id);
+    const newProgram = Program_create(planner.program.name, planner.id);
     const newSettings: ISettings = {
       ...settings,
       exercises: { ...settings.exercises, ...planner.settings.exercises },
@@ -649,20 +656,20 @@ export class PlannerProgram {
         timer: settings.timers.workout ?? 0,
       },
     };
-    return Program.exportedPlannerProgramToExportedProgram(exportedPlannerProgram, nextDay);
+    return Program_exportedPlannerProgramToExportedProgram(exportedPlannerProgram, nextDay);
   }
 
   public static async getExportedPlannerProgram(
     program: IExportedPlannerProgram,
     settings: ISettings
   ): Promise<IEither<IExportedPlannerProgram, string[]>> {
-    const storage = Storage.getDefault();
+    const storage = Storage_getDefault();
     storage.version = program.version;
-    storage.programs = [{ ...Program.create(program.program.name), planner: program.program }];
+    storage.programs = [{ ...Program_create(program.program.name), planner: program.program }];
     storage.settings = { ...storage.settings, planner: program.plannerSettings || storage.settings.planner };
     storage.settings.exercises = { ...storage.settings.exercises, ...settings.exercises };
 
-    const result = Storage.get(storage);
+    const result = Storage_get(storage);
     if (result.success) {
       const newStorage = result.data;
       return {

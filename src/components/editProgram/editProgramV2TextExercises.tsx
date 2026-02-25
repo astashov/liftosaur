@@ -6,8 +6,8 @@ import { PlannerStatsUtils } from "../../pages/planner/models/plannerStatsUtils"
 import { IPlannerUi, IPlannerState, IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { IPlannerProgram, IPlannerProgramDay, ISettings } from "../../types";
-import { CollectionUtils } from "../../utils/collection";
-import { TimeUtils } from "../../utils/time";
+import { CollectionUtils_findIndexReverse } from "../../utils/collection";
+import { TimeUtils_formatHHMM } from "../../utils/time";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconWatch } from "../icons/iconWatch";
 import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
@@ -31,7 +31,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
   const repeats: IPlannerProgramExercise[] = evaluatedDay.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
   let approxDayTime: string | undefined;
   if (evaluatedDay.success) {
-    approxDayTime = TimeUtils.formatHHMM(
+    approxDayTime = TimeUtils_formatHHMM(
       PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout || 0)
     );
   }
@@ -61,7 +61,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
         onLineChange={(line) => {
           const exerciseIndex =
             dayIndex !== -1 && evaluatedDay.success
-              ? CollectionUtils.findIndexReverse(evaluatedDay.data, (d) => d.line <= line)
+              ? CollectionUtils_findIndexReverse(evaluatedDay.data, (d) => d.line <= line)
               : -1;
           const exercise = exerciseIndex !== -1 && evaluatedDay.success ? evaluatedDay.data[exerciseIndex] : undefined;
 

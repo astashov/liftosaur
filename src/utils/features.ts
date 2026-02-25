@@ -1,5 +1,5 @@
-import { SendMessage } from "./sendMessage";
-import { StringUtils } from "./string";
+import { SendMessage_isIos, SendMessage_isAndroid } from "./sendMessage";
+import { StringUtils_hashCode0To1 } from "./string";
 
 export interface IFeature {
   name: string;
@@ -30,12 +30,12 @@ export class Features {
     }
     if (
       feature.platform &&
-      ((feature.platform === "ios" && !SendMessage.isIos()) ||
-        (feature.platform === "android" && !SendMessage.isAndroid()))
+      ((feature.platform === "ios" && !SendMessage_isIos()) ||
+        (feature.platform === "android" && !SendMessage_isAndroid()))
     ) {
       return false;
     }
-    const hash = StringUtils.hashCode0To1(userid);
+    const hash = StringUtils_hashCode0To1(userid);
     const isRolloutEnabled = feature.rollout > 0 && hash <= feature.rollout;
     if (isRolloutEnabled) {
       return true;

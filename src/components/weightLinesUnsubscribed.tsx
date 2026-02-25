@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { Weight } from "../models/weight";
+import { Weight_eq } from "../models/weight";
 import { IPercentage, IWeight } from "../types";
 
 interface IWeightLinesUnsubscribedProps {
@@ -10,7 +10,7 @@ export function WeightLinesUnsubscribed(props: IWeightLinesUnsubscribedProps): J
   return (
     <>
       {props.weights
-        .filter((w) => !Weight.eq(w.original, w.rounded))
+        .filter((w) => !Weight_eq(w.original, w.rounded))
         .map((w) => {
           return (
             <div>

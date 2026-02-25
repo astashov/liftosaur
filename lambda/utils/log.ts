@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Rollbar from "rollbar";
-import { UidFactory } from "./generator";
-import { Utils } from "../utils";
+import { UidFactory_generateUid } from "./generator";
+import { Utils_getEnv } from "../utils";
 
 export interface ILogUtil {
   id: string;
@@ -16,7 +16,7 @@ export class LogUtil implements ILogUtil {
   private rollbar?: Rollbar;
 
   constructor() {
-    this.id = UidFactory.generateUid(4);
+    this.id = UidFactory_generateUid(4);
   }
 
   public setUser(userid: string): void {
@@ -24,7 +24,7 @@ export class LogUtil implements ILogUtil {
   }
 
   public log(...str: any[]): void {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const time = new Date();
     const timeStr =
       env === "dev"
@@ -57,7 +57,7 @@ export class LogUtil implements ILogUtil {
   }
 
   private colorize(str: string, color: number): string {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
 
     if (env === "dev") {
       return "\x1b[" + color.toString() + "m" + str + "\x1b[0m";

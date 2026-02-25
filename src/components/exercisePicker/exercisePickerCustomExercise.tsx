@@ -4,10 +4,10 @@ import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconBack } from "../icons/iconBack";
 import { IconClose2 } from "../icons/iconClose2";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_isEqual } from "../../utils/object";
 import { ExercisePickerCustomExerciseContent } from "./exercisePickerCustomExerciseContent";
 import { useState } from "preact/hooks";
-import { Exercise } from "../../models/exercise";
+import { Exercise_getNotes } from "../../models/exercise";
 
 interface IExercisePickerCustomExercise2Props {
   settings: ISettings;
@@ -23,10 +23,10 @@ interface IExercisePickerCustomExercise2Props {
 }
 
 export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercise2Props): JSX.Element {
-  const isEdited = !props.originalExercise || !ObjectUtils.isEqual(props.exercise, props.originalExercise);
+  const isEdited = !props.originalExercise || !ObjectUtils_isEqual(props.exercise, props.originalExercise);
   const isValid = props.exercise.name.trim().length ?? 0 > 0;
   const [notes, setNotes] = useState<string | undefined>(
-    props.exercise ? Exercise.getNotes(props.exercise, props.settings) : undefined
+    props.exercise ? Exercise_getNotes(props.exercise, props.settings) : undefined
   );
 
   return (

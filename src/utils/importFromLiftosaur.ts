@@ -8,13 +8,13 @@ import {
   IExerciseType,
 } from "../types";
 import Papa from "papaparse";
-import { CollectionUtils } from "./collection";
-import { ObjectUtils } from "./object";
-import { Exercise } from "../models/exercise";
-import { Weight } from "../models/weight";
-import { StringUtils } from "./string";
-import { Progress } from "../models/progress";
-import { UidFactory } from "./generator";
+import { CollectionUtils_groupByKey, CollectionUtils_compact, CollectionUtils_sortBy } from "./collection";
+import { ObjectUtils_values } from "./object";
+import { Exercise_findByNameAndEquipment, Exercise_getIsUnilateral } from "../models/exercise";
+import { Weight_build } from "../models/weight";
+import { StringUtils_dashcase } from "./string";
+import { Progress_getEntryId } from "../models/progress";
+import { UidFactory_generateUid } from "./generator";
 
 interface ILiftosaurRecord {
   workoutDateTime: string;
@@ -100,21 +100,21 @@ export class ImportFromLiftosaur {
       },
     }).data;
 
-    const groupedRecords = CollectionUtils.groupByKey(liftosaurRecords, "workoutDateTime");
+    const groupedRecords = CollectionUtils_groupByKey(liftosaurRecords, "workoutDateTime");
     const customExercises: Record<string, ICustomExercise> = {};
-    const historyRecords = CollectionUtils.compact(ObjectUtils.values(groupedRecords)).map((records) => {
-      const rawEntries = CollectionUtils.compact(ObjectUtils.values(CollectionUtils.groupByKey(records, "exercise")));
+    const historyRecords = CollectionUtils_compact(ObjectUtils_values(groupedRecords)).map((records) => {
+      const rawEntries = CollectionUtils_compact(ObjectUtils_values(CollectionUtils_groupByKey(records, "exercise")));
       const entries = rawEntries.map((rawSets, index) => {
         const firstSet = rawSets[0];
         const exerciseName = firstSet.exercise || "Unknown";
-        const exercise = Exercise.findByNameAndEquipment(exerciseName, settings.exercises);
+        const exercise = Exercise_findByNameAndEquipment(exerciseName, settings.exercises);
         let exerciseId: string;
         let exerciseEquipment: string | undefined = undefined;
         if (exercise) {
           exerciseId = exercise.id;
           exerciseEquipment = exercise.equipment;
         } else {
-          const id = StringUtils.dashcase(exerciseName || "exercise");
+          const id = StringUtils_dashcase(exerciseName || "exercise");
           customExercises[id] = {
             vtype: "custom_exercise",
             id,
@@ -138,27 +138,27 @@ export class ImportFromLiftosaur {
         const rawWarmupSets = rawSets.filter((set) => set.isWarmupSet === "1");
         const rawWorkoutSets = rawSets.filter((set) => set.isWarmupSet !== "1");
         const exerciseType: IExerciseType = { id: exerciseId, equipment: exerciseEquipment };
-        const isUnilateral = Exercise.getIsUnilateral(exerciseType, settings);
+        const isUnilateral = Exercise_getIsUnilateral(exerciseType, settings);
 
         const entry: IHistoryEntry = {
           vtype: "history_entry",
-          id: Progress.getEntryId(exerciseType, UidFactory.generateUid(3)),
+          id: Progress_getEntryId(exerciseType, UidFactory_generateUid(3)),
           exercise: exerciseType,
           index,
           warmupSets: rawWarmupSets.map((set, i) => {
             const weight =
               set.weightValue && set.weightUnit
-                ? Weight.build(getNumber(set.weightValue), getUnit(set.weightUnit))
+                ? Weight_build(getNumber(set.weightValue), getUnit(set.weightUnit))
                 : undefined;
             const completedReps = set.completedReps ? getNumber(set.completedReps) : undefined;
             const completedWeight =
               set.completedWeightValue && set.completedWeightUnit
-                ? Weight.build(getNumber(set.completedWeightValue), getUnit(set.completedWeightUnit))
+                ? Weight_build(getNumber(set.completedWeightValue), getUnit(set.completedWeightUnit))
                 : undefined;
             const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
             return {
               vtype: "set",
-              id: UidFactory.generateUid(6),
+              id: UidFactory_generateUid(6),
               index: i,
               reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
               completedReps: completedReps,
@@ -180,17 +180,17 @@ export class ImportFromLiftosaur {
           sets: rawWorkoutSets.map((set, i) => {
             const weight =
               set.weightValue && set.weightUnit
-                ? Weight.build(getNumber(set.weightValue), getUnit(set.weightUnit))
+                ? Weight_build(getNumber(set.weightValue), getUnit(set.weightUnit))
                 : undefined;
             const completedReps = set.completedReps ? getNumber(set.completedReps) : undefined;
             const completedWeight =
               set.completedWeightValue && set.completedWeightUnit
-                ? Weight.build(getNumber(set.completedWeightValue), getUnit(set.completedWeightUnit))
+                ? Weight_build(getNumber(set.completedWeightValue), getUnit(set.completedWeightUnit))
                 : undefined;
             const completedRpe = set.completedRpe ? getNumber(set.completedRpe) : undefined;
             return {
               vtype: "set",
-              id: UidFactory.generateUid(6),
+              id: UidFactory_generateUid(6),
               index: i,
               reps: set.requiredReps ? getNumber(set.requiredReps) : undefined,
               completedReps: completedReps,
@@ -214,7 +214,7 @@ export class ImportFromLiftosaur {
         return entry;
       });
       const firstRecord = records[0];
-      let endTime = CollectionUtils.sortBy(
+      let endTime = CollectionUtils_sortBy(
         entries.flatMap((e) => e.warmupSets.concat(e.sets)).map((s) => ({ t: getNumber(`${s.timestamp}` || "0") })),
         "t",
         true
@@ -232,7 +232,7 @@ export class ImportFromLiftosaur {
         intervals: [[startTime, endTime]],
         entries,
         id: startTime,
-        programId: StringUtils.dashcase(firstRecord.program || "csv"),
+        programId: StringUtils_dashcase(firstRecord.program || "csv"),
         startTime: startTime,
         dayInWeek: 1,
         endTime: endTime,

@@ -1,11 +1,17 @@
 import { JSX, h } from "preact";
 import { IHistoryRecord, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
-import { Exercise } from "../models/exercise";
-import { History } from "../models/history";
-import { TimeUtils } from "../utils/time";
-import { ObjectUtils } from "../utils/object";
-import { StringUtils } from "../utils/string";
+import { Exercise_toKey, Exercise_get } from "../models/exercise";
+import {
+  History_getPersonalRecords,
+  History_workoutTime,
+  History_totalRecordWeight,
+  History_totalRecordReps,
+  History_totalRecordSets,
+} from "../models/history";
+import { TimeUtils_formatHHMM } from "../utils/time";
+import { ObjectUtils_keys } from "../utils/object";
+import { StringUtils_pluralize } from "../utils/string";
 import { HistoryRecordSetsView } from "./historyRecordSets";
 
 interface IWorkoutShareOutputProps {
@@ -19,14 +25,14 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
   if (!record) {
     return <div></div>;
   }
-  const allPrs = History.getPersonalRecords(props.history);
+  const allPrs = History_getPersonalRecords(props.history);
   const recordPrs = allPrs[record.id] ?? {};
-  const numberOfRecordPrs = ObjectUtils.keys(recordPrs).length;
+  const numberOfRecordPrs = ObjectUtils_keys(recordPrs).length;
   const entries = record.entries.filter((e) => e.sets.filter((s) => (s.completedReps ?? 0) > 0).length > 0);
-  const time = TimeUtils.formatHHMM(History.workoutTime(record));
-  const totalWeight = History.totalRecordWeight(record, props.settings.units);
-  const totalReps = History.totalRecordReps(record);
-  const totalSets = History.totalRecordSets(record);
+  const time = TimeUtils_formatHHMM(History_workoutTime(record));
+  const totalWeight = History_totalRecordWeight(record, props.settings.units);
+  const totalReps = History_totalRecordReps(record);
+  const totalSets = History_totalRecordSets(record);
   return (
     <div>
       <div className="flex items-end">
@@ -37,7 +43,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
         {numberOfRecordPrs > 0 && (
           <div className="pr-2 ml-auto font-bold text-right text-yellow-600">
             <div className="text-xl">🏆 {numberOfRecordPrs}</div>
-            <div className="text-sm">Personal {StringUtils.pluralize("Record", numberOfRecordPrs)}</div>
+            <div className="text-sm">Personal {StringUtils_pluralize("Record", numberOfRecordPrs)}</div>
           </div>
         )}
       </div>
@@ -53,9 +59,9 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
       </div>
       <div className="flex flex-col gap-1 p-2 m-2 rounded-lg bg-background-default">
         {entries.map((entry) => {
-          const prs = recordPrs[Exercise.toKey(entry.exercise)] ?? {};
-          const hasPrs = ObjectUtils.keys(prs).length > 0;
-          const exercise = Exercise.get(entry.exercise, settings.exercises);
+          const prs = recordPrs[Exercise_toKey(entry.exercise)] ?? {};
+          const hasPrs = ObjectUtils_keys(prs).length > 0;
+          const exercise = Exercise_get(entry.exercise, settings.exercises);
           return (
             <div className="flex items-center gap-4">
               <div className="w-12 h-12" style={{ minHeight: "3rem" }}>

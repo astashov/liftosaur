@@ -2,13 +2,13 @@ import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
 import { IProgram, ISettings } from "../../../types";
 import { IAccount } from "../../../models/account";
-import { Program } from "../../../models/program";
+import { Program_exportProgram } from "../../../models/program";
 import { Service } from "../../../api/service";
 import { PlannerProgram } from "../../planner/models/plannerProgram";
-import { Weight } from "../../../models/weight";
+import { Weight_oppositeUnit } from "../../../models/weight";
 import { Button } from "../../../components/button";
 import { IconSpinner } from "../../../components/icons/iconSpinner";
-import { UidFactory } from "../../../utils/generator";
+import { UidFactory_generateUid } from "../../../utils/generator";
 import { Tailwind } from "../../../utils/tailwindConfig";
 
 declare let __HOST__: string;
@@ -35,16 +35,16 @@ export function ProgramDetailsAddButton(props: IProps): JSX.Element {
           alert("You should be logged in");
           return;
         }
-        const exportProgram = Program.exportProgram(
+        const exportProgram = Program_exportProgram(
           {
             ...program,
-            id: UidFactory.generateUid(8),
+            id: UidFactory_generateUid(8),
           },
           settings
         );
         const pg = exportProgram.program;
         if (pg.planner && PlannerProgram.hasNonSelectedWeightUnit(pg.planner, settings)) {
-          const fromUnit = Weight.oppositeUnit(settings.units);
+          const fromUnit = Weight_oppositeUnit(settings.units);
           const toUnit = settings.units;
           if (confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)) {
             pg.planner = PlannerProgram.switchToUnit(pg.planner, settings);

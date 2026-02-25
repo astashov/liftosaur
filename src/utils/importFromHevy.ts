@@ -1,11 +1,11 @@
 import { IHistoryRecord, ICustomExercise, ISettings } from "../types";
 import Papa from "papaparse";
-import { CollectionUtils } from "./collection";
-import { ObjectUtils } from "./object";
-import { Exercise } from "../models/exercise";
-import { Weight } from "../models/weight";
-import { UidFactory } from "./generator";
-import { Progress } from "../models/progress";
+import { CollectionUtils_groupByKey } from "./collection";
+import { ObjectUtils_values } from "./object";
+import { Exercise_findByName, Exercise_getIsUnilateral } from "../models/exercise";
+import { Weight_build } from "../models/weight";
+import { UidFactory_generateUid } from "./generator";
+import { Progress_getEntryId } from "../models/progress";
 
 const exerciseMapping: Partial<Record<string, [string, string | undefined]>> = {
   "21s Bicep Curl": ["Bicep Curl", "barbell"],
@@ -324,13 +324,13 @@ export class ImportFromHevy {
     const hevyRecords = Papa.parse<IHevyRecord>(hevyCsvRaw, { header: true }).data;
 
     const hevyWorkouts: IHevyStruct[] = [];
-    for (const workout of ObjectUtils.values(CollectionUtils.groupByKey(hevyRecords, "start_time"))) {
+    for (const workout of ObjectUtils_values(CollectionUtils_groupByKey(hevyRecords, "start_time"))) {
       if (!workout) {
         continue;
       }
       const hevyExercises: IHevyStructExercise[] = [];
-      const exercises = CollectionUtils.groupByKey(workout, "exercise_title");
-      for (const exercise of ObjectUtils.values(exercises)) {
+      const exercises = CollectionUtils_groupByKey(workout, "exercise_title");
+      for (const exercise of ObjectUtils_values(exercises)) {
         if (!exercise) {
           continue;
         }
@@ -379,7 +379,7 @@ export class ImportFromHevy {
         if (!exerciseNameAndEquipment) {
           const maybeExerciseId = backMap[record.exercise_title];
           if (!maybeExerciseId) {
-            exerciseId = UidFactory.generateUid(8);
+            exerciseId = UidFactory_generateUid(8);
             backMap[record.exercise_title] = exerciseId;
             customExercises[exerciseId] = {
               vtype: "custom_exercise",
@@ -400,26 +400,26 @@ export class ImportFromHevy {
           exerciseNameAndEquipment = [record.exercise_title, undefined];
         } else {
           const [exerciseName] = exerciseNameAndEquipment;
-          const exercise = Exercise.findByName(exerciseName, {})!;
+          const exercise = Exercise_findByName(exerciseName, {})!;
           exerciseId = exercise.id;
         }
         const [, equipment] = exerciseNameAndEquipment;
-        const isUnilateral = Exercise.getIsUnilateral({ id: exerciseId, equipment: equipment }, settings);
+        const isUnilateral = Exercise_getIsUnilateral({ id: exerciseId, equipment: equipment }, settings);
         return {
           vtype: "history_entry" as const,
-          id: Progress.getEntryId({ id: exerciseId, equipment }, UidFactory.generateUid(3)),
+          id: Progress_getEntryId({ id: exerciseId, equipment }, UidFactory_generateUid(3)),
           exercise: { id: exerciseId, equipment: equipment },
           index,
           warmupSets: record.warmupSets.map((set, i) => ({
             vtype: "set" as const,
-            id: UidFactory.generateUid(6),
+            id: UidFactory_generateUid(6),
             index: i,
             originalWeight:
-              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
+              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
             weight:
-              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
+              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
             completedWeight:
-              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
+              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
             reps: set.reps ?? 1,
             completedReps: set.reps ?? 1,
             completedRepsLeft: isUnilateral ? set.reps : undefined,
@@ -430,14 +430,14 @@ export class ImportFromHevy {
           })),
           sets: record.sets.map((set, i) => ({
             vtype: "set" as const,
-            id: UidFactory.generateUid(6),
+            id: UidFactory_generateUid(6),
             index: i,
             weight:
-              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
+              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
             originalWeight:
-              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
+              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
             completedWeight:
-              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
+              set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
             reps: set.reps ?? 1,
             completedReps: set.reps ?? 1,
             completedRepsLeft: isUnilateral ? set.reps : undefined,

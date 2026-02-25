@@ -10,7 +10,7 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { Footer2View } from "../footer2";
 import { NavbarView } from "../navbar";
 import { Surface } from "../surface";
-import { Program } from "../../models/program";
+import { Program_evaluate, Program_getFirstProgramExercise } from "../../models/program";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { EditProgramExerciseWarmups } from "./editProgramExerciseWarmups";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
@@ -52,13 +52,13 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   );
   useUndoRedo(plannerState, plannerDispatch);
 
-  const evaluatedProgram = Program.evaluate(plannerState.current.program, props.settings);
+  const evaluatedProgram = Program_evaluate(plannerState.current.program, props.settings);
   let plannerExercise = evaluatedProgram.weeks[props.dayData.week - 1]?.days[
     props.dayData.dayInWeek - 1
   ].exercises.find((e) => e.key === props.exerciseKey);
 
   if (!plannerExercise) {
-    plannerExercise = Program.getFirstProgramExercise(evaluatedProgram, props.exerciseKey);
+    plannerExercise = Program_getFirstProgramExercise(evaluatedProgram, props.exerciseKey);
   }
 
   const editProgramScreen = props.navCommon.screenStack.find((s) => s.name === "editProgram");

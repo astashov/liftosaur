@@ -7,14 +7,14 @@ import {
 } from "../../pages/planner/models/types";
 import { IDaySetData, IExerciseType, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getProgramExerciseFromDay } from "../../models/program";
 import { ScrollableTabs } from "../scrollableTabs";
 import { PP } from "../../models/pp";
 import { InputNumber2 } from "../inputNumber2";
 import { lb } from "lens-shmens";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { CollectionUtils } from "../../utils/collection";
-import { ObjectUtils } from "../../utils/object";
+import { CollectionUtils_compact } from "../../utils/collection";
+import { ObjectUtils_values, ObjectUtils_entries } from "../../utils/object";
 import { SetUtils } from "../../utils/setUtils";
 import { InputWeight2 } from "../inputWeight2";
 import { InputNumberAddOn } from "./editProgramExerciseSet";
@@ -178,7 +178,7 @@ function Tab(props: ITabProps): JSX.Element {
     }
   });
 
-  const groupsValues = ObjectUtils.values(groups);
+  const groupsValues = ObjectUtils_values(groups);
 
   const allWeeks = groupsValues.map((group) => new Set(group.map((setData) => setData.week)));
   const allDays = groupsValues.map((group) => new Set(group.map((setData) => setData.dayInWeek)));
@@ -206,7 +206,7 @@ function Tab(props: ITabProps): JSX.Element {
       {Object.entries(groups).map(([key, group]) => {
         const first = group[0];
         const day = props.evaluatedProgram.weeks[first.week - 1].days[first.dayInWeek - 1];
-        const exercise = Program.getProgramExerciseFromDay(day, props.plannerExercise.key);
+        const exercise = Program_getProgramExerciseFromDay(day, props.plannerExercise.key);
         if (!exercise) {
           return <div key={key}>Exercise not found for key: {props.plannerExercise.key}</div>;
         }
@@ -253,7 +253,7 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
     groupSetsPerWeekDaySetVariation[key].add(setData.set);
   }
 
-  const allSetVariationsEqual = ObjectUtils.entries(groupSetVariationsPerWeekDay).every(([key, setVariations]) => {
+  const allSetVariationsEqual = ObjectUtils_entries(groupSetVariationsPerWeekDay).every(([key, setVariations]) => {
     const allSetVariationsForWeekDay = props.setVariationsPerWeekDay[key];
     if (
       setVariations.size !== allSetVariationsForWeekDay.size ||
@@ -273,7 +273,7 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
     return true;
   });
 
-  const allSetsEqual = ObjectUtils.entries(groupSetsPerWeekDaySetVariation).every(([key, sets]) => {
+  const allSetsEqual = ObjectUtils_entries(groupSetsPerWeekDaySetVariation).every(([key, sets]) => {
     const allSetsForWeekDaySetVariation = props.setsPerWeekDaySetVariation[key];
     return sets.size === allSetsForWeekDaySetVariation.size && SetUtils.areEqual(allSetsForWeekDaySetVariation, sets);
   });
@@ -288,7 +288,7 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
       groupSetsPerWeekDaySetVariation[setKey],
       props.setsPerWeekDaySetVariation[setKey]
     );
-    return CollectionUtils.compact([
+    return CollectionUtils_compact([
       props.allWeeksEqual ? undefined : ["Week", setData.week],
       props.allDaysEqual ? undefined : ["Day", setData.dayInWeek],
       allSetVariationsEqual ? undefined : ["Set Variation", setData.setVariation],

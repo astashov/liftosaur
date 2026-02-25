@@ -1,6 +1,6 @@
 import { IEither } from "../utils/types";
 import { h, JSX } from "preact";
-import { Weight } from "../models/weight";
+import { Weight_display } from "../models/weight";
 import { IPercentage, IWeight } from "../types";
 
 export function EvalResultInEditor(props: {
@@ -10,7 +10,7 @@ export function EvalResultInEditor(props: {
     return (
       <span className="text-sm">
         <span className="text-gray-500">Evaluation result: </span>
-        <span className="font-bold">{props.result.data != null ? Weight.display(props.result.data) : undefined}</span>
+        <span className="font-bold">{props.result.data != null ? Weight_display(props.result.data) : undefined}</span>
       </span>
     );
   } else {

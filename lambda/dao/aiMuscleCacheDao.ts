@@ -1,4 +1,4 @@
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 
 const tableNames = {
@@ -30,7 +30,7 @@ export class AiMuscleCacheDao {
   }
 
   public async create(record: Omit<IAiMuscleCacheDao, "key" | "timestamp">): Promise<void> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const key = this.getKeyFromName(record.name);
     try {
       await this.di.dynamo.put({
@@ -47,7 +47,7 @@ export class AiMuscleCacheDao {
   }
 
   public async getByName(name: string): Promise<IAiMuscleCacheDao | undefined> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const key = this.getKeyFromName(name);
     return this.di.dynamo.get<IAiMuscleCacheDao>({
       tableName: tableNames[env].aiMuscleCaches,

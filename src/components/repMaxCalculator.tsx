@@ -1,8 +1,8 @@
 import { JSX, h } from "preact";
 import { useState } from "preact/hooks";
-import { Weight } from "../models/weight";
+import { Weight_calculateRepMax } from "../models/weight";
 import { IUnit } from "../types";
-import { SendMessage } from "../utils/sendMessage";
+import { SendMessage_isIos } from "../utils/sendMessage";
 import { Button } from "./button";
 import { Input } from "./input";
 
@@ -36,7 +36,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
     };
   }
 
-  const weight = Weight.calculateRepMax(
+  const weight = Weight_calculateRepMax(
     knownRepsValue,
     knownRpeValue,
     knownWeightValue,
@@ -64,7 +64,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
         <div>@</div>
         <div style={{ minWidth: "3rem" }}>
           <Input
-            type={SendMessage.isIos() ? "number" : "tel"}
+            type={SendMessage_isIos() ? "number" : "tel"}
             label="RPE"
             value={knownRpeValue}
             maxLength={4}
@@ -104,7 +104,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
         <div>@</div>
         <div style={{ minWidth: "4rem" }}>
           <Input
-            type={SendMessage.isIos() ? "number" : "tel"}
+            type={SendMessage_isIos() ? "number" : "tel"}
             data-cy="rep-max-calculator-target-rpe"
             label="RPE"
             value={targetRpeValue}

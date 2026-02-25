@@ -8,7 +8,7 @@ import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { IconTrash } from "../icons/iconTrash";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_removeAt } from "../../utils/collection";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { MarkdownEditorBorderless } from "../markdownEditorBorderless";
 
@@ -61,7 +61,7 @@ export function EditProgramExerciseDescription(props: IEditProgramExerciseDescri
                   props.plannerExercise,
                   props.settings,
                   (ex) => {
-                    ex.descriptions.values = CollectionUtils.removeAt(ex.descriptions.values, props.descriptionIndex);
+                    ex.descriptions.values = CollectionUtils_removeAt(ex.descriptions.values, props.descriptionIndex);
                   }
                 );
               }}

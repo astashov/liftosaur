@@ -9,8 +9,16 @@ import {
   IWeight,
 } from "../types";
 import { n } from "../utils/math";
-import { ObjectUtils } from "../utils/object";
-import { Weight } from "./weight";
+import { ObjectUtils_isEqual, ObjectUtils_entries } from "../utils/object";
+import {
+  Weight_eqNull,
+  Weight_eq,
+  Weight_zero,
+  Weight_print,
+  Weight_buildPct,
+  Weight_build,
+  Weight_printNull,
+} from "./weight";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import {
   IPlannerProgramExercise,
@@ -18,9 +26,9 @@ import {
   IPlannerProgramExerciseEvaluatedSetVariation,
   IPlannerProgramExerciseWarmupSet,
 } from "../pages/planner/models/types";
-import { IEvaluatedProgram, Program } from "./program";
-import { Exercise } from "./exercise";
-import { CollectionUtils } from "../utils/collection";
+import { IEvaluatedProgram, Program_getProgramExercise } from "./program";
+import { Exercise_get, Exercise_fullName } from "./exercise";
+import { CollectionUtils_compact } from "../utils/collection";
 import { PP } from "./pp";
 import { PlannerKey } from "../pages/planner/plannerKey";
 import { IPlannerTopLineItem } from "../pages/planner/plannerExerciseEvaluator";
@@ -120,8 +128,8 @@ export class ProgramToPlanner {
           }
           if (
             reuseSet
-              ? !Weight.eqNull(programSet.weight, reuseSet.weight) || programSet.askWeight !== reuseSet.askWeight
-              : !Weight.eq(globals.weight || Weight.zero, reusedGlobals.weight || Weight.zero) ||
+              ? !Weight_eqNull(programSet.weight, reuseSet.weight) || programSet.askWeight !== reuseSet.askWeight
+              : !Weight_eq(globals.weight || Weight_zero, reusedGlobals.weight || Weight_zero) ||
                 globals.askWeight !== reusedGlobals.askWeight
           ) {
             if (globals.weight != null) {
@@ -232,7 +240,7 @@ export class ProgramToPlanner {
     }
     if (
       exercise?.descriptions.reuse == null ||
-      !ObjectUtils.isEqual(
+      !ObjectUtils_isEqual(
         exercise.descriptions.values || [],
         exercise.descriptions.reuse.exercise?.descriptions.values || []
       )
@@ -369,7 +377,7 @@ export class ProgramToPlanner {
               case "exercise": {
                 descriptionIndex = undefined;
                 const value = this.getRenamedValue(opts, line, weekIndex, dayInWeekIndex);
-                const evalExercise = Program.getProgramExercise(dayIndex + 1, this.program, value)!;
+                const evalExercise = Program_getProgramExercise(dayIndex + 1, this.program, value)!;
 
                 if (evalExercise == null) {
                   continue groupLoop;
@@ -532,8 +540,8 @@ export class ProgramToPlanner {
 
   private getExerciseName(programExercise: IPlannerProgramExercise): string {
     if (programExercise.exerciseType) {
-      const exercise = Exercise.get(programExercise.exerciseType, this.settings.exercises);
-      let name = Exercise.fullName(exercise, this.settings, programExercise.label);
+      const exercise = Exercise_get(programExercise.exerciseType, this.settings.exercises);
+      let name = Exercise_fullName(exercise, this.settings, programExercise.label);
       if (programExercise.order > 0) {
         name = `${name}[${programExercise.order}]`;
       }
@@ -554,14 +562,14 @@ export class ProgramToPlanner {
     }
     let str = "...";
     if (reuseExercise.exerciseType) {
-      const exercise = Exercise.get(reuseExercise.exerciseType, this.settings.exercises);
-      const reuseStr = Exercise.fullName(exercise, this.settings, reuseExercise.label);
+      const exercise = Exercise_get(reuseExercise.exerciseType, this.settings.exercises);
+      const reuseStr = Exercise_fullName(exercise, this.settings, reuseExercise.label);
       str += reuseStr;
     } else {
       str += reuseExercise.fullName;
     }
     if (reuse.week || reuse.day) {
-      const weekAndDay = CollectionUtils.compact([reuse.week, reuse.day]).join(":");
+      const weekAndDay = CollectionUtils_compact([reuse.week, reuse.day]).join(":");
       str += `[${weekAndDay}]`;
     }
     return str;
@@ -574,8 +582,8 @@ export class ProgramToPlanner {
     }
     if (update.reuse) {
       if (update.reuse.exercise?.exerciseType) {
-        const exercise = Exercise.get(update.reuse.exercise.exerciseType, settings.exercises);
-        const fullName = Exercise.fullName(exercise, settings, update.reuse.exercise.label);
+        const exercise = Exercise_get(update.reuse.exercise.exerciseType, settings.exercises);
+        const fullName = Exercise_fullName(exercise, settings, update.reuse.exercise.label);
         return `update: custom() { ...${fullName} }`;
       } else {
         return ` / update: custom() { ...${update.reuse.exercise?.fullName || update.reuse.fullName} }`;
@@ -603,9 +611,9 @@ export class ProgramToPlanner {
     const stateMetadata = PlannerProgramExercise.getStateMetadata(programExercise);
     if (progress.type === "custom") {
       const onlyChangedState = PlannerProgramExercise.getOnlyChangedState(programExercise);
-      progressStr += `(${ObjectUtils.entries(onlyChangedState)
+      progressStr += `(${ObjectUtils_entries(onlyChangedState)
         .map(([k, v]) => {
-          return `${k}${stateMetadata[k]?.userPrompted ? "+" : ""}: ${Weight.print(v)}`;
+          return `${k}${stateMetadata[k]?.userPrompted ? "+" : ""}: ${Weight_print(v)}`;
         })
         .join(", ")})`;
     } else if (progress.type === "lp") {
@@ -616,7 +624,7 @@ export class ProgramToPlanner {
       const failures = state.failures as number;
       const failureCounter = state.failureCounter as number;
       const args: string[] = [];
-      args.push(Weight.print(increment));
+      args.push(Weight_print(increment));
       if (successes > 1 || decrement.value > 0) {
         args.push(`${successes}`);
       }
@@ -624,7 +632,7 @@ export class ProgramToPlanner {
         args.push(`${successCounter}`);
       }
       if (decrement.value > 0) {
-        args.push(Weight.print(decrement));
+        args.push(Weight_print(decrement));
       }
       if (failures > 1) {
         args.push(`${failures}`);
@@ -637,19 +645,19 @@ export class ProgramToPlanner {
       const increment = state.increment as IWeight | IPercentage;
       const minReps = state.minReps as number;
       const maxReps = state.maxReps as number;
-      const args = [Weight.print(increment), `${minReps}`, `${maxReps}`];
+      const args = [Weight_print(increment), `${minReps}`, `${maxReps}`];
       progressStr += `(${args.join(", ")})`;
     } else if (progress.type === "sum") {
       const reps = state.reps as number;
       const increment = state.increment as IWeight | IPercentage;
-      const args = [`${reps}`, Weight.print(increment)];
+      const args = [`${reps}`, Weight_print(increment)];
       progressStr += `(${args.join(", ")})`;
     }
     if (progress.type === "custom") {
       if (progress.reuse) {
         if (progress.reuse.exercise?.exerciseType) {
-          const exercise = Exercise.get(progress.reuse.exercise.exerciseType, settings.exercises);
-          const fullName = Exercise.fullName(exercise, settings, progress.reuse.exercise.label);
+          const exercise = Exercise_get(progress.reuse.exercise.exerciseType, settings.exercises);
+          const fullName = Exercise_fullName(exercise, settings, progress.reuse.exercise.label);
           progressStr += ` { ...${fullName} }`;
         } else {
           progressStr += ` { ...${progress.reuse.exercise?.fullName || progress.reuse.fullName} }`;
@@ -683,11 +691,11 @@ export class ProgramToPlanner {
       weight:
         firstWeight != null &&
         variations.every((v) =>
-          v.sets.every((s) => Weight.eqNull(s.weight, firstWeight) && !!s.askWeight === firstAskWeight)
+          v.sets.every((s) => Weight_eqNull(s.weight, firstWeight) && !!s.askWeight === firstAskWeight)
         )
           ? firstWeight
           : undefined,
-      askWeight: variations.every((v) => v.sets.every((s) => Weight.eqNull(s.weight, firstWeight) && !!s.askWeight)),
+      askWeight: variations.every((v) => v.sets.every((s) => Weight_eqNull(s.weight, firstWeight) && !!s.askWeight)),
       rpe:
         firstRpe != null &&
         variations.every((v) => v.sets.every((s) => s.rpe === firstRpe && !!s.logRpe === firstLogRpe))
@@ -713,7 +721,7 @@ export class ProgramToPlanner {
           {
             maxrep: originalSets?.repRange?.maxrep || 1,
             minrep: originalSets?.repRange?.minrep,
-            weight: originalSets?.weight || Weight.zero,
+            weight: originalSets?.weight || Weight_zero,
             logRpe: originalSets?.logRpe || false,
             isAmrap: originalSets?.repRange?.isAmrap || false,
             isQuickAddSet: originalSets?.repRange?.isQuickAddSet || false,
@@ -762,8 +770,8 @@ export class ProgramToPlanner {
         const first = group[0];
         const length = group[1];
         const weight =
-          first.weight ?? (first.percentage != null ? Weight.buildPct(first.percentage) : Weight.build(0, "lb"));
-        strs.push(`${length}x${first.reps} ${Weight.print(weight)}`);
+          first.weight ?? (first.percentage != null ? Weight_buildPct(first.percentage) : Weight_build(0, "lb"));
+        strs.push(`${length}x${first.reps} ${Weight_print(weight)}`);
       }
       return strs.length === 0 ? "none" : strs.join(", ");
     }
@@ -772,7 +780,7 @@ export class ProgramToPlanner {
 
   private weightExprToStr(weightExpr?: IWeight | IPercentage): string {
     if (weightExpr != null) {
-      return Weight.print(weightExpr);
+      return Weight_print(weightExpr);
     }
     return "";
   }
@@ -816,11 +824,11 @@ export class ProgramToPlanner {
   }
 
   private warmupSetToKey(set: IPlannerProgramExerciseWarmupSet): string {
-    return `${set.reps}-${Weight.print(set.weight || set.percentage || 0)}`;
+    return `${set.reps}-${Weight_print(set.weight || set.percentage || 0)}`;
   }
 
   private setToKey(set: IPlannerProgramExerciseEvaluatedSet): string {
-    return `${set.maxrep}-${set.minrep}-${Weight.printNull(set.weight)}-${set.isAmrap}-${set.rpe}-${set.logRpe}-${
+    return `${set.maxrep}-${set.minrep}-${Weight_printNull(set.weight)}-${set.isAmrap}-${set.rpe}-${set.logRpe}-${
       set.timer
     }-${set.label}-${set.askWeight}`;
   }

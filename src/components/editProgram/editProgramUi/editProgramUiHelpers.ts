@@ -19,15 +19,20 @@ import {
   IPlannerProgramDay,
   IShortDayData,
 } from "../../../types";
-import { ObjectUtils } from "../../../utils/object";
+import { ObjectUtils_clone } from "../../../utils/object";
 import { PlannerExerciseEvaluator } from "../../../pages/planner/plannerExerciseEvaluator";
-import { Exercise, IExercise } from "../../../models/exercise";
-import { IEvaluatedProgram, Program } from "../../../models/program";
+import { IExercise, Exercise_findByNameEquipment, Exercise_fullName, Exercise_get } from "../../../models/exercise";
+import {
+  IEvaluatedProgram,
+  Program_evaluate,
+  Program_create,
+  Program_getFirstProgramExercise,
+} from "../../../models/program";
 import { ProgramToPlanner } from "../../../models/programToPlanner";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb } from "lens-shmens";
-import { UidFactory } from "../../../utils/generator";
-import { Weight } from "../../../models/weight";
+import { UidFactory_generateUid } from "../../../utils/generator";
+import { Weight_build } from "../../../models/weight";
 
 export class EditProgramUiHelpers {
   public static changeFirstInstance(
@@ -38,7 +43,7 @@ export class EditProgramUiHelpers {
     cb: (exercise: IPlannerProgramExercise) => void
   ): IPlannerProgram {
     const key = PlannerKey.fromFullName(plannerExercise.fullName, settings.exercises);
-    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
+    const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
     PP.iterate2(evaluatedProgram.weeks, (e) => {
       const aKey = PlannerKey.fromFullName(e.fullName, settings.exercises);
       if (key === aKey) {
@@ -83,10 +88,10 @@ export class EditProgramUiHelpers {
       );
     }
 
-    const exercise = Exercise.findByNameEquipment(settings.exercises, name, equipment);
+    const exercise = Exercise_findByNameEquipment(settings.exercises, name, equipment);
     let newModalExercise = modalExerciseUi;
     if (exercise && modalExerciseUi && modalExerciseUi.fullName === fullName) {
-      const newFullName = Exercise.fullName(exercise, settings, value);
+      const newFullName = Exercise_fullName(exercise, settings, value);
       newModalExercise = { ...modalExerciseUi, exerciseKey: newKey, fullName: newFullName };
       onUiChange(newModalExercise);
     }
@@ -147,7 +152,7 @@ export class EditProgramUiHelpers {
     settings: ISettings,
     cb: (set: IPlannerProgramExerciseEvaluatedSet) => void
   ): IPlannerProgram {
-    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
+    const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
 
     PP.iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
       if (e.key !== key) {
@@ -194,7 +199,7 @@ export class EditProgramUiHelpers {
     shouldValidate: boolean,
     cb: (exercise: IPlannerProgramExercise) => void
   ): IPlannerProgram {
-    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
+    const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
 
     const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName, isRepeat);
     for (const week of weeks) {
@@ -262,7 +267,7 @@ export class EditProgramUiHelpers {
     newExerciseType: IExerciseType | string,
     settings: ISettings
   ): IPlannerProgram {
-    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
+    const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
     const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName);
 
     const add = [];
@@ -277,11 +282,11 @@ export class EditProgramUiHelpers {
         if (typeof newExerciseType === "string") {
           newFullName = `${label ? `${label}: ` : ""}${newExerciseType}`;
         } else {
-          exercise = Exercise.get(newExerciseType, settings.exercises);
-          newFullName = Exercise.fullName(exercise, settings, label);
+          exercise = Exercise_get(newExerciseType, settings.exercises);
+          newFullName = Exercise_fullName(exercise, settings, label);
         }
         const newExercise: IPlannerProgramExercise = {
-          ...ObjectUtils.clone(previousExercise),
+          ...ObjectUtils_clone(previousExercise),
           label: label ?? previousExercise.label,
           fullName: newFullName,
           shortName: newFullName,
@@ -311,7 +316,7 @@ export class EditProgramUiHelpers {
     settings: ISettings,
     shouldValidate: boolean
   ): IPlannerProgram {
-    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
+    const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
 
     let repeatingExercise: IPlannerProgramExercise | undefined;
     const newRepeating: number[] = [];
@@ -359,7 +364,7 @@ export class EditProgramUiHelpers {
     shouldValidate: boolean,
     allowDeleteEverywhere: boolean
   ): IPlannerProgram {
-    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
+    const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
     const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName);
 
     for (const week of weeks) {
@@ -380,8 +385,8 @@ export class EditProgramUiHelpers {
       settings
     );
     if (!allowDeleteEverywhere) {
-      const newEvaluatedProgram = Program.evaluate({ ...Program.create("Temp"), planner: newPlanner }, settings);
-      const firstExercise = Program.getFirstProgramExercise(newEvaluatedProgram, fullName);
+      const newEvaluatedProgram = Program_evaluate({ ...Program_create("Temp"), planner: newPlanner }, settings);
+      const firstExercise = Program_getFirstProgramExercise(newEvaluatedProgram, fullName);
       if (!firstExercise) {
         alert("You cannot delete this exercise from all days on the screen. Do it from the Program screen.");
         return planner;
@@ -397,7 +402,7 @@ export class EditProgramUiHelpers {
     exerciseType: IExerciseType | undefined,
     settings: ISettings
   ): IPlannerProgram {
-    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
+    const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
     const { week, dayInWeek } = dayData;
     const targetDay = evaluatedProgram.weeks[week - 1]?.days[dayInWeek - 1];
     const { label, name } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
@@ -411,7 +416,7 @@ export class EditProgramUiHelpers {
         key: PlannerKey.fromFullName(fullName, settings.exercises),
         exerciseType: exerciseType,
         name: name,
-        id: UidFactory.generateUid(8),
+        id: UidFactory_generateUid(8),
         dayData: dayData,
         repeat: [],
         exerciseIndex: targetDay.exercises.length,
@@ -425,7 +430,7 @@ export class EditProgramUiHelpers {
             sets: [
               {
                 maxrep: 5,
-                weight: Weight.build(100, settings.units),
+                weight: Weight_build(100, settings.units),
                 logRpe: false,
                 isAmrap: false,
                 isQuickAddSet: false,
@@ -445,7 +450,7 @@ export class EditProgramUiHelpers {
                   isAmrap: false,
                   numberOfSets: 1,
                 },
-                weight: Weight.build(100, settings.units),
+                weight: Weight_build(100, settings.units),
                 logRpe: false,
                 askWeight: false,
               },
@@ -484,7 +489,7 @@ export class EditProgramUiHelpers {
     toIndex: number,
     settings: ISettings
   ): IPlannerProgram {
-    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
+    const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
     const weeks = this.getWeeks2(evaluatedProgram, dayData, fullName);
     const reorder = weeks.map((week) => ({ dayData: { ...dayData, week }, fromIndex, toIndex }));
     return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ reorder });
@@ -497,7 +502,7 @@ export class EditProgramUiHelpers {
     shouldValidate: boolean,
     cb: (exercise: IPlannerProgramExercise) => void
   ): IPlannerProgram {
-    const evaluatedProgram = ObjectUtils.clone(Program.evaluate({ ...Program.create("Temp"), planner }, settings));
+    const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
     PP.iterate2(evaluatedProgram.weeks, (e) => {
       if (e.fullName === fullName) {
         cb(e);
@@ -516,8 +521,8 @@ export class EditProgramUiHelpers {
     newPlanner: IPlannerProgram,
     settings: ISettings
   ): Partial<Record<string, string>> {
-    const { evaluatedWeeks: oldEvaluatedWeeks } = ObjectUtils.clone(PlannerProgram.evaluate(oldPlanner, settings));
-    const { evaluatedWeeks: newEvaluatedWeeks } = ObjectUtils.clone(PlannerProgram.evaluate(newPlanner, settings));
+    const { evaluatedWeeks: oldEvaluatedWeeks } = ObjectUtils_clone(PlannerProgram.evaluate(oldPlanner, settings));
+    const { evaluatedWeeks: newEvaluatedWeeks } = ObjectUtils_clone(PlannerProgram.evaluate(newPlanner, settings));
     const changedKeys: Partial<Record<string, string>> = {};
     for (let weekIndex = 0; weekIndex < oldEvaluatedWeeks.length; weekIndex++) {
       const oldWeek = oldEvaluatedWeeks[weekIndex];

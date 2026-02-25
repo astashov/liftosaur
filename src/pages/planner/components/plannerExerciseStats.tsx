@@ -1,7 +1,16 @@
 import { h, JSX, Fragment } from "preact";
 import { ExerciseImage } from "../../../components/exerciseImage";
-import { Exercise, IExercise } from "../../../models/exercise";
-import { Weight } from "../../../models/weight";
+import {
+  IExercise,
+  Exercise_findByName,
+  Exercise_find,
+  Exercise_targetMuscles,
+  Exercise_synergistMuscles,
+  Exercise_targetMusclesGroups,
+  Exercise_synergistMusclesGroups,
+  Exercise_toExternalUrl,
+} from "../../../models/exercise";
+import { Weight_rpeMultiplier } from "../../../models/weight";
 import { ISettings } from "../../../types";
 import { PlannerProgramExercise } from "../models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerState } from "../models/types";
@@ -12,8 +21,8 @@ import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { PlannerKey } from "../plannerKey";
 import { IconExternalLink } from "../../../components/icons/iconExternalLink";
-import { ExerciseImageUtils } from "../../../models/exerciseImage";
-import { Muscle } from "../../../models/muscle";
+import { ExerciseImageUtils_exists } from "../../../models/exerciseImage";
+import { Muscle_getMuscleGroupName } from "../../../models/muscle";
 
 interface IPlannerExerciseStatsProps {
   settings: ISettings;
@@ -45,11 +54,11 @@ export function getExerciseForStats(
   }
 
   const customExercises = settings.exercises;
-  let exercise = Exercise.findByName(evaluatedExercise.name, customExercises);
+  let exercise = Exercise_findByName(evaluatedExercise.name, customExercises);
   if (!exercise) {
     return undefined;
   }
-  exercise = Exercise.find({ id: exercise.id, equipment: evaluatedExercise.equipment }, customExercises);
+  exercise = Exercise_find({ id: exercise.id, equipment: evaluatedExercise.equipment }, customExercises);
   if (!exercise) {
     return undefined;
   }
@@ -70,13 +79,13 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
   const evaluatedWeek = props.evaluatedWeeks[props.weekIndex];
   const { exercise, evaluatedExercise } = result;
 
-  const targetMuscles = Exercise.targetMuscles(exercise, props.settings);
-  const synergeticMuscles = Exercise.synergistMuscles(exercise, props.settings);
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, props.settings).map((w) =>
-    Muscle.getMuscleGroupName(w, props.settings)
+  const targetMuscles = Exercise_targetMuscles(exercise, props.settings);
+  const synergeticMuscles = Exercise_synergistMuscles(exercise, props.settings);
+  const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, props.settings).map((w) =>
+    Muscle_getMuscleGroupName(w, props.settings)
   );
-  const synergeticMuscleGroups = Exercise.synergistMusclesGroups(exercise, props.settings)
-    .map((w) => Muscle.getMuscleGroupName(w, props.settings))
+  const synergeticMuscleGroups = Exercise_synergistMusclesGroups(exercise, props.settings)
+    .map((w) => Muscle_getMuscleGroupName(w, props.settings))
     .filter((w) => targetMuscleGroups.indexOf(w) === -1);
 
   const intensityGraphData = getIntensityPerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name);
@@ -92,8 +101,8 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
         </div>
         <div className="flex-1">
           <h3 className="mb-2 text-lg font-bold">
-            {ExerciseImageUtils.exists(exercise, "small") ? (
-              <a href={Exercise.toExternalUrl(exercise)} target="_blank">
+            {ExerciseImageUtils_exists(exercise, "small") ? (
+              <a href={Exercise_toExternalUrl(exercise)} target="_blank">
                 <span className="font-bold underline text-text-link">{evaluatedExercise.name}</span>{" "}
                 <IconExternalLink className="inline-block mb-1 ml-1" size={16} color="#607284" />
               </a>
@@ -222,7 +231,7 @@ function getIntensityPerWeeks(
     const weights = PlannerProgramExercise.sets(exercise).map((s) => {
       const weight = s.percentage
         ? s.percentage * 100
-        : Weight.rpeMultiplier(s.repRange?.maxrep ?? 1, s.rpe ?? 10) * 100;
+        : Weight_rpeMultiplier(s.repRange?.maxrep ?? 1, s.rpe ?? 10) * 100;
       return Number(weight.toFixed(2));
     });
     data[0].push(weekIndex + 1);
@@ -254,7 +263,7 @@ function getVolumePerWeeks(
             return acc;
           }
           const reps = s.repRange.maxrep ?? 0;
-          const weight = s.percentage ? s.percentage * 100 : Weight.rpeMultiplier(reps, s.rpe ?? 10) * 100;
+          const weight = s.percentage ? s.percentage * 100 : Weight_rpeMultiplier(reps, s.rpe ?? 10) * 100;
           return acc + s.repRange.numberOfSets * weight * reps;
         }, 0)
         .toFixed(2)

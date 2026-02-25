@@ -1,4 +1,4 @@
-import { SendMessage } from "./sendMessage";
+import { SendMessage_isIos, SendMessage_toIos, SendMessage_isAndroid, SendMessage_toAndroid } from "./sendMessage";
 import { UrlUtils } from "./url";
 
 declare let __HOST__: string;
@@ -26,10 +26,10 @@ export function getGoogleAccessToken(): Promise<string | undefined> {
 
     const windowOpts = "toolbar=no, menubar=no, width=600, height=700, top=100, left=100";
 
-    if (SendMessage.isIos()) {
-      SendMessage.toIos({ type: "signInWithGoogle" });
-    } else if (SendMessage.isAndroid()) {
-      SendMessage.toAndroid({ type: "signInWithGoogle" });
+    if (SendMessage_isIos()) {
+      SendMessage_toIos({ type: "signInWithGoogle" });
+    } else if (SendMessage_isAndroid()) {
+      SendMessage_toAndroid({ type: "signInWithGoogle" });
     } else {
       if (windowRef == null || windowRef.closed) {
         windowRef = window.open(url, "google-auth", windowOpts);

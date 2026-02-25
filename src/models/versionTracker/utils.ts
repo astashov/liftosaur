@@ -1,4 +1,4 @@
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_isEqual } from "../../utils/object";
 import {
   IVersionTypes,
   ITypedObject,
@@ -43,7 +43,7 @@ export class VersionTrackerUtils {
   }
 
   public static areEqual(a: unknown, b: unknown): boolean {
-    return ObjectUtils.isEqual(a as Record<string, unknown>, b as Record<string, unknown>);
+    return ObjectUtils_isEqual(a as Record<string, unknown>, b as Record<string, unknown>);
   }
 
   public static getId<TAtomicType extends string, TControlledType extends string>(

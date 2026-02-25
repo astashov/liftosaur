@@ -16,10 +16,10 @@ import { EditProgramV2Weeks } from "./editProgramV2Weeks";
 import { EditProgramV2Full } from "./editProgramV2Full";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { ScrollableTabs } from "../scrollableTabs";
-import { IEvaluatedProgram, Program } from "../../models/program";
-import { Thunk } from "../../ducks/thunks";
+import { IEvaluatedProgram, Program_cleanPlannerProgram } from "../../models/program";
+import { Thunk_pushScreen } from "../../ducks/thunks";
 import { updateState, IState } from "../../models/state";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_setBy } from "../../utils/collection";
 import { IDispatch } from "../../ducks/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 
@@ -196,7 +196,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
           buttonSize="md"
           data-cy="save-program"
           onClick={() => {
-            const newProgram: IProgram = Program.cleanPlannerProgram({ ...props.originalProgram, planner });
+            const newProgram: IProgram = Program_cleanPlannerProgram({ ...props.originalProgram, planner });
             updateState(
               props.dispatch,
               [
@@ -204,12 +204,12 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
                   .p("storage")
                   .p("programs")
                   .recordModify((programs) => {
-                    return CollectionUtils.setBy(programs, "id", props.originalProgram.id, newProgram);
+                    return CollectionUtils_setBy(programs, "id", props.originalProgram.id, newProgram);
                   }),
               ],
               `Save program '${newProgram.name}'`
             );
-            props.dispatch(Thunk.pushScreen("main", undefined, true));
+            props.dispatch(Thunk_pushScreen("main", undefined, true));
           }}
         >
           Save

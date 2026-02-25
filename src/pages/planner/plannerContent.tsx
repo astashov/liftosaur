@@ -3,15 +3,15 @@ import { useLensReducer } from "../../utils/useLensReducer";
 import { IPlannerState } from "./models/types";
 import { LinkInlineInput } from "../../components/inlineInput";
 import { lb, lf } from "lens-shmens";
-import { HtmlUtils } from "../../utils/html";
+import { HtmlUtils_escapeHtml } from "../../utils/html";
 import { Encoder } from "../../utils/encoder";
 import { useEffect, useState } from "preact/hooks";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { ModalPlannerSettings } from "./components/modalPlannerSettings";
 import { ModalExercise } from "../../components/modalExercise";
-import { Settings } from "../../models/settings";
-import { StringUtils } from "../../utils/string";
-import { Exercise } from "../../models/exercise";
+import { Settings_build } from "../../models/settings";
+import { StringUtils_capitalize } from "../../utils/string";
+import { Exercise_getById, Exercise_createOrUpdateCustomExercise } from "../../models/exercise";
 import { undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
 import { BuilderCopyLink } from "../builder/components/builderCopyLink";
 import {
@@ -36,7 +36,7 @@ import { PlannerContentFull } from "./plannerContentFull";
 import { Modal } from "../../components/modal";
 import { GroupHeader } from "../../components/groupHeader";
 import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
-import { UidFactory } from "../../utils/generator";
+import { UidFactory_generateUid } from "../../utils/generator";
 import { IconPreview } from "../../components/icons/iconPreview";
 import { IAccount } from "../../models/account";
 import { PlannerBanner } from "./plannerBanner";
@@ -44,10 +44,15 @@ import { UrlUtils } from "../../utils/url";
 import { ProgramQrCode } from "../../components/programQrCode";
 import { Button } from "../../components/button";
 import { IconSpinner } from "../../components/icons/iconSpinner";
-import { IExportedProgram, Program } from "../../models/program";
+import {
+  IExportedProgram,
+  Program_create,
+  Program_exportProgram,
+  Program_changeExerciseName,
+} from "../../models/program";
 import { LinkButton } from "../../components/linkButton";
 import { ModalPlannerProgramRevisions } from "./modalPlannerProgramRevisions";
-import { Weight } from "../../models/weight";
+import { Weight_oppositeUnit } from "../../models/weight";
 import { IconPicture } from "../../components/icons/iconPicture";
 import { ModalPlannerPictureExport } from "./components/modalPlannerPictureExport";
 import { track } from "../../utils/posthog";
@@ -135,9 +140,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
 
   const initialProgram = props.initialProgram?.program
     ? { ...props.initialProgram.program, planner: props.initialProgram.program.planner || initialPlanner }
-    : { ...Program.create("My Program"), planner: initialPlanner };
+    : { ...Program_create("My Program"), planner: initialPlanner };
 
-  const initialSettings: ISettings = Settings.build();
+  const initialSettings: ISettings = Settings_build();
   initialSettings.exercises = {
     ...initialSettings.exercises,
     ...props.partialStorage?.settings?.exercises,
@@ -157,7 +162,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const [isBannerLoading, setIsBannerLoading] = useState(false);
 
   const initialState: IPlannerState = {
-    id: initialProgram.id || UidFactory.generateUid(8),
+    id: initialProgram.id || UidFactory_generateUid(8),
     current: {
       program: initialProgram,
     },
@@ -184,7 +189,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program) {
         track({ name: "edit_program" });
-        const exportProgram = Program.exportProgram(newState.current.program, settings);
+        const exportProgram = Program_exportProgram(newState.current.program, settings);
         dispatch(
           lb<IPlannerState>().p("encodedProgram").record(JSON.stringify(exportProgram)),
           "Update encoded program"
@@ -216,7 +221,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   useEffect(() => {
     setShowHelp(typeof window !== "undefined" && window.localStorage.getItem("hide-planner-help") !== "true");
     if (props.initialProgram) {
-      const exportProgram = Program.exportProgram(state.current.program, settings);
+      const exportProgram = Program_exportProgram(state.current.program, settings);
       Encoder.encodeIntoUrl(JSON.stringify(exportProgram), window.location.href).then(() => {
         dispatch(
           lb<IPlannerState>().p("initialEncodedProgram").record(JSON.stringify(exportProgram)),
@@ -364,16 +369,16 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             isBannerLoading={isBannerLoading}
             account={props.account}
             onAddProgram={async () => {
-              const exportProgram = Program.exportProgram(
+              const exportProgram = Program_exportProgram(
                 {
                   ...state.current.program,
-                  id: UidFactory.generateUid(8),
+                  id: UidFactory_generateUid(8),
                 },
                 settings
               );
               const pg = exportProgram.program;
               if (pg.planner && PlannerProgram.hasNonSelectedWeightUnit(pg.planner, settings)) {
-                const fromUnit = Weight.oppositeUnit(settings.units);
+                const fromUnit = Weight_oppositeUnit(settings.units);
                 const toUnit = settings.units;
                 if (confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)) {
                   pg.planner = PlannerProgram.switchToUnit(pg.planner, settings);
@@ -407,7 +412,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   lb<IPlannerState>().p("current").p("program").p("name").record(v),
                   "Update current program name"
                 );
-                document.title = `Liftosaur: Weight Lifting Tracking App | ${HtmlUtils.escapeHtml(v)}`;
+                document.title = `Liftosaur: Weight Lifting Tracking App | ${HtmlUtils_escapeHtml(v)}`;
               }}
             />
           </h2>
@@ -423,7 +428,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               className="text-xs font-normal text-text-secondary nm-program-content-change-id"
               style={{ marginTop: "-0.5rem" }}
               onClick={() => {
-                const id = UidFactory.generateUid(8);
+                const id = UidFactory_generateUid(8);
                 dispatch(
                   [
                     lb<IPlannerState>().p("id").record(id),
@@ -449,7 +454,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 onClick={async () => {
                   setIsLoading(true);
                   try {
-                    const exportProgram = Program.exportProgram(state.current.program, settings);
+                    const exportProgram = Program_exportProgram(state.current.program, settings);
                     exportProgram.settings.muscleGroups = settings.muscleGroups;
                     exportProgram.settings.exerciseData = settings.exerciseData;
                     exportProgram.settings.workoutSettings = settings.workoutSettings;
@@ -523,7 +528,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 client={props.client}
                 encodedProgram={async () => {
                   track({ name: "copy_link" });
-                  const exportProgram = Program.exportProgram(program, settings);
+                  const exportProgram = Program_exportProgram(program, settings);
                   const baseUrl = UrlUtils.build("/planner", window.location.href);
                   const encodedUrl = await Encoder.encodeIntoUrl(JSON.stringify(exportProgram), baseUrl.toString());
                   return encodedUrl.toString();
@@ -716,7 +721,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                           if (line == null) {
                             return text;
                           }
-                          const exercise = Exercise.getById(exerciseType.id, settings.exercises);
+                          const exercise = Exercise_getById(exerciseType.id, settings.exercises);
                           const lines = text.split("\n");
                           lines.splice(line, 0, exercise.name);
                           return lines.join("\n");
@@ -731,7 +736,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                           if (!exerciseType) {
                             return exerciseText;
                           }
-                          const exercise = Exercise.getById(exerciseType.id, settings.exercises);
+                          const exercise = Exercise_getById(exerciseType.id, settings.exercises);
                           return exerciseText + `\n${exercise.name}`;
                         }),
                 ],
@@ -757,7 +762,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             largeImageUrl?: string,
             exercise?: ICustomExercise
           ) => {
-            const exercises = Exercise.createOrUpdateCustomExercise(
+            const exercises = Exercise_createOrUpdateCustomExercise(
               settings.exercises,
               name,
               targetMuscles,
@@ -769,7 +774,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             );
             setSettings(lf(settings).p("exercises").set(exercises));
             if (exercise) {
-              const newProgram = Program.changeExerciseName(exercise.name, name, state.current.program, {
+              const newProgram = Program_changeExerciseName(exercise.name, name, state.current.program, {
                 ...settings,
                 exercises,
               });
@@ -788,10 +793,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 .set({ ...settings.exercises, [id]: { ...settings.exercises[id]!, isDeleted: true } })
             );
           }}
-          settings={{ ...Settings.build(), exercises: settings.exercises }}
+          settings={{ ...Settings_build(), exercises: settings.exercises }}
           customExerciseName={modalExerciseUi.customExerciseName}
           exerciseType={modalExerciseUi.exerciseType}
-          initialFilterTypes={[...modalExerciseUi.muscleGroups, ...modalExerciseUi.types].map(StringUtils.capitalize)}
+          initialFilterTypes={[...modalExerciseUi.muscleGroups, ...modalExerciseUi.types].map(StringUtils_capitalize)}
         />
       )}
       {state.ui.showPictureExport && (

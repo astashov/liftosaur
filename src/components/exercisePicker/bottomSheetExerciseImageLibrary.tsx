@@ -1,17 +1,17 @@
 import { h, JSX, Fragment } from "preact";
 import { ISettings } from "../../types";
-import { Exercise } from "../../models/exercise";
+import { Exercise_allExpanded, Exercise_find, Exercise_fullName } from "../../models/exercise";
 import { MenuItemWrapper } from "../menuItem";
 import { ExerciseImage } from "../exerciseImage";
 import { Tailwind } from "../../utils/tailwindConfig";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { useState, useEffect } from "preact/hooks";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_fuzzySearch } from "../../utils/string";
 import { Service } from "../../api/service";
 import { GroupHeader } from "../groupHeader";
 import { IconSpinner } from "../icons/iconSpinner";
-import { UidFactory } from "../../utils/generator";
-import { ExerciseImageUtils } from "../../models/exerciseImage";
+import { UidFactory_generateUid } from "../../utils/generator";
+import { ExerciseImageUtils_url } from "../../models/exerciseImage";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
 
 interface IProps {
@@ -42,17 +42,17 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
   const [search, setSearch] = useState<string>("");
   const trimmedSearch = search.trim().toLowerCase();
   const exercises = !trimmedSearch
-    ? Exercise.allExpanded({})
-    : Exercise.allExpanded({}).filter((e) => {
-        return StringUtils.fuzzySearch(trimmedSearch, e.name.toLowerCase());
+    ? Exercise_allExpanded({})
+    : Exercise_allExpanded({}).filter((e) => {
+        return StringUtils_fuzzySearch(trimmedSearch, e.name.toLowerCase());
       });
   const filteredUploadedImages = !trimmedSearch
     ? uploadedImages
     : uploadedImages.filter((img) => {
         const exerciseId = getExerciseIdFromImageUrl(img);
-        const customExercise = exerciseId ? Exercise.find({ id: exerciseId }, props.settings.exercises) : undefined;
+        const customExercise = exerciseId ? Exercise_find({ id: exerciseId }, props.settings.exercises) : undefined;
         if (customExercise) {
-          return StringUtils.fuzzySearch(trimmedSearch, customExercise.name.toLowerCase());
+          return StringUtils_fuzzySearch(trimmedSearch, customExercise.name.toLowerCase());
         } else {
           return false;
         }
@@ -94,9 +94,9 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
                   </div>
                 ) : (
                   filteredUploadedImages.map((img) => {
-                    const exerciseId = getExerciseIdFromImageUrl(img) ?? UidFactory.generateUid(8);
+                    const exerciseId = getExerciseIdFromImageUrl(img) ?? UidFactory_generateUid(8);
                     const customExercise = exerciseId
-                      ? Exercise.find({ id: exerciseId }, props.settings.exercises)
+                      ? Exercise_find({ id: exerciseId }, props.settings.exercises)
                       : undefined;
                     return (
                       <MenuItemWrapper
@@ -111,7 +111,7 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
                             <img src={img} alt={customExercise?.name ?? "Custom Exercise"} className="w-full" />
                           </div>
                           {customExercise && (
-                            <div className="flex-1">{Exercise.fullName(customExercise, props.settings)}</div>
+                            <div className="flex-1">{Exercise_fullName(customExercise, props.settings)}</div>
                           )}
                         </div>
                       </MenuItemWrapper>
@@ -126,8 +126,8 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
                 key={exercise.id}
                 name={exercise.name}
                 onClick={() => {
-                  const smallImageUrl = ExerciseImageUtils.url(exercise, "small");
-                  const largeImageUrl = ExerciseImageUtils.url(exercise, "large");
+                  const smallImageUrl = ExerciseImageUtils_url(exercise, "small");
+                  const largeImageUrl = ExerciseImageUtils_url(exercise, "large");
                   props.onSelect(smallImageUrl, largeImageUrl);
                 }}
               >
@@ -135,7 +135,7 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
                   <div className="w-10">
                     <ExerciseImage settings={props.settings} exerciseType={exercise} size="small" className="w-full" />
                   </div>
-                  <div className="flex-1">{Exercise.fullName(exercise, props.settings)}</div>
+                  <div className="flex-1">{Exercise_fullName(exercise, props.settings)}</div>
                 </div>
               </MenuItemWrapper>
             ))}

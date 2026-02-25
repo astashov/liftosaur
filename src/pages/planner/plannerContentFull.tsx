@@ -5,9 +5,9 @@ import { Service } from "../../api/service";
 import { Button } from "../../components/button";
 import { IconPreview } from "../../components/icons/iconPreview";
 import { Modal } from "../../components/modal";
-import { Exercise } from "../../models/exercise";
+import { Exercise_findByName } from "../../models/exercise";
 import { IPlannerProgram, ISettings } from "../../types";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_findIndexReverse } from "../../utils/collection";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { PlannerDayStats } from "./components/plannerDayStats";
 import { PlannerEditorCustomCta } from "./components/plannerEditorCustomCta";
@@ -67,16 +67,16 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
 
   const weekIndex =
     evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(evaluatedWeeks.data, (w) => w.line <= currentLine)
+      ? CollectionUtils_findIndexReverse(evaluatedWeeks.data, (w) => w.line <= currentLine)
       : -1;
   const dayIndex =
     weekIndex !== -1 && evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(evaluatedWeeks.data[weekIndex].days, (d) => d.line <= currentLine)
+      ? CollectionUtils_findIndexReverse(evaluatedWeeks.data[weekIndex].days, (d) => d.line <= currentLine)
       : -1;
 
   const exerciseIndex =
     dayIndex !== -1 && evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(
+      ? CollectionUtils_findIndexReverse(
           evaluatedWeeks.data[weekIndex].days[dayIndex].exercises,
           (d) => d.line <= currentLine
         )
@@ -97,7 +97,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
     for (const week of evaluatedWeeks.data) {
       for (const day of week.days) {
         for (const plannerExercise of day.exercises) {
-          const exercise = Exercise.findByName(plannerExercise.name, {});
+          const exercise = Exercise_findByName(plannerExercise.name, {});
           if (exercise) {
             exercise.equipment = plannerExercise.equipment || exercise.defaultEquipment;
           }

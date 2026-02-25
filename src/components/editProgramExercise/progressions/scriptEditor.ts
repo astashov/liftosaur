@@ -17,7 +17,7 @@ import {
 import { highlightSelectionMatches } from "@codemirror/search";
 import { tags } from "@lezer/highlight";
 import { IProgramState } from "../../../types";
-import { ObjectUtils } from "../../../utils/object";
+import { ObjectUtils_isEqual } from "../../../utils/object";
 import { buildLiftoscriptLanguageSupport } from "../../../liftoscriptCodemirror";
 import { LiftoscriptSyntaxError } from "../../../liftoscriptEvaluator";
 import { Tailwind } from "../../../utils/tailwindConfig";
@@ -144,7 +144,7 @@ export class ScriptEditor {
   }
 
   public setState(state: IProgramState): void {
-    const changed = !ObjectUtils.isEqual({ args: state }, { arr: this.args.state });
+    const changed = !ObjectUtils_isEqual({ args: state }, { arr: this.args.state });
     if (changed) {
       this.args.state = state;
       this.relint();

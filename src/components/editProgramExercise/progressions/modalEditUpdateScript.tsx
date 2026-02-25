@@ -4,7 +4,7 @@ import { Button } from "../../button";
 import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
 import { ScriptEditorView } from "./scriptEditorView";
 import { useState } from "preact/hooks";
-import { StringUtils } from "../../../utils/string";
+import { StringUtils_unindent, StringUtils_indent } from "../../../utils/string";
 import { ScriptRunner } from "../../../parser";
 import { ISettings } from "../../../types";
 import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";
@@ -30,7 +30,7 @@ export function ModalEditUpdateScript(props: IModalEditUpdateScriptProps): JSX.E
   }
   const ownState = PlannerProgramExercise.getState(props.plannerExercise);
   let initialScript = cleanScript(update.script);
-  initialScript = initialScript ? StringUtils.unindent(initialScript) : initialScript;
+  initialScript = initialScript ? StringUtils_unindent(initialScript) : initialScript;
   const [script, setScript] = useState(initialScript);
 
   const error = ScriptRunner.isValid(
@@ -66,7 +66,7 @@ export function ModalEditUpdateScript(props: IModalEditUpdateScriptProps): JSX.E
           disabled={error != null}
           onClick={() => {
             props.onClose();
-            const wrappedScript = script ? `{~\n${StringUtils.indent(cleanScript(script), 2)}\n~}` : script;
+            const wrappedScript = script ? `{~\n${StringUtils_indent(cleanScript(script), 2)}\n~}` : script;
             props.onChange(wrappedScript);
           }}
         >

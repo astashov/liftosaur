@@ -1,4 +1,4 @@
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_keys } from "../../utils/object";
 import { SetUtils } from "../../utils/setUtils";
 import {
   IVersions,
@@ -16,7 +16,7 @@ export class VersionTrackerDiffVersions {
     const diff: IVersions<T> = {};
     let hasChanges = false;
 
-    for (const key of ObjectUtils.keys(newVersions)) {
+    for (const key of ObjectUtils_keys(newVersions)) {
       const oldVersion = oldVersions?.[key];
       const newVersion = newVersions[key];
 

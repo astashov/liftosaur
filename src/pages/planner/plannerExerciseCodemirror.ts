@@ -2,13 +2,13 @@ import { parser as plannerExerciseParser } from "./plannerExerciseParser";
 import { LRLanguage, LanguageSupport } from "@codemirror/language";
 import { styleTags } from "@lezer/highlight";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
-import { Exercise } from "../../models/exercise";
+import { Exercise_searchNames } from "../../models/exercise";
 import { PlannerEditor } from "./plannerEditor";
 import { plannerExerciseStyles } from "./plannerExerciseStyles";
 import { parseMixed } from "@lezer/common";
 import { buildLiftoscriptLanguageSupport } from "../../liftoscriptCodemirror";
 import { liftoscriptLanguage } from "../../liftoscriptLanguage";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_fuzzySearch } from "../../utils/string";
 
 const parserWithMetadata = plannerExerciseParser.configure({
   props: [styleTags(plannerExerciseStyles)],
@@ -31,7 +31,7 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
         const newText = text.replace(/^[^:]*:\s*/, "");
         const offset = text.length - newText.length;
         text = newText;
-        const exerciseNames = Exercise.searchNames(text.trim(), plannerEditor.args.customExercises || {});
+        const exerciseNames = Exercise_searchNames(text.trim(), plannerEditor.args.customExercises || {});
         const result = {
           from: exerciseMatch.from + offset,
           options: exerciseNames.map((name) => ({ label: name, type: "keyword" })),
@@ -44,7 +44,7 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
       if (reuseMatch) {
         const text = reuseMatch.text.replace("...", "");
         const exerciseFullNames = (plannerEditor.args.exerciseFullNames || []).filter((name) => {
-          return StringUtils.fuzzySearch(text.toLowerCase(), name.toLowerCase());
+          return StringUtils_fuzzySearch(text.toLowerCase(), name.toLowerCase());
         });
         return {
           from: reuseMatch.from + 3,

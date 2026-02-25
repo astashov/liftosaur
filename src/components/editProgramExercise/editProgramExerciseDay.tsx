@@ -2,14 +2,14 @@ import { h, JSX } from "preact";
 import { IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { IExerciseType, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getDayNumber } from "../../models/program";
 import { EditProgramExerciseDayExercise } from "./editProgramExerciseDayExercise";
 import { Button } from "../button";
 import { IconKebab } from "../icons/iconKebab";
 import { useState } from "preact/hooks";
 import { DropdownMenu, DropdownMenuItem } from "../dropdownMenu";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_clone } from "../../utils/object";
 import { lb } from "lens-shmens";
 
 interface IEditProgramExerciseDayProps {
@@ -89,7 +89,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                         plannerExercise,
                         props.settings,
                         (ex) => {
-                          const lastSetVariation = ObjectUtils.clone(ex.evaluatedSetVariations[0]);
+                          const lastSetVariation = ObjectUtils_clone(ex.evaluatedSetVariations[0]);
                           ex.evaluatedSetVariations.push(lastSetVariation);
                         }
                       );
@@ -106,7 +106,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                     const dayData = {
                       week: props.weekIndex + 1,
                       dayInWeek: props.dayInWeekIndex + 1,
-                      day: Program.getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
+                      day: Program_getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
                     };
                     props.plannerDispatch(
                       lbProgram.recordModify((program) => {
@@ -221,7 +221,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
               const dayData = {
                 week: props.weekIndex + 1,
                 dayInWeek: props.dayInWeekIndex + 1,
-                day: Program.getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
+                day: Program_getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
               };
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {

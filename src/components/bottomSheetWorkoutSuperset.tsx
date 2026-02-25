@@ -1,13 +1,13 @@
 import { h, JSX, Fragment } from "preact";
 import { useState } from "preact/hooks";
-import { Progress } from "../models/progress";
+import { Progress_getSupersetGroups } from "../models/progress";
 import { IHistoryRecord, IHistoryEntry, ISettings } from "../types";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_entriesNonnull } from "../utils/object";
 import { BottomSheet } from "./bottomSheet";
 import { Button } from "./button";
 import { ModalNewSupersetGroup } from "./modalNewSupersetGroup";
-import { Exercise } from "../models/exercise";
-import { StringUtils } from "../utils/string";
+import { Exercise_get, Exercise_fullName } from "../models/exercise";
+import { StringUtils_dashcase } from "../utils/string";
 
 interface IBottomSheetWorkoutSupersetProps {
   onSelect: (name: string | undefined) => void;
@@ -19,7 +19,7 @@ interface IBottomSheetWorkoutSupersetProps {
 }
 
 export function BottomSheetWorkoutSuperset(props: IBottomSheetWorkoutSupersetProps): JSX.Element {
-  const supersetGroups = Progress.getSupersetGroups(props.progress.entries);
+  const supersetGroups = Progress_getSupersetGroups(props.progress.entries);
   const [newGroupModal, setNewGroupModal] = useState(false);
 
   return (
@@ -40,12 +40,12 @@ export function BottomSheetWorkoutSuperset(props: IBottomSheetWorkoutSupersetPro
             >
               None
             </button>
-            {ObjectUtils.entriesNonnull(supersetGroups).map(([name, entries]) => {
+            {ObjectUtils_entriesNonnull(supersetGroups).map(([name, entries]) => {
               const isSelected = props.entry.superset === name;
               return (
                 <button
                   key={name}
-                  data-cy={`superset-group-${StringUtils.dashcase(name)}`}
+                  data-cy={`superset-group-${StringUtils_dashcase(name)}`}
                   className={`text-left block w-full items-center ${isSelected ? "bg-background-cardpurple" : ""} gap-2 px-4 py-1 border-b border-border-neutral min-h-12`}
                   onClick={() => {
                     props.onSelect(name);
@@ -56,11 +56,11 @@ export function BottomSheetWorkoutSuperset(props: IBottomSheetWorkoutSupersetPro
                     {entries.length > 0 && (
                       <div className="text-xs text-text-secondary">
                         {entries.map((e, i) => {
-                          const exercise = Exercise.get(e.exercise, props.settings.exercises);
+                          const exercise = Exercise_get(e.exercise, props.settings.exercises);
                           return (
                             <>
                               {i !== 0 ? ", " : ""}
-                              <strong>{Exercise.fullName(exercise, props.settings)}</strong>
+                              <strong>{Exercise_fullName(exercise, props.settings)}</strong>
                             </>
                           );
                         })}

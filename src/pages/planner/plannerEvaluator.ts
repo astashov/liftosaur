@@ -15,11 +15,11 @@ import {
   IProgramExerciseDescriptions,
 } from "./models/types";
 import { PlannerKey } from "./plannerKey";
-import { ObjectUtils } from "../../utils/object";
-import { Weight } from "../../models/weight";
+import { ObjectUtils_isEqual, ObjectUtils_clone, ObjectUtils_keys, ObjectUtils_values } from "../../utils/object";
+import { Weight_type } from "../../models/weight";
 import { PlannerProgram } from "./models/plannerProgram";
 import { ScriptRunner } from "../../parser";
-import { Progress } from "../../models/progress";
+import { Progress_createEmptyScriptBindings, Progress_createScriptFunctions } from "../../models/progress";
 import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
 import { PlannerProgramExercise } from "./models/plannerProgramExercise";
 
@@ -69,7 +69,7 @@ export class PlannerEvaluator {
     const tagsProp = exercise.tags;
     if (tagsProp != null && tagsProp.length > 0) {
       const existingTags = metadata.properties.id[exercise.key];
-      if (existingTags != null && !ObjectUtils.isEqual(existingTags.property, tagsProp)) {
+      if (existingTags != null && !ObjectUtils_isEqual(existingTags.property, tagsProp)) {
         const point = exercise.points.idPoint || exercise.points.fullName;
         throw PlannerSyntaxError.fromPoint(
           exercise.fullName,
@@ -313,7 +313,7 @@ export class PlannerEvaluator {
           day: (this.getDayIndexFromWeekAndDayInWeekIndex(evaluatedWeeks, repeatWeekIndex, dayInWeekIndex) ?? 0) + 1,
         };
         const repeatedExercise: IPlannerProgramExercise = {
-          ...ObjectUtils.clone(exercise),
+          ...ObjectUtils_clone(exercise),
           repeat: [],
           dayData,
           isRepeat: true,
@@ -391,8 +391,8 @@ export class PlannerEvaluator {
       if (originalExercise.exercise.progress != null && exercise.progress == null) {
         exercise.progress = {
           type: originalExercise.exercise.progress.type,
-          state: ObjectUtils.clone(originalExercise.exercise.progress.state),
-          stateMetadata: ObjectUtils.clone(originalExercise.exercise.progress.stateMetadata),
+          state: ObjectUtils_clone(originalExercise.exercise.progress.state),
+          stateMetadata: ObjectUtils_clone(originalExercise.exercise.progress.stateMetadata),
           reuse: { fullName: originalExercise.exercise.fullName, source: "overall" },
         };
       }
@@ -428,7 +428,7 @@ export class PlannerEvaluator {
         (ex) => ex.descriptions != null
       );
       if (lastWeekExercise && lastWeekExercise.descriptions) {
-        exercise.descriptions = ObjectUtils.clone(lastWeekExercise.descriptions);
+        exercise.descriptions = ObjectUtils_clone(lastWeekExercise.descriptions);
       }
     }
   }
@@ -449,7 +449,7 @@ export class PlannerEvaluator {
       if (result != null) {
         const { descriptions, exercise: originalExercise } = result;
         exercise.descriptions = {
-          values: [...ObjectUtils.clone(descriptions.values)],
+          values: [...ObjectUtils_clone(descriptions.values)],
           reuse: { fullName: originalExercise.fullName, exercise: originalExercise, source: "specific" },
         };
       }
@@ -514,9 +514,9 @@ export class PlannerEvaluator {
         }
         const originalState = originalProgress.state;
         const state = progress.state;
-        for (const stateKey of ObjectUtils.keys(originalState)) {
+        for (const stateKey of ObjectUtils_keys(originalState)) {
           const value = originalState[stateKey];
-          if (state[key] != null && Weight.type(value) !== Weight.type(state[stateKey])) {
+          if (state[key] != null && Weight_type(value) !== Weight_type(state[stateKey])) {
             throw PlannerSyntaxError.fromPoint(exercise.fullName, `Wrong type of state variable ${stateKey}`, point);
           }
         }
@@ -554,8 +554,8 @@ export class PlannerEvaluator {
           script,
           state,
           {},
-          Progress.createEmptyScriptBindings(dayData, settings),
-          Progress.createScriptFunctions(settings),
+          Progress_createEmptyScriptBindings(dayData, settings),
+          Progress_createScriptFunctions(settings),
           settings.units,
           { exerciseType, unit: settings.units, prints: [] },
           "update"
@@ -731,7 +731,7 @@ export class PlannerEvaluator {
     }
     reusingName = reusingName.replace(/\[([^]+)\]/, "").trim();
     const key = PlannerKey.fromFullName(reusingName, settings.exercises);
-    const weekExercises = ObjectUtils.values(byExerciseWeekDay[key]?.[weekIndex ?? currentWeekIndex] || []);
+    const weekExercises = ObjectUtils_values(byExerciseWeekDay[key]?.[weekIndex ?? currentWeekIndex] || []);
     const weekDescriptions = weekExercises.map((d) => d.descriptions);
     const index = dayIndex ?? 0;
     if (weekDescriptions[index]) {

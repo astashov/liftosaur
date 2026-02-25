@@ -3,7 +3,7 @@ import { LogUtil } from "../utils/log";
 import * as csv from "csv-parse/sync";
 import fs from "fs";
 import { IHistoryRecord } from "../../src/types";
-import { CollectionUtils } from "../../src/utils/collection";
+import { CollectionUtils_inGroupsOf } from "../../src/utils/collection";
 
 async function main(): Promise<void> {
   const log = new LogUtil();
@@ -20,7 +20,7 @@ async function main(): Promise<void> {
   });
   const myUser = all.filter((r) => r.userId === "something");
   const result = await Promise.all(
-    CollectionUtils.inGroupsOf(23, myUser).map((group) => {
+    CollectionUtils_inGroupsOf(23, myUser).map((group) => {
       return di.dynamo.batchPut({
         tableName: "lftHistoryRecords",
         items: group,

@@ -1,5 +1,5 @@
-import { ObjectUtils } from "../../utils/object";
-import { CollectionUtils } from "../../utils/collection";
+import { ObjectUtils_clone } from "../../utils/object";
+import { CollectionUtils_uniqByExpr } from "../../utils/collection";
 import {
   IVersionTypes,
   IFieldVersion,
@@ -26,7 +26,7 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
     versionDiff: IVersions<T>,
     extractedObj: Partial<T>
   ): T {
-    const result: Record<string, unknown> = ObjectUtils.clone(fullObj);
+    const result: Record<string, unknown> = ObjectUtils_clone(fullObj);
 
     for (const key of Object.keys(versionDiff)) {
       const diffVersion = versionDiff[key];
@@ -218,10 +218,10 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
           ...(diffVersion.deleted ? Object.keys(diffVersion.deleted) : []),
         ]);
     if (Array.isArray(fullValue) && Array.isArray(extractedValue)) {
-      const dedupedFull = CollectionUtils.uniqByExpr(fullValue, (item) =>
+      const dedupedFull = CollectionUtils_uniqByExpr(fullValue, (item) =>
         VersionTrackerUtils.getId(item, this.versionTypes)
       );
-      const dedupedExtracted = CollectionUtils.uniqByExpr(extractedValue, (item) =>
+      const dedupedExtracted = CollectionUtils_uniqByExpr(extractedValue, (item) =>
         VersionTrackerUtils.getId(item, this.versionTypes)
       );
       const result: unknown[] = [];

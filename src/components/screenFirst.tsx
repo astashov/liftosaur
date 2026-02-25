@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Button } from "./button";
 import { IconArrowRight } from "./icons/iconArrowRight";
@@ -98,7 +98,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
               className="w-full"
               name="see-how-it-works"
               kind="purple"
-              onClick={() => props.dispatch(Thunk.pushScreen("units"))}
+              onClick={() => props.dispatch(Thunk_pushScreen("units"))}
             >
               <span className="align-middle">Get started</span>{" "}
               <IconArrowRight className="inline ml-2 align-middle left-right-animation" color="white" />

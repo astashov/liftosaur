@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushScreen, Thunk_pushToEditProgram, Thunk_startProgramDay } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
-import { Screen } from "../models/screen";
+import { Screen_currentName, Screen_tab } from "../models/screen";
 import { FooterButton } from "./footerButton";
 import { IconGraphs } from "./icons/iconGraphs";
 import { IconHome } from "./icons/iconHome";
@@ -12,9 +12,9 @@ import { IconDoc2 } from "./icons/iconDoc2";
 import { BottomSheetNextWorkout } from "./bottomSheetNextWorkout";
 import { INavCommon } from "../models/state";
 import { IconBarbell2 } from "./icons/iconBarbell2";
-import { ObjectUtils } from "../utils/object";
-import { Program } from "../models/program";
-import { Subscriptions } from "../utils/subscriptions";
+import { ObjectUtils_values } from "../utils/object";
+import { Program_evaluate } from "../models/program";
+import { Subscriptions_isEligibleForThanksgivingPromo } from "../utils/subscriptions";
 
 interface IFooterProps {
   dispatch: IDispatch;
@@ -26,17 +26,17 @@ function getHasErrorsInProgram(navCommon: INavCommon): boolean {
   if (!program) {
     return false;
   }
-  const evaluatedProgram = Program.evaluate(program, navCommon.settings);
+  const evaluatedProgram = Program_evaluate(program, navCommon.settings);
   return evaluatedProgram.errors.length > 0;
 }
 
 export function Footer2View(props: IFooterProps): JSX.Element {
   const activeColor = Tailwind.semantic().icon.purple;
   const inactiveColor = Tailwind.semantic().icon.neutral;
-  const screen = Screen.currentName(props.navCommon.screenStack);
+  const screen = Screen_currentName(props.navCommon.screenStack);
   const [showNextWorkoutSheet, setShowNextWorkoutSheet] = useState(false);
   const onClose = useCallback(() => setShowNextWorkoutSheet(false), []);
-  const isUserLoading = ObjectUtils.values(props.navCommon.loading.items).some(
+  const isUserLoading = ObjectUtils_values(props.navCommon.loading.items).some(
     (i) => i?.type === "fetchStorage" && !i.endTime
   );
   const hasErrorsInProgram = getHasErrorsInProgram(props.navCommon);
@@ -66,7 +66,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               screen={screen}
               icon={(isActive) => <IconHome className="inline-block" size={20} isSelected={isActive} />}
               text="Home"
-              onClick={() => props.dispatch(Thunk.pushScreen("main", undefined, true))}
+              onClick={() => props.dispatch(Thunk_pushScreen("main", undefined, true))}
             />
             <FooterButton
               name="program"
@@ -75,7 +75,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               hasDot={hasErrorsInProgram}
               text="Program"
               onClick={() => {
-                props.dispatch(Thunk.pushToEditProgram());
+                props.dispatch(Thunk_pushToEditProgram());
               }}
             />
           </div>
@@ -87,16 +87,16 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                 style={{ top: "-27px", left: "50%", marginLeft: "-27px" }}
                 onClick={() => {
                   if (!!props.navCommon.progress) {
-                    props.dispatch(Thunk.startProgramDay());
+                    props.dispatch(Thunk_startProgramDay());
                   } else {
                     setShowNextWorkoutSheet(true);
                   }
                 }}
               >
-                <CreateButton isActive={Screen.tab(screen) === "workout"} />
+                <CreateButton isActive={Screen_tab(screen) === "workout"} />
               </button>
               <div
-                className={Screen.tab(screen) === "workout" ? "text-purplev2-700" : ""}
+                className={Screen_tab(screen) === "workout" ? "text-purplev2-700" : ""}
                 style={{ fontSize: "0.625rem", paddingTop: "30px" }}
               >
                 Workout
@@ -109,7 +109,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               screen={screen}
               icon={(isActive) => {
                 if (
-                  Subscriptions.isEligibleForThanksgivingPromo(
+                  Subscriptions_isEligibleForThanksgivingPromo(
                     props.navCommon.doesHaveWorkouts,
                     props.navCommon.subscription
                   )
@@ -128,14 +128,14 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                 }
               }}
               text={
-                Subscriptions.isEligibleForThanksgivingPromo(
+                Subscriptions_isEligibleForThanksgivingPromo(
                   props.navCommon.doesHaveWorkouts,
                   props.navCommon.subscription
                 )
                   ? "Promo"
                   : "Graphs"
               }
-              onClick={() => props.dispatch(Thunk.pushScreen("graphs", undefined, true))}
+              onClick={() => props.dispatch(Thunk_pushScreen("graphs", undefined, true))}
             />
             <FooterButton
               name="me"
@@ -151,7 +151,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                 return <IconMe isSelected={isActive} color={color} />;
               }}
               text="Me"
-              onClick={() => props.dispatch(Thunk.pushScreen("settings", undefined, true))}
+              onClick={() => props.dispatch(Thunk_pushScreen("settings", undefined, true))}
             />
           </div>
         </div>

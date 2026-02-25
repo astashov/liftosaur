@@ -2,17 +2,17 @@
 import "mocha";
 import { expect } from "chai";
 import { MockReducer } from "./utils/mockReducer";
-import { Thunk } from "../src/ducks/thunks";
+import { Thunk_sync2 } from "../src/ducks/thunks";
 import { basicBeginnerProgram } from "../src/programs/basicBeginnerProgram";
 import { IHistoryRecord, ISettings } from "../src/types";
 import { userTableNames, IUserDao } from "../lambda/dao/userDao";
 import { lb } from "lens-shmens";
 import sinon from "sinon";
-import { EditStats } from "../src/models/editStats";
+import { EditStats_deleteWeightStat } from "../src/models/editStats";
 import { Encoder } from "../src/utils/encoder";
 import { NodeEncoder } from "../lambda/utils/nodeEncoder";
 import { SyncTestUtils } from "./utils/syncTestUtils";
-import { Progress } from "../src/models/progress";
+import { Progress_getProgress } from "../src/models/progress";
 
 describe("sync", () => {
   let sandbox: sinon.SinonSandbox;
@@ -123,19 +123,19 @@ describe("sync", () => {
     const weight130Index = weights.findIndex((w) => w.value.value === 130) ?? 0;
     await mockReducer.run([
       SyncTestUtils.mockDispatch((ds) =>
-        EditStats.deleteWeightStat(ds, "weight", weight130Index, weights[weight130Index].timestamp)
+        EditStats_deleteWeightStat(ds, "weight", weight130Index, weights[weight130Index].timestamp)
       ),
     ]);
     weights = mockReducer.state.storage.stats.weight.weight || [];
     const weight140Index = weights.findIndex((w) => w.value.value === 140) ?? 0;
     await mockReducer.run([
       SyncTestUtils.mockDispatch((ds) =>
-        EditStats.deleteWeightStat(ds, "weight", weight140Index, weights[weight140Index].timestamp)
+        EditStats_deleteWeightStat(ds, "weight", weight140Index, weights[weight140Index].timestamp)
       ),
     ]);
     await SyncTestUtils.logStat(mockReducer2, 150);
     expect((mockReducer2.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
-    await mockReducer.run([Thunk.sync2({ force: true })]);
+    await mockReducer.run([Thunk_sync2({ force: true })]);
     expect((mockReducer.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
   });
 
@@ -155,7 +155,7 @@ describe("sync", () => {
     global.alert = (m) => (msg = m);
     global.window = { alert: global.alert } as any;
     try {
-      await mockReducer.run([Thunk.sync2({ force: true })]);
+      await mockReducer.run([Thunk_sync2({ force: true })]);
     } catch (error) {
       const e = error as Error;
       expect(e.message).to.eql("outdated_client_storage");
@@ -174,14 +174,14 @@ describe("sync", () => {
       await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
       await SyncTestUtils.startWorkout(mockReducer2);
       await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[3, 4]]));
-      await mockReducer.run([Thunk.sync2({ force: true })]);
+      await mockReducer.run([Thunk_sync2({ force: true })]);
       await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
-      await mockReducer2.run([Thunk.sync2({ force: true })]);
+      await mockReducer2.run([Thunk_sync2({ force: true })]);
       await mockReducer2.run(
         SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [undefined, 4, 3], [3, 3]])
       );
-      await mockReducer.run([Thunk.sync2({ force: true })]);
-      const completedSets = Progress.getProgress(mockReducer.state)?.entries.map((e) =>
+      await mockReducer.run([Thunk_sync2({ force: true })]);
+      const completedSets = Progress_getProgress(mockReducer.state)?.entries.map((e) =>
         e.sets.map((s) => `${[s.completedReps, s.isCompleted]}`)
       );
       expect(completedSets).to.eql([
@@ -198,16 +198,16 @@ describe("sync", () => {
       await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[5, 5, 5]]));
       await SyncTestUtils.startWorkout(mockReducer2);
       await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[3, 4, 3]]));
-      await mockReducer.run([Thunk.sync2({ force: true })]);
+      await mockReducer.run([Thunk_sync2({ force: true })]);
       mockFetch.hasConnection = false;
       await mockReducer.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [2, 2]]));
       await mockReducer2.run(SyncTestUtils.completeCurrentProgramRepsActions(mockReducer.state, [[], [1, 1]]));
       await SyncTestUtils.finishWorkout(mockReducer);
       await SyncTestUtils.finishWorkout(mockReducer2);
       mockFetch.hasConnection = true;
-      await mockReducer.run([Thunk.sync2({ force: true })]);
-      await mockReducer2.run([Thunk.sync2({ force: true })]);
-      await mockReducer.run([Thunk.sync2({ force: true })]);
+      await mockReducer.run([Thunk_sync2({ force: true })]);
+      await mockReducer2.run([Thunk_sync2({ force: true })]);
+      await mockReducer.run([Thunk_sync2({ force: true })]);
       const historyIds1 = mockReducer.state.storage.history.map((h) => h.startTime);
       const historyIds2 = mockReducer2.state.storage.history.map((h) => h.startTime);
       expect(historyIds1.length).to.equal(1);

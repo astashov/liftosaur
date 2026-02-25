@@ -1,8 +1,8 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
 import { IAccount } from "../../models/account";
-import { MathUtils } from "../../utils/math";
-import { StringUtils } from "../../utils/string";
+import { MathUtils_toWord } from "../../utils/math";
+import { StringUtils_capitalize } from "../../utils/string";
 import { RepMaxContent } from "./repMaxContent";
 
 interface IProps {
@@ -13,9 +13,9 @@ interface IProps {
 
 export function RepMaxHtml(props: IProps): JSX.Element {
   const { client, account, ...data } = props;
-  const repsWord = MathUtils.toWord(data.reps);
+  const repsWord = MathUtils_toWord(data.reps);
   const url = `https://www.liftosaur.com/${repsWord ? `${repsWord}-` : ""}rep-max-calculator`;
-  const title = `${repsWord ? `${StringUtils.capitalize(repsWord)} ` : ""}Rep Max Calculator | Liftosaur`;
+  const title = `${repsWord ? `${StringUtils_capitalize(repsWord)} ` : ""}Rep Max Calculator | Liftosaur`;
 
   return (
     <Page

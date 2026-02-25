@@ -1,7 +1,7 @@
 import { h, JSX, ComponentChildren } from "preact";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { IconHandle } from "./icons/iconHandle";
-import { StringUtils } from "../utils/string";
+import { StringUtils_dashcase } from "../utils/string";
 
 interface IMenuItemProps {
   prefix?: ComponentChildren;
@@ -24,7 +24,7 @@ export function MenuItemWrapper(props: {
 }): JSX.Element {
   return (
     <section
-      data-cy={`menu-item-${StringUtils.dashcase(props.name)}`}
+      data-cy={`menu-item-${StringUtils_dashcase(props.name)}`}
       className="w-full text-base text-left"
       onClick={props.onClick}
     >

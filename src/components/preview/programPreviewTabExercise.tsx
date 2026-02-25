@@ -1,9 +1,15 @@
 import { JSX, h } from "preact";
-import { Exercise } from "../../models/exercise";
+import {
+  Exercise_get,
+  Exercise_getNotes,
+  Exercise_onerm,
+  Exercise_nameWithEquipment,
+  Exercise_fullName,
+} from "../../models/exercise";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IHistoryEntry, ISettings, IStats } from "../../types";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_dashcase } from "../../utils/string";
 import { ExerciseImage } from "../exerciseImage";
 import { HistoryRecordSetsView } from "../historyRecordSets";
 import { Markdown } from "../markdown";
@@ -12,20 +18,23 @@ import { Tailwind } from "../../utils/tailwindConfig";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlaygroundExerciseEditModal";
-import { IEvaluatedProgram, Program } from "../../models/program";
-import { EditProgramLenses } from "../../models/editProgramLenses";
+import { IEvaluatedProgram, Program_getDayData, Program_stateValue } from "../../models/program";
+import { EditProgramLenses_properlyUpdateStateVariable } from "../../models/editProgramLenses";
 import { ProgramToPlanner } from "../../models/programToPlanner";
 import { IDispatch } from "../../ducks/types";
-import { Thunk } from "../../ducks/thunks";
-import { ProgramExercise } from "../../models/programExercise";
-import { Weight } from "../../models/weight";
+import { Thunk_pushExerciseStatsScreen } from "../../ducks/thunks";
+import { ProgramExercise_doesUse1RM } from "../../models/programExercise";
+import { Weight_print } from "../../models/weight";
 import { LinkButton } from "../linkButton";
-import { Equipment } from "../../models/equipment";
+import {
+  Equipment_getEquipmentNameForExerciseType,
+  Equipment_getEquipmentDataForExerciseType,
+} from "../../models/equipment";
 import { Modal1RM } from "../modal1RM";
 import { ModalEquipment } from "../modalEquipment";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { GroupHeader } from "../groupHeader";
-import { Progress } from "../../models/progress";
+import { Progress_getNextSupersetEntry } from "../../models/progress";
 
 interface IProgramPreviewTabExerciseProps {
   entry: IHistoryEntry;
@@ -42,20 +51,20 @@ interface IProgramPreviewTabExerciseProps {
 }
 
 export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps): JSX.Element {
-  const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
+  const exercise = Exercise_get(props.entry.exercise, props.settings.exercises);
   const programExercise = props.programExercise;
   const description = PlannerProgramExercise.currentDescription(programExercise);
-  const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
-  const currentEquipmentNotes = Equipment.getEquipmentDataForExerciseType(props.settings, exercise)?.notes;
-  const exerciseNotes = Exercise.getNotes(props.entry.exercise, props.settings);
-  const onerm = Exercise.onerm(exercise, props.settings);
-  const supersetEntry = Progress.getNextSupersetEntry(props.entries, props.entry);
-  const supersetExercise = supersetEntry ? Exercise.get(supersetEntry.exercise, props.settings.exercises) : undefined;
+  const currentEquipmentName = Equipment_getEquipmentNameForExerciseType(props.settings, exercise);
+  const currentEquipmentNotes = Equipment_getEquipmentDataForExerciseType(props.settings, exercise)?.notes;
+  const exerciseNotes = Exercise_getNotes(props.entry.exercise, props.settings);
+  const onerm = Exercise_onerm(exercise, props.settings);
+  const supersetEntry = Progress_getNextSupersetEntry(props.entries, props.entry);
+  const supersetExercise = supersetEntry ? Exercise_get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
   return (
     <div
       className={`py-2 px-2 mx-4 mb-3 rounded-lg bg-background-cardpurple relative`}
-      data-cy={StringUtils.dashcase(exercise.name)}
+      data-cy={StringUtils_dashcase(exercise.name)}
     >
       <div className="flex items-center gap-2">
         <ProgramPreviewTabExerciseTopBar
@@ -68,7 +77,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
         <div style={{ width: "40px" }}>
           <div
             className="p-1 rounded-lg bg-background-image"
-            onClick={() => props.dispatch(Thunk.pushExerciseStatsScreen(props.entry.exercise))}
+            onClick={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
           >
             <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
           </div>
@@ -77,9 +86,9 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
           <div>
             <button
               className="flex items-center"
-              onClick={() => props.dispatch(Thunk.pushExerciseStatsScreen(props.entry.exercise))}
+              onClick={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
             >
-              <span className="pr-1 font-bold text-left">{Exercise.nameWithEquipment(exercise, props.settings)}</span>{" "}
+              <span className="pr-1 font-bold text-left">{Exercise_nameWithEquipment(exercise, props.settings)}</span>{" "}
               <IconArrowRight width={5} height={10} style={{ marginBottom: "1px" }} className="inline-block" />
             </button>
           </div>
@@ -106,7 +115,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
               <Markdown value={currentEquipmentNotes} />
             </div>
           )}
-          {programExercise && ProgramExercise.doesUse1RM(programExercise) && (
+          {programExercise && ProgramExercise_doesUse1RM(programExercise) && (
             <div data-cy="exercise-rm1" className="text-xs text-text-secondary">
               1RM:{" "}
               <LinkButton
@@ -122,13 +131,13 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
                   );
                 }}
               >
-                {Weight.print(onerm)}
+                {Weight_print(onerm)}
               </LinkButton>
             </div>
           )}
           {supersetExercise && (
             <div data-cy="exercise-superset" className="text-xs text-text-secondary">
-              Supersets with: <strong>{Exercise.fullName(supersetExercise, props.settings)}</strong>
+              Supersets with: <strong>{Exercise_fullName(supersetExercise, props.settings)}</strong>
             </div>
           )}
         </div>
@@ -160,8 +169,8 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
           }}
           settings={props.settings}
           onEditStateVariable={(stateKey, newValue) => {
-            const dayData = Program.getDayData(props.program, props.day);
-            const lensRecording = EditProgramLenses.properlyUpdateStateVariable(
+            const dayData = Program_getDayData(props.program, props.day);
+            const lensRecording = EditProgramLenses_properlyUpdateStateVariable(
               lb<IEvaluatedProgram>()
                 .p("weeks")
                 .i(dayData.week - 1)
@@ -170,7 +179,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
                 .p("exercises")
                 .find((e) => e.key === programExercise.key),
               {
-                [stateKey]: Program.stateValue(PlannerProgramExercise.getState(programExercise), stateKey, newValue),
+                [stateKey]: Program_stateValue(PlannerProgramExercise.getState(programExercise), stateKey, newValue),
               }
             );
             const newEvaluatedProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), props.program);

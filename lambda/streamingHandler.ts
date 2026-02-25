@@ -2,8 +2,8 @@ import { APIGatewayProxyEventV2, Context } from "aws-lambda";
 import { LlmLiftoscript } from "./utils/llms/llmLiftoscript";
 import { IDI } from "./utils/di";
 import Rollbar from "rollbar";
-import { Utils } from "./utils";
-import { RollbarUtils } from "../src/utils/rollbar";
+import { Utils_getEnv } from "./utils";
+import { RollbarUtils_checkIgnore } from "../src/utils/rollbar";
 import { allowedHosts } from "./utils/response";
 import * as Cookie from "cookie";
 import { ILimitedUserDao, UserDao } from "./dao/userDao";
@@ -11,7 +11,7 @@ import { Endpoint, Method, RouteHandler, Router } from "yatro";
 import { UrlUtils } from "../src/utils/url";
 import { IEither } from "../src/utils/types";
 import { ClaudeProvider } from "./utils/llms/claude";
-import { Account, IAccount } from "../src/models/account";
+import { IAccount, Account_getFromStorage } from "../src/models/account";
 import { Subscriptions } from "./utils/subscriptions";
 import { UrlContentFetcher } from "./utils/urlContentFetcher";
 
@@ -78,7 +78,7 @@ async function getUserAccount(
   }
   return {
     user: user,
-    account: Account.getFromStorage(user.id, user.email, user.storage),
+    account: Account_getFromStorage(user.id, user.email, user.storage),
   };
 }
 
@@ -197,7 +197,7 @@ const rollbar = new Rollbar({
   captureUncaught: true,
   captureUnhandledRejections: true,
   payload: {
-    environment: `${Utils.getEnv()}-lambda-streaming`,
+    environment: `${Utils_getEnv()}-lambda-streaming`,
     client: {
       javascript: {
         source_map_enabled: true,
@@ -206,7 +206,7 @@ const rollbar = new Rollbar({
       },
     },
   },
-  checkIgnore: RollbarUtils.checkIgnore,
+  checkIgnore: RollbarUtils_checkIgnore,
 });
 
 export type IHandler = (event: APIGatewayProxyEventV2, responseStream: IStream, context: unknown) => Promise<void>;

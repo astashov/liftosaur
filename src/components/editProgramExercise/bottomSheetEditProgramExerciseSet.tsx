@@ -11,7 +11,7 @@ import { BottomSheet } from "../bottomSheet";
 import { MenuItemEditable } from "../menuItemEditable";
 import { IEvaluatedProgram } from "../../models/program";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { Weight } from "../../models/weight";
+import { Weight_build } from "../../models/weight";
 
 interface IBottomSheetEditProgramExerciseSetProps {
   ui: IPlannerExerciseUi;
@@ -95,7 +95,7 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
               onChange={(value) => {
                 changeSet((s) => {
                   if (value === "true") {
-                    s.weight = s.weight ?? Weight.build(0, props.settings.units);
+                    s.weight = s.weight ?? Weight_build(0, props.settings.units);
                   } else {
                     s.weight = undefined;
                   }

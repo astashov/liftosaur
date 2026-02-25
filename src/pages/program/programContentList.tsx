@@ -6,21 +6,34 @@ import { IconTrash } from "../../components/icons/iconTrash";
 import { IEnv, buildState, updateState, IState } from "../../models/state";
 import { useThunkReducer } from "../../utils/useThunkReducer";
 import { reducerWrapper } from "../../ducks/reducer";
-import { UidFactory } from "../../utils/generator";
+import { UidFactory_generateUid } from "../../utils/generator";
 import { Service } from "../../api/service";
-import { ExerciseImageUtils } from "../../models/exerciseImage";
+import { ExerciseImageUtils_exists } from "../../models/exerciseImage";
 import { ExerciseImage } from "../../components/exerciseImage";
 import { Button } from "../../components/button";
 import { useState } from "preact/hooks";
 import { ModalCreateProgram } from "../../components/modalCreateProgram";
-import { CollectionUtils } from "../../utils/collection";
-import { Exercise } from "../../models/exercise";
-import { IExportedProgram, Program } from "../../models/program";
+import {
+  CollectionUtils_sortByExpr,
+  CollectionUtils_groupByExprUniq,
+  CollectionUtils_compact,
+  CollectionUtils_removeBy,
+} from "../../utils/collection";
+import { Exercise_toKey } from "../../models/exercise";
+import {
+  IExportedProgram,
+  Program_evaluate,
+  Program_getAllUsedProgramExercises,
+  Program_weeksRange,
+  Program_daysRange,
+  Program_exerciseRange,
+  Program_create,
+} from "../../models/program";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { UrlUtils } from "../../utils/url";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { lb } from "lens-shmens";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_values } from "../../utils/object";
 
 export interface IProgramContentListProps {
   service: Service;
@@ -93,14 +106,14 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
         </div>
       </div>
       <ul>
-        {CollectionUtils.sortByExpr(state.storage.programs, (p) => p.clonedAt || 0, true).map((program) => {
-          const evaluatedProgram = Program.evaluate(program, state.storage.settings);
-          const usedExerciseIds = CollectionUtils.groupByExprUniq(
-            Program.getAllUsedProgramExercises(evaluatedProgram),
-            (e) => Exercise.toKey(e.exerciseType)
+        {CollectionUtils_sortByExpr(state.storage.programs, (p) => p.clonedAt || 0, true).map((program) => {
+          const evaluatedProgram = Program_evaluate(program, state.storage.settings);
+          const usedExerciseIds = CollectionUtils_groupByExprUniq(
+            Program_getAllUsedProgramExercises(evaluatedProgram),
+            (e) => Exercise_toKey(e.exerciseType)
           );
-          const usedExercises = CollectionUtils.compact(
-            ObjectUtils.values(usedExerciseIds).map((e) => e?.exerciseType)
+          const usedExercises = CollectionUtils_compact(
+            ObjectUtils_values(usedExerciseIds).map((e) => e?.exerciseType)
           );
 
           return (
@@ -123,7 +136,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                       const newProgram: IProgram = {
                         ...program,
                         name: newName,
-                        id: UidFactory.generateUid(8),
+                        id: UidFactory_generateUid(8),
                         clonedAt: Date.now(),
                         planner: program.planner ? { ...program.planner, name: newName } : undefined,
                       };
@@ -161,7 +174,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                                 lb<IState>()
                                   .p("storage")
                                   .p("programs")
-                                  .recordModify((programs) => CollectionUtils.removeBy(programs, "id", program.id)),
+                                  .recordModify((programs) => CollectionUtils_removeBy(programs, "id", program.id)),
                               ],
                               "Delete program from list"
                             );
@@ -178,7 +191,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
               </div>
               <div className="pt-2">
                 {usedExercises
-                  .filter((e) => ExerciseImageUtils.exists(e, "small"))
+                  .filter((e) => ExerciseImageUtils_exists(e, "small"))
                   .map((e) => (
                     <ExerciseImage
                       settings={state.storage.settings}
@@ -189,10 +202,10 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                   ))}
               </div>
               <div className="pt-1 text-text-secondary">
-                {CollectionUtils.compact([
-                  Program.weeksRange(evaluatedProgram),
-                  Program.daysRange(evaluatedProgram),
-                  Program.exerciseRange(evaluatedProgram),
+                {CollectionUtils_compact([
+                  Program_weeksRange(evaluatedProgram),
+                  Program_daysRange(evaluatedProgram),
+                  Program_exerciseRange(evaluatedProgram),
                 ]).join(", ")}
               </div>
             </li>
@@ -206,7 +219,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
           onClose={() => setShowCreateProgramModal(false)}
           onSelect={async (name) => {
             const newProgram: IProgram = {
-              ...Program.create(name),
+              ...Program_create(name),
               planner: {
                 vtype: "planner",
                 name,

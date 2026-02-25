@@ -12,9 +12,9 @@ import { Tailwind } from "../../utils/tailwindConfig";
 import { EditProgramExerciseSet } from "./editProgramExerciseSet";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { useState } from "preact/hooks";
-import { UidFactory } from "../../utils/generator";
+import { UidFactory_generateUid } from "../../utils/generator";
 import { IconTrash } from "../icons/iconTrash";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_removeAt } from "../../utils/collection";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 
 interface IEditProgramExerciseSetVariationProps {
@@ -34,7 +34,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
   const hasWeight = props.setVariation.sets.some((set) => set.weight != null);
   const hasMinReps = props.setVariation.sets.some((set) => set.minrep != null);
   const hasTimer = props.setVariation.sets.some((set) => set.timer != null);
-  const [setIds, setSetIds] = useState<string[]>(setVariation.sets.map((set) => UidFactory.generateUid(4)));
+  const [setIds, setSetIds] = useState<string[]>(setVariation.sets.map((set) => UidFactory_generateUid(4)));
   const currentIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(props.plannerExercise);
   const additionalFields = [hasMinReps ? 1 : 0, hasWeight ? 1 : 0, hasRpe ? 1 : 0, hasTimer ? 1 : 0].reduce(
     (a, b) => a + b,
@@ -78,7 +78,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
                   props.plannerExercise,
                   props.settings,
                   (ex) => {
-                    ex.evaluatedSetVariations = CollectionUtils.removeAt(
+                    ex.evaluatedSetVariations = CollectionUtils_removeAt(
                       ex.evaluatedSetVariations,
                       props.setVariationIndex
                     );
@@ -177,7 +177,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
                 PlannerProgramExercise.addSet(ex, props.setVariationIndex, props.settings);
               }
             );
-            setSetIds((prev) => [...prev, UidFactory.generateUid(4)]);
+            setSetIds((prev) => [...prev, UidFactory_generateUid(4)]);
           }}
         >
           <span>

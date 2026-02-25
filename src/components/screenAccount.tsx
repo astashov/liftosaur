@@ -1,13 +1,21 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { Thunk } from "../ducks/thunks";
+import {
+  Thunk_logOut,
+  Thunk_googleSignIn,
+  Thunk_appleSignIn,
+  Thunk_switchAccount,
+  Thunk_deleteAccount,
+  Thunk_createAccount,
+  Thunk_deleteAccountRemote,
+} from "../ducks/thunks";
 import { INavCommon } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { Button } from "./button";
 import { HelpAccount } from "./help/helpAccount";
-import { Account, IAccount } from "../models/account";
+import { IAccount, Account_getAll } from "../models/account";
 import { useEffect, useState } from "preact/hooks";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
@@ -32,7 +40,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
   const [isOtherAccountsEditMode, setIsOtherAccountsEditMode] = useState<boolean>(false);
 
   function refetchAccounts(): void {
-    Account.getAll().then((accounts) => {
+    Account_getAll().then((accounts) => {
       const theCurrentAccount = accounts.filter((account) => account.isCurrent)[0];
       const theOtherAccounts = accounts.filter((account) => !account.isCurrent);
       setCurrentAccount(theCurrentAccount);
@@ -109,7 +117,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                   kind="purple"
                   data-cy="menu-item-logout"
                   className="ls-logout"
-                  onClick={() => props.dispatch(Thunk.logOut())}
+                  onClick={() => props.dispatch(Thunk_logOut())}
                 >
                   Sign Out
                 </Button>
@@ -121,7 +129,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                     className="flex items-center w-full px-4 py-2 mt-2 rounded-lg nm-sign-in-with-google"
                     style={{ boxShadow: "0 1px 4px 0 rgba(0,0,0,0.1)" }}
                     data-cy="menu-item-login"
-                    onClick={() => props.dispatch(Thunk.googleSignIn())}
+                    onClick={() => props.dispatch(Thunk_googleSignIn())}
                   >
                     <span className="">
                       <IconGoogle />
@@ -133,7 +141,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                   <button
                     className="flex items-center w-full px-4 py-3 mt-2 bg-black rounded-lg text-text-alwayswhite nm-sign-in-with-apple"
                     onClick={async () => {
-                      props.dispatch(Thunk.appleSignIn());
+                      props.dispatch(Thunk_appleSignIn());
                     }}
                   >
                     <span style={{ marginTop: "-3px" }}>
@@ -173,7 +181,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                   "Want to switch to this account? You WILL NOT lose your current account, you'll be able to switch back to it later."
                 )
               ) {
-                props.dispatch(Thunk.switchAccount(account.id));
+                props.dispatch(Thunk_switchAccount(account.id));
               }
             }}
             value={
@@ -188,7 +196,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                             "Are you sure? All the local data for this account will be lost, and you won't be able to restore it unless you have a cloud account. Type 'delete' to confirm."
                           )?.toLocaleLowerCase() === "delete"
                         ) {
-                          props.dispatch(Thunk.deleteAccount(account.id, () => refetchAccounts()));
+                          props.dispatch(Thunk_deleteAccount(account.id, () => refetchAccounts()));
                         }
                       }}
                     >
@@ -229,7 +237,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 "Want to create a new local account? You WILL NOT lose your current account, you'll be able to switch back to it later."
               )
             ) {
-              props.dispatch(Thunk.createAccount());
+              props.dispatch(Thunk_createAccount());
             }
           }}
         >
@@ -250,9 +258,9 @@ export function ScreenAccount(props: IProps): JSX.Element {
                     )?.toLocaleLowerCase() === "delete"
                   ) {
                     props.dispatch(
-                      Thunk.logOut(() => {
-                        props.dispatch(Thunk.deleteAccount(currentAccount.id));
-                        props.dispatch(Thunk.createAccount());
+                      Thunk_logOut(() => {
+                        props.dispatch(Thunk_deleteAccount(currentAccount.id));
+                        props.dispatch(Thunk_createAccount());
                       })
                     );
                   }
@@ -274,7 +282,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                       )?.toLocaleLowerCase() === "delete"
                     ) {
                       props.dispatch(
-                        Thunk.deleteAccountRemote((result) => {
+                        Thunk_deleteAccountRemote((result) => {
                           if (result) {
                             alert("Account deleted from cloud.");
                           } else {

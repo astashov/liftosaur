@@ -1,10 +1,14 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { GraphExercise } from "./graphExercise";
-import { History } from "../models/history";
+import {
+  History_findAllMaxSetsPerId,
+  History_collectMuscleGroups,
+  History_collectProgramChangeTimes,
+} from "../models/history";
 import { useState } from "preact/hooks";
 import { ModalGraphs } from "./modalGraphs";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_keys } from "../utils/object";
 import { ISettings, IHistoryRecord, IStats, IScreenMuscle } from "../types";
 import { getLengthDataForGraph, getPercentageDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
 import { INavCommon } from "../models/state";
@@ -15,8 +19,8 @@ import { IconFilter } from "./icons/iconFilter";
 import { HelpGraphs } from "./help/helpGraphs";
 import { Collector } from "../utils/collector";
 import { GraphMuscleGroup } from "./graphMuscleGroup";
-import { CollectionUtils } from "../utils/collection";
-import { Exercise } from "../models/exercise";
+import { CollectionUtils_sort } from "../utils/collection";
+import { Exercise_fromKey } from "../models/exercise";
 
 interface IProps {
   dispatch: IDispatch;
@@ -30,18 +34,18 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   const { settings } = props;
   const { isWithBodyweight, isSameXAxis, isWithOneRm, isWithProgramLines } = settings.graphsSettings;
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const maxSets = History.findAllMaxSetsPerId(props.history);
-  const exerciseTypes = ObjectUtils.keys(maxSets).map(Exercise.fromKey);
+  const maxSets = History_findAllMaxSetsPerId(props.history);
+  const exerciseTypes = ObjectUtils_keys(maxSets).map(Exercise_fromKey);
   const hasBodyweight = props.settings.graphs.graphs.some((g) => g.id === "weight");
   let bodyweightData: [number, number][] = [];
 
-  const sortedHistory = CollectionUtils.sort(props.history, (a, b) => {
+  const sortedHistory = CollectionUtils_sort(props.history, (a, b) => {
     return new Date(Date.parse(a.date)).getTime() - new Date(Date.parse(b.date)).getTime();
   });
 
   const historyCollector = Collector.build(sortedHistory)
-    .addFn(History.collectMuscleGroups(props.settings))
-    .addFn(History.collectProgramChangeTimes());
+    .addFn(History_collectMuscleGroups(props.settings))
+    .addFn(History_collectProgramChangeTimes());
   const [muscleGroupsData, programChangeTimes] = historyCollector.run();
   console.log(muscleGroupsData);
 
@@ -59,7 +63,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
     }
   }
   if (isSameXAxis) {
-    for (const key of ObjectUtils.keys(props.stats.weight)) {
+    for (const key of ObjectUtils_keys(props.stats.weight)) {
       for (const value of props.stats.weight[key] || []) {
         if (minX > value.timestamp) {
           minX = value.timestamp;
@@ -69,7 +73,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
         }
       }
     }
-    for (const key of ObjectUtils.keys(props.stats.length)) {
+    for (const key of ObjectUtils_keys(props.stats.length)) {
       for (const value of props.stats.length[key] || []) {
         if (minX > value.timestamp) {
           minX = value.timestamp;
@@ -133,7 +137,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                     settings={props.settings}
                     isWithProgramLines={isWithProgramLines}
                     history={props.history}
-                    exercise={Exercise.fromKey(graph.id)}
+                    exercise={Exercise_fromKey(graph.id)}
                     dispatch={props.dispatch}
                   />
                 </div>

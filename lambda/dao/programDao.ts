@@ -1,6 +1,6 @@
 import { IProgram } from "../../src/types";
 import { IProgramDetail } from "../../src/api/service";
-import { IProgramIndexEntry, Program } from "../../src/models/program";
+import { IProgramIndexEntry, Program_create } from "../../src/models/program";
 import { IDI } from "../utils/di";
 
 export interface IProgramPayload {
@@ -47,7 +47,7 @@ function getCdnHost(): string {
 
 function buildProgram(entry: IProgramIndexEntry, detail: IProgramDetail): IProgram {
   return {
-    ...Program.create(entry.name, entry.id),
+    ...Program_create(entry.name, entry.id),
     author: entry.author,
     url: entry.url,
     shortDescription: entry.shortDescription,

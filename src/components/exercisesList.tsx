@@ -1,25 +1,37 @@
 import { h, JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushExerciseStatsScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
-import { Equipment } from "../models/equipment";
-import { equipmentName, Exercise } from "../models/exercise";
+import { Equipment_getEquipmentNameForExerciseType } from "../models/equipment";
+import {
+  equipmentName,
+  Exercise_get,
+  Exercise_fullName,
+  Exercise_onerm,
+  Exercise_defaultRounding,
+  Exercise_toKey,
+  Exercise_isCustom,
+  Exercise_filterExercises,
+  Exercise_filterExercisesByType,
+  Exercise_handleCustomExerciseChange,
+  Exercise_createCustomExercise,
+} from "../models/exercise";
 import { equipments, exerciseKinds, IExerciseType, IProgram, ISettings, IWeight } from "../types";
-import { CollectionUtils } from "../utils/collection";
-import { StringUtils } from "../utils/string";
+import { CollectionUtils_uniqByExpr, CollectionUtils_compact } from "../utils/collection";
+import { StringUtils_capitalize } from "../utils/string";
 import { ExerciseImage } from "./exerciseImage";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemWrapper } from "./menuItem";
 import { Multiselect } from "./multiselect";
 import { IHistoryRecord } from "../types";
-import { Weight } from "../models/weight";
+import { Weight_print } from "../models/weight";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { LinkButton } from "./linkButton";
-import { ObjectUtils } from "../utils/object";
-import { Settings } from "../models/settings";
-import { Program } from "../models/program";
+import { ObjectUtils_values } from "../utils/object";
+import { Settings_activeCustomExercises } from "../models/settings";
+import { Program_evaluate, Program_getAllUsedProgramExercises } from "../models/program";
 import { BottomSheetCustomExercise } from "./bottomSheetCustomExercise";
-import { Muscle } from "../models/muscle";
+import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "../models/muscle";
 
 interface IExercisesListProps {
   dispatch: IDispatch;
@@ -38,62 +50,62 @@ interface IExercisesListExercise extends IExerciseType {
 
 function buildExercises(exerciseTypes: IExerciseType[], settings: ISettings): IExercisesListExercise[] {
   return exerciseTypes.map((e) => {
-    const exercise = Exercise.get(e, settings.exercises);
+    const exercise = Exercise_get(e, settings.exercises);
     return {
       ...e,
-      name: Exercise.fullName(exercise, settings),
-      rm1: Exercise.onerm(e, settings),
-      equipmentName: Equipment.getEquipmentNameForExerciseType(settings, e),
-      defaultRounding: Exercise.defaultRounding(e, settings),
+      name: Exercise_fullName(exercise, settings),
+      rm1: Exercise_onerm(e, settings),
+      equipmentName: Equipment_getEquipmentNameForExerciseType(settings, e),
+      defaultRounding: Exercise_defaultRounding(e, settings),
     };
   });
 }
 
 export function ExercisesList(props: IExercisesListProps): JSX.Element {
-  const evaluatedProgram = Program.evaluate(props.program, props.settings);
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
   const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>("");
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
   const [showCustomExerciseModal, setShowCustomExerciseModal] = useState<boolean>(false);
 
   let programExercises = buildExercises(
-    CollectionUtils.uniqByExpr(Program.getAllUsedProgramExercises(evaluatedProgram), (e) =>
-      Exercise.toKey(e.exerciseType)
+    CollectionUtils_uniqByExpr(Program_getAllUsedProgramExercises(evaluatedProgram), (e) =>
+      Exercise_toKey(e.exerciseType)
     ).map((e) => e.exerciseType),
     props.settings
   );
-  const programExercisesKeys = new Set(programExercises.map((e) => Exercise.toKey(e)));
+  const programExercisesKeys = new Set(programExercises.map((e) => Exercise_toKey(e)));
   let historyExercises = buildExercises(
-    CollectionUtils.uniqByExpr(
+    CollectionUtils_uniqByExpr(
       props.history
         .flatMap((hr) => hr.entries.map((e) => e.exercise))
         .filter(
-          (e) => !programExercisesKeys.has(Exercise.toKey(e)) && !Exercise.isCustom(e.id, props.settings.exercises)
+          (e) => !programExercisesKeys.has(Exercise_toKey(e)) && !Exercise_isCustom(e.id, props.settings.exercises)
         ),
-      (e) => Exercise.toKey(e)
+      (e) => Exercise_toKey(e)
     ),
     props.settings
   );
   let customExercises = buildExercises(
-    CollectionUtils.compact(ObjectUtils.values(Settings.activeCustomExercises(props.settings))),
+    CollectionUtils_compact(ObjectUtils_values(Settings_activeCustomExercises(props.settings))),
     props.settings
   );
 
   const filterOptions = [
     ...equipments.map((e) => equipmentName(e)),
-    ...exerciseKinds.map(StringUtils.capitalize),
-    ...Muscle.getAvailableMuscleGroups(props.settings).map((mg) => Muscle.getMuscleGroupName(mg, props.settings)),
+    ...exerciseKinds.map(StringUtils_capitalize),
+    ...Muscle_getAvailableMuscleGroups(props.settings).map((mg) => Muscle_getMuscleGroupName(mg, props.settings)),
   ];
 
   if (filter) {
-    programExercises = Exercise.filterExercises(programExercises, filter);
-    historyExercises = Exercise.filterExercises(historyExercises, filter);
-    customExercises = Exercise.filterExercises(customExercises, filter);
+    programExercises = Exercise_filterExercises(programExercises, filter);
+    historyExercises = Exercise_filterExercises(historyExercises, filter);
+    customExercises = Exercise_filterExercises(customExercises, filter);
   }
   if (filterTypes && filterTypes.length > 0) {
-    programExercises = Exercise.filterExercisesByType(programExercises, filterTypes, props.settings);
-    historyExercises = Exercise.filterExercisesByType(historyExercises, filterTypes, props.settings);
-    customExercises = Exercise.filterExercisesByType(customExercises, filterTypes, props.settings);
+    programExercises = Exercise_filterExercisesByType(programExercises, filterTypes, props.settings);
+    historyExercises = Exercise_filterExercisesByType(historyExercises, filterTypes, props.settings);
+    customExercises = Exercise_filterExercisesByType(customExercises, filterTypes, props.settings);
   }
 
   programExercises.sort((a, b) => {
@@ -138,7 +150,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
       {customExercises.map((exercise) => {
         return (
           <ExerciseItem
-            key={Exercise.toKey(exercise)}
+            key={Exercise_toKey(exercise)}
             dispatch={props.dispatch}
             settings={props.settings}
             exercise={exercise}
@@ -150,7 +162,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
       {programExercises.map((exercise) => {
         return (
           <ExerciseItem
-            key={Exercise.toKey(exercise)}
+            key={Exercise_toKey(exercise)}
             dispatch={props.dispatch}
             settings={props.settings}
             exercise={exercise}
@@ -161,7 +173,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
       {historyExercises.map((exercise) => {
         return (
           <ExerciseItem
-            key={Exercise.toKey(exercise)}
+            key={Exercise_toKey(exercise)}
             dispatch={props.dispatch}
             settings={props.settings}
             exercise={exercise}
@@ -173,12 +185,12 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           settings={props.settings}
           onClose={() => setShowCustomExerciseModal(false)}
           onChange={(action, exercise, notes) => {
-            Exercise.handleCustomExerciseChange(props.dispatch, action, exercise, notes, props.settings, props.program);
+            Exercise_handleCustomExerciseChange(props.dispatch, action, exercise, notes, props.settings, props.program);
           }}
           dispatch={props.dispatch}
           isHidden={!showCustomExerciseModal}
           isLoggedIn={props.isLoggedIn}
-          exercise={Exercise.createCustomExercise("", [], [], [])}
+          exercise={Exercise_createCustomExercise("", [], [], [])}
         />
       )}
     </div>
@@ -196,7 +208,7 @@ function ExerciseItem(props: IExerciseItemProps): JSX.Element {
     <MenuItemWrapper
       name={props.exercise.name}
       onClick={() => {
-        props.dispatch(Thunk.pushExerciseStatsScreen(props.exercise));
+        props.dispatch(Thunk_pushExerciseStatsScreen(props.exercise));
       }}
     >
       <div className="flex items-center gap-2">
@@ -217,7 +229,7 @@ function ExerciseItem(props: IExerciseItemProps): JSX.Element {
           <div>{props.exercise.name}</div>
           <div className="flex text-xs text-text-secondary">
             <div className="mr-2">
-              <strong>1RM:</strong> {Weight.print(props.exercise.rm1)},
+              <strong>1RM:</strong> {Weight_print(props.exercise.rm1)},
             </div>
             {props.exercise.equipmentName ? (
               <div>

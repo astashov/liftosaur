@@ -1,11 +1,16 @@
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { IProgram, ISettings, IStats } from "../../types";
-import { Program } from "../../models/program";
+import {
+  Program_evaluate,
+  Program_nextHistoryRecord,
+  Program_getProgramDay,
+  Program_getProgramDayUsedExercises,
+} from "../../models/program";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { ScrollableTabs } from "../scrollableTabs";
 import { Markdown } from "../markdown";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_filter } from "../../utils/object";
 import { IDispatch } from "../../ducks/types";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { ProgramPreviewTabDay } from "./programPreviewTabDay";
@@ -20,18 +25,18 @@ interface IProgramPreviewTabProps {
 }
 
 export const ProgramPreviewTab = memo((props: IProgramPreviewTabProps): JSX.Element => {
-  const evaluatedProgram = Program.evaluate(props.program, props.settings);
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
   let dayNumber = 0;
   const progresses = evaluatedProgram.weeks.map((week) => {
     return {
       name: week.name,
       days: week.days.map(() => {
         dayNumber += 1;
-        const progress = Program.nextHistoryRecord(props.program, props.settings, props.stats, dayNumber);
-        const programDay = Program.getProgramDay(evaluatedProgram, dayNumber);
-        const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
+        const progress = Program_nextHistoryRecord(props.program, props.settings, props.stats, dayNumber);
+        const programDay = Program_getProgramDay(evaluatedProgram, dayNumber);
+        const dayExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
         const exerciseTags = new Set(dayExercises.map((e) => e.tags).flat());
-        const states = ObjectUtils.filter(evaluatedProgram.states, (key, state) => {
+        const states = ObjectUtils_filter(evaluatedProgram.states, (key, state) => {
           return exerciseTags.has(key);
         });
         return { day: dayNumber, states, progress };

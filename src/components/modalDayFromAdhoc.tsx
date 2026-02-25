@@ -7,10 +7,10 @@ import { useState } from "preact/hooks";
 import { ModalCreateProgram } from "./modalCreateProgram";
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
-import { EditProgram } from "../models/editProgram";
-import { Program } from "../models/program";
+import { EditProgram_updateProgram } from "../models/editProgram";
+import { Program_addDayFromHistoryRecord, Program_createFromHistoryRecord } from "../models/program";
 import { updateState, IState } from "../models/state";
-import { CollectionUtils } from "../utils/collection";
+import { CollectionUtils_findBy } from "../utils/collection";
 
 interface IModalChangeNextDayProps {
   initialCurrentProgramId?: string;
@@ -47,15 +47,15 @@ export function ModalDayFromAdhoc(props: IModalChangeNextDayProps): JSX.Element 
           allPrograms={props.allPrograms}
           settings={props.settings}
           onSelect={(programId, day) => {
-            const program = CollectionUtils.findBy(props.allPrograms, "id", programId);
+            const program = CollectionUtils_findBy(props.allPrograms, "id", programId);
             if (program != null) {
-              const { program: newProgram, dayData } = Program.addDayFromHistoryRecord(
+              const { program: newProgram, dayData } = Program_addDayFromHistoryRecord(
                 program,
                 day,
                 props.record,
                 props.settings
               );
-              EditProgram.updateProgram(props.dispatch, newProgram);
+              EditProgram_updateProgram(props.dispatch, newProgram);
               let position =
                 (newProgram.planner?.weeks.length ?? 0) > 1
                   ? `${newProgram.planner?.weeks[dayData.week - 1].name}, `
@@ -73,7 +73,7 @@ export function ModalDayFromAdhoc(props: IModalChangeNextDayProps): JSX.Element 
           onClose={() => setShowCreateProgramModal(false)}
           onSelect={(name) => {
             setShowCreateProgramModal(false);
-            const program = Program.createFromHistoryRecord(name, props.record, props.settings);
+            const program = Program_createFromHistoryRecord(name, props.record, props.settings);
             updateState(
               props.dispatch,
               [

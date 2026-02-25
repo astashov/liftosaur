@@ -1,11 +1,11 @@
 import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
-import { Exercise } from "../../models/exercise";
+import { Exercise_findByName } from "../../models/exercise";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IPlannerProgramWeek, ISettings } from "../../types";
-import { CollectionUtils } from "../../utils/collection";
-import { ObjectUtils } from "../../utils/object";
-import { StringUtils } from "../../utils/string";
+import { CollectionUtils_removeAt, CollectionUtils_compact } from "../../utils/collection";
+import { ObjectUtils_clone } from "../../utils/object";
+import { StringUtils_nextName } from "../../utils/string";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { DraggableList } from "../draggableList";
 import { ExerciseImage } from "../exerciseImage";
@@ -189,8 +189,8 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                         data-cy="clone-day"
                         className="p-2 align-middle ls-clone-day-v2 button nm-clone-day-v2"
                         onClick={() => {
-                          const newName = StringUtils.nextName(week.name);
-                          const newWeek = { ...ObjectUtils.clone(week), name: newName };
+                          const newName = StringUtils_nextName(week.name);
+                          const newWeek = { ...ObjectUtils_clone(week), name: newName };
                           onWeeksChange(
                             props.plannerDispatch,
                             ui,
@@ -221,7 +221,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                               (order) => {
                                 props.plannerDispatch(
                                   lbProgram.p("weeks").recordModify((weeks) => {
-                                    return CollectionUtils.removeAt(weeks, weekIndex);
+                                    return CollectionUtils_removeAt(weeks, weekIndex);
                                   }),
                                   "Delete week"
                                 );
@@ -303,9 +303,9 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                 </div>
                                 <div>
                                   {evalResult.success
-                                    ? CollectionUtils.compact(
+                                    ? CollectionUtils_compact(
                                         evalResult.data.map((e) => {
-                                          const exercise = Exercise.findByName(e.name, props.settings.exercises);
+                                          const exercise = Exercise_findByName(e.name, props.settings.exercises);
                                           const exerciseType =
                                             exercise != null ? { id: exercise.id, equipment: e.equipment } : undefined;
                                           if (exerciseType) {
@@ -330,8 +330,8 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                   data-cy="clone-day"
                                   className="p-2 align-middle ls-clone-day-v2 button nm-clone-day-v2"
                                   onClick={() => {
-                                    const newName = StringUtils.nextName(day.name);
-                                    const newDay = { ...ObjectUtils.clone(day), name: newName };
+                                    const newName = StringUtils_nextName(day.name);
+                                    const newDay = { ...ObjectUtils_clone(day), name: newName };
                                     props.plannerDispatch(
                                       lbProgram
                                         .p("weeks")
@@ -357,7 +357,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                           .i(weekIndex)
                                           .p("days")
                                           .recordModify((days) => {
-                                            return CollectionUtils.removeAt(days, dayIndex);
+                                            return CollectionUtils_removeAt(days, dayIndex);
                                           }),
                                         "Delete day"
                                       );

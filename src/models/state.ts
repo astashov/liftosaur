@@ -2,7 +2,7 @@ import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
 import { IScreenStack } from "./screen";
 import { IDispatch } from "../ducks/types";
-import { Storage } from "../models/storage";
+import { Storage_getDefault } from "../models/storage";
 import { ILensRecordingPayload } from "lens-shmens";
 import { IUser } from "./user";
 import { IProgramIndexEntry } from "./program";
@@ -166,7 +166,7 @@ export function buildState(args: {
     programsIndex: [],
     loading: { items: {} },
     notification: args.notification,
-    storage: args.storage || Storage.getDefault(),
+    storage: args.storage || Storage_getDefault(),
     user: args.userId ? { email: args.userId, id: args.userId } : undefined,
     errors: {},
     revisions: {},

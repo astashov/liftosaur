@@ -1,11 +1,11 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../../ducks/types";
-import { Muscle } from "../../models/muscle";
+import { Muscle_normalizePoints, Muscle_getPointsForDay } from "../../models/muscle";
 import { ScreenMuscles } from "./screenMuscles";
 import { ISettings, IProgram } from "../../types";
 import { INavCommon } from "../../models/state";
 import { HelpMusclesDay } from "../help/helpMusclesDay";
-import { Program } from "../../models/program";
+import { Program_evaluate, Program_getProgramDay } from "../../models/program";
 
 interface IProps {
   dispatch: IDispatch;
@@ -16,13 +16,13 @@ interface IProps {
 }
 
 export function ScreenMusclesDay(props: IProps): JSX.Element {
-  const evaluatedProgram = Program.evaluate(props.program, props.settings);
-  const programDay = Program.getProgramDay(evaluatedProgram, props.day);
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
+  const programDay = Program_getProgramDay(evaluatedProgram, props.day);
   if (!programDay) {
     return <></>;
   }
-  const points = Muscle.normalizePoints(
-    Muscle.getPointsForDay(evaluatedProgram, programDay, props.navCommon.stats, props.settings)
+  const points = Muscle_normalizePoints(
+    Muscle_getPointsForDay(evaluatedProgram, programDay, props.navCommon.stats, props.settings)
   );
   return (
     <ScreenMuscles

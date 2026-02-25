@@ -1,6 +1,6 @@
-import { Mobile } from "../../lambda/utils/mobile";
+import { Mobile_isMobile } from "../../lambda/utils/mobile";
 import * as htmlToImage from "html-to-image";
-import { SendMessage } from "./sendMessage";
+import { SendMessage_isAndroid, SendMessage_androidAppVersion, SendMessage_toAndroid } from "./sendMessage";
 
 export class ImageShareUtils {
   constructor(
@@ -17,8 +17,8 @@ export class ImageShareUtils {
   public shareOrDownload(): void {
     if (this.canShareDataUrl()) {
       this.shareDataURL();
-    } else if (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 20) {
-      SendMessage.toAndroid({
+    } else if (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20) {
+      SendMessage_toAndroid({
         type: "share",
         target: "image",
         useCustomBackground: "false",
@@ -33,7 +33,7 @@ export class ImageShareUtils {
   private canShareDataUrl(): boolean {
     const blob = this.dataURLToBlob();
     const file = new File([blob], this.fileName, { type: blob.type });
-    return Mobile.isMobile(navigator.userAgent) && navigator.canShare && navigator.canShare({ files: [file] });
+    return Mobile_isMobile(navigator.userAgent) && navigator.canShare && navigator.canShare({ files: [file] });
   }
 
   private saveDataURLToFile(): void {

@@ -1,8 +1,14 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
 import { LiftoscriptEvaluator, NodeName, LiftoscriptSyntaxError } from "./liftoscriptEvaluator";
 import { parser as LiftoscriptParser } from "./liftoscript";
-import { IScriptBindings, IScriptFnContext, IScriptFunctions, Progress } from "./models/progress";
-import { Weight } from "./models/weight";
+import {
+  IScriptBindings,
+  IScriptFnContext,
+  IScriptFunctions,
+  Progress_createEmptyScriptBindings,
+  Progress_createScriptFunctions,
+} from "./models/progress";
+import { Weight_build } from "./models/weight";
 import { IUnit, IWeight, IProgramState, IPercentage, IDayData, IExerciseType, ISettings } from "./types";
 import type { Tree } from "@lezer/common";
 import RB from "rollbar";
@@ -56,8 +62,8 @@ export class ScriptRunner {
       script,
       state,
       {},
-      Progress.createEmptyScriptBindings(dayData, settings),
-      Progress.createScriptFunctions(settings),
+      Progress_createEmptyScriptBindings(dayData, settings),
+      Progress_createScriptFunctions(settings),
       settings.units,
       { exerciseType: exerciseType, unit: settings.units, prints: [] },
       "planner"
@@ -217,10 +223,10 @@ export class ScriptRunner {
       if (typeof result === "boolean") {
         throw new LiftoscriptSyntaxError("Expected to get number, percentage or weight as a result", 0, 0, 0, 0);
       } else if (typeof result === "number") {
-        return Weight.build(result, this.units);
+        return Weight_build(result, this.units);
       } else {
         if (result.value < 0) {
-          return Weight.build(0, this.units);
+          return Weight_build(0, this.units);
         } else {
           return result;
         }

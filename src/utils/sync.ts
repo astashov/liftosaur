@@ -1,7 +1,7 @@
 import { IVersions, VersionTracker } from "../models/versionTracker";
 import { ISettings, IStorage, IStatsWeight, IStatsPercentage, IStatsLength, STORAGE_VERSION_TYPES } from "../types";
-import { CollectionUtils } from "./collection";
-import { ObjectUtils } from "./object";
+import { CollectionUtils_compact, CollectionUtils_groupByKey } from "./collection";
+import { ObjectUtils_values, ObjectUtils_filter, ObjectUtils_isEqual } from "./object";
 import { lg } from "./posthog";
 
 export type IStorageUpdate = Partial<Omit<IStorage, "stats" | "settings" | "originalId" | "version">> & {
@@ -52,20 +52,20 @@ export class Sync {
       let programs = storageDiff.programs;
       const programIds = (storageDiff.programs || []).map((p) => p.id);
       if (programIds.length !== new Set(programIds).size) {
-        const duplicatedPrograms = CollectionUtils.compact(
-          ObjectUtils.values(
-            ObjectUtils.filter(
-              CollectionUtils.groupByKey(storageDiff.programs || [], "id"),
+        const duplicatedPrograms = CollectionUtils_compact(
+          ObjectUtils_values(
+            ObjectUtils_filter(
+              CollectionUtils_groupByKey(storageDiff.programs || [], "id"),
               (k, v) => v != null && v.length > 1
             )
           )
         );
         const duplicateInfo = duplicatedPrograms.map((arr) => {
-          const isEqual = arr.every((p) => ObjectUtils.isEqual(arr[0], p));
+          const isEqual = arr.every((p) => ObjectUtils_isEqual(arr[0], p));
           return { id: arr[0].id, name: arr.map((p) => p.name), isEqual };
         });
         lg("duplicate-programs", { info: JSON.stringify(duplicateInfo) });
-        programs = CollectionUtils.compact(duplicatedPrograms.map((arr) => arr[arr.length - 1]));
+        programs = CollectionUtils_compact(duplicatedPrograms.map((arr) => arr[arr.length - 1]));
         storageDiff.programs = programs;
       }
       return {

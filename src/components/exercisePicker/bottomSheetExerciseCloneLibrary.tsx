@@ -1,10 +1,10 @@
 import { h, JSX } from "preact";
 import { ISettings } from "../../types";
-import { Exercise, IExercise } from "../../models/exercise";
+import { IExercise, Exercise_allExpanded } from "../../models/exercise";
 import { Tailwind } from "../../utils/tailwindConfig";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { useState } from "preact/hooks";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_fuzzySearch } from "../../utils/string";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
 
@@ -20,9 +20,9 @@ export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
   const [search, setSearch] = useState<string>("");
   const trimmedSearch = search.trim().toLowerCase();
   let exercises = !trimmedSearch
-    ? Exercise.allExpanded(props.settings.exercises)
-    : Exercise.allExpanded(props.settings.exercises).filter((e) => {
-        return StringUtils.fuzzySearch(trimmedSearch, e.name.toLowerCase());
+    ? Exercise_allExpanded(props.settings.exercises)
+    : Exercise_allExpanded(props.settings.exercises).filter((e) => {
+        return StringUtils_fuzzySearch(trimmedSearch, e.name.toLowerCase());
       });
   exercises = exercises.sort((a, b) => a.name.localeCompare(b.name));
 

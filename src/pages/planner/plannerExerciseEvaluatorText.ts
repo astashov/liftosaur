@@ -1,5 +1,5 @@
 import { SyntaxNode } from "@lezer/common";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_compact } from "../../utils/collection";
 import { PlannerNodeName } from "./plannerExerciseStyles";
 
 function getChildren(node: SyntaxNode): SyntaxNode[] {
@@ -154,7 +154,7 @@ export class PlannerExerciseEvaluatorText {
     if (expr.type.name === PlannerNodeName.Program) {
       this.ongoingLines = [];
       this.weeks = [];
-      for (const child of CollectionUtils.compact(getChildren(expr))) {
+      for (const child of CollectionUtils_compact(getChildren(expr))) {
         this.evaluateLine(child);
       }
       return this.weeks;

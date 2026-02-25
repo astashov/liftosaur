@@ -1,6 +1,6 @@
 import { gunzip, gzip, strFromU8, strToU8 } from "fflate";
 import { IStorage } from "../../src/types";
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 import { LftS3Buckets } from "./buckets";
 
@@ -31,7 +31,7 @@ export class ExceptionDao {
   constructor(private readonly di: IDI) {}
 
   public async get(id: string): Promise<IExceptionDao | undefined> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const result = await this.di.s3.getObject({
       bucket: bucketNames[env].exceptions,
       key: `exceptions/${id}`,
@@ -45,7 +45,7 @@ export class ExceptionDao {
   }
 
   public async store(id: string, state: string): Promise<string> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     await this.di.s3.putObject({
       bucket: bucketNames[env].exceptions,
       key: `exceptions/${id}`,
@@ -57,7 +57,7 @@ export class ExceptionDao {
 
   public async getStorages(key: string): Promise<IDebugStorages | undefined> {
     return new Promise(async (resolve) => {
-      const env = Utils.getEnv();
+      const env = Utils_getEnv();
       const [_, userid, dateStr] = key.split("/");
       const result = (await this.di.s3.getObject({
         bucket: bucketNames[env].exceptions,
@@ -103,7 +103,7 @@ export class ExceptionDao {
     mergedStorage: IStorage
   ): Promise<string | undefined> {
     return new Promise((resolve) => {
-      const env = Utils.getEnv();
+      const env = Utils_getEnv();
       const date = Date.now();
       gzip(strToU8(JSON.stringify({ prefix, oldStorage, newStorage, mergedStorage })), async (err, body) => {
         if (err) {

@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_keys } from "../utils/object";
 import { IDispatch } from "../ducks/types";
-import { DateUtils } from "../utils/date";
+import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { IState, updateState } from "./state";
 import { lb } from "lens-shmens";
 import { InternalLink } from "../internalLink";
@@ -2403,47 +2403,45 @@ Bent Over Row / 3x8 / superset: A`}
   },
 };
 
-export namespace WhatsNew {
-  export function all(): typeof whatsNew {
-    return whatsNew;
-  }
+export function WhatsNew_all(): typeof whatsNew {
+  return whatsNew;
+}
 
-  export function doesHaveNewUpdates(lastDateStr?: string): boolean {
-    if (lastDateStr == null) {
-      return false;
-    } else {
-      return Object.keys(newUpdates(lastDateStr)).length > 0;
+export function WhatsNew_doesHaveNewUpdates(lastDateStr?: string): boolean {
+  if (lastDateStr == null) {
+    return false;
+  } else {
+    return Object.keys(WhatsNew_newUpdates(lastDateStr)).length > 0;
+  }
+}
+
+export function WhatsNew_newUpdates(lastDateStr: string): Record<string, IWhatsNew> {
+  const url = UrlUtils.build(window.location.href);
+  const forcedUserEmail = url.searchParams.get("forceuseremail");
+  if (forcedUserEmail != null) {
+    return {};
+  }
+  const lastDate = parseInt(lastDateStr, 10);
+  return ObjectUtils_keys(whatsNew).reduce<Record<string, IWhatsNew>>((memo, dateStr) => {
+    const date = parseInt(dateStr, 10);
+    if (date > lastDate) {
+      memo[dateStr] = whatsNew[dateStr];
     }
-  }
+    return memo;
+  }, {});
+}
 
-  export function newUpdates(lastDateStr: string): Record<string, IWhatsNew> {
-    const url = UrlUtils.build(window.location.href);
-    const forcedUserEmail = url.searchParams.get("forceuseremail");
-    if (forcedUserEmail != null) {
-      return {};
-    }
-    const lastDate = parseInt(lastDateStr, 10);
-    return ObjectUtils.keys(whatsNew).reduce<Record<string, IWhatsNew>>((memo, dateStr) => {
-      const date = parseInt(dateStr, 10);
-      if (date > lastDate) {
-        memo[dateStr] = whatsNew[dateStr];
-      }
-      return memo;
-    }, {});
-  }
+export function WhatsNew_updateStorage(dispatch: IDispatch): void {
+  updateState(
+    dispatch,
+    [
+      lb<IState>().p("storage").p("whatsNew").record(DateUtils_formatYYYYMMDD(Date.now(), "")),
+      lb<IState>().p("showWhatsNew").record(false),
+    ],
+    "Mark what's new as read"
+  );
+}
 
-  export function updateStorage(dispatch: IDispatch): void {
-    updateState(
-      dispatch,
-      [
-        lb<IState>().p("storage").p("whatsNew").record(DateUtils.formatYYYYMMDD(Date.now(), "")),
-        lb<IState>().p("showWhatsNew").record(false),
-      ],
-      "Mark what's new as read"
-    );
-  }
-
-  export function showWhatsNew(dispatch: IDispatch): void {
-    updateState(dispatch, [lb<IState>().p("showWhatsNew").record(true)], "Show what's new");
-  }
+export function WhatsNew_showWhatsNew(dispatch: IDispatch): void {
+  updateState(dispatch, [lb<IState>().p("showWhatsNew").record(true)], "Show what's new");
 }

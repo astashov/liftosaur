@@ -1,7 +1,7 @@
 import { IDispatch } from "../ducks/types";
 import { h, JSX } from "preact";
 import { MenuItemWrapper } from "./menuItem";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_importProgram } from "../ducks/thunks";
 import { Importer } from "./importer";
 import { useCallback } from "preact/hooks";
 
@@ -15,7 +15,7 @@ export function ImporterProgram(props: IImporterProgramProps): JSX.Element {
       const warningLabel =
         "Importing new program will overwrite an existing one if a program with the same id exists, or create a new one otherwise.";
       if (confirm(warningLabel)) {
-        props.dispatch(Thunk.importProgram({ decoded: contents }));
+        props.dispatch(Thunk_importProgram({ decoded: contents }));
       }
     },
     [props.dispatch]

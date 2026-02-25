@@ -2,13 +2,13 @@
 import "mocha";
 import { expect } from "chai";
 import { ICollectionVersions, IVersions, VersionTracker } from "../../src/models/versionTracker";
-import { Storage } from "../../src/models/storage";
+import { Storage_getDefault } from "../../src/models/storage";
 import { ICustomExercise, IGym, IHistoryRecord, IProgram, STORAGE_VERSION_TYPES } from "../../src/types";
 
 describe("fillVersions", () => {
   const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
   it("should add timestamps for missing primitive fields", () => {
-    const storage = Storage.getDefault();
+    const storage = Storage_getDefault();
     const fullObj = {
       ...storage,
       currentProgramId: "program-123",

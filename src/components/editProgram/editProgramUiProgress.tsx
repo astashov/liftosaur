@@ -1,8 +1,8 @@
 import { JSX, h, Fragment } from "preact";
-import { Weight } from "../../models/weight";
+import { Weight_print } from "../../models/weight";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getReusingProgressExercises } from "../../models/program";
 
 interface IEditProgramUiProgressProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -23,7 +23,7 @@ export function EditProgramUiProgress(props: IEditProgramUiProgressProps): JSX.E
     );
   } else if (exercise.progress) {
     progressExercise = exercise;
-    const reusingProgressExercises = Program.getReusingProgressExercises(evaluatedProgram, exercise);
+    const reusingProgressExercises = Program_getReusingProgressExercises(evaluatedProgram, exercise);
     if (reusingProgressExercises.length > 0) {
       reusedByString = (
         <>
@@ -67,7 +67,7 @@ function Progression(props: IProgressionProps): JSX.Element {
       return (
         <div>
           <strong>Linear Progression:</strong>{" "}
-          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span>
+          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span>
           {(type.successesRequired || 0 > 1) && (
             <span>
               {" "}
@@ -76,7 +76,7 @@ function Progression(props: IProgressionProps): JSX.Element {
           )}
           {type.decrease != null && type.decrease.value > 0 && (
             <span>
-              , <span className="font-bold text-text-error">{Weight.print(type.decrease)}</span>
+              , <span className="font-bold text-text-error">{Weight_print(type.decrease)}</span>
             </span>
           )}
           {type.decrease != null && type.decrease.value > 0 && (
@@ -92,7 +92,7 @@ function Progression(props: IProgressionProps): JSX.Element {
       return (
         <div>
           <strong>Double Progression</strong>:{" "}
-          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span> within{" "}
+          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span> within{" "}
           <span className="font-bold">{type.minReps}</span>-<span className="font-bold">{type.maxReps}</span> rep range.
         </div>
       );
@@ -100,7 +100,7 @@ function Progression(props: IProgressionProps): JSX.Element {
       return (
         <div>
           <strong>Sum Reps Progression</strong>:{" "}
-          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span> if sum of all reps is at
+          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span> if sum of all reps is at
           least <span className="font-bold">{type.reps}</span>.
         </div>
       );
@@ -116,7 +116,7 @@ function Progression(props: IProgressionProps): JSX.Element {
                 {Object.entries(state).map(([name, value]) => {
                   return (
                     <li key={name} className="ml-4 text-xs list-disc">
-                      <span className="text-text-secondary">{name}</span>: <strong>{Weight.print(value)}</strong>
+                      <span className="text-text-secondary">{name}</span>: <strong>{Weight_print(value)}</strong>
                     </li>
                   );
                 })}

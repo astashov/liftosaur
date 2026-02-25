@@ -1,8 +1,8 @@
 import { lb } from "lens-shmens";
 import { h, JSX, Fragment } from "preact";
 import { LinkButton } from "../../../components/linkButton";
-import { Exercise } from "../../../models/exercise";
-import { Weight } from "../../../models/weight";
+import { Exercise_findByName, Exercise_find } from "../../../models/exercise";
+import { Weight_evaluateWeight, Weight_build, Weight_multiply } from "../../../models/weight";
 import { ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IPlannerProgramExerciseWithType, IPlannerState } from "../models/types";
@@ -34,11 +34,11 @@ export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps):
   }
 
   const customExercises = props.settings.exercises;
-  let exercise = Exercise.findByName(evaluatedExercise.name, customExercises);
+  let exercise = Exercise_findByName(evaluatedExercise.name, customExercises);
   if (!exercise) {
     return <></>;
   }
-  exercise = Exercise.find({ id: exercise.id, equipment: evaluatedExercise.equipment }, customExercises);
+  exercise = Exercise_find({ id: exercise.id, equipment: evaluatedExercise.equipment }, customExercises);
   if (!exercise) {
     return <></>;
   }
@@ -132,8 +132,8 @@ function getIntensityPerWeeks(
     }
     const setVariation = PlannerProgramExercise.currentEvaluatedSetVariation(exercise);
     const weights = setVariation.sets.map((s) => {
-      const weight = Weight.evaluateWeight(
-        s.weight ?? Weight.build(0, settings.units),
+      const weight = Weight_evaluateWeight(
+        s.weight ?? Weight_build(0, settings.units),
         exercise.exerciseType,
         settings
       );
@@ -169,12 +169,12 @@ function getVolumePerWeeks(
       setVariation.sets
         .reduce((acc, s) => {
           const reps = s.maxrep ?? 0;
-          const weight = Weight.evaluateWeight(
-            s.weight ?? Weight.build(0, settings.units),
+          const weight = Weight_evaluateWeight(
+            s.weight ?? Weight_build(0, settings.units),
             exercise.exerciseType,
             settings
           );
-          return acc + Weight.multiply(weight, reps).value;
+          return acc + Weight_multiply(weight, reps).value;
         }, 0)
         .toFixed(2)
     );

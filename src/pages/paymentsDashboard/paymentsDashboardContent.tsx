@@ -1,9 +1,9 @@
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
 import { IPaymentsDashboardData } from "../../../lambda/paymentsDashboard";
-import { StringUtils } from "../../utils/string";
-import { TimeUtils } from "../../utils/time";
-import { DateUtils } from "../../utils/date";
+import { StringUtils_truncate } from "../../utils/string";
+import { TimeUtils_formatUTCHHMM } from "../../utils/time";
+import { DateUtils_dayOfWeekStr, DateUtils_formatUTCYYYYMMDD, DateUtils_formatUTCYYYYMMDDHHMM } from "../../utils/date";
 import { PriceUtils } from "../../utils/price";
 
 export interface IPaymentsDashboardContentProps {
@@ -527,7 +527,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     ];
                     return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
                   })()
-                : `${DateUtils.dayOfWeekStr(periodData.date)}, ${periodData.date}`}
+                : `${DateUtils_dayOfWeekStr(periodData.date)}, ${periodData.date}`}
             </h3>
             <div className="flex flex-col gap-1">
               <div className="flex gap-4 text-sm">
@@ -622,13 +622,13 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                   <tr key={`${payment.transactionId}-${idx}`} className="border-b hover:bg-gray-50">
                     <td className="px-2 py-2">
                       {payment.subscriptionStartTimestamp != null
-                        ? DateUtils.formatUTCYYYYMMDD(payment.subscriptionStartTimestamp)
+                        ? DateUtils_formatUTCYYYYMMDD(payment.subscriptionStartTimestamp)
                         : "Unknown"}
                     </td>
                     <td className="px-2 py-2">
                       {viewMode === "month"
-                        ? DateUtils.formatUTCYYYYMMDDHHMM(payment.timestamp)
-                        : TimeUtils.formatUTCHHMM(payment.timestamp)}
+                        ? DateUtils_formatUTCYYYYMMDDHHMM(payment.timestamp)
+                        : TimeUtils_formatUTCHHMM(payment.timestamp)}
                     </td>
                     <td className="px-2 py-2">
                       <a
@@ -640,7 +640,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                         {payment.userId}
                       </a>
                     </td>
-                    <td className="px-2 py-2 font-mono text-xs">{StringUtils.truncate(payment.transactionId, 20)}</td>
+                    <td className="px-2 py-2 font-mono text-xs">{StringUtils_truncate(payment.transactionId, 20)}</td>
                     <td className="px-2 py-2">{getProductType(payment.productId)}</td>
                     <td className={`py-2 px-2 ${getPaymentTypeColor(payment.paymentType)}`}>
                       {payment.paymentType}
@@ -664,11 +664,11 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     key={`cancellation-${cancellation.userId}-${idx}`}
                     className="bg-orange-50 border-b hover:bg-orange-100"
                   >
-                    <td className="px-2 py-2">{DateUtils.formatUTCYYYYMMDD(cancellation.lastPaymentTimestamp)}</td>
+                    <td className="px-2 py-2">{DateUtils_formatUTCYYYYMMDD(cancellation.lastPaymentTimestamp)}</td>
                     <td className="px-2 py-2">
                       {viewMode === "month"
-                        ? DateUtils.formatUTCYYYYMMDDHHMM(cancellation.expectedRenewalTimestamp)
-                        : TimeUtils.formatUTCHHMM(cancellation.expectedRenewalTimestamp)}
+                        ? DateUtils_formatUTCYYYYMMDDHHMM(cancellation.expectedRenewalTimestamp)
+                        : TimeUtils_formatUTCHHMM(cancellation.expectedRenewalTimestamp)}
                     </td>
                     <td className="px-2 py-2">
                       <a

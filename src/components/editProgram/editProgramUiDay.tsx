@@ -10,16 +10,16 @@ import { IconTrash } from "../icons/iconTrash";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { MarkdownEditorBorderless } from "../markdownEditorBorderless";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_nextName, StringUtils_pluralize } from "../../utils/string";
 import { IconTimerSmall } from "../icons/iconTimerSmall";
-import { TimeUtils } from "../../utils/time";
+import { TimeUtils_formatHOrMin } from "../../utils/time";
 import { PlannerStatsUtils } from "../../pages/planner/models/plannerStatsUtils";
 import { DraggableList } from "../draggableList";
 import { EditProgramUiExerciseView } from "./editProgramUiExercise";
 import { applyChangesInEditor, pickerStateFromPlannerExercise } from "./editProgramUtils";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_removeAt } from "../../utils/collection";
 import { LinkButton } from "../linkButton";
-import { UidFactory } from "../../utils/generator";
+import { UidFactory_generateUid } from "../../utils/generator";
 import { EditProgramV2TextExercises } from "./editProgramV2TextExercises";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { Button } from "../button";
@@ -96,8 +96,8 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
               data-cy="edit-day-clone"
               className="px-2 align-middle ls-clone-day button nm-clone-day"
               onClick={() => {
-                const newName = StringUtils.nextName(props.day.name);
-                const newDay = { name: newName, exerciseText: props.day.exerciseText, id: UidFactory.generateUid(8) };
+                const newName = StringUtils_nextName(props.day.name);
+                const newDay = { name: newName, exerciseText: props.day.exerciseText, id: UidFactory_generateUid(8) };
                 applyChangesInEditor(props.plannerDispatch, () => {
                   EditProgramUiHelpers.onDaysChange(
                     props.plannerDispatch,
@@ -148,7 +148,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                             .i(props.weekIndex)
                             .p("days")
                             .recordModify((days2) => {
-                              return CollectionUtils.removeAt(days2, props.dayInWeekIndex);
+                              return CollectionUtils_removeAt(days2, props.dayInWeekIndex);
                             }),
                           "Delete day"
                         );
@@ -229,7 +229,7 @@ interface IEditProgramDayContentViewProps {
 
 function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JSX.Element {
   const { evaluatedDay } = props;
-  const duration = TimeUtils.formatHOrMin(
+  const duration = TimeUtils_formatHOrMin(
     PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.success ? evaluatedDay.data : [], props.settings.timers.workout || 0)
   );
   const { weekIndex, dayIndex } = props;
@@ -256,7 +256,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
       <div className="flex items-center gap-2 pt-1 pl-2 text-xs">
         {evaluatedDay.success && (
           <div>
-            {evaluatedDay.data.length} {StringUtils.pluralize("exercise", evaluatedDay.data.length)}
+            {evaluatedDay.data.length} {StringUtils_pluralize("exercise", evaluatedDay.data.length)}
           </div>
         )}
         <div className="flex items-center py-1">

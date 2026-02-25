@@ -4,11 +4,11 @@ import { RecordHtml } from "../src/pages/record/recordHtml";
 import { renderPage } from "./render";
 import { IStorage } from "../src/types";
 import { IEither } from "../src/utils/types";
-import { DateUtils } from "../src/utils/date";
-import { Exercise } from "../src/models/exercise";
-import { History } from "../src/models/history";
-import { StringUtils } from "../src/utils/string";
-import { Weight } from "../src/models/weight";
+import { DateUtils_format } from "../src/utils/date";
+import { Exercise_get } from "../src/models/exercise";
+import { History_findPersonalRecord, History_getMaxWeightSetFromEntry } from "../src/models/history";
+import { StringUtils_pluralize } from "../src/utils/string";
+import { Weight_display, Weight_convertTo, Weight_build } from "../src/models/weight";
 import { RecordImageGenerator, IRecordImageGeneratorArgs } from "./utils/recordImageGenerator";
 
 export function renderRecordHtml(
@@ -27,16 +27,16 @@ export async function recordImage(storage: IStorage, recordId: number): Promise<
     const json: IRecordImageGeneratorArgs = {
       programName: historyRecord.programName,
       dayName: historyRecord.dayName,
-      date: DateUtils.format(historyRecord.date),
+      date: DateUtils_format(historyRecord.date),
       exercises: historyRecord.entries.map((entry) => {
-        const exercise = Exercise.get(entry.exercise, storage.settings.exercises);
-        const prSet = History.findPersonalRecord(recordId, entry, history);
-        const set = History.getMaxWeightSetFromEntry(entry);
-        const value = `${set?.completedReps || 0} ${StringUtils.pluralize(
+        const exercise = Exercise_get(entry.exercise, storage.settings.exercises);
+        const prSet = History_findPersonalRecord(recordId, entry, history);
+        const set = History_getMaxWeightSetFromEntry(entry);
+        const value = `${set?.completedReps || 0} ${StringUtils_pluralize(
           "rep",
           set?.completedReps || 0
-        )} x ${Weight.display(
-          Weight.convertTo(set?.weight || Weight.build(0, storage.settings.units), storage.settings.units)
+        )} x ${Weight_display(
+          Weight_convertTo(set?.weight || Weight_build(0, storage.settings.units), storage.settings.units)
         )}`;
         return {
           name: exercise.name,

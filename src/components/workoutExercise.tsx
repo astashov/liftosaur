@@ -3,10 +3,15 @@ import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IProgramState, IStats } from "../types";
 import { updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
-import { Exercise } from "../models/exercise";
-import { History } from "../models/history";
+import { Exercise_toKey } from "../models/exercise";
+import {
+  History_collectAllHistoryRecordsOfExerciseType,
+  History_collectMinAndMaxTime,
+  History_collectWeightPersonalRecord,
+  History_collect1RMPersonalRecord,
+} from "../models/history";
 import { LinkButton } from "./linkButton";
-import { CollectionUtils } from "../utils/collection";
+import { CollectionUtils_sort } from "../utils/collection";
 import { IEvaluatedProgram, IEvaluatedProgramDay } from "../models/program";
 import { useMemo, useRef } from "preact/hooks";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
@@ -15,7 +20,7 @@ import { Locker } from "./locker";
 import { GraphExercise } from "./graphExercise";
 import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
 import { ExerciseHistory } from "./exerciseHistory";
-import { Reps } from "../models/set";
+import { Reps_setsStatus } from "../models/set";
 import { WorkoutExerciseCard } from "./workoutExerciseCard";
 
 interface IWorkoutExerciseProps {
@@ -40,10 +45,10 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
   const exerciseType = props.entry.exercise;
 
   const historyCollector = Collector.build(props.history)
-    .addFn(History.collectAllHistoryRecordsOfExerciseType(exerciseType))
-    .addFn(History.collectMinAndMaxTime())
-    .addFn(History.collectWeightPersonalRecord(exerciseType, props.settings.units))
-    .addFn(History.collect1RMPersonalRecord(exerciseType, props.settings));
+    .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
+    .addFn(History_collectMinAndMaxTime())
+    .addFn(History_collectWeightPersonalRecord(exerciseType, props.settings.units))
+    .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings));
 
   const [
     history,
@@ -52,13 +57,13 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
     { max1RM, max1RMHistoryRecord, max1RMSet },
   ] = useMemo(() => {
     const results = historyCollector.run();
-    results[0] = CollectionUtils.sort(results[0], (a, b) => {
+    results[0] = CollectionUtils_sort(results[0], (a, b) => {
       return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
     });
     return results;
   }, [props.history, exerciseType, props.settings]);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
-  const status = Reps.setsStatus(props.entry.sets);
+  const status = Reps_setsStatus(props.entry.sets);
   const surfaceRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -109,7 +114,7 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
                 minX={Math.round(minX / 1000)}
                 maxX={Math.round(maxX / 1000)}
                 isWithOneRm={true}
-                key={`${Exercise.toKey(exerciseType)}_${props.settings.theme}`}
+                key={`${Exercise_toKey(exerciseType)}_${props.settings.theme}`}
                 settings={props.settings}
                 isWithProgramLines={true}
                 history={props.history}

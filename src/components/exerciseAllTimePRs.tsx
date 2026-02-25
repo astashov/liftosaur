@@ -1,8 +1,8 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISet, ISettings, IWeight } from "../types";
-import { Weight } from "../models/weight";
-import { DateUtils } from "../utils/date";
+import { Weight_display, Weight_convertTo, Weight_build } from "../models/weight";
+import { DateUtils_format } from "../utils/date";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 
@@ -30,10 +30,10 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
           value={
             <div className="text-text-primary">
               <div data-cy="max-weight-value">
-                {Weight.display(Weight.convertTo(maxWeight.weight, props.settings.units))}
+                {Weight_display(Weight_convertTo(maxWeight.weight, props.settings.units))}
               </div>
               {maxWeight.historyRecord && (
-                <div className="text-xs text-text-secondary">{DateUtils.format(maxWeight.historyRecord.startTime)}</div>
+                <div className="text-xs text-text-secondary">{DateUtils_format(maxWeight.historyRecord.startTime)}</div>
               )}
             </div>
           }
@@ -51,13 +51,13 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
           value={
             <div className="text-text-primary">
               <div data-cy="one-rm-value">
-                {Weight.display(Weight.convertTo(max1RM.weight, props.settings.units))}
+                {Weight_display(Weight_convertTo(max1RM.weight, props.settings.units))}
                 {max1RM.set
-                  ? ` (${max1RM.set.completedReps} x ${Weight.display(max1RM.set.completedWeight ?? max1RM.set.weight ?? Weight.build(0, props.settings.units))})`
+                  ? ` (${max1RM.set.completedReps} x ${Weight_display(max1RM.set.completedWeight ?? max1RM.set.weight ?? Weight_build(0, props.settings.units))})`
                   : ""}
               </div>
               {max1RM.historyRecord && (
-                <div className="text-xs text-text-secondary">{DateUtils.format(max1RM.historyRecord.startTime)}</div>
+                <div className="text-xs text-text-secondary">{DateUtils_format(max1RM.historyRecord.startTime)}</div>
               )}
             </div>
           }

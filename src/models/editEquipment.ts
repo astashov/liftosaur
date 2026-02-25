@@ -2,8 +2,8 @@ import { lb } from "lens-shmens";
 import { IState, updateState } from "./state";
 import { IDispatch } from "../ducks/types";
 import { IExerciseType, IEquipment, ISettings } from "../types";
-import { Equipment } from "./equipment";
-import { Exercise } from "./exercise";
+import { Equipment_getEquipmentIdForExerciseType, Equipment_getEquipmentData } from "./equipment";
+import { Exercise_toKey } from "./exercise";
 
 export class EditEquipment {
   public static setEquipmentForExercise(
@@ -14,8 +14,8 @@ export class EditEquipment {
     settings: ISettings,
     gymId?: string
   ): void {
-    const exerciseKey = Exercise.toKey(exerciseType);
-    const oldEquipment = Equipment.getEquipmentIdForExerciseType(settings, exerciseType);
+    const exerciseKey = Exercise_toKey(exerciseType);
+    const oldEquipment = Equipment_getEquipmentIdForExerciseType(settings, exerciseType);
     gymId = gymId ?? settings.currentGymId ?? settings.gyms[0].id;
 
     updateState(
@@ -38,8 +38,8 @@ export class EditEquipment {
       "Update equipment"
     );
     const currentUnit =
-      (oldEquipment ? Equipment.getEquipmentData(settings, oldEquipment)?.unit : undefined) ?? settings.units;
-    const newUnit = (equipment ? Equipment.getEquipmentData(settings, equipment)?.unit : undefined) ?? settings.units;
+      (oldEquipment ? Equipment_getEquipmentData(settings, oldEquipment)?.unit : undefined) ?? settings.units;
+    const newUnit = (equipment ? Equipment_getEquipmentData(settings, equipment)?.unit : undefined) ?? settings.units;
     if (currentUnit !== newUnit) {
       dispatch({
         type: "ApplyProgramChangesToProgress",
@@ -61,7 +61,7 @@ export class EditEquipment {
           .p("settings")
           .p("exerciseData")
           .recordModify((data) => {
-            const k = Exercise.toKey(exercise);
+            const k = Exercise_toKey(exercise);
             return { ...data, [k]: { ...data[k], rounding: Math.max(value, 0.1) } };
           }),
       ],

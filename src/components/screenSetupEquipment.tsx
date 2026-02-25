@@ -4,10 +4,10 @@ import { ISettings, IStats } from "../types";
 import { INavCommon, IState } from "../models/state";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { Button } from "./button";
 import { EquipmentSettings } from "./equipmentSettings";
-import { Equipment } from "../models/equipment";
+import { Equipment_getCurrentGym } from "../models/equipment";
 import { lb } from "lens-shmens";
 
 interface IScreenSetupEquipmentProps {
@@ -18,14 +18,14 @@ interface IScreenSetupEquipmentProps {
 }
 
 export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Element {
-  const currentGym = Equipment.getCurrentGym(props.settings);
+  const currentGym = Equipment_getCurrentGym(props.settings);
   return (
     <Surface
       navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Setup Equipment" />}
       footer={
         <Footer
           onContinue={() => {
-            props.dispatch(Thunk.pushScreen("programs"));
+            props.dispatch(Thunk_pushScreen("programs"));
           }}
         />
       }

@@ -1,14 +1,14 @@
 import { JSX, h } from "preact";
-import { Exercise } from "../models/exercise";
-import { Reps } from "../models/set";
+import { Exercise_get } from "../models/exercise";
+import { Reps_setsStatus } from "../models/set";
 import { IHistoryEntry, IHistoryRecord, ISettings } from "../types";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
 import { ExerciseImage } from "./exerciseImage";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
-import { StringUtils } from "../utils/string";
+import { StringUtils_dashcase } from "../utils/string";
 import { useRef } from "preact/hooks";
 import { Tailwind } from "../utils/tailwindConfig";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_entries } from "../utils/object";
 
 interface IWorkoutExerciseThumbnailProps {
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
@@ -25,17 +25,17 @@ interface IWorkoutExerciseThumbnailProps {
 export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps): JSX.Element {
   const { entry, entryIndex } = props;
   const hasSupersets = Object.keys(props.colorToSupersetGroup).length > 0;
-  const colorAndSupersetGroup = ObjectUtils.entries(props.colorToSupersetGroup).find(([_, entries]) => {
+  const colorAndSupersetGroup = ObjectUtils_entries(props.colorToSupersetGroup).find(([_, entries]) => {
     return entries && entries.some((e) => e.id === entry.id);
   });
   const supersetColor = colorAndSupersetGroup ? colorAndSupersetGroup[0] : undefined;
-  const setsStatus = Reps.setsStatus(entry.sets);
+  const setsStatus = Reps_setsStatus(entry.sets);
   const isCurrent = (props.progress.ui?.currentEntryIndex ?? 0) === entryIndex;
   const currentEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const currentSuperset = currentEntry?.superset;
   const isCurrentSuperset = currentSuperset != null && currentSuperset === entry.superset;
   const borderColor = isCurrent ? "border-purple-600" : WorkoutExerciseUtils.setsStatusToBorderColor(setsStatus);
-  const exercise = Exercise.get(entry.exercise, props.settings.exercises);
+  const exercise = Exercise_get(entry.exercise, props.settings.exercises);
   const ref = useRef<HTMLButtonElement>(null);
   const totalSetsCount = entry.sets.length;
   const completedSetsCount = entry.sets.filter((set) => set.isCompleted).length;
@@ -59,7 +59,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
             flex: "0 0 auto",
           }}
           data-is-selected={isCurrent}
-          data-cy={`workout-tab-${StringUtils.dashcase(exercise.name)}`}
+          data-cy={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
         >
           <ExerciseImage
             useTextForCustomExercise={true}

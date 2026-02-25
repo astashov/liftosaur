@@ -3,9 +3,9 @@ import { memo } from "preact/compat";
 import { IDayData, ISet, ISettings } from "../../../types";
 import { HistoryRecordSetsView } from "../../../components/historyRecordSets";
 import { IPlannerProgramExerciseEvaluatedSet, IPlannerProgramExerciseWithType } from "../../planner/models/types";
-import { ProgramSet } from "../../../models/programSet";
-import { Exercise } from "../../../models/exercise";
-import { UidFactory } from "../../../utils/generator";
+import { ProgramSet_getEvaluatedWeight } from "../../../models/programSet";
+import { Exercise_getIsUnilateral } from "../../../models/exercise";
+import { UidFactory_generateUid } from "../../../utils/generator";
 
 interface IRepsWeightsProps {
   sets: IPlannerProgramExerciseEvaluatedSet[];
@@ -19,12 +19,12 @@ interface IRepsWeightsProps {
 export const RepsAndWeight = memo((props: IRepsWeightsProps): JSX.Element => {
   const sets: ISet[] = props.sets.map<ISet>((set, i) => {
     const minReps = set.minrep != null && set.minrep !== set.maxrep ? set.minrep : undefined;
-    const weight = ProgramSet.getEvaluatedWeight(set, props.programExercise.exerciseType, props.settings);
-    const isUnilateral = Exercise.getIsUnilateral(props.programExercise.exerciseType, props.settings);
+    const weight = ProgramSet_getEvaluatedWeight(set, props.programExercise.exerciseType, props.settings);
+    const isUnilateral = Exercise_getIsUnilateral(props.programExercise.exerciseType, props.settings);
     return {
       vtype: "set",
       index: i,
-      id: UidFactory.generateUid(6),
+      id: UidFactory_generateUid(6),
       reps: set.maxrep,
       minReps,
       weight,

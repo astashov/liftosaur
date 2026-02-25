@@ -1,12 +1,12 @@
 import { ILensRecordingPayload, lb, Lens } from "lens-shmens";
 import { h, JSX, Fragment } from "preact";
-import { Weight } from "../models/weight";
+import { Weight_build, Weight_eqeq, Weight_compare, Weight_display, Weight_print } from "../models/weight";
 import { ISettings, IEquipmentData, IEquipment, IAllEquipment, IUnit, IStats } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { MenuItemEditable } from "./menuItemEditable";
-import { CollectionUtils } from "../utils/collection";
-import { ObjectUtils } from "../utils/object";
+import { CollectionUtils_sort } from "../utils/collection";
+import { ObjectUtils_keys } from "../utils/object";
 import { ModalPlates } from "./modalPlates";
 import { ModalNewFixedWeight } from "./modalNewFixedWeight";
 import { useState } from "preact/hooks";
@@ -15,15 +15,15 @@ import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { equipmentName } from "../models/exercise";
 import { ModalNewEquipment } from "./modalNewEquipment";
-import { UidFactory } from "../utils/generator";
-import { Equipment } from "../models/equipment";
+import { UidFactory_generateUid } from "../utils/generator";
+import { Equipment_build } from "../models/equipment";
 import { IDispatch } from "../ducks/types";
 import { IState } from "../models/state";
 import { IconArrowUp } from "./icons/iconArrowUp";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
 import { IconEyeClosed } from "./icons/iconEyeClosed";
-import { StringUtils } from "../utils/string";
-import { Stats } from "../models/stats";
+import { StringUtils_dashcase } from "../utils/string";
+import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
 import { MarkdownEditorBorderless } from "./markdownEditorBorderless";
 
 interface IProps<T> {
@@ -48,13 +48,13 @@ function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
 export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
   const [modalNewEquipment, setModalNewEquipment] = useState(false);
   const lensDispatch = buildLensDispatch(props.dispatch);
-  const hiddenEquipment = ObjectUtils.keys(props.allEquipment).filter((e) => {
+  const hiddenEquipment = ObjectUtils_keys(props.allEquipment).filter((e) => {
     const eq = props.allEquipment[e];
     return !eq?.name && eq?.isDeleted;
   });
   return (
     <div>
-      {ObjectUtils.keys(props.allEquipment)
+      {ObjectUtils_keys(props.allEquipment)
         .filter((e) => !props.allEquipment[e]?.isDeleted)
         .map((bar, i) => {
           const equipmentData = props.allEquipment[bar];
@@ -111,10 +111,10 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
         onInput={(name) => {
           if (name) {
             const lensRecording = props.lensPrefix.then(lb<IAllEquipment>().get()).recordModify((oldEquipment) => {
-              const id = `equipment-${UidFactory.generateUid(8)}`;
+              const id = `equipment-${UidFactory_generateUid(8)}`;
               return {
                 ...oldEquipment,
-                [id]: Equipment.build(name),
+                [id]: Equipment_build(name),
               };
             });
             lensDispatch(lensRecording, "Add new equipment");
@@ -152,7 +152,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
           <div className="flex items-center">
             <button
               className="px-2"
-              data-cy={`group-header-${StringUtils.dashcase(name)}`}
+              data-cy={`group-header-${StringUtils_dashcase(name)}`}
               onClick={() => {
                 setIsExpanded(!isExpanded);
               }}
@@ -171,7 +171,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
           <div className="flex items-center">
             <button
               className="p-2"
-              data-cy={`delete-equipment-${StringUtils.dashcase(name)}`}
+              data-cy={`delete-equipment-${StringUtils_dashcase(name)}`}
               onClick={() => {
                 if (!props.equipmentData.name || confirm("Are you sure?")) {
                   const lensRecording = props.lensPrefix
@@ -302,10 +302,10 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
             setModalNewPlateEquipmentToShow(undefined);
             if (weight != null) {
               const units = props.allEquipment[modalNewPlateEquipmentToShow]?.unit ?? props.settings.units;
-              const newWeight = Weight.build(weight, units);
+              const newWeight = Weight_build(weight, units);
               const plates =
                 props.allEquipment[modalNewPlateEquipmentToShow]?.plates.filter((p) => p.weight.unit === units) || [];
-              if (plates.every((p) => !Weight.eqeq(p.weight, newWeight))) {
+              if (plates.every((p) => !Weight_eqeq(p.weight, newWeight))) {
                 const lensRecording = props.lensPrefix
                   .then(lb<IAllEquipment>().pi(modalNewPlateEquipmentToShow).p("plates").get())
                   .recordModify((p) => [...(p || []), { weight: newWeight, num: 2 }]);
@@ -325,10 +325,10 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
             setModalNewFixedWeightEquipmentToShow(undefined);
             if (weight != null) {
               const units = props.allEquipment[modalNewFixedWeightEquipmentToShow]?.unit ?? props.settings.units;
-              const newWeight = Weight.build(weight, units);
+              const newWeight = Weight_build(weight, units);
               const fixedWeights =
                 props.allEquipment[modalNewFixedWeightEquipmentToShow]?.fixed.filter((p) => p.unit === units) || [];
-              if (fixedWeights.every((p) => !Weight.eqeq(p, newWeight))) {
+              if (fixedWeights.every((p) => !Weight_eqeq(p, newWeight))) {
                 const lensRecording = props.lensPrefix
                   .then(lb<IAllEquipment>().pi(modalNewFixedWeightEquipmentToShow).p("fixed").get())
                   .recordModify((p) => [...(p || []), newWeight]);
@@ -355,9 +355,9 @@ interface IEquipmentSettingsFixedProps<T> {
 function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.Element {
   const { equipmentData } = props;
   const units = equipmentData.unit ?? props.settings.units;
-  const fixed = CollectionUtils.sort(
+  const fixed = CollectionUtils_sort(
     equipmentData.fixed.filter((p) => p.unit === units),
-    (a, b) => Weight.compare(b, a)
+    (a, b) => Weight_compare(b, a)
   );
   return (
     <div className="mb-4">
@@ -369,12 +369,12 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
         return (
           <MenuItem
             key={i}
-            name={Weight.display(weight)}
+            name={Weight_display(weight)}
             value={
               <button
                 className="nm-remove-fixed-weight"
                 onClick={() => {
-                  const newFixedWeights = equipmentData.fixed.filter((p) => !Weight.eqeq(p, weight));
+                  const newFixedWeights = equipmentData.fixed.filter((p) => !Weight_eqeq(p, weight));
                   const lensRecording = props.lensPrefix
                     .then(lb<IAllEquipment>().pi(props.name).p("fixed").get())
                     .record(newFixedWeights);
@@ -413,18 +413,18 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
   const { equipmentData, settings } = props;
   const units = equipmentData.unit ?? settings.units;
   const barWeight = equipmentData.bar[units];
-  const plates = CollectionUtils.sort(
+  const plates = CollectionUtils_sort(
     equipmentData.plates.filter((p) => p.weight.unit === units),
-    (a, b) => Weight.compare(b.weight, a.weight)
+    (a, b) => Weight_compare(b.weight, a.weight)
   );
   const currentBodyweight = equipmentData.useBodyweightForBar
-    ? Stats.getCurrentMovingAverageBodyweight(props.stats, props.settings)
+    ? Stats_getCurrentMovingAverageBodyweight(props.stats, props.settings)
     : undefined;
   return (
     <div className="mb-4">
       {equipmentData.useBodyweightForBar ? (
         <div className="opacity-50">
-          <MenuItem name="Bar" value={currentBodyweight != null ? Weight.print(currentBodyweight) : "None"} />
+          <MenuItem name="Bar" value={currentBodyweight != null ? Weight_print(currentBodyweight) : "None"} />
         </div>
       ) : (
         <MenuItemEditable
@@ -437,7 +437,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
             if (v != null) {
               const lensRecording = props.lensPrefix
                 .then(lb<IAllEquipment>().pi(props.name).p("bar").p(units).get())
-                .record(Weight.build(v, units));
+                .record(Weight_build(v, units));
               props.dispatch(lensRecording, "Change bar weight");
             }
           }}
@@ -531,9 +531,9 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
                   let newPlates;
                   if (v != null) {
                     const num = Math.floor(v / equipmentData.multiplier) * equipmentData.multiplier;
-                    newPlates = pl.map((p) => (Weight.eqeq(p.weight, plate.weight) ? { ...p, num } : p));
+                    newPlates = pl.map((p) => (Weight_eqeq(p.weight, plate.weight) ? { ...p, num } : p));
                   } else {
-                    newPlates = pl.filter((p) => !Weight.eqeq(p.weight, plate.weight));
+                    newPlates = pl.filter((p) => !Weight_eqeq(p.weight, plate.weight));
                   }
                   return newPlates;
                 });

@@ -2,9 +2,9 @@ import { h, JSX } from "preact";
 import { Modal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { Button } from "./button";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_postevent, Thunk_pushScreen } from "../ducks/thunks";
 import { useEffect } from "preact/hooks";
-import { SendMessage } from "../utils/sendMessage";
+import { SendMessage_isIos } from "../utils/sendMessage";
 
 interface IModalThanks25Props {
   dispatch: IDispatch;
@@ -13,7 +13,7 @@ interface IModalThanks25Props {
 
 export function ModalThanks25(props: IModalThanks25Props): JSX.Element {
   useEffect(() => {
-    props.dispatch(Thunk.postevent("thanks25-impression"));
+    props.dispatch(Thunk_postevent("thanks25-impression"));
   }, []);
   return (
     <Modal isHidden={false} isFullWidth={true} shouldShowClose={true} onClose={props.onClose} zIndex={60}>
@@ -34,7 +34,7 @@ export function ModalThanks25(props: IModalThanks25Props): JSX.Element {
             <div>first year of subscription</div>
           </div>
           <div className="mb-4">
-            {SendMessage.isIos() ? (
+            {SendMessage_isIos() ? (
               <div>
                 <div className="text-sm">
                   <strong>Monthly Code: </strong>
@@ -64,8 +64,8 @@ export function ModalThanks25(props: IModalThanks25Props): JSX.Element {
               name="modal-thanks25-purchase"
               kind="purple"
               onClick={() => {
-                props.dispatch(Thunk.postevent("thanks25-cta"));
-                props.dispatch(Thunk.pushScreen("subscription"));
+                props.dispatch(Thunk_postevent("thanks25-cta"));
+                props.dispatch(Thunk_pushScreen("subscription"));
                 props.onClose();
               }}
             >

@@ -1,12 +1,20 @@
 import { JSX, h, Fragment } from "preact";
-import { IExercise, Exercise, equipmentName } from "../../models/exercise";
+import {
+  IExercise,
+  equipmentName,
+  Exercise_toKey,
+  Exercise_targetMuscles,
+  Exercise_synergistMuscles,
+  Exercise_targetMusclesGroups,
+  Exercise_synergistMusclesGroups,
+} from "../../models/exercise";
 import { ISettings, IExerciseType } from "../../types";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_dashcase, StringUtils_capitalize } from "../../utils/string";
 import { Tailwind } from "../../utils/tailwindConfig";
 import { ExerciseImage } from "../exerciseImage";
 import { IconEdit2 } from "../icons/iconEdit2";
 import { IconStar } from "../icons/iconStar";
-import { Muscle } from "../../models/muscle";
+import { Muscle_getMusclesFromScreenMuscle, Muscle_getMuscleGroupName } from "../../models/muscle";
 
 interface IExerciseItemProps {
   exercise: IExercise;
@@ -24,7 +32,7 @@ interface IExerciseItemProps {
 export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Element {
   const { exercise: e } = props;
   const exerciseType = { id: e.id, equipment: e.equipment || e.defaultEquipment };
-  const key = Exercise.toKey(e);
+  const key = Exercise_toKey(e);
   const isStarred = !!props.settings.starredExercises?.[key];
   const onEdit = props.onEdit;
   const onChoose = props.onChoose;
@@ -72,7 +80,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
           </div>
         </button>
         <div
-          data-cy={`custom-exercise-${StringUtils.dashcase(e.name)}`}
+          data-cy={`custom-exercise-${StringUtils_dashcase(e.name)}`}
           onClick={() => {
             if (!isDisabled && props.onChoose) {
               props.onChoose(key);
@@ -92,7 +100,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
             <button
               onClick={onEdit}
               className="px-2 pb-2"
-              data-cy={`custom-exercise-edit-${StringUtils.dashcase(e.name)}`}
+              data-cy={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
             >
               <IconEdit2 />
             </button>
@@ -102,24 +110,24 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
           (!props.isMultiselect ? (
             <span className="flex px-2 pb-2 radio">
               <input
-                data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
+                data-cy={`menu-item-${StringUtils_dashcase(e.name)}`}
                 type="radio"
                 disabled={isDisabled}
                 name="picker-exercise"
-                value={Exercise.toKey(e)}
-                onChange={() => onChoose(Exercise.toKey(e))}
+                value={Exercise_toKey(e)}
+                onChange={() => onChoose(Exercise_toKey(e))}
                 checked={props.isSelected}
               />
             </span>
           ) : (
             <label className="block p-2">
               <input
-                data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
+                data-cy={`menu-item-${StringUtils_dashcase(e.name)}`}
                 checked={props.isSelected}
                 disabled={isDisabled}
                 className="checkbox checkbox-purple text-text-purple"
                 type="checkbox"
-                onChange={() => onChoose(Exercise.toKey(e))}
+                onChange={() => onChoose(Exercise_toKey(e))}
               />
             </label>
           ))}
@@ -134,12 +142,12 @@ function MuscleView(props: {
   settings: ISettings;
 }): JSX.Element {
   const { exercise, settings } = props;
-  const tms = props.currentExerciseType ? Exercise.targetMuscles(props.currentExerciseType, settings) : [];
-  const sms = props.currentExerciseType ? Exercise.synergistMuscles(props.currentExerciseType, settings) : [];
-  const targetMuscles = Exercise.targetMuscles(exercise, settings);
-  const synergistMuscles = Exercise.synergistMuscles(exercise, settings).filter((m) => targetMuscles.indexOf(m) === -1);
+  const tms = props.currentExerciseType ? Exercise_targetMuscles(props.currentExerciseType, settings) : [];
+  const sms = props.currentExerciseType ? Exercise_synergistMuscles(props.currentExerciseType, settings) : [];
+  const targetMuscles = Exercise_targetMuscles(exercise, settings);
+  const synergistMuscles = Exercise_synergistMuscles(exercise, settings).filter((m) => targetMuscles.indexOf(m) === -1);
 
-  const types = exercise.types.map((t) => StringUtils.capitalize(t));
+  const types = exercise.types.map((t) => StringUtils_capitalize(t));
 
   return (
     <div className="text-xs" style={{ lineHeight: "1.5" }}>
@@ -197,14 +205,14 @@ export function MuscleGroupsView(props: {
   settings: ISettings;
 }): JSX.Element {
   const { exercise, settings } = props;
-  const tms: string[] = props.currentExerciseType ? Exercise.targetMuscles(props.currentExerciseType, settings) : [];
-  const sms: string[] = props.currentExerciseType ? Exercise.synergistMuscles(props.currentExerciseType, settings) : [];
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings);
-  const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings).filter(
+  const tms: string[] = props.currentExerciseType ? Exercise_targetMuscles(props.currentExerciseType, settings) : [];
+  const sms: string[] = props.currentExerciseType ? Exercise_synergistMuscles(props.currentExerciseType, settings) : [];
+  const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings);
+  const synergistMuscleGroups = Exercise_synergistMusclesGroups(exercise, settings).filter(
     (m) => targetMuscleGroups.indexOf(m) === -1
   );
 
-  const types = exercise.types.map((t) => StringUtils.capitalize(t));
+  const types = exercise.types.map((t) => StringUtils_capitalize(t));
 
   return (
     <div className="text-xs">
@@ -219,14 +227,14 @@ export function MuscleGroupsView(props: {
           <span className="text-text-secondary">Target: </span>
           <span className="font-semibold">
             {targetMuscleGroups.map((m, i) => {
-              const muscles = Muscle.getMusclesFromScreenMuscle(m, props.settings);
+              const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
               const doesContain = muscles.some((muscle) => tms.includes(muscle));
               return (
                 <span>
                   <span
                     className={!props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"}
                   >
-                    {Muscle.getMuscleGroupName(m, props.settings)}
+                    {Muscle_getMuscleGroupName(m, props.settings)}
                   </span>
                   {i !== targetMuscleGroups.length - 1 ? ", " : ""}
                 </span>
@@ -240,14 +248,14 @@ export function MuscleGroupsView(props: {
           <span className="text-text-secondary">Synergist: </span>
           <span className="font-semibold">
             {synergistMuscleGroups.map((m, i) => {
-              const muscles = Muscle.getMusclesFromScreenMuscle(m, props.settings);
+              const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
               const doesContain = props.currentExerciseType && muscles.some((muscle) => sms.includes(muscle));
               return (
                 <span>
                   <span
                     className={!props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"}
                   >
-                    {Muscle.getMuscleGroupName(m, props.settings)}
+                    {Muscle_getMuscleGroupName(m, props.settings)}
                   </span>
                   {i !== synergistMuscleGroups.length - 1 ? ", " : ""}
                 </span>

@@ -3,8 +3,14 @@ import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import { ProgramPreviewPlaygroundDay } from "../../../components/preview/programPreviewPlaygroundDay";
-import { Program } from "../../../models/program";
-import { Settings } from "../../../models/settings";
+import {
+  Program_create,
+  Program_nextHistoryRecord,
+  Program_evaluate,
+  Program_applyEvaluatedProgram,
+  Program_runAllFinishDayScripts,
+} from "../../../models/program";
+import { Settings_build } from "../../../models/settings";
 import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, IProgram, ISettings, IStats } from "../../../types";
 import { useLensReducer } from "../../../utils/useLensReducer";
 import { PlannerEditorView } from "../../planner/components/plannerEditorView";
@@ -62,8 +68,8 @@ Bench Press / 3x8 100lb / progress: dp(5lb, 8, 12)
     name: "My Program",
     weeks: [initialWeek],
   };
-  const initialProgram = { ...Program.create(initialPlanner.name), planner: initialPlanner };
-  const settings = Settings.build();
+  const initialProgram = { ...Program_create(initialPlanner.name), planner: initialPlanner };
+  const settings = Settings_build();
 
   const initialState: IPlannerState = {
     id: initialProgram.id,
@@ -184,9 +190,9 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
   const { planner } = props;
   const stats: IStats = { weight: {}, length: {}, percentage: {} };
   const [settings, setSettings] = useState(props.settings);
-  const [program, setProgram] = useState<IProgram>({ ...Program.create("My Program"), planner });
-  const [progress, setProgress] = useState(Program.nextHistoryRecord(program, settings, stats, 1));
-  const evaluatedProgram = Program.evaluate(program, settings);
+  const [program, setProgram] = useState<IProgram>({ ...Program_create("My Program"), planner });
+  const [progress, setProgress] = useState(Program_nextHistoryRecord(program, settings, stats, 1));
+  const evaluatedProgram = Program_evaluate(program, settings);
 
   return (
     <ProgramPreviewPlaygroundDay
@@ -202,17 +208,17 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
       }}
       onProgramChange={(newEvaluatedProgram) => {
         track({ name: "main_playground" });
-        const newProgram = Program.applyEvaluatedProgram(program, newEvaluatedProgram, settings);
+        const newProgram = Program_applyEvaluatedProgram(program, newEvaluatedProgram, settings);
         setProgram(newProgram);
-        setProgress(Program.nextHistoryRecord(newProgram, settings, stats, 1));
+        setProgress(Program_nextHistoryRecord(newProgram, settings, stats, 1));
       }}
       onSettingsChange={(newSettings) => {
         track({ name: "main_playground" });
         setSettings(newSettings);
-        setProgress(Program.nextHistoryRecord(program, newSettings, stats, 1));
+        setProgress(Program_nextHistoryRecord(program, newSettings, stats, 1));
       }}
       onFinish={() => {
-        const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(
+        const { program: newProgram, exerciseData } = Program_runAllFinishDayScripts(
           program,
           progress,
           stats,
@@ -222,7 +228,7 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
           ...settings,
           exerciseData: deepmerge(settings.exerciseData, exerciseData),
         };
-        const newProgress = Program.nextHistoryRecord(newProgram, newSettings, stats, 1);
+        const newProgress = Program_nextHistoryRecord(newProgram, newSettings, stats, 1);
         setSettings(newSettings);
         setProgram(newProgram);
         setProgress(newProgress);

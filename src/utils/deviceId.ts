@@ -1,6 +1,6 @@
-import { IndexedDBUtils } from "./indexeddb";
-import { UidFactory } from "./generator";
-import { SendMessage } from "./sendMessage";
+import { IndexedDBUtils_get, IndexedDBUtils_set } from "./indexeddb";
+import { UidFactory_generateUid } from "./generator";
+import { SendMessage_isIos, SendMessage_isAndroid } from "./sendMessage";
 
 export class DeviceId {
   private static readonly STORAGE_KEY = "device_id";
@@ -13,21 +13,21 @@ export class DeviceId {
 
     const type = this.getDeviceType();
     const storageKey = `${this.STORAGE_KEY}_${type}`;
-    const stored = await IndexedDBUtils.get(storageKey);
+    const stored = await IndexedDBUtils_get(storageKey);
     if (stored && typeof stored === "string") {
       this.cachedId = stored;
       return stored;
     }
 
     const newId = this.generate();
-    await IndexedDBUtils.set(storageKey, newId);
+    await IndexedDBUtils_set(storageKey, newId);
     this.cachedId = newId;
     return newId;
   }
 
   private static generate(): string {
     const type = this.getDeviceType();
-    const uid = UidFactory.generateUid(8);
+    const uid = UidFactory_generateUid(8);
     return `${type}_${uid}`;
   }
 
@@ -36,9 +36,9 @@ export class DeviceId {
       return "srv";
     } else if (window.webeditor) {
       return "edt";
-    } else if (SendMessage.isIos()) {
+    } else if (SendMessage_isIos()) {
       return "ios";
-    } else if (SendMessage.isAndroid()) {
+    } else if (SendMessage_isAndroid()) {
       return "and";
     } else {
       return "web";

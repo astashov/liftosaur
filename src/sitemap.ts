@@ -1,9 +1,9 @@
 import fs from "fs";
 import { execSync } from "child_process";
 import { programOrder } from "../lambda/dao/programDao";
-import { Exercise } from "./models/exercise";
+import { Exercise_allExpanded } from "./models/exercise";
 import { buildExerciseUrl } from "./pages/exercise/exerciseContent";
-import { MathUtils } from "./utils/math";
+import { MathUtils_toWord } from "./utils/math";
 const blogposts = JSON.parse(fs.readFileSync("blog/blog-posts.json", { encoding: "utf-8" }));
 
 function getGitLastModified(filePath: string): string | undefined {
@@ -49,11 +49,11 @@ const urls: ISitemapUrl[] = [
     }
     return { loc: `https://www.liftosaur.com/programs/${program}`, ...(lastmod ? { lastmod } : {}) };
   }),
-  ...Exercise.allExpanded({}).map((e) => ({
+  ...Exercise_allExpanded({}).map((e) => ({
     loc: `https://www.liftosaur.com${buildExerciseUrl(e, [])}`,
   })),
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((r) => ({
-    loc: `https://www.liftosaur.com/${MathUtils.toWord(r)}-rep-max-calculator`,
+    loc: `https://www.liftosaur.com/${MathUtils_toWord(r)}-rep-max-calculator`,
   })),
 ];
 

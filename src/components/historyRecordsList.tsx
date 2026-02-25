@@ -3,7 +3,7 @@ import { IDispatch } from "../ducks/types";
 import { IPersonalRecords } from "../models/history";
 import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { HistoryRecordView } from "./historyRecord";
-import { Program } from "../models/program";
+import { Program_evaluate, Program_getProgramDay } from "../models/program";
 
 interface IHistoryRecordsListProps {
   history: IHistoryRecord[];
@@ -18,8 +18,8 @@ interface IHistoryRecordsListProps {
 
 export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element {
   const { history, settings, dispatch } = props;
-  const program = Program.evaluate(props.program, props.settings);
-  const programDay = Program.getProgramDay(program, program.nextDay);
+  const program = Program_evaluate(props.program, props.settings);
+  const programDay = Program_getProgramDay(program, program.nextDay);
   return (
     <Fragment>
       {history.map((record) => {

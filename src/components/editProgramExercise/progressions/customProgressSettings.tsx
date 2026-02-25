@@ -7,13 +7,13 @@ import {
 } from "../../../pages/planner/models/types";
 import { IProgram, ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { ObjectUtils } from "../../../utils/object";
+import { ObjectUtils_entries } from "../../../utils/object";
 import { InputNumber2 } from "../../inputNumber2";
 import { EditProgramUiHelpers } from "../../editProgram/editProgramUi/editProgramUiHelpers";
 import { InputWeight2 } from "../../inputWeight2";
 import { Button } from "../../button";
 import { ModalCreateStateVariable } from "./modalCreateStateVariable";
-import { Weight } from "../../../models/weight";
+import { Weight_buildAny } from "../../../models/weight";
 import { IconTrash } from "../../icons/iconTrash";
 import { ScriptRunner } from "../../../parser";
 import { Tailwind } from "../../../utils/tailwindConfig";
@@ -43,7 +43,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
       <div className="border rounded-lg bg-background-cardpurple border-border-cardpurple">
         <div className="p-2 text-sm font-semibold border-b border-border-cardpurple">Progress State Variables</div>
         <ul>
-          {ObjectUtils.entries(ownState).map(([key, value]) => {
+          {ObjectUtils_entries(ownState).map(([key, value]) => {
             const isUsedVariable = ScriptRunner.hasStateVariable(progress.script ?? "", key);
             const metadata = progress.stateMetadata?.[key];
             const isReused = onlyChangedState[key] == null;
@@ -178,7 +178,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                   const state = e.progress?.state;
                   const stateMetadata = e.progress?.stateMetadata;
                   if (state) {
-                    state[name] = type === "number" ? 0 : Weight.buildAny(0, type);
+                    state[name] = type === "number" ? 0 : Weight_buildAny(0, type);
                   }
                   if (stateMetadata && isUserPrompted) {
                     stateMetadata[name] = { userPrompted: true };

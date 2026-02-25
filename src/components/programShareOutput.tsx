@@ -1,18 +1,18 @@
 import { h, JSX, ComponentChildren, Ref } from "preact";
 import { ISettings, IPlannerProgram, IPlannerProgramWeek, IPlannerProgramDay } from "../types";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
-import { StringUtils } from "../utils/string";
+import { StringUtils_pluralize } from "../utils/string";
 import { ExerciseImage } from "./exerciseImage";
-import { equipmentName, Exercise } from "../models/exercise";
+import { equipmentName, Exercise_findByNameAndEquipment, Exercise_toKey } from "../models/exercise";
 import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerProgramExerciseSet } from "../pages/planner/models/types";
 import { Markdown } from "./markdown";
-import { Weight } from "../models/weight";
-import { CollectionUtils } from "../utils/collection";
+import { Weight_print } from "../models/weight";
+import { CollectionUtils_compact, CollectionUtils_inGroupsOf } from "../utils/collection";
 import { forwardRef, useEffect, useRef } from "preact/compat";
 import { ProgramQrCode } from "./programQrCode";
-import { Equipment } from "../models/equipment";
+import { Equipment_currentEquipment } from "../models/equipment";
 
 export interface IProgramShareOutputOptions {
   showInfo: boolean;
@@ -84,7 +84,7 @@ export const ProgramShareOutput = forwardRef(
                     {props.program.weeks.length > 1 && <span>{props.program.weeks.length} weeks, </span>}
                     {minDays === maxDays ? (
                       <span>
-                        {minDays} {StringUtils.pluralize("day", minDays)}
+                        {minDays} {StringUtils_pluralize("day", minDays)}
                       </span>
                     ) : (
                       <span>
@@ -101,7 +101,7 @@ export const ProgramShareOutput = forwardRef(
         <div className="p-2 bg-background-subtle" ref={contentRef} style={{ width: "max-content" }}>
           {props.program.weeks.map((week, weekIndex) => {
             let dayInWeekIndex = 0;
-            const visibleDays = CollectionUtils.compact(
+            const visibleDays = CollectionUtils_compact(
               week.days.map((day) => {
                 const shouldInclude = options.daysToShow.includes(dayIndex);
                 let result = undefined;
@@ -112,7 +112,7 @@ export const ProgramShareOutput = forwardRef(
                 return result;
               })
             );
-            const groupedDays = CollectionUtils.inGroupsOf(options.columns, visibleDays);
+            const groupedDays = CollectionUtils_inGroupsOf(options.columns, visibleDays);
             return (
               <div style={{ width: "max-content" }}>
                 {options.showWeekDescription && week.description && visibleDays.length > 0 && (
@@ -209,9 +209,9 @@ function Workout(props: IWorkoutProps): JSX.Element {
         </h2>
       </div>
       <div className="px-4 text-text-secondary">
-        {exercises.length} {StringUtils.pluralize("exercise", exercises.length)}
+        {exercises.length} {StringUtils_pluralize("exercise", exercises.length)}
         {" · "}
-        {setsNumber} {StringUtils.pluralize("set", setsNumber)}
+        {setsNumber} {StringUtils_pluralize("set", setsNumber)}
       </div>
       {day.description && (
         <div className="px-2 py-1 mx-4 my-2 text-xs rounded-md bg-background-subtle text-text-secondary">
@@ -223,9 +223,9 @@ function Workout(props: IWorkoutProps): JSX.Element {
           plannerProgramExercise.fullName,
           props.settings.exercises
         );
-        const allEquipment = Equipment.currentEquipment(props.settings);
+        const allEquipment = Equipment_currentEquipment(props.settings);
         const nameAndEquipment = `${name}${equipment ? `, ${equipmentName(equipment, allEquipment)}` : ""}`;
-        const exercise = Exercise.findByNameAndEquipment(nameAndEquipment, props.settings.exercises);
+        const exercise = Exercise_findByNameAndEquipment(nameAndEquipment, props.settings.exercises);
         if (!exercise) {
           return <div />;
         }
@@ -239,7 +239,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
 
         return (
           <div className={`mx-4 pb-4 ${i > 0 ? "pt-2 border-t border-border-neutral" : ""}`}>
-            <div className={`flex items-stretch pl-1`} style={{ paddingRight: "1px" }} key={Exercise.toKey(exercise)}>
+            <div className={`flex items-stretch pl-1`} style={{ paddingRight: "1px" }} key={Exercise_toKey(exercise)}>
               <div className="flex items-center w-12 pr-2">
                 <ExerciseImage suppressCustom={true} exerciseType={exercise} size="small" settings={props.settings} />
               </div>
@@ -344,7 +344,7 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
       return (
         <div>
           <strong>Linear Progression:</strong>{" "}
-          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span>
+          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span>
           {(type.successesRequired || 0 > 1) && (
             <span>
               {" "}
@@ -353,7 +353,7 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
           )}
           {type.decrease != null && type.decrease.value > 0 && (
             <span>
-              , <span className="font-bold text-text-error">{Weight.print(type.decrease)}</span>
+              , <span className="font-bold text-text-error">{Weight_print(type.decrease)}</span>
             </span>
           )}
           {type.decrease != null && type.decrease.value > 0 && (
@@ -369,7 +369,7 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
       return (
         <div>
           <strong>Double Progression</strong>:{" "}
-          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span> within{" "}
+          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span> within{" "}
           <span className="font-bold">{type.minReps}</span>-<span className="font-bold">{type.maxReps}</span> rep range.
         </div>
       );
@@ -377,7 +377,7 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
       return (
         <div>
           <strong>Sum Reps Progression</strong>:{" "}
-          <span className="font-bold text-text-success">+{Weight.print(type.increase)}</span> if sum of all reps is at
+          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span> if sum of all reps is at
           least <span className="font-bold">{type.reps}</span>.
         </div>
       );

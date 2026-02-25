@@ -1,6 +1,6 @@
 import { h, JSX, ComponentChildren } from "preact";
 import { IDispatch } from "../ducks/types";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pullScreen } from "../ducks/thunks";
 import {
   ISettings,
   IUnit,
@@ -16,12 +16,12 @@ import {
 } from "../types";
 import { Button } from "./button";
 import { forwardRef, Ref, useRef, useState, memo } from "preact/compat";
-import { ObjectUtils } from "../utils/object";
-import { Weight } from "../models/weight";
-import { Length } from "../models/length";
+import { ObjectUtils_keys } from "../utils/object";
+import { Weight_convertTo, Weight_build } from "../models/weight";
+import { Length_convertTo, Length_build } from "../models/length";
 import { ModalStats } from "./modalStats";
-import { EditStats } from "../models/editStats";
-import { StringUtils } from "../utils/string";
+import { EditStats_addWeightStats, EditStats_addLengthStats, EditStats_addPercentageStats } from "../models/editStats";
+import { StringUtils_dashcase } from "../utils/string";
 import { INavCommon } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
@@ -29,7 +29,7 @@ import { Footer2View } from "./footer2";
 import { Input } from "./input";
 import { IconFilter } from "./icons/iconFilter";
 import { HelpStats } from "./help/helpStats";
-import { SendMessage } from "../utils/sendMessage";
+import { SendMessage_toIosAndAndroid, SendMessage_isIos } from "../utils/sendMessage";
 import { HealthSync } from "../lib/healthSync";
 import { MenuItemEditable } from "./menuItemEditable";
 
@@ -54,27 +54,27 @@ interface IHealthUpdates {
 
 export function ScreenStats(props: IProps): JSX.Element {
   const { statsEnabled, lengthUnits, units } = props.settings;
-  const lastWeightStats = ObjectUtils.keys(props.stats.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
+  const lastWeightStats = ObjectUtils_keys(props.stats.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
     (acc, key) => {
       const value = (props.stats.weight[key] || [])[0]?.value;
       if (value != null) {
-        acc[key] = Weight.convertTo(value, props.settings.units);
+        acc[key] = Weight_convertTo(value, props.settings.units);
       }
       return acc;
     },
     {}
   );
-  const lastLengthStats = ObjectUtils.keys(props.stats.length).reduce<Partial<Record<keyof IStatsLength, ILength>>>(
+  const lastLengthStats = ObjectUtils_keys(props.stats.length).reduce<Partial<Record<keyof IStatsLength, ILength>>>(
     (acc, key) => {
       const value = (props.stats.length[key] || [])[0]?.value;
       if (value != null) {
-        acc[key] = Length.convertTo(value, props.settings.lengthUnits);
+        acc[key] = Length_convertTo(value, props.settings.lengthUnits);
       }
       return acc;
     },
     {}
   );
-  const lastPercentageStats = ObjectUtils.keys(props.stats.percentage).reduce<
+  const lastPercentageStats = ObjectUtils_keys(props.stats.percentage).reduce<
     Partial<Record<keyof IStatsPercentage, IPercentage>>
   >((acc, key) => {
     const value = (props.stats.percentage[key] || [])[0]?.value;
@@ -106,7 +106,7 @@ export function ScreenStats(props: IProps): JSX.Element {
   };
 
   function saveWeight(): Partial<Record<keyof IStatsWeight, IWeight>> {
-    const payload = ObjectUtils.keys(statsEnabled.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
+    const payload = ObjectUtils_keys(statsEnabled.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
       (acc, key) => {
         const isEnabled = statsEnabled.weight[key];
         if (isEnabled) {
@@ -114,7 +114,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           if (stringValue) {
             const value = parseFloat(stringValue);
             if (!isNaN(value)) {
-              acc[key] = Weight.build(value, units);
+              acc[key] = Weight_build(value, units);
             }
           }
         }
@@ -122,12 +122,12 @@ export function ScreenStats(props: IProps): JSX.Element {
       },
       {}
     );
-    EditStats.addWeightStats(props.dispatch, payload);
+    EditStats_addWeightStats(props.dispatch, payload);
     return payload;
   }
 
   function saveLength(): Partial<Record<keyof IStatsLength, ILength>> {
-    const payload = ObjectUtils.keys(statsEnabled.length).reduce<Partial<Record<keyof IStatsLength, ILength>>>(
+    const payload = ObjectUtils_keys(statsEnabled.length).reduce<Partial<Record<keyof IStatsLength, ILength>>>(
       (acc, key) => {
         const isEnabled = statsEnabled.length[key];
         if (isEnabled) {
@@ -135,7 +135,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           if (stringValue) {
             const value = parseFloat(stringValue);
             if (!isNaN(value)) {
-              acc[key] = Length.build(value, lengthUnits);
+              acc[key] = Length_build(value, lengthUnits);
             }
           }
         }
@@ -143,12 +143,12 @@ export function ScreenStats(props: IProps): JSX.Element {
       },
       {}
     );
-    EditStats.addLengthStats(props.dispatch, payload);
+    EditStats_addLengthStats(props.dispatch, payload);
     return payload;
   }
 
   function savePercentage(): Partial<Record<keyof IStatsPercentage, IPercentage>> {
-    const payload = ObjectUtils.keys(statsEnabled.percentage).reduce<
+    const payload = ObjectUtils_keys(statsEnabled.percentage).reduce<
       Partial<Record<keyof IStatsPercentage, IPercentage>>
     >((acc, key) => {
       const isEnabled = statsEnabled.percentage[key];
@@ -163,7 +163,7 @@ export function ScreenStats(props: IProps): JSX.Element {
       }
       return acc;
     }, {});
-    EditStats.addPercentageStats(props.dispatch, payload);
+    EditStats_addPercentageStats(props.dispatch, payload);
     return payload;
   }
 
@@ -176,15 +176,15 @@ export function ScreenStats(props: IProps): JSX.Element {
       (HealthSync.eligibleForGoogleHealth() && syncToGoogleHealth)
     ) {
       const updatesForHealthSync = getUpdatesForHealthSync(updates);
-      SendMessage.toIosAndAndroid({ type: "finishMeasurements", ...updatesForHealthSync });
+      SendMessage_toIosAndAndroid({ type: "finishMeasurements", ...updatesForHealthSync });
     }
-    props.dispatch(Thunk.pullScreen());
+    props.dispatch(Thunk_pullScreen());
   }
 
   function getUpdatesForHealthSync(updates: IUpdates): IHealthUpdates {
     const healthSyncUpdates: IHealthUpdates = {};
     const timestamp = Date.now();
-    ObjectUtils.keys(updates).forEach((key) => {
+    ObjectUtils_keys(updates).forEach((key) => {
       if (key === "weight") {
         healthSyncUpdates[key] = JSON.stringify({
           value: updates[key],
@@ -240,7 +240,7 @@ export function ScreenStats(props: IProps): JSX.Element {
             name="clear-stats-fields"
             kind="grayv2"
             onClick={() => {
-              for (const key of ObjectUtils.keys(refs)) {
+              for (const key of ObjectUtils_keys(refs)) {
                 if (refs[key]?.current) {
                   refs[key].current.value = "";
                 }
@@ -461,14 +461,14 @@ function DoubleLine(props: IDoubleLineProps): JSX.Element {
 
 const StatInput = memo(
   forwardRef((props: IInputProps, ref: Ref<HTMLInputElement>): JSX.Element => {
-    const name = StringUtils.dashcase(props.label.toLowerCase());
+    const name = StringUtils_dashcase(props.label.toLowerCase());
     return (
       <Input
         label={`${props.label} (${props.unit})`}
         labelSize="xs"
         defaultValue={props.value}
         ref={ref}
-        type={SendMessage.isIos() ? "number" : "tel"}
+        type={SendMessage_isIos() ? "number" : "tel"}
         placeholder="e.g. 10"
         min="0"
         step="0.01"

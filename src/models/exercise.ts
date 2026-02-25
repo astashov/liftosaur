@@ -1,5 +1,5 @@
-import { ObjectUtils } from "../utils/object";
-import { Weight } from "./weight";
+import { ObjectUtils_keys, ObjectUtils_values, ObjectUtils_filter } from "../utils/object";
+import { Weight_build, Weight_gt, Weight_multiply, Weight_roundConvertTo, Weight_convertTo } from "./weight";
 import {
   IExerciseId,
   IEquipment,
@@ -20,15 +20,27 @@ import {
   IProgram,
   IMuscleMultiplier,
 } from "../types";
-import { Muscle } from "./muscle";
-import { StringUtils } from "../utils/string";
-import { UidFactory } from "../utils/generator";
-import { CollectionUtils } from "../utils/collection";
-import { ExerciseImageUtils } from "./exerciseImage";
-import { Equipment } from "./equipment";
+import {
+  Muscle_getScreenMusclesFromMuscle,
+  Muscle_getMusclesFromScreenMuscle,
+  Muscle_getAvailableMuscleGroups,
+  Muscle_getMuscleGroupName,
+} from "./muscle";
+import {
+  StringUtils_fuzzySearch,
+  StringUtils_dashcase,
+  StringUtils_uncamelCase,
+  StringUtils_camelCase,
+  StringUtils_undashcase,
+  StringUtils_capitalize,
+} from "../utils/string";
+import { UidFactory_generateUid } from "../utils/generator";
+import { CollectionUtils_compact, CollectionUtils_sort, CollectionUtils_flat } from "../utils/collection";
+import { ExerciseImageUtils_exists } from "./exerciseImage";
+import { Equipment_getUnitOrDefaultForExerciseType, Equipment_currentEquipment } from "./equipment";
 import { IDispatch } from "../ducks/types";
-import { Program } from "./program";
-import { EditProgram } from "./editProgram";
+import { Program_changeExerciseName } from "./program";
+import { EditProgram_updateProgram } from "./editProgram";
 import { lb } from "lens-shmens";
 import { updateSettings } from "./state";
 
@@ -1669,7 +1681,7 @@ export const allExercisesList: Record<IExerciseId, IExercise> = {
   },
 };
 
-const nameToIdMapping = ObjectUtils.keys(allExercisesList).reduce<Partial<Record<string, IExerciseId>>>((acc, key) => {
+const nameToIdMapping = ObjectUtils_keys(allExercisesList).reduce<Partial<Record<string, IExerciseId>>>((acc, key) => {
   acc[allExercisesList[key].name.toLowerCase()] = allExercisesList[key].id;
   return acc;
 }, {});
@@ -3514,51 +3526,51 @@ export function warmupValues(units: IUnit): Partial<Record<number, IProgramExerc
     10: [
       {
         reps: 5,
-        threshold: units === "lb" ? Weight.build(60, "lb") : Weight.build(30, "kg"),
+        threshold: units === "lb" ? Weight_build(60, "lb") : Weight_build(30, "kg"),
         value: 0.3,
       },
       {
         reps: 5,
-        threshold: units === "lb" ? Weight.build(30, "lb") : Weight.build(15, "kg"),
+        threshold: units === "lb" ? Weight_build(30, "lb") : Weight_build(15, "kg"),
         value: 0.5,
       },
       {
         reps: 5,
-        threshold: units === "lb" ? Weight.build(10, "lb") : Weight.build(5, "kg"),
+        threshold: units === "lb" ? Weight_build(10, "lb") : Weight_build(5, "kg"),
         value: 0.8,
       },
     ],
     45: [
       {
         reps: 5,
-        threshold: units === "lb" ? Weight.build(120, "lb") : Weight.build(60, "kg"),
+        threshold: units === "lb" ? Weight_build(120, "lb") : Weight_build(60, "kg"),
         value: 0.3,
       },
       {
         reps: 5,
-        threshold: units === "lb" ? Weight.build(90, "lb") : Weight.build(45, "kg"),
+        threshold: units === "lb" ? Weight_build(90, "lb") : Weight_build(45, "kg"),
         value: 0.5,
       },
       {
         reps: 5,
-        threshold: units === "lb" ? Weight.build(45, "lb") : Weight.build(20, "kg"),
+        threshold: units === "lb" ? Weight_build(45, "lb") : Weight_build(20, "kg"),
         value: 0.8,
       },
     ],
     95: [
       {
         reps: 5,
-        threshold: units === "lb" ? Weight.build(150, "lb") : Weight.build(70, "kg"),
+        threshold: units === "lb" ? Weight_build(150, "lb") : Weight_build(70, "kg"),
         value: 0.3,
       },
       {
         reps: 5,
-        threshold: units === "lb" ? Weight.build(125, "lb") : Weight.build(60, "kg"),
+        threshold: units === "lb" ? Weight_build(125, "lb") : Weight_build(60, "kg"),
         value: 0.5,
       },
       {
         reps: 5,
-        threshold: units === "lb" ? Weight.build(95, "lb") : Weight.build(40, "kg"),
+        threshold: units === "lb" ? Weight_build(95, "lb") : Weight_build(40, "kg"),
         value: 0.8,
       },
     ],
@@ -3584,18 +3596,18 @@ function warmup(
   return (weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType): ISet[] => {
     let index = 0;
     return programExerciseWarmupSets.reduce<ISet[]>((memo, programExerciseWarmupSet) => {
-      if (shouldSkipThreshold || (weight != null && Weight.gt(weight, programExerciseWarmupSet.threshold))) {
+      if (shouldSkipThreshold || (weight != null && Weight_gt(weight, programExerciseWarmupSet.threshold))) {
         const value = programExerciseWarmupSet.value;
-        const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
+        const unit = Equipment_getUnitOrDefaultForExerciseType(settings, exerciseType);
         if (typeof value !== "number" || weight != null) {
-          const warmupWeight = typeof value === "number" ? Weight.multiply(weight!, value) : value;
-          const roundedWeight = Weight.roundConvertTo(warmupWeight, settings, unit, exerciseType);
+          const warmupWeight = typeof value === "number" ? Weight_multiply(weight!, value) : value;
+          const roundedWeight = Weight_roundConvertTo(warmupWeight, settings, unit, exerciseType);
           memo.push({
             vtype: "set",
             index,
-            id: UidFactory.generateUid(6),
+            id: UidFactory_generateUid(6),
             reps: programExerciseWarmupSet.reps,
-            isUnilateral: exerciseType ? Exercise.getIsUnilateral(exerciseType, settings) : false,
+            isUnilateral: exerciseType ? Exercise_getIsUnilateral(exerciseType, settings) : false,
             weight: roundedWeight,
             originalWeight: warmupWeight,
             isCompleted: false,
@@ -3619,8 +3631,8 @@ function maybeGetExercise(id: IExerciseId, customExercises: IAllCustomExercises)
         ...custom,
         defaultWarmup: 45,
         types: custom.types || [],
-        startingWeightKg: Weight.build(0, "kg"),
-        startingWeightLb: Weight.build(0, "lb"),
+        startingWeightKg: Weight_build(0, "kg"),
+        startingWeightLb: Weight_build(0, "lb"),
       }
     : allExercisesList[id];
 }
@@ -3630,869 +3642,879 @@ function getExercise(id: IExerciseId, customExercises: IAllCustomExercises): IEx
   return exercise != null ? exercise : allExercisesList.squat;
 }
 
-export namespace Exercise {
-  export function getMetadata(id: IExerciseId): IMetaExercises {
-    return metadata[id] || {};
-  }
+export function Exercise_getMetadata(id: IExerciseId): IMetaExercises {
+  return metadata[id] || {};
+}
 
-  export function exists(name: string, customExercises: IAllCustomExercises): boolean {
-    let exercise = ObjectUtils.keys(allExercisesList).filter((k) => allExercisesList[k].name === name)[0];
-    if (exercise == null) {
-      exercise = ObjectUtils.keys(customExercises).filter(
-        (k) => !customExercises[k]!.isDeleted && customExercises[k]!.name === name
-      )[0];
-    }
-    return !!exercise;
+export function Exercise_exists(name: string, customExercises: IAllCustomExercises): boolean {
+  let exercise = ObjectUtils_keys(allExercisesList).filter((k) => allExercisesList[k].name === name)[0];
+  if (exercise == null) {
+    exercise = ObjectUtils_keys(customExercises).filter(
+      (k) => !customExercises[k]!.isDeleted && customExercises[k]!.name === name
+    )[0];
   }
+  return !!exercise;
+}
 
-  export function isCustom(id: string, customExercises: IAllCustomExercises): boolean {
-    return customExercises[id] != null;
+export function Exercise_isCustom(id: string, customExercises: IAllCustomExercises): boolean {
+  return customExercises[id] != null;
+}
+
+export function Exercise_fullName(exercise: IExercise, settings: ISettings, label?: string): string {
+  let str: string;
+  if (exercise.equipment && exercise.defaultEquipment !== exercise.equipment) {
+    const allEquipment = Equipment_currentEquipment(settings);
+    const equipment = equipmentName(exercise.equipment, allEquipment);
+    str = `${exercise.name}, ${equipment}`;
+  } else {
+    str = exercise.name;
   }
-
-  export function fullName(exercise: IExercise, settings: ISettings, label?: string): string {
-    let str: string;
-    if (exercise.equipment && exercise.defaultEquipment !== exercise.equipment) {
-      const allEquipment = Equipment.currentEquipment(settings);
-      const equipment = equipmentName(exercise.equipment, allEquipment);
-      str = `${exercise.name}, ${equipment}`;
-    } else {
-      str = exercise.name;
-    }
-    if (label) {
-      str = `${label}: ${str}`;
-    }
-    return str;
+  if (label) {
+    str = `${label}: ${str}`;
   }
+  return str;
+}
 
-  export function reverseName(exercise: IExercise, settings?: ISettings): string {
-    if (exercise.equipment) {
-      const allEquipment = settings ? Equipment.currentEquipment(settings) : {};
-      const equipment = equipmentName(exercise.equipment, allEquipment);
-      return `${equipment} ${exercise.name}`;
-    } else {
-      return exercise.name;
-    }
+export function Exercise_reverseName(exercise: IExercise, settings?: ISettings): string {
+  if (exercise.equipment) {
+    const allEquipment = settings ? Equipment_currentEquipment(settings) : {};
+    const equipment = equipmentName(exercise.equipment, allEquipment);
+    return `${equipment} ${exercise.name}`;
+  } else {
+    return exercise.name;
   }
+}
 
-  export function nameWithEquipment(exercise: IExercise, settings?: ISettings): string {
-    if (exercise.equipment) {
-      const allEquipment = settings ? Equipment.currentEquipment(settings) : {};
-      const equipment = equipmentName(exercise.equipment, allEquipment);
-      return `${exercise.name}, ${equipment}`;
-    } else {
-      return exercise.name;
-    }
+export function Exercise_nameWithEquipment(exercise: IExercise, settings?: ISettings): string {
+  if (exercise.equipment) {
+    const allEquipment = settings ? Equipment_currentEquipment(settings) : {};
+    const equipment = equipmentName(exercise.equipment, allEquipment);
+    return `${exercise.name}, ${equipment}`;
+  } else {
+    return exercise.name;
   }
+}
 
-  export function searchNames(query: string, customExercises: IAllCustomExercises): string[] {
-    const allExercises = allExpanded({});
-    const exerciseNames = allExercises
-      .filter((e) =>
-        StringUtils.fuzzySearch(
-          query.toLowerCase(),
-          `${e.name}${e.equipment ? `, ${equipmentName(e.equipment)}` : ""}`.toLowerCase()
-        )
+export function Exercise_searchNames(query: string, customExercises: IAllCustomExercises): string[] {
+  const allExercises = Exercise_allExpanded({});
+  const exerciseNames = allExercises
+    .filter((e) =>
+      StringUtils_fuzzySearch(
+        query.toLowerCase(),
+        `${e.name}${e.equipment ? `, ${equipmentName(e.equipment)}` : ""}`.toLowerCase()
       )
-      .map((e) => `${e.name}${e.equipment ? `, ${equipmentName(e.equipment)}` : ""}`);
-    const customExerciseNames = ObjectUtils.values(customExercises)
-      .filter((ce) => (ce ? StringUtils.fuzzySearch(query.toLowerCase(), ce.name.toLowerCase()) : false))
-      .map((e) => e!.name);
-    const names = [...exerciseNames, ...customExerciseNames];
-    names.sort();
-    return names;
-  }
+    )
+    .map((e) => `${e.name}${e.equipment ? `, ${equipmentName(e.equipment)}` : ""}`);
+  const customExerciseNames = ObjectUtils_values(customExercises)
+    .filter((ce) => (ce ? StringUtils_fuzzySearch(query.toLowerCase(), ce.name.toLowerCase()) : false))
+    .map((e) => e!.name);
+  const names = [...exerciseNames, ...customExerciseNames];
+  names.sort();
+  return names;
+}
 
-  export function findById(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
-    return maybeGetExercise(id, customExercises);
-  }
+export function Exercise_findById(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
+  return maybeGetExercise(id, customExercises);
+}
 
-  export function findIdByName(name: string, customExercises: IAllCustomExercises): IExerciseId | undefined {
-    const lowercaseName = name.toLowerCase();
-    return (
-      nameToIdMapping[lowercaseName] ||
-      ObjectUtils.values(customExercises).find((ce) => {
-        const thisLowercaseName = ce?.name?.toLowerCase() || "";
-        return (
-          thisLowercaseName === lowercaseName ||
-          thisLowercaseName.replace(/\s*,\s*/g, ",") === lowercaseName.replace(/\s*,\s*/g, ",")
-        );
-      })?.id
-    );
-  }
+export function Exercise_findIdByName(name: string, customExercises: IAllCustomExercises): IExerciseId | undefined {
+  const lowercaseName = name.toLowerCase();
+  return (
+    nameToIdMapping[lowercaseName] ||
+    ObjectUtils_values(customExercises).find((ce) => {
+      const thisLowercaseName = ce?.name?.toLowerCase() || "";
+      return (
+        thisLowercaseName === lowercaseName ||
+        thisLowercaseName.replace(/\s*,\s*/g, ",") === lowercaseName.replace(/\s*,\s*/g, ",")
+      );
+    })?.id
+  );
+}
 
-  export function get(type: IExerciseType, customExercises: IAllCustomExercises): IExercise {
-    const exercise = getExercise(type.id, customExercises);
-    return { ...exercise, equipment: type.equipment };
-  }
+export function Exercise_get(type: IExerciseType, customExercises: IAllCustomExercises): IExercise {
+  const exercise = getExercise(type.id, customExercises);
+  return { ...exercise, equipment: type.equipment };
+}
 
-  export function getNotes(type: IExerciseType, settings: ISettings): string | undefined {
-    return settings.exerciseData[Exercise.toKey(type)]?.notes;
-  }
+export function Exercise_getNotes(type: IExerciseType, settings: ISettings): string | undefined {
+  return settings.exerciseData[Exercise_toKey(type)]?.notes;
+}
 
-  export function onerm(type: IExerciseType, settings: ISettings): IWeight {
-    const rm = settings.exerciseData[Exercise.toKey(type)]?.rm1;
-    if (rm) {
-      return Weight.convertTo(rm, settings.units);
+export function Exercise_onerm(type: IExerciseType, settings: ISettings): IWeight {
+  const rm = settings.exerciseData[Exercise_toKey(type)]?.rm1;
+  if (rm) {
+    return Weight_convertTo(rm, settings.units);
+  }
+  const exercise = Exercise_get(type, settings.exercises);
+  return settings.units === "kg" ? exercise.startingWeightKg : exercise.startingWeightLb;
+}
+
+export function Exercise_defaultRounding(type: IExerciseType, settings: ISettings): number {
+  const units = Equipment_getUnitOrDefaultForExerciseType(settings, type);
+  return Math.max(0.1, settings.exerciseData[Exercise_toKey(type)]?.rounding ?? (units === "kg" ? 2.5 : 5));
+}
+
+export function Exercise_find(type: IExerciseType, customExercises: IAllCustomExercises): IExercise | undefined {
+  const exercise = maybeGetExercise(type.id, customExercises);
+  return exercise ? { ...exercise, equipment: type.equipment } : undefined;
+}
+
+export function Exercise_getById(id: IExerciseId, customExercises: IAllCustomExercises): IExercise {
+  const exercise = getExercise(id, customExercises);
+  return { ...exercise, equipment: exercise.defaultEquipment };
+}
+
+export function Exercise_findByNameEquipment(
+  customExercises: IAllCustomExercises,
+  name: string,
+  equipment?: string
+): IExercise | undefined {
+  const exerciseId = Exercise_findIdByName(name, customExercises);
+  const exercise = exerciseId ? Exercise_findById(exerciseId, customExercises) : undefined;
+  if (exercise == null) {
+    return undefined;
+  }
+  return { ...exercise, equipment };
+}
+
+export function Exercise_findByNameAndEquipment(
+  nameAndEquipment: string,
+  customExercises: IAllCustomExercises
+): IExercise | undefined {
+  const parts = nameAndEquipment.split(",").map((p) => p.trim());
+  let name: string | undefined;
+  let equipment: IEquipment | undefined | null;
+  if (parts.length > 1) {
+    const foundEquipment = equipments.filter(
+      (e) => equipmentName(e).toLowerCase() === parts[parts.length - 1].toLowerCase()
+    )[0];
+    if (foundEquipment != null) {
+      equipment = foundEquipment;
+      name = parts.slice(0, parts.length - 1).join(", ");
+    } else {
+      equipment = null;
     }
-    const exercise = Exercise.get(type, settings.exercises);
-    return settings.units === "kg" ? exercise.startingWeightKg : exercise.startingWeightLb;
+  }
+  if (name == null) {
+    name = nameAndEquipment;
+  }
+  let exerciseId = Exercise_findIdByName(name, {});
+  if (exerciseId != null && equipment !== null) {
+    const exercise = Exercise_findById(exerciseId, {});
+    if (exercise != null) {
+      return { ...exercise, equipment: equipment || exercise.defaultEquipment };
+    }
+  } else {
+    exerciseId = Exercise_findIdByName(nameAndEquipment, customExercises);
+    if (exerciseId != null) {
+      const exercise = Exercise_findById(exerciseId, customExercises);
+      if (exercise != null) {
+        return { ...exercise };
+      }
+    }
+  }
+  return undefined;
+}
+
+export function Exercise_getIsUnilateral(exerciseType: IExerciseType, settings: ISettings): boolean {
+  const key = Exercise_toKey(exerciseType);
+  const exerciseData = settings.exerciseData[key];
+  if (exerciseData?.isUnilateral !== undefined) {
+    return exerciseData.isUnilateral;
   }
 
-  export function defaultRounding(type: IExerciseType, settings: ISettings): number {
-    const units = Equipment.getUnitOrDefaultForExerciseType(settings, type);
-    return Math.max(0.1, settings.exerciseData[Exercise.toKey(type)]?.rounding ?? (units === "kg" ? 2.5 : 5));
+  switch (exerciseType.id) {
+    case "bulgarianSplitSquat":
+    case "concentrationCurl":
+    case "reverseGripConcentrationCurl":
+    case "bentOverOneArmRow":
+    case "cableKickback":
+    case "cableTwist":
+    case "russianTwist":
+    case "lunge":
+    case "reverseLunge":
+    case "splitSquat":
+    case "stepUp":
+    case "pistolSquat":
+    case "singleLegBridge":
+    case "singleLegDeadlift":
+    case "sideBend":
+    case "sideCrunch":
+    case "sideHipAbductor":
+    case "sideLyingClam":
+    case "sidePlank":
+    case "singleLegBridge":
+    case "singleLegCalfRaise":
+    case "singleLegDeadlift":
+    case "singleLegGluteBridgeBench":
+    case "singleLegGluteBridgeStraight":
+    case "singleLegGluteBridgeBentKnee":
+    case "singleLegHipThrust":
+      return true;
+    case "bicepCurl":
+    case "wristCurl":
+    case "reverseWristCurl":
+    case "seatedPalmsUpWristCurl":
+    case "hammerCurl":
+    case "preacherCurl":
+    case "reverseCurl":
+    case "lyingBicepCurl":
+    case "inclineCurl":
+      return exerciseType.equipment === "dumbbell";
+    default:
+      return false;
   }
+}
 
-  export function find(type: IExerciseType, customExercises: IAllCustomExercises): IExercise | undefined {
-    const exercise = maybeGetExercise(type.id, customExercises);
-    return exercise ? { ...exercise, equipment: type.equipment } : undefined;
+export function Exercise_findByName(name: string, customExercises: IAllCustomExercises): IExercise | undefined {
+  const exerciseId = Exercise_findIdByName(name.trim(), customExercises);
+  if (exerciseId != null) {
+    const exercise = Exercise_findById(exerciseId, customExercises);
+    if (exercise != null) {
+      return { ...exercise, equipment: exercise.defaultEquipment };
+    }
   }
+  return undefined;
+}
 
-  export function getById(id: IExerciseId, customExercises: IAllCustomExercises): IExercise {
+export function Exercise_getByIds(ids: IExerciseId[], customExercises: IAllCustomExercises): IExercise[] {
+  return ids.map((id) => {
     const exercise = getExercise(id, customExercises);
     return { ...exercise, equipment: exercise.defaultEquipment };
-  }
+  });
+}
 
-  export function findByNameEquipment(
-    customExercises: IAllCustomExercises,
-    name: string,
-    equipment?: string
-  ): IExercise | undefined {
-    const exerciseId = findIdByName(name, customExercises);
-    const exercise = exerciseId ? findById(exerciseId, customExercises) : undefined;
-    if (exercise == null) {
-      return undefined;
-    }
-    return { ...exercise, equipment };
-  }
+export function Exercise_all(customExercises: IAllCustomExercises): IExercise[] {
+  return ObjectUtils_keys(customExercises)
+    .map((id) => getExercise(id, customExercises))
+    .concat(
+      ObjectUtils_keys(allExercisesList).map((k) => ({
+        ...allExercisesList[k],
+        equipment: allExercisesList[k].defaultEquipment,
+      }))
+    );
+}
 
-  export function findByNameAndEquipment(
-    nameAndEquipment: string,
-    customExercises: IAllCustomExercises
-  ): IExercise | undefined {
-    const parts = nameAndEquipment.split(",").map((p) => p.trim());
-    let name: string | undefined;
-    let equipment: IEquipment | undefined | null;
-    if (parts.length > 1) {
-      const foundEquipment = equipments.filter(
-        (e) => equipmentName(e).toLowerCase() === parts[parts.length - 1].toLowerCase()
-      )[0];
-      if (foundEquipment != null) {
-        equipment = foundEquipment;
-        name = parts.slice(0, parts.length - 1).join(", ");
-      } else {
-        equipment = null;
-      }
-    }
-    if (name == null) {
-      name = nameAndEquipment;
-    }
-    let exerciseId = findIdByName(name, {});
-    if (exerciseId != null && equipment !== null) {
-      const exercise = findById(exerciseId, {});
-      if (exercise != null) {
-        return { ...exercise, equipment: equipment || exercise.defaultEquipment };
-      }
-    } else {
-      exerciseId = findIdByName(nameAndEquipment, customExercises);
-      if (exerciseId != null) {
-        const exercise = findById(exerciseId, customExercises);
-        if (exercise != null) {
-          return { ...exercise };
-        }
-      }
-    }
-    return undefined;
-  }
-
-  export function getIsUnilateral(exerciseType: IExerciseType, settings: ISettings): boolean {
-    const key = Exercise.toKey(exerciseType);
-    const exerciseData = settings.exerciseData[key];
-    if (exerciseData?.isUnilateral !== undefined) {
-      return exerciseData.isUnilateral;
-    }
-
-    switch (exerciseType.id) {
-      case "bulgarianSplitSquat":
-      case "concentrationCurl":
-      case "reverseGripConcentrationCurl":
-      case "bentOverOneArmRow":
-      case "cableKickback":
-      case "cableTwist":
-      case "russianTwist":
-      case "lunge":
-      case "reverseLunge":
-      case "splitSquat":
-      case "stepUp":
-      case "pistolSquat":
-      case "singleLegBridge":
-      case "singleLegDeadlift":
-      case "sideBend":
-      case "sideCrunch":
-      case "sideHipAbductor":
-      case "sideLyingClam":
-      case "sidePlank":
-      case "singleLegBridge":
-      case "singleLegCalfRaise":
-      case "singleLegDeadlift":
-      case "singleLegGluteBridgeBench":
-      case "singleLegGluteBridgeStraight":
-      case "singleLegGluteBridgeBentKnee":
-      case "singleLegHipThrust":
-        return true;
-      case "bicepCurl":
-      case "wristCurl":
-      case "reverseWristCurl":
-      case "seatedPalmsUpWristCurl":
-      case "hammerCurl":
-      case "preacherCurl":
-      case "reverseCurl":
-      case "lyingBicepCurl":
-      case "inclineCurl":
-        return exerciseType.equipment === "dumbbell";
-      default:
-        return false;
-    }
-  }
-
-  export function findByName(name: string, customExercises: IAllCustomExercises): IExercise | undefined {
-    const exerciseId = findIdByName(name.trim(), customExercises);
-    if (exerciseId != null) {
-      const exercise = findById(exerciseId, customExercises);
-      if (exercise != null) {
-        return { ...exercise, equipment: exercise.defaultEquipment };
-      }
-    }
-    return undefined;
-  }
-
-  export function getByIds(ids: IExerciseId[], customExercises: IAllCustomExercises): IExercise[] {
-    return ids.map((id) => {
-      const exercise = getExercise(id, customExercises);
-      return { ...exercise, equipment: exercise.defaultEquipment };
-    });
-  }
-
-  export function all(customExercises: IAllCustomExercises): IExercise[] {
-    return ObjectUtils.keys(customExercises)
-      .map((id) => getExercise(id, customExercises))
-      .concat(
-        ObjectUtils.keys(allExercisesList).map((k) => ({
-          ...allExercisesList[k],
-          equipment: allExercisesList[k].defaultEquipment,
-        }))
-      );
-  }
-
-  export function allExpanded(customExercises: IAllCustomExercises): IExercise[] {
-    return ObjectUtils.keys(customExercises)
-      .map((id) => getExercise(id, customExercises))
-      .concat(
-        ObjectUtils.keys(allExercisesList).flatMap((k) => {
-          return CollectionUtils.compact(
-            equipments.map((equipment) => {
-              const exerciseType = { id: k, equipment };
-              return ExerciseImageUtils.exists(exerciseType, "small")
-                ? { ...allExercisesList[k], equipment }
-                : undefined;
-            })
-          );
-        })
-      );
-  }
-
-  export function toExternalUrl(type: IExerciseType): string {
-    return `/exercises/${toUrlSlug(type)}`;
-  }
-
-  export function toUrlSlug(type: IExerciseType): string {
-    const possibleEquipments: Record<string, IEquipment> = {
-      barbell: "barbell",
-      cable: "cable",
-      dumbbell: "dumbbell",
-      smith: "smith",
-      band: "band",
-      kettlebell: "kettlebell",
-      bodyweight: "bodyweight",
-      leverageMachine: "leverage-machine",
-      medicineball: "medicine-ball",
-      ezbar: "ez-bar",
-      trapbar: "trap-bar",
-    };
-
-    const equipment = type.equipment ? possibleEquipments[type.equipment] : undefined;
-    const equipmentSlug = equipment ? `${equipment}-` : "";
-    return `${equipmentSlug}${StringUtils.dashcase(StringUtils.uncamelCase(type.id))}`;
-  }
-
-  export function fromUrlSlug(slug: string): IExerciseType | undefined {
-    // slug looks like leverage-machine-squat or barbell-bench-press
-    const possibleEquipments: Record<string, IEquipment> = {
-      barbell: "barbell",
-      cable: "cable",
-      dumbbell: "dumbbell",
-      smith: "smith",
-      band: "band",
-      kettlebell: "kettlebell",
-      bodyweight: "bodyweight",
-      "leverage-machine": "leverageMachine",
-      "medicine-ball": "medicineball",
-      "ez-bar": "ezbar",
-      "trap-bar": "trapbar",
-    };
-    let equipment: IEquipment | undefined = undefined;
-    const equipmentKey = ObjectUtils.keys(possibleEquipments).find((e) => slug.startsWith(e));
-    if (equipmentKey != null) {
-      equipment = possibleEquipments[equipmentKey];
-      slug = slug.slice(equipmentKey.length + 1);
-    }
-    const exerciseId = StringUtils.camelCase(StringUtils.undashcase(slug));
-    if (allExercisesList[exerciseId]) {
-      return { id: exerciseId as IExerciseId, equipment };
-    } else {
-      return undefined;
-    }
-  }
-
-  export function eq(a: IExerciseType, b: IExerciseType): boolean {
-    return a.id === b.id && a.equipment === b.equipment;
-  }
-
-  export function filterExercisesByNameAndType(
-    settings: ISettings,
-    filter: string,
-    filterTypes: string[],
-    isSubstitute: boolean,
-    exerciseType?: IExerciseType,
-    length?: number
-  ): IExercise[] {
-    let allExercises = Exercise.allExpanded({});
-    if (filter) {
-      allExercises = Exercise.filterExercises(allExercises, filter);
-    }
-    if (filterTypes && filterTypes.length > 0) {
-      allExercises = Exercise.filterExercisesByType(allExercises, filterTypes, settings);
-    }
-    allExercises = Exercise.sortExercises(allExercises, isSubstitute, settings, filterTypes, exerciseType);
-    if (length != null) {
-      allExercises = allExercises.slice(0, length);
-    }
-    return allExercises;
-  }
-
-  export function getWarmupSets(
-    exercise: IExerciseType,
-    weight: IWeight | undefined,
-    settings: ISettings,
-    programExerciseWarmupSets?: IProgramExerciseWarmupSet[]
-  ): ISet[] {
-    const ex = get(exercise, settings.exercises);
-    if (programExerciseWarmupSets != null) {
-      return warmup(programExerciseWarmupSets, true)(weight, settings, exercise);
-    } else {
-      let warmupSets = warmupEmpty(weight);
-      if (ex.defaultWarmup === 10) {
-        warmupSets = warmup10(weight, settings, exercise);
-      } else if (ex.defaultWarmup === 45) {
-        warmupSets = warmup45(weight, settings, exercise);
-      } else if (ex.defaultWarmup === 95) {
-        warmupSets = warmup95(weight, settings, exercise);
-      }
-      return warmupSets;
-    }
-  }
-
-  export function defaultTargetMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
-    const customExercise = settings.exercises[type.id];
-    if (customExercise) {
-      return customExercise.meta.targetMuscles;
-    } else {
-      const meta = getMetadata(type.id);
-      return meta?.targetMuscles != null ? meta.targetMuscles : [];
-    }
-  }
-
-  export function targetMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
-    const muscleMultipliers = settings.exerciseData[Exercise.toKey(type)]?.muscleMultipliers;
-    if (muscleMultipliers) {
-      return ObjectUtils.keys(muscleMultipliers).filter((m) => muscleMultipliers[m] === 1);
-    } else {
-      return defaultTargetMuscles(type, settings);
-    }
-  }
-
-  export function defaultTargetMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
-    const muscles = defaultTargetMuscles(type, settings);
-    const allMuscleGroups = new Set<IScreenMuscle>();
-    for (const muscle of muscles) {
-      const muscleGroups = Muscle.getScreenMusclesFromMuscle(muscle, settings);
-      for (const muscleGroup of muscleGroups) {
-        allMuscleGroups.add(muscleGroup);
-      }
-    }
-    return Array.from(allMuscleGroups);
-  }
-
-  export function targetMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
-    const muscles = targetMuscles(type, settings);
-    const allMuscleGroups = new Set<IScreenMuscle>();
-    for (const muscle of muscles) {
-      const muscleGroups = Muscle.getScreenMusclesFromMuscle(muscle, settings);
-      for (const muscleGroup of muscleGroups) {
-        allMuscleGroups.add(muscleGroup);
-      }
-    }
-    return Array.from(allMuscleGroups);
-  }
-
-  export function defaultSynergistMuscleMultipliers(type: IExerciseType, settings: ISettings): IMuscleMultiplier[] {
-    const customExercise = settings.exercises[type.id];
-    if (customExercise) {
-      return customExercise.meta.synergistMuscles.map((m) => ({
-        muscle: m,
-        multiplier: settings.planner.synergistMultiplier,
-      }));
-    } else {
-      const meta = getMetadata(type.id);
-      return meta?.synergistMuscles != null
-        ? meta.synergistMuscles.map((m) => {
-            return { muscle: m, multiplier: settings.planner.synergistMultiplier };
+export function Exercise_allExpanded(customExercises: IAllCustomExercises): IExercise[] {
+  return ObjectUtils_keys(customExercises)
+    .map((id) => getExercise(id, customExercises))
+    .concat(
+      ObjectUtils_keys(allExercisesList).flatMap((k) => {
+        return CollectionUtils_compact(
+          equipments.map((equipment) => {
+            const exerciseType = { id: k, equipment };
+            return ExerciseImageUtils_exists(exerciseType, "small") ? { ...allExercisesList[k], equipment } : undefined;
           })
-        : [];
+        );
+      })
+    );
+}
+
+export function Exercise_toExternalUrl(type: IExerciseType): string {
+  return `/exercises/${Exercise_toUrlSlug(type)}`;
+}
+
+export function Exercise_toUrlSlug(type: IExerciseType): string {
+  const possibleEquipments: Record<string, IEquipment> = {
+    barbell: "barbell",
+    cable: "cable",
+    dumbbell: "dumbbell",
+    smith: "smith",
+    band: "band",
+    kettlebell: "kettlebell",
+    bodyweight: "bodyweight",
+    leverageMachine: "leverage-machine",
+    medicineball: "medicine-ball",
+    ezbar: "ez-bar",
+    trapbar: "trap-bar",
+  };
+
+  const equipment = type.equipment ? possibleEquipments[type.equipment] : undefined;
+  const equipmentSlug = equipment ? `${equipment}-` : "";
+  return `${equipmentSlug}${StringUtils_dashcase(StringUtils_uncamelCase(type.id))}`;
+}
+
+export function Exercise_fromUrlSlug(slug: string): IExerciseType | undefined {
+  // slug looks like leverage-machine-squat or barbell-bench-press
+  const possibleEquipments: Record<string, IEquipment> = {
+    barbell: "barbell",
+    cable: "cable",
+    dumbbell: "dumbbell",
+    smith: "smith",
+    band: "band",
+    kettlebell: "kettlebell",
+    bodyweight: "bodyweight",
+    "leverage-machine": "leverageMachine",
+    "medicine-ball": "medicineball",
+    "ez-bar": "ezbar",
+    "trap-bar": "trapbar",
+  };
+  let equipment: IEquipment | undefined = undefined;
+  const equipmentKey = ObjectUtils_keys(possibleEquipments).find((e) => slug.startsWith(e));
+  if (equipmentKey != null) {
+    equipment = possibleEquipments[equipmentKey];
+    slug = slug.slice(equipmentKey.length + 1);
+  }
+  const exerciseId = StringUtils_camelCase(StringUtils_undashcase(slug));
+  if (allExercisesList[exerciseId]) {
+    return { id: exerciseId as IExerciseId, equipment };
+  } else {
+    return undefined;
+  }
+}
+
+export function Exercise_eq(a: IExerciseType, b: IExerciseType): boolean {
+  return a.id === b.id && a.equipment === b.equipment;
+}
+
+export function Exercise_filterExercisesByNameAndType(
+  settings: ISettings,
+  filter: string,
+  filterTypes: string[],
+  isSubstitute: boolean,
+  exerciseType?: IExerciseType,
+  length?: number
+): IExercise[] {
+  let allExercises = Exercise_allExpanded({});
+  if (filter) {
+    allExercises = Exercise_filterExercises(allExercises, filter);
+  }
+  if (filterTypes && filterTypes.length > 0) {
+    allExercises = Exercise_filterExercisesByType(allExercises, filterTypes, settings);
+  }
+  allExercises = Exercise_sortExercises(allExercises, isSubstitute, settings, filterTypes, exerciseType);
+  if (length != null) {
+    allExercises = allExercises.slice(0, length);
+  }
+  return allExercises;
+}
+
+export function Exercise_getWarmupSets(
+  exercise: IExerciseType,
+  weight: IWeight | undefined,
+  settings: ISettings,
+  programExerciseWarmupSets?: IProgramExerciseWarmupSet[]
+): ISet[] {
+  const ex = Exercise_get(exercise, settings.exercises);
+  if (programExerciseWarmupSets != null) {
+    return warmup(programExerciseWarmupSets, true)(weight, settings, exercise);
+  } else {
+    let warmupSets = warmupEmpty(weight);
+    if (ex.defaultWarmup === 10) {
+      warmupSets = warmup10(weight, settings, exercise);
+    } else if (ex.defaultWarmup === 45) {
+      warmupSets = warmup45(weight, settings, exercise);
+    } else if (ex.defaultWarmup === 95) {
+      warmupSets = warmup95(weight, settings, exercise);
+    }
+    return warmupSets;
+  }
+}
+
+export function Exercise_defaultTargetMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
+  const customExercise = settings.exercises[type.id];
+  if (customExercise) {
+    return customExercise.meta.targetMuscles;
+  } else {
+    const meta = Exercise_getMetadata(type.id);
+    return meta?.targetMuscles != null ? meta.targetMuscles : [];
+  }
+}
+
+export function Exercise_targetMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
+  const muscleMultipliers = settings.exerciseData[Exercise_toKey(type)]?.muscleMultipliers;
+  if (muscleMultipliers) {
+    return ObjectUtils_keys(muscleMultipliers).filter((m) => muscleMultipliers[m] === 1);
+  } else {
+    return Exercise_defaultTargetMuscles(type, settings);
+  }
+}
+
+export function Exercise_defaultTargetMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
+  const muscles = Exercise_defaultTargetMuscles(type, settings);
+  const allMuscleGroups = new Set<IScreenMuscle>();
+  for (const muscle of muscles) {
+    const muscleGroups = Muscle_getScreenMusclesFromMuscle(muscle, settings);
+    for (const muscleGroup of muscleGroups) {
+      allMuscleGroups.add(muscleGroup);
     }
   }
+  return Array.from(allMuscleGroups);
+}
 
-  export function defaultSynergistMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
-    return defaultSynergistMuscleMultipliers(type, settings).map((m) => m.muscle);
-  }
-
-  export function synergistMuscleMultipliers(type: IExerciseType, settings: ISettings): IMuscleMultiplier[] {
-    const muscleMultipliers = settings.exerciseData[Exercise.toKey(type)]?.muscleMultipliers;
-    if (muscleMultipliers) {
-      return ObjectUtils.keys(muscleMultipliers)
-        .filter((m) => (muscleMultipliers[m] ?? 0) < 1)
-        .map((m) => ({ muscle: m, multiplier: muscleMultipliers[m] ?? 0 }));
-    } else {
-      return defaultSynergistMuscleMultipliers(type, settings);
+export function Exercise_targetMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
+  const muscles = Exercise_targetMuscles(type, settings);
+  const allMuscleGroups = new Set<IScreenMuscle>();
+  for (const muscle of muscles) {
+    const muscleGroups = Muscle_getScreenMusclesFromMuscle(muscle, settings);
+    for (const muscleGroup of muscleGroups) {
+      allMuscleGroups.add(muscleGroup);
     }
   }
+  return Array.from(allMuscleGroups);
+}
 
-  export function synergistMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
-    const muscleMultipliers = settings.exerciseData[Exercise.toKey(type)]?.muscleMultipliers;
-    if (muscleMultipliers) {
-      return ObjectUtils.keys(muscleMultipliers).filter((m) => (muscleMultipliers[m] ?? 0) < 1);
-    } else {
-      return defaultSynergistMuscles(type, settings);
+export function Exercise_defaultSynergistMuscleMultipliers(
+  type: IExerciseType,
+  settings: ISettings
+): IMuscleMultiplier[] {
+  const customExercise = settings.exercises[type.id];
+  if (customExercise) {
+    return customExercise.meta.synergistMuscles.map((m) => ({
+      muscle: m,
+      multiplier: settings.planner.synergistMultiplier,
+    }));
+  } else {
+    const meta = Exercise_getMetadata(type.id);
+    return meta?.synergistMuscles != null
+      ? meta.synergistMuscles.map((m) => {
+          return { muscle: m, multiplier: settings.planner.synergistMultiplier };
+        })
+      : [];
+  }
+}
+
+export function Exercise_defaultSynergistMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
+  return Exercise_defaultSynergistMuscleMultipliers(type, settings).map((m) => m.muscle);
+}
+
+export function Exercise_synergistMuscleMultipliers(type: IExerciseType, settings: ISettings): IMuscleMultiplier[] {
+  const muscleMultipliers = settings.exerciseData[Exercise_toKey(type)]?.muscleMultipliers;
+  if (muscleMultipliers) {
+    return ObjectUtils_keys(muscleMultipliers)
+      .filter((m) => (muscleMultipliers[m] ?? 0) < 1)
+      .map((m) => ({ muscle: m, multiplier: muscleMultipliers[m] ?? 0 }));
+  } else {
+    return Exercise_defaultSynergistMuscleMultipliers(type, settings);
+  }
+}
+
+export function Exercise_synergistMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
+  const muscleMultipliers = settings.exerciseData[Exercise_toKey(type)]?.muscleMultipliers;
+  if (muscleMultipliers) {
+    return ObjectUtils_keys(muscleMultipliers).filter((m) => (muscleMultipliers[m] ?? 0) < 1);
+  } else {
+    return Exercise_defaultSynergistMuscles(type, settings);
+  }
+}
+
+export function Exercise_defaultSynergistMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
+  const muscles = Exercise_defaultSynergistMuscles(type, settings);
+  const allMuscleGroups = new Set<IScreenMuscle>();
+  for (const muscle of muscles) {
+    const muscleGroups = Muscle_getScreenMusclesFromMuscle(muscle, settings);
+    for (const muscleGroup of muscleGroups) {
+      allMuscleGroups.add(muscleGroup);
     }
   }
+  return Array.from(allMuscleGroups);
+}
 
-  export function defaultSynergistMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
-    const muscles = defaultSynergistMuscles(type, settings);
-    const allMuscleGroups = new Set<IScreenMuscle>();
-    for (const muscle of muscles) {
-      const muscleGroups = Muscle.getScreenMusclesFromMuscle(muscle, settings);
-      for (const muscleGroup of muscleGroups) {
-        allMuscleGroups.add(muscleGroup);
-      }
-    }
-    return Array.from(allMuscleGroups);
-  }
-
-  export function synergistMusclesGroupMultipliers(
-    type: IExerciseType,
-    settings: ISettings
-  ): Partial<Record<IScreenMuscle, number>> {
-    return synergistMuscleMultipliers(type, settings).reduce<Partial<Record<IScreenMuscle, number>>>((memo, m) => {
-      for (const muscleGroup of Muscle.getScreenMusclesFromMuscle(m.muscle, settings)) {
+export function Exercise_synergistMusclesGroupMultipliers(
+  type: IExerciseType,
+  settings: ISettings
+): Partial<Record<IScreenMuscle, number>> {
+  return Exercise_synergistMuscleMultipliers(type, settings).reduce<Partial<Record<IScreenMuscle, number>>>(
+    (memo, m) => {
+      for (const muscleGroup of Muscle_getScreenMusclesFromMuscle(m.muscle, settings)) {
         if (memo[muscleGroup] == null || memo[muscleGroup] < m.multiplier) {
           memo[muscleGroup] = m.multiplier;
         }
       }
       return memo;
-    }, {});
-  }
+    },
+    {}
+  );
+}
 
-  export function synergistMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
-    const muscles = synergistMuscles(type, settings);
-    const allMuscleGroups = new Set<IScreenMuscle>();
-    for (const muscle of muscles) {
-      const muscleGroups = Muscle.getScreenMusclesFromMuscle(muscle, settings);
-      for (const muscleGroup of muscleGroups) {
-        allMuscleGroups.add(muscleGroup);
+export function Exercise_synergistMusclesGroups(type: IExerciseType, settings: ISettings): IScreenMuscle[] {
+  const muscles = Exercise_synergistMuscles(type, settings);
+  const allMuscleGroups = new Set<IScreenMuscle>();
+  for (const muscle of muscles) {
+    const muscleGroups = Muscle_getScreenMusclesFromMuscle(muscle, settings);
+    for (const muscleGroup of muscleGroups) {
+      allMuscleGroups.add(muscleGroup);
+    }
+  }
+  return Array.from(allMuscleGroups);
+}
+
+export function Exercise_toKey(type: IExerciseType): string {
+  return `${type.id}${type.equipment ? `_${type.equipment}` : ""}`;
+}
+
+export function Exercise_fromKey(type: string): IExerciseType {
+  const [id, equipment] = type.split("_");
+  return { id: id as IExerciseId, equipment: equipment };
+}
+
+export function Exercise_defaultEquipment(
+  type: IExerciseId,
+  customExercises: IAllCustomExercises
+): IEquipment | undefined {
+  const priorities: Record<IEquipment, IEquipment[]> = {
+    barbell: ["ezbar", "trapbar", "dumbbell", "kettlebell"],
+    cable: ["band", "leverageMachine"],
+    dumbbell: ["barbell", "kettlebell", "bodyweight"],
+    smith: ["leverageMachine", "dumbbell", "barbell", "kettlebell", "cable"],
+    band: ["cable", "bodyweight", "leverageMachine", "smith"],
+    kettlebell: ["dumbbell", "barbell", "cable"],
+    bodyweight: ["cable", "dumbbell", "barbell", "band"],
+    leverageMachine: ["smith", "cable", "dumbbell", "barbell", "kettlebell"],
+    medicineball: ["bodyweight", "cable"],
+    ezbar: ["barbell", "dumbbell", "cable"],
+    trapbar: ["barbell", "dumbbell", "cable"],
+  };
+
+  const exercise = Exercise_getById(type, customExercises);
+  const bar = exercise.defaultEquipment || "bodyweight";
+  const sortedEquipment = Exercise_getMetadata(type).sortedEquipment || [];
+  let equipment: IEquipment | undefined = sortedEquipment.find((b) => b === bar);
+  equipment = equipment || (priorities[bar] || []).find((eqp) => sortedEquipment.indexOf(eqp) !== -1);
+  equipment = equipment || sortedEquipment[0];
+  return equipment;
+}
+
+export function Exercise_similarRating(current: IExerciseType, e: IExercise, settings: ISettings): number {
+  const tm = Exercise_targetMuscles(current, settings);
+  const sm = Exercise_synergistMuscles(current, settings);
+  const etm = Exercise_targetMuscles(e, settings);
+  const esm = Exercise_synergistMuscles(e, settings);
+  let rating = 0;
+  if (e.id === current.id || (etm.length === 0 && esm.length === 0)) {
+    rating = -Infinity;
+  } else {
+    for (const muscle of etm) {
+      if (tm.indexOf(muscle) !== -1) {
+        rating += 60;
+      } else {
+        rating -= 30;
+      }
+      if (sm.indexOf(muscle) !== -1) {
+        rating += 20;
       }
     }
-    return Array.from(allMuscleGroups);
+    for (const muscle of tm) {
+      if (etm.indexOf(muscle) === -1) {
+        rating -= 30;
+      }
+    }
+    for (const muscle of esm) {
+      if (sm.indexOf(muscle) !== -1) {
+        rating += 30;
+      } else {
+        rating -= 15;
+      }
+      if (tm.indexOf(muscle) !== -1) {
+        rating += 10;
+      }
+    }
+    for (const muscle of sm) {
+      if (esm.indexOf(muscle) === -1) {
+        rating -= 15;
+      }
+    }
+    if (e.defaultEquipment === "cable" || e.defaultEquipment === "leverageMachine") {
+      rating -= 20;
+    }
   }
+  return rating;
+}
 
-  export function toKey(type: IExerciseType): string {
-    return `${type.id}${type.equipment ? `_${type.equipment}` : ""}`;
+export function Exercise_similar(type: IExerciseType, settings: ISettings): [IExercise, number][] {
+  const tm = Exercise_targetMuscles(type, settings);
+  const sm = Exercise_synergistMuscles(type, settings);
+  if (tm.length === 0 && sm.length === 0) {
+    return [];
   }
+  const rated = Exercise_all(settings.exercises).map<[IExercise, number]>((e) => {
+    const rating = Exercise_similarRating(type, e, settings);
+    return [e, rating];
+  });
+  rated.sort((a, b) => b[1] - a[1]);
+  return rated.filter(([, r]) => r > 0);
+}
 
-  export function fromKey(type: string): IExerciseType {
-    const [id, equipment] = type.split("_");
-    return { id: id as IExerciseId, equipment: equipment };
-  }
+export function Exercise_sortedByScreenMuscle(muscle: IScreenMuscle, settings: ISettings): [IExercise, number][] {
+  const muscles = Muscle_getMusclesFromScreenMuscle(muscle, settings);
 
-  export function defaultEquipment(type: IExerciseId, customExercises: IAllCustomExercises): IEquipment | undefined {
-    const priorities: Record<IEquipment, IEquipment[]> = {
-      barbell: ["ezbar", "trapbar", "dumbbell", "kettlebell"],
-      cable: ["band", "leverageMachine"],
-      dumbbell: ["barbell", "kettlebell", "bodyweight"],
-      smith: ["leverageMachine", "dumbbell", "barbell", "kettlebell", "cable"],
-      band: ["cable", "bodyweight", "leverageMachine", "smith"],
-      kettlebell: ["dumbbell", "barbell", "cable"],
-      bodyweight: ["cable", "dumbbell", "barbell", "band"],
-      leverageMachine: ["smith", "cable", "dumbbell", "barbell", "kettlebell"],
-      medicineball: ["bodyweight", "cable"],
-      ezbar: ["barbell", "dumbbell", "cable"],
-      trapbar: ["barbell", "dumbbell", "cable"],
-    };
-
-    const exercise = getById(type, customExercises);
-    const bar = exercise.defaultEquipment || "bodyweight";
-    const sortedEquipment = getMetadata(type).sortedEquipment || [];
-    let equipment: IEquipment | undefined = sortedEquipment.find((b) => b === bar);
-    equipment = equipment || (priorities[bar] || []).find((eqp) => sortedEquipment.indexOf(eqp) !== -1);
-    equipment = equipment || sortedEquipment[0];
-    return equipment;
-  }
-
-  export function similarRating(current: IExerciseType, e: IExercise, settings: ISettings): number {
-    const tm = Exercise.targetMuscles(current, settings);
-    const sm = Exercise.synergistMuscles(current, settings);
-    const etm = Exercise.targetMuscles(e, settings);
-    const esm = Exercise.synergistMuscles(e, settings);
+  const rated = Exercise_all(settings.exercises).map<[IExercise, number]>((e) => {
     let rating = 0;
-    if (e.id === current.id || (etm.length === 0 && esm.length === 0)) {
-      rating = -Infinity;
-    } else {
-      for (const muscle of etm) {
-        if (tm.indexOf(muscle) !== -1) {
-          rating += 60;
-        } else {
-          rating -= 30;
-        }
-        if (sm.indexOf(muscle) !== -1) {
-          rating += 20;
-        }
-      }
-      for (const muscle of tm) {
-        if (etm.indexOf(muscle) === -1) {
-          rating -= 30;
-        }
-      }
-      for (const muscle of esm) {
-        if (sm.indexOf(muscle) !== -1) {
-          rating += 30;
-        } else {
-          rating -= 15;
-        }
-        if (tm.indexOf(muscle) !== -1) {
-          rating += 10;
-        }
-      }
-      for (const muscle of sm) {
-        if (esm.indexOf(muscle) === -1) {
-          rating -= 15;
-        }
-      }
-      if (e.defaultEquipment === "cable" || e.defaultEquipment === "leverageMachine") {
-        rating -= 20;
+    const tm = Exercise_targetMuscles(e, settings);
+    const sm = Exercise_synergistMuscles(e, settings);
+    for (const m of tm) {
+      if (muscles.indexOf(m) !== -1) {
+        rating += 100;
       }
     }
-    return rating;
-  }
-
-  export function similar(type: IExerciseType, settings: ISettings): [IExercise, number][] {
-    const tm = Exercise.targetMuscles(type, settings);
-    const sm = Exercise.synergistMuscles(type, settings);
-    if (tm.length === 0 && sm.length === 0) {
-      return [];
-    }
-    const rated = Exercise.all(settings.exercises).map<[IExercise, number]>((e) => {
-      const rating = similarRating(type, e, settings);
-      return [e, rating];
-    });
-    rated.sort((a, b) => b[1] - a[1]);
-    return rated.filter(([, r]) => r > 0);
-  }
-
-  export function sortedByScreenMuscle(muscle: IScreenMuscle, settings: ISettings): [IExercise, number][] {
-    const muscles = Muscle.getMusclesFromScreenMuscle(muscle, settings);
-
-    const rated = Exercise.all(settings.exercises).map<[IExercise, number]>((e) => {
-      let rating = 0;
-      const tm = Exercise.targetMuscles(e, settings);
-      const sm = Exercise.synergistMuscles(e, settings);
-      for (const m of tm) {
-        if (muscles.indexOf(m) !== -1) {
-          rating += 100;
-        }
-      }
-      for (const m of sm) {
-        if (muscles.indexOf(m) !== -1) {
-          rating += 10;
-        }
-      }
-      return [e, rating];
-    });
-    rated.sort((a, b) => b[1] - a[1]);
-    return rated.filter(([, r]) => r > 0);
-  }
-
-  export function createCustomExercise(
-    name: string,
-    tMuscles: IMuscle[],
-    sMuscles: IMuscle[],
-    types: IExerciseKind[],
-    smallImageUrl?: string,
-    largeImageUrl?: string
-  ): ICustomExercise {
-    const id = UidFactory.generateUid(8);
-    const newExercise: ICustomExercise = {
-      vtype: "custom_exercise",
-      id,
-      name,
-      isDeleted: false,
-      types,
-      smallImageUrl,
-      largeImageUrl,
-      meta: {
-        targetMuscles: tMuscles,
-        synergistMuscles: sMuscles,
-        bodyParts: [],
-        sortedEquipment: [],
-      },
-    };
-    return newExercise;
-  }
-
-  export function editCustomExercise(
-    exercise: ICustomExercise,
-    name: string,
-    tMuscles: IMuscle[],
-    sMuscles: IMuscle[],
-    types: IExerciseKind[],
-    smallImageUrl?: string,
-    largeImageUrl?: string
-  ): ICustomExercise {
-    const newExercise: ICustomExercise = {
-      ...exercise,
-      name,
-      types,
-      smallImageUrl,
-      largeImageUrl,
-      meta: { ...exercise.meta, targetMuscles: tMuscles, synergistMuscles: sMuscles },
-    };
-    return newExercise;
-  }
-
-  export function deleteCustomExercise(
-    allExercises: IAllCustomExercises,
-    exerciseId: IExerciseId
-  ): IAllCustomExercises {
-    const existingExercise = allExercises[exerciseId];
-    if (existingExercise) {
-      return { ...allExercises, [exerciseId]: { ...existingExercise, isDeleted: true } };
-    }
-    return allExercises;
-  }
-
-  export function upsertCustomExercise(
-    allExercises: IAllCustomExercises,
-    exercise: ICustomExercise
-  ): IAllCustomExercises {
-    exercise = { ...exercise, name: exercise.name.trim() };
-    const existingExercise = allExercises[exercise.id];
-    if (existingExercise) {
-      return { ...allExercises, [exercise.id]: { ...existingExercise, ...exercise, isDeleted: false } };
-    } else {
-      const sameNameDeletedExercise = ObjectUtils.values(allExercises).find(
-        (e) => e?.name === exercise.name && e.isDeleted
-      );
-      if (sameNameDeletedExercise) {
-        return {
-          ...allExercises,
-          [sameNameDeletedExercise.id]: {
-            ...sameNameDeletedExercise,
-            ...exercise,
-            id: sameNameDeletedExercise.id,
-            isDeleted: false,
-          },
-        };
-      } else {
-        return { ...allExercises, [exercise.id]: exercise };
+    for (const m of sm) {
+      if (muscles.indexOf(m) !== -1) {
+        rating += 10;
       }
     }
-  }
+    return [e, rating];
+  });
+  rated.sort((a, b) => b[1] - a[1]);
+  return rated.filter(([, r]) => r > 0);
+}
 
-  export function handleCustomExerciseChange(
-    dispatch: IDispatch,
-    action: "upsert" | "delete",
-    exercise: ICustomExercise,
-    notes: string | undefined,
-    settings: ISettings,
-    program?: IProgram
-  ): void {
-    const oldExercise = settings.exercises[exercise.id];
-    const ex =
-      action === "upsert"
-        ? Exercise.upsertCustomExercise(settings.exercises, exercise)
-        : Exercise.deleteCustomExercise(settings.exercises, exercise.id);
-    updateSettings(dispatch, lb<ISettings>().p("exercises").record(ex), "Create custom exercise");
-    updateSettings(
-      dispatch,
-      lb<ISettings>().p("exerciseData").pi(exercise.id).p("notes").record(notes),
-      "Update notes"
+export function Exercise_createCustomExercise(
+  name: string,
+  tMuscles: IMuscle[],
+  sMuscles: IMuscle[],
+  types: IExerciseKind[],
+  smallImageUrl?: string,
+  largeImageUrl?: string
+): ICustomExercise {
+  const id = UidFactory_generateUid(8);
+  const newExercise: ICustomExercise = {
+    vtype: "custom_exercise",
+    id,
+    name,
+    isDeleted: false,
+    types,
+    smallImageUrl,
+    largeImageUrl,
+    meta: {
+      targetMuscles: tMuscles,
+      synergistMuscles: sMuscles,
+      bodyParts: [],
+      sortedEquipment: [],
+    },
+  };
+  return newExercise;
+}
+
+export function Exercise_editCustomExercise(
+  exercise: ICustomExercise,
+  name: string,
+  tMuscles: IMuscle[],
+  sMuscles: IMuscle[],
+  types: IExerciseKind[],
+  smallImageUrl?: string,
+  largeImageUrl?: string
+): ICustomExercise {
+  const newExercise: ICustomExercise = {
+    ...exercise,
+    name,
+    types,
+    smallImageUrl,
+    largeImageUrl,
+    meta: { ...exercise.meta, targetMuscles: tMuscles, synergistMuscles: sMuscles },
+  };
+  return newExercise;
+}
+
+export function Exercise_deleteCustomExercise(
+  allExercises: IAllCustomExercises,
+  exerciseId: IExerciseId
+): IAllCustomExercises {
+  const existingExercise = allExercises[exerciseId];
+  if (existingExercise) {
+    return { ...allExercises, [exerciseId]: { ...existingExercise, isDeleted: true } };
+  }
+  return allExercises;
+}
+
+export function Exercise_upsertCustomExercise(
+  allExercises: IAllCustomExercises,
+  exercise: ICustomExercise
+): IAllCustomExercises {
+  exercise = { ...exercise, name: exercise.name.trim() };
+  const existingExercise = allExercises[exercise.id];
+  if (existingExercise) {
+    return { ...allExercises, [exercise.id]: { ...existingExercise, ...exercise, isDeleted: false } };
+  } else {
+    const sameNameDeletedExercise = ObjectUtils_values(allExercises).find(
+      (e) => e?.name === exercise.name && e.isDeleted
     );
-    if (program && oldExercise && oldExercise.name !== exercise.name) {
-      const newProgram = Program.changeExerciseName(oldExercise.name, exercise.name, program, {
-        ...settings,
-        exercises: ex,
-      });
-      EditProgram.updateProgram(dispatch, newProgram);
-    }
-  }
-
-  export function createOrUpdateCustomExercise(
-    allExercises: IAllCustomExercises,
-    name: string,
-    tMuscles: IMuscle[],
-    sMuscles: IMuscle[],
-    types: IExerciseKind[],
-    smallImageUrl?: string,
-    largeImageUrl?: string,
-    exercise?: ICustomExercise
-  ): IAllCustomExercises {
-    if (exercise != null) {
-      const newExercise = editCustomExercise(exercise, name, tMuscles, sMuscles, types, smallImageUrl, largeImageUrl);
-      return { ...allExercises, [newExercise.id]: newExercise };
+    if (sameNameDeletedExercise) {
+      return {
+        ...allExercises,
+        [sameNameDeletedExercise.id]: {
+          ...sameNameDeletedExercise,
+          ...exercise,
+          id: sameNameDeletedExercise.id,
+          isDeleted: false,
+        },
+      };
     } else {
-      const deletedExerciseKey = ObjectUtils.keys(allExercises).find(
-        (k) => allExercises[k]?.isDeleted && allExercises[k]?.name === name
-      );
-      const deletedExercise = deletedExerciseKey != null ? allExercises[deletedExerciseKey] : undefined;
-      if (deletedExercise) {
-        return {
-          ...allExercises,
-          [deletedExercise.id]: {
-            ...deletedExercise,
-            name,
-            types,
-            smallImageUrl,
-            largeImageUrl,
-            isDeleted: false,
-            meta: {
-              targetMuscles: tMuscles,
-              bodyParts: [],
-              synergistMuscles: sMuscles,
-            },
-          },
-        };
-      } else {
-        const newExercise = createCustomExercise(name, tMuscles, sMuscles, types, smallImageUrl, largeImageUrl);
-        return { ...allExercises, [newExercise.id]: newExercise };
-      }
+      return { ...allExercises, [exercise.id]: exercise };
     }
   }
+}
 
-  export function filterExercises<T extends { name: string }>(allExercises: T[], filter: string): T[] {
-    return allExercises.filter((e) => StringUtils.fuzzySearch(filter.toLowerCase(), e.name.toLowerCase()));
+export function Exercise_handleCustomExerciseChange(
+  dispatch: IDispatch,
+  action: "upsert" | "delete",
+  exercise: ICustomExercise,
+  notes: string | undefined,
+  settings: ISettings,
+  program?: IProgram
+): void {
+  const oldExercise = settings.exercises[exercise.id];
+  const ex =
+    action === "upsert"
+      ? Exercise_upsertCustomExercise(settings.exercises, exercise)
+      : Exercise_deleteCustomExercise(settings.exercises, exercise.id);
+  updateSettings(dispatch, lb<ISettings>().p("exercises").record(ex), "Create custom exercise");
+  updateSettings(dispatch, lb<ISettings>().p("exerciseData").pi(exercise.id).p("notes").record(notes), "Update notes");
+  if (program && oldExercise && oldExercise.name !== exercise.name) {
+    const newProgram = Program_changeExerciseName(oldExercise.name, exercise.name, program, {
+      ...settings,
+      exercises: ex,
+    });
+    EditProgram_updateProgram(dispatch, newProgram);
   }
+}
 
-  export function sortExercises(
-    allExercises: IExercise[],
-    isSubstitute: boolean,
-    settings: ISettings,
-    filterTypes?: string[],
-    currentExerciseType?: IExerciseType
-  ): IExercise[] {
-    return CollectionUtils.sort(allExercises, (a, b) => {
-      const exerciseType = currentExerciseType;
-      if (isSubstitute && exerciseType) {
-        const aRating = Exercise.similarRating(exerciseType, a, settings);
-        const bRating = Exercise.similarRating(exerciseType, b, settings);
-        return bRating - aRating;
-      } else if (
-        filterTypes &&
-        Muscle.getAvailableMuscleGroups(settings)
-          .map((m) => m.toLowerCase())
-          .some((t) => filterTypes.map((ft) => ft.toLowerCase()).indexOf(t) !== -1)
+export function Exercise_createOrUpdateCustomExercise(
+  allExercises: IAllCustomExercises,
+  name: string,
+  tMuscles: IMuscle[],
+  sMuscles: IMuscle[],
+  types: IExerciseKind[],
+  smallImageUrl?: string,
+  largeImageUrl?: string,
+  exercise?: ICustomExercise
+): IAllCustomExercises {
+  if (exercise != null) {
+    const newExercise = Exercise_editCustomExercise(
+      exercise,
+      name,
+      tMuscles,
+      sMuscles,
+      types,
+      smallImageUrl,
+      largeImageUrl
+    );
+    return { ...allExercises, [newExercise.id]: newExercise };
+  } else {
+    const deletedExerciseKey = ObjectUtils_keys(allExercises).find(
+      (k) => allExercises[k]?.isDeleted && allExercises[k]?.name === name
+    );
+    const deletedExercise = deletedExerciseKey != null ? allExercises[deletedExerciseKey] : undefined;
+    if (deletedExercise) {
+      return {
+        ...allExercises,
+        [deletedExercise.id]: {
+          ...deletedExercise,
+          name,
+          types,
+          smallImageUrl,
+          largeImageUrl,
+          isDeleted: false,
+          meta: {
+            targetMuscles: tMuscles,
+            bodyParts: [],
+            synergistMuscles: sMuscles,
+          },
+        },
+      };
+    } else {
+      const newExercise = Exercise_createCustomExercise(name, tMuscles, sMuscles, types, smallImageUrl, largeImageUrl);
+      return { ...allExercises, [newExercise.id]: newExercise };
+    }
+  }
+}
+
+export function Exercise_filterExercises<T extends { name: string }>(allExercises: T[], filter: string): T[] {
+  return allExercises.filter((e) => StringUtils_fuzzySearch(filter.toLowerCase(), e.name.toLowerCase()));
+}
+
+export function Exercise_sortExercises(
+  allExercises: IExercise[],
+  isSubstitute: boolean,
+  settings: ISettings,
+  filterTypes?: string[],
+  currentExerciseType?: IExerciseType
+): IExercise[] {
+  return CollectionUtils_sort(allExercises, (a, b) => {
+    const exerciseType = currentExerciseType;
+    if (isSubstitute && exerciseType) {
+      const aRating = Exercise_similarRating(exerciseType, a, settings);
+      const bRating = Exercise_similarRating(exerciseType, b, settings);
+      return bRating - aRating;
+    } else if (
+      filterTypes &&
+      Muscle_getAvailableMuscleGroups(settings)
+        .map((m) => m.toLowerCase())
+        .some((t) => filterTypes.map((ft) => ft.toLowerCase()).indexOf(t) !== -1)
+    ) {
+      const lowercaseFilterTypes = filterTypes.map((t) => t.toLowerCase());
+      const aTargetMuscleGroups = Exercise_targetMusclesGroups(a, settings);
+      const bTargetMuscleGroups = Exercise_targetMusclesGroups(b, settings);
+      if (
+        aTargetMuscleGroups.some((m) => lowercaseFilterTypes.indexOf(m) !== -1) &&
+        bTargetMuscleGroups.every((m) => lowercaseFilterTypes.indexOf(m) === -1)
       ) {
-        const lowercaseFilterTypes = filterTypes.map((t) => t.toLowerCase());
-        const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, settings);
-        const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, settings);
-        if (
-          aTargetMuscleGroups.some((m) => lowercaseFilterTypes.indexOf(m) !== -1) &&
-          bTargetMuscleGroups.every((m) => lowercaseFilterTypes.indexOf(m) === -1)
-        ) {
-          return -1;
-        } else if (
-          bTargetMuscleGroups.some((m) => lowercaseFilterTypes.indexOf(m) !== -1) &&
-          aTargetMuscleGroups.every((m) => lowercaseFilterTypes.indexOf(m) === -1)
-        ) {
-          return 1;
-        } else {
-          return a.name.localeCompare(b.name);
-        }
+        return -1;
+      } else if (
+        bTargetMuscleGroups.some((m) => lowercaseFilterTypes.indexOf(m) !== -1) &&
+        aTargetMuscleGroups.every((m) => lowercaseFilterTypes.indexOf(m) === -1)
+      ) {
+        return 1;
       } else {
         return a.name.localeCompare(b.name);
       }
-    });
-  }
+    } else {
+      return a.name.localeCompare(b.name);
+    }
+  });
+}
 
-  export function filterExercisesByType<T extends IExerciseType>(
-    allExercises: T[],
-    filterTypes: string[],
-    settings: ISettings
-  ): T[] {
-    return allExercises.filter((e) => {
-      const exercise = get(e, settings.exercises);
-      const targetMuscleGroups = Exercise.targetMusclesGroups(e, settings).map((m) => m.toLowerCase());
-      const synergistMuscleGroups = Exercise.synergistMusclesGroups(e, settings).map((m) => m.toLowerCase());
-      return filterTypes
-        .map((ft) => ft.toLowerCase())
-        .every((ft) => {
-          return (
-            targetMuscleGroups.indexOf(ft) !== -1 ||
-            synergistMuscleGroups.indexOf(ft) !== -1 ||
-            exercise.types.map((t) => t.toLowerCase()).indexOf(ft) !== -1 ||
-            equipmentName(e.equipment).toLowerCase() === ft
-          );
-        });
-    });
-  }
-
-  export function filterCustomExercises(customExercises: IAllCustomExercises, filter: string): IAllCustomExercises {
-    return ObjectUtils.filter(customExercises, (e, v) =>
-      v ? StringUtils.fuzzySearch(filter.toLowerCase(), v.name.toLowerCase()) : true
-    );
-  }
-
-  export function filterCustomExercisesByType(filterTypes: string[], settings: ISettings): IAllCustomExercises {
-    return ObjectUtils.filter(settings.exercises, (_id, exercise) => {
-      if (!exercise) {
-        return false;
-      }
-      const targetMuscleGroups = Array.from(
-        new Set(
-          CollectionUtils.flat(exercise.meta.targetMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m, settings)))
-        )
-      ).map((m) => Muscle.getMuscleGroupName(m, settings));
-      const synergistMuscleGroups = Array.from(
-        new Set(
-          CollectionUtils.flat(
-            exercise.meta.synergistMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m, settings))
-          )
-        )
-      ).map((m) => Muscle.getMuscleGroupName(m, settings));
-      return filterTypes.every((ft) => {
+export function Exercise_filterExercisesByType<T extends IExerciseType>(
+  allExercises: T[],
+  filterTypes: string[],
+  settings: ISettings
+): T[] {
+  return allExercises.filter((e) => {
+    const exercise = Exercise_get(e, settings.exercises);
+    const targetMuscleGroups = Exercise_targetMusclesGroups(e, settings).map((m) => m.toLowerCase());
+    const synergistMuscleGroups = Exercise_synergistMusclesGroups(e, settings).map((m) => m.toLowerCase());
+    return filterTypes
+      .map((ft) => ft.toLowerCase())
+      .every((ft) => {
         return (
           targetMuscleGroups.indexOf(ft) !== -1 ||
           synergistMuscleGroups.indexOf(ft) !== -1 ||
-          (exercise.types || []).map(StringUtils.capitalize).indexOf(ft) !== -1
+          exercise.types.map((t) => t.toLowerCase()).indexOf(ft) !== -1 ||
+          equipmentName(e.equipment).toLowerCase() === ft
         );
       });
+  });
+}
+
+export function Exercise_filterCustomExercises(
+  customExercises: IAllCustomExercises,
+  filter: string
+): IAllCustomExercises {
+  return ObjectUtils_filter(customExercises, (e, v) =>
+    v ? StringUtils_fuzzySearch(filter.toLowerCase(), v.name.toLowerCase()) : true
+  );
+}
+
+export function Exercise_filterCustomExercisesByType(filterTypes: string[], settings: ISettings): IAllCustomExercises {
+  return ObjectUtils_filter(settings.exercises, (_id, exercise) => {
+    if (!exercise) {
+      return false;
+    }
+    const targetMuscleGroups = Array.from(
+      new Set(
+        CollectionUtils_flat(exercise.meta.targetMuscles.map((m) => Muscle_getScreenMusclesFromMuscle(m, settings)))
+      )
+    ).map((m) => Muscle_getMuscleGroupName(m, settings));
+    const synergistMuscleGroups = Array.from(
+      new Set(
+        CollectionUtils_flat(exercise.meta.synergistMuscles.map((m) => Muscle_getScreenMusclesFromMuscle(m, settings)))
+      )
+    ).map((m) => Muscle_getMuscleGroupName(m, settings));
+    return filterTypes.every((ft) => {
+      return (
+        targetMuscleGroups.indexOf(ft) !== -1 ||
+        synergistMuscleGroups.indexOf(ft) !== -1 ||
+        (exercise.types || []).map(StringUtils_capitalize).indexOf(ft) !== -1
+      );
     });
-  }
+  });
 }

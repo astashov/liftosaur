@@ -2,10 +2,10 @@ import { h, JSX } from "preact";
 import { IPlannerProgramExercise, IPlannerExerciseState, IReuseCandidate } from "../../pages/planner/models/types";
 import { IDayData, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getReusingDescriptionsExercises } from "../../models/program";
 import { InputSelect } from "../inputSelect";
 import { PP } from "../../models/pp";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_entries, ObjectUtils_mapValues, ObjectUtils_keys } from "../../utils/object";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { LinkButton } from "../linkButton";
 import { EditProgramExerciseReuseAtWeekDay } from "./editProgramExerciseReuseAtWeekDay";
@@ -58,12 +58,12 @@ export function EditProgramExerciseReuseDescriptions(props: IEditProgramExercise
     plannerExercise.dayData
   );
 
-  const reusingDescriptionsExercises = Program.getReusingDescriptionsExercises(props.evaluatedProgram, plannerExercise);
+  const reusingDescriptionsExercises = Program_getReusingDescriptionsExercises(props.evaluatedProgram, plannerExercise);
   const reuseDescriptionCandidate = reuseDescriptionKey ? reuseDescriptionsCandidates[reuseDescriptionKey] : undefined;
   const reuseDescriptionValues: [string, string][] = [
     ["", "None"],
-    ...ObjectUtils.entries(
-      ObjectUtils.mapValues<IReuseCandidate, string, typeof reuseDescriptionsCandidates>(
+    ...ObjectUtils_entries(
+      ObjectUtils_mapValues<IReuseCandidate, string, typeof reuseDescriptionsCandidates>(
         reuseDescriptionsCandidates,
         (value) => value.exercise.fullName
       )
@@ -114,7 +114,7 @@ export function EditProgramExerciseReuseDescriptions(props: IEditProgramExercise
                 const newReuseCandidate = reuseDescriptionsCandidates[value];
                 if (newReuseCandidate) {
                   const currentWeek = newReuseCandidate.weekAndDays[plannerExercise.dayData.week];
-                  const week = !currentWeek ? ObjectUtils.keys(newReuseCandidate.weekAndDays)[0] : undefined;
+                  const week = !currentWeek ? ObjectUtils_keys(newReuseCandidate.weekAndDays)[0] : undefined;
                   const day =
                     week != null || (currentWeek != null && currentWeek.size > 1)
                       ? Array.from(newReuseCandidate.weekAndDays[week ?? plannerExercise.dayData.week])[0]

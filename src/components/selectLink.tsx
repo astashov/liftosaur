@@ -2,7 +2,7 @@ import { JSX, h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { BottomSheet } from "./bottomSheet";
 import { MenuItemWrapper } from "./menuItem";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_keys } from "../utils/object";
 import { DropdownMenu, DropdownMenuItem } from "./dropdownMenu";
 
 interface ISelectLinkProps<T extends string | number> {
@@ -17,7 +17,7 @@ interface ISelectLinkProps<T extends string | number> {
 export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>): JSX.Element {
   const [showOptions, setShowOptions] = useState(false);
   const selectedOption = props.value ? props.values[props.value] : undefined;
-  const keys = ObjectUtils.keys(props.values);
+  const keys = ObjectUtils_keys(props.values);
   const [isDesktop, setIsDesktop] = useState(typeof window !== "undefined" && window.innerWidth >= 768);
 
   useEffect(() => {

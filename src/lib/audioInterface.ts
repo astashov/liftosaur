@@ -1,4 +1,4 @@
-import { SendMessage } from "../utils/sendMessage";
+import { SendMessage_toIos, SendMessage_toAndroid } from "../utils/sendMessage";
 
 export interface IAudioInterface {
   play(volume: number, vibration: boolean): void;
@@ -19,8 +19,8 @@ export class AudioInterface implements IAudioInterface {
 
   public play(volume: number, vibration: boolean): void {
     const isPlayed =
-      SendMessage.toIos({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false" }) ||
-      SendMessage.toAndroid({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false" });
+      SendMessage_toIos({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false" }) ||
+      SendMessage_toAndroid({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false" });
     if (!isPlayed) {
       this.audio.play();
     }

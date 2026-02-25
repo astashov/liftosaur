@@ -3,7 +3,7 @@ import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
 import { IExportedProgram, IProgramIndexEntry } from "../models/program";
-import { CollectionUtils } from "../utils/collection";
+import { CollectionUtils_uniqBy } from "../utils/collection";
 import { Encoder } from "../utils/encoder";
 import { IAppleOffer, IGoogleOffer } from "../models/state";
 
@@ -176,7 +176,7 @@ export class Service {
         break;
       }
     }
-    history = CollectionUtils.uniqBy(history, "id");
+    history = CollectionUtils_uniqBy(history, "id");
     return history;
   }
 

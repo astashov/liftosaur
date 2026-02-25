@@ -1,10 +1,16 @@
-import { Exercise, IExercise } from "../../../models/exercise";
+import {
+  IExercise,
+  Exercise_findByNameAndEquipment,
+  Exercise_targetMusclesGroups,
+  Exercise_synergistMusclesGroupMultipliers,
+  Exercise_synergistMusclesGroups,
+} from "../../../models/exercise";
 import { IPlannerProgramExercise, IPlannerProgramExerciseRepRange, ISetResults, ISetSplit } from "./types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { PlannerProgramExercise } from "./plannerProgramExercise";
-import { Weight } from "../../../models/weight";
-import { Muscle } from "../../../models/muscle";
+import { Weight_build } from "../../../models/weight";
+import { Muscle_getAvailableMuscleGroups } from "../../../models/muscle";
 
 type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup" | "volume">;
 
@@ -34,7 +40,7 @@ export class PlannerStatsUtils {
 
   public static calculateSetResults(evaluatedDays: IPlannerEvalResult[], settings: ISettings): ISetResults {
     const results: ISetResults = {
-      volume: Weight.build(0, settings.units),
+      volume: Weight_build(0, settings.units),
       total: 0,
       strength: 0,
       hypertrophy: 0,
@@ -47,7 +53,7 @@ export class PlannerStatsUtils {
       muscleGroup: {},
     };
 
-    for (const muscleGroup of Muscle.getAvailableMuscleGroups(settings)) {
+    for (const muscleGroup of Muscle_getAvailableMuscleGroups(settings)) {
       results.muscleGroup[muscleGroup] = results.muscleGroup[muscleGroup] || {
         strength: 0,
         hypertrophy: 0,
@@ -65,7 +71,7 @@ export class PlannerStatsUtils {
         if (plannerExercise.notused) {
           continue;
         }
-        const exercise = Exercise.findByNameAndEquipment(plannerExercise.shortName, settings.exercises);
+        const exercise = Exercise_findByNameAndEquipment(plannerExercise.shortName, settings.exercises);
         if (exercise == null) {
           continue;
         }
@@ -96,14 +102,14 @@ export class PlannerStatsUtils {
             if (exercise.types.indexOf("lower") !== -1) {
               add(results, "lower", repRange, dayIndex, exercise);
             }
-            const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings);
-            const synergistMusclesGroupMultipliers = Exercise.synergistMusclesGroupMultipliers(exercise, settings);
+            const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings);
+            const synergistMusclesGroupMultipliers = Exercise_synergistMusclesGroupMultipliers(exercise, settings);
             for (const muscle of targetMuscleGroups) {
               const synergistMultiplier =
                 synergistMusclesGroupMultipliers[muscle] ?? settings.planner.synergistMultiplier;
               addMuscleGroup(results.muscleGroup, muscle, repRange, dayIndex, true, synergistMultiplier, exercise);
             }
-            for (const muscle of Exercise.synergistMusclesGroups(exercise, settings)) {
+            for (const muscle of Exercise_synergistMusclesGroups(exercise, settings)) {
               if (targetMuscleGroups.indexOf(muscle) === -1) {
                 const synergistMultiplier =
                   synergistMusclesGroupMultipliers[muscle] ?? settings.planner.synergistMultiplier;

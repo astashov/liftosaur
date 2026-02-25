@@ -1,6 +1,6 @@
 import { JSX, h, Fragment } from "preact";
 import { lb } from "lens-shmens";
-import { Weight } from "../../../models/weight";
+import { Weight_build } from "../../../models/weight";
 import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../../pages/planner/models/types";
 import { IProgram, ISettings } from "../../../types";
@@ -236,7 +236,7 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                   const state = e.progress?.state;
                   if (state) {
                     state.failures = (progression.failuresRequired || 0) > 0 ? 0 : 1;
-                    state.decrement = Weight.build(
+                    state.decrement = Weight_build(
                       (progression.decrease?.value || 0) > 0 ? 0 : 5,
                       props.settings.units
                     );

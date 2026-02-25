@@ -10,9 +10,9 @@ import { ExercisePickerAdhocExercises } from "./exercisePickerAdhocExercises";
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
-import { Exercise } from "../../models/exercise";
+import { Exercise_get, Exercise_fullName } from "../../models/exercise";
 import { ExercisePickerUtils } from "./exercisePickerUtils";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_compact } from "../../utils/collection";
 import { ExercisePickerCurrentExercise } from "./exercisePickerCurrentExercise";
 import { Input, IValidationError } from "../input";
 import { useRef } from "preact/hooks";
@@ -224,11 +224,11 @@ interface IBottomButtonProps {
 }
 
 function BottomButton(props: IBottomButtonProps): JSX.Element {
-  const selectedExercises = CollectionUtils.compact(
+  const selectedExercises = CollectionUtils_compact(
     props.state.selectedExercises.map((e) => {
       if (e.type === "adhoc") {
-        const ex = Exercise.get(e.exerciseType, props.settings.exercises);
-        return Exercise.fullName(ex, props.settings);
+        const ex = Exercise_get(e.exerciseType, props.settings.exercises);
+        return Exercise_fullName(ex, props.settings);
       } else if (e.type === "program") {
         return props.evaluatedProgram
           ? ExercisePickerUtils.getProgramExercisefullName(e, props.evaluatedProgram, props.settings)

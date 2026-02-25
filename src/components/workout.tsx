@@ -2,15 +2,26 @@ import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
-import { IEvaluatedProgram, IEvaluatedProgramDay, Program } from "../models/program";
+import {
+  IEvaluatedProgram,
+  IEvaluatedProgramDay,
+  Program_isEmpty,
+  Program_getDayData,
+  Program_editAction,
+} from "../models/program";
 import { lb } from "lens-shmens";
 import { ButtonIcon } from "./buttonIcon";
 import { IconEdit2 } from "./icons/iconEdit2";
 import { Tailwind } from "../utils/tailwindConfig";
 import { TextareaAutogrow } from "./textareaAutogrow";
-import { Progress } from "../models/progress";
+import {
+  Progress_lbProgress,
+  Progress_isCurrent,
+  Progress_editNotes,
+  Progress_getColorToSupersetGroup,
+} from "../models/progress";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { WorkoutExercise } from "./workoutExercise";
 import { Scroller } from "./scroller";
@@ -48,10 +59,10 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
 
   useEffect(() => {
     ImagePreloader.preload(ImagePreloader.dynohappy);
-    if (props.program && Program.isEmpty(props.program) && props.progress.entries.length === 0) {
+    if (props.program && Program_isEmpty(props.program) && props.progress.entries.length === 0) {
       updateState(
         props.dispatch,
-        [Progress.lbProgress(props.progress.id).pi("ui").p("exercisePicker").record({})],
+        [Progress_lbProgress(props.progress.id).pi("ui").p("exercisePicker").record({})],
         "Open exercise picker on empty program"
       );
     }
@@ -184,7 +195,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
   const { program } = props;
   const currentProgram = props.allPrograms.find((p) => p.id === props.program?.id);
   const isEligibleForProgramDay =
-    !Progress.isCurrent(props.progress) && props.allPrograms.every((p) => p.id !== props.progress.programId);
+    !Progress_isCurrent(props.progress) && props.allPrograms.every((p) => p.id !== props.progress.programId);
   return (
     <div className="px-4">
       <div className="flex gap-4">
@@ -212,7 +223,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
               </Button>
             </div>
           )}
-          {!Progress.isCurrent(props.progress) && (
+          {!Progress_isCurrent(props.progress) && (
             <div>
               <ButtonIcon
                 name="past-workout-share"
@@ -225,7 +236,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
               </ButtonIcon>
             </div>
           )}
-          {program && !Program.isEmpty(program) && (
+          {program && !Program_isEmpty(program) && (
             <div>
               <ButtonIcon
                 onClick={() => {
@@ -238,7 +249,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
                     ],
                     "Show muscle view"
                   );
-                  props.dispatch(Thunk.pushScreen("muscles"));
+                  props.dispatch(Thunk_pushScreen("muscles"));
                 }}
                 name="workout-day-muscles"
               >
@@ -246,13 +257,13 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
               </ButtonIcon>
             </div>
           )}
-          {program && currentProgram && !Program.isEmpty(currentProgram) && (
+          {program && currentProgram && !Program_isEmpty(currentProgram) && (
             <div>
               <ButtonIcon
                 name="workout-edit-day"
                 onClick={() => {
-                  const dayData = Program.getDayData(program, props.progress.day);
-                  Program.editAction(props.dispatch, currentProgram, dayData);
+                  const dayData = Program_getDayData(program, props.progress.day);
+                  Program_editAction(props.dispatch, currentProgram, dayData);
                 }}
               >
                 <IconEdit2 />
@@ -276,7 +287,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
           placeholder="Add workout notes here..."
           value={props.progress.notes}
           onChangeText={(text) => {
-            Progress.editNotes(props.dispatch, props.progress.id, text);
+            Progress_editNotes(props.dispatch, props.progress.id, text);
           }}
           className="mt-1"
         />
@@ -294,7 +305,7 @@ interface IWorkoutListOfExercisesProps {
 
 function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Element {
   const [enableReorder, setEnableReorder] = useState(false);
-  const colorToSupersetGroup = Progress.getColorToSupersetGroup(props.progress);
+  const colorToSupersetGroup = Progress_getColorToSupersetGroup(props.progress);
   return (
     <>
       <div className="mr-2 leading-none text-right safe-area-inset-top-compensate">
@@ -369,7 +380,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
                   updateState(
                     props.dispatch,
                     [
-                      Progress.lbProgress(props.progress.id)
+                      Progress_lbProgress(props.progress.id)
                         .pi("ui")
                         .p("exercisePicker")
                         .record({

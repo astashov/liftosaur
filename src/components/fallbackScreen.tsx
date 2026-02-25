@@ -1,7 +1,7 @@
 import { JSX, h } from "preact";
 import { useLayoutEffect } from "preact/hooks";
 import { IDispatch } from "../ducks/types";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushScreen } from "../ducks/thunks";
 
 type INonNullableValues<T> = {
   [K in keyof T]: NonNullable<T[K]>;
@@ -17,7 +17,7 @@ export function FallbackScreen<T extends Record<string, unknown>>(props: IProps<
   const hasAnyNulls = Object.values(props.state).some((value) => value == null);
   useLayoutEffect(() => {
     if (hasAnyNulls) {
-      props.dispatch(Thunk.pushScreen("main", undefined, true));
+      props.dispatch(Thunk_pushScreen("main", undefined, true));
     }
   }, [hasAnyNulls]);
 

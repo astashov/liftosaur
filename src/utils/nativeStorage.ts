@@ -1,5 +1,11 @@
-import { UidFactory } from "./generator";
-import { SendMessage } from "./sendMessage";
+import { UidFactory_generateUid } from "./generator";
+import {
+  SendMessage_toIosAndAndroid,
+  SendMessage_isIos,
+  SendMessage_iosAppVersion,
+  SendMessage_isAndroid,
+  SendMessage_androidAppVersion,
+} from "./sendMessage";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface IPendingRequest<T = any> {
@@ -66,7 +72,7 @@ export class NativeStorage {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<boolean>(requestId);
 
-    SendMessage.toIosAndAndroid({
+    SendMessage_toIosAndAndroid({
       type: "storageSet",
       key: key,
       value: typeof value === "string" ? value : JSON.stringify(value),
@@ -81,7 +87,7 @@ export class NativeStorage {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<T | undefined>(requestId);
 
-    SendMessage.toIosAndAndroid({
+    SendMessage_toIosAndAndroid({
       type: "storageGet",
       key: key,
       requestId: requestId,
@@ -94,7 +100,7 @@ export class NativeStorage {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<boolean>(requestId);
 
-    SendMessage.toIosAndAndroid({
+    SendMessage_toIosAndAndroid({
       type: "storageDelete",
       key: key,
       requestId: requestId,
@@ -107,7 +113,7 @@ export class NativeStorage {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<boolean>(requestId);
 
-    SendMessage.toIosAndAndroid({
+    SendMessage_toIosAndAndroid({
       type: "storageHas",
       key: key,
       requestId: requestId,
@@ -120,7 +126,7 @@ export class NativeStorage {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<string[]>(requestId);
 
-    SendMessage.toIosAndAndroid({
+    SendMessage_toIosAndAndroid({
       type: "storageGetAllKeys",
       requestId: requestId,
     });
@@ -136,13 +142,13 @@ export class NativeStorage {
 
   public static isAvailable(): boolean {
     return (
-      (SendMessage.isIos() && SendMessage.iosAppVersion() >= 12) ||
-      (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 21)
+      (SendMessage_isIos() && SendMessage_iosAppVersion() >= 12) ||
+      (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 21)
     );
   }
 
   private generateRequestId(): string {
-    return `req_${UidFactory.generateUid(8)}`;
+    return `req_${UidFactory_generateUid(8)}`;
   }
 
   private handleResponse(data: IStorageResponse): void {

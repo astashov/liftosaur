@@ -1,7 +1,7 @@
 import { JSX, h, Fragment } from "preact";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
-import { IEvaluatedProgram, Program } from "../../models/program";
-import { CollectionUtils } from "../../utils/collection";
+import { IEvaluatedProgram, Program_getReusingUpdateExercises } from "../../models/program";
+import { CollectionUtils_uniqBy } from "../../utils/collection";
 
 interface IEditProgramUiUpdateProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -22,8 +22,8 @@ export function EditProgramUiUpdate(props: IEditProgramUiUpdateProps): JSX.Eleme
     );
   } else if (exercise.update) {
     progressExercise = exercise;
-    const reusingUpdateExercises = CollectionUtils.uniqBy(
-      Program.getReusingUpdateExercises(evaluatedProgram, exercise),
+    const reusingUpdateExercises = CollectionUtils_uniqBy(
+      Program_getReusingUpdateExercises(evaluatedProgram, exercise),
       "fullName"
     );
     if (reusingUpdateExercises.length > 0) {

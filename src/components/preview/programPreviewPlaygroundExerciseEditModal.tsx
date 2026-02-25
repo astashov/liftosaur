@@ -2,11 +2,11 @@ import { JSX, h, Fragment } from "preact";
 import { Button } from "../button";
 import { MenuItemEditable } from "../menuItemEditable";
 import { Modal } from "../modal";
-import { Weight } from "../../models/weight";
+import { Weight_is, Weight_isPct } from "../../models/weight";
 import { IProgramStateMetadata, ISettings, IExerciseDataValue, IProgramState } from "../../types";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_keys } from "../../utils/object";
 import { ExerciseRM } from "../exerciseRm";
-import { Exercise } from "../../models/exercise";
+import { Exercise_get } from "../../models/exercise";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 
@@ -25,11 +25,11 @@ export function ProgramPreviewPlaygroundExerciseEditModal(
   const programExercise = props.programExercise;
   const state = PlannerProgramExercise.getState(props.programExercise);
   const stateMetadata = PlannerProgramExercise.getStateMetadata(props.programExercise);
-  const hasStateVariables = ObjectUtils.keys(state).length > 0;
+  const hasStateVariables = ObjectUtils_keys(state).length > 0;
   if (!programExercise.exerciseType) {
     return null;
   }
-  const exercise = Exercise.get(programExercise.exerciseType, props.settings.exercises);
+  const exercise = Exercise_get(programExercise.exerciseType, props.settings.exercises);
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <div style={{ minWidth: "15rem" }}>
@@ -86,9 +86,9 @@ interface IStateProps {
 function ProgramStateVariables(props: IStateProps): JSX.Element {
   return (
     <section className="px-4 py-2 bg-background-cardpurple rounded-2xl">
-      {ObjectUtils.keys(props.state).map((stateKey, i) => {
+      {ObjectUtils_keys(props.state).map((stateKey, i) => {
         const value = props.state[stateKey];
-        const displayValue = Weight.is(value) || Weight.isPct(value) ? value.value : value;
+        const displayValue = Weight_is(value) || Weight_isPct(value) ? value.value : value;
 
         return (
           <MenuItemEditable
@@ -104,7 +104,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
             isNameBold={true}
             type="number"
             value={displayValue.toString()}
-            valueUnits={Weight.is(value) || Weight.isPct(value) ? value.unit : undefined}
+            valueUnits={Weight_is(value) || Weight_isPct(value) ? value.unit : undefined}
             hasClear={false}
             onChange={(newValue) => {
               if (newValue) {

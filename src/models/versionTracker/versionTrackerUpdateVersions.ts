@@ -1,4 +1,4 @@
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_clone, ObjectUtils_keys } from "../../utils/object";
 import { lg } from "../../utils/posthog";
 import {
   IVersionTypes,
@@ -33,11 +33,11 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
     newVersions: IVersions<T>,
     timestamp: number
   ): IVersions<T> {
-    const versions = ObjectUtils.clone(currentVersions);
+    const versions = ObjectUtils_clone(currentVersions);
     const versionsObj = VersionTrackerUtils.asVersionsObject(versions);
     const newVersionsObj = VersionTrackerUtils.asVersionsObject(newVersions);
 
-    const keys = ObjectUtils.keys(newObj).filter((key) => key !== "_versions");
+    const keys = ObjectUtils_keys(newObj).filter((key) => key !== "_versions");
 
     for (const field of keys) {
       const oldValue = oldObj[field];
@@ -225,7 +225,7 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
     const oldDict = VersionTrackerUtils.isRecord(oldValue) ? oldValue : undefined;
 
     if (oldDict) {
-      for (const key of ObjectUtils.keys(oldDict)) {
+      for (const key of ObjectUtils_keys(oldDict)) {
         if (!(key in newValue)) {
           collectionVersions.deleted = collectionVersions.deleted || {};
           collectionVersions.deleted[key] = timestamp;
@@ -380,7 +380,7 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
     parentPath: string
   ): IVersionsObject | undefined {
     const versions: IVersionsObject = { ...currentVersions };
-    const keys = ObjectUtils.keys(newObj);
+    const keys = ObjectUtils_keys(newObj);
     let hasChanges = false;
 
     for (const key of keys) {

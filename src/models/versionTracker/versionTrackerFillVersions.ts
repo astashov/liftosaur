@@ -1,4 +1,4 @@
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_clone, ObjectUtils_keys } from "../../utils/object";
 import {
   IVersionTypes,
   ITypedObject,
@@ -22,9 +22,9 @@ export class VersionTrackerFillVersions<TAtomicType extends string, TControlledT
   }
 
   public run<T extends Record<string, unknown>>(fullObj: T, versions: IVersions<T>, timestamp: number): IVersions<T> {
-    const result = ObjectUtils.clone(versions);
+    const result = ObjectUtils_clone(versions);
     const resultObj = VersionTrackerUtils.asVersionsObject(result);
-    const keys = ObjectUtils.keys(fullObj).filter((key) => key !== "_versions");
+    const keys = ObjectUtils_keys(fullObj).filter((key) => key !== "_versions");
 
     for (const field of keys) {
       const value = fullObj[field];
@@ -247,7 +247,7 @@ export class VersionTrackerFillVersions<TAtomicType extends string, TControlledT
     parentPath: string
   ): IVersionsObject | undefined {
     const versions: IVersionsObject = { ...currentVersions };
-    const keys = ObjectUtils.keys(obj);
+    const keys = ObjectUtils_keys(obj);
     let hasAnyVersion = false;
 
     for (const key of keys) {

@@ -1,8 +1,8 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
 import { IAccount } from "../../models/account";
-import { Exercise } from "../../models/exercise";
-import { ExerciseImageUtils } from "../../models/exerciseImage";
+import { Exercise_get, Exercise_reverseName } from "../../models/exercise";
+import { ExerciseImageUtils_ogImageUrl } from "../../models/exerciseImage";
 import { IExerciseType } from "../../types";
 import { ExerciseContent } from "./exerciseContent";
 
@@ -16,8 +16,8 @@ interface IProps {
 
 export function ExerciseHtml(props: IProps): JSX.Element {
   const { client, id, ...data } = props;
-  const exercise = Exercise.get(data.exerciseType, {});
-  const name = Exercise.reverseName(exercise);
+  const exercise = Exercise_get(data.exerciseType, {});
+  const name = Exercise_reverseName(exercise);
   const title = `${name} | Liftosaur`;
   const url = `https://www.liftosaur.com/exercises/${id}`;
 
@@ -32,7 +32,7 @@ export function ExerciseHtml(props: IProps): JSX.Element {
       account={props.account}
       description="Description of the exercise, how to perform it with proper form, muscles worked, and with what exercises you can substitute it."
       ogUrl={url}
-      ogImage={`https://www.liftosaur.com${ExerciseImageUtils.ogImageUrl(data.exerciseType)}`}
+      ogImage={`https://www.liftosaur.com${ExerciseImageUtils_ogImageUrl(data.exerciseType)}`}
       data={data}
       client={client}
     >

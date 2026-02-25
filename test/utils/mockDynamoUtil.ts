@@ -3,8 +3,8 @@ import { IDynamoUtil } from "../../lambda/utils/dynamo";
 import { ILogUtil } from "../../lambda/utils/log";
 import deepmerge from "deepmerge";
 import { userTableNames } from "../../lambda/dao/userDao";
-import { CollectionUtils } from "../../src/utils/collection";
-import { ObjectUtils } from "../../src/utils/object";
+import { CollectionUtils_compact } from "../../src/utils/collection";
+import { ObjectUtils_entries, ObjectUtils_values, ObjectUtils_clone } from "../../src/utils/object";
 
 const idKeys: Partial<Record<string, string[]>> = {
   [userTableNames.prod.users]: ["id"],
@@ -29,10 +29,10 @@ export class MockDynamoUtil implements IDynamoUtil {
     values?: Partial<Record<string, string | string[] | number | number[]>>;
   }): (item: T) => boolean {
     let expression = args.filterExpression;
-    for (const [k, v] of ObjectUtils.entries(args.attrs || {})) {
+    for (const [k, v] of ObjectUtils_entries(args.attrs || {})) {
       expression = expression.replace(new RegExp(k, "g"), v);
     }
-    for (const [k, v] of ObjectUtils.entries(args.values || {})) {
+    for (const [k, v] of ObjectUtils_entries(args.values || {})) {
       const value = Array.isArray(v) ? `IN (${v.map((x) => `${x}`).join(",")})` : `${v}`;
       expression = expression.replace(new RegExp(k, "g"), value);
     }
@@ -58,11 +58,11 @@ export class MockDynamoUtil implements IDynamoUtil {
     attrs?: Record<string, string>;
     values?: Partial<Record<string, string | string[] | number>>;
   }): Promise<T[]> {
-    let values = ObjectUtils.values(this.data[args.tableName] || {}) as unknown as T[];
+    let values = ObjectUtils_values(this.data[args.tableName] || {}) as unknown as T[];
     values = values.filter(
       this.buildCondition({ filterExpression: args.expression, attrs: args.attrs, values: args.values })
     );
-    return Promise.resolve(ObjectUtils.clone(values));
+    return Promise.resolve(ObjectUtils_clone(values));
   }
 
   public async scan<T>(args: {
@@ -70,11 +70,11 @@ export class MockDynamoUtil implements IDynamoUtil {
     filterExpression?: string;
     values?: Partial<Record<string, number | string | string[]>>;
   }): Promise<T[]> {
-    let values = ObjectUtils.values(this.data[args.tableName] || {}) as T[];
+    let values = ObjectUtils_values(this.data[args.tableName] || {}) as T[];
     if (args.filterExpression) {
       values = values.filter(this.buildCondition({ filterExpression: args.filterExpression, values: args.values }));
     }
-    return Promise.resolve(ObjectUtils.clone(values));
+    return Promise.resolve(ObjectUtils_clone(values));
   }
 
   private getKey(key: Record<string, NativeAttributeValue>): string {
@@ -84,7 +84,7 @@ export class MockDynamoUtil implements IDynamoUtil {
 
   public async get<T>(args: { tableName: string; key: Record<string, NativeAttributeValue> }): Promise<T | undefined> {
     const value = this.data[args.tableName]?.[this.getKey(args.key)] as T | undefined;
-    return ObjectUtils.clone(value);
+    return ObjectUtils_clone(value);
   }
 
   public async put(args: { tableName: string; item: Record<string, NativeAttributeValue> }): Promise<void> {
@@ -131,7 +131,7 @@ export class MockDynamoUtil implements IDynamoUtil {
   }
 
   public async batchGet<T>(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<T[]> {
-    return CollectionUtils.compact(
+    return CollectionUtils_compact(
       await Promise.all(args.keys.map((key) => this.get<T>({ tableName: args.tableName, key })))
     );
   }
@@ -156,7 +156,7 @@ export class MockDynamoUtil implements IDynamoUtil {
     values?: Partial<Record<string, string | string[] | number | number[]>>;
     limit?: number;
   }): AsyncGenerator<T[], void, unknown> {
-    const values = ObjectUtils.values(this.data[args.tableName] || {}) as unknown as T[];
+    const values = ObjectUtils_values(this.data[args.tableName] || {}) as unknown as T[];
     const filteredValues = values.filter(
       this.buildCondition({ filterExpression: args.expression, attrs: args.attrs, values: args.values })
     );
@@ -173,7 +173,7 @@ export class MockDynamoUtil implements IDynamoUtil {
     values?: Partial<Record<string, number | string | string[]>>;
     limit?: number;
   }): AsyncGenerator<T[], void, unknown> {
-    let values = ObjectUtils.values(this.data[args.tableName] || {}) as T[];
+    let values = ObjectUtils_values(this.data[args.tableName] || {}) as T[];
     if (args.filterExpression) {
       values = values.filter(this.buildCondition({ filterExpression: args.filterExpression, values: args.values }));
     }

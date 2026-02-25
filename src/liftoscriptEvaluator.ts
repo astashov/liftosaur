@@ -1,10 +1,26 @@
 // import util from "util";
 import { SyntaxNode } from "@lezer/common";
 import { IScriptBindings, IScriptFnContext, IScriptFunctions } from "./models/progress";
-import { Weight } from "./models/weight";
+import {
+  Weight_gt,
+  Weight_lt,
+  Weight_gte,
+  Weight_lte,
+  Weight_eq,
+  Weight_build,
+  Weight_print,
+  Weight_smartConvert,
+  Weight_is,
+  Weight_isPct,
+  Weight_buildAny,
+  Weight_applyOp,
+  Weight_convertToWeight,
+  Weight_buildPct,
+  Weight_op,
+} from "./models/weight";
 import { IProgramState, IWeight, IUnit, IPercentage } from "./types";
-import { CollectionUtils } from "./utils/collection";
-import { MathUtils } from "./utils/math";
+import { CollectionUtils_compact } from "./utils/collection";
+import { MathUtils_applyOp, MathUtils_round, MathUtils_clamp, MathUtils_roundFloat } from "./utils/math";
 import { IProgramMode } from "./models/program";
 import { parser as LiftoscriptParser } from "./liftoscript";
 
@@ -81,17 +97,17 @@ function comparing(
   function comparator(l: number | IWeight | IPercentage, r: number | IWeight | IPercentage): boolean {
     switch (operator) {
       case ">":
-        return Weight.gt(l, r);
+        return Weight_gt(l, r);
       case "<":
-        return Weight.lt(l, r);
+        return Weight_lt(l, r);
       case ">=":
-        return Weight.gte(l, r);
+        return Weight_gte(l, r);
       case "<=":
-        return Weight.lte(l, r);
+        return Weight_lte(l, r);
       case "==":
-        return Weight.eq(l, r);
+        return Weight_eq(l, r);
       case "!=":
-        return !Weight.eq(l, r);
+        return !Weight_eq(l, r);
     }
   }
 
@@ -216,7 +232,7 @@ export class LiftoscriptEvaluator {
       if (typeof num !== "number") {
         this.error("WeightExpression must contain a number", numberNode);
       }
-      return Weight.build(num, this.getValue(unitNode) as IUnit);
+      return Weight_build(num, this.getValue(unitNode) as IUnit);
     } else {
       return undefined;
     }
@@ -233,8 +249,8 @@ export class LiftoscriptEvaluator {
           if (weight.unit !== toUnit) {
             const from = cursor.node.from;
             const to = cursor.node.to;
-            const oldWeightStr = Weight.print(weight);
-            const newWeightStr = Weight.print(Weight.smartConvert(weight, toUnit));
+            const oldWeightStr = Weight_print(weight);
+            const newWeightStr = Weight_print(Weight_smartConvert(weight, toUnit));
             script = script.substring(0, from + shift) + newWeightStr + script.substring(to + shift);
             shift = shift + newWeightStr.length - oldWeightStr.length;
           }
@@ -417,18 +433,18 @@ export class LiftoscriptEvaluator {
   private evaluateToNumber(expr: SyntaxNode): number {
     const v = this.evaluate(expr);
     const v1 = Array.isArray(v) ? v[0] : v;
-    return Weight.is(v1) ? v1.value : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
+    return Weight_is(v1) ? v1.value : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
   }
 
   private evaluateToNumberOrWeightOrPercentage(expr: SyntaxNode): number | IWeight | IPercentage {
     const v = this.evaluate(expr);
     const v1 = Array.isArray(v) ? v[0] : v;
-    return Weight.is(v1) || Weight.isPct(v1) ? v1 : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
+    return Weight_is(v1) || Weight_isPct(v1) ? v1 : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
   }
 
   private changeNumberOfSets(expression: SyntaxNode, op: IAssignmentOp): number | IWeight | IPercentage {
     const oldNumberOfSets = this.bindings.weights.length;
-    const evaluatedValue = MathUtils.applyOp(this.bindings.numberOfSets, this.evaluateToNumber(expression), op);
+    const evaluatedValue = MathUtils_applyOp(this.bindings.numberOfSets, this.evaluateToNumber(expression), op);
 
     this.bindings.weights = this.bindings.weights.slice(0, evaluatedValue);
     this.bindings.originalWeights = this.bindings.originalWeights.slice(0, evaluatedValue);
@@ -453,11 +469,11 @@ export class LiftoscriptEvaluator {
     const ns = oldNumberOfSets - 1;
     for (let i = 0; i < evaluatedValue; i += 1) {
       if (i > ns) {
-        this.bindings.weights[i] = Weight.build(
+        this.bindings.weights[i] = Weight_build(
           this.bindings.weights[ns]?.value ?? 0,
           this.bindings.weights[ns]?.unit || "lb"
         );
-        this.bindings.originalWeights[i] = Weight.buildAny(
+        this.bindings.originalWeights[i] = Weight_buildAny(
           this.bindings.originalWeights[ns]?.value ?? 0,
           this.bindings.originalWeights[ns]?.unit || "lb"
         );
@@ -506,13 +522,13 @@ export class LiftoscriptEvaluator {
       for (let i = 0; i < this.bindings.weights.length; i += 1) {
         if (!this.bindings.isCompleted[i] && (setIndex === "*" || setIndex === i + 1)) {
           const evalutedValue = this.evaluateToNumberOrWeightOrPercentage(expression);
-          const newValue = Weight.applyOp(
+          const newValue = Weight_applyOp(
             this.bindings.rm1,
-            this.bindings.weights[i] ?? Weight.build(0, this.unit),
+            this.bindings.weights[i] ?? Weight_build(0, this.unit),
             evalutedValue,
             op
           );
-          value = Weight.convertToWeight(this.bindings.rm1, newValue, this.unit);
+          value = Weight_convertToWeight(this.bindings.rm1, newValue, this.unit);
           this.bindings.originalWeights[i] = value;
           this.bindings.weights[i] = this.fns.roundWeight(value, this.fnContext);
         }
@@ -521,12 +537,12 @@ export class LiftoscriptEvaluator {
       for (let i = 0; i < this.bindings[key].length; i += 1) {
         if (!this.bindings.isCompleted[i] && (setIndex === "*" || setIndex === i + 1)) {
           const evaluatedValue = this.evaluateToNumber(expression);
-          value = MathUtils.applyOp(this.bindings[key][i] ?? 0, evaluatedValue, op);
+          value = MathUtils_applyOp(this.bindings[key][i] ?? 0, evaluatedValue, op);
           if (key === "RPE") {
-            value = MathUtils.round(MathUtils.clamp(value, 0, 10), 0.5);
+            value = MathUtils_round(MathUtils_clamp(value, 0, 10), 0.5);
           }
           if (key === "amraps" || key === "logrpes" || key === "askweights") {
-            value = Math.round(MathUtils.clamp(value, 0, 1));
+            value = Math.round(MathUtils_clamp(value, 0, 1));
           }
           this.bindings[key][i] = value;
         }
@@ -606,13 +622,13 @@ export class LiftoscriptEvaluator {
   }
 
   private calculateIndexValues(indexes: SyntaxNode[]): (number | "*")[] {
-    return CollectionUtils.compact(indexes).map((ie) => {
+    return CollectionUtils_compact(indexes).map((ie) => {
       if (ie.type.name === NodeName.Wildcard) {
         return "*" as const;
       } else {
         const v = this.evaluate(ie);
         const v1 = Array.isArray(v) ? v[0] : v;
-        return Weight.is(v1) ? v1.value : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
+        return Weight_is(v1) ? v1.value : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
       }
     });
   }
@@ -632,9 +648,9 @@ export class LiftoscriptEvaluator {
       return value;
     } else if (typeof value === "boolean") {
       return 0;
-    } else if (Weight.is(value)) {
+    } else if (Weight_is(value)) {
       return value.value;
-    } else if (Weight.isPct(value)) {
+    } else if (Weight_isPct(value)) {
       return value.value;
     } else if (Array.isArray(value)) {
       return this.toNumber(value[0] ?? 0);
@@ -709,8 +725,8 @@ export class LiftoscriptEvaluator {
       const sign = plusNode ? this.getValue(plusNode) : undefined;
       return sign === "-" ? -value : value;
     } else if (expr.type.name === NodeName.Percentage) {
-      const value = MathUtils.roundFloat(parseFloat(this.getValue(expr)), 2);
-      return Weight.buildPct(value);
+      const value = MathUtils_roundFloat(parseFloat(this.getValue(expr)), 2);
+      return Weight_buildPct(value);
     } else if (expr.type.name === NodeName.Ternary) {
       const [condition, then, or] = getChildren(expr);
       return this.evaluate(condition) ? this.evaluate(then) : this.evaluate(or);
@@ -789,7 +805,7 @@ export class LiftoscriptEvaluator {
           let value = Array.isArray(evaluatedValue) ? evaluatedValue[0] : evaluatedValue;
           value = value ?? 0;
           value = value === true ? 1 : value === false ? 0 : value;
-          value = Weight.convertToWeight(this.bindings.rm1, value, this.unit);
+          value = Weight_convertToWeight(this.bindings.rm1, value, this.unit);
           this.bindings.rm1 = value;
           return value;
         } else if (
@@ -827,7 +843,7 @@ export class LiftoscriptEvaluator {
       } else if (variableNode.type.name === NodeName.Variable) {
         const varKey = this.getValue(variableNode).replace("var.", "");
         const value = this.evaluate(expression);
-        if (Weight.is(value) || Weight.isPct(value) || typeof value === "number") {
+        if (Weight_is(value) || Weight_isPct(value) || typeof value === "number") {
           this.vars[varKey] = value;
         } else {
           this.vars[varKey] = value ? 1 : 0;
@@ -852,7 +868,7 @@ export class LiftoscriptEvaluator {
           }
           const value = this.evaluate(expression);
           if (state != null) {
-            if (Weight.is(value) || Weight.isPct(value) || typeof value === "number") {
+            if (Weight_is(value) || Weight_isPct(value) || typeof value === "number") {
               state[stateKey] = value;
             } else {
               state[stateKey] = value ? 1 : 0;
@@ -893,25 +909,25 @@ export class LiftoscriptEvaluator {
 
           const op = this.getValue(incAssignmentExpr);
           if (op === "+=") {
-            this.bindings.rm1 = Weight.convertToWeight(
+            this.bindings.rm1 = Weight_convertToWeight(
               this.bindings.rm1,
               this.add(this.bindings.rm1, value),
               this.unit
             );
           } else if (op === "-=") {
-            this.bindings.rm1 = Weight.convertToWeight(
+            this.bindings.rm1 = Weight_convertToWeight(
               this.bindings.rm1,
               this.subtract(this.bindings.rm1, value),
               this.unit
             );
           } else if (op === "*=") {
-            this.bindings.rm1 = Weight.convertToWeight(
+            this.bindings.rm1 = Weight_convertToWeight(
               this.bindings.rm1,
               this.multiply(this.bindings.rm1, value),
               this.unit
             );
           } else if (op === "/=") {
-            this.bindings.rm1 = Weight.convertToWeight(
+            this.bindings.rm1 = Weight_convertToWeight(
               this.bindings.rm1,
               this.divide(this.bindings.rm1, value),
               this.unit
@@ -961,7 +977,7 @@ export class LiftoscriptEvaluator {
       } else if (stateVar.type.name === NodeName.Variable) {
         const varKey = this.getValue(stateVar).replace("var.", "");
         let value = this.evaluate(expression);
-        if (!(Weight.is(value) || Weight.isPct(value) || typeof value === "number")) {
+        if (!(Weight_is(value) || Weight_isPct(value) || typeof value === "number")) {
           value = value ? 1 : 0;
         }
         const op = this.getValue(incAssignmentExpr);
@@ -1001,7 +1017,7 @@ export class LiftoscriptEvaluator {
 
           let value = this.evaluate(expression);
           if (state != null) {
-            if (!(Weight.is(value) || Weight.isPct(value) || typeof value === "number")) {
+            if (!(Weight_is(value) || Weight_isPct(value) || typeof value === "number")) {
               value = value ? 1 : 0;
             }
             const op = this.getValue(incAssignmentExpr);
@@ -1048,7 +1064,7 @@ export class LiftoscriptEvaluator {
       const evaluated = this.evaluate(expression);
       return !evaluated;
     } else if (expr.type.name === NodeName.WeightExpression) {
-      return this.getWeight(expr) ?? Weight.build(0, this.unit);
+      return this.getWeight(expr) ?? Weight_build(0, this.unit);
     } else if (expr.type.name === NodeName.VariableExpression) {
       const [nameNode, ...indexExprs] = getChildren(expr);
       if (nameNode == null) {
@@ -1072,7 +1088,7 @@ export class LiftoscriptEvaluator {
         }
         const indexEval = this.evaluate(indexNode);
         let index: number;
-        if (Weight.is(indexEval) || Weight.isPct(indexEval)) {
+        if (Weight_is(indexEval) || Weight_isPct(indexEval)) {
           index = indexEval.value;
         } else if (typeof indexEval === "number") {
           index = indexEval;
@@ -1162,7 +1178,7 @@ export class LiftoscriptEvaluator {
     op: (x: number, y: number) => number
   ): IWeight | number | IPercentage {
     try {
-      return Weight.op(onerm, a, b, op);
+      return Weight_op(onerm, a, b, op);
     } catch (error) {
       const e = error as Error;
       throw new LiftoscriptSyntaxError(e.message, 0, 0, 0, 0);

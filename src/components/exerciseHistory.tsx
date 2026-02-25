@@ -1,14 +1,14 @@
 import { h, JSX, RefObject, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IExerciseType, IHistoryRecord, ISettings } from "../types";
-import { Weight } from "../models/weight";
-import { DateUtils } from "../utils/date";
+import { Weight_print, Weight_is, Weight_isPct, Weight_display } from "../models/weight";
+import { DateUtils_format } from "../utils/date";
 import { MenuItemWrapper } from "./menuItem";
 import { useGradualList } from "../utils/useGradualList";
-import { Exercise } from "../models/exercise";
-import { Reps } from "../models/set";
-import { History } from "../models/history";
-import { ObjectUtils } from "../utils/object";
+import { Exercise_get, Exercise_fullName, Exercise_eq, Exercise_toKey } from "../models/exercise";
+import { Reps_volume } from "../models/set";
+import { History_getPersonalRecords } from "../models/history";
+import { ObjectUtils_keys } from "../utils/object";
 import { HistoryRecordSetsView } from "./historyRecordSets";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { lb } from "lens-shmens";
@@ -18,7 +18,7 @@ import { IconFilter } from "./icons/iconFilter";
 import { MenuItemEditable } from "./menuItemEditable";
 import { useState } from "preact/hooks";
 import { memo } from "preact/compat";
-import { ComparerUtils } from "../utils/comparer";
+import { ComparerUtils_noFns } from "../utils/comparer";
 
 interface IExerciseHistoryProps {
   surfaceRef: RefObject<HTMLElement>;
@@ -30,8 +30,8 @@ interface IExerciseHistoryProps {
 
 export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element => {
   const { visibleRecords } = useGradualList(props.history, 0, 20, props.surfaceRef, () => {});
-  const fullExercise = Exercise.get(props.exerciseType, props.settings.exercises);
-  const allPrs = History.getPersonalRecords(props.history);
+  const fullExercise = Exercise_get(props.exerciseType, props.settings.exercises);
+  const allPrs = History_getPersonalRecords(props.history);
   const [showFilters, setShowFilters] = useState(false);
   let history = props.history;
   if (
@@ -54,7 +54,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
     <section data-cy="exercise-stats-history">
       <GroupHeader
         topPadding={true}
-        name={`${Exercise.fullName(fullExercise, props.settings)} History`}
+        name={`${Exercise_fullName(fullExercise, props.settings)} History`}
         rightAddOn={
           <button
             className="p-2 nm-exercise-stats-navbar-filter"
@@ -116,7 +116,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
         </section>
       )}
       {history.slice(0, visibleRecords).map((historyRecord) => {
-        const exerciseEntries = historyRecord.entries.filter((e) => Exercise.eq(e.exercise, fullExercise));
+        const exerciseEntries = historyRecord.entries.filter((e) => Exercise_eq(e.exercise, fullExercise));
         const exerciseNotes = exerciseEntries.map((e) => e.notes).filter((e) => e);
         return (
           <MenuItemWrapper
@@ -127,7 +127,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
           >
             <div className="py-2">
               <div className="flex text-xs text-text-secondary">
-                <div className="mr-2 font-bold">{DateUtils.format(historyRecord.date)}</div>
+                <div className="mr-2 font-bold">{DateUtils_format(historyRecord.date)}</div>
                 <div className="flex-1 text-right">
                   {historyRecord.programName}, {historyRecord.dayName}
                 </div>
@@ -136,14 +136,14 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                 <div className="flex-1">
                   <div>
                     {exerciseEntries.map((entry) => {
-                      const prs = allPrs[historyRecord.id]?.[Exercise.toKey(entry.exercise)];
+                      const prs = allPrs[historyRecord.id]?.[Exercise_toKey(entry.exercise)];
                       const state = { ...entry.state };
                       const vars = entry.vars || {};
-                      for (const key of ObjectUtils.keys(vars)) {
+                      for (const key of ObjectUtils_keys(vars)) {
                         const name = { rm1: "1 Rep Max" }[key] || key;
                         state[name] = vars[key];
                       }
-                      const volume = Reps.volume(entry.sets, props.settings.units);
+                      const volume = Reps_volume(entry.sets, props.settings.units);
                       return (
                         <div className="pt-1">
                           <div className="text-right">
@@ -157,15 +157,15 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                           </div>
                           {volume.value > 0 && (
                             <div className="mb-1 text-xs leading-none text-left text-text-secondary">
-                              Volume: <strong>{Weight.print(volume)}</strong>
+                              Volume: <strong>{Weight_print(volume)}</strong>
                             </div>
                           )}
                           {Object.keys(state).length > 0 && (
                             <div className="text-xs text-text-secondary">
-                              {ObjectUtils.keys(state).map((stateKey, i) => {
+                              {ObjectUtils_keys(state).map((stateKey, i) => {
                                 const value = state[stateKey];
                                 const displayValue =
-                                  Weight.is(value) || Weight.isPct(value) ? Weight.display(value) : value;
+                                  Weight_is(value) || Weight_isPct(value) ? Weight_display(value) : value;
                                 return (
                                   <>
                                     {i !== 0 && ", "}
@@ -205,4 +205,4 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
       })}
     </section>
   );
-}, ComparerUtils.noFns);
+}, ComparerUtils_noFns);

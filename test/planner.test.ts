@@ -3,11 +3,11 @@ import { expect } from "chai";
 import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
 import { PlannerTestUtils } from "./utils/plannerTestUtils";
 import { IPlannerProgram, ISettings, IStats, IUnit } from "../src/types";
-import { Settings } from "../src/models/settings";
+import { Settings_build, Settings_defaultEquipment } from "../src/models/settings";
 import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
-import { Weight } from "../src/models/weight";
-import { ObjectUtils } from "../src/utils/object";
-import { Stats } from "../src/models/stats";
+import { Weight_build } from "../src/models/weight";
+import { ObjectUtils_clone } from "../src/utils/object";
+import { Stats_getEmpty } from "../src/models/stats";
 
 describe("Planner", () => {
   it("updates weight after completing", () => {
@@ -37,7 +37,7 @@ Squat / 1x5 100lb / 2x8 150kg / progress: custom(increase: 5lb) {~
 ## Day 2
 Squat / 3x5 / 4x8 / 100lb
 `;
-    const settings = { ...Settings.build(), units: "kg" as IUnit };
+    const settings = { ...Settings_build(), units: "kg" as IUnit };
     const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] }, settings);
     const kgProgram = PlannerProgram.switchToUnit(program.planner!, settings);
     const newText = PlannerProgram.generateFullText(kgProgram.weeks);
@@ -383,7 +383,7 @@ Bench Press / ...Squat / 1x5, 1x3 / 125lb / progress: lp(5lb)
 
   it("should work with negative weights", () => {
     const settings: ISettings = {
-      ...Settings.build(),
+      ...Settings_build(),
       exerciseData: {
         benchPress_barbell: { equipment: { default: undefined } },
         squat_barbell: { equipment: { default: undefined } },
@@ -511,7 +511,7 @@ Bench Press / 3x8 / progress: dp(5lb, 8, 12)`);
 Squat / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
 `;
     const newText = PlannerTestUtils.changeWeight(programText, (weightChanges) => {
-      weightChanges[1].weight = Weight.build(250, "lb");
+      weightChanges[1].weight = Weight_build(250, "lb");
       return weightChanges;
     });
     expect(newText.trim()).to.equal(`# Week 1
@@ -525,7 +525,7 @@ Squat / 1x5 100lb, 1x3 250lb / 60s / progress: lp(5lb)`);
 Squat / 1x5 100lb, 1x3 200lb / 80lb / 60s / progress: lp(80lb)
 `;
     const newText = PlannerTestUtils.changeWeight(programText, (weightChanges) => {
-      weightChanges[0].weight = Weight.build(100, "lb");
+      weightChanges[0].weight = Weight_build(100, "lb");
       return weightChanges;
     });
     expect(newText.trim()).to.equal(`# Week 1
@@ -539,8 +539,8 @@ Squat / 1x5, 1x3 / 100lb 60s / progress: lp(80lb)`);
 Squat / 1x5 50lb, 1x3 80lb / 60s / progress: lp(5lb)
 `;
     const newText = PlannerTestUtils.changeWeight(programText, (weightChanges) => {
-      weightChanges[0].weight = Weight.build(100, "lb");
-      weightChanges[1].weight = Weight.build(150, "lb");
+      weightChanges[0].weight = Weight_build(100, "lb");
+      weightChanges[1].weight = Weight_build(150, "lb");
       return weightChanges;
     });
     expect(newText.trim()).to.equal(`# Week 1
@@ -754,7 +754,7 @@ Bench Press / ...Squat / progress: custom() {~ ~}
       name: "MyProgram",
       weeks: PlannerProgram.evaluateText(programText),
     };
-    const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
+    const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings_build()).evaluatedWeeks;
     expect(evaluatedWeeks[0][0].success).to.be.true;
   });
 
@@ -769,7 +769,7 @@ Bench Press / ...Squat / update: custom() {~ ~}
       name: "MyProgram",
       weeks: PlannerProgram.evaluateText(programText),
     };
-    const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
+    const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings_build()).evaluatedWeeks;
     expect(evaluatedWeeks[0][0].success).to.be.true;
   });
 
@@ -799,7 +799,7 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
       name: "MyProgram",
       weeks: PlannerProgram.evaluateText(programText),
     };
-    const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
+    const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings_build()).evaluatedWeeks;
     expect(evaluatedWeeks[2][0]).to.deep.equal({
       success: false,
       error: new PlannerSyntaxError("Squat: No such exercise tmp: Squat at week: 3 (4:13)", 0, 0, 0, 0),
@@ -1050,8 +1050,8 @@ Squat / 1x4 100lb
       {
         completedReps: [[3], [2]],
       },
-      Settings.build(),
-      Stats.getEmpty(),
+      Settings_build(),
+      Stats_getEmpty(),
       2
     );
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
@@ -1276,8 +1276,8 @@ Squat[1-3] / 1x5 / 200lb / warmup: none / progress: custom(week: 1, dayInWeek: 1
     const { program } = PlannerTestUtils.finish(
       programText,
       { completedReps: [[5]] },
-      Settings.build(),
-      Stats.getEmpty(),
+      Settings_build(),
+      Stats_getEmpty(),
       4
     );
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
@@ -1402,14 +1402,14 @@ Squat / 2x5 / 100lb / progress: custom() {~
 Squat / 1x10 / 100lb / progress: custom() {~
   weights[1] = increment(weights[1])
 ~}`;
-    const equipment = ObjectUtils.clone(Settings.defaultEquipment());
+    const equipment = ObjectUtils_clone(Settings_defaultEquipment());
     equipment.barbell!.plates = [
-      { weight: Weight.build(10, "lb"), num: 2 },
-      { weight: Weight.build(25, "lb"), num: 2 },
-      { weight: Weight.build(45, "lb"), num: 2 },
+      { weight: Weight_build(10, "lb"), num: 2 },
+      { weight: Weight_build(25, "lb"), num: 2 },
+      { weight: Weight_build(45, "lb"), num: 2 },
     ];
     const settings: ISettings = {
-      ...Settings.build(),
+      ...Settings_build(),
       gyms: [{ vtype: "gym", id: "default", name: "Main", equipment }],
       exerciseData: {
         squat_barbell: { equipment: { default: "barbell" } },
@@ -1433,11 +1433,11 @@ Squat / 1x10 / 115lb / progress: custom() {~
 Squat / 1x10 / 100lb / progress: custom() {~
   weights[1] = increment(105)
 ~}`;
-    const equipment = ObjectUtils.clone(Settings.defaultEquipment());
+    const equipment = ObjectUtils_clone(Settings_defaultEquipment());
     equipment.barbell!.isFixed = true;
-    equipment.barbell!.fixed = [Weight.build(45, "lb"), Weight.build(100, "lb"), Weight.build(120, "lb")];
+    equipment.barbell!.fixed = [Weight_build(45, "lb"), Weight_build(100, "lb"), Weight_build(120, "lb")];
     const settings: ISettings = {
-      ...Settings.build(),
+      ...Settings_build(),
       gyms: [{ vtype: "gym", id: "default", name: "Main", equipment }],
       exerciseData: {
         squat_barbell: { equipment: { default: "barbell" } },
@@ -1482,18 +1482,18 @@ Squat / 1x10 / 100lb / progress: custom() {~
     const stats: IStats = {
       weight: {
         weight: [
-          { vtype: "stat", value: Weight.build(200, "lb"), timestamp: 10 },
-          { vtype: "stat", value: Weight.build(220, "lb"), timestamp: 30 },
-          { vtype: "stat", value: Weight.build(210, "lb"), timestamp: 20 },
-          { vtype: "stat", value: Weight.build(240, "lb"), timestamp: 50 },
-          { vtype: "stat", value: Weight.build(230, "lb"), timestamp: 40 },
+          { vtype: "stat", value: Weight_build(200, "lb"), timestamp: 10 },
+          { vtype: "stat", value: Weight_build(220, "lb"), timestamp: 30 },
+          { vtype: "stat", value: Weight_build(210, "lb"), timestamp: 20 },
+          { vtype: "stat", value: Weight_build(240, "lb"), timestamp: 50 },
+          { vtype: "stat", value: Weight_build(230, "lb"), timestamp: 40 },
         ],
       },
       length: {},
       percentage: {},
     };
     const settings: ISettings = {
-      ...Settings.build(),
+      ...Settings_build(),
       graphOptions: {
         weight: {
           movingAverageWindowSize: 3,

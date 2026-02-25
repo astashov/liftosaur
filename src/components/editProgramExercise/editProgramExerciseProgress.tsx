@@ -9,7 +9,12 @@ import {
 import { IProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { LinkButton } from "../linkButton";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import {
+  IEvaluatedProgram,
+  Program_evaluate,
+  Program_getReusingCustomProgressExercises,
+  Program_getReusingSetProgressExercises,
+} from "../../models/program";
 import { PP } from "../../models/pp";
 import { MenuItemWrapper } from "../menuItem";
 import { InputSelect } from "../inputSelect";
@@ -22,9 +27,9 @@ import { SumRepsProgressSettings } from "./progressions/sumRepsProgressSettings"
 import { CustomProgressSettings } from "./progressions/customProgressSettings";
 import { ModalEditProgressScript } from "./progressions/modalEditProgressScript";
 import { useState } from "preact/hooks";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_uniqByExpr } from "../../utils/collection";
 import { EditProgramUiProgress } from "../editProgram/editProgramUiProgress";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_entries } from "../../utils/object";
 
 interface IEditProgramExerciseProgressProps {
   program: IProgram;
@@ -50,13 +55,13 @@ function getProgressReuseCandidates(
     }
     result[exercise.fullName] = exercise.fullName;
   });
-  return ObjectUtils.entries(result);
+  return ObjectUtils_entries(result);
 }
 
 export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressProps): JSX.Element {
   const { plannerExercise } = props;
   const ownProgress = plannerExercise.progress;
-  const evaluatedProgram = Program.evaluate(props.program, props.settings);
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerExerciseState>().p("ui");
   const [isOverriding, setIsOverriding] = useState(false);
@@ -173,11 +178,11 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
     ...getProgressReuseCandidates(plannerExercise.key, !!plannerExercise.notused, evaluatedProgram),
   ];
   const reuseFullName = ownProgress?.reuse?.exercise?.fullName;
-  const reusingCustomProgressExercises = Program.getReusingCustomProgressExercises(evaluatedProgram, plannerExercise);
-  const reusingSetProgressExercises = Program.getReusingSetProgressExercises(evaluatedProgram, plannerExercise);
+  const reusingCustomProgressExercises = Program_getReusingCustomProgressExercises(evaluatedProgram, plannerExercise);
+  const reusingSetProgressExercises = Program_getReusingSetProgressExercises(evaluatedProgram, plannerExercise);
   const reusingProgressExercises = Array.from(
     new Set(
-      CollectionUtils.uniqByExpr([...reusingCustomProgressExercises, ...reusingSetProgressExercises], (e) => e.fullName)
+      CollectionUtils_uniqByExpr([...reusingCustomProgressExercises, ...reusingSetProgressExercises], (e) => e.fullName)
     )
   );
   const cannotReuseOtherProgress = plannerExercise.notused

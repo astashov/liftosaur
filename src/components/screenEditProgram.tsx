@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
-import { Screen } from "../models/screen";
+import { Screen_currentName } from "../models/screen";
 import { IProgram, ISettings, ISubscription } from "../types";
 import { INavCommon } from "../models/state";
 import { ScreenProgram } from "./editProgram/screenProgram";
@@ -21,7 +21,7 @@ interface IProps {
 }
 
 export function ScreenEditProgram(props: IProps): JSX.Element {
-  const screen = Screen.currentName(props.navCommon.screenStack);
+  const screen = Screen_currentName(props.navCommon.screenStack);
   const originalProgram = props.originalProgram;
   const plannerState = props.plannerState;
 

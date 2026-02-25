@@ -1,4 +1,4 @@
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 
 export const LftS3Buckets = {
   caches: "liftosaurcaches2",
@@ -13,7 +13,7 @@ export const LftS3Buckets = {
 };
 
 export function getUserImagesPrefix(): string {
-  const env = Utils.getEnv();
+  const env = Utils_getEnv();
   if (env === "dev") {
     return "https://stage.liftosaur.com/userimages/";
   } else {

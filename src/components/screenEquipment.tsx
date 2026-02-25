@@ -11,7 +11,7 @@ import { HelpPlates } from "./help/helpPlates";
 import { useEffect } from "preact/hooks";
 import { MenuItemEditable } from "./menuItemEditable";
 import { LinkButton } from "./linkButton";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushScreen } from "../ducks/thunks";
 
 interface IProps {
   dispatch: IDispatch;
@@ -81,7 +81,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
         </div>
         {props.settings.gyms.length === 1 && (
           <div className="px-2 mb-2 text-right">
-            <LinkButton className="text-sm" name="add-new-gym" onClick={() => props.dispatch(Thunk.pushScreen("gyms"))}>
+            <LinkButton className="text-sm" name="add-new-gym" onClick={() => props.dispatch(Thunk_pushScreen("gyms"))}>
               Manage Gyms
             </LinkButton>
           </div>

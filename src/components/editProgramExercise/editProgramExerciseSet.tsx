@@ -8,12 +8,12 @@ import {
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { SwipeableRow } from "../swipeableRow";
-import { Mobile } from "../../../lambda/utils/mobile";
+import { Mobile_isMobileFromWindow, Mobile_isPlaywrightFromWindow } from "../../../lambda/utils/mobile";
 import { InputNumber2 } from "../inputNumber2";
 import { InputWeight2 } from "../inputWeight2";
 import { lb } from "lens-shmens";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_removeAt } from "../../utils/collection";
 import { StateUpdater } from "preact/hooks";
 
 interface IEditProgramExerciseSetProps {
@@ -37,8 +37,8 @@ interface IEditProgramExerciseSetProps {
 
 export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX.Element {
   const { set, setIndex, setVariationIndex, widthAdd } = props;
-  const isMobile = Mobile.isMobileFromWindow();
-  const isPlaywright = Mobile.isPlaywrightFromWindow();
+  const isMobile = Mobile_isMobileFromWindow();
+  const isPlaywright = Mobile_isPlaywrightFromWindow();
   const shouldUseTouch = isMobile && !isPlaywright;
   const lbUi = lb<IPlannerExerciseState>().pi("ui");
   const lastRowData = (
@@ -127,13 +127,13 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                       (ex) => {
                         const setVariation = ex.evaluatedSetVariations[setVariationIndex];
                         const sets = [...setVariation.sets];
-                        setVariation.sets = CollectionUtils.removeAt(sets, setIndex);
+                        setVariation.sets = CollectionUtils_removeAt(sets, setIndex);
                       }
                     );
                   }),
                   "Delete set"
                 );
-                props.setSetIds((prev) => CollectionUtils.removeAt(prev, setIndex));
+                props.setSetIds((prev) => CollectionUtils_removeAt(prev, setIndex));
               }}
               className="flex-1 h-full text-text-alwayswhite bg-background-darkred nm-workout-exercise-set-delete"
             >

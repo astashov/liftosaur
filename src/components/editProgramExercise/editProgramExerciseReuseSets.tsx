@@ -7,11 +7,11 @@ import {
 } from "../../pages/planner/models/types";
 import { IDayData, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getReusingSetsExercises } from "../../models/program";
 import { InputSelect } from "../inputSelect";
 import { PP } from "../../models/pp";
 import { lb } from "lens-shmens";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_entries, ObjectUtils_mapValues, ObjectUtils_keys, ObjectUtils_clone } from "../../utils/object";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { LinkButton } from "../linkButton";
 import { EditProgramExerciseReuseAtWeekDay } from "./editProgramExerciseReuseAtWeekDay";
@@ -68,12 +68,12 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
     plannerExercise.dayData
   );
   const isOverriding = props.isOverriding;
-  const reusingSetsExercises = Program.getReusingSetsExercises(props.evaluatedProgram, plannerExercise);
+  const reusingSetsExercises = Program_getReusingSetsExercises(props.evaluatedProgram, plannerExercise);
   const reuseSetCandidate = reuseKey ? reuseSetsCandidates[reuseKey] : undefined;
   const reuseSetValues: [string, string | JSX.Element][] = [
     ["", "None"],
-    ...ObjectUtils.entries(
-      ObjectUtils.mapValues<IReuseCandidate, string, typeof reuseSetsCandidates>(
+    ...ObjectUtils_entries(
+      ObjectUtils_mapValues<IReuseCandidate, string, typeof reuseSetsCandidates>(
         reuseSetsCandidates,
         (value) => value.exercise.fullName
       )
@@ -132,7 +132,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                 const newReuseCandidate = reuseSetsCandidates[value];
                 if (newReuseCandidate) {
                   const currentWeek = newReuseCandidate.weekAndDays[plannerExercise.dayData.week];
-                  const week = !currentWeek ? ObjectUtils.keys(newReuseCandidate.weekAndDays)[0] : undefined;
+                  const week = !currentWeek ? ObjectUtils_keys(newReuseCandidate.weekAndDays)[0] : undefined;
                   const day =
                     plannerExercise.key === newReuseCandidate.exercise.key ||
                     week != null ||
@@ -247,7 +247,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                         props.settings,
                         true,
                         (ex) => {
-                          ex.evaluatedSetVariations = ObjectUtils.clone(reuse.exercise?.evaluatedSetVariations || []);
+                          ex.evaluatedSetVariations = ObjectUtils_clone(reuse.exercise?.evaluatedSetVariations || []);
                           props.setIsOverriding(true);
                         }
                       );

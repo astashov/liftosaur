@@ -5,12 +5,12 @@ import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
 import { PlannerEditorView } from "./plannerEditorView";
 import { LinkButton } from "../../../components/linkButton";
-import { CollectionUtils } from "../../../utils/collection";
+import { CollectionUtils_removeAt } from "../../../utils/collection";
 import { PlannerDayStats } from "./plannerDayStats";
 import { getExerciseForStats, PlannerExerciseStats } from "./plannerExerciseStats";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
-import { Exercise } from "../../../models/exercise";
-import { TimeUtils } from "../../../utils/time";
+import { Exercise_findByName } from "../../../models/exercise";
+import { TimeUtils_formatHHMM } from "../../../utils/time";
 import { PlannerStatsUtils } from "../models/plannerStatsUtils";
 import { IconWatch } from "../../../components/icons/iconWatch";
 import { Service } from "../../../api/service";
@@ -43,12 +43,12 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   let approxDayTime: string | undefined;
   if (evaluatedDay.success) {
     for (const plannerExercise of evaluatedDay.data) {
-      const exercise = Exercise.findByName(plannerExercise.name, {});
+      const exercise = Exercise_findByName(plannerExercise.name, {});
       if (exercise) {
         exercise.equipment = plannerExercise.equipment || exercise.defaultEquipment;
       }
     }
-    approxDayTime = TimeUtils.formatHHMM(
+    approxDayTime = TimeUtils_formatHHMM(
       PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout ?? 180)
     );
   }
@@ -207,7 +207,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
                     .p("weeks")
                     .i(weekIndex)
                     .p("days")
-                    .recordModify((days) => CollectionUtils.removeAt(days, dayIndex)),
+                    .recordModify((days) => CollectionUtils_removeAt(days, dayIndex)),
                   "Delete day"
                 );
               }

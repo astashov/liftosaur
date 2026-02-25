@@ -1,8 +1,8 @@
 import { h, JSX, Fragment } from "preact";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
-import { Subscriptions } from "../utils/subscriptions";
-import { Thunk } from "../ducks/thunks";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { ISubscription } from "../types";
 
 interface IProps {
@@ -13,7 +13,7 @@ interface IProps {
 }
 
 export function Locker(props: IProps): JSX.Element {
-  const isSubscribed = Subscriptions.hasSubscription(props.subscription);
+  const isSubscribed = Subscriptions_hasSubscription(props.subscription);
 
   if (isSubscribed) {
     return <></>;
@@ -27,7 +27,7 @@ export function Locker(props: IProps): JSX.Element {
         Get <span className="font-bold text-icon-yellow">Premium</span> to unlock <strong>{props.topic}</strong>
       </div>
       <div className="pt-1 text-center">
-        <Button name="unlock" kind="purple" onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}>
+        <Button name="unlock" kind="purple" onClick={() => props.dispatch(Thunk_pushScreen("subscription"))}>
           Unlock
         </Button>
       </div>

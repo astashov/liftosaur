@@ -7,7 +7,7 @@ import { Tailwind } from "../../utils/tailwindConfig";
 import { EditProgramExerciseSetVariation } from "./editProgramExerciseSetVariation";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_clone } from "../../utils/object";
 import { useRef } from "preact/hooks";
 
 interface IEditProgramExerciseSetVariationsListProps {
@@ -36,7 +36,7 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
                   props.plannerExercise,
                   props.settings,
                   (ex) => {
-                    const lastSetVariation = ObjectUtils.clone(
+                    const lastSetVariation = ObjectUtils_clone(
                       ex.evaluatedSetVariations[ex.evaluatedSetVariations.length - 1]
                     );
                     ex.evaluatedSetVariations.push(lastSetVariation);

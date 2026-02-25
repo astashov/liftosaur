@@ -1,13 +1,18 @@
 import { h, JSX, Fragment } from "preact";
 import { useState } from "preact/hooks";
-import { Settings } from "../../models/settings";
+import { Settings_build } from "../../models/settings";
 import { IProgram, ISettings } from "../../types";
 import { IAccount } from "../../models/account";
 import { ProgramDetailsWorkoutPlayground } from "./programDetails/programDetailsWorkoutPlayground";
 import { ProgramDetailsUpsell } from "./programDetails/programDetailsUpsell";
 import { ProgramDetailsAddButton } from "./programDetails/programDetailsAddButton";
-import { IProgramIndexEntry, Program } from "../../models/program";
-import { ObjectUtils } from "../../utils/object";
+import {
+  IProgramIndexEntry,
+  Program_fullProgram,
+  Program_evaluate,
+  Program_exerciseRangeFormat,
+} from "../../models/program";
+import { ObjectUtils_clone } from "../../utils/object";
 import { Markdown } from "../../components/markdown";
 import { IPlannerEvalResult } from "../planner/plannerExerciseEvaluator";
 import { IconArrowDown2 } from "../../components/icons/iconArrowDown2";
@@ -16,9 +21,9 @@ import { PlannerWeekStats } from "../planner/components/plannerWeekStats";
 import { IconWatch } from "../../components/icons/iconWatch";
 import { IconCalendarSmall } from "../../components/icons/iconCalendarSmall";
 import { IconKettlebellSmall } from "../../components/icons/iconKettlebellSmall";
-import { Equipment } from "../../models/equipment";
+import { Equipment_currentEquipment } from "../../models/equipment";
 import { equipmentName } from "../../models/exercise";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_pluralize } from "../../utils/string";
 import { Tailwind } from "../../utils/tailwindConfig";
 
 export interface IProgramDetailsContentProps {
@@ -34,9 +39,9 @@ export interface IProgramDetailsContentProps {
 
 export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.Element {
   const { program, accountSettings, indexEntry } = props;
-  const settings = accountSettings || Settings.build();
-  const fullProgram = Program.fullProgram(ObjectUtils.clone(program), settings);
-  const evaluatedProgram = Program.evaluate(ObjectUtils.clone(program), settings);
+  const settings = accountSettings || Settings_build();
+  const fullProgram = Program_fullProgram(ObjectUtils_clone(program), settings);
+  const evaluatedProgram = Program_evaluate(ObjectUtils_clone(program), settings);
   const descriptionText = props.fullDescription || program.description;
 
   const firstWeek = evaluatedProgram.weeks[0];
@@ -45,7 +50,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   const evaluatedDays: IPlannerEvalResult[] =
     firstWeek?.days.map((d) => ({ success: true as const, data: d.exercises })) ?? [];
 
-  const allEquipment = Equipment.currentEquipment(settings);
+  const allEquipment = Equipment_currentEquipment(settings);
   const equipment = (indexEntry?.equipment ?? []).map((e) => equipmentName(e, allEquipment));
   const exercisesRange = indexEntry?.exercisesRange;
   const weeksCount = indexEntry?.weeksCount ?? 0;
@@ -122,10 +127,10 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
                   <div className="flex mb-2 text-sm text-text-secondary">
                     <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mt-0.5 mr-1" />
                     <div>
-                      {weeksCount > 1 && `${weeksCount} ${StringUtils.pluralize("week", weeksCount)}, `}
+                      {weeksCount > 1 && `${weeksCount} ${StringUtils_pluralize("week", weeksCount)}, `}
                       {indexEntry?.frequency ? `${indexEntry.frequency}x/week` : ""}
                       {indexEntry?.frequency && exercisesRange ? ", " : ""}
-                      {exercisesRange ? Program.exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
+                      {exercisesRange ? Program_exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
                     </div>
                   </div>
                   {equipment.length > 0 && (

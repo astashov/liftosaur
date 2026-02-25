@@ -1,11 +1,18 @@
-import { SendMessage } from "../utils/sendMessage";
+import {
+  SendMessage_isIos,
+  SendMessage_iosAppVersion,
+  SendMessage_iosVersion,
+  SendMessage_isAndroid,
+  SendMessage_androidAppVersion,
+  SendMessage_androidVersion,
+} from "../utils/sendMessage";
 
 export class HealthSync {
   public static eligibleForAppleHealth(): boolean {
-    return SendMessage.isIos() && SendMessage.iosAppVersion() >= 9 && SendMessage.iosVersion() >= 15;
+    return SendMessage_isIos() && SendMessage_iosAppVersion() >= 9 && SendMessage_iosVersion() >= 15;
   }
 
   public static eligibleForGoogleHealth(): boolean {
-    return SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 18 && SendMessage.androidVersion() >= 14;
+    return SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 18 && SendMessage_androidVersion() >= 14;
   }
 }

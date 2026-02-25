@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { MenuItemEditable } from "./menuItemEditable";
-import { Exercise, IExercise } from "../models/exercise";
+import { IExercise, Exercise_onerm } from "../models/exercise";
 import { IExerciseDataValue, ISettings } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { useState } from "preact/hooks";
@@ -16,7 +16,7 @@ interface IExerciseRMProps {
 }
 
 export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
-  const rm = Exercise.onerm(props.exercise, props.settings);
+  const rm = Exercise_onerm(props.exercise, props.settings);
   const [showCalculator, setShowCalculator] = useState(false);
 
   return (

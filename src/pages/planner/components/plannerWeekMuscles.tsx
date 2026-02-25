@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { ObjectUtils } from "../../../utils/object";
+import { ObjectUtils_keys } from "../../../utils/object";
 import { BackMusclesSvg, IMuscleStyle } from "../../../components/muscles/images/backMusclesSvg";
 import { FrontMusclesSvg } from "../../../components/muscles/images/frontMusclesSvg";
 import { IMuscleGroupSetSplit } from "../models/types";
@@ -12,7 +12,7 @@ interface IPlannerMusclesProps {
 }
 
 export function PlannerWeekMuscles(props: IPlannerMusclesProps): JSX.Element {
-  const muscleData = ObjectUtils.keys(props.data).reduce<Partial<Record<IScreenMuscle, IMuscleStyle>>>((memo, key) => {
+  const muscleData = ObjectUtils_keys(props.data).reduce<Partial<Record<IScreenMuscle, IMuscleStyle>>>((memo, key) => {
     const setNumber = props.data[key].strength + props.data[key].hypertrophy;
     const [, max] = props.settings.planner.weeklyRangeSets[key] ?? [0, 0];
     const value = setNumber / max;

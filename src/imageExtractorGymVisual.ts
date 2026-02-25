@@ -4,7 +4,7 @@ import path from "path";
 import { S3Util } from "../lambda/utils/s3";
 import { LogUtil } from "../lambda/utils/log";
 import util from "util";
-import { CollectionUtils } from "./utils/collection";
+import { CollectionUtils_inGroupsOf } from "./utils/collection";
 import childProcess from "child_process";
 import { LftS3Buckets } from "../lambda/dao/buckets";
 
@@ -245,8 +245,8 @@ async function uploadToS3(): Promise<void> {
   const logUtil = new LogUtil();
   const s3 = new S3Util(logUtil);
 
-  const smallGroups = CollectionUtils.inGroupsOf(100, smallFiles);
-  const largeGroups = CollectionUtils.inGroupsOf(100, largeFiles);
+  const smallGroups = CollectionUtils_inGroupsOf(100, smallFiles);
+  const largeGroups = CollectionUtils_inGroupsOf(100, largeFiles);
 
   for (const sf of smallGroups) {
     await Promise.all(

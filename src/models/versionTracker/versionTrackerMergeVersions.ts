@@ -1,4 +1,4 @@
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_clone, ObjectUtils_keys } from "../../utils/object";
 import {
   IVersionTypes,
   IVersionsObject,
@@ -21,7 +21,7 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
   }
 
   public run<T>(fullVersions: IVersions<T>, versionDiff: IVersions<T>): IVersions<T> {
-    const result = ObjectUtils.clone(fullVersions);
+    const result = ObjectUtils_clone(fullVersions);
     const resultObj = VersionTrackerUtils.asVersionsObject(result);
     const diffObj = VersionTrackerUtils.asVersionsObject(versionDiff);
 
@@ -137,7 +137,7 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
       path && this.versionTypes.compactionThresholds ? this.versionTypes.compactionThresholds[path] : undefined;
     const currentTimestamp = Date.now();
 
-    for (const key of ObjectUtils.keys(result.deleted || {})) {
+    for (const key of ObjectUtils_keys(result.deleted || {})) {
       if (result.items) {
         delete result.items[key];
       }

@@ -5,15 +5,15 @@ import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
 import { IHistoryRecord, IPercentage, IProgramState, ISettings, IWeight } from "../types";
 import { GroupHeader } from "./groupHeader";
-import { ObjectUtils } from "../utils/object";
-import { Weight } from "../models/weight";
+import { ObjectUtils_keys } from "../utils/object";
+import { Weight_build, Weight_is, Weight_isPct, Weight_buildPct } from "../models/weight";
 import { InputWeight } from "./inputWeight";
 import { InputNumber } from "./inputNumber";
-import { MathUtils } from "../utils/math";
+import { MathUtils_round } from "../utils/math";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
-import { Exercise } from "../models/exercise";
+import { Exercise_getIsUnilateral } from "../models/exercise";
 
 interface IModalAmrapProps {
   progress: IHistoryRecord;
@@ -31,7 +31,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const entryIndex = amrapModal?.entryIndex || 0;
   const setIndex = amrapModal?.setIndex || 0;
   const entry = progress.entries[entryIndex];
-  const isUnilateral = Exercise.getIsUnilateral(entry?.exercise || props.programExercise?.exerciseType, props.settings);
+  const isUnilateral = Exercise_getIsUnilateral(entry?.exercise || props.programExercise?.exerciseType, props.settings);
 
   const initialReps = entry?.sets[setIndex]?.completedReps ?? entry?.sets[setIndex]?.reps;
   const initialRepsLeft = isUnilateral
@@ -53,7 +53,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const stateMetadata = props.programExercise
     ? PlannerProgramExercise.getStateMetadata(props.programExercise) || {}
     : {};
-  const stateMetadataKeys = ObjectUtils.keys(stateMetadata).filter((k) => stateMetadata[k]?.userPrompted);
+  const stateMetadataKeys = ObjectUtils_keys(stateMetadata).filter((k) => stateMetadata[k]?.userPrompted);
   const state = props.programExercise ? PlannerProgramExercise.getState(props.programExercise) : {};
   const initialUserVarInputValues = stateMetadataKeys.reduce<
     Record<keyof typeof stateMetadata, number | IWeight | IPercentage>
@@ -72,9 +72,9 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   ): void {
     props.dispatch({
       type: "ChangeAMRAPAction",
-      amrapValue: amrapValue != null ? MathUtils.round(amrapValue, 1) : undefined,
-      amrapLeftValue: amrapLeftValue != null ? MathUtils.round(amrapLeftValue, 1) : undefined,
-      rpeValue: rpeValue != null ? MathUtils.round(rpeValue, 0.5) : undefined,
+      amrapValue: amrapValue != null ? MathUtils_round(amrapValue, 1) : undefined,
+      amrapLeftValue: amrapLeftValue != null ? MathUtils_round(amrapLeftValue, 1) : undefined,
+      rpeValue: rpeValue != null ? MathUtils_round(rpeValue, 0.5) : undefined,
       weightValue,
       setIndex: setIndex,
       entryIndex: entryIndex,
@@ -132,7 +132,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
               exerciseType={entry?.exercise || props.programExercise?.exerciseType}
               label="Weight"
               units={["kg", "lb"]}
-              value={weightInputValue || Weight.build(0, props.settings.units)}
+              value={weightInputValue || Weight_build(0, props.settings.units)}
               data-cy="modal-amrap-weight-input"
               settings={props.settings}
               onUpdate={(newValue) => {
@@ -163,10 +163,10 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
             onUpdate={(key, value) => {
               setUserVarInputValues((prev) => {
                 const previousValue = prev[key];
-                const typedValue = Weight.is(previousValue)
-                  ? Weight.build(value, previousValue.unit)
-                  : Weight.isPct(previousValue)
-                    ? Weight.buildPct(value)
+                const typedValue = Weight_is(previousValue)
+                  ? Weight_build(value, previousValue.unit)
+                  : Weight_isPct(previousValue)
+                    ? Weight_buildPct(value)
                     : value;
                 return { ...prev, [key]: typedValue };
               });
@@ -199,11 +199,11 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
               const amrapLeftValue = isAmrap && isUnilateral ? (repsLeftInputValue ?? 0) : undefined;
               const rpeValue = logRpe ? rpeInputValue : undefined;
               const weightOrPctValue = askWeight
-                ? (weightInputValue ?? Weight.build(0, props.settings.units))
+                ? (weightInputValue ?? Weight_build(0, props.settings.units))
                 : undefined;
               const weightValue =
-                weightOrPctValue != null && Weight.isPct(weightOrPctValue)
-                  ? Weight.build(weightOrPctValue.value, props.settings.units)
+                weightOrPctValue != null && Weight_isPct(weightOrPctValue)
+                  ? Weight_build(weightOrPctValue.value, props.settings.units)
                   : weightOrPctValue;
 
               onDone(amrapValue, amrapLeftValue, rpeValue, weightValue, userVarInputValues);
@@ -226,7 +226,7 @@ export function UserPromptedStateVars(props: IUserPromptedStateVarsProps): JSX.E
   return (
     <>
       <GroupHeader size="large" name="Enter new state variables values" />
-      {ObjectUtils.keys(props.userVarInputValues).map((key, i) => {
+      {ObjectUtils_keys(props.userVarInputValues).map((key, i) => {
         return (
           <UserPromptedStateVar
             k={key}
@@ -249,15 +249,15 @@ interface IUserPromptedStateVarProps {
 
 export function UserPromptedStateVar(props: IUserPromptedStateVarProps): JSX.Element {
   const { k: key, value } = props;
-  const num = Weight.is(value) || Weight.isPct(value) ? value.value : value;
-  const label = Weight.is(value) ? `${key}, ${value.unit}` : key;
+  const num = Weight_is(value) || Weight_isPct(value) ? value.value : value;
+  const label = Weight_is(value) ? `${key}, ${value.unit}` : key;
   return (
     <div className={props.index !== 0 ? "mt-2" : ""}>
       <InputNumber
         data-cy={`modal-state-vars-user-prompt-input-${key}`}
         label={label}
         value={num}
-        min={Weight.is(value) || Weight.isPct(value) ? 0 : undefined}
+        min={Weight_is(value) || Weight_isPct(value) ? 0 : undefined}
         step={1}
         onUpdate={props.onUpdate}
       />

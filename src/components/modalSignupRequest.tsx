@@ -4,8 +4,8 @@ import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
 import { lb } from "lens-shmens";
-import { SendMessage } from "../utils/sendMessage";
-import { Thunk } from "../ducks/thunks";
+import { SendMessage_isIos, SendMessage_isAndroid } from "../utils/sendMessage";
+import { Thunk_log, Thunk_pushScreen } from "../ducks/thunks";
 
 interface IProps {
   numberOfWorkouts: number;
@@ -26,7 +26,7 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
       shouldShowClose={true}
       isFullWidth={true}
       onClose={() => {
-        props.dispatch(Thunk.log("ls-signup-request-close"));
+        props.dispatch(Thunk_log("ls-signup-request-close"));
         updateState(props.dispatch, lbSaveSignupRequestDate, "Close signup request");
       }}
     >
@@ -46,12 +46,12 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
           <strong> signing up</strong> so your workout history would be backed up in the cloud.
         </div>
         <div className="mt-4">
-          {SendMessage.isIos() && (
+          {SendMessage_isIos() && (
             <>
               It's a one-click process via <strong>Sign-in with Apple</strong>.
             </>
           )}
-          {SendMessage.isAndroid() && (
+          {SendMessage_isAndroid() && (
             <>
               It's a quick process via <strong>Sign-in with Google</strong>.
             </>
@@ -78,7 +78,7 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
             className="ls-signup-request-signup"
             onClick={() => {
               updateState(props.dispatch, lbSaveSignupRequestDate, "Accept signup request");
-              props.dispatch(Thunk.pushScreen("account"));
+              props.dispatch(Thunk_pushScreen("account"));
             }}
           >
             Sign up

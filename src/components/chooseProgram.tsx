@@ -8,12 +8,12 @@ import { BuiltinProgramsList } from "./builtinProgramsList";
 import { LinkButton } from "./linkButton";
 import { ModalImportFromLink } from "./modalImportFromLink";
 import { useState } from "preact/hooks";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_importFromLink } from "../ducks/thunks";
 import { ModalCreateProgram } from "./modalCreateProgram";
-import { EditProgram } from "../models/editProgram";
+import { EditProgram_create } from "../models/editProgram";
 import { CustomProgramsList } from "./customProgramsList";
 import { ScrollableTabs } from "./scrollableTabs";
-import { emptyProgramId, IProgramIndexEntry, Program } from "../models/program";
+import { emptyProgramId, IProgramIndexEntry, Program_selectProgram } from "../models/program";
 
 interface IProps {
   dispatch: IDispatch;
@@ -70,7 +70,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
         <Footer
           onCreate={() => setShouldCreateProgram(true)}
           onEmpty={() => {
-            Program.selectProgram(props.dispatch, emptyProgramId);
+            Program_selectProgram(props.dispatch, emptyProgramId);
           }}
         />
       }
@@ -80,7 +80,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             isHidden={!showImportFromLink}
             onSubmit={async (link) => {
               if (link) {
-                props.dispatch(Thunk.importFromLink(link));
+                props.dispatch(Thunk_importFromLink(link));
               }
               setShowImportFromLink(false);
             }}
@@ -89,7 +89,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             isHidden={!shouldCreateProgram}
             onClose={() => setShouldCreateProgram(false)}
             onSelect={(name) => {
-              EditProgram.create(props.dispatch, name);
+              EditProgram_create(props.dispatch, name);
             }}
           />
         </>

@@ -1,4 +1,4 @@
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_keys } from "../../utils/object";
 import {
   IVersionTypes,
   IVersions,
@@ -21,7 +21,7 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
   public run<T extends Record<string, unknown>>(obj: T, versionsDiff: IVersions<T>): Partial<T> {
     const result: Partial<T> = {};
 
-    for (const key of ObjectUtils.keys(versionsDiff)) {
+    for (const key of ObjectUtils_keys(versionsDiff)) {
       const version = versionsDiff[key];
       const value = obj[key];
 

@@ -11,16 +11,24 @@ import { lb, LensBuilder } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { HelpEditProgramV2 } from "../help/helpEditProgramV2";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
-import { IEvaluatedProgram, Program } from "../../models/program";
-import { StringUtils } from "../../utils/string";
+import {
+  IEvaluatedProgram,
+  Program_evaluate,
+  Program_getProgramExerciseForKeyAndShortDayData,
+  Program_dayAverageTimeMs,
+  Program_daysRange,
+  Program_exerciseRange,
+  Program_getDayName,
+} from "../../models/program";
+import { StringUtils_pluralize } from "../../utils/string";
 import { IconCalendarSmall } from "../icons/iconCalendarSmall";
-import { TimeUtils } from "../../utils/time";
+import { TimeUtils_formatHOrMin } from "../../utils/time";
 import { IconTimerSmall } from "../icons/iconTimerSmall";
-import { EditProgram } from "../../models/editProgram";
+import { EditProgram_setName } from "../../models/editProgram";
 import { ScrollableTabs } from "../scrollableTabs";
 import { EditProgramView } from "./editProgram";
 import { ProgramPreviewPlayground } from "../preview/programPreviewPlayground";
-import { Thunk } from "../../ducks/thunks";
+import { Thunk_generateAndCopyLink, Thunk_fetchRevisions, Thunk_pushScreen } from "../../ducks/thunks";
 import { IconSwap } from "../icons/iconSwap";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { LinkButton } from "../linkButton";
@@ -36,10 +44,10 @@ import { Modal } from "../modal";
 import { ModalPlannerSettings } from "../../pages/planner/components/modalPlannerSettings";
 import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats";
 import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
-import { UidFactory } from "../../utils/generator";
+import { UidFactory_generateUid } from "../../utils/generator";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { UrlUtils } from "../../utils/url";
-import { ClipboardUtils } from "../../utils/clipboard";
+import { ClipboardUtils_copy } from "../../utils/clipboard";
 import { EditProgramBottomSheetPicker } from "./editProgramBottomSheetPicker";
 import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { ProgramPreviewTab } from "../preview/programPreviewTab";
@@ -89,9 +97,9 @@ export function ScreenProgram(props: IProps): JSX.Element {
   useLayoutEffect(() => {
     if (props.plannerState) {
       for (const week of planner.weeks) {
-        week.id = week.id ?? UidFactory.generateUid(8);
+        week.id = week.id ?? UidFactory_generateUid(8);
         for (const day of week.days) {
-          day.id = day.id ?? UidFactory.generateUid(8);
+          day.id = day.id ?? UidFactory_generateUid(8);
         }
       }
     }
@@ -110,14 +118,14 @@ export function ScreenProgram(props: IProps): JSX.Element {
 
   const program: IProgram = plannerState.current.program;
   const planner = program.planner!;
-  const evaluatedProgram = Program.evaluate(program, props.settings);
+  const evaluatedProgram = Program_evaluate(program, props.settings);
   const { evaluatedWeeks, exerciseFullNames } = PlannerProgram.evaluate(planner, props.settings);
   const ui = plannerState.ui;
 
   const editExerciseModal = ui.editExerciseModal;
   const exercisePickerUi = props.plannerState.ui.exercisePicker;
   const exercisePickerPlannerExercise = exercisePickerUi?.exerciseKey
-    ? Program.getProgramExerciseForKeyAndShortDayData(
+    ? Program_getProgramExerciseForKeyAndShortDayData(
         evaluatedProgram,
         exercisePickerUi.dayData,
         exercisePickerUi.exerciseKey
@@ -153,13 +161,13 @@ export function ScreenProgram(props: IProps): JSX.Element {
             onExportProgramToLink={() => {
               setShouldShowBottomSheet(false);
               const url = UrlUtils.build(`/user/p/${props.originalProgram.id}`, __HOST__);
-              ClipboardUtils.copy(url.toString());
+              ClipboardUtils_copy(url.toString());
               alert(`Copied link to the clipboard: ${url}`);
             }}
             onShareProgramToLink={() => {
               setShouldShowBottomSheet(false);
               props.dispatch(
-                Thunk.generateAndCopyLink(props.originalProgram, props.settings, (url) => {
+                Thunk_generateAndCopyLink(props.originalProgram, props.settings, (url) => {
                   alert(`Copied link to the clipboard: ${url}`);
                 })
               );
@@ -171,7 +179,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
             onLoadRevisions={() => {
               setIsLoadingRevisions(true);
               props.dispatch(
-                Thunk.fetchRevisions(props.originalProgram.id, () => {
+                Thunk_fetchRevisions(props.originalProgram.id, () => {
                   setIsLoadingRevisions(false);
                   setShowRevisions(true);
                   setShouldShowBottomSheet(false);
@@ -412,13 +420,13 @@ export function ScreenProgram(props: IProps): JSX.Element {
           evaluatedProgram={evaluatedProgram}
           settings={props.settings}
           onChangeProgram={() => {
-            props.dispatch(Thunk.pushScreen("programs"));
+            props.dispatch(Thunk_pushScreen("programs"));
           }}
           onChangeDay={() => {
             setShowChangeNextDay(true);
           }}
           onChangeName={(newValue) => {
-            EditProgram.setName(props.dispatch, props.originalProgram, newValue);
+            EditProgram_setName(props.dispatch, props.originalProgram, newValue);
             plannerDispatch(
               [
                 lb<IPlannerState>().p("current").p("program").p("name").record(newValue),
@@ -509,8 +517,8 @@ interface IEditProgramHeaderProps {
 
 function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
   const evaluatedProgram = props.evaluatedProgram;
-  const time = Program.dayAverageTimeMs(evaluatedProgram, props.settings);
-  const duration = TimeUtils.formatHOrMin(time);
+  const time = Program_dayAverageTimeMs(evaluatedProgram, props.settings);
+  const duration = TimeUtils_formatHOrMin(time);
   return (
     <div className="px-4">
       <div className="flex items-center text-base font-bold">
@@ -540,8 +548,8 @@ function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
           <IconCalendarSmall className="block mr-1" />{" "}
           <div className="text-xs">
             {evaluatedProgram.weeks.length > 1 &&
-              `${evaluatedProgram.weeks.length} ${StringUtils.pluralize("week", evaluatedProgram.weeks.length)}, `}
-            {Program.daysRange(evaluatedProgram)}, {Program.exerciseRange(evaluatedProgram)}
+              `${evaluatedProgram.weeks.length} ${StringUtils_pluralize("week", evaluatedProgram.weeks.length)}, `}
+            {Program_daysRange(evaluatedProgram)}, {Program_exerciseRange(evaluatedProgram)}
           </div>
         </div>
         <div className="flex text-text-secondary">
@@ -556,7 +564,7 @@ function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
       <div className="mt-1 text-xs text-text-secondary">
         <strong>Next Day: </strong>
         <LinkButton data-cy="change-program-day" name="change-program-day" onClick={() => props.onChangeDay()}>
-          {Program.getDayName(evaluatedProgram, evaluatedProgram.nextDay)}
+          {Program_getDayName(evaluatedProgram, evaluatedProgram.nextDay)}
         </LinkButton>
       </div>
     </div>

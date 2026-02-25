@@ -1,7 +1,14 @@
 import { h, JSX, Fragment } from "preact";
 import { BottomSheet } from "./bottomSheet";
 import { IProgram, ISettings, IStats } from "../types";
-import { emptyProgramId, Program } from "../models/program";
+import {
+  emptyProgramId,
+  Program_evaluate,
+  Program_getProgramDay,
+  Program_nextHistoryRecord,
+  Program_isEmpty,
+  Program_selectProgram,
+} from "../models/program";
 import { HistoryRecordView } from "./historyRecord";
 import { IDispatch } from "../ducks/types";
 import { LinkButton } from "./linkButton";
@@ -10,10 +17,10 @@ import { IconSwap } from "./icons/iconSwap";
 import { Tailwind } from "../utils/tailwindConfig";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { memo } from "preact/compat";
-import { ComparerUtils } from "../utils/comparer";
-import { EditProgram } from "../models/editProgram";
+import { ComparerUtils_noFns } from "../utils/comparer";
+import { EditProgram_setNextDay } from "../models/editProgram";
 import { ModalChangeNextDay } from "./modalChangeNextDay";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_startProgramDay } from "../ducks/thunks";
 
 interface IProps {
   isHidden: boolean;
@@ -27,11 +34,11 @@ interface IProps {
 
 export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
   const [showChangeWorkout, setShowChangeWorkout] = useState(false);
-  const evaluatedProgram = props.currentProgram ? Program.evaluate(props.currentProgram, props.settings) : undefined;
+  const evaluatedProgram = props.currentProgram ? Program_evaluate(props.currentProgram, props.settings) : undefined;
 
-  const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, evaluatedProgram.nextDay) : undefined;
+  const programDay = evaluatedProgram ? Program_getProgramDay(evaluatedProgram, evaluatedProgram.nextDay) : undefined;
   const nextHistoryRecord = props.currentProgram
-    ? Program.nextHistoryRecord(props.currentProgram, props.settings, props.stats)
+    ? Program_nextHistoryRecord(props.currentProgram, props.settings, props.stats)
     : undefined;
 
   const doesProgressNotMatchProgram =
@@ -48,7 +55,7 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
             You currently have ongoing workout. Finish it first to see newly chosen program or a different day.
           </div>
         )}
-        {Program.isEmpty(props.currentProgram) && (
+        {Program_isEmpty(props.currentProgram) && (
           <div className="mx-4 mb-1 text-xs text-center text-text-secondary">No program currently selected.</div>
         )}
         <div className="relative flex flex-col flex-1 min-h-0">
@@ -75,7 +82,7 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
                 name="start-empty-workout"
                 data-cy="start-empty-workout"
                 onClick={() => {
-                  props.dispatch(Thunk.startProgramDay(emptyProgramId));
+                  props.dispatch(Thunk_startProgramDay(emptyProgramId));
                 }}
               >
                 <IconPlus2 color={Tailwind.colors().blue[400]} className="inline-block pr-1" />
@@ -91,8 +98,8 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
           onClose={() => setShowChangeWorkout(false)}
           initialCurrentProgramId={evaluatedProgram.id}
           onSelect={(programId, day) => {
-            Program.selectProgram(props.dispatch, programId);
-            EditProgram.setNextDay(props.dispatch, programId, day);
+            Program_selectProgram(props.dispatch, programId);
+            EditProgram_setNextDay(props.dispatch, programId, day);
           }}
           allPrograms={props.allPrograms}
           settings={props.settings}
@@ -100,4 +107,4 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
       )}
     </>
   );
-}, ComparerUtils.noFns);
+}, ComparerUtils_noFns);

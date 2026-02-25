@@ -1,10 +1,10 @@
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { inputClassName } from "../../../components/input";
-import { Weight } from "../../../models/weight";
+import { Weight_isPct, Weight_buildPct, Weight_build } from "../../../models/weight";
 import { IPercentage, IProgramState, ISettings, IWeight } from "../../../types";
-import { ObjectUtils } from "../../../utils/object";
-import { SendMessage } from "../../../utils/sendMessage";
+import { ObjectUtils_keys } from "../../../utils/object";
+import { SendMessage_isIos } from "../../../utils/sendMessage";
 
 interface IStateVarsProps {
   id: string;
@@ -18,7 +18,7 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
   if (Object.keys(stateVars).length === 0) {
     return null;
   }
-  const varEls = ObjectUtils.keys(stateVars).map((key) => {
+  const varEls = ObjectUtils_keys(stateVars).map((key) => {
     const variable = stateVars[key];
     const name = `${id}_${key}`;
     const val = typeof variable === "number" ? variable : variable.value;
@@ -32,7 +32,7 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
           id={name}
           data-cy={`state-var-${key}-input`}
           name={name}
-          type={SendMessage.isIos() ? "number" : "tel"}
+          type={SendMessage_isIos() ? "number" : "tel"}
           value={val}
           onInput={(e) => {
             const newValStr = (e.target as HTMLInputElement).value;
@@ -41,9 +41,9 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
               const newValue =
                 typeof variable === "number"
                   ? newVal
-                  : Weight.isPct(variable)
-                    ? Weight.buildPct(newVal)
-                    : Weight.build(newVal, variable.unit);
+                  : Weight_isPct(variable)
+                    ? Weight_buildPct(newVal)
+                    : Weight_build(newVal, variable.unit);
               props.onChange(key, newValue);
             }
           }}

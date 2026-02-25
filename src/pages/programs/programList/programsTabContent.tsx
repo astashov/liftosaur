@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { useRef } from "preact/hooks";
 import { ProgramCard } from "./programCard";
 import { ISettings } from "../../../types";
-import { StringUtils } from "../../../utils/string";
+import { StringUtils_pluralize } from "../../../utils/string";
 import { IProgramIndexEntry } from "../../../models/program";
 import { IconMagnifyingGlass } from "../../../components/icons/iconMagnifyingGlass";
 import { Tailwind } from "../../../utils/tailwindConfig";
@@ -20,7 +20,7 @@ export function ProgramsTabContent(props: IProgramsTabContentProps): JSX.Element
       <div className="flex items-center justify-between pb-4">
         <div className="text-base">
           <span className="font-bold">{props.programs.length}</span>{" "}
-          {StringUtils.pluralize("program", props.programs.length)}
+          {StringUtils_pluralize("program", props.programs.length)}
         </div>
         <ProgramSearchField value={props.search} onChange={props.onSearchChange} />
       </div>

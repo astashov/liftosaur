@@ -5,7 +5,7 @@ import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { ExercisesList } from "./exercisesList";
-import { Program } from "../models/program";
+import { Program_fullProgram } from "../models/program";
 import { HelpExercises } from "./help/helpExercises";
 import { INavCommon } from "../models/state";
 
@@ -35,7 +35,7 @@ export function ScreenExercises(props: IProps): JSX.Element {
           isLoggedIn={!!props.navCommon.userId}
           dispatch={props.dispatch}
           settings={props.settings}
-          program={Program.fullProgram(props.program, props.settings)}
+          program={Program_fullProgram(props.program, props.settings)}
           history={props.history}
         />
       </section>

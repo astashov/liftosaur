@@ -9,14 +9,22 @@ import { updateProgress } from "../models/state";
 import { LensBuilder } from "lens-shmens";
 import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
 import { SwipeableRow } from "./swipeableRow";
-import { CollectionUtils } from "../utils/collection";
-import { Mobile } from "../../lambda/utils/mobile";
+import { CollectionUtils_removeAt } from "../utils/collection";
+import { Mobile_isMobileFromWindow, Mobile_isPlaywrightFromWindow } from "../../lambda/utils/mobile";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
-import { EditProgressEntry } from "../models/editProgressEntry";
-import { Reps } from "../models/set";
-import { Weight } from "../models/weight";
-import { Exercise } from "../models/exercise";
+import { EditProgressEntry_showEditSetModal } from "../models/editProgressEntry";
+import { Reps_enforceCompletedSet, Reps_setsStatus, Reps_avgUnilateralCompletedReps } from "../models/set";
+import {
+  Weight_eq,
+  Weight_rpeMultiplier,
+  Weight_multiply,
+  Weight_calculatePlates,
+  Weight_formatOneSide,
+  Weight_isPct,
+  Weight_getOneRepMax,
+} from "../models/weight";
+import { Exercise_getIsUnilateral, Exercise_onerm } from "../models/exercise";
 
 interface IWorkoutExerciseSet {
   exerciseType: IExerciseType;
@@ -47,12 +55,12 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const placeholderReps = `${set.minReps != null ? `${n(set.minReps)}-` : ""}${set.reps != null ? n(set.reps) : ""}${set.reps != null && set.isAmrap ? "+" : ""}`;
   const placeholderWeight = set.weight?.value != null ? `${n(set.weight.value)}${set.askWeight ? "+" : ""}` : undefined;
   const completedRpeValue = set.logRpe && set.completedRpe != null ? set.completedRpe : undefined;
-  const isMobile = Mobile.isMobileFromWindow();
-  const isPlaywright = Mobile.isPlaywrightFromWindow();
+  const isMobile = Mobile_isMobileFromWindow();
+  const isPlaywright = Mobile_isPlaywrightFromWindow();
   const shouldUseTouch = isMobile && !isPlaywright;
   const borderClass = ` border-b ${WorkoutExerciseUtils.getBorderColor100([props.set], false)}`;
   const hasEdit = props.type === "workout";
-  const isUnilateral = Exercise.getIsUnilateral(props.exerciseType, props.settings);
+  const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
 
   return (
     <SwipeableRow
@@ -170,7 +178,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                       [
                         props.lbSet.recordModify((s) => {
                           const newSet = { ...s, completedReps: Math.round(value) };
-                          return Reps.enforceCompletedSet(newSet);
+                          return Reps_enforceCompletedSet(newSet);
                         }),
                       ],
                       "input-reps"
@@ -183,7 +191,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     [
                       props.lbSet.recordModify((s) => {
                         const newSet = { ...s, completedReps: value };
-                        return Reps.enforceCompletedSet(newSet);
+                        return Reps_enforceCompletedSet(newSet);
                       }),
                     ],
                     "blur-reps"
@@ -219,7 +227,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                       [
                         props.lbSet.recordModify((s) => {
                           const newSet = { ...s, completedWeight: value };
-                          return Reps.enforceCompletedSet(newSet);
+                          return Reps_enforceCompletedSet(newSet);
                         }),
                       ],
                       "blur-weight"
@@ -233,7 +241,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                       [
                         props.lbSet.recordModify((s) => {
                           const newSet = { ...s, completedWeight: value };
-                          return Reps.enforceCompletedSet(newSet);
+                          return Reps_enforceCompletedSet(newSet);
                         }),
                       ],
                       "input-weight"
@@ -311,7 +319,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   data-cy="edit-set-target"
                   onClick={() => {
                     close();
-                    EditProgressEntry.showEditSetModal(
+                    EditProgressEntry_showEditSetModal(
                       props.dispatch,
                       props.settings,
                       props.type === "warmup",
@@ -336,7 +344,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     props.dispatch,
                     [
                       props.lbSets.recordModify((s) => {
-                        const newSets = CollectionUtils.removeAt(s, props.setIndex);
+                        const newSets = CollectionUtils_removeAt(s, props.setIndex);
                         for (let setIndex = 0; setIndex < newSets.length; setIndex += 1) {
                           const newSet = newSets[setIndex];
                           newSet.index = setIndex;
@@ -389,7 +397,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
     case "adhoc":
     case "program": {
       const aSet = props.set;
-      const isDiffWeight = aSet.weight && aSet.originalWeight && !Weight.eq(aSet.weight, aSet.originalWeight);
+      const isDiffWeight = aSet.weight && aSet.originalWeight && !Weight_eq(aSet.weight, aSet.originalWeight);
       const hasTarget = aSet.reps != null || aSet.weight != null;
       return (
         <div className="inline-block text-sm align-middle">
@@ -455,7 +463,7 @@ function WorkoutExerciseLastSet(props: IWorkoutExerciseLastSetProps): JSX.Elemen
   if (set == null) {
     return <span className="text-xs text-text-secondary">No last set</span>;
   }
-  const setStatus = Reps.setsStatus([set]);
+  const setStatus = Reps_setsStatus([set]);
   return (
     <div className="inline-block text-sm align-middle">
       {set.label ? <div className="text-xs text-text-secondary">{set.label}</div> : null}
@@ -490,9 +498,9 @@ interface IRpeWeightHintProps {
 }
 
 function RpeWeightHint(props: IRpeWeightHintProps): JSX.Element {
-  const multiplier = Weight.rpeMultiplier(props.reps, props.rpe);
-  const onerm = Exercise.onerm(props.exerciseType, props.settings);
-  const weight = Weight.multiply(onerm, multiplier);
+  const multiplier = Weight_rpeMultiplier(props.reps, props.rpe);
+  const onerm = Exercise_onerm(props.exerciseType, props.settings);
+  const weight = Weight_multiply(onerm, multiplier);
   return (
     <div className="text-xs text-text-secondary">
       <span className="font-bold" style={{ color: "#940" }}>
@@ -579,17 +587,17 @@ function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculator
     );
   }
 
-  const { plates, totalWeight: weight } = Weight.calculatePlates(
+  const { plates, totalWeight: weight } = Weight_calculatePlates(
     props.set.completedWeight ?? setWeight,
     props.settings,
     setWeight.unit,
     props.exerciseType
   );
-  const formattedPlates = plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.exerciseType) : "None";
+  const formattedPlates = plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.exerciseType) : "None";
   return (
     <span className="text-sm font-semibold break-all">
       <span
-        className={Weight.eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-text-error"}
+        className={Weight_eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-text-error"}
         data-cy="plates-list"
       >
         {formattedPlates}
@@ -607,12 +615,12 @@ function WorkoutExerciseE1RMSet(props: IWorkoutExerciseE1RMSetProps): JSX.Elemen
   const set = props.set;
   const isCompleted = !!set.isCompleted;
   const weight = set.completedWeight ?? set.weight ?? set.originalWeight;
-  const reps = Reps.avgUnilateralCompletedReps(set) ?? set.reps;
+  const reps = Reps_avgUnilateralCompletedReps(set) ?? set.reps;
   const rpe = set.completedRpe ?? set.rpe ?? 10;
-  if (weight == null || Weight.isPct(weight) || reps == null) {
+  if (weight == null || Weight_isPct(weight) || reps == null) {
     return <span className="text-sm break-all">Unknown</span>;
   }
-  const e1RM = Weight.getOneRepMax(weight, reps, rpe);
+  const e1RM = Weight_getOneRepMax(weight, reps, rpe);
   return (
     <span className={`text-sm break-all ${isCompleted ? "" : "opacity-40"}`}>
       <span className="font-semibold">{n(e1RM.value)}</span>

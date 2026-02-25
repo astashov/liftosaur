@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "./linkButton";
 import { IEvaluatedProgram } from "../models/program";
 import { ISettings } from "../types";
-import { Exercise } from "../models/exercise";
+import { Exercise_findByNameAndEquipment } from "../models/exercise";
 import { ProgramDetailsExerciseExample } from "../pages/programs/programDetails/programDetailsExerciseExample";
 import { ExerciseTooltip } from "./exerciseTooltip";
 
@@ -102,7 +102,7 @@ function hydrateExerciseDirectives(container: HTMLElement, settings: ISettings):
     }
     el.setAttribute("data-hydrated", "true");
     const name = el.getAttribute("data-name") || "";
-    const exercise = Exercise.findByNameAndEquipment(name, settings.exercises);
+    const exercise = Exercise_findByNameAndEquipment(name, settings.exercises);
     if (!exercise) {
       continue;
     }

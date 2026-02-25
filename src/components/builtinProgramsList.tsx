@@ -10,19 +10,24 @@ import {
 } from "../models/builtinPrograms";
 import { IProgramFilter, IProgramSort, ProgramFilter } from "../utils/programFilter";
 import { SelectLink } from "./selectLink";
-import { ExerciseImageUtils } from "../models/exerciseImage";
-import { IProgramIndexEntry, Program } from "../models/program";
-import { StringUtils } from "../utils/string";
+import { ExerciseImageUtils_exists } from "../models/exerciseImage";
+import {
+  IProgramIndexEntry,
+  Program_previewProgram,
+  Program_cloneProgram,
+  Program_exerciseRangeFormat,
+} from "../models/program";
+import { StringUtils_pluralize } from "../utils/string";
 import { Tailwind } from "../utils/tailwindConfig";
 import { ExerciseImage } from "./exerciseImage";
 import { IconCalendarSmall } from "./icons/iconCalendarSmall";
 import { IconKettlebellSmall } from "./icons/iconKettlebellSmall";
 import { IconWatch } from "./icons/iconWatch";
 import { ModalProgramInfo } from "./modalProgramInfo";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { equipmentName } from "../models/exercise";
-import { Equipment } from "../models/equipment";
-import { Settings } from "../models/settings";
+import { Equipment_currentEquipment } from "../models/equipment";
+import { Settings_doesProgramHaveUnset1RMs } from "../models/settings";
 import { Markdown } from "./markdown";
 
 interface IProps {
@@ -120,13 +125,13 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
           program={selectedProgram}
           hasCustomPrograms={props.hasCustomPrograms}
           onClose={() => setSelectedProgram(undefined)}
-          onPreview={() => Program.previewProgram(props.dispatch, selectedProgram.id, false)}
+          onPreview={() => Program_previewProgram(props.dispatch, selectedProgram.id, false)}
           onSelect={() => {
-            Program.cloneProgram(props.dispatch, selectedProgram, props.settings);
-            if (Settings.doesProgramHaveUnset1RMs(selectedProgram, props.settings)) {
-              props.dispatch(Thunk.pushScreen("onerms", undefined, true));
+            Program_cloneProgram(props.dispatch, selectedProgram, props.settings);
+            if (Settings_doesProgramHaveUnset1RMs(selectedProgram, props.settings)) {
+              props.dispatch(Thunk_pushScreen("onerms", undefined, true));
             } else {
-              props.dispatch(Thunk.pushScreen("main", undefined, true));
+              props.dispatch(Thunk_pushScreen("main", undefined, true));
             }
           }}
         />
@@ -144,7 +149,7 @@ interface IBuiltInProgramProps {
 function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
   const { entry } = props;
   const exercises = entry.exercises ?? [];
-  const allEquipment = Equipment.currentEquipment(props.settings);
+  const allEquipment = Equipment_currentEquipment(props.settings);
   const equipment = (entry.equipment ?? []).map((e) => equipmentName(e, allEquipment));
   const exercisesRange = entry.exercisesRange;
   const numberOfWeeks = entry.weeksCount ?? 0;
@@ -167,7 +172,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
         {entry.shortDescription && <Markdown value={entry.shortDescription} className="text-sm text-text-secondary" />}
         <div className="py-3">
           {exercises
-            .filter((e) => ExerciseImageUtils.exists(e, "small"))
+            .filter((e) => ExerciseImageUtils_exists(e, "small"))
             .map((e) => (
               <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
             ))}
@@ -175,9 +180,9 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
         <div className="flex mb-1 text-text-secondary">
           <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
           <div className="text-xs">
-            {numberOfWeeks > 1 && `${numberOfWeeks} ${StringUtils.pluralize("week", numberOfWeeks)}, `}
+            {numberOfWeeks > 1 && `${numberOfWeeks} ${StringUtils_pluralize("week", numberOfWeeks)}, `}
             {entry.frequency ? `${entry.frequency}x/week, ` : ""}
-            {exercisesRange ? Program.exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
+            {exercisesRange ? Program_exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
           </div>
         </div>
         <div className="flex text-text-secondary">

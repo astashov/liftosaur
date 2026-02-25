@@ -3,18 +3,25 @@ import { IDispatch } from "../ducks/types";
 import { IProgram, ISettings, ISubscription, IExerciseType, IStats } from "../types";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import { useState } from "preact/hooks";
-import { IPoints, Muscle } from "../models/muscle";
+import { IPoints, Muscle_normalizePoints, Muscle_getPointsForProgram, Muscle_getPointsForDay } from "../models/muscle";
 import { Modal } from "./modal";
 import { MusclesView } from "./muscles/musclesView";
 import { ModalExerciseInfo } from "./modalExerciseInfo";
 import { Locker } from "./locker";
-import { Subscriptions } from "../utils/subscriptions";
-import { IEvaluatedProgram, Program } from "../models/program";
-import { TimeUtils } from "../utils/time";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
+import {
+  IEvaluatedProgram,
+  Program_evaluate,
+  Program_dayAverageTimeMs,
+  Program_daysRange,
+  Program_exerciseRange,
+  Program_getProgramDay,
+} from "../models/program";
+import { TimeUtils_formatHHMM } from "../utils/time";
 import { IconWatch } from "./icons/iconWatch";
 import { ProgramPreviewOrPlayground } from "./programPreviewOrPlayground";
 import { IconDoc } from "./icons/iconDoc";
-import { StringUtils } from "../utils/string";
+import { StringUtils_pluralize } from "../utils/string";
 
 export type IPreviewProgramMuscles =
   | {
@@ -35,7 +42,7 @@ interface IProps {
 
 export function ProgramPreview(props: IProps): JSX.Element {
   const program = props.program;
-  const evaluatedProgram = Program.evaluate(program, props.settings);
+  const evaluatedProgram = Program_evaluate(program, props.settings);
   const [musclesModal, setMusclesModal] = useState<IPreviewProgramMuscles | undefined>(undefined);
   const [exerciseTypeInfo, setExerciseTypeInfo] = useState<IExerciseType | undefined>(undefined);
 
@@ -70,15 +77,15 @@ export function ProgramPreview(props: IProps): JSX.Element {
         <IconWatch />{" "}
         <span className="align-middle">
           Average time to finish a workout:{" "}
-          <strong>{TimeUtils.formatHHMM(Program.dayAverageTimeMs(evaluatedProgram, props.settings))}</strong>
+          <strong>{TimeUtils_formatHHMM(Program_dayAverageTimeMs(evaluatedProgram, props.settings))}</strong>
         </span>
       </div>
       <div className="py-1 text-text-secondary">
         <IconDoc width={15} height={20} />{" "}
         <span className="align-middle">
           {evaluatedProgram.weeks.length > 1 &&
-            `${evaluatedProgram.weeks.length} ${StringUtils.pluralize("week", evaluatedProgram.weeks.length)}, `}
-          {Program.daysRange(evaluatedProgram)}, {Program.exerciseRange(evaluatedProgram)}
+            `${evaluatedProgram.weeks.length} ${StringUtils_pluralize("week", evaluatedProgram.weeks.length)}, `}
+          {Program_daysRange(evaluatedProgram)}, {Program_exerciseRange(evaluatedProgram)}
         </span>
       </div>
       {program.description && (
@@ -128,12 +135,12 @@ export function ProgramPreviewMusclesModal(props: IProgramPreviewMusclesModalPro
   let points: IPoints | undefined;
   let name = "";
   if (props.muscles.type === "program") {
-    points = Muscle.normalizePoints(Muscle.getPointsForProgram(props.program, props.stats, props.settings));
+    points = Muscle_normalizePoints(Muscle_getPointsForProgram(props.program, props.stats, props.settings));
     name = props.program.name;
   } else {
-    const programDay = Program.getProgramDay(props.program, props.muscles.dayIndex + 1);
+    const programDay = Program_getProgramDay(props.program, props.muscles.dayIndex + 1);
     if (programDay) {
-      points = Muscle.normalizePoints(Muscle.getPointsForDay(props.program, programDay, props.stats, props.settings));
+      points = Muscle_normalizePoints(Muscle_getPointsForDay(props.program, programDay, props.stats, props.settings));
       name = programDay.name;
     }
   }
@@ -148,7 +155,7 @@ export function ProgramPreviewMusclesModal(props: IProgramPreviewMusclesModalPro
       shouldShowClose={true}
       onClose={props.onClose}
       isFullWidth={true}
-      overflowHidden={props.dispatch && !Subscriptions.hasSubscription(props.subscription)}
+      overflowHidden={props.dispatch && !Subscriptions_hasSubscription(props.subscription)}
     >
       {props.dispatch && (
         <Locker topic="Muscles" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
