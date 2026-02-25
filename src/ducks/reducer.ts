@@ -618,7 +618,14 @@ export function buildCardsReducer(
         return newProgress;
       }
       case "UpdateProgress": {
-        return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);
+        try {
+          return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);
+        } catch (e) {
+          if (e instanceof Error && e.message.includes("LensError")) {
+            return progress;
+          }
+          throw e;
+        }
       }
     }
   };
