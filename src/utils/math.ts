@@ -24,6 +24,9 @@ export namespace MathUtils {
   }
 
   export function roundFloat(value: number, precision: number): number {
+    if (typeof value !== "number" || isNaN(value)) {
+      return 0;
+    }
     return +value.toFixed(precision);
   }
 
