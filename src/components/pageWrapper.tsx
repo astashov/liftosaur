@@ -1,6 +1,15 @@
 import { JSX, h, ComponentChildren } from "preact";
+import { useEffect, useState } from "preact/hooks";
 import { FooterPage } from "./footerPage";
 import { TopNavMenu } from "./topNavMenu";
+import { IAccount } from "../models/account";
+import { IUnit } from "../types";
+import { Service } from "../api/service";
+
+export interface IUserContext {
+  account?: IAccount;
+  units?: IUnit;
+}
 
 export interface IPageWrapperProps {
   skipTopNavMenu?: boolean;
@@ -8,12 +17,23 @@ export interface IPageWrapperProps {
   url?: string;
   maxWidth?: number;
   maxBodyWidth?: number;
-  children?: ComponentChildren;
+  children?: ComponentChildren | ((ctx: IUserContext) => ComponentChildren);
   isLoggedIn?: boolean;
   client: Window["fetch"];
 }
 
 export function PageWrapper(props: IPageWrapperProps): JSX.Element {
+  const [userContext, setUserContext] = useState<IUserContext>({});
+
+  useEffect(() => {
+    if (props.isLoggedIn) {
+      const service = new Service(props.client);
+      service.getUserContext().then((ctx) => setUserContext(ctx));
+    }
+  }, []);
+
+  const children = typeof props.children === "function" ? props.children(userContext) : props.children;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       {!props.skipTopNavMenu && (
@@ -21,6 +41,7 @@ export function PageWrapper(props: IPageWrapperProps): JSX.Element {
           maxWidth={props.maxWidth || 1200}
           current={props.url}
           isLoggedIn={!!props.isLoggedIn}
+          account={userContext.account}
           client={props.client}
         />
       )}
@@ -28,7 +49,7 @@ export function PageWrapper(props: IPageWrapperProps): JSX.Element {
         id="app"
         style={{ maxWidth: props.maxBodyWidth || props.maxWidth || 800, margin: "0 auto", width: "100%", flex: 1 }}
       >
-        {props.children}
+        {children}
       </div>
       {!props.skipFooter && <FooterPage maxWidth={props.maxWidth || 800} />}
     </div>

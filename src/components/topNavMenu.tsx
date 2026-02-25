@@ -1,11 +1,10 @@
 import { h, JSX } from "preact";
-import { useState, useEffect } from "preact/hooks";
+import { useState } from "preact/hooks";
 import { IconHamburger } from "./icons/iconHamburger";
 import { Account } from "./account";
 import { IconUser } from "./icons/iconUser";
 import { IAccount } from "../models/account";
 import { Modal } from "./modal";
-import { Service } from "../api/service";
 import { IconReddit } from "./icons/iconReddit";
 import { IconDiscord } from "./icons/iconDiscord";
 import { IconClose } from "./icons/iconClose";
@@ -22,6 +21,7 @@ export function TopNavMenu(props: {
   maxWidth: number;
   current?: string;
   isLoggedIn: boolean;
+  account?: IAccount;
   mobileRight?: JSX.Element;
   isWhite?: boolean;
 }): JSX.Element {
@@ -152,7 +152,12 @@ export function TopNavMenu(props: {
           isWhite={props.isWhite}
         />
       </div>
-      <ModalAccount isHidden={!isAccountModalOpen} client={props.client} onClose={() => setIsAccountModalOpen(false)} />
+      <ModalAccount
+        isHidden={!isAccountModalOpen}
+        client={props.client}
+        account={props.account}
+        onClose={() => setIsAccountModalOpen(false)}
+      />
     </nav>
   );
 }
@@ -261,32 +266,20 @@ function DesktopNav(props: IDesktopNavProps): JSX.Element {
 
 interface IModalAccountProps {
   client: Window["fetch"];
+  account?: IAccount;
   isHidden: boolean;
   onClose: () => void;
 }
 
 function ModalAccount(props: IModalAccountProps): JSX.Element {
-  const [account, setAccount] = useState<IAccount | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!props.isHidden && account == null && isLoading) {
-      const service = new Service(props.client);
-      service.getUserContext().then((ctx) => {
-        setAccount(ctx.account);
-        setIsLoading(false);
-      });
-    }
-  }, [props.isHidden]);
-
   return (
     <Modal isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
-      {isLoading ? (
+      {props.account == null ? (
         <div className="py-8 text-center">
           <IconSpinner width={20} height={20} />
         </div>
       ) : (
-        <Account account={account} client={props.client} />
+        <Account account={props.account} client={props.client} />
       )}
     </Modal>
   );
