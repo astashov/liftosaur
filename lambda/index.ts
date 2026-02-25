@@ -1684,7 +1684,10 @@ const getAllProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   return {
     statusCode: 200,
     body: renderAllProgramsHtml(di.fetch, index, account),
-    headers: { "content-type": "text/html" },
+    headers: {
+      "content-type": "text/html",
+      "cache-control": "public, s-maxage=86400, max-age=3600",
+    },
   };
 };
 

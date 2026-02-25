@@ -162,11 +162,6 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         {props.css.map((c) => (
           <link rel="stylesheet" type="text/css" href={`/${c}.css?version=${commitHash}`} />
         ))}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:ital,wght@0,300;0,400;0,600;0,700;1,300;1,600;1,700&display=swap"
-          rel="stylesheet"
-          crossOrigin="anonymous"
-        />
         <meta charSet="UTF-8" />
         <link rel="preconnect" href="https://api3.liftosaur.com" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />

@@ -274,7 +274,6 @@ const mainConfig = {
         to: ".well-known",
       },
     ]),
-    // new BundleAnalyzerPlugin({ analyzerMode: "static", openAnalyzer: false }),
   ],
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
   devServer: {

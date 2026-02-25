@@ -663,6 +663,28 @@ export class LiftosaurCdkStack extends cdk.Stack {
       `),
     });
 
+    const programsCacheKey = new cloudfront.Function(this, `LftProgramsCacheKey${suffix}`, {
+      functionName: `LftProgramsCacheKey${suffix}`,
+      code: cloudfront.FunctionCode.fromInline(`
+        function handler(event) {
+          var cookies = event.request.cookies || {};
+          var authState = cookies['session'] ? 'yes' : 'no';
+          event.request.headers['x-auth-state'] = { value: authState };
+          return event.request;
+        }
+      `),
+    });
+
+    const programsCachePolicy = new cloudfront.CachePolicy(this, `LftProgramsCachePolicy${suffix}`, {
+      cachePolicyName: `LftProgramsCachePolicy${suffix}`,
+      defaultTtl: cdk.Duration.hours(24),
+      maxTtl: cdk.Duration.days(7),
+      minTtl: cdk.Duration.seconds(0),
+      headerBehavior: cloudfront.CacheHeaderBehavior.allowList("X-Auth-State"),
+      cookieBehavior: cloudfront.CacheCookieBehavior.none(),
+      queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
+    });
+
     const mainDistribution = new cloudfront.Distribution(this, `LftMainDistribution${suffix}`, {
       certificate: streamingCert,
       domainNames: [mainDomain],
@@ -682,6 +704,21 @@ export class LiftosaurCdkStack extends cdk.Stack {
         ],
       },
       additionalBehaviors: {
+        "/programs": {
+          origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
+            originPath: `/${restApi.deploymentStage.stageName}`,
+          }),
+          cachePolicy: programsCachePolicy,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: programsCacheKey,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
         "/static/*": {
           origin: s3Origin,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
