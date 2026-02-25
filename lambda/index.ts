@@ -1698,7 +1698,7 @@ const getAllProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
     body: renderAllProgramsHtml(di.fetch, index, account),
     headers: {
       "content-type": "text/html",
-      "cache-control": "public, s-maxage=86400, max-age=3600",
+      "cache-control": "public, s-maxage=86400, max-age=0",
     },
   };
 };
@@ -1745,7 +1745,7 @@ const getProgramDetailsHandler: RouteHandler<
       body: renderProgramDetailsHtml(program, di.fetch, fullDescription, faq, userAgent, isLoggedIn, indexEntry),
       headers: {
         "content-type": "text/html",
-        "cache-control": "public, s-maxage=86400, max-age=3600",
+        "cache-control": "public, s-maxage=86400, max-age=0",
       },
     };
   } else {
@@ -1804,7 +1804,7 @@ const getMainHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getMa
   return {
     statusCode: 200,
     body: renderMainHtml(di.fetch, testimonials, isLoggedIn, deviceType),
-    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=3600" },
+    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=0" },
   };
 };
 
@@ -1909,7 +1909,7 @@ const getAllExercisesHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   return {
     statusCode: 200,
     body: renderAllExercisesHtml(di.fetch, isLoggedIn),
-    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=3600" },
+    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=0" },
   };
 };
 
@@ -1930,7 +1930,7 @@ const getExerciseHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
     return {
       statusCode: 200,
       body: renderExerciseHtml(di.fetch, params.id, exerciseType, filterTypes, isLoggedIn),
-      headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=3600" },
+      headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=0" },
     };
   } else {
     return {
@@ -2502,7 +2502,7 @@ async function showRepMax(payload: IPayload, reps?: number): Promise<APIGatewayP
   return {
     statusCode: 200,
     body: renderRepMaxHtml(di.fetch, reps, isLoggedIn),
-    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=3600" },
+    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=0" },
   };
 }
 
