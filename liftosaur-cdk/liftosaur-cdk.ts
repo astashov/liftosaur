@@ -860,6 +860,6 @@ class LiftosaurPipelineStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-// new LiftosaurCdkStack(app, "LiftosaurStack", false);
+new LiftosaurCdkStack(app, "LiftosaurStack", false);
 new LiftosaurPipelineStack(app, "LiftosaurPipelineDev", true);
-// new LiftosaurPipelineStack(app, "LiftosaurPipeline", false);
+new LiftosaurPipelineStack(app, "LiftosaurPipeline", false);
