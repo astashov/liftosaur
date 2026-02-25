@@ -2,7 +2,7 @@ const pluginRss = require("@11ty/eleventy-plugin-rss");
 const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
 const path = require("path");
 const fs = require("fs");
-const { PlannerHighlighter } = require("./dist-plannerhighlighter/pages/planner/plannerHighlighter");
+const { PlannerHighlighter_highlight } = require("./dist-plannerhighlighter/pages/planner/plannerHighlighter");
 
 module.exports = function (config) {
   config.addPassthroughCopy("blog/styles");
@@ -10,7 +10,7 @@ module.exports = function (config) {
   config.addPlugin(pluginRss);
   config.addPlugin(syntaxHighlight);
   config.addPairedShortcode("plannercode", function (content) {
-    return `<div class="plannercode"><div class="plannercode-content">${PlannerHighlighter.highlight(
+    return `<div class="plannercode"><div class="plannercode-content">${PlannerHighlighter_highlight(
       content.trim()
     )}</div></div>`;
   });

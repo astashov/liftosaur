@@ -35,15 +35,15 @@ const watchConfig = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: [
-          {
-            loader: "ts-loader",
-            options: {
-              transpileOnly: true,
-              configFile: "tsconfig.json",
-            },
+        use: {
+          loader: "esbuild-loader",
+          options: {
+            target: "es2020",
+            jsx: "transform",
+            jsxFactory: "h",
+            jsxFragment: "Fragment",
           },
-        ],
+        },
       },
     ],
   },
@@ -111,22 +111,13 @@ const mainConfig = {
       },
       {
         test: /\.tsx?$/,
-        use: [
-          {
-            loader: "ts-loader",
-            options: {
-              transpileOnly: true,
-              configFile: "tsconfig.json",
-            },
-          },
-        ],
-      },
-      {
-        test: /\.esm.js$/,
         use: {
-          loader: "babel-loader",
+          loader: "esbuild-loader",
           options: {
-            presets: ["@babel/preset-env"],
+            target: "es2015",
+            jsx: "transform",
+            jsxFactory: "h",
+            jsxFragment: "Fragment",
           },
         },
       },

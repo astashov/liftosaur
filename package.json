@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "App for tracking weight lifting progress",
   "main": "dist/index.js",
+  "sideEffects": ["*.css"],
   "scripts": {
     "build": "npm run ensure:localdomain && npm run build:prepare && npm run upload-source-maps",
     "build:prepare": "npm run ensure:localdomain && npm run build:markdown && npm run build:programs && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production npm run build:dev",
