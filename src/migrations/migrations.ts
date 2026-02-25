@@ -319,15 +319,17 @@ export const migrations = {
   },
   "20260124114134_convert_muscle_multipliers_to_object": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
-    for (const key of ObjectUtils.keys(storage.settings.exerciseData)) {
-      const exerciseData = storage.settings.exerciseData[key];
-      if (exerciseData?.muscleMultipliers && Array.isArray(exerciseData.muscleMultipliers)) {
-        const oldMultipliers = exerciseData.muscleMultipliers as Array<{ muscle: IMuscle; multiplier: number }>;
-        const newMultipliers: Partial<Record<IMuscle, number>> = {};
-        for (const mm of oldMultipliers) {
-          newMultipliers[mm.muscle] = mm.multiplier;
+    if (storage.settings.exerciseData) {
+      for (const key of ObjectUtils.keys(storage.settings.exerciseData)) {
+        const exerciseData = storage.settings.exerciseData[key];
+        if (exerciseData?.muscleMultipliers && Array.isArray(exerciseData.muscleMultipliers)) {
+          const oldMultipliers = exerciseData.muscleMultipliers as Array<{ muscle: IMuscle; multiplier: number }>;
+          const newMultipliers: Partial<Record<IMuscle, number>> = {};
+          for (const mm of oldMultipliers) {
+            newMultipliers[mm.muscle] = mm.multiplier;
+          }
+          exerciseData.muscleMultipliers = newMultipliers;
         }
-        exerciseData.muscleMultipliers = newMultipliers;
       }
     }
     return storage;
