@@ -366,11 +366,13 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(
   const historyRecords: IHistoryRecord[] = hevyWorkouts.map((hevyWorkout) => {
     let startTs: number | undefined;
     try {
-      startTs = new Date(hevyWorkout.start_time).getTime();
+      const ts = new Date(hevyWorkout.start_time).getTime();
+      startTs = isNaN(ts) ? undefined : ts;
     } catch (_) {}
     let endTs: number | undefined;
     try {
-      endTs = new Date(hevyWorkout.end_time).getTime();
+      const ts = new Date(hevyWorkout.end_time).getTime();
+      endTs = isNaN(ts) ? undefined : ts;
     } catch (_) {}
     const entries = hevyWorkout.exercises.map((record, index) => {
       let exerciseNameAndEquipment = exerciseMapping[record.exercise_title];
