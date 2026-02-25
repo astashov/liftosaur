@@ -156,6 +156,7 @@ export function TopNavMenu(props: {
         isHidden={!isAccountModalOpen}
         client={props.client}
         account={props.account}
+        isLoggedIn={isLoggedIn}
         onClose={() => setIsAccountModalOpen(false)}
       />
     </nav>
@@ -267,6 +268,7 @@ function DesktopNav(props: IDesktopNavProps): JSX.Element {
 interface IModalAccountProps {
   client: Window["fetch"];
   account?: IAccount;
+  isLoggedIn: boolean;
   isHidden: boolean;
   onClose: () => void;
 }
@@ -274,7 +276,7 @@ interface IModalAccountProps {
 function ModalAccount(props: IModalAccountProps): JSX.Element {
   return (
     <Modal isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
-      {props.account == null ? (
+      {props.isLoggedIn && props.account == null ? (
         <div className="py-8 text-center">
           <IconSpinner width={20} height={20} />
         </div>
