@@ -63,7 +63,9 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
     }
     return (
       <>
-        {!isError && doesExist && <img data-cy="exercise-image-small" ref={imgRef} className={className} src={src} {...imgAttrs} />}
+        {!isError && doesExist && (
+          <img data-cy="exercise-image-small" ref={imgRef} className={className} src={src} {...imgAttrs} />
+        )}
         {isError ||
           (!doesExist &&
             (props.useTextForCustomExercise ? (

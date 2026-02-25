@@ -3,11 +3,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { ITestimonial, Testimonials_getHighRatingTitles } from "../testimonitals";
 import { IconStar } from "../../../components/icons/iconStar";
 import { Tailwind_colors } from "../../../utils/tailwindConfig";
-import { Platform_isiOS, Platform_isAndroid } from "../../../utils/platform";
 import { Onelink } from "../../../components/onelink";
 import { track } from "../../../utils/posthog";
 
-export function Hero(props: { userAgent?: string; testimonials: ITestimonial[] }): JSX.Element {
+export function Hero(props: { deviceType?: "ios" | "android" | "desktop"; testimonials: ITestimonial[] }): JSX.Element {
   return (
     <div>
       <div className="relative mx-auto" style={{ maxWidth: 1200 }}>
@@ -29,7 +28,7 @@ export function Hero(props: { userAgent?: string; testimonials: ITestimonial[] }
               stronger.
             </p>
             <div className="mb-4">
-              <StoresLinks userAgent={props.userAgent} />
+              <StoresLinks deviceType={props.deviceType} />
             </div>
             <div className="block md:hidden">
               <TopTestimonials testimonials={props.testimonials} />
@@ -124,9 +123,9 @@ function TopTestimonials(props: { testimonials: ITestimonial[] }): JSX.Element {
   );
 }
 
-function StoresLinks(props: { userAgent?: string }): JSX.Element {
-  const isiOS = Platform_isiOS(props.userAgent);
-  const isAndroid = Platform_isAndroid(props.userAgent);
+function StoresLinks(props: { deviceType?: "ios" | "android" | "desktop" }): JSX.Element {
+  const isiOS = props.deviceType === "ios";
+  const isAndroid = props.deviceType === "android";
   const isMobile = isiOS || isAndroid;
   return (
     <div className="flex flex-col items-center md:items-start">

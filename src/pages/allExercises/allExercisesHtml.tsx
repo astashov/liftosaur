@@ -1,15 +1,14 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
-import { IAccount } from "../../models/account";
 import { AllExercisesContent } from "./allExercisesContent";
 
 interface IProps {
   client: Window["fetch"];
-  account?: IAccount;
+  isLoggedIn?: boolean;
 }
 
 export function AllExercisesHtml(props: IProps): JSX.Element {
-  const { client, ...data } = props;
+  const { client, isLoggedIn, ...data } = props;
   const title = `All exercises | Liftosaur`;
   const url = `https://www.liftosaur.com/exercises`;
 
@@ -20,7 +19,7 @@ export function AllExercisesHtml(props: IProps): JSX.Element {
       maxWidth={1200}
       title={title}
       canonical={url}
-      isLoggedIn={!!props.account}
+      isLoggedIn={!!isLoggedIn}
       description="List of all available exercises, with their type, target and synergist muscle groups."
       ogUrl={url}
       data={data}

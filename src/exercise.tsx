@@ -4,7 +4,7 @@ import { HydrateUtils_hydratePage } from "./utils/hydrate";
 
 function main(): void {
   HydrateUtils_hydratePage<IExerciseContentProps>((pageWrapperProps, data) => (
-    <ExerciseContent {...data} client={window.fetch.bind(window)} />
+    <ExerciseContent {...data} isLoggedIn={pageWrapperProps.isLoggedIn} client={window.fetch.bind(window)} />
   ));
 }
 

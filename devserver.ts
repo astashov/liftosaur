@@ -57,8 +57,10 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
     qs[k] = v;
   });
   const headers = { ...request.headers } as APIGatewayProxyEventHeaders;
-  const cookieHeader = headers["cookie"] || "";
+  const cookieHeader = headers.cookie || "";
   headers["x-auth-state"] = cookieHeader.includes("session") ? "yes" : "no";
+  const ua = headers["user-agent"] || "";
+  headers["x-device-type"] = /iPhone|iPad|iPod/i.test(ua) ? "ios" : /Android/i.test(ua) ? "android" : "desktop";
 
   return {
     body: body,

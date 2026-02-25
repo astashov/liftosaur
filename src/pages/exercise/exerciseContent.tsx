@@ -28,14 +28,13 @@ import { UrlUtils_build } from "../../utils/url";
 import { ScrollableTabs } from "../../components/scrollableTabs";
 import { GroupHeader } from "../../components/groupHeader";
 import { TopNavMenu } from "../../components/topNavMenu";
-import { IAccount } from "../../models/account";
 import { FooterPage } from "../../components/footerPage";
 import { IconMuscles2 } from "../../components/icons/iconMuscles2";
 import { IconDoc } from "../../components/icons/iconDoc";
 import { Modal } from "../../components/modal";
 
 export interface IExerciseContentProps {
-  account?: IAccount;
+  isLoggedIn?: boolean;
   client: Window["fetch"];
   exerciseType: IExerciseType;
   filterTypes: string[];
@@ -99,7 +98,7 @@ export function ExerciseContent(props: IExerciseContentProps): JSX.Element {
       <TopNavMenu
         maxWidth={maxWidth}
         current="/exercises"
-        isLoggedIn={!!props.account}
+        isLoggedIn={!!props.isLoggedIn}
         client={props.client}
         mobileRight={
           <div className="flex items-center gap-2">

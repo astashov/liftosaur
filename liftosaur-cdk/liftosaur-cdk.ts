@@ -663,6 +663,30 @@ export class LiftosaurCdkStack extends cdk.Stack {
       `),
     });
 
+    const cachedPagesCacheKey = new cloudfront.Function(this, `LftCachedPagesCacheKey${suffix}`, {
+      functionName: `LftCachedPagesCacheKey${suffix}`,
+      code: cloudfront.FunctionCode.fromInline(`
+        function handler(event) {
+          var cookies = event.request.cookies || {};
+          var authState = cookies['session'] ? 'yes' : 'no';
+          event.request.headers['x-auth-state'] = { value: authState };
+          var ua = event.request.headers['user-agent'] ? event.request.headers['user-agent'].value : '';
+          var deviceType = 'desktop';
+          if (/iPhone|iPad|iPod/i.test(ua)) {
+            deviceType = 'ios';
+          } else if (/Android/i.test(ua)) {
+            deviceType = 'android';
+          }
+          event.request.headers['x-device-type'] = { value: deviceType };
+          var uri = event.request.uri;
+          if (uri === '/' || uri === '/about') {
+            event.request.uri = '/main';
+          }
+          return event.request;
+        }
+      `),
+    });
+
     const programsCacheKey = new cloudfront.Function(this, `LftProgramsCacheKey${suffix}`, {
       functionName: `LftProgramsCacheKey${suffix}`,
       code: cloudfront.FunctionCode.fromInline(`
@@ -684,6 +708,52 @@ export class LiftosaurCdkStack extends cdk.Stack {
       cookieBehavior: cloudfront.CacheCookieBehavior.none(),
       queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
     });
+
+    const cachedPageWithDeviceCachePolicy = new cloudfront.CachePolicy(
+      this,
+      `LftCachedPageWithDeviceCachePolicy${suffix}`,
+      {
+        cachePolicyName: `LftCachedPageWithDeviceCachePolicy${suffix}`,
+        defaultTtl: cdk.Duration.hours(24),
+        maxTtl: cdk.Duration.days(7),
+        minTtl: cdk.Duration.seconds(0),
+        headerBehavior: cloudfront.CacheHeaderBehavior.allowList("X-Auth-State", "X-Device-Type"),
+        cookieBehavior: cloudfront.CacheCookieBehavior.none(),
+        queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
+      }
+    );
+
+    const cachedPageWithDeviceBehavior: cloudfront.BehaviorOptions = {
+      origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
+        originPath: `/${restApi.deploymentStage.stageName}`,
+      }),
+      cachePolicy: cachedPageWithDeviceCachePolicy,
+      originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      functionAssociations: [
+        {
+          function: cachedPagesCacheKey,
+          eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+        },
+      ],
+    };
+
+    const cachedPageBehavior: cloudfront.BehaviorOptions = {
+      origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
+        originPath: `/${restApi.deploymentStage.stageName}`,
+      }),
+      cachePolicy: programsCachePolicy,
+      originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      functionAssociations: [
+        {
+          function: cachedPagesCacheKey,
+          eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+        },
+      ],
+    };
 
     const mainDistribution = new cloudfront.Distribution(this, `LftMainDistribution${suffix}`, {
       certificate: streamingCert,
@@ -719,6 +789,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
             },
           ],
         },
+        "/": cachedPageWithDeviceBehavior,
+        "/about": cachedPageWithDeviceBehavior,
+        "/main": cachedPageWithDeviceBehavior,
+        "/exercises*": cachedPageBehavior,
+        "/*rep-max-calculator": cachedPageBehavior,
         "/static/*": {
           origin: s3Origin,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,

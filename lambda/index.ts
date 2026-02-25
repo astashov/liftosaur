@@ -1749,7 +1749,11 @@ const getProgramDetailsHandler: RouteHandler<
       },
     };
   } else {
-    return { statusCode: 404, body: "Not Found", headers: { "content-type": "text/html", "cache-control": "no-cache" } };
+    return {
+      statusCode: 404,
+      body: "Not Found",
+      headers: { "content-type": "text/html", "cache-control": "no-cache" },
+    };
   }
 };
 
@@ -1789,18 +1793,18 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 const getMainEndpoint = Endpoint.build("/main");
 const getMainHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getMainEndpoint> = async ({ payload }) => {
   const di = payload.di;
-  let account: IAccount | undefined;
-  const userResult = await getUserAccount(payload, { withPrograms: true });
-  if (userResult.success) {
-    ({ account } = userResult.data);
-  }
-  const userAgent = payload.event.headers["user-agent"] || payload.event.headers["User-Agent"];
+  const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
+  const isLoggedIn = authState === "yes";
+  const deviceType = (payload.event.headers["x-device-type"] || payload.event.headers["X-Device-Type"] || "desktop") as
+    | "ios"
+    | "android"
+    | "desktop";
   const testimonials = await new TestimonialDao(di).getAll();
 
   return {
     statusCode: 200,
-    body: renderMainHtml(di.fetch, testimonials, account, userAgent),
-    headers: { "content-type": "text/html" },
+    body: renderMainHtml(di.fetch, testimonials, isLoggedIn, deviceType),
+    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=3600" },
   };
 };
 
@@ -1900,15 +1904,12 @@ const getAllExercisesHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   payload,
 }) => {
   const { di } = payload;
-  let account: IAccount | undefined;
-  const userResult = await getUserAccount(payload, { withPrograms: true });
-  if (userResult.success) {
-    account = userResult.data.account;
-  }
+  const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
+  const isLoggedIn = authState === "yes";
   return {
     statusCode: 200,
-    body: renderAllExercisesHtml(di.fetch, account),
-    headers: { "content-type": "text/html" },
+    body: renderAllExercisesHtml(di.fetch, isLoggedIn),
+    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=3600" },
   };
 };
 
@@ -1924,21 +1925,18 @@ const getExerciseHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
     .map((t) => t.trim())
     .filter((t) => t);
   if (exerciseType && ExerciseImageUtils_exists(exerciseType, "small")) {
-    let account: IAccount | undefined;
-    const userResult = await getUserAccount(payload, { withPrograms: true });
-    if (userResult.success) {
-      account = userResult.data.account;
-    }
+    const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
+    const isLoggedIn = authState === "yes";
     return {
       statusCode: 200,
-      body: renderExerciseHtml(di.fetch, params.id, exerciseType, filterTypes, account),
-      headers: { "content-type": "text/html" },
+      body: renderExerciseHtml(di.fetch, params.id, exerciseType, filterTypes, isLoggedIn),
+      headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=3600" },
     };
   } else {
     return {
       statusCode: 404,
       body: "Not Found",
-      headers: { "content-type": "text/html" },
+      headers: { "content-type": "text/html", "cache-control": "no-cache" },
     };
   }
 };
@@ -2499,12 +2497,12 @@ const repmaxpairnums = repmaxpairs.map((reps) => {
 
 async function showRepMax(payload: IPayload, reps?: number): Promise<APIGatewayProxyResult> {
   const { di } = payload;
-  const userResult = await getUserAccount(payload);
-  const account = userResult.success ? userResult.data.account : undefined;
+  const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
+  const isLoggedIn = authState === "yes";
   return {
     statusCode: 200,
-    body: renderRepMaxHtml(di.fetch, reps, account),
-    headers: { "content-type": "text/html" },
+    body: renderRepMaxHtml(di.fetch, reps, isLoggedIn),
+    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=3600" },
   };
 }
 

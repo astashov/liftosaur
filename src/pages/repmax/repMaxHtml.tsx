@@ -1,6 +1,5 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
-import { IAccount } from "../../models/account";
 import { MathUtils_toWord } from "../../utils/math";
 import { StringUtils_capitalize } from "../../utils/string";
 import { RepMaxContent } from "./repMaxContent";
@@ -8,11 +7,11 @@ import { RepMaxContent } from "./repMaxContent";
 interface IProps {
   client: Window["fetch"];
   reps: number | undefined;
-  account?: IAccount;
+  isLoggedIn?: boolean;
 }
 
 export function RepMaxHtml(props: IProps): JSX.Element {
-  const { client, account, ...data } = props;
+  const { client, isLoggedIn, ...data } = props;
   const repsWord = MathUtils_toWord(data.reps);
   const url = `https://www.liftosaur.com/${repsWord ? `${repsWord}-` : ""}rep-max-calculator`;
   const title = `${repsWord ? `${StringUtils_capitalize(repsWord)} ` : ""}Rep Max Calculator | Liftosaur`;
@@ -24,7 +23,7 @@ export function RepMaxHtml(props: IProps): JSX.Element {
       maxWidth={1200}
       title={title}
       canonical={url}
-      isLoggedIn={!!account}
+      isLoggedIn={!!isLoggedIn}
       description={`Calculate your ${repsWord} rep max from known weight and reps. It's often useful as an entry weight for various weightlifting programs.`}
       ogUrl={url}
       data={data}

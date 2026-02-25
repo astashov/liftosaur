@@ -15,7 +15,12 @@ function main(): void {
   HydrateUtils_hydratePage<IData>((pageWrapperProps, data) => (
     <PageWrapper {...pageWrapperProps}>
       {(userCtx) => (
-        <ProgramDetailsContent {...data} units={userCtx.units} isLoggedIn={pageWrapperProps.isLoggedIn} client={window.fetch.bind(window)} />
+        <ProgramDetailsContent
+          {...data}
+          units={userCtx.units}
+          isLoggedIn={pageWrapperProps.isLoggedIn}
+          client={window.fetch.bind(window)}
+        />
       )}
     </PageWrapper>
   ));
