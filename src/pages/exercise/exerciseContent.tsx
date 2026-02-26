@@ -68,7 +68,7 @@ export function ExerciseContent(props: IExerciseContentProps): JSX.Element {
     if (c1) {
       c1.style.setProperty("height", `${maxHeight}px`);
     }
-  });
+  }, [exerciseType, filterTypes]);
 
   useEffect(() => {
     const onPopState = (e: PopStateEvent): void => {
