@@ -813,6 +813,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
         "*.webmanifest": s3CachedBehavior,
         "*.zip": s3CachedBehavior,
         "*.m4r": s3CachedBehavior,
+        "*.xml": s3CachedBehavior,
         "/app/*": s3CachedBehavior,
         "/icons/*": s3CachedBehavior,
         "/fonts/*": s3CachedBehavior,

@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "App for tracking weight lifting progress",
   "main": "dist/index.js",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "scripts": {
     "build": "npm run ensure:localdomain && npm run build:prepare && npm run upload-source-maps",
     "build:prepare": "npm run ensure:localdomain && npm run build:markdown && npm run build:programs && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production npm run build:dev",
@@ -46,7 +48,9 @@
     "testgen": "playwright codegen --test-id-attribute data-cy 'https://local.liftosaur.com:8080/app/?skipintro=1'",
     "knip": "knip",
     "r": "TS_NODE_TRANSPILE_ONLY=1 npx ts-node ",
-    "rd": "IS_DEV=true TS_NODE_TRANSPILE_ONLY=1 npx ts-node "
+    "rd": "IS_DEV=true TS_NODE_TRANSPILE_ONLY=1 npx ts-node ",
+    "logs:build:tail:dev": "aws logs tail /aws/codebuild/LiftosaurBuildDev --follow",
+    "logs:build:tail": "aws logs tail /aws/codebuild/LiftosaurBuild --follow"
   },
   "author": "Anton Astashov",
   "license": "AGPL-3.0",
