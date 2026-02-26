@@ -1,5 +1,4 @@
 Ivysaur 4-4-8
-Bullmastiff
 Deep Water Method
 Simple Jack'd
 Smolov Jr.
