@@ -61,11 +61,11 @@ cp ./localdomain.js ./worktrees/SLUG/localdomain.js
 
 ### 2. Learn Liftoscript
 
-Read `@.claude/skills/liftoscript` for idiomatic patterns, then read the full reference files it points to.
+Read `.claude/skills/liftoscript/SKILL.md` for idiomatic patterns, then read the full reference files it points to.
 
 ### 3. Write the Program
 
-Follow ALL instructions from the `/describe-program` command (read it first!) — research phase, output format, description sections, validation, quality checks, everything.
+Follow ALL instructions from `.claude/commands/describe-program.md` (read it first!) — research phase, output format, description sections, validation, quality checks, everything.
 
 The only difference: write all files into the worktree instead of the repo root:
 - Write the program file to `./worktrees/SLUG/programs/builtin/SLUG.md`
