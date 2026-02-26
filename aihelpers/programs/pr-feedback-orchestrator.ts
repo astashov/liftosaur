@@ -1,11 +1,10 @@
 import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
-import { prefetchOccurrenceData, cleanupPrefetchDir } from "../shared/prefetch";
 import { runClaudeInDocker } from "../shared/docker-claude";
 
 const PROJECT_DIR = path.resolve(__dirname, "..", "..");
-const LOG_DIR = path.join(PROJECT_DIR, "logs", "pr-feedback-orchestrator");
+const LOG_DIR = path.join(PROJECT_DIR, "logs", "program-pr-feedback-orchestrator");
 const TIMEOUT_MS = 60 * 60 * 1000;
 
 interface IPRInfo {
@@ -40,7 +39,7 @@ function runGhCommand(args: string[]): Promise<string> {
   });
 }
 
-async function getOpenRollbarPRs(): Promise<IPRInfo[]> {
+async function getOpenProgramPRs(): Promise<IPRInfo[]> {
   const raw = await runGhCommand([
     "pr",
     "list",
@@ -49,7 +48,7 @@ async function getOpenRollbarPRs(): Promise<IPRInfo[]> {
     "--state",
     "open",
     "--search",
-    "fix-rollbar in:title",
+    "add-program in:title",
     "--json",
     "number,title,headRefName",
   ]);
@@ -124,22 +123,17 @@ async function getCommentsAfterDate(prNumber: number, afterDate: string): Promis
   );
 }
 
-function extractOccurrenceId(headRefName: string): string | null {
-  const match = headRefName.match(/^fix\/rollbar-(\d+)$/);
-  return match ? match[1] : null;
-}
-
 async function main(): Promise<void> {
   fs.mkdirSync(LOG_DIR, { recursive: true });
   const mainLogPath = path.join(LOG_DIR, `${runId}.log`);
   logFile = fs.createWriteStream(mainLogPath);
-  log("=== PR Feedback Orchestrator Started ===");
+  log("=== Program PR Feedback Orchestrator Started ===");
   log(`Project: ${PROJECT_DIR}`);
   log(`Run ID: ${runId}`);
 
-  log("Fetching open fix/rollbar-* PRs...");
-  const prs = await getOpenRollbarPRs();
-  log(`Found ${prs.length} open rollbar fix PRs`);
+  log("Fetching open add-program/* PRs...");
+  const prs = await getOpenProgramPRs();
+  log(`Found ${prs.length} open program PRs`);
 
   if (prs.length === 0) {
     log("No open PRs to check");
@@ -171,39 +165,18 @@ async function main(): Promise<void> {
       log(`    - [${c.author.login}] ${c.body.slice(0, 100).replace(/\n/g, " ")}...`);
     }
 
-    const occurrenceId = extractOccurrenceId(pr.headRefName);
-    let prefetchDir: string | undefined;
-
-    if (occurrenceId) {
-      log(`  Pre-fetching data for occurrence ${occurrenceId}...`);
-      const prefetch = await prefetchOccurrenceData(occurrenceId, log);
-      if (prefetch.rollbar) {
-        prefetchDir = prefetch.dir;
-      } else {
-        log(`  Pre-fetch failed, proceeding without pre-fetched data`);
-        cleanupPrefetchDir(prefetch.dir);
-      }
-    } else {
-      log(`  Could not extract occurrence ID from branch ${pr.headRefName}, skipping pre-fetch`);
-    }
-
     const feedbackLogPath = path.join(LOG_DIR, `${runId}-pr-${pr.number}.log`);
-    log(`  Running /address-pr-feedback ${pr.number}...`);
+    log(`  Running /address-program-feedback ${pr.number}...`);
     const startTime = Date.now();
     const result = await runClaudeInDocker(
       {
-        command: `/address-pr-feedback ${pr.number}`,
+        command: `/address-program-feedback ${pr.number}`,
         logFilePath: feedbackLogPath,
         timeoutMs: TIMEOUT_MS,
-        prefetchDir,
       },
       log
     );
     const duration = Math.round((Date.now() - startTime) / 1000);
-
-    if (prefetchDir) {
-      cleanupPrefetchDir(prefetchDir);
-    }
 
     if (result.success) {
       log(`  Feedback addressed in ${duration}s`);
@@ -214,7 +187,7 @@ async function main(): Promise<void> {
   }
 
   log("");
-  log("=== PR Feedback Orchestrator Complete ===");
+  log("=== Program PR Feedback Orchestrator Complete ===");
   log(`Addressed feedback on ${addressedCount} PR(s)`);
 
   logFile.end();
