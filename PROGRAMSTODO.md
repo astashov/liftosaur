@@ -3,7 +3,6 @@ Deep Water Method
 Simple Jack'd
 Smolov Jr.
 Ice Cream Fitness 5x5
-Juggernaut Method 2.0
 Smolov Squat Program
 Tactical Barbell Operator
 5/3/1 FSL
