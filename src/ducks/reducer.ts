@@ -439,10 +439,11 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
               dispatch,
               [
                 (
-                  lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
+                  lb<IState>().p("screenStack").findBy("name", "editProgramExercise", true).pi("params") as LensBuilder<
                     IState,
                     { key: string },
-                    {}
+                    {},
+                    undefined
                   >
                 )
                   .pi("key")

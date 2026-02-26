@@ -46,10 +46,11 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
     buildPlannerDispatch(
       props.dispatch,
       (
-        lb<IState>().p("screenStack").findBy("name", "editProgramExercise", true).p("params") as LensBuilder<
+        lb<IState>().p("screenStack").findBy("name", "editProgramExercise", true).pi("params") as LensBuilder<
           IState,
           { plannerState: IPlannerExerciseState },
-          {}
+          {},
+          undefined
         >
       ).pi("plannerState"),
       plannerState
@@ -272,11 +273,10 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                     props.dispatch,
                     [
                       (
-                        lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
-                          IState,
-                          { key: string },
-                          {}
-                        >
+                        lb<IState>()
+                          .p("screenStack")
+                          .findBy("name", "editProgramExercise", true)
+                          .pi("params") as LensBuilder<IState, { key: string }, {}, undefined>
                       )
                         .pi("key")
                         .record(newKey),
