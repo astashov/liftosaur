@@ -204,7 +204,7 @@ main / used: none / 3x6, 1x6+ / 65% / 180s / progress: custom() {~
 // Sets increase within each base wave ("volumizing"), decrease within each peak wave.
 dev / used: none / 3x12 @6 / 120s
 // Accessory: isolation/bodybuilding work. Dropped entirely in the final 3 weeks of peak.
-acc / used: none / 2x15 @6 / 60s
+acc / used: none / 2x12-15 @6 / 60s
 
 // ...main
 Squat[1-18] / ...main
@@ -258,7 +258,7 @@ Reverse Fly[1-15] / ...acc
 ## Squat Day
 main[2-3] / 3x6, 1x6+ / 65%
 dev / 4x12 @7
-acc / 3x15 @7
+acc / 3x12-15 @7
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -267,7 +267,7 @@ acc / 3x15 @7
 # Week 3
 ## Squat Day
 dev / 5x12 @8
-acc / 4x15 @8
+acc / 4x12-15 @8
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -277,7 +277,7 @@ acc / 4x15 @8
 ## Squat Day
 main[4-6] / 4x5, 1x5+ / 70%
 dev / 3x10 @6
-acc / 3x12 @6
+acc / 3x8-12 @6
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -286,7 +286,7 @@ acc / 3x12 @6
 # Week 5
 ## Squat Day
 dev / 4x10 @7
-acc / 4x12 @7
+acc / 4x8-12 @7
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -295,7 +295,7 @@ acc / 4x12 @7
 # Week 6
 ## Squat Day
 dev / 5x10 @8
-acc / 5x12 @8
+acc / 5x8-12 @8
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -305,7 +305,7 @@ acc / 5x12 @8
 ## Squat Day
 main[7-9] / 5x4, 1x4+ / 75%
 dev / 3x8 @6
-acc / 3x12 @6
+acc / 3x8-12 @6
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -314,7 +314,7 @@ acc / 3x12 @6
 # Week 8
 ## Squat Day
 dev / 4x8 @7
-acc / 4x12 @7
+acc / 4x8-12 @7
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -323,7 +323,7 @@ acc / 4x12 @7
 # Week 9
 ## Squat Day
 dev / 5x8 @8
-acc / 5x12 @8
+acc / 5x8-12 @8
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -335,7 +335,7 @@ main / 4x3, 1x3+ / 80%
 dev / 4x6 @6
 // Targeted: peak-phase only (weeks 10-18). Addresses weak points in the main lift for that day.
 tgt / used: none / 4x6 @6 / 120s
-acc / 3x12 @6
+acc / 3x8-12 @6
 // ...tgt
 Leg Press[10-18] / ...tgt
 ## Bench Day
@@ -354,7 +354,7 @@ Push Press, Barbell[10-18] / ...tgt
 main / 2x3, 1x3+ / 80%
 dev / 3x6 @7
 tgt / 3x6 @7
-acc / 4x12 @7
+acc / 4x8-12 @7
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -365,7 +365,7 @@ acc / 4x12 @7
 main / 1x3+ / 80%
 dev / 2x6 @8
 tgt / 2x6 @8
-acc / 5x12 @8
+acc / 5x8-12 @8
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -376,7 +376,7 @@ acc / 5x12 @8
 main / 4x2, 1x2+ / 85%
 dev / 4x5 @6
 tgt / 4x5 @6
-acc / 3x12 @6
+acc / 3x8-12 @6
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -387,7 +387,7 @@ acc / 3x12 @6
 main / 2x2, 1x2+ / 85%
 dev / 3x5 @7
 tgt / 3x5 @7
-acc / 4x12 @7
+acc / 4x8-12 @7
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -398,7 +398,7 @@ acc / 4x12 @7
 main / 1x2+ / 85%
 dev / 2x5 @8
 tgt / 2x5 @8
-acc / 5x12 @8
+acc / 5x8-12 @8
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
