@@ -32,6 +32,8 @@ import { FooterPage } from "../../components/footerPage";
 import { IconMuscles2 } from "../../components/icons/iconMuscles2";
 import { IconDoc } from "../../components/icons/iconDoc";
 import { Modal } from "../../components/modal";
+import { Service } from "../../api/service";
+import { IUserContext } from "../../components/pageWrapper";
 
 export interface IExerciseContentProps {
   isLoggedIn?: boolean;
@@ -87,18 +89,30 @@ export function ExerciseContent(props: IExerciseContentProps): JSX.Element {
         buildExerciseUrl(props.exerciseType, props.filterTypes)
       );
     }, 0);
+    if (props.isLoggedIn) {
+      const service = new Service(props.client);
+      service.getUserContext().then((ctx) => {
+        setUserContext(ctx);
+        if (!ctx.account) {
+          setIsLoggedIn(false);
+        }
+      });
+    }
     return () => {
       window.removeEventListener("popstate", onPopState);
     };
   }, []);
   const maxWidth = 1200;
+  const [userContext, setUserContext] = useState<IUserContext>({});
+  const [isLoggedIn, setIsLoggedIn] = useState(!!props.isLoggedIn);
 
   return (
     <div>
       <TopNavMenu
         maxWidth={maxWidth}
         current="/exercises"
-        isLoggedIn={!!props.isLoggedIn}
+        isLoggedIn={isLoggedIn}
+        account={userContext.account}
         client={props.client}
         mobileRight={
           <div className="flex items-center gap-2">

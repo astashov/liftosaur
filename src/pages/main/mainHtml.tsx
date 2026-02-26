@@ -27,7 +27,7 @@ export function MainHtml(props: IProps): JSX.Element {
       data={data}
       isLoggedIn={!!isLoggedIn}
       client={client}
-      url={"/new"}
+      url={"/"}
       redditPixel={true}
     >
       <MainContent client={client} isLoggedIn={isLoggedIn} {...data} />

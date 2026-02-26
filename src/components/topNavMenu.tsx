@@ -205,7 +205,7 @@ function DesktopNav(props: IDesktopNavProps): JSX.Element {
           <ul className="flex flex-wrap items-center justify-end leading-none list-none gap-x-4">
             {getMenuItems(props.isLoggedIn).map(([text, link, hideClass]) => (
               <li className={`list-none ${hideClass || ""}`}>
-                {props.current === link && link !== "/#programs" ? (
+                {props.current === link ? (
                   <span className={`py-1 text-sm underline ${props.isWhite ? "text-white" : "text-purple-700"}`}>
                     {text}
                   </span>

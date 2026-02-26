@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { FooterPage } from "../../components/footerPage";
 import { TopNavMenu } from "../../components/topNavMenu";
 import { ITestimonial } from "./testimonitals";
@@ -9,6 +9,8 @@ import { BuiltinPrograms } from "./components/builtinPrograms";
 import { TrackProgress } from "./components/trackProgress";
 import { EditOnDesktop } from "./components/editOnDesktop";
 import { TestimonialsView } from "./components/testimonialsView";
+import { Service } from "../../api/service";
+import { IUserContext } from "../../components/pageWrapper";
 
 export interface IMainContentProps {
   client: Window["fetch"];
@@ -18,6 +20,9 @@ export interface IMainContentProps {
 }
 
 export function MainContent(props: IMainContentProps): JSX.Element {
+  const [userContext, setUserContext] = useState<IUserContext>({});
+  const [isLoggedIn, setIsLoggedIn] = useState(!!props.isLoggedIn);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     let source = params.get("cpgsrc");
@@ -35,12 +40,29 @@ export function MainContent(props: IMainContentProps): JSX.Element {
         link.setAttribute("href", `${href}&ct=${source}`);
       }
     }
+    if (props.isLoggedIn) {
+      const service = new Service(props.client);
+      service.getUserContext().then((ctx) => {
+        setUserContext(ctx);
+        if (!ctx.account) {
+          setIsLoggedIn(false);
+        }
+      });
+    }
   }, []);
+
+  useEffect(() => {}, []);
 
   return (
     <div>
       <div className="relative z-10">
-        <TopNavMenu client={props.client} isLoggedIn={!!props.isLoggedIn} maxWidth={1200} current="/#programs" />
+        <TopNavMenu
+          client={props.client}
+          isLoggedIn={isLoggedIn}
+          account={userContext.account}
+          maxWidth={1200}
+          current="/"
+        />
         <Hero deviceType={props.deviceType} testimonials={props.testimonials} />
         <CreateYourOwn />
         <BuiltinPrograms />

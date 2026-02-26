@@ -24,11 +24,17 @@ export interface IPageWrapperProps {
 
 export function PageWrapper(props: IPageWrapperProps): JSX.Element {
   const [userContext, setUserContext] = useState<IUserContext>({});
+  const [isLoggedIn, setIsLoggedIn] = useState(!!props.isLoggedIn);
 
   useEffect(() => {
     if (props.isLoggedIn) {
       const service = new Service(props.client);
-      service.getUserContext().then((ctx) => setUserContext(ctx));
+      service.getUserContext().then((ctx) => {
+        setUserContext(ctx);
+        if (!ctx.account) {
+          setIsLoggedIn(false);
+        }
+      });
     }
   }, []);
 
@@ -40,7 +46,7 @@ export function PageWrapper(props: IPageWrapperProps): JSX.Element {
         <TopNavMenu
           maxWidth={props.maxWidth || 1200}
           current={props.url}
-          isLoggedIn={!!props.isLoggedIn}
+          isLoggedIn={isLoggedIn}
           account={userContext.account}
           client={props.client}
         />
