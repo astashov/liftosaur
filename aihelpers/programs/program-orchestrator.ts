@@ -87,6 +87,12 @@ async function main(): Promise<void> {
   log(`Run ID: ${runId}`);
   log(`Main log: ${mainLogPath}`);
 
+  log("Pulling latest master...");
+  await new Promise<void>((resolve) => {
+    const proc = spawn("git", ["pull", "--ff-only", "origin", "master"], { cwd: PROJECT_DIR });
+    proc.on("close", () => resolve());
+  });
+
   const todoPath = path.join(PROJECT_DIR, "PROGRAMSTODO.md");
   if (!fs.existsSync(todoPath)) {
     log("PROGRAMSTODO.md not found, nothing to do");
