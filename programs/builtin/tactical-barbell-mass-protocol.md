@@ -1,9 +1,9 @@
 ---
-id: tb-mass-protocol
+id: tactical-barbell-mass-protocol
 name: "Tactical Barbell: Mass Protocol"
 author: K. Black
 url: "https://www.amazon.com/Tactical-Barbell-II-Conditioning-Black-ebook/dp/B0143HDCGA"
-shortDescription: "6-week hypertrophy block from Tactical Barbell — cluster circuits of Squat/Bench/Pull-Up 3x per week plus a dedicated Deadlift day"
+shortDescription: "6-week hypertrophy block from Tactical Barbell — Squat/Bench/Pull-Up 3x per week plus a dedicated Deadlift day"
 isMultiweek: true
 tags: []
 frequency: 4
@@ -12,7 +12,7 @@ duration: "45-60"
 goal: "strength_and_hypertrophy"
 ---
 
-A 6-week hypertrophy block from K. Black's Tactical Barbell system. Three days per week are "cluster" circuits — cycling through [{Squat}], [{Bench Press}], and [{Pull Up}] with short rest — plus a fourth day dedicated to [{Deadlift}]. Two 3-week waves ramp intensity while tapering volume, finishing with a peaking week.
+A 6-week hypertrophy block from K. Black's Tactical Barbell system. Three days per week hit [{Squat}], [{Bench Press}], and [{Pull Up}], plus a fourth day dedicated to [{Deadlift}]. Two 3-week waves ramp intensity while tapering volume, finishing with a peaking week.
 
 <!-- more -->
 
@@ -20,7 +20,7 @@ A 6-week hypertrophy block from K. Black's Tactical Barbell system. Three days p
 
 The Mass Protocol is one of four "General Mass" templates in K. Black's *Tactical Barbell* series, published in 2018. It was designed for tactical athletes (military, law enforcement, firefighters) who need to gain size and strength efficiently without spending hours in the gym. The Tactical Barbell system splits training into focused blocks — Base Building for conditioning, Operator/Fighter for strength maintenance, and Mass Protocol for dedicated hypertrophy phases.
 
-The core idea: compound-only training done as circuits (called "clusters") to maximize training density. By supersetting [{Squat}], [{Bench Press}], and [{Pull Up}] with short rest between exercises, you get high volume in minimal time while the non-working muscles recover. Two 3-week waves provide undulating periodization — volume drops and intensity rises within each wave, then resets for the second wave at a slightly different rep scheme.
+The core idea: compound-only training with high frequency on a small number of lifts. By hitting [{Squat}], [{Bench Press}], and [{Pull Up}] three times per week, you accumulate significant volume on the movements that matter most for size. Two 3-week waves provide undulating periodization — volume drops and intensity rises within each wave, then resets for the second wave at a slightly different rep scheme.
 
 ## Who It's For
 
@@ -33,7 +33,7 @@ The core idea: compound-only training done as circuits (called "clusters") to ma
 
 **Pros**
 
-- Sessions take 30-45 minutes due to the circuit/cluster format — very time-efficient for the volume delivered
+- Sessions are short — only 3 exercises per day with 4 working sets each, so you're in and out quickly
 - [{Squat}], [{Bench Press}], and [{Pull Up}] are each trained 3x per week, building technique rapidly
 - Simple exercise selection — only 4 exercises total, nothing to overthink
 - The 6-week block structure has a clear start and end, making it easy to slot into a longer periodized plan
@@ -42,26 +42,26 @@ The core idea: compound-only training done as circuits (called "clusters") to ma
 **Cons**
 
 - Only 4 exercises — no direct shoulder, arm, hamstring, or lateral delt work. You'll need to add accessories if those are priorities
-- Requires a squat rack and barbell area for 30+ minutes of uninterrupted circuit work, which can be difficult in a crowded gym
+- Requires a squat rack, barbell, bench, and pull-up bar for every session
 - [{Deadlift}] gets minimal volume (one day per week, 4 sets) compared to squat and bench
 - No isolation or machine work — lifters seeking balanced physique development will need to supplement
-- Pull-up performance can suffer when supersetting with heavy squats and bench press
+- Pull-up volume may be hard to sustain at the prescribed percentages if you're gaining bodyweight
 
 ## Program Structure
 
-- **Split**: Full body clusters (3 days) + deadlift (1 day)
+- **Split**: Full body (3 days) + deadlift (1 day)
 - **Periodization**: Undulating within two 3-week waves. Wave 1: 4x6 → 4x5 → 4x3. Wave 2: 4x6 → 4x4 → 4x3.
-- **Schedule**: Fixed weekly — e.g., Mon/Wed/Fri (clusters) + Tue or Sat (deadlift)
+- **Schedule**: Fixed weekly — e.g., Mon/Wed/Fri (main lifts) + Tue or Sat (deadlift)
 - **Cycle length**: 6-week block (two 3-week waves)
-- **Typical week**: Cluster Day (Bench/Squat/Pull-Up circuit) × 3 + Deadlift Day × 1
+- **Typical week**: Bench/Squat/Pull-Up Day × 3 + Deadlift Day × 1
 
 ## Exercise Selection & Rationale
 
-**Cluster Days** circuit through [{Bench Press}], [{Squat}], and [{Pull Up}] — a horizontal push, a lower body compound, and a vertical pull. This covers the three major movement patterns in one efficient session. The circuit format means while one muscle group works, the others recover, allowing you to maintain higher quality reps at a given percentage than straight sets with short rest would permit.
+**Main Days** hit [{Bench Press}], [{Squat}], and [{Pull Up}] — a horizontal push, a lower body compound, and a vertical pull. This covers the three major movement patterns in one session. All exercises are performed as straight sets — complete all sets of one exercise before moving to the next.
 
-[{Pull Up}] is the prescribed pulling movement because it's a bodyweight compound that scales naturally — as you gain mass, the exercise gets harder, providing auto-regulated progressive overload. It also requires no additional equipment setup in the circuit rotation.
+[{Pull Up}] is the prescribed pulling movement because it's a bodyweight compound that scales naturally — as you gain mass, the exercise gets harder, providing auto-regulated progressive overload.
 
-**Deadlift Day** is separate because [{Deadlift}] doesn't pair well in a circuit — it's too systemically fatiguing and occupies the same equipment space as squats. Keeping it on its own day allows for focused, high-quality pulling without interference from the cluster exercises.
+**Deadlift Day** is separate because [{Deadlift}] is too systemically fatiguing to combine with squats and bench on the same day. Keeping it on its own day allows for focused, high-quality pulling.
 
 **Substitutions**: [{Pull Up}] can be replaced with [{Chin Up}] or [{Lat Pulldown}] (weighted). [{Bench Press}] can be replaced with [{Overhead Press}] if upper body pressing variety is desired. [{Deadlift}] can be replaced with [{Trap Bar Deadlift}] or [{Sumo Deadlift}].
 
@@ -107,9 +107,7 @@ Barbell, squat rack, bench, weight plates, and a pull-up bar. That's it — the 
 
 ## Rest Times
 
-- **Between cluster exercises**: **60 seconds**. Move from [{Bench Press}] to [{Squat}] to [{Pull Up}] with 60s rest between each. This is the defining feature of the program.
-- **Between cluster rounds**: No additional rest — the 60s between exercises is the only rest. After completing [{Pull Up}], wait 60s and start the next set of [{Bench Press}].
-- **Deadlift Day**: **120 seconds** between sets. [{Deadlift}] is performed as straight sets, not in a circuit.
+- **All exercises**: **2-3 minutes** between sets.
 
 ## How to Pick Starting Weights
 
@@ -123,25 +121,25 @@ The app already converts TM percentages to 1RM percentages, so just enter your t
 
 ## Common Modifications
 
-- **Add accessories**: Tack on 2-3 sets of [{Bicep Curl}], [{Lateral Raise}], or [{Face Pull}] after cluster days. Keep it light — the clusters are the priority.
+- **Add accessories**: Tack on 2-3 sets of [{Bicep Curl}], [{Lateral Raise}], or [{Face Pull}] after the main lifts. Keep it light — the main lifts are the priority.
 - **Replace [{Pull Up}] with [{Bent Over Row}]**: Some lifters prefer rows for more direct lat and upper back work, especially if pull-up numbers are low.
-- **Add a second deadlift variation**: Put [{Romanian Deadlift}] (3x8-10) on one of the cluster days after the circuit for extra hamstring volume.
-- **Run 3 days instead of 4**: Drop the dedicated [{Deadlift}] day and add 2-3 sets of [{Deadlift}] at the end of one cluster day. Less ideal but works for limited schedules.
+- **Add a second deadlift variation**: Put [{Romanian Deadlift}] (3x8-10) on one of the main days for extra hamstring volume.
+- **Run 3 days instead of 4**: Drop the dedicated [{Deadlift}] day and add 2-3 sets of [{Deadlift}] at the end of one main day. Less ideal but works for limited schedules.
 - **Weighted [{Pull Up}]**: If bodyweight pull-ups are easy (10+ reps), add weight via a belt or dumbbell between feet. The program percentages won't apply to pull-ups unless you set a 1RM.
 
 <!-- faq -->
 
 ### Is the Tactical Barbell Mass Protocol good for beginners?
 
-No. The Mass Protocol uses percentage-based loading and assumes you have a reliable Training Max for [{Squat}], [{Bench Press}], [{Deadlift}], and [{Pull Up}]. Beginners should build their base with a novice linear progression like [GZCLP](/programs/gzclp) or Starting Strength first.
+No. The Mass Protocol uses percentage-based loading and assumes you have a reliable Training Max for Squat, Bench Press, Deadlift, and Pull Up. Beginners should build their base with a novice linear progression like [GZCLP](/programs/gzclp) or Starting Strength first.
 
 ### How many days a week is the Tactical Barbell Mass Protocol?
 
-It's a 4-day program: three cluster days (circuit of [{Bench Press}], [{Squat}], [{Pull Up}]) and one dedicated [{Deadlift}] day. Most people run it Mon/Wed/Fri for clusters and Tue or Sat for deadlifts.
+It's a 4-day program: three days of Bench Press, Squat, and Pull Up, plus one dedicated Deadlift day. Most people run it Mon/Wed/Fri for the main lifts and Tue or Sat for deadlifts.
 
 ### How long are the workouts?
 
-Cluster days take 30-45 minutes due to the circuit format with 60-second rest between exercises. Deadlift day is shorter — about 20-30 minutes for 4 working sets plus warmups.
+Main days have 12 working sets across 3 exercises, typically taking 45-60 minutes including warmups. Deadlift day is shorter — about 20-30 minutes for 4 working sets plus warmups.
 
 ### What's the difference between Wave 1 and Wave 2?
 
@@ -153,7 +151,7 @@ You run the full 6-week block, then add 5lb to upper body lifts and 10lb to lowe
 
 ### Can I add accessories to the Mass Protocol?
 
-Yes, but keep it minimal. K. Black suggests adding 2-3 light sets of isolation work (curls, lateral raises, face pulls) after cluster days if desired. The clusters themselves provide the primary training stimulus — accessories are supplementary.
+Yes, but keep it minimal. K. Black suggests adding 2-3 light sets of isolation work (curls, lateral raises, face pulls) after the main lifts if desired. The main compound lifts provide the primary training stimulus — accessories are supplementary.
 
 ### What do I do after finishing the Mass Protocol?
 
@@ -161,12 +159,12 @@ Transition to a Tactical Barbell strength template (Operator or Fighter) to cons
 
 ### Do I need to do cardio while running the Mass Protocol?
 
-K. Black recommends reducing conditioning work during mass blocks to prioritize recovery and growth. Light conditioning (walking, easy cycling) 1-2x per week is fine, but avoid intense HIIT or long runs that will interfere with recovery from the cluster sessions.
+K. Black recommends reducing conditioning work during mass blocks to prioritize recovery and growth. Light conditioning (walking, easy cycling) 1-2x per week is fine, but avoid intense HIIT or long runs that will interfere with recovery.
 
 ```liftoscript
 # Week 1
 ## Day 1
-cluster / used: none / 4x6 / 67% / 60s / progress: custom(increment: 5lb) {~
+main / used: none / 4x6 / 67% / 180s / progress: custom(increment: 5lb) {~
   if (completedReps >= reps && dayInWeek == 3 && week == 6) {
     rm1 += state.increment
   }
@@ -178,19 +176,19 @@ dl / used: none / 4x5 / 67% / 120s / progress: custom(increment: 10lb) {~
   }
 ~}
 
-Bench Press[1-6] / ...cluster / superset: A
-Squat[1-6] / ...cluster / progress: custom(increment: 10lb) { ...cluster } / superset: A
-Pull Up[1-6] / ...cluster / warmup: none / superset: A
+Bench Press[1-6] / ...main
+Squat[1-6] / ...main / progress: custom(increment: 10lb) { ...main }
+Pull Up[1-6] / ...main / warmup: none
 
 ## Day 2
-Bench Press[1-6] / ...cluster / superset: A
-Squat[1-6] / ...cluster / superset: A
-Pull Up[1-6] / ...cluster / superset: A
+Bench Press[1-6] / ...main
+Squat[1-6] / ...main
+Pull Up[1-6] / ...main
 
 ## Day 3
-Bench Press[1-6] / ...cluster / superset: A
-Squat[1-6] / ...cluster / superset: A
-Pull Up[1-6] / ...cluster / superset: A
+Bench Press[1-6] / ...main
+Squat[1-6] / ...main
+Pull Up[1-6] / ...main
 
 ## Deadlift Day
 Deadlift[1-6] / ...dl
@@ -198,7 +196,7 @@ Deadlift[1-6] / ...dl
 
 # Week 2
 ## Day 1
-cluster / 4x5 / 72% / 60s
+main / 4x5 / 72% / 180s
 dl / 4x5 / 72% / 120s
 ## Day 2
 ## Day 3
@@ -206,7 +204,7 @@ dl / 4x5 / 72% / 120s
 
 # Week 3
 ## Day 1
-cluster / 3x3, 1x3+ / 81% / 60s
+main / 3x3, 1x3+ / 81% / 180s
 dl / 4x3 / 81% / 120s
 ## Day 2
 ## Day 3
@@ -214,7 +212,7 @@ dl / 4x3 / 81% / 120s
 
 # Week 4
 ## Day 1
-cluster / 4x6 / 67% / 60s
+main / 4x6 / 67% / 180s
 dl / 4x5 / 67% / 120s
 ## Day 2
 ## Day 3
@@ -222,7 +220,7 @@ dl / 4x5 / 67% / 120s
 
 # Week 5
 ## Day 1
-cluster / 4x4 / 76% / 60s
+main / 4x4 / 76% / 180s
 dl / 4x4 / 76% / 120s
 ## Day 2
 ## Day 3
@@ -230,7 +228,7 @@ dl / 4x4 / 76% / 120s
 
 # Week 6
 ## Day 1
-cluster / 3x3, 1x3+ / 81% / 60s
+main / 3x3, 1x3+ / 81% / 180s
 dl / 4x3 / 81% / 120s
 ## Day 2
 ## Day 3
