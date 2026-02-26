@@ -236,8 +236,10 @@ export function Storage_updateVersions(
 }
 
 export function Storage_mergeStorage(oldStorage: IStorage, newStorage: IStorage, deviceId?: string): IStorage {
-  const { id: oldId, originalId: oldOriginalId, _versions: oldVersions, ...oldCleanedStorage } = oldStorage;
-  const { id: newId, originalId: newOriginalId, _versions: newVersions, ...newCleanedStorage } = newStorage;
+  const migratedOldStorage = runMigrations(oldStorage);
+  const migratedNewStorage = runMigrations(newStorage);
+  const { id: oldId, originalId: oldOriginalId, _versions: oldVersions, ...oldCleanedStorage } = migratedOldStorage;
+  const { id: newId, originalId: newOriginalId, _versions: newVersions, ...newCleanedStorage } = migratedNewStorage;
   const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
   const updatedVersions = versionTracker.mergeVersions(oldVersions || {}, newVersions || {});
   const updatedCleanedStorage = versionTracker.mergeByVersions(
