@@ -142,7 +142,27 @@ Push to the fork:
 GH_TOKEN=$GH_TOKEN_AI git -C ./worktrees/pr-$ARGUMENTS push fork HEAD:{headRefName}
 ```
 
-### 10. Reply on PR
+### 10. Update Preview Link
+
+Get the new commit hash and update the PR body's preview link:
+```bash
+COMMIT_HASH=$(git -C ./worktrees/pr-$ARGUMENTS rev-parse HEAD)
+```
+
+Extract the program slug from the branch name (the part after `add-program/`):
+```bash
+SLUG=$(git -C ./worktrees/pr-$ARGUMENTS rev-parse --abbrev-ref HEAD | sed 's|add-program/||')
+```
+
+Update the PR body to replace the old preview link with the new commit hash:
+```bash
+GH_TOKEN=$GH_TOKEN_AI gh pr view $ARGUMENTS --repo astashov/liftosaur --json body --jq '.body' | sed "s|program-preview?user=astashovai&commit=[a-f0-9]*&program=|program-preview?user=astashovai\&commit=${COMMIT_HASH}\&program=|" > ./worktrees/pr-$ARGUMENTS/.tmp/pr-body.txt
+```
+```bash
+GH_TOKEN=$GH_TOKEN_AI gh pr edit $ARGUMENTS --repo astashov/liftosaur --body-file ./worktrees/pr-$ARGUMENTS/.tmp/pr-body.txt
+```
+
+### 11. Reply on PR
 
 Leave a comment on the PR summarizing what was addressed:
 
@@ -152,7 +172,7 @@ GH_TOKEN=$GH_TOKEN_AI gh pr comment $ARGUMENTS --repo astashov/liftosaur --body 
 <bullet points of what was changed in response to review comments>"
 ```
 
-### 11. Cleanup
+### 12. Cleanup
 
 ```bash
 git worktree remove ./worktrees/pr-$ARGUMENTS
