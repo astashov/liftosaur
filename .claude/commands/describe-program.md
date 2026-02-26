@@ -16,7 +16,7 @@ You MUST deeply research the program before writing anything. Program descriptio
 - Fetch and analyze the spreadsheet page - it usually has the actual numbers that blog posts gloss over
 
 ### Step 3: Cross-Reference with Community Sources
-- Search Reddit (/r/fitness, /r/weightroom, /r/gzcl, /r/531Discussion) for discussions via WebSearch (do NOT use WebFetch on reddit.com — it blocks automated requests)
+- Search Reddit (/r/fitness, /r/weightroom, /r/gzcl, /r/531Discussion) for discussions. Use WebSearch to find relevant threads, then fetch their content with: `npm run r ./lambda/scripts/fetch_reddit.ts <reddit-url>` (do NOT use WebFetch on reddit.com — it blocks automated requests)
 - Look for "program review" posts from people who actually ran it
 - Look for common questions - these reveal where the original description was ambiguous
 - Search for FAQ posts or wiki entries about the program

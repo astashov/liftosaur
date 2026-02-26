@@ -51,7 +51,7 @@ async function fetchProgramPRs(): Promise<IProgramPR[]> {
     "--repo",
     "astashov/liftosaur",
     "--state",
-    "all",
+    "open",
     "--search",
     `add-program in:title created:>=${since}`,
     "--json",
