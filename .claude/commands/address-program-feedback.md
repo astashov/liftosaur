@@ -105,7 +105,7 @@ Based on the review comments:
 ### 7. Re-Validate Liftoscript
 
 ```bash
-TS_NODE_TRANSPILE_ONLY=1 npx ts-node ./worktrees/pr-$ARGUMENTS/lambda/scripts/validate_liftoscript.ts ./worktrees/pr-$ARGUMENTS/programs/builtin/{slug}.md
+TS_NODE_TRANSPILE_ONLY=1 npx ts-node ./worktrees/pr-$ARGUMENTS/scripts/validate_liftoscript.ts ./worktrees/pr-$ARGUMENTS/programs/builtin/{slug}.md
 ```
 
 If validation fails, fix the Liftoscript code and re-validate until it passes.

@@ -221,7 +221,7 @@ Write the complete markdown file to `programs/builtin/<program-id>.md`.
 ### Step 2: Validate
 Run:
 ```bash
-TS_NODE_TRANSPILE_ONLY=1 npx ts-node lambda/scripts/validate_liftoscript.ts programs/builtin/<program-id>.md
+TS_NODE_TRANSPILE_ONLY=1 npx ts-node scripts/validate_liftoscript.ts programs/builtin/<program-id>.md
 ```
 
 ### Step 3: Handle validation errors

@@ -69,7 +69,7 @@ This is the most important step. Follow ALL of the instructions below thoroughly
 
 All file paths below are relative to the worktree (`./worktrees/SLUG/`):
 - Write the program file to `./worktrees/SLUG/programs/builtin/SLUG.md`
-- Validate with: `TS_NODE_TRANSPILE_ONLY=1 npx ts-node ./worktrees/SLUG/lambda/scripts/validate_liftoscript.ts ./worktrees/SLUG/programs/builtin/SLUG.md`
+- Validate with: `TS_NODE_TRANSPILE_ONLY=1 npx ts-node ./worktrees/SLUG/scripts/validate_liftoscript.ts ./worktrees/SLUG/programs/builtin/SLUG.md`
 - Reference files (`llms/liftoscript.md`, `llms/liftoscript_examples.md`, `llms/exercises.md`, `programs/builtin/`) can be read from the repo root — same content.
 
 #### 3a. Research Phase (CRITICAL - Do This Thoroughly)
@@ -262,7 +262,7 @@ After writing the full description with Liftoscript code, you MUST validate it.
 
 **Save the file**, then run:
 ```bash
-TS_NODE_TRANSPILE_ONLY=1 npx ts-node ./worktrees/SLUG/lambda/scripts/validate_liftoscript.ts ./worktrees/SLUG/programs/builtin/SLUG.md
+TS_NODE_TRANSPILE_ONLY=1 npx ts-node ./worktrees/SLUG/scripts/validate_liftoscript.ts ./worktrees/SLUG/programs/builtin/SLUG.md
 ```
 
 If validation fails, fix the Liftoscript code based on the error message and re-validate. **Repeat until it passes.** Do NOT skip this step.
