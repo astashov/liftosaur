@@ -1,4 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import * as Cookie from "cookie";
 import { UrlUtils_build } from "../../src/utils/url";
 import { localdomain } from "../../src/localdomain";
 
@@ -40,6 +41,15 @@ export function ResponseUtils_getHeaders(event: APIGatewayProxyEvent): Record<st
     };
   }
   return headers;
+}
+
+export function ResponseUtils_clearSessionCookie(): string {
+  return Cookie.serialize("session", "", {
+    httpOnly: true,
+    domain: ".liftosaur.com",
+    path: "/",
+    expires: new Date(1970, 0, 1),
+  });
 }
 
 export function ResponseUtils_getHost(event: APIGatewayProxyEvent): string {

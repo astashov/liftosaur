@@ -774,7 +774,22 @@ export class LiftosaurCdkStack extends cdk.Stack {
         ],
       },
       additionalBehaviors: {
-        "/programs*": {
+        "/programs": {
+          origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
+            originPath: `/${restApi.deploymentStage.stageName}`,
+          }),
+          cachePolicy: programsCachePolicy,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: programsCacheKey,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
+        "/programs/*": {
           origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
             originPath: `/${restApi.deploymentStage.stageName}`,
           }),

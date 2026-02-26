@@ -32,7 +32,7 @@ import Rollbar from "rollbar";
 import { IDI } from "./utils/di";
 import { runMigrations } from "../src/migrations/runner";
 import { c, IEither } from "../src/utils/types";
-import { ResponseUtils_json, ResponseUtils_getHeaders, ResponseUtils_getHost } from "./utils/response";
+import { ResponseUtils_json, ResponseUtils_getHeaders, ResponseUtils_getHost, ResponseUtils_clearSessionCookie } from "./utils/response";
 import { ImageCacher_cache } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
@@ -846,19 +846,7 @@ const getHistoryHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 const signoutEndpoint = Endpoint.build("/api/signout");
 const signoutHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof signoutEndpoint> = async ({ payload }) => {
   const { event } = payload;
-  return {
-    statusCode: 200,
-    headers: {
-      ...ResponseUtils_getHeaders(event),
-      "set-cookie": Cookie.serialize("session", "", {
-        httpOnly: true,
-        domain: ".liftosaur.com",
-        path: "/",
-        expires: new Date(1970, 0, 1),
-      }),
-    },
-    body: "{}",
-  };
+  return ResponseUtils_json(200, event, {}, { "set-cookie": ResponseUtils_clearSessionCookie() });
 };
 
 const postSaveProgramEndpoint = Endpoint.build("/api/program");
@@ -1711,7 +1699,9 @@ const getUserContextHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   const { event, di } = payload;
   const user = await getCurrentLimitedUser(event, di);
   if (user == null) {
-    return ResponseUtils_json(200, event, { account: null, units: null });
+    return ResponseUtils_json(200, event, { account: null, units: null }, {
+      "set-cookie": ResponseUtils_clearSessionCookie(),
+    });
   }
   const account = Account_getFromStorage(user.id, user.email, user.storage);
   return ResponseUtils_json(200, event, { account, units: user.storage.settings.units });
