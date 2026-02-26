@@ -80,9 +80,27 @@ The last set each week is AMRAP. Extra reps drive the weight jump for the follow
 - Wave 2 (Weeks 13-15): 5→3→1 sets of 2 reps starting at 85% 1RM
 - Wave 3 (Weeks 16-18): 5→3→1 sets of 1 rep starting at 90% 1RM
 
+### Example of main lift sets/reps/weight week over week
+
+:::exercise-example{exercise="squat" equipment="barbell" key="squat_barbell" weeks="1-18" weekLabels="65%,65%,65%,70%,70%,70%,75%,75%,75%,80%,80%,80%,85%,85%,85%,90%,90%,90%"}
+
 **Developmental lifts** use RPE-based loading. In the base phase, sets increase within each wave (3→4→5 sets, "volumizing"). In the peak phase, sets decrease (4→3→2 sets) as overall volume tapers.
 
+### Example of developmental lift volume pattern week over week
+
+:::exercise-example{exercise="stiffLegDeadlift" equipment="barbell" key="stifflegdeadlift_barbell" weeks="1-18" weekLabels="@6,@7,@8,@6,@7,@8,@6,@7,@8,@6,@7,@8,@6,@7,@8,@6,@7,@8"}
+
 **Accessories** follow a similar volumizing pattern in the base phase (2-5 sets of 8-15 reps) and are dropped entirely in the final wave of the peak phase.
+
+### Example of accessory lift volume pattern week over week
+
+:::exercise-example{exercise="latPulldown" equipment="cable" key="latpulldown_cable" weeks="1-15" weekLabels="@6,@7,@8,@6,@7,@8,@6,@7,@8,@6,@7,@8,@6,@7,@8" onerm="200"}
+
+**Targeted lifts** (peak phase only, weeks 10-18) mirror the developmental tapering pattern — sets decrease within each wave as the lifter focuses on peaking the main lifts.
+
+### Example of targeted lift volume pattern week over week
+
+:::exercise-example{exercise="legPress" equipment="leverageMachine" key="legpress_leveragemachine" weeks="10-18" weekLabels="@6,@7,@8,@6,@7,@8,@6,@7,@8"}
 
 ## Progressive Overload
 
@@ -146,7 +164,7 @@ No. Bullmastiff is designed for intermediate and advanced lifters with at least 
 
 ### How many days a week is Bullmastiff?
 
-Bullmastiff is a 4-day program. Each day features one main lift ([{Squat}], [{Bench Press}], [{Deadlift}], or [{Overhead Press}]) paired with a developmental variation for the opposite movement pattern, plus accessory work.
+Bullmastiff is a 4-day program. Each day features one main lift (Squat, Bench Press, Deadlift, or Overhead Press) paired with a developmental variation for the opposite movement pattern, plus accessory work.
 
 ### How does the AMRAP progression work in Bullmastiff?
 
@@ -162,7 +180,7 @@ Yes, and many lifters do. The base phase is widely praised for building size and
 
 ### What should I do if my bench press isn't progressing on Bullmastiff?
 
-Bench only gets one direct session per week in the default setup. Add 2-3 extra sets of bench accessories on OHP day, or replace the OHP developmental variation with a bench variation like [{Incline Bench Press}] for more pressing volume.
+Bench only gets one direct session per week in the default setup. Add 2-3 extra sets of bench accessories on OHP day, or replace the OHP developmental variation with a bench variation like Incline Bench Press for more pressing volume.
 
 ### Do I need a deload week during Bullmastiff?
 
@@ -170,7 +188,7 @@ Bromley doesn't program explicit deloads — the wave resets every 3 weeks serve
 
 ### What's the difference between developmental and targeted lifts?
 
-Developmental lifts run throughout the entire program and provide secondary volume for each movement pattern (e.g., [{Front Squat}] supporting [{Squat}]). Targeted lifts are added only in the peak phase and address specific weak points in your main lifts (e.g., [{Deficit Deadlift}] if you're weak off the floor).
+Developmental lifts run throughout the entire program and provide secondary volume for each movement pattern (e.g., Front Squat supporting Squat). Targeted lifts are added only in the peak phase and address specific weak points in your main lifts (e.g., Deficit Deadlift if you're weak off the floor).
 
 ```liftoscript
 # Week 1
@@ -184,11 +202,9 @@ main / used: none / 3x6, 1x6+ / 65% / 180s / progress: custom() {~
 ~}
 // Developmental: compound variation of the opposite movement pattern (e.g. SLDL on Squat day).
 // Sets increase within each base wave ("volumizing"), decrease within each peak wave.
-dev / used: none / 3x12 / 60% / 120s
+dev / used: none / 3x12 @6 / 120s
 // Accessory: isolation/bodybuilding work. Dropped entirely in the final 3 weeks of peak.
-acc / used: none / 2x15 / 50% / 60s
-// Targeted: peak-phase only (weeks 10-18). Addresses weak points in the main lift for that day.
-tgt / used: none / 4x6 / 65% / 120s
+acc / used: none / 2x15 @6 / 60s
 
 // ...main
 Squat[1-18] / ...main
@@ -200,8 +216,6 @@ Lat Pulldown[1-15] / ...acc
 Leg Extension[1-15] / ...acc
 // ...acc
 Hanging Leg Raise[1-15] / ...acc
-// ...tgt
-Leg Press[10-18] / ...tgt
 
 ## Bench Day
 // ...main
@@ -214,8 +228,6 @@ Triceps Pushdown[1-15] / ...acc
 Lateral Raise[1-15] / ...acc
 // ...acc
 Face Pull[1-15] / ...acc
-// ...tgt
-Incline Bench Press[10-18] / ...tgt
 
 ## Deadlift Day
 // ...main
@@ -228,8 +240,6 @@ Seated Row[1-15] / ...acc
 Seated Leg Curl[1-15] / ...acc
 // ...acc
 Crunch, Cable[1-15] / ...acc
-// ...tgt
-Deficit Deadlift[10-18] / ...tgt
 
 ## OHP Day
 // ...main
@@ -242,15 +252,13 @@ Bicep Curl, Barbell[1-15] / ...acc
 Lateral Raise[1-15] / ...acc
 // ...acc
 Reverse Fly[1-15] / ...acc
-// ...tgt
-Push Press, Barbell[10-18] / ...tgt
 
 
 # Week 2
 ## Squat Day
 main[2-3] / 3x6, 1x6+ / 65%
-dev / 4x12 / 60%
-acc / 3x15 / 50%
+dev / 4x12 @7
+acc / 3x15 @7
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -258,8 +266,8 @@ acc / 3x15 / 50%
 
 # Week 3
 ## Squat Day
-dev / 5x12 / 60%
-acc / 4x15 / 50%
+dev / 5x12 @8
+acc / 4x15 @8
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -268,8 +276,8 @@ acc / 4x15 / 50%
 # Week 4
 ## Squat Day
 main[4-6] / 4x5, 1x5+ / 70%
-dev / 3x10 / 60%
-acc / 3x12 / 50%
+dev / 3x10 @6
+acc / 3x12 @6
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -277,8 +285,8 @@ acc / 3x12 / 50%
 
 # Week 5
 ## Squat Day
-dev / 4x10 / 60%
-acc / 4x12 / 50%
+dev / 4x10 @7
+acc / 4x12 @7
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -286,8 +294,8 @@ acc / 4x12 / 50%
 
 # Week 6
 ## Squat Day
-dev / 5x10 / 60%
-acc / 5x12 / 50%
+dev / 5x10 @8
+acc / 5x12 @8
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -296,8 +304,8 @@ acc / 5x12 / 50%
 # Week 7
 ## Squat Day
 main[7-9] / 5x4, 1x4+ / 75%
-dev / 3x8 / 60%
-acc / 3x12 / 50%
+dev / 3x8 @6
+acc / 3x12 @6
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -305,8 +313,8 @@ acc / 3x12 / 50%
 
 # Week 8
 ## Squat Day
-dev / 4x8 / 60%
-acc / 4x12 / 50%
+dev / 4x8 @7
+acc / 4x12 @7
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -314,8 +322,8 @@ acc / 4x12 / 50%
 
 # Week 9
 ## Squat Day
-dev / 5x8 / 60%
-acc / 5x12 / 50%
+dev / 5x8 @8
+acc / 5x12 @8
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -324,20 +332,29 @@ acc / 5x12 / 50%
 # Week 10
 ## Squat Day
 main / 4x3, 1x3+ / 80%
-dev / 4x6 / 60%
-tgt / 4x6 / 65%
-acc / 3x12 / 50%
+dev / 4x6 @6
+// Targeted: peak-phase only (weeks 10-18). Addresses weak points in the main lift for that day.
+tgt / used: none / 4x6 @6 / 120s
+acc / 3x12 @6
+// ...tgt
+Leg Press[10-18] / ...tgt
 ## Bench Day
+// ...tgt
+Incline Bench Press[10-18] / ...tgt
 ## Deadlift Day
+// ...tgt
+Deficit Deadlift[10-18] / ...tgt
 ## OHP Day
+// ...tgt
+Push Press, Barbell[10-18] / ...tgt
 
 
 # Week 11
 ## Squat Day
 main / 2x3, 1x3+ / 80%
-dev / 3x6 / 60%
-tgt / 3x6 / 65%
-acc / 4x12 / 50%
+dev / 3x6 @7
+tgt / 3x6 @7
+acc / 4x12 @7
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -346,9 +363,9 @@ acc / 4x12 / 50%
 # Week 12
 ## Squat Day
 main / 1x3+ / 80%
-dev / 2x6 / 60%
-tgt / 2x6 / 65%
-acc / 5x12 / 50%
+dev / 2x6 @8
+tgt / 2x6 @8
+acc / 5x12 @8
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -357,9 +374,9 @@ acc / 5x12 / 50%
 # Week 13
 ## Squat Day
 main / 4x2, 1x2+ / 85%
-dev / 4x5 / 60%
-tgt / 4x5 / 65%
-acc / 3x12 / 50%
+dev / 4x5 @6
+tgt / 4x5 @6
+acc / 3x12 @6
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -368,9 +385,9 @@ acc / 3x12 / 50%
 # Week 14
 ## Squat Day
 main / 2x2, 1x2+ / 85%
-dev / 3x5 / 60%
-tgt / 3x5 / 65%
-acc / 4x12 / 50%
+dev / 3x5 @7
+tgt / 3x5 @7
+acc / 4x12 @7
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -379,9 +396,9 @@ acc / 4x12 / 50%
 # Week 15
 ## Squat Day
 main / 1x2+ / 85%
-dev / 2x5 / 60%
-tgt / 2x5 / 65%
-acc / 5x12 / 50%
+dev / 2x5 @8
+tgt / 2x5 @8
+acc / 5x12 @8
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -390,8 +407,8 @@ acc / 5x12 / 50%
 # Week 16
 ## Squat Day
 main / 4x1, 1x1+ / 90%
-dev / 4x4 / 60%
-tgt / 4x4 / 65%
+dev / 4x4 @6
+tgt / 4x4 @6
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -400,8 +417,8 @@ tgt / 4x4 / 65%
 # Week 17
 ## Squat Day
 main / 2x1, 1x1+ / 90%
-dev / 3x4 / 60%
-tgt / 3x4 / 65%
+dev / 3x4 @7
+tgt / 3x4 @7
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -410,8 +427,8 @@ tgt / 3x4 / 65%
 # Week 18
 ## Squat Day
 main / 1x1+ / 90%
-dev / 2x4 / 60%
-tgt / 2x4 / 65%
+dev / 2x4 @8
+tgt / 2x4 @8
 ## Bench Day
 ## Deadlift Day
 ## OHP Day

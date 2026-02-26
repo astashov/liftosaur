@@ -210,6 +210,7 @@ Write 5-8 frequently asked questions about the program. These generate FAQPage s
 - Answers should be 2-4 sentences, direct and specific
 - Include the program name in at least 2-3 questions for SEO
 - Don't repeat information verbatim from the main description — rephrase and summarize
+- **Do NOT use exercise directives** (`[{Exercise Name}]`) in the FAQ section. Use plain capitalized exercise names instead (e.g., write "Squat" not `[{Squat}]`). The FAQ content generates structured data for Google search results, where directives won't render.
 
 ## Validation Phase (AFTER Writing)
 

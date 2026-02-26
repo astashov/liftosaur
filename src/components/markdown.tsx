@@ -22,7 +22,7 @@ function preprocessDirectives(text: string, directivesData?: IMarkdownDirectives
       for (const m of attrsStr.matchAll(/(\w+)="([^"]*)"/g)) {
         attrs[m[1]] = m[2];
       }
-      return `<div class="md-exercise-example mb-4" data-exercise="${attrs.exercise || ""}" data-equipment="${attrs.equipment || ""}" data-key="${attrs.key || ""}" data-weeks="${attrs.weeks || ""}" data-week-labels="${attrs.weekLabels || ""}"></div>`;
+      return `<div class="md-exercise-example mb-4" data-exercise="${attrs.exercise || ""}" data-equipment="${attrs.equipment || ""}" data-key="${attrs.key || ""}" data-weeks="${attrs.weeks || ""}" data-week-labels="${attrs.weekLabels || ""}" data-onerm="${attrs.onerm || ""}"></div>`;
     });
   }
   return result;
@@ -127,6 +127,7 @@ function hydrateExerciseExampleDirectives(
     const key = el.getAttribute("data-key") || "";
     const weeksStr = el.getAttribute("data-weeks") || "";
     const weekLabelsStr = el.getAttribute("data-week-labels") || "";
+    const onermStr = el.getAttribute("data-onerm") || "";
 
     const exerciseType = { id: exercise, equipment };
     const weekLabels = weekLabelsStr ? weekLabelsStr.split(",") : [];
@@ -136,6 +137,7 @@ function hydrateExerciseExampleDirectives(
       const [start, end] = weeksStr.split("-").map(Number);
       weekSetup = evaluatedProgram.weeks.slice(start - 1, end).map((w, i) => ({
         name: weekLabels[i] ? `${w.name} (${weekLabels[i]})` : w.name,
+        weekIndex: start - 1 + i,
       }));
     } else if (weekLabels.length > 0) {
       weekSetup = evaluatedProgram.weeks.map((w, i) => ({
@@ -151,6 +153,7 @@ function hydrateExerciseExampleDirectives(
           programExerciseKey={key}
           exerciseType={exerciseType}
           weekSetup={weekSetup}
+          defaultOnerm={onermStr ? parseFloat(onermStr) : undefined}
         />,
         el as HTMLElement
       );

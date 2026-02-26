@@ -32,7 +32,12 @@ import Rollbar from "rollbar";
 import { IDI } from "./utils/di";
 import { runMigrations } from "../src/migrations/runner";
 import { c, IEither } from "../src/utils/types";
-import { ResponseUtils_json, ResponseUtils_getHeaders, ResponseUtils_getHost, ResponseUtils_clearSessionCookie } from "./utils/response";
+import {
+  ResponseUtils_json,
+  ResponseUtils_getHeaders,
+  ResponseUtils_getHost,
+  ResponseUtils_clearSessionCookie,
+} from "./utils/response";
 import { ImageCacher_cache } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
@@ -1699,9 +1704,14 @@ const getUserContextHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   const { event, di } = payload;
   const user = await getCurrentLimitedUser(event, di);
   if (user == null) {
-    return ResponseUtils_json(200, event, { account: null, units: null }, {
-      "set-cookie": ResponseUtils_clearSessionCookie(),
-    });
+    return ResponseUtils_json(
+      200,
+      event,
+      { account: null, units: null },
+      {
+        "set-cookie": ResponseUtils_clearSessionCookie(),
+      }
+    );
   }
   const account = Account_getFromStorage(user.id, user.email, user.storage);
   return ResponseUtils_json(200, event, { account, units: user.storage.settings.units });

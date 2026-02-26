@@ -27,14 +27,15 @@ export interface IProgramDetailsExerciseExampleProps {
   program: IEvaluatedProgram;
   exerciseType: IExerciseType;
   programExerciseKey: string;
-  weekSetup?: { name?: string }[];
+  weekSetup?: { name?: string; weekIndex?: number }[];
+  defaultOnerm?: number;
 }
 
 export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExampleProps): JSX.Element {
   const exerciseType = props.exerciseType;
   const exercise = Exercise_get(exerciseType, props.settings.exercises);
   let dayInWeek: number | undefined;
-  const weekSetup = props.weekSetup || props.program.weeks.map((w) => ({ name: w.name }));
+  const weekSetup = props.weekSetup || props.program.weeks.map((w, i) => ({ name: w.name, weekIndex: i }));
   PP_iterate2(props.program.weeks, (ex, weekIndex, dayInWeekIndex, dayIndex) => {
     if (ex.key === props.programExerciseKey) {
       dayInWeek = dayInWeekIndex + 1;
@@ -44,13 +45,17 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
   });
   dayInWeek = dayInWeek ?? 1;
 
-  const [onerm, setOnerm] = useState<IWeight>(Exercise_onerm(props.exerciseType, props.settings));
+  const defaultOnerm = props.defaultOnerm
+    ? Weight_build(props.defaultOnerm, props.settings.units)
+    : Exercise_onerm(props.exerciseType, props.settings);
+  const [onerm, setOnerm] = useState<IWeight>(defaultOnerm);
   const settings = {
     ...props.settings,
     exerciseData: { ...props.settings.exerciseData, [Exercise_toKey(props.exerciseType)]: { rm1: onerm } },
   };
   const weekEntries = CollectionUtils_compact(
-    weekSetup.map((w, weekIndex) => {
+    weekSetup.map((w, i) => {
+      const weekIndex = w.weekIndex ?? i;
       const week = props.program.weeks[weekIndex];
       const programDay = week.days[(dayInWeek ?? 1) - 1];
       const dayExercises = Program_getProgramDayExercises(programDay);

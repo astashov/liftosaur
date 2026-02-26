@@ -55,8 +55,13 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
       ],
     };
 
+    const weekNumbers = props.weeksData.map((weekData) => {
+      const match = weekData.label.match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    });
+
     const data: [number[], number[]] = [
-      props.weeksData.map((_, i) => i + 1),
+      weekNumbers,
       props.weeksData.map((weekData) => {
         return props.getValue(weekData.entry);
       }),

@@ -330,4 +330,3 @@ export function Storage_applyUpdate(storage: IPartialStorage, updateWithStats: I
 
   return newStorage;
 }
-
