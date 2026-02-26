@@ -49,10 +49,13 @@ export function Encoder_decode(str: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     try {
       const dataUrl = atob(str);
-      const response = await fetch(dataUrl);
-      const blob = await response.blob();
-      const uintarray = await blob.arrayBuffer();
-      const result = await gunzipPromise(new Uint8Array(uintarray));
+      const base64Data = dataUrl.split(",")[1];
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const result = await gunzipPromise(bytes);
       const textDecoder = new TextDecoder("utf-8");
       resolve(textDecoder.decode(result));
     } catch (e) {
