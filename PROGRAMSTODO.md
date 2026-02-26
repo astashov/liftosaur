@@ -1,4 +1,3 @@
-Bullmastiff
 Deep Water Method
 Simple Jack'd
 Smolov Jr.
