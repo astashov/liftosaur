@@ -142,7 +142,7 @@ async function main(): Promise<void> {
     log(`Log file: ${fixLogPath}`);
     const result = await runClaudeInDocker(
       {
-        command: `/write-program ${programName}`,
+        command: `/write-program ${slug} ${programName}`,
         logFilePath: fixLogPath,
         timeoutMs: TIMEOUT_MS,
       },

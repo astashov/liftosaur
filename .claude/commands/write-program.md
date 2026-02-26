@@ -1,12 +1,18 @@
 # Write Weightlifting Program
 
-Write a weightlifting program and create a PR for it. The program name is: $ARGUMENTS
+Write a weightlifting program and create a PR for it.
+
+`$ARGUMENTS` is either:
+- `<name>` — derive SLUG by slugifying the name (lowercase, replace non-alphanumeric runs with `-`, strip leading/trailing `-`)
+- `<slug> <name>` — if the first word contains only `[a-z0-9-]`, treat it as a pre-computed SLUG and the rest as the program name
+
+Store the program name as NAME and the slug as SLUG for use in all subsequent steps.
 
 ## Running in Headless Mode
 
 To run this command non-interactively with full permissions:
 ```bash
-claude -p "/write-program $ARGUMENTS" --settings .claude/settings.headless.json
+claude -p "/write-program <slug> <name>" --settings .claude/settings.headless.json
 ```
 
 ## Bash Command Guidelines
@@ -34,12 +40,7 @@ The `worktrees/` directory is gitignored.
 
 ## Steps
 
-### 1. Derive Slug
-
-Slugify `$ARGUMENTS`: lowercase, replace non-alphanumeric runs with `-`, strip leading/trailing `-`.
-Store as SLUG for use in all subsequent steps.
-
-### 2. Create Isolated Worktree
+### 1. Create Isolated Worktree
 
 First, clean up any existing worktree/branch from a previous run:
 ```bash
@@ -58,11 +59,11 @@ Copy gitignored config file needed for builds:
 cp ./localdomain.js ./worktrees/SLUG/localdomain.js
 ```
 
-### 3. Learn Liftoscript
+### 2. Learn Liftoscript
 
 Read `@.claude/skills/liftoscript` for idiomatic patterns, then read the full reference files it points to.
 
-### 4. Write the Program
+### 3. Write the Program
 
 Follow ALL instructions from the `/describe-program` command (read it first!) — research phase, output format, description sections, validation, quality checks, everything.
 
@@ -71,11 +72,11 @@ The only difference: write all files into the worktree instead of the repo root:
 - Validate with: `TS_NODE_TRANSPILE_ONLY=1 npx ts-node ./worktrees/SLUG/lambda/scripts/validate_liftoscript.ts ./worktrees/SLUG/programs/builtin/SLUG.md`
 - Reference files (`llms/liftoscript.md`, `llms/liftoscript_examples.md`, `llms/exercises.md`, `programs/builtin/`) can be read from the repo root — same content.
 
-### 5. Remove from PROGRAMSTODO.md
+### 4. Remove from PROGRAMSTODO.md
 
-Remove the exact line matching `$ARGUMENTS` from `./worktrees/SLUG/PROGRAMSTODO.md`.
+Remove the exact line matching `NAME` from `./worktrees/SLUG/PROGRAMSTODO.md`.
 
-### 6. Build Programs
+### 5. Build Programs
 
 ```bash
 npm run build:programs --prefix ./worktrees/SLUG
@@ -83,7 +84,7 @@ npm run build:programs --prefix ./worktrees/SLUG
 
 If it fails, fix the issue and re-run.
 
-### 7. Create Pull Request
+### 6. Create Pull Request
 
 ```bash
 git -C ./worktrees/SLUG add programs/builtin/SLUG.md PROGRAMSTODO.md
@@ -91,7 +92,7 @@ git -C ./worktrees/SLUG add programs/builtin/SLUG.md PROGRAMSTODO.md
 
 Write commit message to file using the Write tool at `./worktrees/SLUG/.tmp/commit-msg.txt`:
 ```
-add-program: $ARGUMENTS
+add-program: NAME
 ```
 
 Then commit:
@@ -107,8 +108,8 @@ Push to the fork and create a cross-fork PR:
 GH_TOKEN=$GH_TOKEN_AI git -C ./worktrees/SLUG push -u fork add-program/SLUG
 ```
 ```bash
-GH_TOKEN=$GH_TOKEN_AI gh pr create --repo astashov/liftosaur --head astashovai:add-program/SLUG --title "add-program: $ARGUMENTS" --body "## Summary
-- Add built-in program: $ARGUMENTS
+GH_TOKEN=$GH_TOKEN_AI gh pr create --repo astashov/liftosaur --head astashovai:add-program/SLUG --title "add-program: NAME" --body "## Summary
+- Add built-in program: NAME
 
 ## Description
 <1-2 sentence summary of what this program is and who it's for>
@@ -118,7 +119,7 @@ GH_TOKEN=$GH_TOKEN_AI gh pr create --repo astashov/liftosaur --head astashovai:a
 - [ ] build:programs passes"
 ```
 
-### 8. Cleanup
+### 7. Cleanup
 
 After PR is created, remove worktree:
 
