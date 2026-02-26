@@ -201,6 +201,7 @@ export class UserDao {
       if (storage.success) {
         await this.saveStorage(fullUser!, storage.data);
       } else {
+        this.di.log.log("corrupted_server_storage validation errors (sync2):", JSON.stringify(storage.error));
         return { success: false, error: "corrupted_server_storage" };
       }
       limitedUser = (await this.getLimitedById(limitedUser.id))!;
