@@ -90,6 +90,7 @@ const mainConfig = {
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
     user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
     programdetails: ["./src/programDetails.tsx", "./src/programDetails.css", "./src/index.css"],
+    programpreview: ["./src/programPreview.tsx", "./src/programDetails.css", "./src/index.css"],
     planner: ["./src/planner.tsx", "./src/planner.css", "./src/index.css"],
     program: ["./src/program.tsx", "./src/program.css", "./src/index.css"],
     programsList: ["./src/programsList.tsx", "./src/program.css", "./src/index.css"],
@@ -341,6 +342,10 @@ const mainConfig = {
           const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
           return `/profile?user=${user}`;
         },
+      },
+      "/program-preview": {
+        target: localapi,
+        secure: false,
       },
       "/programs/*": {
         target: localapi,

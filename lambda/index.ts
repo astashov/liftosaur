@@ -16,6 +16,7 @@ import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
 import { renderUserHtml, userImage } from "./user";
 import { renderProgramDetailsHtml } from "./programDetails";
+import { renderProgramPreviewHtml } from "./programPreview";
 import { renderUsersHtml } from "../src/components/admin/usersHtml";
 import {
   CollectionUtils_setBy,
@@ -1757,6 +1758,20 @@ const getProgramDetailsHandler: RouteHandler<
   }
 };
 
+const getProgramPreviewEndpoint = Endpoint.build("/program-preview");
+const getProgramPreviewHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getProgramPreviewEndpoint
+> = async ({ payload }) => {
+  const { di } = payload;
+  return {
+    statusCode: 200,
+    body: renderProgramPreviewHtml(di.fetch),
+    headers: { "content-type": "text/html", "cache-control": "no-cache" },
+  };
+};
+
 const getPlannerEndpoint = Endpoint.build("/planner", { data: "string?" });
 const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getPlannerEndpoint> = async ({
   payload,
@@ -2766,6 +2781,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getAdminLogsEndpoint, getAdminLogsHandler)
       .get(getAllProgramsEndpoint, getAllProgramsHandler)
       .get(getProgramDetailsEndpoint, getProgramDetailsHandler)
+      .get(getProgramPreviewEndpoint, getProgramPreviewHandler)
       .get(getUserContextEndpoint, getUserContextHandler)
       .get(getProgramImageEndpoint, getProgramImageHandler)
       .post(postCreateCouponEndpoint, postCreateCouponHandler)
