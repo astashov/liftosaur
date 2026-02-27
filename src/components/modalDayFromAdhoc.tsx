@@ -49,19 +49,23 @@ export function ModalDayFromAdhoc(props: IModalChangeNextDayProps): JSX.Element 
           onSelect={(programId, day) => {
             const program = CollectionUtils.findBy(props.allPrograms, "id", programId);
             if (program != null) {
-              const { program: newProgram, dayData } = Program.addDayFromHistoryRecord(
-                program,
-                day,
-                props.record,
-                props.settings
-              );
-              EditProgram.updateProgram(props.dispatch, newProgram);
-              let position =
-                (newProgram.planner?.weeks.length ?? 0) > 1
-                  ? `${newProgram.planner?.weeks[dayData.week - 1].name}, `
-                  : "";
-              position += newProgram.planner?.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1]?.name;
-              alert(`Added to program '${newProgram.name}', at ${position}`);
+              try {
+                const { program: newProgram, dayData } = Program.addDayFromHistoryRecord(
+                  program,
+                  day,
+                  props.record,
+                  props.settings
+                );
+                EditProgram.updateProgram(props.dispatch, newProgram);
+                let position =
+                  (newProgram.planner?.weeks.length ?? 0) > 1
+                    ? `${newProgram.planner?.weeks[dayData.week - 1].name}, `
+                    : "";
+                position += newProgram.planner?.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1]?.name;
+                alert(`Added to program '${newProgram.name}', at ${position}`);
+              } catch (e) {
+                alert(`Error adding day to program: ${e instanceof Error ? e.message : e}`);
+              }
             }
             props.onClose();
           }}

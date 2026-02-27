@@ -1275,6 +1275,10 @@ export namespace Program {
       }),
     };
     evaluatedProgram.weeks[dayData.week - 1].days.splice(dayData.dayInWeek, 0, newDay);
+    evaluatedProgram.planner.weeks[dayData.week - 1].days.splice(dayData.dayInWeek, 0, {
+      name: newDay.name,
+      exerciseText: newDay.exercises.map((e) => e.fullName).join("\n"),
+    });
     const newPlanner = new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
     const newProgram = {
       ...ObjectUtils.clone(program),
