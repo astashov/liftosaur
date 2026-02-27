@@ -52,6 +52,7 @@ export function ExerciseHtml(props: IProps): JSX.Element {
       name: `How to do ${name}`,
       description: description,
       thumbnailUrl: `https://img.youtube.com/vi/${entry.video}/hqdefault.jpg`,
+      contentUrl: `https://www.youtube.com/watch?v=${entry.video}`,
       embedUrl: `https://www.youtube.com/embed/${entry.video}`,
     });
   }
