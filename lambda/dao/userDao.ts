@@ -209,10 +209,24 @@ export class UserDao {
     const originalStorage = limitedUser.storage;
     limitedUser = await this.augmentLimitedUser(limitedUser, storageUpdate);
 
-    const result = Storage_get(limitedUser.storage);
+    let result = Storage_get(limitedUser.storage);
     if (!result.success) {
-      this.di.log.log("corrupted_server_storage validation errors (sync2):", JSON.stringify(result.error));
-      return { success: false, error: "corrupted_server_storage" };
+      this.di.log.log(
+        "corrupted_server_storage validation errors (sync2), attempting repair:",
+        JSON.stringify(result.error)
+      );
+      const fullUser = await this.getById(limitedUser.id);
+      const repairedStorage = Storage_get(fullUser!.storage);
+      if (repairedStorage.success) {
+        await this.saveStorage(fullUser!, repairedStorage.data);
+        limitedUser = (await this.getLimitedById(limitedUser.id))!;
+        limitedUser = await this.augmentLimitedUser(limitedUser, storageUpdate);
+        result = Storage_get(limitedUser.storage);
+      }
+      if (!result.success) {
+        this.di.log.log("corrupted_server_storage validation errors (sync2):", JSON.stringify(result.error));
+        return { success: false, error: "corrupted_server_storage" };
+      }
     }
     const { _versions, ...limitedUserStorage } = result.data;
     if (limitedUserStorage.version !== storageUpdate.version) {
@@ -368,10 +382,23 @@ export class UserDao {
     storageUpdate: IStorageUpdate
   ): Promise<IEither<{ originalId: number; newStorage?: IPartialStorage }, string>> {
     const env = Utils_getEnv();
-    const result = Storage_get(limitedUser.storage);
+    let result = Storage_get(limitedUser.storage);
     if (!result.success) {
-      this.di.log.log("corrupted_server_storage validation errors (sync1):", JSON.stringify(result.error));
-      return { success: false, error: "corrupted_server_storage" };
+      this.di.log.log(
+        "corrupted_server_storage validation errors (sync1), attempting repair:",
+        JSON.stringify(result.error)
+      );
+      const fullUser = await this.getById(limitedUser.id);
+      const repairedStorage = Storage_get(fullUser!.storage);
+      if (repairedStorage.success) {
+        await this.saveStorage(fullUser!, repairedStorage.data);
+        limitedUser = (await this.getLimitedById(limitedUser.id))!;
+        result = Storage_get(limitedUser.storage);
+      }
+      if (!result.success) {
+        this.di.log.log("corrupted_server_storage validation errors (sync1):", JSON.stringify(result.error));
+        return { success: false, error: "corrupted_server_storage" };
+      }
     }
     const limitedUserStorage = result.data;
     if (limitedUserStorage.version !== storageUpdate.version) {

@@ -328,6 +328,12 @@ async function _sync2(
               "To fix it - kill/restart the app a couple times."
           );
         }
+      } else if (result.error === "corrupted_server_storage") {
+        updateState(
+          dispatch,
+          [lb<IState>().p("lastSyncedStorage").record(undefined)],
+          "Reset last synced storage after corrupted server storage"
+        );
       }
       throw new NoRetryError(result.error);
     }
