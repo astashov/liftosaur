@@ -42,6 +42,7 @@ export const exceptionIgnores = [
   "Empty response from API",
   "_AutofillCallbackHandler",
   "Incorrect locale information provided",
+  "White screen detected",
 ];
 
 export async function RollbarUtils_load(item: string | number, token: string): Promise<void> {
