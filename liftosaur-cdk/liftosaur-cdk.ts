@@ -609,6 +609,21 @@ export class LiftosaurCdkStack extends cdk.Stack {
       },
     });
 
+    const s3CorsNoCachePolicy = new cloudfront.ResponseHeadersPolicy(this, `LftS3CorsNoCache${suffix}`, {
+      corsBehavior: {
+        accessControlAllowOrigins: ["*"],
+        accessControlAllowHeaders: ["*"],
+        accessControlAllowMethods: ["GET", "HEAD"],
+        accessControlAllowCredentials: false,
+        originOverride: false,
+      },
+      customHeadersBehavior: {
+        customHeaders: [
+          { header: "Cache-Control", value: "no-cache", override: true },
+        ],
+      },
+    });
+
     const s3CachedBehavior: cloudfront.BehaviorOptions = {
       origin: s3Origin,
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
@@ -723,10 +738,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
       }
     );
 
+    const apiOrigin = new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
+      originPath: `/${restApi.deploymentStage.stageName}`,
+      originShieldEnabled: true,
+      originShieldRegion: "us-west-2",
+    });
+
     const cachedPageWithDeviceBehavior: cloudfront.BehaviorOptions = {
-      origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
-        originPath: `/${restApi.deploymentStage.stageName}`,
-      }),
+      origin: apiOrigin,
       cachePolicy: cachedPageWithDeviceCachePolicy,
       originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
@@ -740,9 +759,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     };
 
     const cachedPageBehavior: cloudfront.BehaviorOptions = {
-      origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
-        originPath: `/${restApi.deploymentStage.stageName}`,
-      }),
+      origin: apiOrigin,
       cachePolicy: programsCachePolicy,
       originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
@@ -759,9 +776,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       certificate: streamingCert,
       domainNames: [mainDomain],
       defaultBehavior: {
-        origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
-          originPath: `/${restApi.deploymentStage.stageName}`,
-        }),
+        origin: apiOrigin,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
         originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
@@ -775,9 +790,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       },
       additionalBehaviors: {
         "/programs": {
-          origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
-            originPath: `/${restApi.deploymentStage.stageName}`,
-          }),
+          origin: apiOrigin,
           cachePolicy: programsCachePolicy,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
@@ -790,9 +803,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
           ],
         },
         "/programs/*": {
-          origin: new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
-            originPath: `/${restApi.deploymentStage.stageName}`,
-          }),
+          origin: apiOrigin,
           cachePolicy: programsCachePolicy,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
@@ -833,7 +844,18 @@ export class LiftosaurCdkStack extends cdk.Stack {
         "/icons/*": s3CachedBehavior,
         "/fonts/*": s3CachedBehavior,
         "/images/*": s3CachedBehavior,
-        "/programdata/*": s3CachedBehavior,
+        "/programdata/*": {
+          origin: s3Origin,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          responseHeadersPolicy: s3CorsNoCachePolicy,
+          functionAssociations: [
+            {
+              function: addCharset,
+              eventType: cloudfront.FunctionEventType.VIEWER_RESPONSE,
+            },
+          ],
+        },
         "/blog/*": s3CachedBehavior,
         "/docs/*": s3CachedBehavior,
         "/.well-known/*": s3CachedBehavior,
