@@ -65,7 +65,24 @@ export interface IJsonLdHowTo {
   step: IJsonLdHowToStep[];
 }
 
-export type IJsonLd = IJsonLdArticle | IJsonLdBreadcrumbs | IJsonLdSoftwareApp | IJsonLdItemList | IJsonLdFAQ | IJsonLdHowTo;
+export interface IJsonLdVideoObject {
+  type: "VideoObject";
+  name: string;
+  description: string;
+  thumbnailUrl: string;
+  uploadDate?: string;
+  contentUrl?: string;
+  embedUrl: string;
+}
+
+export type IJsonLd =
+  | IJsonLdArticle
+  | IJsonLdBreadcrumbs
+  | IJsonLdSoftwareApp
+  | IJsonLdItemList
+  | IJsonLdFAQ
+  | IJsonLdHowTo
+  | IJsonLdVideoObject;
 
 function jsonLdToSchema(ld: IJsonLd): object {
   const base = { "@context": "https://schema.org" as const };
@@ -141,6 +158,17 @@ function jsonLdToSchema(ld: IJsonLd): object {
           name: s.name,
           text: s.text,
         })),
+      };
+    case "VideoObject":
+      return {
+        ...base,
+        "@type": "VideoObject",
+        name: ld.name,
+        description: ld.description,
+        thumbnailUrl: ld.thumbnailUrl,
+        ...(ld.uploadDate ? { uploadDate: ld.uploadDate } : {}),
+        ...(ld.contentUrl ? { contentUrl: ld.contentUrl } : {}),
+        embedUrl: ld.embedUrl,
       };
   }
 }

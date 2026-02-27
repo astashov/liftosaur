@@ -46,6 +46,16 @@ export function ExerciseHtml(props: IProps): JSX.Element {
     });
   }
 
+  if (entry?.video) {
+    jsonLd.push({
+      type: "VideoObject",
+      name: `How to do ${name}`,
+      description: description,
+      thumbnailUrl: `https://img.youtube.com/vi/${entry.video}/hqdefault.jpg`,
+      embedUrl: `https://www.youtube.com/embed/${entry.video}`,
+    });
+  }
+
   return (
     <Page
       css={["exercise"]}
