@@ -194,10 +194,18 @@ Developmental lifts run throughout the entire program and provide secondary volu
 # Week 1
 ## Squat Day
 // Main lift. AMRAP on last set drives progression: +1% of 1RM per extra rep.
-main / used: none / 3x6, 1x6+ / 65% / 180s / progress: custom() {~
+// Weight jump accumulates within each 3-week wave, then resets at wave start.
+main / used: none / 3x6, 1x6+ / 65% / 180s / update: custom() {~
+  if (setIndex == 0 && (week - 1) % 3 != 0) {
+    weights += state.mainJump
+  }
+~} / progress: custom(mainJump: 0lb) {~
   var.extra = completedReps[ns] - reps[ns]
   if (var.extra > 0) {
-    rm1 += var.extra * rm1 / 100
+    state.mainJump += var.extra * rm1 / 100
+  }
+  if (week % 3 == 0) {
+    state.mainJump = 0lb
   }
 ~}
 // Developmental: compound variation of the opposite movement pattern (e.g. SLDL on Squat day).
