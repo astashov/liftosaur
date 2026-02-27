@@ -1,7 +1,7 @@
 import fs from "fs";
 import { execSync } from "child_process";
 import { programOrder } from "../lambda/dao/programDao";
-import { Exercise_allExpanded } from "./models/exercise";
+import { Exercise_allExpanded, Exercise_toKey } from "./models/exercise";
 import { buildExerciseUrl } from "./pages/exercise/exerciseContent";
 import { MathUtils_toWord } from "./utils/math";
 const blogposts = JSON.parse(fs.readFileSync("blog/blog-posts.json", { encoding: "utf-8" }));
@@ -49,9 +49,11 @@ const urls: ISitemapUrl[] = [
     }
     return { loc: `https://www.liftosaur.com/programs/${program}`, ...(lastmod ? { lastmod } : {}) };
   }),
-  ...Exercise_allExpanded({}).map((e) => ({
-    loc: `https://www.liftosaur.com${buildExerciseUrl(e, [])}`,
-  })),
+  ...Exercise_allExpanded({}).map((e) => {
+    const key = Exercise_toKey(e).toLowerCase();
+    const lastmod = getGitLastModified(`exercises/${key}.md`);
+    return { loc: `https://www.liftosaur.com${buildExerciseUrl(e, [])}`, ...(lastmod ? { lastmod } : {}) };
+  }),
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((r) => ({
     loc: `https://www.liftosaur.com/${MathUtils_toWord(r)}-rep-max-calculator`,
   })),
