@@ -364,14 +364,10 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(
   const customExercises: Record<string, ICustomExercise> = {};
   const backMap: Partial<Record<string, string>> = {};
   const historyRecords: IHistoryRecord[] = hevyWorkouts.map((hevyWorkout) => {
-    let startTs: number | undefined;
-    try {
-      startTs = new Date(hevyWorkout.start_time).getTime();
-    } catch (_) {}
-    let endTs: number | undefined;
-    try {
-      endTs = new Date(hevyWorkout.end_time).getTime();
-    } catch (_) {}
+    const parsedStartTs = new Date(hevyWorkout.start_time).getTime();
+    const startTs = isNaN(parsedStartTs) ? undefined : parsedStartTs;
+    const parsedEndTs = new Date(hevyWorkout.end_time).getTime();
+    const endTs = isNaN(parsedEndTs) ? undefined : parsedEndTs;
     const entries = hevyWorkout.exercises.map((record, index) => {
       let exerciseNameAndEquipment = exerciseMapping[record.exercise_title];
       let exerciseId: string;
