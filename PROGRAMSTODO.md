@@ -8,7 +8,6 @@ Smolov Squat Program
 Tactical Barbell Operator
 5/3/1 FSL
 German Volume Training
-SBS Hypertrophy Program
 Creeping Death 2
 Candito 6-Week Strength
 Coolcicada PPL
