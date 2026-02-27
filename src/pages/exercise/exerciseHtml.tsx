@@ -18,7 +18,7 @@ export function ExerciseHtml(props: IProps): JSX.Element {
   const { client, id, isLoggedIn, ...data } = props;
   const exercise = Exercise_get(data.exerciseType, {});
   const name = Exercise_reverseName(exercise);
-  const title = `${name} | Liftosaur`;
+  const title = `${name} - How To, Muscles Worked & Form Guide | Liftosaur`;
   const url = `https://www.liftosaur.com/exercises/${id}`;
 
   const key = Exercise_toKey(data.exerciseType).toLowerCase();
@@ -68,6 +68,7 @@ export function ExerciseHtml(props: IProps): JSX.Element {
       isLoggedIn={!!isLoggedIn}
       description={description}
       ogUrl={url}
+      ogDescription={description}
       ogImage={`https://www.liftosaur.com${ExerciseImageUtils_ogImageUrl(data.exerciseType)}`}
       jsonLd={jsonLd}
       data={data}

@@ -15,10 +15,7 @@ export function AllExercisesHtml(props: IProps): JSX.Element {
   const jsonLd: IJsonLd[] = [
     {
       type: "BreadcrumbList",
-      items: [
-        { name: "Home", url: "https://www.liftosaur.com" },
-        { name: "Exercises" },
-      ],
+      items: [{ name: "Home", url: "https://www.liftosaur.com" }, { name: "Exercises" }],
     },
   ];
 
