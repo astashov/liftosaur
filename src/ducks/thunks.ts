@@ -228,13 +228,13 @@ async function _sync2(
   signal?: AbortSignal
 ): Promise<void> {
   const state = getState();
-  function handleResponse(
+  async function handleResponse(
     result: IPostSyncResponse,
     handleResponseArgs: {
       lastSyncedStorage?: IStorage;
       requestedLastStorage?: boolean;
     }
-  ): boolean {
+  ): Promise<boolean> {
     const { lastSyncedStorage, requestedLastStorage } = handleResponseArgs;
     if (result.type === "clean") {
       dispatch(Thunk_postevent("handle-response-clean"));
@@ -328,6 +328,24 @@ async function _sync2(
               "To fix it - kill/restart the app a couple times."
           );
         }
+      } else if (result.error === "corrupted_server_storage") {
+        const userid = getState().user?.id || getState().storage.tempUserId || `missing-${UidFactory_generateUid(8)}`;
+        const service = new Service(env.service.client);
+        const backup = await service.postDebug(userid, JSON.stringify(getState().storage), { local: "false" });
+        updateState(
+          dispatch,
+          [
+            lb<IState>().p("errors").p("corruptedstorage").record({
+              userid,
+              backup,
+              confirmed: false,
+              local: false,
+            }),
+            lb<IState>().p("nosync").record(true),
+          ],
+          "Set corrupted server storage error"
+        );
+        return false;
       }
       throw new NoRetryError(result.error);
     }
@@ -351,7 +369,7 @@ async function _sync2(
     if (signal?.aborted) {
       return;
     }
-    const handled = handleResponse(result, { requestedLastStorage: true });
+    const handled = await handleResponse(result, { requestedLastStorage: true });
     if (handled) {
       await _sync2(dispatch, getState, env, args);
     }
@@ -369,7 +387,7 @@ async function _sync2(
       if (signal?.aborted) {
         return;
       }
-      handleResponse(result, { lastSyncedStorage });
+      await handleResponse(result, { lastSyncedStorage });
     }
   }
 }
