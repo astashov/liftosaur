@@ -1,5 +1,6 @@
 ---
 video: "SpeLAcG-yyE"
+description: "Target the deltoids and triceps with the Smith Machine Behind the Neck Press, using machine-guided stability for a safe overhead shoulder press."
 ---
 
 ### Setup
@@ -29,3 +30,17 @@ video: "SpeLAcG-yyE"
 - Overextending the arms at the top of the movement.
 
 Adhering to these guidelines will help ensure proper form and reduce the risk of injury while performing the Smith Machine Behind The Neck Press.
+
+<!-- howto -->
+
+### Set Up the Machine and Seat
+Adjust the Smith machine bar to shoulder height and sit on a bench with back support, feet flat on the floor. Grip the bar with an overhand grip slightly wider than shoulder-width.
+
+### Position the Bar
+Rest the bar on the back of your shoulders and upper traps. Engage your core and keep your back straight before pressing.
+
+### Press Upward
+Push the bar overhead in a controlled manner, fully extending your arms without locking the elbows. Exhale as you press and maintain a neutral head and spine position.
+
+### Lower Back to the Traps
+Slowly lower the bar back to rest on your upper traps. Avoid lowering it too far to protect the shoulders.

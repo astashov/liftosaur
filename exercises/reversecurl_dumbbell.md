@@ -1,5 +1,6 @@
 ---
 video: "hUA-fIpM7nA"
+description: "Strengthen your brachioradialis and forearms with the Dumbbell Reverse Curl, curling with a pronated overhand grip for elbow flexor development."
 ---
 
 ## Starting Position
@@ -26,3 +27,17 @@ video: "hUA-fIpM7nA"
 - Arching the back or leaning too far forward. 
 
 By following these guidelines, you can effectively perform the Dumbbell Reverse Curl while minimizing the risk of injury.
+
+<!-- howto -->
+
+### Set Up Your Grip
+Stand upright with feet shoulder-width apart, holding a dumbbell in each hand with an overhand grip (palms facing down) at your sides.
+
+### Curl Upward
+Keeping your elbows close to your body, flex your arms and raise the dumbbells toward your shoulders. Focus on your forearm and bicep muscles rather than swinging.
+
+### Pause at the Top
+Briefly hold the dumbbells at the peak position for maximum contraction.
+
+### Lower with Control
+Slowly extend your arms back to the starting position, maintaining control and keeping elbows tucked throughout.

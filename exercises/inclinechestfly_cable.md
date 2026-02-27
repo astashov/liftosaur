@@ -1,5 +1,6 @@
 ---
 video: "tGXIQR89-JE"
+description: "Stretch and strengthen the upper pectorals with the Cable Incline Chest Fly, sweeping handles through a wide arc on an incline bench for constant cable tension."
 ---
 
 ### Setup
@@ -28,10 +29,24 @@ video: "tGXIQR89-JE"
 - Maintain a controlled pace throughout the exercise.
 - Avoid arching your back or using momentum; keep the movement smooth.
 - Adjust cable height and bench angle for comfort and optimal range of motion.
-  
+
 ### Common Mistakes
 - Letting elbows drop too low.
 - Using too much weight, leading to poor form.
-- Failing to engage the chest muscles effectively. 
+- Failing to engage the chest muscles effectively.
 
 Ensure proper alignment and listen to your body to prevent injury.
+
+<!-- howto -->
+
+### Set Up
+Set the incline bench to 30-45 degrees and position the cable pulleys at the lowest setting. Sit on the bench and grip the handles, one in each hand.
+
+### Start Position
+Lean back with your back flat and shoulders retracted. Bring handles up until arms are in line with your chest, keeping a slight elbow bend.
+
+### Open the Arc
+Inhale and slowly lower your arms outward in a wide arc, keeping elbows at shoulder level. Stop when you feel a good chest stretch.
+
+### Squeeze and Return
+Exhale and contract your chest muscles to bring the handles back together in front of your chest. Squeeze at the top.

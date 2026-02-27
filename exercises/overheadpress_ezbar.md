@@ -1,5 +1,6 @@
 ---
 video: "AXIZwUMGnNg"
+description: "Strengthen shoulders and triceps with the EZ Bar Overhead Press, pressing the angled bar from shoulder height to lockout overhead with a neutral spine."
 ---
 
 ### Setup
@@ -30,3 +31,17 @@ video: "AXIZwUMGnNg"
 ### Tips
 - Start with a light weight to master form before increasing resistance.
 - Maintain a steady pace throughout the movement.
+
+<!-- howto -->
+
+### Grip the EZ Bar
+Grip the EZ bar at the angled portions shoulder-width apart or slightly wider. Keep your wrists in a neutral position.
+
+### Set the Bar at Shoulder Height
+Raise the bar to shoulder height with elbows slightly in front of the bar and core engaged. Stand with feet shoulder-width apart.
+
+### Press Overhead
+Push the bar upward while maintaining a straight line from your wrists to your shoulders. Extend your arms fully without locking your elbows.
+
+### Return to Shoulder Level
+Lower the bar back to shoulder height in a controlled manner. Inhale on the way down, exhale on the press up.

@@ -1,5 +1,6 @@
 ---
 video: "KP1sYz2VICk"
+description: "Develop anterior deltoids and triceps with the Barbell Seated Overhead Press, pressing the bar overhead from shoulder height while seated with back support."
 ---
 
 ### Setup
@@ -31,3 +32,17 @@ video: "KP1sYz2VICk"
 - Not engaging the core, which can destabilize the lift. 
 
 By following these steps, you can effectively perform the seated overhead press with proper form, maximizing benefits and minimizing injury risk.
+
+<!-- howto -->
+
+### Set Up the Bar
+Sit on a bench with back support, feet flat on the floor. Grip the barbell slightly wider than shoulder-width and lift it to shoulder height, resting it on your upper chest with elbows pointed slightly downward.
+
+### Engage Core and Press
+Tighten your core and maintain a neutral spine. Push the barbell straight upward overhead in a controlled line until your arms are fully extended without locking elbows.
+
+### Lower with Control
+Bring the barbell back down to shoulder height in a controlled manner, keeping your wrists straight and elbows engaged throughout.
+
+### Maintain Posture
+Keep your back straight and avoid arching excessively. Look forward with your head in a neutral position throughout each repetition.

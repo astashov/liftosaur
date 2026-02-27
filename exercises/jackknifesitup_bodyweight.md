@@ -1,5 +1,6 @@
 ---
 video: "T8RAKF1sorE"
+description: "Strengthen the rectus abdominis with the Bodyweight Jackknife Sit-Up, folding the body into a V-shape by simultaneously raising legs and upper body off the floor."
 ---
 
 ### Starting Position
@@ -18,7 +19,7 @@ video: "T8RAKF1sorE"
 ### Key Points
 - **Breathing**: Exhale as you lift your body and inhale as you return to the starting position.
 - **Keep Control**: Focus on maintaining stability throughout the movement.
-- **Avoid Strain**: Do not pull on your neck; use your core muscles for movement. 
+- **Avoid Strain**: Do not pull on your neck; use your core muscles for movement.
 
 ### Common Mistakes
 - Lifting your head and neck too aggressively.
@@ -26,3 +27,17 @@ video: "T8RAKF1sorE"
 - Rushing through the exercise instead of performing it slowly and with control.
 
 By following these instructions, you can effectively perform the Bodyweight Jackknife Sit Up with proper form.
+
+<!-- howto -->
+
+### Starting Position
+Lie flat on your back on a mat with arms extended overhead and legs straight on the floor.
+
+### Engage Your Core
+Tighten your abdominal muscles before initiating the movement. Do not pull on your neck.
+
+### Fold into a V-Shape
+Simultaneously raise your legs and upper body off the ground, bringing your arms toward your toes. Aim for a V-shape at the peak.
+
+### Return with Control
+Exhale as you lift and inhale as you slowly lower both your legs and upper body back to the starting position. Keep the movement smooth and avoid rushing.

@@ -1,5 +1,6 @@
 ---
 video: "7XuNzi5rcj4"
+description: "Activate and strengthen glutes with the Bodyweight Hip Thrust, driving hips upward from a bench-supported position to build posterior chain endurance and control."
 ---
 
 ## Starting Position
@@ -27,3 +28,17 @@ video: "7XuNzi5rcj4"
 - Allowing knees to cave inwards.
 
 By following this guide, you can perform the bodyweight hip thrust safely and effectively to strengthen your glutes and improve overall hip movement.
+
+<!-- howto -->
+
+### Position Against the Bench
+Sit on the ground with your upper back resting on a bench. Bend your knees and place feet flat on the floor, hip-width apart.
+
+### Engage Your Core
+Tighten your abdominal muscles before lifting to stabilize your spine throughout the movement.
+
+### Drive Your Hips Up
+Press through your heels and thrust your hips upward until your body forms a straight line from shoulders to knees. Squeeze your glutes at the top and hold briefly.
+
+### Lower with Control
+Slowly lower your hips back to the starting position. Focus on glute engagement rather than lower back extension.

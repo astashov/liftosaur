@@ -1,5 +1,6 @@
 ---
 video: "OLePvpxQEGk"
+description: "Develop shoulders and triceps with the Dumbbell Overhead Press, pressing dumbbells from shoulder height to full arm extension overhead with a neutral core."
 ---
 
 ### Starting Position
@@ -22,3 +23,17 @@ video: "OLePvpxQEGk"
 - **Tilting the Head Back**: Keep your head neutral, aligning it with your spine.
 - **Using Momentum**: Avoid swinging the weights; rely on muscle strength.
 - **Forget to Engage Core**: This helps protect your lower back during the lift.
+
+<!-- howto -->
+
+### Set Your Starting Position
+Stand with feet shoulder-width apart and a slight knee bend. Raise dumbbells to shoulder height with palms facing forward or toward each other.
+
+### Engage Your Core
+Tighten your abdominal muscles to support your spine throughout the movement.
+
+### Press Overhead
+Push the dumbbells upward in a straight line until your arms are fully extended. Keep your wrists neutral and avoid locking your elbows.
+
+### Lower Slowly
+Bring the dumbbells back to shoulder height in a controlled manner. Exhale on the press and inhale on the descent.

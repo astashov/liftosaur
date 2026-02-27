@@ -1,5 +1,6 @@
 ---
 video: "b8DqTO6ak0k"
+description: "Develop upper chest strength with the Smith Machine Incline Bench Press, using the guided bar path on an inclined bench for safe and controlled pressing."
 ---
 
 ### Setup
@@ -20,3 +21,17 @@ video: "b8DqTO6ak0k"
 - Keep your shoulder blades retracted and pressed against the bench.
 - Ensure your feet remain flat on the ground throughout the movement.
 - Control both the lowering and pressing phases for safety and effectiveness.
+
+<!-- howto -->
+
+### Set Up
+Set the adjustable bench to a 30-45 degree incline and position it under the Smith machine. Load the bar with appropriate weight.
+
+### Lie Back and Grip
+Sit on the bench with back flat and feet on the floor. Grasp the bar slightly wider than shoulder-width with palms facing away.
+
+### Lower the Bar
+Unrack and inhale as you lower the bar to your upper chest, keeping elbows at about a 45-degree angle from your body.
+
+### Press and Rerack
+Exhale and press the bar back up to full extension with a slight elbow bend. Rotate and rack the bar when complete.

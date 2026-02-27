@@ -1,5 +1,6 @@
 ---
 video: "ymphH79QO48"
+description: "Build upper back strength with the Cable Standing Row V-Bar, targeting rhomboids and lats while keeping elbows close to the torso."
 ---
 
 ## Equipment Needed
@@ -30,3 +31,17 @@ video: "ymphH79QO48"
 - Focus on engaging the upper back muscles for maximum benefit. 
 
 Following this guide will help ensure you perform the Cable Standing Row V-Bar effectively and safely.
+
+<!-- howto -->
+
+### Attach and Set Position
+Set the pulley to a low position and secure the V-bar attachment. Stand facing the machine with feet shoulder-width apart and knees slightly bent.
+
+### Grip and Engage
+Grip the V-bar with an overhand grip, arms extended, and tighten your core to maintain stability throughout the movement.
+
+### Pull the Bar
+Exhale and pull the V-bar toward your torso, keeping elbows close to your body and squeezing shoulder blades together at the peak.
+
+### Return with Control
+Inhale and slowly return to the starting position, fully extending your arms while maintaining a neutral spine.

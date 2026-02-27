@@ -1,5 +1,6 @@
 ---
 video: "iL06z9PWYs8"
+description: "Strengthen the rectus abdominis with the Bodyweight Sit-Up, curling the upper body off the floor using core engagement while keeping feet grounded."
 ---
 
 ### Starting Position
@@ -22,3 +23,17 @@ video: "iL06z9PWYs8"
 - Avoid pulling on your neck with your hands.
 - Keep your chin slightly tucked throughout the movement.
 - Focus on using your abdominal muscles rather than momentum.
+
+<!-- howto -->
+
+### Lie Down and Prepare
+Lie on your back on a mat with knees bent at 90 degrees and feet flat on the floor. Place your hands behind your head or cross them over your chest.
+
+### Engage and Curl Up
+Tighten your abdominal muscles and slowly lift your upper body toward your knees using your core. Keep your feet and lower back in contact with the ground as you curl up.
+
+### Reach the Top
+Go as high as comfortable without straining your neck or back. Pause briefly at the top of the movement.
+
+### Lower with Control
+Slowly lower your upper body back to the starting position, maintaining contact between your lower back and the mat throughout the descent.

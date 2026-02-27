@@ -1,5 +1,6 @@
 ---
 video: "Nhvz9EzdJ4U"
+description: "Target the pectoral muscles with the Dumbbell Chest Fly by arcing the weights out and together over a flat bench with a controlled, steady tempo."
 ---
 
 **Equipment Needed:**
@@ -32,3 +33,17 @@ video: "Nhvz9EzdJ4U"
 
 **Overall Focus:**
 - Concentrate on the contraction of the chest muscles throughout the movement.
+
+<!-- howto -->
+
+### Set Up on the Bench
+Lie on your back on a flat bench with feet planted on the ground. Hold a dumbbell in each hand, arms extended above your chest with palms facing each other.
+
+### Lower in a Wide Arc
+With a slight bend maintained in your elbows, slowly lower the dumbbells out to the sides until you feel a stretch across your chest. Do not let them drop below shoulder level.
+
+### Squeeze Back to the Top
+Reverse the motion, bringing the dumbbells back together over your chest while actively squeezing your pectorals. Keep the elbow angle consistent throughout.
+
+### Control the Tempo
+Avoid using momentum at any point. Keep shoulders down and wrists neutral while breathing out on the lift and in on the lowering phase.

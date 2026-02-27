@@ -1,5 +1,6 @@
 ---
 video: "I70W7ZLBWiQ"
+description: "Build chest strength with the Leverage Machine Chest Press by driving the handles away from your body and returning them with control to maintain muscle tension."
 ---
 
 ## Setup
@@ -25,3 +26,17 @@ video: "I70W7ZLBWiQ"
 - Avoid lifting your feet off the ground. 
 
 By following these steps, you will perform the Leverage Machine Chest Press with proper form, engaging the chest muscles effectively.
+
+<!-- howto -->
+
+### Adjust the Machine
+Set the seat height so the handles align with your chest level. Select an appropriate weight and sit back with your back flat against the pad.
+
+### Grip and Position
+Grasp the handles with a neutral grip, elbows at about 45 degrees. Plant your feet firmly on the floor and keep your wrists straight throughout.
+
+### Press to Full Extension
+Push the handles away from your body by extending your arms. Avoid locking your elbows at the top and exhale as you press.
+
+### Lower with Control
+Slowly return the handles toward your chest, stopping just above chest level to maintain tension. Inhale during the controlled descent back to the starting position.

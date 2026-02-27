@@ -1,5 +1,6 @@
 ---
 video: "yfNg5sFndbw"
+description: "Target your lateral deltoids with the Band Lateral Raise, standing on the band and lifting your arms out to shoulder height with control."
 ---
 
 **Equipment Needed:**
@@ -25,3 +26,17 @@ video: "yfNg5sFndbw"
 - Allowing the body to sway or lean during the lift.
 
 By following these guidelines, you can effectively perform the Band Lateral Raise while minimizing the risk of injury.
+
+<!-- howto -->
+
+### Set Up the Band
+Stand on the center of the resistance band with feet shoulder-width apart. Hold the ends of the band at your sides with palms facing inward.
+
+### Raise Your Arms
+With a slight bend in the elbows, lift your arms out to the sides in a controlled arc. Keep your shoulders down and away from your ears.
+
+### Stop at Shoulder Height
+Lift until your arms are parallel to the ground. Avoid raising higher than shoulder level to prevent shoulder strain.
+
+### Lower Slowly
+Return your arms to the starting position in a controlled manner, resisting the pull of the band on the way down.

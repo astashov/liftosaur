@@ -1,5 +1,6 @@
 ---
 video: "ybSuDb3NxDM"
+description: "Develop quadriceps and core strength with the Cable Front Squat by holding a bar at chest height and squatting with knees tracking over toes and chest lifted."
 ---
 
 **Equipment Needed:** Cable machine with a straight-bar attachment.
@@ -41,3 +42,17 @@ video: "ybSuDb3NxDM"
 - Ensure the cable does not pull you forward; maintain balance throughout.
 
 By following these steps and tips, you can effectively perform the cable front squat with proper form.
+
+<!-- howto -->
+
+### Set Up the Cable and Grip
+Attach a straight bar to the low pulley and stand facing the machine. Grab the bar with both hands shoulder-width apart and position it at chest height on your front shoulders.
+
+### Establish Your Stance
+Stand with feet shoulder-width apart and shift your weight slightly back toward your heels. Engage your core and keep elbows high.
+
+### Squat Down
+Bend your knees and push your hips back, descending until your thighs are parallel to the floor or lower. Keep your chest up and knees tracking over your toes throughout.
+
+### Press Back Up
+Drive through your heels to return to the starting position. Fully extend your hips and knees without locking out, and maintain balance against the cable tension.

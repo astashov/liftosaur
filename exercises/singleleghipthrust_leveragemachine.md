@@ -1,5 +1,6 @@
 ---
 video: "sa4l1vxNc8E"
+description: "Build unilateral glute strength with the Leverage Machine Single Leg Hip Thrust, driving through one foot against machine resistance to isolate the gluteus maximus."
 ---
 
 ## Setup
@@ -23,3 +24,17 @@ video: "sa4l1vxNc8E"
 ## Safety
 - Avoid arching your back excessively; maintain a neutral spine.
 - Start with lighter resistance to master the form before increasing weight.
+
+<!-- howto -->
+
+### Set Up the Machine
+Adjust the lever height and sit with your back against the pad. Place one foot on the footplate and let the other leg rest extended off the machine or on a support.
+
+### Engage and Drive
+Tighten your core and push through the heel of the foot on the footplate to lift your hips. Keep your knee aligned with your toes throughout the movement.
+
+### Extend and Squeeze
+Raise your hips until your body forms a straight line from shoulders to knee. Squeeze your glutes firmly at the top for maximum contraction.
+
+### Lower with Control
+Slowly return your hips to the starting position, keeping the movement controlled. Avoid letting the knee cave inward and maintain a neutral spine throughout.

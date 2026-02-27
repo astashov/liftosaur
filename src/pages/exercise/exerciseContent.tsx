@@ -131,6 +131,17 @@ export function ExerciseContent(props: IExerciseContentProps): JSX.Element {
       />
 
       <div id="app" style={{ maxWidth, margin: "0 auto", width: "100%" }}>
+        <nav className="px-4 pt-2 pb-2 text-xs text-text-secondary" aria-label="Breadcrumb">
+          <a href="/" className="underline hover:text-text-primary">
+            Home
+          </a>
+          <span className="mx-1">/</span>
+          <a href="/exercises" className="underline hover:text-text-primary">
+            Exercises
+          </a>
+          <span className="mx-1">/</span>
+          <span className="text-text-primary">{name}</span>
+        </nav>
         <div className="flex flex-row-reverse items-stretch gap-8 px-4">
           <div className="hidden w-48 h-auto md:w-64 sm:block">
             <div ref={column3Ref}>

@@ -1,5 +1,6 @@
 ---
 video: "QsYre__-aro"
+description: "Build chest, shoulder, and tricep strength with the Dumbbell Bench Press, allowing a greater range of motion and independent arm movement on a flat bench."
 ---
 
 ### Setup
@@ -28,3 +29,17 @@ video: "QsYre__-aro"
 
 ### Conclusion
 Performing the Dumbbell Bench Press with proper form enhances safety and effectiveness, targeting the chest, shoulders, and triceps efficiently.
+
+<!-- howto -->
+
+### Position Yourself on the Bench
+Sit on the bench with dumbbells resting on your thighs. Lie back and bring the dumbbells to chest level, feet flat on the floor and shoulder blades retracted.
+
+### Press to Full Extension
+Push the dumbbells up over your chest with arms fully extended and elbows slightly bent. Keep your wrists straight and aligned with your forearms.
+
+### Lower to Chest Level
+Slowly lower the dumbbells to the sides of your chest in a controlled manner. Keep elbows at about 45 degrees to your body, not flared wide.
+
+### Repeat with Controlled Breathing
+Exhale while pressing up and inhale while lowering. Avoid bouncing the weights off your chest between reps.

@@ -1,5 +1,6 @@
 ---
 video: "iKEC2mOfaVs"
+description: "Target the oblique muscles with the Cable Side Bend, bending laterally against constant cable resistance while keeping hips stable and torso straight."
 ---
 
 ### Equipment Needed
@@ -44,3 +45,17 @@ video: "iKEC2mOfaVs"
 - Not maintaining a stable base with the feet.
 
 By following these steps and tips, you can effectively perform the Cable Side Bend with proper form, targeting your oblique muscles.
+
+<!-- howto -->
+
+### Set Up the Cable
+Attach a single handle to a low pulley. Stand beside the machine and grip the handle with the hand closest to it, stepping away to create tension.
+
+### Establish Your Position
+Stand with feet shoulder-width apart, core braced, and the free hand on your hip or extended for balance.
+
+### Bend Laterally
+Slowly bend at the waist toward the machine side, bringing the handle down toward your knee. Keep your torso from twisting and maintain a straight back.
+
+### Contract and Return
+Engage your oblique muscles to pull yourself back upright. Focus on a controlled return and avoid using momentum to complete the movement.

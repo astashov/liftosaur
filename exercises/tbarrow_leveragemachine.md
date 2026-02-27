@@ -1,5 +1,6 @@
 ---
 video: "TyLoy3n_a10"
+description: "Build back thickness with the Leverage Machine T-Bar Row, driving your elbows back against machine resistance to target the lats and rhomboids."
 ---
 
 ### Starting Position
@@ -25,3 +26,17 @@ video: "TyLoy3n_a10"
 - **Rounding the Back**: Keep your spine neutral throughout the movement.
 - **Overextending Arms**: Don’t lock out your elbows at the full extension.
 - **Not Engaging the Core**: Ensure the core is engaged to support your back.
+
+<!-- howto -->
+
+### Set Up the Machine
+Sit on the leverage machine with your chest against the pad and adjust seat height. Select an appropriate weight.
+
+### Grip and Engage
+Grasp the handles with a neutral grip and arms extended. Tighten your core to stabilize your body before initiating the movement.
+
+### Pull with Elbows
+Drive your elbows back, focusing on squeezing your shoulder blades together as you pull the handles toward your torso.
+
+### Pause and Lower
+Hold briefly at the peak contraction, then extend your arms back to the starting position in a controlled manner without locking out the elbows.

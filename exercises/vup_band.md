@@ -1,5 +1,6 @@
 ---
 video: "nfWQihJo-Mc"
+description: "Strengthen the rectus abdominis with the Band V-Up, simultaneously raising your legs and pulling the band toward your chest to form a V shape."
 ---
 
 ## Setup
@@ -19,3 +20,17 @@ video: "nfWQihJo-Mc"
 - Avoid straining your neck; keep your head aligned with your spine.
 - Maintain a steady breathing pattern throughout the exercise.
 - Adjust the tension on the band as needed for your fitness level.
+
+<!-- howto -->
+
+### Set Up the Band
+Sit on the floor with legs extended and loop the band around your feet. Hold a handle in each hand with arms extended in front, leaning back slightly at 45 degrees.
+
+### Engage Your Core
+Tighten your core muscles to stabilize your torso before initiating the movement.
+
+### Form the V Shape
+Simultaneously lift your legs off the ground while pulling the band toward your chest, forming a V shape with your body. Hold briefly.
+
+### Return with Control
+Slowly lower your legs and extend your arms back to the starting position while maintaining core tension throughout.

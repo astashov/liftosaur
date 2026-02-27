@@ -1,5 +1,6 @@
 ---
 video: "3VLTzIrnb5g"
+description: "Strengthen wrist flexors and forearms with the Barbell Wrist Curl, flexing at the wrist with forearms supported on your thighs or a bench."
 ---
 
 ### Setup
@@ -24,3 +25,17 @@ video: "3VLTzIrnb5g"
 
 ### Conclusion
 Maintain proper form to effectively target the forearm muscles and reduce the risk of injury.
+
+<!-- howto -->
+
+### Set Up and Grip
+Stand or sit with forearms resting on your thighs or a flat surface, palms facing up. Grip the barbell with hands shoulder-width apart.
+
+### Allow Wrists to Extend
+Let the barbell roll down to your fingers, extending your wrists fully to achieve a full range of motion at the bottom.
+
+### Curl Upward
+Flex your wrists upward, lifting the barbell as high as possible while keeping your forearms in contact with the surface.
+
+### Lower with Control
+Slowly lower the barbell back to the starting position, controlling the movement and holding briefly at the top contraction.

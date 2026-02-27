@@ -1,5 +1,6 @@
 ---
 video: "krZ6pWGZ8xo"
+description: "Target forearm extensors with the Dumbbell Reverse Wrist Curl, flexing the wrists upward from a pronated forearm-supported position."
 ---
 
 ### Starting Position
@@ -32,3 +33,17 @@ video: "krZ6pWGZ8xo"
 - Wrist flexors (secondary emphasis) 
 
 This guide will help you effectively perform the Dumbbell Reverse Wrist Curl with proper form to maximize benefits and reduce injury risk.
+
+<!-- howto -->
+
+### Set Up Your Position
+Sit on a bench holding a dumbbell in each hand with palms facing down (overhand grip). Rest your forearms on your thighs, allowing your wrists to extend over the edge.
+
+### Lower to Full Extension
+Let the dumbbells hang with your wrists fully extended downward as the starting position.
+
+### Flex Wrists Upward
+Curl your wrists upward, lifting the dumbbells toward your forearms. Only your wrists should move while your forearms remain stationary. Squeeze at the top.
+
+### Lower Slowly
+Return the dumbbells to the fully extended starting position in a controlled manner, resisting the weight on the way down.

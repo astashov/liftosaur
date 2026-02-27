@@ -1,5 +1,6 @@
 ---
 video: "4lWSTusBcmw"
+description: "Develop triceps mass with the Barbell Triceps Extension, lying on a bench and lowering the bar toward your forehead to maximize the stretch."
 ---
 
 ## Setup
@@ -29,3 +30,17 @@ video: "4lWSTusBcmw"
 - Use a spotter if lifting heavy. 
 
 Remember to maintain proper form to maximize effectiveness and minimize injury risk.
+
+<!-- howto -->
+
+### Set Up on the Bench
+Lie flat on a bench with feet on the ground. Grip the barbell shoulder-width apart with an overhand grip and extend arms straight above your chest.
+
+### Lower to Forehead
+Bend at the elbows to lower the barbell slowly toward your forehead, keeping your upper arms stationary and elbows tucked in.
+
+### Extend Back Up
+Drive through your triceps to extend your arms back to the starting position, maintaining a controlled motion throughout.
+
+### Stabilize the Core
+Keep your core engaged and back pressed against the bench throughout. Avoid using momentum to move the weight.

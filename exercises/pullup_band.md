@@ -1,5 +1,6 @@
 ---
 video: "B_VkNQS5YLs"
+description: "Build lat and upper back strength with the Band-Assisted Pull-Up, using a looped resistance band to reduce bodyweight and practice full range pull-up motion."
 ---
 
 ## Equipment Needed
@@ -33,3 +34,20 @@ video: "B_VkNQS5YLs"
 - Using too much momentum.
 - Flared elbows or shoulders.
 - Not maintaining a straight body line.
+
+<!-- howto -->
+
+### Set Up the Band
+Loop a resistance band over the pull-up bar and ensure it is secure. Adjust the band length appropriate to your height.
+
+### Grip the Bar and Place Knee in Band
+Grab the bar with an overhand grip slightly wider than shoulder-width. Place one knee or foot into the loop of the band for assistance.
+
+### Start from a Dead Hang
+Begin in a dead hang with arms fully extended and shoulders relaxed. Engage your core and maintain a straight body line.
+
+### Pull Up to Chin Over Bar
+Initiate the movement by pulling your elbows down and back, using your back muscles. Continue until your chin clears the bar.
+
+### Lower Slowly
+Reverse the movement in a controlled manner, fully extending your arms back to the starting dead hang position before the next rep.

@@ -1,5 +1,6 @@
 ---
 video: "dQw4w9WgXcQ"
+description: "Target your rear deltoids and upper back with the Band Reverse Fly, pulling the band apart in a hinged position with controlled movement."
 ---
 
 ## Setup
@@ -22,3 +23,17 @@ video: "dQw4w9WgXcQ"
 - Allowing the shoulders to shrug up towards the ears.
 - Overextending the arms beyond shoulder height. 
 - Using too much resistance, leading to improper form.
+
+<!-- howto -->
+
+### Set Up the Band
+Stand with feet shoulder-width apart and hold the band with both hands in front of you, arms extended and band taut. Ensure palms face each other.
+
+### Hinge Forward
+Slightly bend your knees and hinge forward at the hips, keeping your back straight. This positions your torso to isolate the rear deltoids.
+
+### Pull Apart
+With a controlled motion, pull the band apart by extending your arms out to the sides at shoulder height, squeezing your shoulder blades together at the peak.
+
+### Return to Start
+Slowly bring your arms back to the starting position in front of you, maintaining control and core engagement throughout.

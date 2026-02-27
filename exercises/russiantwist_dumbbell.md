@@ -1,5 +1,6 @@
 ---
 video: "MKfv0WiTeEQ"
+description: "Build oblique and core strength with the Dumbbell Russian Twist, rotating a dumbbell side to side while balanced on your sit bones."
 ---
 
 ### Starting Position
@@ -29,3 +30,17 @@ video: "MKfv0WiTeEQ"
 - **Weight**: Adjust the dumbbell weight according to your fitness level. 
 
 Incorporate the Dumbbell Russian Twist into your routine to enhance core strength and stability!
+
+<!-- howto -->
+
+### Set Up Position
+Sit on the ground with knees bent and feet flat on the floor. Hold a dumbbell with both hands close to your chest. Lean your torso slightly backward and engage your core.
+
+### Lift Your Feet
+Raise your feet off the floor to balance on your sit bones, increasing the challenge on your core.
+
+### Twist Side to Side
+Rotate your torso to the right, lowering the dumbbell toward the floor beside your hip. Return to center, then twist to the left. Keep your spine neutral and arms straight but not locked.
+
+### Breathe and Control
+Exhale when twisting and inhale when returning to center. Avoid rapid or jerky motions throughout the exercise.

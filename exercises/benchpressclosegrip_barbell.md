@@ -1,5 +1,6 @@
 ---
 video: "vEUyEOVn3yM"
+description: "Strengthen triceps and inner chest with the Barbell Close Grip Bench Press, using a narrow grip to shift emphasis from the pectorals to the triceps."
 ---
 
 ### Setup
@@ -23,3 +24,17 @@ video: "vEUyEOVn3yM"
 - Maintain a neutral wrist position.
 - Keep your head, shoulders, and buttocks on the bench throughout the movement.
 - Focus on triceps engagement for effective results.
+
+<!-- howto -->
+
+### Set Your Grip
+Lie on the bench and grip the barbell at shoulder-width with an overhand grip. This narrower-than-usual grip shifts the emphasis onto the triceps.
+
+### Unrack and Position
+Lift the bar off the rack and hold it directly above your chest with arms extended. Keep your core tight and feet flat on the ground.
+
+### Lower with Elbows Tucked
+Inhale and slowly lower the bar to your chest, keeping elbows tucked at about 45 degrees to your body. Lower until the bar lightly touches your chest.
+
+### Press Back Up
+Exhale and push the bar back to the starting position without locking the elbows. Maintain a neutral wrist position and keep all body contact points on the bench.

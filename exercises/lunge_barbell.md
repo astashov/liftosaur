@@ -1,5 +1,6 @@
 ---
 video: "NcDtORTfVNQ"
+description: "Build quads, glutes, and hamstrings with the Barbell Lunge, stepping forward under a loaded bar and lowering both knees to 90 degrees each rep."
 ---
 
 ## Starting Position
@@ -25,3 +26,17 @@ video: "NcDtORTfVNQ"
 - Not controlling the descent.
 
 By following these steps, you can perform the barbell lunge safely and effectively.
+
+<!-- howto -->
+
+### Load the Bar and Set Your Stance
+Place a barbell across your upper traps and grip it slightly wider than shoulder-width. Stand with feet hip-width apart and brace your core.
+
+### Step Forward
+Take a large step forward with one leg, keeping your torso upright.
+
+### Lower to 90 Degrees
+Lower your body until both knees are bent at approximately 90 degrees. Ensure your front knee stays aligned over your ankle and does not pass your toes.
+
+### Push Back to Start
+Press through the front heel to return to the starting position. Alternate legs for each repetition.

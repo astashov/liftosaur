@@ -1,5 +1,6 @@
 ---
 video: "cgKqNn90MEo"
+description: "Build explosive power with Medicine Ball Slams, targeting the core, shoulders, and full body through a forceful overhead slam that develops athleticism."
 ---
 
 ## Starting Position
@@ -21,3 +22,17 @@ video: "cgKqNn90MEo"
 - Utilize your legs and core, not just your arms, to generate power.
 - Maintain a controlled motion to prevent injury.
 - Focus on driving through the hips and engaging the entire body during the slam.
+
+<!-- howto -->
+
+### Set the Starting Position
+Stand with feet shoulder-width apart and hold the medicine ball overhead with arms fully extended. Engage your core.
+
+### Generate Power
+Bend at the hips and knees as you bring the ball downward. Use your entire body — legs, core, and upper body — to generate force rather than relying only on your arms.
+
+### Slam the Ball
+Drive the ball forcefully into the ground directly in front of you. Allow your arms to follow through naturally as the ball makes contact.
+
+### Reset and Repeat
+Bend your knees slightly to absorb the impact as you retrieve the ball. Return to the overhead starting position and repeat with full control.

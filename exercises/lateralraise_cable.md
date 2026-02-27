@@ -1,5 +1,6 @@
 ---
 video: "X8tZOGFovj0"
+description: "Develop lateral deltoids with the Cable Lateral Raise, standing side-on to a cable machine and raising your arm to shoulder height with constant tension."
 ---
 
 **Starting Position:**
@@ -23,3 +24,17 @@ video: "X8tZOGFovj0"
 - Keep your shoulders relaxed and avoid shrugging.
 - Perform the exercise slowly to maximize tension on the muscles.
 - Adjust the weight so that you can maintain proper form throughout the exercise.
+
+<!-- howto -->
+
+### Set Up at the Cable Machine
+Adjust the pulley to the lowest setting. Stand side-on to the machine with feet shoulder-width apart and a slight bend in your knees.
+
+### Grip the Handle
+Grasp the cable handle with the hand closest to the machine. Start with your arm hanging straight down at your side.
+
+### Raise to Shoulder Height
+With a slight bend in the elbow, raise your arm out to the side until it is parallel to the floor. Focus on using your lateral deltoid, not momentum.
+
+### Lower Under Control
+Slowly return your arm to the starting position, maintaining tension throughout. Avoid letting the weight stack drop freely.

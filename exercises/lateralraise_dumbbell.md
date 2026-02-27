@@ -1,5 +1,6 @@
 ---
 video: "JIhbYYA1Q90"
+description: "Build wider shoulders with the Dumbbell Lateral Raise, lifting dumbbells out to the sides to target the lateral deltoids with controlled movement."
 ---
 
 ## Starting Position
@@ -28,3 +29,17 @@ video: "JIhbYYA1Q90"
 - Stop if you feel any pain or discomfort in the shoulders or neck. 
 
 Following these guidelines will help you perform the Dumbbell Lateral Raise effectively and safely.
+
+<!-- howto -->
+
+### Set Your Starting Position
+Stand upright with feet shoulder-width apart, holding a dumbbell in each hand at your sides with palms facing inward. Engage your core.
+
+### Raise the Dumbbells
+Lift the dumbbells out to the sides with a slight bend in the elbows, using your shoulder muscles to control the movement.
+
+### Stop at Shoulder Height
+Raise until your arms are parallel to the floor or just below shoulder level. Avoid swinging or using momentum.
+
+### Lower With Control
+Bring the dumbbells back to the starting position in a smooth, controlled motion. Exhale on the lift and inhale on the descent.

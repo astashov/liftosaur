@@ -1,5 +1,6 @@
 ---
 video: "QWdaC7rQ-FM"
+description: "Build anterior deltoids and triceps with the Smith Machine Shoulder Press, pressing the guided bar overhead from shoulder height with stable mechanics."
 ---
 
 ## Setup
@@ -27,3 +28,17 @@ video: "QWdaC7rQ-FM"
 - Allowing the elbows to flare out excessively during the press.
 
 Following these steps will help ensure you perform the Smith Machine Shoulder Press safely and effectively.
+
+<!-- howto -->
+
+### Set Up the Bar
+Set the Smith Machine bar at shoulder height. Stand under the bar and position yourself so it rests just above your collarbones.
+
+### Grip and Stance
+Grip the bar slightly wider than shoulder-width with palms facing forward. Stand with feet shoulder-width apart firmly planted on the ground.
+
+### Press Overhead
+Engage your core and push the bar directly upward until your arms are fully extended overhead without locking your elbows. Keep your back straight and avoid arching.
+
+### Lower to Starting Position
+Slowly lower the bar back to shoulder height in a controlled manner, exhaling on the way up and inhaling as you lower.

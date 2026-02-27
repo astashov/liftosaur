@@ -1,5 +1,6 @@
 ---
 video: "jTkiz4haU1I"
+description: "Target the glutes unilaterally with the Bodyweight Single Leg Hip Thrust, pressing through one foot to raise the hips while the opposite leg stays extended."
 ---
 
 ### Setup
@@ -25,3 +26,17 @@ video: "jTkiz4haU1I"
 
 ### Summary
 Maintain proper alignment and control throughout the movement for optimal engagement and safety.
+
+<!-- howto -->
+
+### Set Up at the Bench
+Sit on the ground with your upper back against a bench or elevated surface. Bend one knee with foot flat on the ground and extend the opposite leg straight out.
+
+### Lift the Hips
+Engage your core and push through the heel of the grounded foot to raise your hips toward the ceiling. Keep your knee aligned with your ankle throughout.
+
+### Hold at the Top
+Maintain a straight line from shoulders to the knee of the working leg at the top. Avoid overarching the lower back or letting the hips roll outward.
+
+### Lower Slowly
+Return your hips to the starting position without touching the ground completely. Keep the movement slow and controlled to maximize glute engagement. Alternate legs after all reps.

@@ -1,5 +1,6 @@
 ---
 video: "juyqMVIzDkQ"
+description: "Target the glutes unilaterally with the Bodyweight Single Leg Glute Bridge Bench, elevating one heel on a bench to increase range and glute activation."
 ---
 
 ## Setup
@@ -26,3 +27,17 @@ video: "juyqMVIzDkQ"
 - Using momentum instead of controlled movement.
 
 By following these steps, you'll effectively target your glutes while improving balance and stability.
+
+<!-- howto -->
+
+### Set Up at the Bench
+Sit on the ground in front of a stable bench and place your upper back against its edge. Extend one leg straight ahead and place the heel of the other foot on the bench.
+
+### Engage and Lift
+Tighten your core and press through the heel on the bench to drive your hips upward. Your shoulders, hips, and knee should form a straight line at the top.
+
+### Pause and Squeeze
+Hold briefly at the top, squeezing the glute of the working leg for maximum activation.
+
+### Lower with Control
+Return your hips toward the floor in a controlled descent, maintaining tension in your core. Avoid using momentum and keep your knee aligned with your ankle throughout.

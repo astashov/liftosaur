@@ -1,8 +1,9 @@
 ---
 video: "HngwgIoABFg"
+description: "Isolate hip abductors and outer thighs with the Leverage Machine Hip Abductor, pressing knees outward against machine resistance for seated lateral hip strength."
 ---
 
-## Equipment 
+## Equipment
 - Leverage Hip Abductor Machine
 
 ## Setup
@@ -31,3 +32,17 @@ video: "HngwgIoABFg"
 - Start with light resistance to master form.
 - Avoid locking your knees during the movement.
 - Listen to your body; if you feel pain, stop the exercise.
+
+<!-- howto -->
+
+### Set Up the Machine
+Adjust the seat height so your knees align with the machine's pivot point. Position the outer pads against your thighs just above the knees.
+
+### Sit and Brace
+Sit with your back against the support, feet flat on the ground, and knees together. Engage your core for stability.
+
+### Push Outward
+Press your knees outward against the resistance pads, focusing on the hip abductor muscles. Push to a comfortable range without strain.
+
+### Return with Control
+Slowly bring your knees back to the starting position without letting the weight stack rest completely, keeping tension in the muscles throughout.

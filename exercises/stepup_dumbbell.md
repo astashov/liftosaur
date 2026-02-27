@@ -1,5 +1,6 @@
 ---
 video: "9ZknEYboBOQ"
+description: "Strengthen quads and glutes with the Dumbbell Step Up, holding dumbbells at your sides while performing the unilateral stepping movement."
 ---
 
 ## Starting Position
@@ -25,3 +26,17 @@ video: "9ZknEYboBOQ"
 - Not fully extending the leg when stepping up.
 
 By following these guidelines, you can perform the Dumbbell Step-Up safely and effectively.
+
+<!-- howto -->
+
+### Set Starting Position
+Stand facing a bench or step with a dumbbell in each hand at your sides, feet hip-width apart.
+
+### Step Up
+Place your right foot firmly on the bench, then push through your right heel to lift your body upward, bringing your left knee toward your chest.
+
+### Stand at the Top
+Stand tall on the bench with your right leg fully extended, maintaining balance and an upright torso.
+
+### Step Down and Alternate
+Lower your left leg back to the ground while keeping your right foot planted, then alternate legs after each rep or set.

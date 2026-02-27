@@ -1,5 +1,6 @@
 ---
 video: "WNz7O59GORA"
+description: "Target lateral deltoids and upper traps with the Cable Upright Row, pulling a straight bar upward toward your chin with constant cable tension."
 ---
 
 ## Setup
@@ -24,3 +25,17 @@ video: "WNz7O59GORA"
 - Using momentum instead of muscle control.
 
 Maintaining proper form ensures effectiveness and reduces the risk of injury.
+
+<!-- howto -->
+
+### Set Up the Cable
+Set the cable at the lowest position and attach a straight bar. Stand facing the machine with feet shoulder-width apart and arms extended.
+
+### Grip and Stand Tall
+Grasp the bar with an overhand grip at shoulder-width, maintaining a straight back and engaged core before pulling.
+
+### Pull Toward Chin
+Pull the cable upward toward your chin, keeping the bar close to your body and elbows higher than your wrists at the top.
+
+### Lower with Control
+Slowly lower the bar back to the starting position, maintaining control and shoulder muscle engagement throughout the descent.

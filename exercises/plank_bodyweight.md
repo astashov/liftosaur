@@ -1,5 +1,6 @@
 ---
 video: "v25dawSzRTM"
+description: "Build core endurance with the Bodyweight Plank, holding a rigid straight-body position on hands and toes to strengthen abdominals and stabilizing muscles."
 ---
 
 ## Starting Position
@@ -24,3 +25,17 @@ video: "v25dawSzRTM"
 
 ## Duration
 Aim to hold the plank position for a sustainable amount of time, gradually increasing as you build strength and endurance.
+
+<!-- howto -->
+
+### Get Into Position
+Start on all fours with your hands under your shoulders. Extend your legs back one foot at a time until your body forms a straight line from head to heels.
+
+### Align Your Body
+Keep your hands shoulder-width apart with fingers facing forward. Your hips should be level, neither sagging nor raised.
+
+### Engage Your Core
+Tighten your abdominal muscles to support your spine. Keep your head neutral, looking slightly ahead.
+
+### Hold the Position
+Breathe steadily through your nose and hold for the desired duration. Gradually increase your hold time as you build endurance.

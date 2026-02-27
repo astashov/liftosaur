@@ -1,5 +1,6 @@
 ---
 video: "k8ipHzKeAkQ"
+description: "Strengthen the calves with the Bodyweight Standing Calf Raise, rising onto the balls of the feet in a controlled motion to build gastrocnemius and soleus endurance."
 ---
 
 **Starting Position:**
@@ -27,3 +28,17 @@ video: "k8ipHzKeAkQ"
 **Variations:**
 - Perform on an elevated surface for a greater range of motion.
 - Try single-leg calf raises for added difficulty.
+
+<!-- howto -->
+
+### Set Your Starting Position
+Stand upright with feet shoulder-width apart, toes pointing forward or slightly outward. Engage your core and keep your knees straight but not locked.
+
+### Rise onto the Balls of Your Feet
+Slowly lift your heels off the ground by pushing through the balls of your feet. Keep the movement controlled without any bouncing.
+
+### Hold at the Top
+Pause briefly at the peak, feeling the contraction in your calf muscles before beginning to lower.
+
+### Lower with Control
+Bring your heels back to the floor in a slow, controlled manner. Focus on isolating the calf muscles throughout both the lifting and lowering phases.

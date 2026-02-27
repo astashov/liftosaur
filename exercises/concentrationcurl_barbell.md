@@ -1,5 +1,6 @@
 ---
 video: "cHxRJdSVIkA"
+description: "Isolate the biceps with the Barbell Concentration Curl by bracing your elbow on your inner thigh and curling with strict form to maximize muscle contraction."
 ---
 
 **Starting Position:**
@@ -26,3 +27,17 @@ video: "cHxRJdSVIkA"
 ### Tips:
 - Focus on the muscle being worked to enhance the mind-muscle connection.
 - Ensure breathing is controlled: exhale on the lift and inhale on the lowering phase.
+
+<!-- howto -->
+
+### Position Yourself
+Sit on a bench with feet flat on the floor and legs apart. Hold a barbell with an underhand grip in one hand and rest that elbow on the inside of your thigh.
+
+### Curl to Your Shoulder
+Keeping your upper arm stationary against your thigh, curl the barbell upward toward your shoulder. Squeeze your bicep at the top for maximum contraction.
+
+### Lower with Full Extension
+Slowly lower the barbell back to the starting position until your arm is fully extended. Avoid swinging or using momentum at any point.
+
+### Switch Arms
+Complete all reps on one side before switching. Focus on the muscle being worked to enhance mind-muscle connection.

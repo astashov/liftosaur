@@ -1,5 +1,6 @@
 ---
 video: "S3a-uB-GQWo"
+description: "Target the obliques with the bodyweight Cross Body Crunch by rotating your elbow toward the opposite knee in an alternating controlled crunching motion."
 ---
 
 ### Starting Position
@@ -27,3 +28,17 @@ video: "S3a-uB-GQWo"
 - Incomplete range of motion: Ensure you lift your shoulder blades off the ground.
 
 By following these guidelines, you can perform the Bodyweight Cross Body Crunch effectively to target your core.
+
+<!-- howto -->
+
+### Lie in Starting Position
+Lie flat on your back with knees bent and feet flat on the ground hip-width apart. Place your arms at your sides or lightly behind your head with elbows bent.
+
+### Engage Your Core
+Tighten your abdominal muscles before moving. Keep your lower back pressed into the mat throughout the exercise.
+
+### Rotate Elbow to Opposite Knee
+Lift your head and shoulders and bring your right elbow toward your left knee while simultaneously extending your right leg. Hold briefly at the top.
+
+### Alternate Sides
+Lower back to the start with control, then repeat on the other side, bringing your left elbow toward your right knee. Breathe out as you crunch and in as you lower.

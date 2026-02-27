@@ -1,5 +1,6 @@
 ---
 video: "qCR9bN3G1t4"
+description: "Build quadriceps, glutes, and hamstrings with the Leverage Machine Seated Leg Press, pushing through a platform in a controlled range of motion."
 ---
 
 ## Setup
@@ -24,3 +25,17 @@ video: "qCR9bN3G1t4"
 - Locking the knees at the top of the movement. 
 
 By following these guidelines, you'll perform the seated leg press effectively and safely.
+
+<!-- howto -->
+
+### Adjust and Position
+Sit in the machine with the backrest and seat height adjusted so your knees form a 90-degree angle with feet on the platform. Place feet shoulder-width apart with toes pointing slightly outward.
+
+### Release the Safety Locks
+Push against the platform with your heels to lift the weight stack slightly off the safety locks before beginning.
+
+### Lower the Platform
+Slowly bend your knees to lower the platform, keeping your back flat against the seat and knees tracking over your toes. Lower until thighs are parallel or to your comfortable range.
+
+### Press Back Up
+Push through your heels to extend your legs and return to the starting position. Fully extend but avoid locking your knees at the top.

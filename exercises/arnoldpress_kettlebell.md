@@ -1,5 +1,6 @@
 ---
 video: "twYr543Akp4"
+description: "Develop shoulder strength with the Kettlebell Arnold Press, engaging all three deltoid heads through a rotating overhead press with neutral-grip kettlebells."
 ---
 
 ## Starting Position
@@ -24,3 +25,17 @@ video: "twYr543Akp4"
 - Letting elbows drift away from the body during the press.
 
 Ensure proper form to maximize effectiveness and reduce the risk of injury.
+
+<!-- howto -->
+
+### Set Your Stance
+Stand with feet shoulder-width apart and hold a kettlebell in each hand at chest level with palms facing you. Engage your core and maintain a slight knee bend.
+
+### Press and Rotate
+Drive the kettlebells upward, rotating your wrists outward so palms face away at the top. Keep your elbows close to your body during the press.
+
+### Reach Full Extension
+Extend your arms fully overhead at the top of the movement. Maintain a neutral spine and avoid arching your lower back.
+
+### Lower with Control
+Rotate your wrists back as you lower the kettlebells to chest level, palms returning to face you. Control the movement throughout the descent.

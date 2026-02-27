@@ -1,5 +1,6 @@
 ---
 video: "5zmlnbWb-g4"
+description: "Build hamstrings, glutes, and lower back with the Barbell Romanian Deadlift, hinging at the hips while keeping the bar close to your body."
 ---
 
 ## Setup
@@ -28,3 +29,17 @@ video: "5zmlnbWb-g4"
 ## Tips
 - Start with lighter weight to master the form.
 - Maintain a controlled pace for both lowering and lifting the barbell.
+
+<!-- howto -->
+
+### Set Up Your Grip
+Stand with feet shoulder-width apart and grasp the barbell with an overhand grip just outside your legs. Keep your back straight, chest lifted, and spine neutral.
+
+### Hinge at the Hips
+Initiate the movement by pushing your hips back with a slight knee bend. Keep the barbell close to your body as you lower it.
+
+### Lower to Mid-Shin
+Lower the bar to mid-shin level or until your torso is nearly parallel to the ground, feeling a stretch in your hamstrings throughout the descent.
+
+### Drive Hips Forward
+Push through your heels to drive your hips forward, returning to a standing position. Squeeze your glutes at the top and keep your back straight.

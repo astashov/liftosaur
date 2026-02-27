@@ -1,5 +1,6 @@
 ---
 video: "V7p_DmkYLZw"
+description: "Develop the rectus abdominis with the Leverage Machine Crunch by curling your torso toward your knees against guided resistance for consistent abdominal engagement."
 ---
 
 ### Setup
@@ -28,3 +29,17 @@ video: "V7p_DmkYLZw"
 ### Safety
 - Monitor your weight selection to prevent strain.
 - Ensure your movements are smooth to avoid injury.
+
+<!-- howto -->
+
+### Adjust and Sit
+Set the seat height and back pad so the pads rest behind your head comfortably. Select an appropriate weight and sit with your back against the pad, feet on the foot platform.
+
+### Engage Your Core
+Grip the handles for stability and tighten your abdominal muscles before starting. Keep your head neutral throughout.
+
+### Crunch Forward
+Exhale as you curl your torso forward, bringing your elbows toward your knees and squeezing your abs at the peak contraction.
+
+### Return Slowly
+Inhale as you slowly return to the upright starting position, maintaining core tension throughout. Avoid using momentum or rounding your back during the movement.

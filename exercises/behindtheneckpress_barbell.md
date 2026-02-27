@@ -1,5 +1,6 @@
 ---
 video: "EUK-YECapp8"
+description: "Target the deltoids and triceps with the Barbell Behind the Neck Press, pressing a barbell overhead from the upper traps for shoulder strength and size."
 ---
 
 ## Setup
@@ -24,3 +25,17 @@ video: "EUK-YECapp8"
 - Avoid using excessively heavy weights to maintain control.
 - Use a spotter or safety equipment if necessary.
 - People with shoulder mobility issues should consult a professional before attempting this exercise.
+
+<!-- howto -->
+
+### Set Up the Barbell
+Place the barbell on a squat rack at shoulder height. Grip it slightly wider than shoulder-width with a pronated grip (palms away).
+
+### Unrack and Position
+Step under the bar and rest it on your upper traps. Stand upright with feet shoulder-width apart, core braced and back straight.
+
+### Press Overhead
+Press the bar directly upward in a controlled manner with elbows slightly in front. Fully extend your arms without locking the elbows, keeping the bar path straight above your body.
+
+### Lower with Control
+Slowly lower the bar back to your upper traps under control. Exhale on the press and maintain a neutral spine throughout.

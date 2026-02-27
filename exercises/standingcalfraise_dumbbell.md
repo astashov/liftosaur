@@ -1,5 +1,6 @@
 ---
 video: "ADIDoYt_ko4"
+description: "Build calf strength and size with the Dumbbell Standing Calf Raise, rising onto the balls of the feet while holding dumbbells to load the gastrocnemius and soleus."
 ---
 
 **Starting Position:**
@@ -34,3 +35,17 @@ video: "ADIDoYt_ko4"
 - Strengthens the calf muscles.
 - Improves ankle stability.
 - Enhances overall lower body strength.
+
+<!-- howto -->
+
+### Set Up with Dumbbells
+Stand upright with feet hip-width apart, holding a dumbbell in each hand by your sides with palms facing inward. Keep your shoulders back and core engaged.
+
+### Rise onto the Balls of Your Feet
+Slowly lift your heels off the ground by pushing through the balls of your feet. Go as high as possible to achieve maximum calf contraction.
+
+### Hold at the Peak
+Pause at the top of the movement, squeezing your calf muscles to maximize the contraction.
+
+### Lower Fully
+Gradually lower your heels back to the floor, allowing a full stretch of the calf muscles at the bottom. Maintain control throughout and avoid bouncing between repetitions.

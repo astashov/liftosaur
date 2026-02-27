@@ -1,5 +1,6 @@
 ---
 video: "l3rHYPtMUo8"
+description: "Isolate the triceps with the Barbell Skullcrusher, lowering the bar toward your forehead on a bench to build tricep mass and elbow extension strength."
 ---
 
 ## Setup
@@ -31,3 +32,17 @@ video: "l3rHYPtMUo8"
 
 ## Conclusion
 Perform the Barbell Skullcrusher with strict form to target the triceps effectively and prevent injury.
+
+<!-- howto -->
+
+### Set Up on the Bench
+Lie on a flat bench with your head at one end and feet flat on the ground. Grip the barbell with a narrow overhand grip and extend your arms fully above your chest.
+
+### Lower Toward the Forehead
+Inhale and slowly bend your elbows to lower the barbell toward your forehead or just behind it. Keep your upper arms stationary and elbows from flaring outward.
+
+### Extend Back to Start
+Exhale and press the bar back to the starting position by extending your elbows, focusing on engaging the triceps. Avoid locking out your elbows at the top to maintain tension.
+
+### Maintain Form Throughout
+Keep your back and head in contact with the bench for the entire set. Use a neutral wrist position and prioritize controlled movement over heavy load.

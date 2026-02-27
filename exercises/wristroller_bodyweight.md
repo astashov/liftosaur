@@ -1,5 +1,6 @@
 ---
 video: "LFO3reEvhFQ"
+description: "Build wrist flexor and extensor endurance with the Wrist Roller, rolling a weighted rope up and down using only wrist rotation while hanging."
 ---
 
 **Objective:** Strengthen wrist flexors and extensors.
@@ -42,3 +43,17 @@ video: "LFO3reEvhFQ"
 - Rolling too quickly, compromising form. 
 
 With practice, this exercise can significantly improve wrist strength and stability.
+
+<!-- howto -->
+
+### Set Up Equipment
+Grip a bar with both hands in an overhand grip. Optionally attach a rope or towel with a weight at one end for added resistance.
+
+### Engage and Stabilize
+Hang vertically with arms fully extended and core tight. Keep your elbows close to your body throughout the movement.
+
+### Roll Up
+Slowly roll the bar or towel upward using only your wrist motion, keeping your forearms stationary and avoiding body swaying.
+
+### Unwind Back Down
+Once fully rolled up, slowly lower the weight back to the starting position by unwinding your wrists in a controlled manner.

@@ -1,5 +1,6 @@
 ---
 video: "eDf49a4Vx5k"
+description: "Build quad and core strength with the Barbell Zercher Squat, cradling the bar in the crooks of your elbows to keep an upright torso throughout."
 ---
 
 ## Setup
@@ -30,3 +31,17 @@ video: "eDf49a4Vx5k"
 
 ## Conclusion
 Performing the Barbell Zercher Squat with proper form maximizes effectiveness while minimizing the risk of injury. Ensure you maintain control throughout the movement for optimal results.
+
+<!-- howto -->
+
+### Load the Bar
+Set the barbell on a squat rack at elbow height. Stand close and position the bar in the crooks of your elbows with both arms bent.
+
+### Set Your Stance
+Step back and position your feet shoulder-width apart with toes slightly outward. Keep the bar secure in your arms.
+
+### Squat Down
+Push your hips back and bend your knees, keeping your chest up, back straight, and core engaged. Descend until thighs are at least parallel to the ground.
+
+### Drive Back Up
+Press through your heels to straighten your legs while maintaining an upright torso. Keep your elbows close to your body throughout the movement.

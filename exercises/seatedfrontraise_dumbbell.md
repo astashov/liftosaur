@@ -1,5 +1,6 @@
 ---
 video: "vMfLbnc-xhs"
+description: "Strengthen your anterior deltoids with the Dumbbell Seated Front Raise, lifting dumbbells to shoulder height from a seated supported position."
 ---
 
 ### Setup
@@ -27,3 +28,17 @@ video: "vMfLbnc-xhs"
 
 ### Conclusion
 By following these guidelines, you can perform the Dumbbell Seated Front Raise safely and effectively, targeting the anterior deltoids and improving your shoulder strength.
+
+<!-- howto -->
+
+### Set Up Position
+Sit on a bench with back support and feet flat on the floor. Hold a dumbbell in each hand with an overhand grip, starting with dumbbells at thigh level.
+
+### Raise Dumbbells Forward
+With a controlled motion, lift the dumbbells straight in front of you to shoulder height. Keep your elbows slightly bent and avoid using momentum or swinging.
+
+### Pause at the Top
+Hold the dumbbells at shoulder height briefly before lowering.
+
+### Lower to Starting Position
+Slowly bring the dumbbells back to thigh level, maintaining control and keeping your core engaged and back straight throughout.

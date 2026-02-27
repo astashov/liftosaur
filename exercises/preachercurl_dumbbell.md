@@ -1,5 +1,6 @@
 ---
 video: "rqfcNmxJQ7k"
+description: "Develop your biceps with the Dumbbell Preacher Curl, using the preacher bench pad to brace your upper arms and curl dumbbells with full muscle isolation."
 ---
 
 ### Setup:
@@ -21,3 +22,17 @@ video: "rqfcNmxJQ7k"
 - Maintain a straight back and avoid using your shoulders.
 - Focus on a slow and controlled movement throughout the exercise.
 - Adjust the bench height to ensure a comfortable range of motion.
+
+<!-- howto -->
+
+### Set Up at the Preacher Bench
+Sit on the preacher bench with your upper arms resting on the angled pad. Adjust the bench height for a comfortable range of motion.
+
+### Grip the Dumbbells
+Hold a dumbbell in each hand with an underhand grip, palms facing upward, and let your arms extend fully against the pad.
+
+### Curl to Your Shoulders
+Engage your biceps and curl the dumbbells toward your shoulders, keeping your upper arms stationary on the pad. Squeeze at the top.
+
+### Extend Back Down
+Slowly lower the dumbbells to the starting position, avoiding locking out your elbows to maintain tension on the biceps.

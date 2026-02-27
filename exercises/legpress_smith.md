@@ -1,5 +1,6 @@
 ---
 video: "jAcAfsAtHHc"
+description: "Strengthen quads, glutes, and hamstrings with the Smith Machine Leg Press, pressing a loaded bar upward from a seated position with guided movement."
 ---
 
 ## Setup
@@ -27,3 +28,17 @@ video: "jAcAfsAtHHc"
 ## Safety
 - Always ensure the safety catch is in place before beginning your set.
 - If unsure about your form, seek guidance from a trainer.
+
+<!-- howto -->
+
+### Set Up the Machine
+Adjust the seat and foot platform for your height. Load weight plates onto the Smith machine bar as needed.
+
+### Position Your Feet
+Sit back against the pad and place your feet shoulder-width apart on the platform, toes pointing slightly outward.
+
+### Unlock and Lower
+Unlock the safety catch. Inhale and bend your knees, lowering until your thighs are parallel to the platform while keeping your back fully supported.
+
+### Press Through Your Heels
+Exhale and push through your heels to return to the starting position. Stop just before your knees fully lock out, then re-rack when the set is complete.

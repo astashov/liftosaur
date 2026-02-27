@@ -1,5 +1,6 @@
 ---
 video: "IEB8cd1BfQU"
+description: "Target quads and glutes with the Cable Lunge, using cable resistance to add constant tension as you step forward and lower into a lunge position."
 ---
 
 ## Setup
@@ -26,3 +27,17 @@ video: "IEB8cd1BfQU"
 - Rushing the movement. 
 
 Maintain the correct form for effectiveness and injury prevention.
+
+<!-- howto -->
+
+### Set Up at the Cable Machine
+Set the cable at a low point and attach a handle. Stand facing away from the machine, feet shoulder-width apart, and grab the handle with the opposite hand.
+
+### Step Back Into a Lunge
+Step back with one foot and allow yourself to lower into a lunge, keeping a slight bend in your front knee. The cable will provide resistance as you descend.
+
+### Keep Your Knee Aligned
+Ensure your front knee stays above your ankle and does not cave inward or extend past your toes.
+
+### Return to Start
+Push through your front heel to return to the starting position. Complete all reps on one side before switching legs.

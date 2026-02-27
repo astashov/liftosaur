@@ -1,5 +1,6 @@
 ---
 video: "-_270H-3Wrc"
+description: "Strengthen quads, glutes, and hamstrings with the Bodyweight Lunge, stepping forward and lowering your back knee toward the floor with an upright torso."
 ---
 
 ## Starting Position
@@ -21,3 +22,17 @@ video: "-_270H-3Wrc"
 - Letting the front knee go past the toes.
 - Leaning forward or rounding the back.
 - Not engaging the core.
+
+<!-- howto -->
+
+### Set Your Starting Position
+Stand upright with feet hip-width apart and core engaged.
+
+### Step Forward
+Take a step forward with one foot, keeping your chest up and back straight.
+
+### Lower Your Body
+Bend both knees until your front thigh is parallel to the ground and your back knee nearly touches the floor. Keep your front knee directly above your ankle.
+
+### Return to Standing
+Press through your front heel to stand back up, then alternate legs for the next repetition.

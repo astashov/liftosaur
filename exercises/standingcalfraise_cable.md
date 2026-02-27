@@ -1,5 +1,6 @@
 ---
 video: "52nzYZk7ETg"
+description: "Develop calf strength with the Cable Standing Calf Raise, lifting the heels against cable resistance through a full range of motion to target the gastrocnemius and soleus."
 ---
 
 ## Equipment Needed
@@ -29,3 +30,17 @@ video: "52nzYZk7ETg"
 - Slouching or leaning forward excessively.
 
 Following this guide will help ensure you perform the Cable Standing Calf Raise effectively and safely.
+
+<!-- howto -->
+
+### Set Up the Cable
+Set the pulley to the lowest position and attach an ankle strap if desired. Stand facing away from the machine with feet hip-width apart, attaching the strap to one ankle or standing under the cable tension.
+
+### Stand Tall and Brace
+Stand with legs straight and shoulders relaxed. Hold onto a stable surface for balance if needed and engage your core.
+
+### Raise the Heels
+Push through the balls of your feet to lift your heels off the ground. Raise until you feel a full stretch in the calves at the top of the movement, keeping your toes in contact with the floor.
+
+### Lower with Control
+Slowly bring your heels back to the floor, controlling the descent to avoid bouncing. Exhale on the upward movement and inhale while lowering.

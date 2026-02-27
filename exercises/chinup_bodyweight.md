@@ -1,5 +1,6 @@
 ---
 video: "brhRXlOhsAM"
+description: "Build lat and bicep strength with the bodyweight Chin-Up by pulling from a dead hang with an underhand grip until your chin clears the bar."
 ---
 
 ## Starting Position
@@ -31,3 +32,17 @@ video: "brhRXlOhsAM"
 
 ## Progression
 - Aim to increase the number of reps as you build strength. Consider varying grip width to target different muscles.
+
+<!-- howto -->
+
+### Hang from the Bar
+Grip the pull-up bar with an underhand grip, hands shoulder-width apart. Start from a dead hang with arms fully extended, core engaged, and legs crossed behind you.
+
+### Initiate the Pull
+Begin by engaging your lats and biceps. Pull your body upward while keeping elbows close to your body and driving your shoulders down and back.
+
+### Reach the Top
+Continue pulling until your chin clears the bar. Hold briefly at the top to maintain tension in the muscles.
+
+### Lower Slowly
+Descend in a controlled manner until your arms are fully extended again. Avoid swinging or using momentum throughout the movement.

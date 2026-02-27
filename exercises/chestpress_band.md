@@ -1,5 +1,6 @@
 ---
 video: "Rn-hf5iauTc"
+description: "Strengthen the chest with the Band Chest Press by pressing a resistance band forward from a chest-high anchor while maintaining a stable core and neutral spine."
 ---
 
 ### Equipment Needed
@@ -24,3 +25,17 @@ video: "Rn-hf5iauTc"
 
 ### Breathing
 - Inhale as you return to the starting position. Exhale while pressing forward.
+
+<!-- howto -->
+
+### Anchor and Position
+Attach the resistance band to a secure anchor at chest height. Stand facing away from the anchor, holding the handles with palms facing down and elbows bent at 90 degrees.
+
+### Set Your Stance
+Place your feet shoulder-width apart for stability and engage your core to maintain a neutral spine throughout the movement.
+
+### Press Forward
+Extend your arms fully forward by pressing the band handles out until your elbows are almost straight. Keep your shoulders down and back during the press.
+
+### Control the Return
+Slowly bring your hands back to the starting position, resisting the band tension throughout. Adjust your distance from the anchor to modify resistance as needed.

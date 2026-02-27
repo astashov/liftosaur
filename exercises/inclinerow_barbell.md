@@ -1,5 +1,6 @@
 ---
 video: "Nqh7q3zDCoQ"
+description: "Build back thickness with the Barbell Incline Row, pulling a barbell toward the lower ribcage while chest-supported on an incline bench for strict lat engagement."
 ---
 
 ## Setup
@@ -26,3 +27,17 @@ video: "Nqh7q3zDCoQ"
 - **Using Momentum:** Avoid swinging or jerking the weight; focus on muscle control.
 - **Arching Back:** Keep your back flat to prevent strain.
 - **Not Engaging Muscles:** Ensure you are fully engaging the back muscles during the lift.
+
+<!-- howto -->
+
+### Set Up
+Set the incline bench to 30-45 degrees and place a barbell on the ground in front of it. Position your chest against the bench with feet flat on the floor.
+
+### Grip and Engage
+Grip the barbell slightly wider than shoulder-width with an overhand grip. Tighten your core to stabilize your body.
+
+### Pull to Your Ribcage
+Pull the barbell toward your lower ribcage, keeping elbows close to your body. Squeeze your shoulder blades together at the top.
+
+### Lower with Control
+Exhale and slowly lower the barbell back to the starting position. Keep movements smooth and avoid using momentum.

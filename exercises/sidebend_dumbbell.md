@@ -1,5 +1,6 @@
 ---
 video: "dL9ZzqtQI5c"
+description: "Develop lateral core strength with the Dumbbell Side Bend, flexing at the waist to engage the obliques while maintaining a straight, upright posture."
 ---
 
 **Starting Position:**
@@ -27,3 +28,17 @@ video: "dL9ZzqtQI5c"
 **Variations:**
 - Perform the exercise seated for more stability.
 - Use a lighter weight to focus on form if you're new to the exercise.
+
+<!-- howto -->
+
+### Set Your Stance
+Stand upright with feet shoulder-width apart and a dumbbell in one hand, allowing it to hang at your side. Place the opposite hand on your hip.
+
+### Bend to the Side
+Keep your core engaged and slowly lean to the dumbbell side, bending at the waist and lowering the weight toward your knee. Avoid twisting the torso.
+
+### Stop at the Stretch
+Lower until you feel a stretch in the opposite oblique, ensuring you don't lean forward or backward during the movement.
+
+### Return and Repeat
+Contract your obliques to pull yourself back to an upright position. Complete all reps on one side before switching to the other hand.

@@ -1,5 +1,6 @@
 ---
 video: "2n4UqRIJyk4"
+description: "Strengthen hip flexors and abdominals with the Bodyweight Hanging Leg Raise, lifting straight legs from a dead hang to build core control and stability."
 ---
 
 ### Setup
@@ -24,3 +25,17 @@ video: "2n4UqRIJyk4"
 ### Safety
 - **Warm-Up**: Perform a gentle warm-up before this exercise to prepare your muscles.
 - **Listen to Your Body**: If you experience pain, stop and reassess your form or consult a professional.
+
+<!-- howto -->
+
+### Hang from the Bar
+Grip a pull-up bar with an overhand grip, hands shoulder-width apart, with arms fully extended.
+
+### Engage Your Core
+Tighten your abdominal muscles before initiating the movement to prevent swinging.
+
+### Raise Your Legs
+Keeping legs straight, lift them forward until parallel to the ground or higher. Pause briefly at the top to maximize core tension.
+
+### Lower with Control
+Slowly lower your legs back to the starting position. Avoid dropping them or using momentum on the way down.

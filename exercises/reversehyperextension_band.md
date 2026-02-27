@@ -1,5 +1,6 @@
 ---
 video: "tBxxWNtEW7c"
+description: "Strengthen your glutes and lower back with the Band Reverse Hyperextension, lifting your legs upward against resistance while lying prone."
 ---
 
 ## Setup
@@ -25,3 +26,17 @@ video: "tBxxWNtEW7c"
 - Using momentum instead of controlled movement.
 
 By following these steps, you can effectively perform the Band Reverse Hyperextension with proper form, targeting your glutes and lower back safely.
+
+<!-- howto -->
+
+### Set Up Position
+Lie face down on a reverse hyperextension bench or stable surface with your hips at the edge and legs hanging off. Hook the resistance band securely around your feet.
+
+### Starting Posture
+Keep your legs together and body straight with your head in a neutral position before beginning the movement.
+
+### Lift Your Legs
+Engage your core and glutes, then lift your legs upward toward the ceiling by hinging at the hips. Aim to raise until your body forms a straight line from head to toes. Hold briefly at the top.
+
+### Lower with Control
+Slowly lower your legs back to the starting position, maintaining control against the band resistance throughout the descent.

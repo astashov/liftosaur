@@ -1,5 +1,6 @@
 ---
 video: "hiLF_pF3EJM"
+description: "Develop leg strength and balance with the Bodyweight Split Squat, lowering the back knee toward the floor in a staggered stance to target quads and glutes."
 ---
 
 ### Starting Position:
@@ -30,3 +31,17 @@ video: "hiLF_pF3EJM"
 
 ### Reminder:
 Always perform the exercise in a controlled manner to maximize effectiveness and reduce the risk of injury.
+
+<!-- howto -->
+
+### Take the Split Stance
+Stand upright with feet hip-width apart, then step one foot back about 2-3 feet. Keep both feet pointing forward and your torso upright.
+
+### Lower the Body
+Bend both knees simultaneously, lowering until your back knee nearly touches the floor. Keep your front knee aligned over your ankle and your core engaged throughout.
+
+### Maintain an Upright Torso
+Avoid leaning forward during the descent. Keep your hips square and level to prevent any rotation or shifting.
+
+### Drive Back Up
+Press through the front heel to return to the starting position. Exhale as you rise. Complete all reps on one side, then switch legs.

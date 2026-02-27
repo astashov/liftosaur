@@ -1,5 +1,6 @@
 ---
 video: "AV5PmZJIrrw"
+description: "Strengthen the rectus abdominis with the Cable Crunch by kneeling and flexing your spine downward against cable resistance for a deep, controlled abdominal contraction."
 ---
 
 ## Setup
@@ -29,3 +30,17 @@ video: "AV5PmZJIrrw"
 - Maintain a neutral spine throughout the movement.
 - Avoid pulling with your arms; focus on core activation.
 - Keep your movements controlled to maximize effectiveness and minimize injury risk.
+
+<!-- howto -->
+
+### Set Up the Cable
+Attach a rope to the high pulley of a cable machine. Kneel a few feet away facing the machine with the pulley at about head level.
+
+### Grasp the Rope
+Hold the rope with both hands beside your head, keeping your elbows bent and core engaged. Your back should be straight in this starting position.
+
+### Crunch Down
+Exhale and pull the rope downward by flexing your spine, bringing your elbows toward your knees. Focus on contracting your abs rather than pulling with your arms.
+
+### Return Under Tension
+Inhale as you slowly return to the starting position, allowing your abs to stretch under control. Do not fully relax your core between reps.

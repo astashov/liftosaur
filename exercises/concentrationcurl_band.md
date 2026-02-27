@@ -1,5 +1,6 @@
 ---
 video: "cHxRJdSVIkA"
+description: "Isolate the biceps with the Band Concentration Curl by bracing your elbow on your inner thigh and curling the band upward in a strict, controlled motion."
 ---
 
 ### Equipment Needed
@@ -37,3 +38,17 @@ video: "cHxRJdSVIkA"
 ### Benefits
 - Targets the biceps specifically.
 - Can be done anywhere with minimal equipment.
+
+<!-- howto -->
+
+### Set Up Your Position
+Sit on a bench with legs spread and one end of the resistance band under your foot. Hold the other end with the opposite hand.
+
+### Brace Your Elbow
+Press your elbow firmly against the inside of your thigh to stabilize your upper arm. This isolates the bicep and prevents swinging.
+
+### Curl Upward
+Keeping your upper arm stationary, curl the band toward your shoulder by bending your elbow. Squeeze your bicep at the top of the movement.
+
+### Lower and Repeat
+Slowly lower the band back to full extension while maintaining tension throughout. Complete your reps on one arm before switching sides.

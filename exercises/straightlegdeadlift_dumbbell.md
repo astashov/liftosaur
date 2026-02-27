@@ -1,5 +1,6 @@
 ---
 video: "plb5jEO4Unw"
+description: "Strengthen hamstrings and glutes with the Dumbbell Straight Leg Deadlift, hinging at the hips while holding dumbbells close to your legs."
 ---
 
 ## Setup
@@ -25,3 +26,17 @@ video: "plb5jEO4Unw"
 - Lifting weights that are too heavy, leading to compromised form. 
 
 By following these steps, you'll effectively perform the Dumbbell Straight Leg Deadlift while minimizing injury risk and maximizing effectiveness.
+
+<!-- howto -->
+
+### Set Starting Position
+Stand with feet hip-width apart holding a dumbbell in each hand, weights hanging in front of your thighs with palms facing your body.
+
+### Hinge at the Hips
+With knees slightly bent, push your hips back and lower the dumbbells along the front of your legs, maintaining a flat back.
+
+### Lower to Hamstring Limit
+Allow the dumbbells to descend to just below your knees or as far as hamstring flexibility allows without rounding your back.
+
+### Drive Back to Standing
+Push through your heels and drive your hips forward to rise back to the starting position, squeezing your glutes at the top.

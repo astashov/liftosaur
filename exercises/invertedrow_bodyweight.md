@@ -1,5 +1,6 @@
 ---
 video: "5W8F6MzZ8Rk"
+description: "Strengthen back, biceps, and core with the Bodyweight Inverted Row, pulling your chest to a bar from a horizontal hanging position for scalable upper body pulling."
 ---
 
 ## Setup
@@ -26,3 +27,17 @@ video: "5W8F6MzZ8Rk"
 ## Progression
 - Elevate your feet for increased difficulty.
 - Use a wider grip to target different muscle groups.
+
+<!-- howto -->
+
+### Set Up Under the Bar
+Lie under a sturdy bar or suspension trainer with your body straight, heels on the ground, and arms extended to grasp the bar slightly wider than shoulder-width.
+
+### Align and Brace
+Engage your core and glutes to keep your body in a straight line from head to heels. Keep shoulders down and away from your ears.
+
+### Pull Your Chest Up
+Exhale and pull your chest toward the bar by bending your elbows, keeping them close to your body. Pause briefly at the top.
+
+### Lower with Control
+Inhale and slowly lower back to the starting position with arms fully extended. Avoid letting your hips sag throughout the movement.

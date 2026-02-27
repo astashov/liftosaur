@@ -1,5 +1,6 @@
 ---
 video: "ZUVe_Jcuos0"
+description: "Target your obliques and core with the Cable Russian Twist, rotating your torso against cable resistance while seated with a stable base."
 ---
 
 ### Starting Position
@@ -26,3 +27,17 @@ video: "ZUVe_Jcuos0"
 - Not engaging the core sufficiently. 
 
 Focus on maintaining good form to maximize effectiveness and reduce the risk of injury.
+
+<!-- howto -->
+
+### Set Up the Cable Machine
+Attach a rope or handle to a low pulley and select an appropriate weight. Sit on the floor a few feet away from the machine, facing sideways, and grab the cable with both hands.
+
+### Establish Starting Position
+Sit with your knees bent and feet flat on the floor. Lean back slightly while maintaining a straight back and engaged core.
+
+### Twist Your Torso
+Pull the cable toward your body and rotate your upper body to one side, keeping your hips and legs stable. Arms should remain slightly bent.
+
+### Return and Repeat
+Slowly rotate back to center, then to the opposite side in a controlled manner. Exhale during the twist and inhale during the return.

@@ -1,5 +1,6 @@
 ---
 video: "wXZxPX4Cv04"
+description: "Challenge the rectus abdominis with the Kettlebell Sit-Up, holding a kettlebell overhead while curling up to add resistance and strengthen the entire core."
 ---
 
 ## Starting Position
@@ -22,3 +23,17 @@ video: "wXZxPX4Cv04"
 - **Kettlebell Position**: Keep it stable above your chest to avoid strain. 
 
 By following these steps, you can perform kettlebell sit-ups safely and effectively.
+
+<!-- howto -->
+
+### Starting Position
+Lie on your back on a flat surface with knees bent and feet flat on the floor. Hold the kettlebell with both hands above your chest with elbows slightly bent.
+
+### Press the Kettlebell
+Extend your arms straight up toward the ceiling, keeping the kettlebell stable directly above your chest throughout the movement.
+
+### Sit Up with Core
+Tighten your abdominal muscles and curl your upper body toward your knees, keeping the kettlebell overhead. Focus on using your core, not your neck or back, to initiate the movement.
+
+### Lower Under Control
+Return slowly to the starting position while maintaining control and keeping the kettlebell stable above your chest. Exhale on the way up and inhale on the way down.

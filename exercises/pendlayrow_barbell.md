@@ -1,5 +1,6 @@
 ---
 video: "Wv7f0uIKh8o"
+description: "Strengthen your back with the Barbell Pendlay Row, pulling the bar from the floor to your lower chest with a horizontal torso and controlled reset each rep."
 ---
 
 ### Setup
@@ -29,3 +30,17 @@ video: "Wv7f0uIKh8o"
 - **Alignment**: Ensure your neck stays neutral; avoid looking up or excessively hunching forward.
 
 By following these steps, you can perform the Barbell Pendlay Row with proper form to effectively target your back muscles.
+
+<!-- howto -->
+
+### Set Up Over the Bar
+Stand with feet hip-width apart, shins close to the barbell. Bend at the hips and knees to reach the bar, keeping your back flat and parallel to the floor.
+
+### Grip the Bar
+Use an overhand grip approximately shoulder-width apart. Your hips should be slightly higher than your knees to create a stable base.
+
+### Pull to Your Lower Chest
+Engage your back and pull the barbell toward your lower chest or upper abdomen, keeping your elbows close to your body.
+
+### Return to the Floor
+Lower the barbell back to the floor with control until it comes to a full stop, then initiate the next rep from a dead stop.

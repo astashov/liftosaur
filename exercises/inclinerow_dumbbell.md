@@ -1,5 +1,6 @@
 ---
 video: "tZUYS7X50so"
+description: "Develop back width and thickness with the Dumbbell Incline Row, pulling dumbbells toward your torso while face-down on an incline bench for full lat isolation."
 ---
 
 ### Setup:
@@ -32,3 +33,17 @@ video: "tZUYS7X50so"
 - Lifting too heavy, leading to poor form and potential injury.
 - Allowing the back to arch or the shoulders to rise excessively during the row.
 - Using momentum instead of controlled strength to lift the weights.
+
+<!-- howto -->
+
+### Set Up
+Set the incline bench to 30-45 degrees and lie face down with your chest against the pad. Hold a dumbbell in each hand, arms hanging straight down.
+
+### Retract and Pull
+Engage your core and pull your shoulder blades down and back. Exhale and row the dumbbells toward your lower ribcage, keeping elbows close to your body.
+
+### Squeeze at the Top
+Hold briefly at the top of the movement and squeeze your shoulder blades together to maximize back engagement.
+
+### Lower with Control
+Inhale and slowly lower the dumbbells back to the starting position. Maintain control and avoid dropping the weights or using momentum.

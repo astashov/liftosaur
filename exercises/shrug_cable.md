@@ -1,5 +1,6 @@
 ---
 video: "Wab3-dsZohU"
+description: "Strengthen the upper trapezius with the Cable Shrug, using constant cable tension to isolate shoulder elevation through a controlled range of motion."
 ---
 
 ## Setup
@@ -26,3 +27,17 @@ video: "Wab3-dsZohU"
 - Using excessive weight leading to poor form.
 
 By adhering to proper form, the Cable Shrug effectively targets the trapezius muscles and supports shoulder stability.
+
+<!-- howto -->
+
+### Set Up the Cable
+Attach a straight bar or rope to a low pulley. Stand facing the machine with feet shoulder-width apart and grip the attachment with an overhand grip, arms hanging straight down.
+
+### Establish Starting Position
+Stand tall with a neutral spine and relaxed shoulders. Step back slightly if needed to ensure tension in the cable before beginning the movement.
+
+### Raise the Shoulders
+Inhale and elevate your shoulders straight up toward your ears without bending your elbows. Initiate the movement from your shoulders, not your arms.
+
+### Hold and Return
+Pause briefly at the top to feel the trapezius contraction, then exhale and lower your shoulders back down slowly in a controlled manner.

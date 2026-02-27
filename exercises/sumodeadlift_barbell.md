@@ -1,5 +1,6 @@
 ---
 video: "PQ3A_HmfQyk"
+description: "Master the Barbell Sumo Deadlift with a wide stance to target the inner thighs, glutes, and erector spinae with reduced lower back strain."
 ---
 
 ## Starting Position
@@ -30,3 +31,17 @@ video: "PQ3A_HmfQyk"
 - Letting the bar drift away from the body during the lift.
 
 By following these steps, you can perform the Barbell Sumo Deadlift with proper form to maximize effectiveness and minimize the risk of injury.
+
+<!-- howto -->
+
+### Set Your Wide Stance
+Stand with feet wider than shoulder-width, toes pointed slightly outward, and the barbell positioned over the mid-foot.
+
+### Grip the Bar
+Bend at the hips and knees to lower down and grip the bar, keeping your shoulders slightly in front of the bar and spine neutral.
+
+### Pull and Stand
+Drive through your heels, extending hips and knees simultaneously to lift the bar. Thrust your hips forward and stand tall at the top.
+
+### Lower with Control
+Push your hips back and keep the bar close to your body as you lower it back to the ground, bending your knees once the bar passes them.

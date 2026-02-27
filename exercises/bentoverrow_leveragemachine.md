@@ -1,5 +1,6 @@
 ---
 video: "tGGq2VZIW_M"
+description: "Strengthen the upper back and lats with the Leverage Machine Bent Over Row, using machine-guided resistance for safe and effective back development."
 ---
 
 ## Setup
@@ -9,7 +10,7 @@ video: "tGGq2VZIW_M"
 ## Execution
 1. **Grip the Handles**: Grasp the handles with a neutral grip (palms facing each other).
 2. **Position Your Body**: Lean forward at the hips, keeping your back straight and core engaged.
-3. **Pull the Handles**: 
+3. **Pull the Handles**:
    - Begin by retracting your shoulder blades.
    - Pull the handles towards your lower rib cage, keeping your elbows close to your body.
 4. **Squeeze at the Top**: Hold the contracted position for a moment while squeezing your back muscles.
@@ -26,3 +27,17 @@ video: "tGGq2VZIW_M"
 - Letting elbows drift out too wide.
 
 Follow these guidelines for an effective and safe Leverage Machine Bent Over Row.
+
+<!-- howto -->
+
+### Adjust the Machine
+Set the seat height so your torso is parallel to the ground when seated. Place your feet securely on the footrest or ground.
+
+### Grip and Lean Forward
+Grasp the handles with a neutral grip and lean forward at the hips, keeping your back straight and core engaged before pulling.
+
+### Pull and Squeeze
+Retract your shoulder blades first, then pull the handles toward your lower ribcage with elbows close to your body. Hold the contracted position briefly while squeezing your back muscles.
+
+### Lower with Control
+Slowly return the handles to the starting position. Exhale while pulling and inhale as you lower.

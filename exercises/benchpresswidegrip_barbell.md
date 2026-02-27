@@ -1,5 +1,6 @@
 ---
 video: "EeE3f4VWFDo"
+description: "Target the outer chest and pectorals with the Barbell Wide Grip Bench Press, using a grip beyond shoulder-width to maximize chest muscle recruitment."
 ---
 
 ## Setup
@@ -19,3 +20,17 @@ video: "EeE3f4VWFDo"
 ## Safety
 - Use a spotter or safety clips to avoid accidents.
 - Ensure the bench and equipment are stable before starting.
+
+<!-- howto -->
+
+### Set Your Wide Grip
+Lie flat on the bench and grip the barbell with hands positioned beyond shoulder-width. This wider grip increases the stretch and recruitment of the outer pectorals.
+
+### Unrack the Bar
+Lift the bar off the rack and hold it directly above your chest with arms fully extended. Retract your shoulder blades and keep your back flat against the bench.
+
+### Lower the Bar
+Inhale and slowly lower the bar to your chest with elbows at about 45 degrees from your body. Control the descent and avoid bouncing.
+
+### Press Back Up
+Exhale and push the bar back to the starting position, fully extending your arms without locking the elbows. Maintain neutral wrists throughout.

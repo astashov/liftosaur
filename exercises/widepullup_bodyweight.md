@@ -1,5 +1,6 @@
 ---
 video: "p40iUjf02j0"
+description: "Develop lat width and upper back strength with the Wide Pull-Up, using a wider-than-shoulder-width overhand grip to maximize lat engagement."
 ---
 
 ## Setup
@@ -24,3 +25,17 @@ video: "p40iUjf02j0"
 - **Partial Range**: Not completing the pull or the descent reduces effectiveness. 
 
 Focus on keeping a steady pace and maintaining control throughout the movement.
+
+<!-- howto -->
+
+### Grip the Bar
+Use an overhand grip with hands wider than shoulder-width apart. Hang with arms fully extended and feet off the ground.
+
+### Engage and Initiate
+Tighten your core, then drive your elbows down and back to begin the pull. Keep your shoulders down throughout the movement.
+
+### Pull to the Top
+Continue pulling until your chin clears the bar or your chest approaches it. Focus on using your back muscles rather than your arms.
+
+### Lower with Control
+Slowly lower your body back to the fully extended hanging position, maintaining control and avoiding swinging.

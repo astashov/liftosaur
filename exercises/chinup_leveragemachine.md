@@ -1,5 +1,6 @@
 ---
 video: "y00_rMYk1Oc"
+description: "Develop lats and biceps with the Leverage Machine Chin-Up using an assisted underhand grip pull that lets you build strength progressively toward bodyweight reps."
 ---
 
 ### Equipment Needed
@@ -27,3 +28,17 @@ video: "y00_rMYk1Oc"
 ### Safety Considerations
 - Ensure the machine is properly set up and that you are comfortable before starting.
 - If you're new to chin-ups, consider starting with assistance until your strength improves.
+
+<!-- howto -->
+
+### Adjust the Machine
+Set the assistance level appropriate to your strength. Grip the handles with an underhand (supinated) grip, hands shoulder-width apart.
+
+### Establish Your Starting Position
+Sit or kneel on the machine's platform with arms straight and back neutral. Tighten your core before initiating the movement.
+
+### Pull Your Chin to the Handles
+Bend your elbows and pull upward, focusing on using your back and biceps. Keep your elbows close to your body and avoid swinging.
+
+### Lower Under Control
+Gradually extend your arms back to the starting position, maintaining tension throughout. Ensure your arms reach full extension without locking the elbows before the next rep.

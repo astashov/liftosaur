@@ -1,5 +1,6 @@
 ---
 video: "xjoTvCo35Wc"
+description: "Strengthen the lateral deltoids and upper traps with the Band Upright Row, pulling the band straight up toward your chin with elbows leading."
 ---
 
 ### Starting Position
@@ -24,3 +25,17 @@ video: "xjoTvCo35Wc"
 - Using too much body sway or momentum instead of isolating the shoulder muscles.
 
 Maintain proper form throughout the exercise to maximize effectiveness and prevent injury.
+
+<!-- howto -->
+
+### Set Up the Band
+Stand with feet shoulder-width apart on the center of the band. Hold the ends with an overhand grip, arms fully extended in front of you.
+
+### Pull Toward the Chin
+Pull the band upward toward your chin, leading with your elbows so they rise above your wrists throughout the movement.
+
+### Hold at the Top
+Raise the band to approximately chin level, maintaining a straight back and engaged core. Keep the movement path vertical.
+
+### Lower with Control
+Lower the band back to the starting position in a controlled manner, avoiding momentum and shoulder drop.

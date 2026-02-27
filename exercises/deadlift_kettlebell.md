@@ -1,5 +1,6 @@
 ---
 video: "eFkeIXvhSFs"
+description: "Strengthen the glutes, hamstrings, and back with the Kettlebell Deadlift by hinging from the hips with a neutral spine and pressing the floor away to stand tall."
 ---
 
 ## Setup
@@ -29,3 +30,17 @@ video: "eFkeIXvhSFs"
 - Focus on using your legs and glutes during the lift.
 
 By following these steps, you can perform the kettlebell deadlift with proper form, maximizing effectiveness and reducing injury risk.
+
+<!-- howto -->
+
+### Position Over the Kettlebell
+Stand with feet shoulder-width apart and the kettlebell between your feet. Bend at the hips and slightly at the knees, reaching down to grasp the handle with both hands and arms straight.
+
+### Align Your Back
+Keep your spine neutral, chest up, and shoulders pulled back. Press your feet fully into the ground before initiating the lift.
+
+### Lift by Extending Hips and Knees
+Engage your core and push through your heels to extend your hips and knees simultaneously. Stand tall with the kettlebell close to your body at the top.
+
+### Lower with a Hip Hinge
+Push your hips back while maintaining a neutral spine to lower the kettlebell back to the floor in a controlled manner. Focus on using your legs and glutes throughout.

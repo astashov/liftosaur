@@ -1,5 +1,6 @@
 ---
 video: "M1HeORCwv8A"
+description: "Target your lower abdominals with the Cable Reverse Crunch, pulling your knees toward your chest against cable resistance."
 ---
 
 ### Equipment Needed
@@ -29,3 +30,17 @@ video: "M1HeORCwv8A"
 - Allowing the feet to touch the ground between repetitions. 
 
 By following this guide, you can perform the Cable Reverse Crunch with proper form to effectively target your abdominal muscles.
+
+<!-- howto -->
+
+### Set Up the Machine
+Attach an ankle strap to the low pulley of the cable machine and secure it around your ankles. Lie on your back on a mat, grasping the sides for support.
+
+### Starting Position
+Keep your knees bent and feet elevated off the ground with tension in the cable. Tighten your core to stabilize your body.
+
+### Pull Knees to Chest
+Gradually pull your knees toward your chest by driving with your hips in a controlled motion, using your abdominal muscles rather than momentum.
+
+### Lower with Control
+Slowly lower your legs back to the starting position without letting your feet touch the ground. Maintain a flat back throughout.

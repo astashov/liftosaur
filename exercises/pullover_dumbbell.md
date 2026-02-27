@@ -1,5 +1,6 @@
 ---
 video: "jQjWlIwG4sI"
+description: "Strengthen chest and lats with the Dumbbell Pullover, lying on a bench and sweeping a dumbbell in an arc from overhead back above your chest in each rep."
 ---
 
 ## Starting Position
@@ -29,3 +30,17 @@ video: "jQjWlIwG4sI"
 - Using momentum instead of muscle control.
 
 By following these instructions, you can effectively perform the Dumbbell Pullover with proper form.
+
+<!-- howto -->
+
+### Set Up on the Bench
+Lie on a flat bench horizontally with your upper back and shoulders supported and feet flat on the floor. Hold a dumbbell with both hands using either an underplate or over-the-handle grip.
+
+### Extend Arms Above Your Chest
+Extend your arms straight above your chest with a slight bend in your elbows.
+
+### Lower the Dumbbell in an Arc
+Inhale and slowly lower the dumbbell behind your head in an arc, keeping your elbows at a consistent slight bend. Stop when you feel a gentle stretch in your chest and lats.
+
+### Pull Back Over Your Chest
+Exhale and reverse the arc, pulling the dumbbell back above your chest using your lats and chest muscles with fluid, controlled movement.

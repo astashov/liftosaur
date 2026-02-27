@@ -1,5 +1,6 @@
 ---
 video: "E2z5zK5V-MM"
+description: "Master the Barbell Clean Olympic lift by explosively pulling the bar from the floor and catching it on your shoulders, targeting the full posterior chain."
 ---
 
 ### Starting Position
@@ -41,3 +42,17 @@ video: "E2z5zK5V-MM"
 
 ### Conclusion
 Mastering the barbell clean requires practice and attention to form. Consider working with a coach if you're new to Olympic lifting to refine your technique further.
+
+<!-- howto -->
+
+### Set Your Starting Position
+Stand over the bar with feet shoulder-width apart. Grip just outside your knees with a double overhand grip, hips lower than shoulders, chest up, and back straight.
+
+### Execute the First Pull
+Push through your heels and extend your knees while keeping your back angle constant. Keep the bar close to your shins as it rises from the floor.
+
+### Drive Through the Second Pull
+Once the bar passes your knees, explosively extend your hips and knees simultaneously. Shrug your shoulders and pull the bar upward, keeping it tight to your body.
+
+### Catch on Your Shoulders
+Drop under the bar by bending your knees and rotating your elbows around and under the bar to catch it on your front deltoids. Stand up fully to complete the lift.

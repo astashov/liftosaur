@@ -1,5 +1,6 @@
 ---
 video: "b2jmZyptN64"
+description: "Build quads, glutes, and hamstrings with the Safety Squat Bar Squat, using the cambered bar to reduce shoulder strain during heavy squatting."
 ---
 
 ## Setup
@@ -34,3 +35,17 @@ video: "b2jmZyptN64"
 - Allowing knees to cave in.
 - Rounding the back during the descent.
 - Lifting the heels off the ground.
+
+<!-- howto -->
+
+### Set Up the Bar
+Position the safety squat bar at shoulder height in the rack. Step under the bar with elbows beneath the pads and grasp the handles with a neutral grip.
+
+### Step Back and Stance
+Step back into a stable position with feet shoulder-width apart. Brace your core and keep your chest up.
+
+### Descend
+Lower your body by bending at the hips and knees simultaneously, keeping your back straight and knees tracking over your toes. Aim for thighs parallel to the ground.
+
+### Drive Up
+Push through your heels to return to standing, fully extending hips and knees. Exhale as you rise and inhale as you descend.

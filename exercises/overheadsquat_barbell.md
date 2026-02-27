@@ -1,5 +1,6 @@
 ---
 video: "TUtBNkk_lio"
+description: "Build total-body stability with the Barbell Overhead Squat, holding a barbell locked out overhead while squatting to parallel, targeting quads and core."
 ---
 
 ## Setup
@@ -29,3 +30,17 @@ video: "TUtBNkk_lio"
 - Not achieving sufficient squat depth.
 
 Ensure proper technique is followed to maximize benefits and minimize injury risks.
+
+<!-- howto -->
+
+### Set the Bar Overhead
+Begin with the barbell on your upper back in a back squat position. Press it overhead with a wide grip until your arms are fully locked out and straight.
+
+### Set Your Stance
+Stand with feet shoulder-width apart, toes slightly pointed outward. Maintain the bar directly over your center of gravity.
+
+### Squat Down
+Push your hips back and bend your knees, keeping your chest up, core engaged, and the bar locked overhead. Lower until your thighs are parallel or below.
+
+### Drive Back Up
+Push through your heels to stand back up, maintaining the bar position overhead throughout the ascent.

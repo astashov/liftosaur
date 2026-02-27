@@ -1,5 +1,6 @@
 ---
 video: "RzJMbxUEP9c"
+description: "Strengthen the upper chest with the Band Incline Chest Press, pressing a resistance band anchored behind you while seated at an incline for progressive resistance."
 ---
 
 ## Setup
@@ -27,3 +28,17 @@ video: "RzJMbxUEP9c"
 - Not engaging the core, leading to instability.
 
 By following these steps, you can ensure you are performing the Band Incline Chest Press with proper form.
+
+<!-- howto -->
+
+### Anchor and Set Up
+Secure the resistance band at a low anchor point behind you. Sit on an incline bench at 30-45 degrees and hold one end of the band in each hand, palms facing forward.
+
+### Starting Position
+Position hands at chest level with elbows bent at 90 degrees. The band should be taut before pressing.
+
+### Press Upward
+Press the band upward and forward until your arms are fully extended but not locked. Exhale as you press.
+
+### Return with Control
+Slowly bring your hands back to chest level. Keep your core engaged and avoid overarching your lower back.

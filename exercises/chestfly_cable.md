@@ -1,5 +1,6 @@
 ---
 video: "mLgYNdxj-Vw"
+description: "Develop the pectoral muscles with the Cable Chest Fly by pulling handles together in a controlled arc while maintaining constant tension throughout the movement."
 ---
 
 ### Setup
@@ -25,3 +26,17 @@ video: "mLgYNdxj-Vw"
 - **Arching the Back**: Maintain a neutral spine to prevent injury.
 
 By following these guidelines, you can perform the Cable Chest Fly effectively and safely.
+
+<!-- howto -->
+
+### Position at the Cable Machine
+Stand in the center of a cable machine with pulleys set at chest height. Grab both handles with a neutral grip and step forward to create tension in the cables.
+
+### Set Your Starting Position
+Raise the handles to the sides with a slight bend in your elbows, arms parallel to the ground. Keep your chest up and shoulders back.
+
+### Fly the Handles Together
+Pull the handles forward in an arc, squeezing your chest as they approach each other in front of you. Maintain the elbow bend throughout and avoid locking out.
+
+### Return Resisting the Cable
+Gradually reverse the motion, opening your arms back to the start while resisting the cable tension. Exhale as you bring the handles together and inhale on the return.

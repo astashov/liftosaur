@@ -1,5 +1,6 @@
 ---
 video: "pXS-fSPWpk8"
+description: "Build bicep strength with the Band Bicep Curl, using resistance band tension to isolate the biceps through a controlled standing curl movement."
 ---
 
 ### Equipment Needed
@@ -29,3 +30,17 @@ video: "pXS-fSPWpk8"
 - **Inadequate Range of Motion**: Fully extend and contract your arms for effectiveness.
 
 Following this guide will help you perform the Band Bicep Curl safely and effectively.
+
+<!-- howto -->
+
+### Stand on the Band
+Place the resistance band under your feet shoulder-width apart and hold the ends with palms facing up and arms fully extended. Stand tall with core engaged.
+
+### Curl Toward the Shoulders
+Flex your elbows and curl your hands toward your shoulders while keeping elbows close to your body. Do not swing or use momentum.
+
+### Hold at the Top
+Keep your upper arms stationary and squeeze the biceps at the top of the curl. Your wrists should remain straight throughout the movement.
+
+### Lower with Full Extension
+Slowly lower your hands back to the starting position, fully extending your arms. Control the descent to maximize bicep engagement.

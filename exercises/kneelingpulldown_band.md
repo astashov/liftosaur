@@ -1,5 +1,6 @@
 ---
 video: "ErDmbtmQrv4"
+description: "Strengthen your lats and upper back with the Band Kneeling Pulldown, pulling a resistance band from overhead to your chest while kneeling."
 ---
 
 ### Setup
@@ -23,3 +24,17 @@ video: "ErDmbtmQrv4"
 - Letting elbows flare out.
 
 Maintain focus on form to maximize effectiveness and prevent injury.
+
+<!-- howto -->
+
+### Anchor the Band and Get Into Position
+Secure a resistance band at a high point above head level. Kneel on a mat facing the anchor, far enough away to create tension in the band.
+
+### Grip the Band
+Grasp the band with both hands using an overhand grip, arms fully extended above you. Engage your core to stabilize your torso.
+
+### Pull Down to Your Chest
+Keep your elbows close to your body and pull the band down toward your upper chest, focusing on engaging your lats and upper back.
+
+### Control the Return
+Slowly allow the band to rise back to the starting position, maintaining control and keeping your back straight throughout.

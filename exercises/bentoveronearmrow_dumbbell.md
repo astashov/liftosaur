@@ -1,5 +1,6 @@
 ---
 video: "gfUg6qWohTk"
+description: "Strengthen the upper back and lats with the Dumbbell Bent Over One Arm Row, isolating each side independently for balanced back development and improved posture."
 ---
 
 ### Setup
@@ -22,3 +23,17 @@ video: "gfUg6qWohTk"
 - Rounding the back instead of keeping it flat.
 - Using momentum rather than muscle strength.
 - Letting the elbow flare out instead of keeping it close to the body.
+
+<!-- howto -->
+
+### Hinge and Support
+Stand with feet shoulder-width apart and hinge at the hips until your torso is nearly parallel to the ground. Place your free hand on a bench or your knee for support.
+
+### Set the Starting Position
+Hold a dumbbell in the working hand with palm facing your body. Keep your back flat and core engaged before pulling.
+
+### Pull to the Hip
+Drive the dumbbell toward your hip, keeping your elbow close to your body. Squeeze your shoulder blade at the top of the movement for maximum contraction.
+
+### Lower with Control
+Slowly lower the dumbbell back to the starting position, fully extending your arm. Avoid using momentum or rounding your back between reps.

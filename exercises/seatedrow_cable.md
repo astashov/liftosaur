@@ -1,5 +1,6 @@
 ---
 video: "vwHG9Jfu4sw"
+description: "Build back, bicep, and rear deltoid strength with the Cable Seated Row, pulling a handle to your lower ribcage while squeezing your shoulder blades."
 ---
 
 ## Equipment Needed
@@ -25,3 +26,17 @@ video: "vwHG9Jfu4sw"
 - Avoid using momentum; focus on a smooth, controlled motion.
 - Ensure your head stays in a neutral position, looking forward, not upward or downward.
 - Breathe out as you pull the handle in and breathe in as you return to the starting position.
+
+<!-- howto -->
+
+### Set Up the Machine
+Adjust the seat height so your feet rest comfortably on the platform. Sit upright with your back neutral, core engaged, and grab the handle with palms facing each other or down.
+
+### Pull to Your Ribcage
+Draw your elbows back, keeping them close to your body, and pull the handle toward your lower ribcage. Squeeze your shoulder blades together at the end position.
+
+### Hold Briefly
+Pause with your hands near your torso and elbows bent and in line with your body.
+
+### Return to Start
+Slowly extend your arms back to the starting position without rounding your back or using momentum. Control the weight throughout.

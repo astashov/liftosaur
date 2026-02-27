@@ -1,10 +1,11 @@
 ---
 video: "FxQ0XEoFYQk"
+description: "Build upper pectoral width with the Barbell Incline Bench Press Wide Grip, pressing with a grip wider than shoulder-width to maximize clavicular chest recruitment."
 ---
 
 ## Equipment Needed
-- Barbell 
-- Adjustable incline bench 
+- Barbell
+- Adjustable incline bench
 - Weight plates
 
 ## Setup
@@ -24,6 +25,20 @@ video: "FxQ0XEoFYQk"
 
 ## Safety
 - Use a spotter if lifting heavy.
-- Ensure weights are secured on the barbell. 
+- Ensure weights are secured on the barbell.
 
 Follow these steps for effective workout results while minimizing injury risk.
+
+<!-- howto -->
+
+### Set Up
+Set the bench to a 30-45 degree incline. Lie back with head, shoulders, and hips pressed into the bench. Grip the bar wider than shoulder-width.
+
+### Position the Bar
+Extend arms fully to position the bar above your chest. Keep wrists aligned with your elbows.
+
+### Lower to the Chest
+Inhale and lower the bar to your upper chest with elbows at about a 45-degree angle. Avoid bouncing the bar off your chest.
+
+### Press Up
+Exhale and push the bar back to full extension without locking the elbows. Keep the movement slow and controlled throughout.

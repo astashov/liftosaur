@@ -1,5 +1,6 @@
 ---
 video: "vtH93qBItdk"
+description: "Target the anterior deltoids with the Cable Front Raise by lifting a low-pulley handle to shoulder height with a straight arm and consistent cable tension throughout."
 ---
 
 ### Setup
@@ -25,3 +26,17 @@ video: "vtH93qBItdk"
 - Not maintaining a straight arm throughout the movement. 
 
 Following this form will help maximize the effectiveness of the Cable Front Raise while minimizing the risk of injury.
+
+<!-- howto -->
+
+### Set Up the Cable
+Attach a single handle to the lowest pulley position. Stand facing the cable machine with feet shoulder-width apart and grip the handle with an overhand grip.
+
+### Create Tension
+Step back slightly so the cable is taut with your arm hanging extended downward. Keep your torso upright and core engaged throughout.
+
+### Raise to Shoulder Height
+Keep your arm straight and raise the handle in front of you to shoulder level. Exhale as you lift and avoid leaning back or using momentum.
+
+### Lower Under Control
+Slowly return the handle to the starting position in a controlled manner. Inhale on the descent and keep your wrist neutral throughout the movement.

@@ -1,5 +1,6 @@
 ---
 video: "IhZLB48kluc"
+description: "Develop lateral deltoids and upper traps with the Dumbbell Upright Row, pulling dumbbells straight up toward your chin with elbows flared out."
 ---
 
 ### Starting Position
@@ -30,3 +31,17 @@ video: "IhZLB48kluc"
 - Raising the dumbbells too high or shrugging the shoulders.
 - Allowing the wrists to bend excessively.
 - Using too much weight, which can lead to improper form.
+
+<!-- howto -->
+
+### Set Starting Position
+Stand with feet shoulder-width apart holding a dumbbell in each hand with an overhand grip, weights hanging at arm's length in front of your thighs.
+
+### Pull Toward Chin
+Pull both dumbbells straight up toward your chin, keeping them close to your body. Lead with your elbows, which should rise above wrists.
+
+### Hold at the Top
+At the top of the movement, elbows should be at or slightly above shoulder height. Hold briefly with shoulders engaged.
+
+### Lower with Control
+Lower the dumbbells back to the starting position in a controlled manner, avoiding swinging and maintaining tension throughout.

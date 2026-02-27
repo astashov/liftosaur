@@ -1,5 +1,6 @@
 ---
 video: "W32gBdbEeoU"
+description: "Strengthen forearm extensors and improve grip with the Barbell Reverse Wrist Curl, flexing the wrists upward with an overhand grip."
 ---
 
 ## Starting Position
@@ -29,3 +30,17 @@ video: "W32gBdbEeoU"
 - Helps prevent forearm injuries. 
 
 Ensure to incorporate this exercise into a balanced routine for overall arm development.
+
+<!-- howto -->
+
+### Set Up Your Position
+Stand or sit on a bench with a barbell. Grip the barbell with an overhand grip (palms facing down) and rest your forearms on your thighs or a bench, allowing your wrists to hang off the edge.
+
+### Curl Upward
+Begin by curling the barbell upward using only your wrists, engaging your forearm extensor muscles. Keep your forearms stationary throughout.
+
+### Hold at the Top
+Raise the barbell to the highest comfortable point and briefly hold the contraction.
+
+### Lower with Control
+Slowly lower the barbell back to the starting position, maintaining control in both the lifting and lowering phases.

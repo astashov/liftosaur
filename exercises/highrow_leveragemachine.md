@@ -1,5 +1,6 @@
 ---
 video: "nhWPIm0tcTI"
+description: "Develop upper back thickness with the Leverage Machine High Row, pulling handles toward your upper chest while retracting shoulder blades for full lat engagement."
 ---
 
 ### Setup
@@ -25,3 +26,17 @@ video: "nhWPIm0tcTI"
 - **Breathing**: Inhale during the controlled return phase; exhale when pulling the handles.
 - **Focus on Muscle**: Concentrate on using your back muscles rather than your arms.
 - **Avoid Momentum**: Ensure all movements are smooth and controlled, avoiding any swinging motions.
+
+<!-- howto -->
+
+### Set Up the Machine
+Adjust the seat so your arms reach the handles comfortably. Select an appropriate weight and sit with your back against the pad.
+
+### Grip and Extend
+Grasp the handles with a neutral or overhand grip and extend your arms, keeping a slight elbow bend.
+
+### Pull and Squeeze
+Drive your elbows back and pull the handles toward your upper chest. Squeeze your shoulder blades together at the end of the movement.
+
+### Controlled Return
+Slowly extend your arms back to the starting position without letting the weight stack rest. Keep the motion smooth and focused on back muscles.

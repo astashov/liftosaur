@@ -1,5 +1,6 @@
 ---
 video: "R-8Sa0_qiws"
+description: "Isolate and strengthen the biceps with the Leverage Machine Bicep Curl, using machine support to eliminate momentum and ensure focused bicep contraction."
 ---
 
 ### Steps for Proper Form
@@ -14,7 +15,7 @@ video: "R-8Sa0_qiws"
 
 3. **Grip the Handles**:
    - Grab the handles with an underhand grip (palms facing up).
-   - Ensure your elbows are locked in position and aligned with the machine’s pivot point.
+   - Ensure your elbows are locked in position and aligned with the machine's pivot point.
 
 4. **Start the Curl**:
    - Begin with your arms fully extended. Exhale as you curl the handles toward your shoulders.
@@ -39,3 +40,17 @@ video: "R-8Sa0_qiws"
 - Using excessive body movement or swinging to perform the curl.
 
 By following these guidelines, you can effectively perform the Leverage Machine Bicep Curl with proper form, maximizing your bicep development while minimizing the risk of injury.
+
+<!-- howto -->
+
+### Adjust and Sit Down
+Set the seat so your upper arms rest comfortably on the machine's padded supports. Sit with your back flat against the backrest and feet planted on the floor.
+
+### Grip and Align Elbows
+Grab the handles with an underhand grip (palms up) and ensure your elbows are aligned with the machine's pivot point. This position eliminates momentum and isolates the biceps.
+
+### Curl to Full Contraction
+Exhale as you curl the handles toward your shoulders. Squeeze the biceps firmly at the top of the movement without leaning forward or backward.
+
+### Lower with Bicep Tension
+Slowly lower the handles back to the starting position while inhaling. Maintain tension in the biceps throughout the descent without letting the weight stack drop.

@@ -1,5 +1,6 @@
 ---
 video: "Gydpcouclx8"
+description: "Isolate your biceps with the Barbell Preacher Curl, resting upper arms on the preacher pad and curling the bar upward with strict, controlled movement."
 ---
 
 ## Setup
@@ -27,3 +28,17 @@ video: "Gydpcouclx8"
 
 ## Conclusion
 Maintain proper form to maximize effectiveness and minimize the risk of injury.
+
+<!-- howto -->
+
+### Set Up at the Preacher Bench
+Sit on the bench and adjust the height so your upper arms rest comfortably on the angled padding.
+
+### Grip the Barbell
+Grip the barbell with an underhand grip (palms facing up), slightly wider than shoulder-width apart.
+
+### Curl the Barbell
+Engage your biceps and curl the barbell upward until it reaches shoulder level. Keep your upper arms pressed firmly against the pad throughout.
+
+### Lower With Control
+Slowly lower the barbell back to the starting position with fully extended arms, maintaining control to avoid joint strain at the bottom.

@@ -1,5 +1,6 @@
 ---
 video: "G3yQITNPIz8"
+description: "Build hip stability with the Bodyweight Side Lying Clam, rotating the top knee upward while keeping feet together to activate the glutes and hip abductors."
 ---
 
 ### Starting Position
@@ -29,3 +30,17 @@ video: "G3yQITNPIz8"
 
 ### Conclusion
 Performing Bodyweight Side Lying Clams with proper form engages the hip muscles effectively and helps improve overall hip stability and strength.
+
+<!-- howto -->
+
+### Lie on Your Side
+Position your body on one side with legs stacked and knees bent at 90 degrees. Rest your head on your lower arm and keep your neck aligned with your spine.
+
+### Keep Feet Together
+Ensure your feet remain touching throughout the entire exercise. Engage your core to prevent your pelvis from rotating.
+
+### Open the Clam
+Without moving your pelvis, rotate your top knee upward as far as comfortable, like a clamshell opening. Squeeze your glutes at the top of the movement.
+
+### Lower with Control
+Slowly bring your knee back to the starting position in a controlled manner. Breathe out while lifting and in while lowering. Complete all reps, then switch sides.

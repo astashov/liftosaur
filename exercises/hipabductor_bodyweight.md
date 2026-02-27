@@ -1,5 +1,6 @@
 ---
 video: "HngwgIoABFg"
+description: "Target hip abductors and outer glutes with the Bodyweight Hip Abductor, raising the top leg while lying on your side to build lateral hip strength."
 ---
 
 ### Starting Position
@@ -18,3 +19,17 @@ video: "HngwgIoABFg"
 - **No swinging**: Avoid momentum; control the movement both up and down.
 - **Foot position**: Keep your foot in a neutral position (flexed or pointed).
 - **Maintain alignment**: Keep your hips stacked directly on top of each other throughout the movement.
+
+<!-- howto -->
+
+### Lie on Your Side
+Lie on a mat with your body in a straight line from head to feet. Use your bottom arm for head support and your top arm to stabilize your torso.
+
+### Engage and Lift
+Tighten your core and slowly raise your top leg toward the ceiling while keeping it straight. Use your hip muscles, not your lower back.
+
+### Pause at the Top
+Hold the raised position briefly to maximize muscle engagement.
+
+### Lower with Control
+Slowly lower your top leg back toward the starting position without letting it touch the bottom leg. Maintain hip stacking throughout.

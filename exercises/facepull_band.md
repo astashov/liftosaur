@@ -1,5 +1,6 @@
 ---
 video: "ljgqer1ZpXg"
+description: "Strengthen the rear deltoids, rhomboids, and trapezius with the Band Face Pull by pulling toward your face with high elbows from a chest-height anchor point."
 ---
 
 ### Equipment Needed
@@ -34,3 +35,17 @@ video: "ljgqer1ZpXg"
 - Allowing the wrists to bend. 
 
 This exercise helps improve shoulder stability and strengthen the upper back.
+
+<!-- howto -->
+
+### Anchor and Position
+Secure the resistance band at chest height. Stand facing the anchor point with feet shoulder-width apart, holding the band with both hands and palms facing down.
+
+### Establish Your Starting Position
+Extend your arms forward with the band taut. Keep a neutral spine and engage your core throughout the movement.
+
+### Pull Toward Your Face
+Pull the band toward your face by leading with your elbows, keeping them high and aligned with your shoulders. Squeeze your shoulder blades together at the end of the pull.
+
+### Return Under Control
+Extend your arms back to the starting position slowly, maintaining tension on the band. Avoid leaning back or bending your wrists during the movement.

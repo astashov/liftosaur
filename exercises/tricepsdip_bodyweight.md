@@ -1,5 +1,6 @@
 ---
 video: "9llvBAV4RHI"
+description: "Strengthen your triceps with the Bodyweight Triceps Dip, using a bench or parallel bars to press your bodyweight through elbow extension."
 ---
 
 ## Setup
@@ -28,3 +29,17 @@ video: "9llvBAV4RHI"
 ## Variations
 - For added difficulty, elevate your feet on another surface.
 - Use a resistance band for assistance if needed.
+
+<!-- howto -->
+
+### Set Up on the Bench
+Sit on the edge of a sturdy bench with hands beside your hips, fingers pointing forward. Feet flat on the ground, knees bent at 90 degrees.
+
+### Lower Your Body
+Slowly lower your body by bending your elbows until they reach a 90-degree angle, keeping elbows tucked close to your sides.
+
+### Press Back Up
+Press through your palms to raise your body back to the starting position, fully extending your arms without locking your elbows.
+
+### Maintain Alignment
+Keep your shoulders down and back straight throughout. Avoid letting your hips drift away from the bench during the movement.

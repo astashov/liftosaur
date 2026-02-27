@@ -1,5 +1,6 @@
 ---
 video: "vq5-vdgJc0I"
+description: "Develop single-leg quad and glute strength with the Leverage Machine Pistol Squat, using machine handles for stability while performing a one-legged squat."
 ---
 
 ## Setup
@@ -24,3 +25,17 @@ video: "vq5-vdgJc0I"
 ## Safety
 - Ensure the machine is stable and properly set up before starting.
 - If new to the exercise, consider seeking guidance from a fitness professional.
+
+<!-- howto -->
+
+### Adjust and Set Up
+Position the leverage machine foot plate at an appropriate height. Select a weight that suits your strength and experience level.
+
+### Stand on One Foot
+Step onto the foot plate with one foot, keeping the other leg lifted off the ground. Grip the machine's handles for stability.
+
+### Squat on One Leg
+Slowly bend the knee of the standing leg, lowering into a squat while keeping your extended leg in front of you. Descend until your thigh is parallel to the ground or as deep as flexibility allows.
+
+### Push Back to Start
+Drive through the heel of the standing foot to return to the starting position with control, engaging your glutes and quadriceps as you rise.

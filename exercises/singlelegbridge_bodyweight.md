@@ -1,5 +1,6 @@
 ---
 video: "b1zTCyGJXCQ"
+description: "Strengthen glutes and hamstrings with the Bodyweight Single Leg Bridge, driving one heel into the ground to lift the hips while the other leg stays extended."
 ---
 
 ### Starting Position
@@ -23,3 +24,17 @@ video: "b1zTCyGJXCQ"
 - Avoid arching your lower back; keep it neutral.
 - Ensure your knees remain aligned with your feet to prevent strain.
 - Breathe steadily throughout the movement.
+
+<!-- howto -->
+
+### Set Up on Your Back
+Lie on your back with one knee bent and foot flat on the floor. Extend the opposite leg straight out in line with your body.
+
+### Press and Lift
+Engage your core and press through the heel of the bent leg. Drive your hips upward until your body forms a straight line from shoulders to knee.
+
+### Hold the Bridge
+Pause at the top, focusing on engaging the glutes and hamstrings. Keep the extended leg aligned with your torso and prevent it from dropping.
+
+### Lower and Switch
+Slowly lower your hips back to the starting position with control. Complete all reps, then switch the working leg and repeat.

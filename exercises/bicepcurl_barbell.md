@@ -1,5 +1,6 @@
 ---
 video: "BUTCy6oV3wY"
+description: "Build bicep size and strength with the Barbell Bicep Curl, using a straight barbell to load both arms simultaneously for maximum bicep development."
 ---
 
 ## Starting Position
@@ -23,3 +24,17 @@ video: "BUTCy6oV3wY"
 ## Tips
 - **Breathing**: Exhale while lifting, inhale while lowering.
 - **Focus**: Concentrate on the biceps during the entire movement for maximum engagement.
+
+<!-- howto -->
+
+### Set Your Grip and Stance
+Stand with feet shoulder-width apart and hold the barbell with an underhand grip (palms up) at shoulder-width. Keep elbows close to your torso and spine neutral.
+
+### Curl the Bar Up
+Bend your elbows to curl the barbell toward your shoulders, keeping your upper arms stationary. Do not lean back or swing your body.
+
+### Squeeze at the Top
+Squeeze the biceps at the top of the movement. Keep your upper arms fixed and avoid letting elbows drift forward.
+
+### Lower with Control
+Slowly lower the barbell back to the starting position with elbows close to your torso. Exhale while lifting and inhale while lowering.

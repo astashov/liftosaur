@@ -1,5 +1,6 @@
 ---
 video: "HngwgIoABFg"
+description: "Strengthen hip abductors with the Barbell Side Hip Abductor, lifting the leg laterally against resistance to target the outer hip and glute muscles."
 ---
 
 ### Setup
@@ -28,3 +29,17 @@ video: "HngwgIoABFg"
 - Ensure the barbell is securely placed to prevent accidents. 
 
 By following this guide, you can effectively perform the Barbell Side Hip Abductor with proper form to strengthen your hip abductors.
+
+<!-- howto -->
+
+### Set Up
+Stand next to a squat rack or use a landmine setup. Position the barbell on one shoulder, with the working side of your body away from the barbell. Stand with feet shoulder-width apart and a slight bend in the supporting knee.
+
+### Engage Core
+Tighten your core to stabilize your torso and maintain a straight back throughout the movement. Avoid leaning excessively to either side.
+
+### Lift the Leg
+Slowly raise the leg opposite the barbell out to the side, keeping the movement controlled and the knee of the lifted leg slightly bent. Raise until you feel a contraction in the hip abductor.
+
+### Lower with Control
+Return the leg to the starting position without allowing the foot to touch the ground, maintaining continuous tension on the hip muscles. Inhale while lowering and exhale while lifting.

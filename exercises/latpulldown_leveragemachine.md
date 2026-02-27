@@ -1,5 +1,6 @@
 ---
 video: "SALxEARiMkw"
+description: "Strengthen lats and upper back with the Leverage Machine Lat Pulldown, pulling handles down toward your chest with shoulder blades squeezed together."
 ---
 
 ### Setup
@@ -17,3 +18,17 @@ video: "SALxEARiMkw"
 - Maintain a neutral and straight back during the movement.
 - Avoid using momentum; focus on controlled movements.
 - Breathe out as you pull the handles down and inhale while returning to the start.
+
+<!-- howto -->
+
+### Adjust the Machine and Grip
+Set the seat height so your knees are secured under the thigh pads. Grasp the handles with an overhand grip slightly wider than shoulder-width.
+
+### Sit Tall and Engage
+Sit upright with a straight back and shoulders relaxed. Extend your arms fully upward before starting.
+
+### Pull the Handles Down
+Engage your back muscles and pull the handles down toward your chest. Keep your elbows close to your body and squeeze your shoulder blades together.
+
+### Pause and Extend Back Up
+Hold the contraction briefly at the bottom, then slowly raise the handles back to the starting position with full arm extension.

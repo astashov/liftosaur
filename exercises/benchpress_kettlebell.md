@@ -1,5 +1,6 @@
 ---
 video: "R2LOc0ZTcLI"
+description: "Build chest and tricep strength with the Kettlebell Bench Press, using kettlebells on a flat bench to challenge stability and target the pectorals."
 ---
 
 ### Equipment Needed
@@ -29,3 +30,17 @@ video: "R2LOc0ZTcLI"
 
 ### Conclusion
 Perform the kettlebell bench press with focus on control and form to maximize effectiveness and minimize the risk of injury.
+
+<!-- howto -->
+
+### Lie Back and Position the Kettlebells
+Lie back on the bench with head, shoulders, and hips in contact. Hold a kettlebell in each hand at shoulder height with wrists straight and a neutral grip.
+
+### Press Both Kettlebells Upward
+Push both kettlebells up simultaneously, extending your arms straight above your chest. Keep elbows close to your sides and avoid locking the elbows at the top.
+
+### Hold at the Top
+At full extension, kettlebells should be directly above your shoulders. Pause briefly while maintaining core tension and a flat lower back against the bench.
+
+### Lower with Control
+Slowly lower both kettlebells back to shoulder height in unison. Inhale as you lower and keep the movement smooth and controlled throughout.

@@ -1,5 +1,6 @@
 ---
 video: "6i7adZVlwIk"
+description: "Strengthen lats and upper back with the Leverage Machine Pull-Up, using counterweight assistance to practice the pull-up motion with proper lat engagement."
 ---
 
 ## Setup
@@ -24,3 +25,17 @@ video: "6i7adZVlwIk"
 - Maintain a neutral spine throughout the movement.
 - Avoid leaning too far forward or backward.
 - Keep your movements controlled to minimize strain on your shoulders.
+
+<!-- howto -->
+
+### Adjust the Machine
+Set the leverage machine to your height and select an appropriate counterweight. The higher the counterweight, the more assistance you receive.
+
+### Sit and Grip
+Sit on the bench and grasp the pull-up handles with an overhand grip. Place your feet on the footrest and extend your arms fully.
+
+### Pull the Handles Down
+Engage your lats and pull the handles down toward your chest, bending your elbows to 90 degrees. Keep your shoulders down and back.
+
+### Return to Starting Position
+Lower the handles back up in a controlled manner until your arms are fully extended before beginning the next repetition.

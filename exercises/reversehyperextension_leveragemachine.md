@@ -1,5 +1,6 @@
 ---
 video: "AezVMtpMMmk"
+description: "Strengthen your glutes, hamstrings, and lower back with the Leverage Machine Reverse Hyperextension using controlled leg lifts."
 ---
 
 ### Setup
@@ -27,3 +28,17 @@ video: "AezVMtpMMmk"
 - Improves hip mobility and stability.
 
 Make sure to adjust the machine settings to fit your body proportions for optimal results.
+
+<!-- howto -->
+
+### Position on the Machine
+Sit on the reverse hyperextension machine with hips at the edge of the platform. Strap your feet into the footpads and ensure a firm grip.
+
+### Starting Position
+Keep your legs extended straight down toward the floor. Engage your core and squeeze your glutes to stabilize your torso.
+
+### Lift Legs Upward
+Raise your legs up toward the ceiling in a controlled motion, keeping your hips pressed against the pad. Hold the top position briefly to maximize glute engagement.
+
+### Lower Back Down
+Gradually lower your legs back to the starting position while maintaining control throughout. Exhale while lifting and inhale while lowering.

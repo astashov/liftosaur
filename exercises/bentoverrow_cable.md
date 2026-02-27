@@ -1,5 +1,6 @@
 ---
 video: "GxVenNOYuo0"
+description: "Strengthen the upper back and lats with the Cable Bent Over Row, using constant cable tension in a hinged position to target back muscles and biceps."
 ---
 
 **Starting Position:**
@@ -19,7 +20,7 @@ video: "GxVenNOYuo0"
 - Maintain a neutral spine throughout the movement.
 - Avoid rounding your back; keep your chest up.
 - Control both the pulling and lowering phases to ensure muscle engagement.
-- Keep your shoulders relaxed, focusing on using your back muscles. 
+- Keep your shoulders relaxed, focusing on using your back muscles.
 
 ### Common Mistakes:
 - Rounding the back.
@@ -27,3 +28,17 @@ video: "GxVenNOYuo0"
 - Flaring elbows out too wide.
 
 Focus on proper form to maximize effectiveness and reduce injury risk.
+
+<!-- howto -->
+
+### Set Up the Cable
+Set the cable pulley to the lowest position and attach a handle. Stand facing the machine, grip the handle with a neutral grip (palms facing each other), and hinge at the hips to about 45 degrees.
+
+### Brace and Position
+Keep your knees slightly bent, back straight, and core engaged. Maintain a neutral spine before pulling.
+
+### Pull to the Lower Ribs
+Drive the handle toward your lower ribcage with elbows close to your body. Squeeze your shoulder blades together at the peak of the movement.
+
+### Lower with Tension
+Slowly extend your arms back to the starting position while maintaining cable tension. Exhale as you pull and inhale as you lower.

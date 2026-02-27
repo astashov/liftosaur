@@ -1,5 +1,6 @@
 ---
 video: "Ofo2DQdT7DA"
+description: "Strengthen the anterior deltoids with the Barbell Front Raise by lifting the bar from your thighs to shoulder height with a controlled motion and engaged core."
 ---
 
 ### Starting Position
@@ -24,3 +25,17 @@ video: "Ofo2DQdT7DA"
 ### Safety Tips
 - Start with a lighter weight to master form before increasing weight.
 - If any discomfort occurs in the shoulders, stop the exercise.
+
+<!-- howto -->
+
+### Set Your Starting Position
+Stand with feet shoulder-width apart and a slight knee bend. Hold the barbell with both hands in an overhand grip, arms extended in front of your thighs.
+
+### Raise the Barbell
+Lift the barbell in front of you to shoulder height with arms straight and elbows slightly bent. Use a smooth, steady motion without swinging.
+
+### Pause at the Top
+Hold the position briefly at shoulder height. Keep your core tight and avoid leaning back or arching your spine excessively.
+
+### Lower with Control
+Slowly return the barbell to the starting position, maintaining control throughout the descent. Exhale while raising and inhale while lowering.

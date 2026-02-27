@@ -1,5 +1,6 @@
 ---
 video: "OLePvpxQEGk"
+description: "Target your anterior deltoids with the Dumbbell Parallel Grip Shoulder Press, pressing dumbbells overhead with palms facing each other for a neutral wrist position."
 ---
 
 ### Starting Position
@@ -31,3 +32,17 @@ video: "OLePvpxQEGk"
 - Use appropriate weights to avoid strain.
 - If standing, consider a stable surface if you feel unstable.
 - Stop if you experience any pain outside of normal muscle fatigue.
+
+<!-- howto -->
+
+### Set Starting Position
+Stand or sit on a bench with back support. Hold a dumbbell in each hand with palms facing each other (parallel grip). Raise the dumbbells to shoulder height with elbows bent at about 90 degrees.
+
+### Press Overhead
+Engage your core and extend your arms upward, pressing the dumbbells straight above your head until arms are fully extended. Keep wrists directly above or slightly behind elbows.
+
+### Lower with Control
+Bring the dumbbells back down to shoulder height in a controlled manner, maintaining elbow positioning and avoiding momentum.
+
+### Breathe and Align
+Inhale while lowering and exhale while pressing. Keep your head neutral and avoid overarching your back at any point.

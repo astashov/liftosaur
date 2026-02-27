@@ -1,5 +1,6 @@
 ---
 video: "5BpuTmfQjro"
+description: "Build total-body strength with the Trap Bar Deadlift, using the hexagonal bar's neutral handles to target the erector spinae, glutes, and quads."
 ---
 
 ## Equipment Needed
@@ -28,3 +29,17 @@ video: "5BpuTmfQjro"
 - Lifting too much weight without proper form.
 
 Remember to focus on your breathing throughout the lift, exhaling during the upward phase and inhaling as you lower the weight.
+
+<!-- howto -->
+
+### Set Up in the Bar
+Stand in the center of the trap bar with feet hip-width apart. Bend at hips and knees to grip the neutral handles with shins close to the bar.
+
+### Brace and Retract
+Maintain a neutral spine, brace your core, and pull your shoulders back and down before initiating the lift.
+
+### Push Through the Floor
+Drive through your heels and extend hips and knees simultaneously, bringing your torso up while keeping the bar close to your body.
+
+### Lower with Control
+Reverse the movement by hinging at the hips first, then bending your knees to guide the bar back to the starting position.

@@ -1,5 +1,6 @@
 ---
 video: "b1zTCyGJXCQ"
+description: "Develop glute strength with the Bodyweight Single Leg Glute Bridge Straight, driving the hips up on one leg while keeping the opposite leg fully extended."
 ---
 
 ### Starting Position:
@@ -18,3 +19,17 @@ video: "b1zTCyGJXCQ"
 - Avoid arching your back; maintain a neutral spine.
 - Focus on using your glutes to lift, not your lower back or hamstrings.
 - Alternate legs after completing the desired number of repetitions.
+
+<!-- howto -->
+
+### Start Position
+Lie on your back with one knee bent and foot flat on the floor. Extend the other leg straight up toward the ceiling.
+
+### Engage and Lift
+Tighten your abdominal muscles and push through the heel of the bent leg to raise your hips off the ground. Ensure your body forms a straight line from shoulders to the extended leg.
+
+### Squeeze the Glutes
+Hold the top position briefly while squeezing the glutes. Keep your shoulders flat on the floor and avoid arching the lower back.
+
+### Lower Slowly and Switch
+Return your hips to the floor in a controlled manner. Alternate legs after completing the target reps to ensure balanced development.

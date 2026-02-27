@@ -1,5 +1,6 @@
 ---
 video: "ogG1YHKPeL4"
+description: "Strengthen the quadriceps with the Bodyweight Sissy Squat, lowering the body by bending the knees forward on raised heels to deeply isolate the quads."
 ---
 
 ### Setup
@@ -25,3 +26,17 @@ video: "ogG1YHKPeL4"
 
 ### Benefits
 - Strengthens quads, improves balance, and enhances ankle flexibility.
+
+<!-- howto -->
+
+### Set Your Starting Position
+Stand upright with feet shoulder-width apart and core engaged. Use a wall or support for balance if needed while learning the movement.
+
+### Rise onto Your Toes
+Lift your heels off the ground so you are balancing on the balls of your feet. Keep them raised throughout the entire exercise.
+
+### Bend the Knees Forward
+Bend your knees and allow them to travel forward over your toes while keeping your torso upright. Lower your body until your thighs are parallel to the ground or as low as possible.
+
+### Return to Standing
+Push through the balls of your feet to rise back to the starting position, maintaining the heel raise and keeping your body aligned throughout the movement.

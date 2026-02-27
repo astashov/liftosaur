@@ -1,5 +1,6 @@
 ---
 video: "mZhjyWGfnkY"
+description: "Strengthen your anterior deltoids and triceps with the Band Shoulder Press, pressing a resistance band overhead from shoulder height."
 ---
 
 ## Setup
@@ -28,3 +29,17 @@ video: "mZhjyWGfnkY"
 - Start with a lighter resistance and increase as you master the form. 
 
 By following this guide, you can perform the Band Shoulder Press effectively and safely.
+
+<!-- howto -->
+
+### Set Up the Band
+Stand on the center of the band with feet shoulder-width apart. Hold both ends of the band with palms facing forward and elbows bent at 90 degrees at shoulder level.
+
+### Press Overhead
+Extend your arms upward, straightening your elbows while maintaining a neutral wrist position. Reach overhead without locking your elbows at the top.
+
+### Lower with Control
+Slowly lower your arms back to the 90-degree starting position, maintaining control against the band resistance.
+
+### Maintain Form
+Keep your core tight, back straight, and avoid arching or letting your elbows flare out throughout each repetition.

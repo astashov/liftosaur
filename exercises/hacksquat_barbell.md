@@ -1,5 +1,6 @@
 ---
 video: "EdtaJRBqwes"
+description: "Build quad strength with the Barbell Hack Squat, gripping the bar behind your heels and rising upright to emphasize the lower body through a unique angle."
 ---
 
 ## Starting Position
@@ -26,6 +27,20 @@ video: "EdtaJRBqwes"
 ## Common Mistakes
 - Allowing the knees to collapse inward.
 - Rounding the back during the lift.
-- Using excessive weight leading to poor form. 
+- Using excessive weight leading to poor form.
 
 By following these steps, you'll perform the Barbell Hack Squat effectively and safely.
+
+<!-- howto -->
+
+### Set Up
+Place a barbell on the ground behind your heels. Stand with feet shoulder-width apart, toes slightly out, and grip the bar with an overhand grip.
+
+### Stand Up
+Extend your hips and knees simultaneously to rise, keeping the bar close to your legs and your chest up. Fully extend at the top.
+
+### Descend
+Push hips back and bend your knees to lower the bar back down, keeping contact with your legs and knees tracking over your toes.
+
+### Control the Range
+Lower until your thighs are at least parallel to the ground. Keep your spine neutral and core engaged throughout.

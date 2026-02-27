@@ -1,5 +1,6 @@
 ---
 video: "ckvHymGK3s0"
+description: "Learn proper squat mechanics with the Bodyweight Squat, building quad, glute, and hamstring strength through full range of motion without external load."
 ---
 
 ### Starting Position
@@ -26,3 +27,17 @@ video: "ckvHymGK3s0"
 - Rounding the back or leaning too far forward. 
 
 By following these guidelines, you can perform bodyweight squats effectively and safely.
+
+<!-- howto -->
+
+### Set Your Stance
+Stand with feet shoulder-width apart and toes slightly pointed outward. Keep your chest up and engage your core before beginning.
+
+### Initiate the Descent
+Bend at the hips and knees simultaneously as if sitting back into a chair. Keep your chest up and back straight throughout the movement.
+
+### Reach Depth
+Lower until your thighs are at least parallel to the ground, or lower if comfortable. Ensure your knees track over your toes and do not cave inward.
+
+### Press Back to Standing
+Drive through your heels to return to the starting position, straightening your legs fully. Inhale while lowering and exhale while rising.

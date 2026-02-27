@@ -1,5 +1,6 @@
 ---
 video: "ahaJTts1f3s"
+description: "Build quads, hamstrings, and glutes with the Leverage Machine Leg Press, pushing a weighted platform away from your body while seated at a 45-degree angle."
 ---
 
 ## Setup
@@ -22,3 +23,17 @@ video: "ahaJTts1f3s"
 - **Watch Your Back**: Keep your back pressed against the pad to prevent strain. 
 
 By following these steps, you can effectively and safely perform the leverage machine leg press.
+
+<!-- howto -->
+
+### Adjust the Seat and Position Your Feet
+Sit on the machine with your back against the pad. Place your feet shoulder-width apart on the platform, heels flat and toes slightly pointed out.
+
+### Set Starting Position
+Begin with your knees at a 90-degree angle. Engage your core and maintain a neutral back against the pad.
+
+### Press the Platform Away
+Push through your heels to extend your legs and drive the platform away from you. Stop just before your knees lock out.
+
+### Return to Start
+Slowly lower the platform back toward your body, controlling the descent until you return to the 90-degree starting angle.

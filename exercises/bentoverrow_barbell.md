@@ -1,5 +1,6 @@
 ---
 video: "qXrTDQG1oUQ"
+description: "Build a thick upper back with the Barbell Bent Over Row, targeting the lats, rhomboids, and biceps through a heavy horizontal pulling movement."
 ---
 
 ### Setup
@@ -25,6 +26,20 @@ video: "qXrTDQG1oUQ"
 ### Common Mistakes
 - Rounding your back.
 - Overextending your neck.
-- Using momentum instead of controlled motion. 
+- Using momentum instead of controlled motion.
 
 Maintain proper form throughout the exercise for effectiveness and to prevent injury.
+
+<!-- howto -->
+
+### Hinge and Grip
+Stand with feet shoulder-width apart and hinge at the hips until your torso is at about 45 degrees to the ground. Grip the barbell slightly wider than shoulder-width with an overhand grip and slightly bent knees.
+
+### Brace the Core
+Engage your core muscles and keep your back flat before pulling. Maintain a neutral head position looking slightly down.
+
+### Pull to the Lower Ribs
+Drive the barbell toward your lower ribcage with elbows close to your body. Squeeze your shoulder blades together at the top of the movement.
+
+### Lower with Control
+Slowly lower the barbell back to the starting position. Avoid letting your hips rise or using momentum to complete the lift.

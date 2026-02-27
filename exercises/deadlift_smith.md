@@ -1,5 +1,6 @@
 ---
 video: "ONRRAgNLVac"
+description: "Build glute and hamstring strength with the Smith Machine Deadlift by driving through your heels from a hip-hinge starting position with a neutral spine throughout."
 ---
 
 ## Setup
@@ -27,3 +28,17 @@ video: "ONRRAgNLVac"
 - **Focus**: Keep your core engaged throughout the lift for stability.
 
 By following these steps, you can perform the Smith Machine Deadlift with proper form for effective training.
+
+<!-- howto -->
+
+### Set Up the Bar and Position
+Set the Smith machine bar at mid-shin level. Stand with feet hip-width apart, toes slightly out, and the bar over your mid-foot. Grip with both hands just outside your knees.
+
+### Establish Your Starting Position
+Bend at knees and hips with your back straight and chest up. Pull your shoulders back and engage your lats before lifting.
+
+### Drive Through Your Heels
+Extend your hips and knees simultaneously, keeping the bar close to your body. Stand fully upright with shoulders back at the top of the lift.
+
+### Lower in a Controlled Manner
+Push your hips back first, then bend your knees to lower the bar back to the starting position. Inhale while lowering and exhale while lifting.

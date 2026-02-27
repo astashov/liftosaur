@@ -1,5 +1,6 @@
 ---
 video: "fBTGwHChaf4"
+description: "Build anterior deltoids and triceps with the Cable Shoulder Press, pressing handles overhead from a standing position between dual low pulleys."
 ---
 
 ### Setup
@@ -26,3 +27,17 @@ video: "fBTGwHChaf4"
 - Exhale while pressing up and inhale while lowering the weights.
 
 Ensure to maintain proper form to avoid injury and maximize effectiveness.
+
+<!-- howto -->
+
+### Set Up the Machine
+Set both pulleys to the lowest position and select appropriate weight. Stand in the center of the machine facing away, grabbing one handle in each hand with an overhand grip. Elbows bent at 90 degrees and aligned with shoulders.
+
+### Starting Position
+Stand with feet shoulder-width apart for stability. Wrists should be straight and in a neutral position with elbows at shoulder level.
+
+### Press Overhead
+Push the handles upward until your arms are fully extended without locking your elbows. Keep your core tight and avoid leaning back.
+
+### Lower with Control
+Slowly lower the handles back to the starting 90-degree position, exhaling on the press and inhaling on the descent.

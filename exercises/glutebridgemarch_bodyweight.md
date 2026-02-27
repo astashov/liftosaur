@@ -1,5 +1,6 @@
 ---
 video: "c_4Y0I8vgzY"
+description: "Develop glute stability and core control with the Bodyweight Glute Bridge March, alternating leg lifts from a bridged position to challenge balance."
 ---
 
 ### Starting Position:
@@ -27,3 +28,17 @@ video: "c_4Y0I8vgzY"
 - Overarching the lower back; maintain a neutral spine.
 
 By following these guidelines, you can perform the Bodyweight Glute Bridge March effectively and safely.
+
+<!-- howto -->
+
+### Set Up the Bridge
+Lie on your back with knees bent and feet flat on the ground, hip-width apart. Press through your heels to lift your hips into a bridge position and engage your glutes.
+
+### Stabilize Your Hips
+Brace your core and squeeze your glutes to keep your hips level and elevated. Your body should form a straight line from shoulders to knees.
+
+### March Each Leg
+Lift one knee toward your chest without letting your hips drop, then return it to the ground. Alternate legs in a slow, controlled manner.
+
+### Maintain Position
+Keep your shoulders pressed into the ground and avoid arching your lower back throughout the movement.

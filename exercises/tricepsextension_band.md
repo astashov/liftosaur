@@ -1,5 +1,6 @@
 ---
 video: "T54OMtBUqQI"
+description: "Strengthen the triceps with the Band Triceps Extension, anchoring a resistance band overhead and extending the arms to work the long head."
 ---
 
 ### Setup
@@ -26,3 +27,17 @@ video: "T54OMtBUqQI"
 - Overextending beyond the point of tension in the band.
 
 By following these guidelines, you can effectively perform the Band Triceps Extension while minimizing the risk of injury.
+
+<!-- howto -->
+
+### Anchor and Position
+Secure the resistance band to a stable overhead point. Stand with your back to the anchor, holding the band with both hands and elbows bent at 90 degrees close to your head.
+
+### Extend Your Arms
+Push against the band by straightening your elbows, keeping your upper arms stationary and close to your head throughout the movement.
+
+### Control the Return
+Slowly return to the starting position by allowing your elbows to bend back to 90 degrees while maintaining band tension.
+
+### Maintain Posture
+Keep your core engaged and back straight throughout. Avoid arching your lower back or letting your elbows flare outward.

@@ -1,5 +1,6 @@
 ---
 video: "5BpuTmfQjro"
+description: "Build posterior chain strength with the Trap Bar Deficit Deadlift by lifting from a raised platform inside the bar for an extended range of motion and hip drive."
 ---
 
 ### Setup
@@ -25,3 +26,17 @@ video: "5BpuTmfQjro"
 - Keep your head neutral; avoid looking up or down excessively.
 - Ensure even weight distribution on your feet.
 - Focus on smooth and controlled movements throughout the lift.
+
+<!-- howto -->
+
+### Set Up the Elevated Position
+Place the trap bar on weight plates or a raised platform. Stand inside the bar with feet hip-width apart and grip both handles with arms straight.
+
+### Establish Your Starting Position
+Keep hips lower than shoulders but higher than knees. Lift your chest and maintain a straight back with your core braced and lats engaged.
+
+### Drive Through Your Heels
+Push through your heels to lift the bar, extending hips and knees simultaneously. Keep the trap bar close and stand fully upright at the top.
+
+### Lower with Control
+Hinge at the hips first, then bend your knees to lower the bar back to the starting position. Maintain a straight back and even weight distribution throughout the descent.

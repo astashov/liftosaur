@@ -1,5 +1,6 @@
 ---
 video: "LI3b05LUdpA"
+description: "Develop upper trapezius strength with the Smith Machine Shrug, using the fixed bar path to safely load heavy weight and maximize trap contraction."
 ---
 
 ## Setup
@@ -27,3 +28,17 @@ video: "LI3b05LUdpA"
 - **Hyperextending Neck:** Keep your neck neutral to avoid strain. 
 
 Ensure safety by using a spotter if needed.
+
+<!-- howto -->
+
+### Position Under the Bar
+Set the Smith machine bar to mid-thigh height. Stand under the bar and grip it with an overhand grip slightly wider than shoulder-width, then unrack it by standing tall.
+
+### Set Your Stance
+Step feet shoulder-width apart for stability. Engage your core and keep a neutral spine before beginning the movement.
+
+### Perform the Shrug
+Raise your shoulders straight up toward your ears by contracting the trapezius. Keep your arms straight and avoid bending the elbows or rolling the shoulders.
+
+### Hold and Descend
+Pause briefly at the peak contraction, then gradually lower your shoulders back to the starting position. Exhale on the way up and inhale on the way down.

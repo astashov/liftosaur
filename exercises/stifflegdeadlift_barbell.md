@@ -1,5 +1,6 @@
 ---
 video: "1uDiW5--rAE"
+description: "Strengthen the hamstrings and erector spinae with the Barbell Stiff Leg Deadlift, hinging at the hips with legs nearly straight throughout."
 ---
 
 **Setup:**
@@ -23,3 +24,17 @@ video: "1uDiW5--rAE"
 - Do not round your back; maintain a neutral spine throughout.
 - Focus on hinging at the hips rather than bending at the waist.
 - Keep your feet flat on the ground throughout the movement.
+
+<!-- howto -->
+
+### Set Up and Grip
+Stand with feet hip-width apart and the barbell on the floor. Bend at the hips and grip the bar shoulder-width apart with legs nearly straight.
+
+### Hinge and Lower
+Keep your back flat and core engaged. Lower the barbell by hinging at the hips, keeping the bar close to your body throughout the descent.
+
+### Feel the Stretch
+Lower until you feel a strong stretch in the hamstrings, typically just below the knees, while maintaining a neutral spine.
+
+### Drive Hips Forward
+Engage your hamstrings and glutes to drive your hips forward, lifting the barbell back up until you are standing upright.

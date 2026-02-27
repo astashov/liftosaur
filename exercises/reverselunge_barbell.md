@@ -1,5 +1,6 @@
 ---
 video: "U5Q5HfUyy78"
+description: "Build quadriceps, glutes, and hamstrings with the Barbell Reverse Lunge, stepping backward into a controlled lunge under load."
 ---
 
 ### Setup
@@ -30,3 +31,17 @@ video: "U5Q5HfUyy78"
 - **Turning Feet Out**: Keep your toes pointing forward to protect your knees.
 
 By following these guidelines, you can perform the Barbell Reverse Lunge effectively and safely.
+
+<!-- howto -->
+
+### Set Up the Bar
+Place a barbell across your upper back as in a back squat. Stand with feet shoulder-width apart and engage your core.
+
+### Step Back
+Take a controlled step backward with one foot, keeping your torso upright and front knee directly above your ankle.
+
+### Lower Into the Lunge
+Bend both knees to lower your body until the back knee hovers just above the ground. Keep your front heel planted and back straight.
+
+### Drive Back Up
+Press through the heel of your front foot to return to standing. Bring your back leg forward and alternate sides each rep.

@@ -1,5 +1,6 @@
 ---
 video: "BZfOV7_HpFQ"
+description: "Strengthen glutes with the Bodyweight Single Leg Glute Bridge Bent Knee, pressing through one heel to lift the hips while the opposite knee is held bent."
 ---
 
 ## Starting Position
@@ -29,3 +30,17 @@ video: "BZfOV7_HpFQ"
 - Not fully engaging the glutes during the lift.
 
 By maintaining proper form, you can effectively engage your glutes and improve strength in this exercise.
+
+<!-- howto -->
+
+### Start on Your Back
+Lie on a mat with both knees bent and feet flat on the floor hip-width apart. Lift one leg off the ground, holding the knee at a 90-degree bent-knee position.
+
+### Press and Lift
+Engage your core and push through the heel of the planted foot to lift your hips off the ground. Drive upward until your body forms a straight line from shoulders to the knee of the raised leg.
+
+### Squeeze at the Top
+Hold the top position briefly, squeezing your glutes and keeping your abdominals tight. Ensure the raised knee remains aligned without drifting outward.
+
+### Lower and Alternate
+Slowly lower your hips back to the ground while maintaining control. Alternate legs after completing all reps on one side.

@@ -1,5 +1,6 @@
 ---
 video: "q-mZQep-LMI"
+description: "Build tricep strength with the Cable Skullcrusher, bending at the elbows to lower a bar toward the forehead under constant cable tension for full muscle engagement."
 ---
 
 ### Setup
@@ -31,3 +32,17 @@ video: "q-mZQep-LMI"
 
 ### Conclusion
 Perform the Cable Skullcrusher with attention to form to effectively target the triceps while minimizing the risk of injury.
+
+<!-- howto -->
+
+### Attach and Position
+Attach a straight bar or EZ-bar to the high pulley of a cable machine. Stand or sit facing away from the machine and grasp the bar with an overhand shoulder-width grip. Step back to create cable tension.
+
+### Set Your Starting Position
+Extend your arms fully with elbows close to your head and perpendicular to the floor. Keep your upper arms stationary throughout the movement.
+
+### Lower the Bar
+Bend your elbows to lower the bar toward your forehead, keeping your upper arms close to your head. Lower until your forearms are parallel to the floor or slightly above it.
+
+### Extend and Return
+Straighten your arms back to the starting position while maintaining tension in the triceps. Avoid locking out your elbows to keep continuous muscular engagement.

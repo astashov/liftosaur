@@ -1,5 +1,6 @@
 ---
 video: "fgXSA2-o0NM"
+description: "Develop the pectoral muscles with the Leverage Machine Chest Fly by drawing the handles together in a slow arc while keeping elbows slightly bent."
 ---
 
 ### Setup
@@ -26,3 +27,17 @@ video: "fgXSA2-o0NM"
 ### Common Mistakes
 - **Rushing the Movement:** Prioritize control over speed.
 - **Using Too Much Weight:** Choose a weight that allows you to maintain proper form and avoid straining.
+
+<!-- howto -->
+
+### Adjust and Sit
+Set the seat height so your arms are at chest level when gripping the handles. Sit back firmly against the padded backrest with feet flat on the floor.
+
+### Grip the Handles
+Grasp the handles with a neutral grip, keeping elbows slightly bent. Begin with your arms extended out to the sides, maintaining tension in your chest.
+
+### Bring the Handles Together
+Slowly arc the handles together in a controlled motion, focusing on squeezing your chest muscles. Stop just before the handles touch to keep tension on the pectorals.
+
+### Return to the Start
+Gradually reverse the motion back to the starting position, feeling a stretch across the chest as your arms open. Exhale on the way in and inhale on the return.

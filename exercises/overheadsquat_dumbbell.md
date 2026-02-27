@@ -1,5 +1,6 @@
 ---
 video: "pZXM-1x_NW0"
+description: "Develop mobility and core stability with the Dumbbell Overhead Squat, holding a dumbbell overhead while squatting below parallel with an upright torso."
 ---
 
 ## Setup
@@ -25,3 +26,17 @@ video: "pZXM-1x_NW0"
 - Moving the dumbbell too far forward or backward. 
 
 Focus on maintaining control and stability during the entire movement.
+
+<!-- howto -->
+
+### Get Into Position
+Stand with feet shoulder-width apart. Grip one dumbbell with both hands and extend your arms overhead, palms facing each other.
+
+### Engage Your Core
+Tighten your abdominal muscles and keep the dumbbell steady overhead before initiating the squat.
+
+### Squat Down
+Hinge at the hips and bend your knees, lowering as if sitting back onto a chair. Keep your chest upright and the dumbbell directly overhead with straight arms.
+
+### Rise Back Up
+Drive through your heels to return to standing, keeping your knees aligned with your toes and the dumbbell stable overhead throughout.

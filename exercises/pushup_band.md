@@ -1,5 +1,6 @@
 ---
 video: "IODxDxX7oi4"
+description: "Perform the Band Push-Up with a resistance band looped across your back to add assistance, targeting chest, shoulders, and triceps."
 ---
 
 ### Equipment Needed
@@ -43,3 +44,17 @@ video: "IODxDxX7oi4"
 - Perform on your knees for an easier variation. 
 
 By following these guidelines, you can effectively perform band push-ups with proper form, targeting your chest, shoulders, and triceps.
+
+<!-- howto -->
+
+### Set Up the Band
+Loop a resistance band around your upper back, crossing it under your armpits, and secure both ends under your hands on the ground.
+
+### Get Into Plank Position
+Place your hands slightly wider than shoulder-width apart with your body forming a straight line from head to heels. Engage your core.
+
+### Lower Your Body
+Bend your elbows to lower your chest toward the ground, keeping elbows at a 45-degree angle to your torso.
+
+### Press Back Up
+Push through your palms and extend your elbows to raise your body back to the starting position. The band provides upward assistance.

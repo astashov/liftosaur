@@ -1,5 +1,6 @@
 ---
 video: "smyXy_dhXo8"
+description: "Develop the soleus with the Leverage Machine Seated Calf Raise, performing weighted ankle extensions through a full range of motion."
 ---
 
 ## Setup
@@ -34,3 +35,17 @@ video: "smyXy_dhXo8"
 - Focus on a smooth and controlled motion, both upward and downward.
 
 By following these guidelines, you can perform the leverage machine seated calf raise effectively while minimizing the risk of injury.
+
+<!-- howto -->
+
+### Adjust the Machine
+Set the foot platform so your knees are at a comfortable angle and adjust the backrest for proper support. Sit with your back against the pad and the balls of your feet at the edge of the platform, heels hanging off.
+
+### Starting Position
+Press the weight down using the balls of your feet while lifting your heels as high as possible to clear the safety locks.
+
+### Lower Your Heels
+Slowly lower your heels toward the ground in a controlled manner until you feel a full stretch in your calves. Do not let your heels touch the ground.
+
+### Raise to Peak Contraction
+Lift your heels up as high as possible, squeezing your calves at the top. Repeat for the desired number of reps using smooth, controlled motion.

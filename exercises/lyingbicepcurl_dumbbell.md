@@ -1,5 +1,6 @@
 ---
 video: "okwUqL1kbEA"
+description: "Strengthen your biceps with the Dumbbell Lying Bicep Curl, lying flat on a bench and curling dumbbells toward your shoulders with stationary upper arms."
 ---
 
 ### Instructions:
@@ -38,3 +39,17 @@ video: "okwUqL1kbEA"
 - Allowing elbows to flare out to the sides. 
 
 By following these guidelines, you can perform the Dumbbell Lying Bicep Curl effectively and safely.
+
+<!-- howto -->
+
+### Lie on the Bench
+Lie flat on a bench, face up, holding a dumbbell in each hand with arms fully extended and palms facing upward. Press your back into the bench.
+
+### Curl the Dumbbells
+Bend your elbows to lift the dumbbells toward your shoulders, using your biceps to control the movement. Keep your upper arms stationary throughout.
+
+### Squeeze at the Top
+At the peak position, squeeze your biceps for a brief moment.
+
+### Lower With Control
+Gently lower the dumbbells back to the fully extended starting position, keeping the motion slow and controlled to avoid momentum.

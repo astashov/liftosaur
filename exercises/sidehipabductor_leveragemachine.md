@@ -1,5 +1,6 @@
 ---
 video: "HngwgIoABFg"
+description: "Develop hip abductor strength with the Leverage Machine Side Hip Abductor, pushing padded levers outward to isolate the outer thigh and glute muscles."
 ---
 
 ## Setup
@@ -23,3 +24,17 @@ video: "HngwgIoABFg"
 - **Rushing the Movement:** Focus on control rather than speed to maximize effectiveness.
 
 With practice, this will help strengthen your hip abductors and improve lower body stability.
+
+<!-- howto -->
+
+### Adjust and Sit
+Set the seat height so your knees align with the machine's pivot point when seated. Sit with your back against the backrest and place your outer thighs against the padded levers, feet on the footrests.
+
+### Engage Your Core
+Tighten your core to support your lower back throughout the movement. Keep your knees slightly bent at the starting position with legs together.
+
+### Push Outward
+Drive the levers apart by spreading your legs, focusing on activating the hip abductors. Control the range of motion to effectively isolate the target muscles.
+
+### Return with Control
+Slowly bring your legs back together to the starting position. Exhale as you push out and inhale as you return, avoiding rushing or using momentum.

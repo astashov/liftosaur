@@ -1,5 +1,6 @@
 ---
 video: "DqWrOnzZ5No"
+description: "Develop lower body strength with the Dumbbell Box Squat, using dumbbells and a box to build glutes, quads, and hamstrings with controlled squat depth."
 ---
 
 **Setup:**
@@ -21,3 +22,17 @@ video: "DqWrOnzZ5No"
 **Breathing:**
 - Inhale as you lower into the squat.
 - Exhale as you stand back up.
+
+<!-- howto -->
+
+### Set Up with Dumbbells
+Stand in front of the box holding a dumbbell in each hand at your sides or at shoulder level. Feet should be shoulder-width apart.
+
+### Initiate the Descent
+Brace your core, hinge at the hips, and push your glutes back while bending your knees. Keep your chest up and back straight as you lower toward the box.
+
+### Touch the Box
+Lightly touch the box with your glutes without fully resting or bouncing. Keep your knees aligned with your toes and pause briefly.
+
+### Drive Back to Standing
+Push through your heels and extend your hips and knees simultaneously to return to standing. Exhale as you rise and maintain a neutral spine throughout.

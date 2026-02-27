@@ -1,5 +1,6 @@
 ---
 video: "3UWi44yN-wM"
+description: "Strengthen the gastrocnemius and soleus with the Barbell Standing Calf Raise, rising onto the balls of the feet under barbell load for calf hypertrophy and ankle strength."
 ---
 
 ### Setup
@@ -26,3 +27,17 @@ video: "3UWi44yN-wM"
 
 ### Conclusion
 Maintain proper form throughout the exercise to effectively target the calf muscles and reduce the risk of injury.
+
+<!-- howto -->
+
+### Set Up with the Barbell
+Stand with a barbell resting on your upper back and feet shoulder-width apart. Use a raised surface or weight plate under the balls of your feet for a greater range of motion if desired.
+
+### Lift onto the Toes
+Rise onto the balls of your feet by pushing through them, keeping your core engaged and body straight. Avoid leaning forward or backward during the ascent.
+
+### Pause at the Peak
+Hold the top position briefly for maximum contraction of the calf muscles before beginning the descent.
+
+### Lower with Control
+Slowly lower your heels back to the starting position, allowing them to drop below the level of the step if possible to fully stretch the calves. Breathe out as you lift and inhale as you lower.

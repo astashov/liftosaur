@@ -1,5 +1,6 @@
 ---
 video: "PAJihvGg7hU"
+description: "Build lower back and glute strength with the Dumbbell Superman, adding dumbbell resistance to the prone back extension movement."
 ---
 
 ### Starting Position
@@ -20,3 +21,17 @@ video: "PAJihvGg7hU"
 
 ### Breathing
 - Inhale as you prepare, exhale while lifting, and inhale again as you lower.
+
+<!-- howto -->
+
+### Assume Prone Position
+Lie face down on a mat with arms extended in front holding a dumbbell in each hand, legs straight and together.
+
+### Engage Core and Lift
+Tighten your abdominals to stabilize your spine, then raise your arms, chest, and head off the ground by lifting through the shoulders.
+
+### Lift Legs Simultaneously
+At the same time, lift your legs off the ground while keeping them straight, forming a long line from fingertips to toes.
+
+### Lower with Control
+Slowly lower your arms and legs back to the starting position, maintaining tension in your back and glutes throughout.

@@ -1,5 +1,6 @@
 ---
 video: "G-jT0m0nvx8"
+description: "Build chest, shoulder, and tricep strength with the Smith Machine Bench Press, using machine-guided stability for a safer flat bench pressing motion."
 ---
 
 ### Setup
@@ -22,3 +23,17 @@ video: "G-jT0m0nvx8"
 - Always check that the Smith machine is set up correctly.
 - Never bounce the bar off your chest.
 - Start with lighter weights until you master the form.
+
+<!-- howto -->
+
+### Lie Under the Bar
+Position yourself on the bench so your eyes are directly under the bar. Plant your feet on the ground and grip the bar slightly wider than shoulder-width with an overhand grip.
+
+### Unrack and Lower
+Lift the bar off the hooks by pressing straight up. Inhale and slowly lower the bar to your chest with elbows at about 45 degrees to your body.
+
+### Press Back Up
+Exhale and push the bar back to the starting position with arms fully extended. Keep your back flat against the bench and shoulders retracted throughout.
+
+### Re-rack the Bar
+Lock the bar back into the hooks when finished. Never bounce the bar off your chest or use momentum during the movement.

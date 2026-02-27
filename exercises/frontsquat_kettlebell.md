@@ -1,5 +1,6 @@
 ---
 video: "-TeEMXoHQPM"
+description: "Build quadriceps and core strength with the Kettlebell Front Squat by holding the kettlebell against your chest and squatting with a neutral spine and elbows in."
 ---
 
 ### Setup
@@ -30,3 +31,17 @@ video: "-TeEMXoHQPM"
 ### Safety
 - Use a weight that allows you to maintain proper form.
 - Ensure a clear space around you to prevent injury.
+
+<!-- howto -->
+
+### Hold the Kettlebell at Your Chest
+Grip the kettlebell with both hands, palms facing you, resting it against your chest. Stand with feet shoulder-width apart and toes slightly pointed outward.
+
+### Engage and Stabilize
+Tighten your core to stabilize your torso. Keep your elbows close to your body and chest up throughout the entire movement.
+
+### Squat Down
+Push your hips back and bend your knees to lower your body, maintaining a neutral spine and ensuring knees track over your toes. Go as low as your flexibility allows.
+
+### Press Through Your Heels
+Drive through your heels to return to the starting position, straightening your legs and pushing your hips forward. Keep the kettlebell close to your body throughout.

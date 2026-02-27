@@ -1,5 +1,6 @@
 ---
 video: "Jz7oEmzhnfE"
+description: "Target the pectoral muscles with the Barbell Chest Fly by lowering the bar out to the sides in a wide arc and squeezing the chest on the return."
 ---
 
 ## Setup
@@ -38,3 +39,17 @@ video: "Jz7oEmzhnfE"
 
 ## Conclusion
 The barbell chest fly is effective for targeting pectoral muscles when performed with the correct form. Ensure to maintain control throughout the exercise for maximum benefit and safety.
+
+<!-- howto -->
+
+### Set Up on the Bench
+Lie on your back on a flat bench with feet flat on the floor. Hold the barbell with a slightly wider than shoulder-width overhand grip, arms extended above your chest.
+
+### Lower in a Wide Arc
+Maintaining a slight bend in your elbows, slowly lower the barbell out to the sides. Stop when your elbows are level with your chest and you feel a stretch across the pectorals.
+
+### Return to the Start
+Raise the barbell back along the same arc to the starting position, squeezing your chest muscles throughout. Do not allow the weights to crash together at the top.
+
+### Breathe Correctly
+Inhale while lowering the barbell and exhale as you lift it back up. Prioritize form over weight to prevent shoulder strain.

@@ -1,5 +1,6 @@
 ---
 video: "q0QyCrpiNgI"
+description: "Strengthen the obliques with the Band Side Crunch, using resistance band tension to intensify lateral core flexion and improve rotational stability."
 ---
 
 ## Setup
@@ -19,3 +20,17 @@ video: "q0QyCrpiNgI"
 - Maintain a straight posture throughout the movement.
 - Avoid excessive leaning; focus on the side bending motion.
 - Control the movement, avoiding any jerky motions.
+
+<!-- howto -->
+
+### Anchor the Band
+Secure a resistance band to a sturdy anchor at waist height on one side. Stand with your side facing the anchor, holding the band with the closest hand.
+
+### Position and Brace
+Stand with feet shoulder-width apart and pull the band across your body to create tension. Tighten your core and keep your hips stable.
+
+### Crunch Laterally
+Bend sideways at the waist toward the anchored side, allowing the band to create resistance as you feel a stretch in the obliques.
+
+### Return and Switch
+Press your hip back up and engage your core to return to the starting position. Complete reps on this side, then switch to work the other oblique.

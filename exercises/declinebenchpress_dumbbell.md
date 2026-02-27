@@ -1,5 +1,6 @@
 ---
 video: "0xRvl4Qv3ZY"
+description: "Target the lower pectoral muscles with the Decline Dumbbell Bench Press by lowering the weights to chest level and pressing them back up on a decline bench."
 ---
 
 ### Setup
@@ -32,3 +33,17 @@ video: "0xRvl4Qv3ZY"
 - Allowing elbows to flare out excessively.
 - Arching the back excessively—keep a natural curve.
 - Dropping the weights too fast; maintain control throughout the movement.
+
+<!-- howto -->
+
+### Set Up on the Decline Bench
+Adjust the decline bench to 15-30 degrees and secure your feet at the top. Lie with your head at the lower end, holding a dumbbell in each hand at chest level with palms facing forward.
+
+### Lower the Dumbbells
+Slowly lower the dumbbells to the sides of your chest with elbows at about 45 degrees to your torso. Inhale during the controlled descent.
+
+### Press Back Up
+Drive the dumbbells upward in a controlled arc until your arms are fully extended above your chest. Squeeze your chest at the top and exhale as you press.
+
+### Maintain Control Throughout
+Avoid locking your elbows at the top or bouncing at the bottom. Keep your feet secured and body pressed against the bench for the entire set.

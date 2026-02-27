@@ -1,5 +1,6 @@
 ---
 video: "sElIkjcfyNY"
+description: "Perform the Dumbbell Push Press using leg drive to explosively press dumbbells overhead, building shoulder and tricep power."
 ---
 
 ## Starting Position
@@ -24,3 +25,17 @@ video: "sElIkjcfyNY"
 - Flaring elbows out too much during the press.
 
 Following these guidelines will help ensure a safe and effective Dumbbell Push Press.
+
+<!-- howto -->
+
+### Set Your Starting Position
+Stand with feet shoulder-width apart and hold dumbbells at shoulder height with palms facing forward.
+
+### Dip and Drive
+Bend your knees slightly, lowering your hips while keeping your torso upright, then explosively extend your legs through your heels.
+
+### Press Overhead
+Use the leg drive momentum to press the dumbbells overhead until your arms are fully extended with wrists aligned over elbows.
+
+### Lower with Control
+Bring the dumbbells back to shoulder height in a controlled manner to complete one rep.

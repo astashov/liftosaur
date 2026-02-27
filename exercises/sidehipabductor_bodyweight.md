@@ -1,5 +1,6 @@
 ---
 video: "m6dHgVYxAyc"
+description: "Target the hip abductors with the Bodyweight Side Hip Abductor, lifting the top leg in a controlled arc from a side-lying position to build outer hip strength."
 ---
 
 **Starting Position:**
@@ -26,3 +27,17 @@ video: "m6dHgVYxAyc"
 - Lifting the leg too high and losing control.
 
 By following these steps, you can effectively perform the Bodyweight Side Hip Abductor with proper form.
+
+<!-- howto -->
+
+### Assume the Starting Position
+Lie on your side on a flat surface with legs extended and stacked on top of each other. Rest your head on your lower arm or place a cushion underneath for comfort.
+
+### Engage and Lift
+Keep your bottom leg grounded, engage your core, and lift the top leg upward with a straight knee. Ensure the movement comes from the hip, not the lower back or torso.
+
+### Control the Range
+Raise the leg to approximately 45 degrees or to a comfortable height without losing form or rotating the torso. Squeeze the hip abductors at the top.
+
+### Lower Slowly
+Return the leg to the starting position in a slow, controlled manner. Breathe out during the lift and in during the lowering phase. Switch sides after completing all reps.

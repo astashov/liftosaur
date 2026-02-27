@@ -1,5 +1,6 @@
 ---
 video: "3rsKOL8scsU"
+description: "Strengthen your wrist flexors and forearms with the Dumbbell Seated Palms Up Wrist Curl, curling the wrists upward from a supported supinated position."
 ---
 
 ### Starting Position
@@ -24,3 +25,17 @@ video: "3rsKOL8scsU"
 - **Rushed Movements**: Perform the exercise slowly to enhance muscle engagement.
 
 By following these guidelines, you can effectively perform the Dumbbell Seated Palms Up Wrist Curl with proper form.
+
+<!-- howto -->
+
+### Set Up Position
+Sit on a flat bench and grasp a dumbbell in each hand with palms facing up (supinated grip). Rest your forearms on your thighs, allowing your wrists to hang off the edge.
+
+### Curl Wrists Upward
+Flex your wrists to curl the dumbbells upward, ensuring a smooth and controlled motion. Keep your forearms resting on your thighs throughout the movement.
+
+### Fully Flex at the Top
+Lift until your wrists are fully flexed, achieving maximum contraction of the wrist flexor muscles.
+
+### Lower to Full Extension
+Slowly lower the dumbbells back to the starting position, fully extending your wrists without letting the weights drop suddenly.

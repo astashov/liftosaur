@@ -1,5 +1,6 @@
 ---
 video: "yHx8wPv4RPo"
+description: "Develop the anterior deltoids with the Dumbbell Front Raise by lifting the weights in front of you to shoulder height with a slight elbow bend and controlled descent."
 ---
 
 ## Purpose
@@ -30,3 +31,17 @@ Targets the anterior deltoids, upper chest, and trapezius.
 - Not engaging the core, which can compromise posture. 
 
 Use this guide to perform the Dumbbell Front Raise effectively and safely.
+
+<!-- howto -->
+
+### Set Your Starting Position
+Stand with feet shoulder-width apart and hold a dumbbell in each hand at your sides, palms facing your thighs.
+
+### Raise the Dumbbells
+Lift the dumbbells in front of you with a slight elbow bend to shoulder height or slightly above. Keep your back straight and core engaged throughout.
+
+### Pause at the Top
+Hold briefly at the peak of the movement, maintaining control without swinging or arching your back.
+
+### Lower Slowly
+Return the dumbbells to the starting position in a controlled manner. Exhale while lifting and inhale while lowering.

@@ -1,5 +1,6 @@
 ---
 video: "um3VVzqunPU"
+description: "Build lateral deltoids and upper traps with the Barbell Upright Row, pulling the barbell straight up toward your chin with elbows leading the way."
 ---
 
 ### Starting Position
@@ -30,3 +31,17 @@ video: "um3VVzqunPU"
 - Lifting the bar too high (above chin level).
 - Allowing the wrists to bend excessively.
 - Using momentum instead of muscle engagement.
+
+<!-- howto -->
+
+### Set Up and Grip
+Stand with feet shoulder-width apart. Grip the barbell slightly narrower than shoulder-width in front of your thighs with palms facing your body.
+
+### Pull Toward Chin
+Pull the barbell straight up toward your chin, leading with your elbows kept higher than your wrists throughout the movement.
+
+### Hold at the Peak
+Raise the bar to about chest or just below chin level and hold briefly, keeping the bar close to your body.
+
+### Lower with Control
+Lower the barbell back to the starting position in a controlled manner, fully extending your arms to thigh level.

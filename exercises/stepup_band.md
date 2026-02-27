@@ -1,5 +1,6 @@
 ---
 video: "-wOCnr-n-_4"
+description: "Strengthen quads and glutes with the Band Step Up, using resistance band tension to add challenge to the unilateral stepping movement."
 ---
 
 ## Equipment Needed
@@ -33,3 +34,17 @@ video: "-wOCnr-n-_4"
 - Keep your knee aligned with your ankle during the step-up.
 - Avoid leaning forward; maintain an upright posture.
 - Control the movement to engage the muscles effectively and prevent injury.
+
+<!-- howto -->
+
+### Set Up the Band
+Secure the resistance band under your front foot and hold the handles with both hands. Stand facing a bench or step with feet hip-width apart.
+
+### Step Up
+Shift your weight onto the banded foot and place it firmly on the bench, ensuring your entire foot contacts the surface.
+
+### Drive Through the Heel
+Press through your heel to lift your body up, straightening your leg while keeping your chest up and back straight.
+
+### Controlled Descent
+Slowly lower your body back down by bending the knee of the stepping foot, controlling the movement. Alternate legs and repeat.

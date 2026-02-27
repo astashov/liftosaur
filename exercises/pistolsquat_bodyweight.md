@@ -1,5 +1,6 @@
 ---
 video: "vq5-vdgJc0I"
+description: "Master the Bodyweight Pistol Squat, a single-leg squat that challenges quads, glutes, and balance by lowering on one leg with the other extended forward."
 ---
 
 ## Starting Position
@@ -31,3 +32,17 @@ video: "vq5-vdgJc0I"
 - Neglecting to engage the core, which can lead to instability. 
 
 Remember to focus on control, balance, and form throughout the movement.
+
+<!-- howto -->
+
+### Set Your Starting Position
+Stand on one leg with your other leg extended in front of you. Keep your core engaged and chest up.
+
+### Descend Into the Squat
+Sit back and bend the knee of your standing leg, extending your lifted leg forward and parallel to the floor. Lower as far as you can while maintaining balance.
+
+### Achieve Depth
+Aim to lower until your knee is at least at parallel, keeping your knee over your ankle and your torso slightly forward for balance.
+
+### Drive Back Up
+Push through the heel of your standing leg to rise, engaging your glutes and hamstrings. Control the movement throughout without any jerky motions.

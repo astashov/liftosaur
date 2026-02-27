@@ -1,5 +1,6 @@
 ---
 video: "qivPkcDI0s0"
+description: "Strengthen the upper back and lats with the Smith Machine Bent Over Row, using machine-guided stability for a safe and effective horizontal pulling movement."
 ---
 
 **Setup:**
@@ -17,7 +18,7 @@ video: "qivPkcDI0s0"
 
 **Tips:**
 - Keep your back flat and avoid rounding your shoulders.
-- Maintain a neutral neck position; don’t look up or down excessively.
+- Maintain a neutral neck position; don't look up or down excessively.
 - Focus on muscle contraction rather than using momentum to lift the weight.
 
 **Common Mistakes:**
@@ -28,3 +29,17 @@ video: "qivPkcDI0s0"
 **Safety Considerations:**
 - Use a weight that allows you to maintain proper form.
 - Ensure the bar is securely locked in the Smith machine.
+
+<!-- howto -->
+
+### Set Up and Grip
+Adjust the Smith machine bar to waist height. Hinge at the hips to about 45 degrees and grip the bar slightly wider than shoulder-width with an overhand grip.
+
+### Brace Your Core
+Tighten your core and keep your back flat before pulling. Maintain a neutral neck position throughout the movement.
+
+### Row to the Lower Ribs
+Pull the bar toward your lower ribcage, leading with your elbows and squeezing your shoulder blades together. Pause briefly at the top.
+
+### Lower with Control
+Slowly lower the bar back to the starting position. Focus on back muscle contraction rather than using momentum, and ensure the bar is securely locked when finished.

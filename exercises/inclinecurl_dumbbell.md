@@ -1,5 +1,6 @@
 ---
 video: "HhHHBj3qTJ4"
+description: "Maximize bicep stretch and peak contraction with the Dumbbell Incline Curl, curling from a fully extended position on an inclined bench for enhanced muscle growth."
 ---
 
 ### Setup
@@ -11,7 +12,7 @@ video: "HhHHBj3qTJ4"
 2. **Elbow Placement**: Let your arms hang down, fully extended, with elbows close to your body.
 
 #### Execution
-1. **Curl Movement**: 
+1. **Curl Movement**:
    - Keep your upper arms stationary.
    - Exhale and curl the dumbbells towards your shoulders by bending at the elbows.
 2. **Full Range**: Raise the dumbbells until your forearms are vertical and the biceps are fully contracted.
@@ -30,3 +31,17 @@ video: "HhHHBj3qTJ4"
 
 ### Conclusion
 Performing dumbbell incline curls with proper form enhances bicep engagement and muscle growth. Keep the focus on controlled movements and correct posture.
+
+<!-- howto -->
+
+### Set Up
+Set the incline bench to 30-45 degrees. Sit with your back against it and hold dumbbells with an underhand grip, arms hanging fully extended.
+
+### Curl Up
+Keep your upper arms stationary and curl the dumbbells toward your shoulders by bending at the elbows. Exhale as you lift and raise until forearms are vertical.
+
+### Lower with Control
+Inhale and slowly lower the dumbbells back to full extension. Keep elbows close to your body and avoid swinging.
+
+### Stay Consistent
+Keep your back flat against the bench throughout and focus on slow, controlled reps to maximize bicep engagement from the stretched position.

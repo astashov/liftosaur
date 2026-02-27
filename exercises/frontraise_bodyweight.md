@@ -1,5 +1,6 @@
 ---
 video: "UUORItHEctE"
+description: "Strengthen and mobilize the anterior deltoids with the bodyweight Front Raise by lifting your arms straight in front to shoulder height in a slow, controlled arc."
 ---
 
 ## Setup
@@ -19,6 +20,20 @@ video: "UUORItHEctE"
 - Lifting too high (beyond shoulder height).
 - Using excessive body movement (e.g., leaning back).
 - Tension in the neck or shoulders.
+
+<!-- howto -->
+
+### Stand Tall
+Stand upright with feet shoulder-width apart and arms relaxed at your sides. Engage your core and maintain a neutral spine throughout the movement.
+
+### Raise Your Arms Forward
+Lift both arms straight in front of you to shoulder height, keeping a slight bend in your elbows and palms facing down. Move slowly and steadily.
+
+### Hold Briefly
+Pause at shoulder height for a moment before lowering. Keep your shoulders relaxed and away from your ears throughout.
+
+### Lower with Control
+Slowly lower your arms back to the starting position. Inhale as you raise and exhale as you lower, avoiding any swinging or excessive body movement.
 
 ## Benefits
 - Strengthens shoulder muscles.

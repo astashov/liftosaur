@@ -1,5 +1,6 @@
 ---
 video: "PrNTonhIlyk"
+description: "Strengthen the erector spinae and posterior chain with the Barbell Deficit Deadlift by pulling from an elevated platform for greater range of motion at the bottom."
 ---
 
 ### Setup
@@ -38,3 +39,17 @@ video: "PrNTonhIlyk"
 - **Lifting Too Quickly:** Control the movement throughout the range. 
 
 Following these steps will help you perform the Barbell Deficit Deadlift with proper form and effectiveness.
+
+<!-- howto -->
+
+### Set Up Your Elevated Platform
+Stand on a platform 1-4 inches high with the barbell over your mid-foot. Use flat-soled shoes and position feet hip-width apart with toes slightly outward.
+
+### Grip and Brace
+Use a double overhand or mixed grip just outside your knees. Drop your hips and lift your chest while bracing your core to stabilize your spine.
+
+### Drive Through Your Heels
+Push through your heels while extending hips and shoulders simultaneously to keep the bar close to your body. Avoid allowing hips to rise before the chest.
+
+### Lock Out and Lower
+Fully extend hips and knees at the top, shoulders back without hyperextending. Lower by pushing the hips back with a straight back, keeping the bar close throughout the descent.

@@ -1,5 +1,6 @@
 ---
 video: "9dULkU7P-80"
+description: "Combine lower and upper body training with the Band Squat Row, pairing a squat descent with a rowing pull to target quads, glutes, and upper back simultaneously."
 ---
 
 ### Equipment Needed
@@ -34,3 +35,17 @@ video: "9dULkU7P-80"
 - Keep weight on your heels during the squat.
 - Maintain a neutral spine throughout the exercise.
 - Adjust resistance by using bands of different thickness or tension.
+
+<!-- howto -->
+
+### Set Up the Band
+Stand on the middle of the resistance band with feet shoulder-width apart. Hold the band handles or ends with both hands extended in front of you.
+
+### Squat Down
+Push your hips back and bend your knees to lower into a squat, keeping your chest up, back straight, and knees tracking over your toes.
+
+### Row as You Rise
+As you drive back up from the squat, simultaneously pull the band toward your torso with elbows close to your body. Squeeze your shoulder blades together at the top.
+
+### Lower and Repeat
+Release the band back to the starting position as you descend into the next squat. Maintain a neutral spine and control the movement throughout each rep.

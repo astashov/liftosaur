@@ -1,5 +1,6 @@
 ---
 video: "FInbOExDeU0"
+description: "Build upper body strength and cardiovascular endurance with Bodyweight Battle Ropes, mimicking rope wave movements to target shoulders, core, and arms."
 ---
 
 ## Overview
@@ -48,3 +49,17 @@ Bodyweight Battle Ropes involve mimicking the dynamic movements of using battle 
 
 ## Conclusion
 Mastering the Bodyweight Battle Ropes can enhance your upper body strength and cardiovascular fitness. Keep practicing to improve your form and endurance.
+
+<!-- howto -->
+
+### Set Your Stance
+Stand with feet shoulder-width apart, knees slightly bent, and hips hinged slightly forward. Extend your arms at shoulder height with hands in a loose fist, palms down.
+
+### Perform Alternating Arm Waves
+Drive one arm down toward the floor while simultaneously raising the opposite arm upward. Keep your shoulders relaxed and avoid shrugging throughout the motion.
+
+### Engage Hips and Torso
+Use your hips to generate additional power. Allow a slight torso rotation as your arms move to maximize muscle engagement.
+
+### Maintain Rhythm and Breathing
+Keep a steady, controlled alternating rhythm rather than focusing on speed. Inhale as you raise your arm and exhale as you drive it down.

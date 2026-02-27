@@ -1,5 +1,6 @@
 ---
 video: "qMHUbGX9pIQ"
+description: "Strengthen triceps and inner chest with the Smith Machine Close Grip Bench Press, using machine-guided stability and a narrow grip for tricep-focused pressing."
 ---
 
 ## Setup
@@ -28,3 +29,17 @@ video: "qMHUbGX9pIQ"
 ## Safety Considerations
 - Use a spotter if you're lifting heavy.
 - Ensure the bar is secured to prevent it from moving unexpectedly.
+
+<!-- howto -->
+
+### Set Up and Grip
+Adjust the bench under the Smith machine so your eyes are directly beneath the bar. Grip the bar slightly inside shoulder-width with palms forward and wrists straight.
+
+### Unrack and Lower
+Unrack the bar by straightening your arms. Inhale and slowly lower the bar toward your lower chest, keeping elbows close to your body and forearms vertical.
+
+### Press Back Up
+Exhale and push the bar back to the starting position without overextending. Maintain a controlled tempo and keep your back stable against the bench.
+
+### Re-rack with Control
+Lock the bar back into the hooks when the set is complete. Never bounce the bar off your chest between reps.

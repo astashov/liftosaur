@@ -1,5 +1,6 @@
 ---
 video: "XxWcirHIwVo"
+description: "Develop total posterior chain strength with the Barbell Deadlift by pulling the bar from the floor with a neutral spine and driving through your heels to lockout."
 ---
 
 ## Setup
@@ -27,3 +28,17 @@ video: "XxWcirHIwVo"
 - Keep the bar close to your body throughout the movement.
 - Avoid rounding your back.
 - Maintain a neutral spine and avoid excessive arching or flexion.
+
+<!-- howto -->
+
+### Position Over the Bar
+Stand with feet hip-width apart, toes pointing slightly outward, and the bar over your mid-foot. Bend at hips and knees to grip the bar just outside your knees.
+
+### Set Your Back
+With your grip established, keep your back straight, chest up, and shoulders slightly in front of the bar. Engage your core and set your lats.
+
+### Drive Through Your Heels
+Push the floor away by extending your hips and knees simultaneously, keeping the bar close to your body as it rises. Your hips and shoulders should rise at the same rate.
+
+### Stand Tall and Lower
+At the top, stand with shoulders back and chest up without hyperextending. Reverse by hinging at the hips first, then bending the knees to lower the bar back to the floor.

@@ -1,5 +1,6 @@
 ---
 video: "dL9ZzqtQI5c"
+description: "Strengthen the obliques with the Band Side Bend, using resistance band tension to challenge lateral flexion and core stability throughout the movement."
 ---
 
 ### Setup
@@ -27,3 +28,17 @@ video: "dL9ZzqtQI5c"
 - Overextending the lower back.
 - Using momentum instead of controlled movement.
 - Not keeping the hips stable during the bend.
+
+<!-- howto -->
+
+### Set Up the Band
+Stand upright with feet shoulder-width apart. Step on one end of the band with your foot and hold the other end in the same-side hand.
+
+### Engage and Bend
+Tighten your abdominal muscles, then slowly lean to the side, bringing your hand down toward your knee. Keep your hips stable and avoid leaning forward or backward.
+
+### Return to Upright
+Engage your obliques to pull yourself back to the starting position in a controlled manner. Avoid using momentum to return.
+
+### Switch Sides
+Complete all reps on one side, then switch the band to the other hand and foot to work the opposite oblique.

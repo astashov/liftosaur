@@ -1,5 +1,6 @@
 ---
 video: "aVKv79JheD4"
+description: "Target hamstrings and glutes with the Kettlebell Straight Leg Deadlift, hinging at the hips while keeping the kettlebell close to your legs."
 ---
 
 ### Starting Position
@@ -21,3 +22,17 @@ video: "aVKv79JheD4"
 #### Breathing
 - Inhale while lowering the kettlebell.
 - Exhale as you stand up to the starting position.
+
+<!-- howto -->
+
+### Set Up and Grip
+Stand with feet hip-width apart and the kettlebell between your feet. Hinge at the hips and slightly bend your knees to grip the kettlebell with both hands.
+
+### Engage and Hinge
+Brace your abdominals, then push your hips back, lowering your torso while keeping your back straight and knees slightly bent.
+
+### Lower the Kettlebell
+Let the kettlebell slide down your legs as you maintain a neutral spine, going as low as your flexibility allows.
+
+### Drive Back Up
+Push through your heels and drive your hips forward to return to standing, lifting the kettlebell back to the starting position.

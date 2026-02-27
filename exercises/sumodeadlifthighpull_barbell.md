@@ -1,5 +1,6 @@
 ---
 video: "gh55vVlwlQg"
+description: "Develop explosive power with the Barbell Sumo Deadlift High Pull, combining a wide-stance deadlift with an upright row to train the full body."
 ---
 
 ## Steps:
@@ -43,3 +44,17 @@ video: "gh55vVlwlQg"
 ## Safety:
 - Ensure a clear environment to prevent injury.
 - Use lifting shoes or a flat-soled shoe for stability.
+
+<!-- howto -->
+
+### Set Wide Stance and Grip
+Stand with feet wider than shoulder-width, toes slightly out, barbell over mid-foot. Grip the bar narrower than shoulder-width with chest up.
+
+### Initiate the Pull
+Push through your heels, extending hips and knees simultaneously while keeping the bar close to your body as it travels up the thighs.
+
+### Execute the High Pull
+As the bar passes your knees, use your legs and hips for momentum to pull the bar toward your chin with elbows above wrists.
+
+### Lower with Control
+Reverse the motion by lowering your elbows first, then guiding the bar back down close to your body to the starting position.

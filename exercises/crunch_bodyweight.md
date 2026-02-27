@@ -1,5 +1,6 @@
 ---
 video: "z6LRile4YiE"
+description: "Strengthen the rectus abdominis with the bodyweight Crunch by curling your shoulder blades off the mat while keeping the lower back pressed down throughout."
 ---
 
 ## Starting Position
@@ -26,3 +27,17 @@ video: "z6LRile4YiE"
 - Using momentum rather than controlled contraction. 
 
 Following these guidelines will help you perform bodyweight crunches effectively and safely.
+
+<!-- howto -->
+
+### Lie in Starting Position
+Lie flat on your back with knees bent and feet flat on the ground, hip-width apart. Place your hands behind your head or crossed over your chest.
+
+### Engage Your Core
+Draw your navel toward your spine to brace your abdominals. Keep your lower back pressed into the mat throughout the movement.
+
+### Curl Your Shoulder Blades Off the Mat
+Exhale as you lift your shoulder blades off the ground, curling your upper body toward your knees. Keep your chin away from your chest throughout.
+
+### Lower with Control
+Inhale as you slowly lower back to the starting position. Use your abdominal muscles to control the descent rather than dropping.

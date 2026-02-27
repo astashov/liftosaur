@@ -1,5 +1,6 @@
 ---
 video: "QLI40pQ6O74"
+description: "Isolate the triceps with the Cable Triceps Extension, using a high pulley rope or bar attachment to extend the arms with constant cable tension."
 ---
 
 ## Starting Position
@@ -31,3 +32,17 @@ video: "QLI40pQ6O74"
 - Focus on the contraction of the triceps during the extension.
 
 By following these guidelines, you can perform the Cable Triceps Extension effectively and safely.
+
+<!-- howto -->
+
+### Set Up the Cable Machine
+Attach a rope or straight bar to the high pulley and set it to the highest position. Stand or sit facing the machine with feet shoulder-width apart.
+
+### Grip and Position Elbows
+Grasp the handle with both hands and pull it down so your elbows are bent at about 90 degrees and tucked next to your body.
+
+### Extend the Arms
+Engage your core and push the handle downward by straightening your arms, keeping elbows close to your torso throughout the movement.
+
+### Return with Control
+Slowly allow the attachment to rise back to the starting position, maintaining constant tension on the triceps.

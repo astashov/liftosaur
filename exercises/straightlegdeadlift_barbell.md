@@ -1,5 +1,6 @@
 ---
 video: "USpmiOk61Ek"
+description: "Build hamstring and lower back strength with the Barbell Straight Leg Deadlift, hinging at the hips with knees slightly bent throughout the lift."
 ---
 
 ### Setup
@@ -29,3 +30,17 @@ video: "USpmiOk61Ek"
 - Consider using lifting straps if grip is an issue. 
 
 This movement primarily targets the hamstrings, glutes, and lower back.
+
+<!-- howto -->
+
+### Position and Grip
+Stand with feet hip-width apart, barbell over the mid-foot. Grip the barbell slightly wider than shoulder-width with chest up and spine neutral.
+
+### Initiate the Lift
+Engage your core and push through your heels to extend your hips and knees simultaneously, keeping the bar close to your body.
+
+### Lower with a Hip Hinge
+Reverse the movement by pushing your hips back with a flat back and neutral spine. Keep the bar path vertical along your legs.
+
+### Lower to Hamstring Stretch
+Lower the bar to mid shin or until you feel a stretch in the hamstrings, then drive your hips forward to return to standing.

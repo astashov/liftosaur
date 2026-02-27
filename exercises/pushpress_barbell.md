@@ -1,5 +1,6 @@
 ---
 video: "9-sGJjjMOpI"
+description: "Build explosive shoulder and tricep power with the Barbell Push Press, using a brief leg dip to drive a barbell from your chest to full overhead lockout."
 ---
 
 ### Equipment Needed
@@ -28,3 +29,17 @@ video: "9-sGJjjMOpI"
 - Use a spotter if lifting heavy weight.
 - Ensure weights are securely fastened on the bar.
 - Perform the exercise in a controlled manner to prevent injury.
+
+<!-- howto -->
+
+### Set Your Grip and Starting Position
+Grip the barbell slightly wider than shoulder-width and rest it on your upper chest, forearms perpendicular to the ground and elbows slightly in front of the bar.
+
+### Dip to Load
+Slightly bend your knees and lower your torso briefly, keeping your chest up and back straight to create a brief elastic dip.
+
+### Drive the Bar Overhead
+Quickly extend your legs while simultaneously pressing the barbell overhead. Engage your core for stability and use the leg drive to assist the press.
+
+### Lock Out and Lower
+Fully extend your arms at the top with the bar directly overhead. Carefully lower the barbell back to your upper chest under control.

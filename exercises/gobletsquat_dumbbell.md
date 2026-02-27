@@ -1,5 +1,6 @@
 ---
 video: "CkFzgR55gho"
+description: "Build quad and glute strength with the Dumbbell Goblet Squat, holding a dumbbell at your chest to promote an upright torso and deep squat mechanics."
 ---
 
 ## Starting Position
@@ -26,3 +27,17 @@ video: "CkFzgR55gho"
 ## Tips
 - Start with a lighter weight to master form.
 - Focus on breathing: inhale as you lower, exhale as you rise.
+
+<!-- howto -->
+
+### Set Up
+Stand with feet shoulder-width apart and hold a dumbbell vertically at your chest with both hands, elbows pointing down.
+
+### Brace and Initiate
+Engage your core and push your hips back as if sitting in a chair. Keep your chest up and spine neutral.
+
+### Descend
+Bend at the knees and hips, lowering until your thighs are at least parallel to the ground. Keep the dumbbell steady at your chest and knees tracking over your toes.
+
+### Drive Up
+Press through your heels to return to standing, fully extending your hips and knees. Exhale as you rise.

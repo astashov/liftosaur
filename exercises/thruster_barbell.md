@@ -1,5 +1,6 @@
 ---
 video: "Zvt5-mugUco"
+description: "Develop full-body power with the Barbell Thruster, combining a front squat and overhead press into one explosive compound movement."
 ---
 
 ## Setup
@@ -27,3 +28,17 @@ video: "Zvt5-mugUco"
 ## Breathing
 - Inhale while squatting down.
 - Exhale during the drive up and overhead press.
+
+<!-- howto -->
+
+### Set Up the Bar
+Rest the barbell on your shoulders in a front squat position with a grip slightly wider than shoulder-width and elbows high.
+
+### Squat Down
+Bend your knees and lower your hips back until your thighs are parallel to the ground or lower, keeping your chest up and core engaged.
+
+### Drive Up and Press
+Push through your heels to rise explosively from the squat, using that momentum to press the barbell overhead to full arm extension.
+
+### Return to Start
+Lower the barbell back to your shoulders in a controlled manner while preparing for the next squat descent.

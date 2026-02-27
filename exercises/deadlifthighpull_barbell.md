@@ -1,5 +1,6 @@
 ---
 video: "A7HVlJgvsq4"
+description: "Develop explosive power in the posterior chain with the Barbell Deadlift High Pull by driving the bar from the floor and pulling it up to chin height."
 ---
 
 ### Starting Position
@@ -28,3 +29,17 @@ video: "A7HVlJgvsq4"
 - Rounding the back instead of keeping it flat.
 
 By adhering to these guidelines, you can safely and effectively perform the Barbell Deadlift High Pull to strengthen your posterior chain and improve your explosive power.
+
+<!-- howto -->
+
+### Set Your Starting Position
+Stand with feet hip-width apart, toes slightly out, and the bar over your mid-foot. Grip slightly wider than shoulder-width with an overhand grip, chest up and back straight.
+
+### Lift Off the Floor
+Engage your core and push through your heels to lift the bar, extending hips and knees simultaneously. Keep the bar traveling vertically and close to your body.
+
+### Explosively Pull to Chin Height
+Once the bar passes your knees, explosively extend your hips and shrug your shoulders. Pull the bar up to chin height with elbows flaring out higher than your wrists.
+
+### Lower Under Control
+Reverse the motion by bringing your elbows down, lowering the bar to your thighs, and then back to the ground while maintaining a neutral spine.

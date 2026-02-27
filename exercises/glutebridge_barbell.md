@@ -1,5 +1,6 @@
 ---
 video: "0od5lwWMGV8"
+description: "Build glute strength with the Barbell Glute Bridge, driving hips upward against a loaded barbell for powerful posterior chain development."
 ---
 
 ### Setup:
@@ -30,3 +31,20 @@ video: "0od5lwWMGV8"
 - Feet positioned too far or too close to the bench.
 
 Make sure to focus on maintaining proper form to maximize effectiveness and minimize injury risk.
+
+<!-- howto -->
+
+### Position at the Bench
+Sit on the floor with your back against a bench, knees bent and feet flat on the ground shoulder-width apart.
+
+### Load the Barbell
+Roll the barbell over your hips and use a pad for comfort. Ensure your shoulder blades are resting on the bench.
+
+### Brace and Lift
+Brace your core, then press through your heels to drive hips upward until your body forms a straight line from shoulders to knees.
+
+### Squeeze at the Top
+Pause at the top and squeeze your glutes. Avoid hyperextending the lower back.
+
+### Lower with Control
+Slowly lower your hips back to the starting position, maintaining tension throughout the descent.

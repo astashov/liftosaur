@@ -1,5 +1,6 @@
 ---
 video: "ciEKP7pkk7A"
+description: "Build single-leg strength with the Kettlebell Pistol Squat, holding a kettlebell for counterbalance while squatting on one leg with the other extended forward."
 ---
 
 ### Setup
@@ -25,3 +26,17 @@ video: "ciEKP7pkk7A"
 
 ### Progression
 Start with a lighter kettlebell or no weight at all until you master the form, then gradually increase the weight as you become more comfortable.
+
+<!-- howto -->
+
+### Hold the Kettlebell
+Grip the kettlebell by the horns with both hands, holding it close to your chest or at arm's length for counterbalance.
+
+### Shift to One Leg
+Stand with feet shoulder-width apart, then shift your weight onto one leg and lift the opposite leg off the ground, extending it forward.
+
+### Squat Down
+Lower your body by bending the standing knee while keeping the lifted leg extended in front. Aim to squat until your hip is below your knee.
+
+### Rise Back Up
+Push through your heel to stand back up, maintaining your lifted leg extended and your back straight throughout the movement.

@@ -1,5 +1,6 @@
 ---
 video: "nfWQihJo-Mc"
+description: "Build core strength with the Bodyweight V-Up, simultaneously raising your arms and straight legs off the floor to meet in a V position."
 ---
 
 ## Starting Position
@@ -24,3 +25,17 @@ video: "nfWQihJo-Mc"
 - Engage your core throughout the exercise.
 - Focus on creating a smooth, fluid motion without jerking.
 - Modify by bending knees if necessary for beginners.
+
+<!-- howto -->
+
+### Set Starting Position
+Lie flat on your back with arms extended overhead and legs straight. Press your lower back into the ground and engage your core.
+
+### Lift Arms and Legs
+Exhale and raise your straight arms and legs simultaneously toward the ceiling, keeping both legs and arms as straight as possible.
+
+### Form the V Shape
+Aim to lift your torso and legs into a V position, reaching your hands toward your feet at the peak of the movement.
+
+### Lower with Control
+Inhale and slowly lower your arms and legs back to the starting position without letting them touch the floor before the next rep.

@@ -1,5 +1,6 @@
 ---
 video: "ypfd1kaI1AU"
+description: "Strengthen your forearm extensors with the EZ Bar Reverse Wrist Curl, flexing the wrists upward with a pronated grip for wrist and forearm development."
 ---
 
 **Purpose**: Strengthens the forearm extensors.
@@ -29,3 +30,17 @@ video: "ypfd1kaI1AU"
 
 **Safety**:
 - Start with a lighter weight to master form before increasing.
+
+<!-- howto -->
+
+### Set Up Your Position
+Stand or sit on a bench with feet shoulder-width apart. Hold the EZ bar with an overhand grip (palms facing down) and rest your forearms on your thighs or a flat surface with wrists hanging off the edge.
+
+### Flex Wrists Upward
+Curl your wrists upward to lift the EZ bar, keeping your forearms completely stationary. Focus on the forearm extensor contraction.
+
+### Squeeze at the Top
+Hold the peak position briefly for maximum muscle engagement.
+
+### Lower with Control
+Slowly lower the EZ bar back to the starting position, avoiding momentum and maintaining a neutral spine throughout.

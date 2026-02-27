@@ -1,5 +1,6 @@
 ---
 video: "ir5PsbniVSc"
+description: "Develop tricep mass with the Dumbbell Skullcrusher, lowering dumbbells toward the forehead on a bench while keeping upper arms stationary to isolate the triceps."
 ---
 
 ## Starting Position
@@ -19,3 +20,17 @@ video: "ir5PsbniVSc"
 ## Common Mistakes
 - Flaring elbows: Keep them tucked in throughout the movement.
 - Using momentum: Move slowly and deliberately to ensure muscle engagement.
+
+<!-- howto -->
+
+### Lie on the Bench
+Position yourself on a flat bench with head, shoulders, and back supported. Hold a dumbbell in each hand with palms facing each other, arms extended above your chest.
+
+### Lower the Dumbbells
+Bend your elbows to lower the dumbbells toward your forehead, keeping your upper arms stationary and elbows pointed toward the ceiling. Do not let the elbows flare outward.
+
+### Control the Range
+Lower to a comfortable range without strain. The dumbbells should travel close together and stop near your forehead or temples.
+
+### Press Back to Start
+Extend your arms back to the starting position, squeezing the triceps at the top. Maintain a neutral wrist position and steady breathing throughout the set.

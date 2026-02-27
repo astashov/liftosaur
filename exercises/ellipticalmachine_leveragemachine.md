@@ -1,5 +1,6 @@
 ---
 video: "EesEvYohy5o"
+description: "Improve cardiovascular fitness with the Elliptical Machine by moving through a smooth, low-impact circular stride that engages the legs, glutes, and upper body."
 ---
 
 ## Setup
@@ -27,3 +28,17 @@ video: "EesEvYohy5o"
 
 ## Conclusion
 Using the leveraged machine elliptical effectively improves cardiovascular fitness and engages multiple muscle groups when done with proper form.
+
+<!-- howto -->
+
+### Adjust the Machine
+Set the resistance level according to your fitness level. Place your feet securely on the foot pedals and stand upright with a slight bend in your knees.
+
+### Begin the Elliptical Motion
+Push the pedals in a smooth, circular stride pattern. Engage your core and keep your back straight, looking forward throughout the movement.
+
+### Coordinate Your Arms
+If the machine has handles, push and pull in coordination with your leg movement. Keep your elbows close to your body and avoid leaning heavily on the handles.
+
+### Maintain Your Pace
+Breathe steadily through your nose on the push and mouth on the pull. Focus on maintaining a consistent pace without locking your knees or slouching.

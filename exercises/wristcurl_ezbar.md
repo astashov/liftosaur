@@ -1,5 +1,6 @@
 ---
 video: "n-n8rrOM1RU"
+description: "Strengthen wrist flexors with the EZ Bar Wrist Curl, using the angled EZ bar grip to reduce wrist strain while targeting the forearm muscles."
 ---
 
 ### Setup
@@ -18,3 +19,17 @@ video: "n-n8rrOM1RU"
 - Keep your back straight and avoid using momentum.
 - Focus on engaging the forearm muscles throughout the exercise.
 - Ensure a full range of motion for maximum effectiveness.
+
+<!-- howto -->
+
+### Set Up and Grip
+Stand or sit holding the EZ bar with an underhand grip (palms up) shoulder-width apart. Rest your forearms on a flat surface with wrists hanging off the edge.
+
+### Curl the EZ Bar
+Flex your wrists to curl the bar upward, keeping your forearms stationary and only your wrists moving throughout the exercise.
+
+### Squeeze at the Top
+Hold briefly at the peak contraction, squeezing the forearm muscles to maximize engagement.
+
+### Lower with Control
+Slowly lower the bar back to the starting position, maintaining control and a full range of motion on every repetition.

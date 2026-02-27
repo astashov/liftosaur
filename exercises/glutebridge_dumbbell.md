@@ -1,5 +1,6 @@
 ---
 video: "0kx1QOzhTCQ"
+description: "Target glutes and hamstrings with the Dumbbell Glute Bridge, pressing hips upward against a dumbbell placed over the hips for added resistance."
 ---
 
 ## Starting Position
@@ -27,3 +28,17 @@ video: "0kx1QOzhTCQ"
 - **Using Too Heavy a Dumbbell**: Start with a manageable weight to focus on form.
 
 Following this guide will help you perform the Dumbbell Glute Bridge effectively and safely.
+
+<!-- howto -->
+
+### Set Up
+Lie on your back with knees bent and feet flat, hip-width apart and close to your glutes. Hold a dumbbell with both hands resting over your hips.
+
+### Engage Your Core
+Tighten your abdominal muscles and perform a slight pelvic tilt to prepare for glute activation.
+
+### Lift Your Hips
+Press through your heels and squeeze your glutes to raise your hips toward the ceiling. Your body should form a straight line from shoulders to knees at the top.
+
+### Lower with Control
+Slowly lower your hips back to the mat while maintaining tension in your glutes. Keep your shoulders grounded throughout.

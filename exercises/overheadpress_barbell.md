@@ -1,5 +1,6 @@
 ---
 video: "KP1sYz2VICk"
+description: "Build shoulder and tricep strength with the Barbell Overhead Press, pressing a barbell from your upper chest to full arm extension overhead while standing."
 ---
 
 ### Setup
@@ -23,3 +24,17 @@ video: "KP1sYz2VICk"
 - **Inadequate Range of Motion**: Ensure full extension and a complete downward motion.
 
 Use this guide to ensure safe and effective execution of the Barbell Overhead Press.
+
+<!-- howto -->
+
+### Set Your Grip and Bar Position
+Stand with feet shoulder-width apart. Grip the barbell slightly wider than shoulder-width and rest it on your upper chest just below your chin, elbows slightly in front of the bar.
+
+### Engage and Press
+Tighten your core and push the barbell overhead, keeping your wrists straight and elbows tracking in line with your wrists.
+
+### Reach Full Extension
+Extend your arms fully until they are in line with your ears. Avoid locking out your elbows at the top.
+
+### Lower Under Control
+Bring the barbell back to the starting position on your upper chest without leaning back excessively or hunching your shoulders.

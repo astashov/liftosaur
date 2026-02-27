@@ -1,5 +1,6 @@
 ---
 video: "lhecu6nZc-4"
+description: "Perform the Barbell Legs-Up Bench Press to target your chest with legs raised vertically, eliminating lower-body drive for strict upper-body pressing."
 ---
 
 ### Setup
@@ -35,3 +36,17 @@ video: "lhecu6nZc-4"
 - Control the movement throughout the exercise.
 - Maintain a consistent breathing pattern.
 - Ensure a smooth and deliberate motion for both lowering and pressing phases.
+
+<!-- howto -->
+
+### Set Up on the Bench
+Lie on your back on a flat bench with your head, shoulders, and buttocks in contact. Lift your legs straight up toward the ceiling at a 90-degree angle to the floor.
+
+### Grip the Barbell
+Grasp the barbell with a grip slightly wider than shoulder-width. Position it over your chest with arms fully extended.
+
+### Lower the Barbell
+Inhale and slowly lower the barbell toward your chest, keeping your elbows at about a 45-degree angle to your body. Maintain control throughout.
+
+### Press Back Up
+Exhale and press the barbell back to the starting position in a straight line above your chest. Keep your legs vertical and core tight throughout.

@@ -1,5 +1,6 @@
 ---
 video: "Rc7-euA8FDI"
+description: "Isolate the triceps with the Cable Triceps Pushdown, pressing a rope or bar attachment downward from a high pulley with elbows pinned to your sides."
 ---
 
 ## Setup
@@ -19,3 +20,17 @@ video: "Rc7-euA8FDI"
 - **Alignment**: Ensure your shoulders remain down and away from your ears throughout the exercise. 
 
 By following these steps and tips, you can ensure an effective and safe Cable Triceps Pushdown.
+
+<!-- howto -->
+
+### Set Up the Cable Machine
+Attach a rope or straight bar to the high pulley. Stand facing the machine with feet shoulder-width apart and a slight knee bend.
+
+### Starting Position
+Grasp the attachment with both hands and pull it down so your elbows are bent and close to your body, palms facing down or neutral.
+
+### Push Down
+Exhale and extend your arms downward, pushing the attachment until your elbows are fully extended but not locked out.
+
+### Return with Control
+Inhale and slowly allow the attachment to rise back to the starting position, keeping elbows pinned and wrists neutral throughout.

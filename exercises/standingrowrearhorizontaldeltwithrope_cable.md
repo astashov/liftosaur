@@ -1,5 +1,6 @@
 ---
 video: "X9HZqdwLG2Y"
+description: "Strengthen the rear deltoids with the Cable Standing Rear Horizontal Delt Row with Rope, keeping upper arms parallel to the floor."
 ---
 
 ### Setup
@@ -34,3 +35,17 @@ video: "X9HZqdwLG2Y"
 - Focus on slow, controlled movements.
 - Breathe out while pulling the rope in, and inhale while returning.
 - Maintain tense engagement in your core and upper back throughout the exercise.
+
+<!-- howto -->
+
+### Set Up the Cable
+Attach a rope to a mid or low cable pulley. Stand facing the machine with feet shoulder-width apart and knees slightly bent.
+
+### Grip and Extend
+Grab the rope with both hands, palms inward, and step back to create cable tension. Hold arms extended with elbows slightly bent.
+
+### Retract and Pull
+Pull your shoulder blades back and down, then row the rope toward your face keeping your upper arms parallel to the floor throughout.
+
+### Squeeze and Release
+Pause at peak contraction to squeeze shoulder blades together, then slowly extend arms back to the starting position while maintaining tension.

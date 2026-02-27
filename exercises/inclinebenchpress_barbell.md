@@ -1,5 +1,6 @@
 ---
 video: "SrqOu55lrYU"
+description: "Build upper chest and anterior deltoid strength with the Barbell Incline Bench Press, pressing a loaded bar from an inclined bench at 30 to 45 degrees."
 ---
 
 ## Setup
@@ -28,3 +29,17 @@ video: "SrqOu55lrYU"
 ## Safety
 - Use a spotter for heavy lifts.
 - Ensure the barbell is secured with collars.
+
+<!-- howto -->
+
+### Set Up
+Set the bench to a 30-45 degree incline. Load the barbell and lie back on the bench with head, shoulders, and hips pressing firmly into the surface.
+
+### Grip the Bar
+Grip the barbell slightly wider than shoulder-width with wrists straight. Unrack the bar and position it over your upper chest.
+
+### Lower the Bar
+Inhale and lower the bar to your upper chest, keeping elbows at about a 45-degree angle from your body. Maintain control throughout the descent.
+
+### Press Up
+Exhale and push the bar back up until arms are fully extended without locking the elbows. Keep feet flat on the ground for stability.

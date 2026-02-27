@@ -1,5 +1,6 @@
 ---
 video: "wGj6RQtlJy4"
+description: "Isolate your biceps with the Cable Lying Bicep Curl, lying on a bench with arms extended and curling the cable handle toward your shoulders."
 ---
 
 ## Setup
@@ -23,3 +24,17 @@ video: "wGj6RQtlJy4"
 ## Safety
 - Ensure the cable is securely attached before beginning.
 - Start with a lighter weight to master the form before increasing resistance.
+
+<!-- howto -->
+
+### Set Up the Bench and Cable
+Attach a handle to the low pulley of a cable machine. Position a flat bench parallel to the machine with the head of the bench closest to the cable.
+
+### Lie Down and Grip
+Lay on your back with your head near the cable. Grasp the handle with an underhand grip and extend your arms fully, elbows resting against the bench.
+
+### Curl Toward Your Shoulders
+Engage your biceps and curl the handle toward your shoulders. Keep your elbows stationary and only move your forearms.
+
+### Squeeze and Lower
+Hold the peak contraction briefly, then slowly lower the handle back to the starting position with fully extended arms, maintaining control throughout.

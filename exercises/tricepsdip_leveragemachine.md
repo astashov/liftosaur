@@ -1,5 +1,6 @@
 ---
 video: "Gz8NkGoNPkc"
+description: "Isolate the triceps with the Leverage Machine Triceps Dip, using machine assistance to control depth and resistance during the dipping movement."
 ---
 
 ## Setup
@@ -17,3 +18,17 @@ video: "Gz8NkGoNPkc"
 - Maintain a straight back and engaged core throughout the movement.
 - Avoid flaring out your elbows; keep them tucked in.
 - Control both the lowering and lifting phases to maximize effectiveness and prevent injury.
+
+<!-- howto -->
+
+### Set Up the Machine
+Sit on the leverage machine with your back against the pad. Adjust the seat height if needed and grasp the handles firmly.
+
+### Set Starting Position
+Push down on the handles so your elbows are at a 90-degree angle with feet flat on the ground shoulder-width apart.
+
+### Lower Under Control
+Slowly lower your body by bending your elbows, keeping them close to your torso, and descending to a comfortable depth.
+
+### Press Back Up
+Press through your palms to straighten your arms back to the starting position, focusing on tricep engagement throughout the movement.

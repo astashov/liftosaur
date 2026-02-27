@@ -1,5 +1,6 @@
 ---
 video: "R-8Sa0_qiws"
+description: "Strengthen your biceps with the Leverage Machine Preacher Curl, using the preacher pad to stabilize your upper arms while curling the machine handles upward."
 ---
 
 ### Setup
@@ -25,3 +26,17 @@ video: "R-8Sa0_qiws"
 - Not fully extending the arms at the bottom of the movement. 
 
 Adhering to these guidelines will help ensure an effective and safe preacher curl using a leverage machine.
+
+<!-- howto -->
+
+### Adjust and Sit
+Set the seat height so your elbows rest comfortably on the preacher pad with your arms aligned with the machine's pivot point.
+
+### Grip the Handles
+Hold the handles with an underhand grip (palms facing up). Start with your arms fully extended, maintaining a slight bend at the elbows.
+
+### Curl the Weight
+Engage your biceps and curl the weight upward, keeping your elbows fixed on the pad. Squeeze at the top of the movement.
+
+### Lower Under Control
+Gradually lower the weight back to the starting position, maintaining control through the full range of motion.

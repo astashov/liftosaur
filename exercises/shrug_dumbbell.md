@@ -1,5 +1,6 @@
 ---
 video: "kG4qXCYvITg"
+description: "Build upper trapezius muscle with the Dumbbell Shrug, elevating shoulders vertically while maintaining a neutral spine and controlled tempo."
 ---
 
 ## Starting Position
@@ -24,3 +25,17 @@ video: "kG4qXCYvITg"
 - Shrugging with a hunched back; maintain a straight posture. 
 
 Following these guidelines will help you perform the Dumbbell Shrug effectively and safely.
+
+<!-- howto -->
+
+### Set Your Stance
+Stand upright with feet shoulder-width apart, a slight bend in the knees, and a dumbbell in each hand with palms facing your body.
+
+### Lift the Shoulders
+Relax your arms at your sides, then raise your shoulders straight up toward your ears as high as possible. Keep arms straight and let the dumbbells hang.
+
+### Hold the Contraction
+Pause briefly at the top of the movement to maximize trapezius engagement, keeping your neck neutral throughout.
+
+### Lower Slowly
+Return your shoulders to the starting position in a slow, controlled manner. Avoid rolling or rotating the shoulders at any point.

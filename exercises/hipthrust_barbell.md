@@ -1,5 +1,6 @@
 ---
 video: "L1qG25DhAk4"
+description: "Maximize glute development with the Barbell Hip Thrust, driving loaded hips upward from a bench-supported position for peak posterior chain strength."
 ---
 
 **Setup:**
@@ -21,6 +22,20 @@ video: "L1qG25DhAk4"
 **Key Points:**
 - Keep your chin tucked to maintain a neutral spine.
 - Avoid overarching your lower back at the top of the movement.
-- Ensure your knees don’t cave inward; they should stay in line with your toes.
+- Ensure your knees don't cave inward; they should stay in line with your toes.
 
 Following these steps will help you perform the Barbell Hip Thrust with proper form, targeting the glutes effectively.
+
+<!-- howto -->
+
+### Set Up with the Barbell
+Sit on the ground with your upper back against a bench and roll the barbell over your hips. Use a mat or pad under the bar for comfort.
+
+### Position Your Feet
+Place feet flat on the ground, shoulder-width apart, with heels about a foot from the bench.
+
+### Thrust Upward
+Engage your core and drive through your heels to press your hips upward. Squeeze your glutes fully at the top, forming a straight line from shoulders to knees.
+
+### Lower with Control
+Inhale and slowly lower your hips back to the starting position. Keep your chin tucked and avoid overarching your lower back.

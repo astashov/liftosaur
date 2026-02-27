@@ -1,5 +1,6 @@
 ---
 video: "k0JXLehUfpA"
+description: "Perform the Kettlebell Push Press using leg drive to explosively press a kettlebell overhead, developing shoulder and tricep strength."
 ---
 
 ## Setup
@@ -24,3 +25,17 @@ video: "k0JXLehUfpA"
 - Neglecting core engagement and stability. 
 
 Follow these steps for proper form to maximize effectiveness and minimize injury risk.
+
+<!-- howto -->
+
+### Set Starting Position
+Stand with feet shoulder-width apart and hold the kettlebell at shoulder height with your elbow close to your body and palm facing you.
+
+### Generate Leg Drive
+Slightly bend your knees and push through your heels to generate upward force through your body.
+
+### Press Overhead
+Extend your arm overhead as you press the kettlebell up, using leg momentum to assist. Lock out your elbow at the top with wrist straight.
+
+### Lower Under Control
+Reverse the motion by lowering the kettlebell back to shoulder height in a controlled manner before repeating.

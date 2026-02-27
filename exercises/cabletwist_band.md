@@ -1,5 +1,6 @@
 ---
 video: "yglSetVOFeA"
+description: "Strengthen the obliques and core with the Band Cable Twist, using resistance band tension to train rotational core strength from a standing position."
 ---
 
 **Equipment Needed:** Resistance band or cable machine
@@ -25,6 +26,20 @@ video: "yglSetVOFeA"
 **Common Mistakes:**
 - Overusing the arms instead of engaging the core.
 - Rotating the hips rather than the torso.
-- Allowing the band to pull you rather than maintaining control. 
+- Allowing the band to pull you rather than maintaining control.
 
 By following these guidelines, you can effectively perform the Band Cable Twist while minimizing the risk of injury and maximizing engagement of your core muscles.
+
+<!-- howto -->
+
+### Anchor the Band and Set Your Stance
+Attach the resistance band to a stable point at waist height. Stand side-on to the anchor with feet shoulder-width apart and grasp the band with both hands at chest level, elbows slightly bent.
+
+### Engage Your Core
+Tighten your core before initiating any rotation. Keep your hips stable and facing forward throughout the movement.
+
+### Rotate Away from the Anchor
+Twist your torso away from the anchor point, driving the movement from your core rather than your arms. Continue until your hands reach shoulder-line alignment.
+
+### Return with Control
+Slowly rotate back to the starting position, resisting the band's pull. Exhale during the twist and inhale as you return.

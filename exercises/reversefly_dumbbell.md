@@ -1,5 +1,6 @@
 ---
 video: "1jpBatm8RYw"
+description: "Develop your rear deltoids and upper back with the Dumbbell Reverse Fly, lifting dumbbells outward in a hinged-forward position."
 ---
 
 **Starting Position:**
@@ -22,3 +23,17 @@ video: "1jpBatm8RYw"
 - Keep movements smooth and controlled to prevent momentum.
 - Avoid lifting weights that are too heavy; focus on form over weight.
 - Keep your neck relaxed and avoid shrugging your shoulders.
+
+<!-- howto -->
+
+### Set Up Your Position
+Stand with feet shoulder-width apart or sit on a bench edge. Hold a dumbbell in each hand with palms facing each other. Hinge at the hips with back straight so dumbbells hang below your shoulders.
+
+### Engage Core
+Maintain a neutral spine and engage your core for stability before initiating the movement.
+
+### Raise Dumbbells Outward
+With a slight bend in your elbows, lift the dumbbells out to the sides until they are in line with your shoulders, squeezing your shoulder blades together at the top.
+
+### Lower Slowly
+Return the dumbbells to the starting position under control, exhaling as you lift and inhaling as you lower.

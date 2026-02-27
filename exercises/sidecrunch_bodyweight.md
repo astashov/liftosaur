@@ -1,5 +1,6 @@
 ---
 video: "Cii54H_Xv1M"
+description: "Target the obliques with the Bodyweight Side Crunch, lifting the torso laterally from a side-lying position to build core strength and stability."
 ---
 
 **Starting Position:**
@@ -20,3 +21,17 @@ video: "Cii54H_Xv1M"
 - Maintain a straight line from your head to your hips.
 - Ensure your neck stays neutral and avoid straining it during the movement.
 - Perform the exercise on both sides for balanced strength development.
+
+<!-- howto -->
+
+### Assume the Starting Position
+Lie on your side with legs stacked and knees bent at 90 degrees. Rest your bottom arm under your head and place your top hand on your hip or behind your head.
+
+### Engage and Lift
+Tighten your core, then exhale and lift your torso toward your hip by contracting the oblique muscles. Bring your top elbow toward your top knee.
+
+### Hold the Crunch
+Pause briefly at the top of the movement to maximize oblique engagement before returning.
+
+### Lower with Control
+Inhale and slowly lower your torso back to the starting position. Perform all reps on one side, then switch sides for balanced development.

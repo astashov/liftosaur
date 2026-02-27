@@ -1,5 +1,6 @@
 ---
 video: "gcNh17Ckjgg"
+description: "Master the Barbell Squat to build quads, glutes, and hamstrings as the foundational compound lower-body exercise for strength and muscle development."
 ---
 
 ### Setup
@@ -29,3 +30,17 @@ video: "gcNh17Ckjgg"
 - Lifting heels off the ground.
 
 Maintain proper form to enhance effectiveness and reduce risk of injury.
+
+<!-- howto -->
+
+### Position the Bar
+Set the barbell on your upper back, either across the traps (high bar) or rear deltoids (low bar). Grip the bar slightly wider than shoulder-width with elbows pointing down and back.
+
+### Set Your Stance
+Step back from the rack with feet shoulder-width apart and toes slightly pointed outward. Brace your core before beginning the descent.
+
+### Descend
+Bend simultaneously at the hips and knees, keeping your chest up and back straight. Lower until your thighs are at least parallel to the ground, or deeper if flexibility allows.
+
+### Drive Back Up
+Push through your heels and extend your knees, maintaining an upright torso as you return to standing. Exhale during the ascent and ensure knees track over toes throughout.

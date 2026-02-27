@@ -1,5 +1,6 @@
 ---
 video: "NJ8U95vMtZg"
+description: "Target the trapezius muscles with the Leverage Machine Shrug, using guided resistance to isolate shoulder elevation safely and effectively."
 ---
 
 ## Setup
@@ -28,3 +29,17 @@ video: "NJ8U95vMtZg"
 - **Excessive Weight**: Lifting too much can lead to improper form and injury; ensure you can maintain proper technique throughout the movement.
 
 By following these guidelines, you can effectively perform the Leverage Machine Shrug and target your trapezius muscles efficiently.
+
+<!-- howto -->
+
+### Position Yourself
+Select an appropriate weight and stand inside the machine with your back against the pad, feet shoulder-width apart. Grasp the handles with arms straight at your sides and shoulders just below the shoulder pads.
+
+### Lift and Squeeze
+Inhale and lift your shoulders upward as high as possible, focusing on squeezing the trapezius muscles. Keep your torso stationary throughout.
+
+### Pause at the Top
+Hold the contracted position for a moment to maximize tension in the traps before beginning the descent.
+
+### Lower with Control
+Exhale and slowly return your shoulders to the starting position, maintaining control throughout. Avoid using momentum or shifting your torso.

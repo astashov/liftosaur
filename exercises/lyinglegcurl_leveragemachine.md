@@ -1,5 +1,6 @@
 ---
 video: "vl5nUdE9mWM"
+description: "Isolate your hamstrings with the Leverage Machine Lying Leg Curl, curling your legs upward against a padded lever while lying face down on the machine."
 ---
 
 ## Setup
@@ -24,3 +25,17 @@ video: "vl5nUdE9mWM"
 - Not completing the full range of motion. 
 
 By following these steps, you'll maximize the effectiveness of the Lying Leg Curl while minimizing the risk of injury.
+
+<!-- howto -->
+
+### Adjust and Position Yourself
+Set the ankle pad to rest just above your heels. Lie face down on the machine with your knees aligned with the pivot point and ankles under the padded lever.
+
+### Grip the Handles
+Hold onto the side handles for stability, keeping your hips pressed against the pad.
+
+### Curl Your Legs Up
+Bend your knees to lift the weighted lever toward your glutes. Squeeze your hamstrings at the top and hold briefly.
+
+### Lower to the Start
+Slowly extend your legs back to the starting position without letting the weight stack touch down.

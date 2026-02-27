@@ -1,5 +1,6 @@
 ---
 video: "JtKpgt66aow"
+description: "Strengthen the quads and glutes with the Kettlebell Split Squat, lowering the rear knee toward the floor in a split stance while holding a kettlebell for added load."
 ---
 
 ## Setup
@@ -29,3 +30,17 @@ video: "JtKpgt66aow"
 ## Modifications
 - Use a lighter kettlebell if form is compromised.
 - Perform the exercise without the kettlebell to master the movement first.
+
+<!-- howto -->
+
+### Set Up with the Kettlebell
+Hold a kettlebell in one hand either in the rack position at chest level or hanging at your side. Stand with feet hip-width apart and step one foot back about 2-3 feet into a lunge position.
+
+### Lower into the Split Squat
+Bend your front knee and lower your back knee toward the floor. Keep your torso upright, front knee aligned over your ankle, and core engaged throughout.
+
+### Reach the Bottom Position
+Lower until your back knee nearly touches the ground. Avoid letting the front knee collapse inward or the torso lean excessively forward.
+
+### Drive Back Up
+Press through your front heel to return to the starting position. Keep your core stable and posture upright. Inhale as you lower and exhale as you rise. Complete all reps before switching sides.

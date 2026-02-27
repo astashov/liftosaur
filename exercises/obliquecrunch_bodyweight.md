@@ -1,5 +1,6 @@
 ---
 video: "AcvfBd9C2kA"
+description: "Strengthen your obliques with the Bodyweight Oblique Crunch, rotating your torso to bring each elbow toward the opposite knee as you crunch up."
 ---
 
 ## Starting Position
@@ -19,3 +20,17 @@ video: "AcvfBd9C2kA"
 - Avoid pulling on your neck; use your core to lift.
 - Ensure your lower back stays in contact with the floor.
 - Breathe out as you crunch, and breathe in as you return.
+
+<!-- howto -->
+
+### Set Starting Position
+Lie on your back with knees bent and feet flat on the floor. Place your hands behind your head with elbows wide.
+
+### Engage Your Core
+Tighten your abdominal muscles before initiating any movement.
+
+### Crunch and Rotate
+Curl your shoulders off the floor and rotate your torso, bringing one elbow toward the opposite knee. Avoid pulling on your neck.
+
+### Return and Alternate
+Slowly lower back to the starting position without letting your head touch the floor, then immediately repeat to the opposite side.

@@ -1,5 +1,6 @@
 ---
 video: "O5-ROTyo2dA"
+description: "Isolate and strengthen the glutes with the Band Glute Kickback, extending one leg back against band resistance while maintaining a stable quadruped position."
 ---
 
 ### Equipment Needed
@@ -28,3 +29,17 @@ video: "O5-ROTyo2dA"
 
 ### Tip
 - Ensure your hips remain squared to the ground to effectively target the glutes.
+
+<!-- howto -->
+
+### Set Up
+Get on all fours with hands directly under shoulders and knees hip-width apart. Place the resistance band around your thighs just above your knees.
+
+### Brace Your Core
+Tighten your abdominal muscles to keep your back flat and prevent arching during the movement.
+
+### Kick Back
+Lift one leg toward the ceiling with the knee bent, driving your heel upward. Keep your hips squared to the ground.
+
+### Squeeze at the Top
+When your thigh is parallel to the ground, pause and squeeze the glutes. Slowly return your knee to the starting position without letting it touch the ground.

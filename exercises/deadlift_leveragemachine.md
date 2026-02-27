@@ -1,5 +1,6 @@
 ---
 video: "ZaTM37cfiDs"
+description: "Develop posterior chain strength with the Leverage Machine Deadlift by pushing through your heels to extend hips and knees while keeping your back neutral throughout."
 ---
 
 ## Setup
@@ -28,3 +29,17 @@ video: "ZaTM37cfiDs"
 - **Avoid Overextension:** Do not hyperextend your back at the top of the lift. 
 
 Always consult with a professional trainer if you're unsure about your form or the equipment.
+
+<!-- howto -->
+
+### Adjust the Machine
+Set the lever arm to an appropriate height with knees slightly bent and feet flat on the footplate shoulder-width apart. Grip the handles with a neutral or overhand grip.
+
+### Set Your Back and Core
+Keep your back straight and chest up with knees just behind your toes. Engage your core and ensure your hips are lower than your shoulders at the start.
+
+### Drive Through Your Heels
+Push through your heels, extending your knees and hips simultaneously while keeping the weights close to your body. Stand fully upright with shoulders back at the top.
+
+### Lower with Control
+Hinge at the hips first, then bend your knees to lower the weight back to the starting position. Avoid sudden drops or jerks during the descent.

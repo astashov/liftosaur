@@ -1,5 +1,6 @@
 ---
 video: "Wy1SwoY2aaQ"
+description: "Isolate and strengthen your hamstrings with the Leverage Machine Seated Leg Curl, flexing your knees to curl the pad toward your glutes."
 ---
 
 1. **Setup**  
@@ -31,3 +32,17 @@ video: "Wy1SwoY2aaQ"
 - Maintain a neutral spine.
 - Avoid locking your knees at the start/end of the movement.
 - Adjust the machine settings as needed for comfort and proper alignment.
+
+<!-- howto -->
+
+### Set Up the Machine
+Adjust the backrest so your knees align with the machine's pivot point. Sit with legs on the padded lever, ankles positioned just above your heels. Hold the side handles for stability.
+
+### Starting Position
+Ensure your feet are flexed with toes pointed slightly upward and knees at about 90 degrees.
+
+### Curl Your Legs Down
+Exhale and curl your legs down by flexing your knees, bringing your heels toward your glutes. Keep your upper body pressed firmly against the backrest throughout.
+
+### Return Slowly
+Inhale and lower your legs back to the starting position in a controlled manner. Pause briefly at peak contraction to maximize hamstring engagement.

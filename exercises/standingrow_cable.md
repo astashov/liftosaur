@@ -1,5 +1,6 @@
 ---
 video: "ymphH79QO48"
+description: "Build back strength with the Cable Standing Row, targeting the lats and rhomboids using a single-handle cable attachment."
 ---
 
 ## Starting Position
@@ -18,3 +19,17 @@ video: "ymphH79QO48"
 - Avoid leaning back; keep your torso upright.
 - Focus on engaging your back, not just your arms.
 - Use a slow, controlled motion to maximize muscle engagement.
+
+<!-- howto -->
+
+### Attach and Position
+Connect a single handle to the low pulley. Stand facing the machine with feet shoulder-width apart and knees slightly bent.
+
+### Grip and Create Tension
+Hold the handle with one hand, palm facing in, and step back until there is tension in the cable.
+
+### Row the Handle
+Pull the handle toward your torso while bending your elbow, keeping it close to your body throughout the movement.
+
+### Squeeze and Return
+At full contraction, squeeze your shoulder blades together, then slowly extend your arm back to the starting position.

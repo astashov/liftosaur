@@ -1,5 +1,6 @@
 ---
 video: "HiCEQXn7mSM"
+description: "Strengthen shoulders, chest, and triceps with the Dumbbell Around the World, improving shoulder stability and mobility through a full circular arc motion."
 ---
 
 ## Starting Position
@@ -8,7 +9,7 @@ video: "HiCEQXn7mSM"
 
 ## Execution
 1. **Movement Initiation**: Begin by raising the dumbbell up and over your head in a circular motion.
-2. **Arc Path**: Move the dumbbell behind your head and lower it toward your back while keeping your arms slightly bent. 
+2. **Arc Path**: Move the dumbbell behind your head and lower it toward your back while keeping your arms slightly bent.
 3. **Return Path**: Continue the circular motion by bringing the dumbbell down and back to the starting position in front of your chest.
 4. **Control**: Maintain control throughout the movement, keeping your core engaged to stabilize your body.
 
@@ -25,7 +26,21 @@ video: "HiCEQXn7mSM"
 
 ## Benefits
 - Strengthens shoulders, chest, and triceps.
-- Enhances shoulder stability and mobility. 
+- Enhances shoulder stability and mobility.
 - Improves coordination and balance.
 
 Always consult a fitness professional if you're unsure about technique or form.
+
+<!-- howto -->
+
+### Set Up the Starting Position
+Stand or sit upright holding a dumbbell vertically with both hands, arms extended in front at chest level. Keep your core engaged and elbows slightly bent.
+
+### Raise and Arc Overhead
+Lift the dumbbell upward and continue in a circular arc over your head. Keep your arms slightly bent throughout to protect your joints.
+
+### Continue Behind the Head
+Move the dumbbell behind your head and lower it toward your back while maintaining a neutral spine. Avoid arching the lower back.
+
+### Return to Start
+Continue the circular motion downward and back to the front starting position. Use slow, controlled tempo rather than momentum.

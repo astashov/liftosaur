@@ -1,5 +1,6 @@
 ---
 video: "6oYSPzZlwL0"
+description: "Strengthen glutes and hips with the Band Glute Bridge, using a resistance band above the knees to boost activation and abductor engagement."
 ---
 
 ### Setup
@@ -16,7 +17,21 @@ video: "6oYSPzZlwL0"
 ### Tips
 - Maintain a neutral spine throughout the movement.
 - Avoid overextending your back; focus on using your glutes.
-- Ensure your knees don’t collapse inward; they should track over your feet.
+- Ensure your knees don't collapse inward; they should track over your feet.
 
 ### Breathing
 - Inhale as you lower your hips and exhale as you lift them.
+
+<!-- howto -->
+
+### Set Up the Band
+Place a resistance band just above your knees and lie on your back with knees bent and feet flat on the floor, hip-width apart.
+
+### Engage and Brace
+Tighten your abdominal muscles to stabilize your pelvis. Push your knees slightly outward to maintain tension on the band.
+
+### Lift Your Hips
+Press through your heels and squeeze your glutes to lift your hips toward the ceiling. Your body should form a straight line from shoulders to knees at the top.
+
+### Hold and Lower
+Pause briefly at the top, feeling the glute contraction. Slowly lower your hips back to the starting position under control.

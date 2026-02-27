@@ -1,5 +1,6 @@
 ---
 video: "dhRz1Ns60Zg"
+description: "Strengthen the gastrocnemius with the Calf Press on Seated Leg Press by pressing through the balls of your feet through a full range of motion while seated."
 ---
 
 ## Setup
@@ -25,3 +26,17 @@ video: "dhRz1Ns60Zg"
 
 ## Conclusion
 Incorporate the Leverage Machine Calf Press into your routine for effective calf development, remembering to focus on form over weight.
+
+<!-- howto -->
+
+### Position Yourself on the Machine
+Sit with your back firmly against the pad and place the balls of your feet on the platform edge, heels hanging off. Push the platform slightly to confirm it is locked in position.
+
+### Flex Your Ankles Upward
+Press through the balls of your feet, lifting your heels as high as possible while keeping your knees straight. Exhale as you rise.
+
+### Lower Through a Full Stretch
+Bring your heels back down below platform level to achieve a complete calf stretch without letting them rest completely. Inhale on the descent.
+
+### Repeat with Controlled Tempo
+Continue the motion with slow, deliberate repetitions. Experiment with foot angle to target different portions of the calf musculature.

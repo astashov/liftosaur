@@ -1,5 +1,6 @@
 ---
 video: "DqkYuWR4zRI"
+description: "Master the Kettlebell Swing to develop explosive hip drive and power, targeting glutes, hamstrings, and core through a ballistic hip hinge."
 ---
 
 ## Starting Position
@@ -28,3 +29,20 @@ video: "DqkYuWR4zRI"
 - Ensure enough space around you to avoid hitting anything during the swing. 
 
 Using these guidelines will help you perform the kettlebell swing effectively and safely.
+
+<!-- howto -->
+
+### Set Your Grip and Stance
+Stand with feet shoulder-width apart. Bend slightly at the knees, hinge at the hips, and grasp the kettlebell with both hands, palms facing you.
+
+### Hinge Back
+Push your hips back while keeping your back straight, letting the kettlebell swing between your legs.
+
+### Drive Through Your Heels
+Thrust your hips forward explosively, driving through your heels to swing the kettlebell up to shoulder height. Let momentum carry it, keeping your arms relaxed.
+
+### Guide the Descent
+Allow the kettlebell to swing back between your legs, maintaining a hip hinge and a flat back as it descends.
+
+### Repeat Continuously
+Continue the rhythm of hip hinge and hip drive for each rep, keeping your back neutral and knees tracking over your toes throughout.

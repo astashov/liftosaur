@@ -1,5 +1,6 @@
 ---
 video: "84hrdsHgDuQ"
+description: "Develop glute and hamstring strength with the Bodyweight Single Leg Deadlift, hinging at the hip on one leg to challenge balance and posterior chain stability."
 ---
 
 ## Setup
@@ -24,3 +25,17 @@ video: "84hrdsHgDuQ"
 - **Overextending Hips**: Ensure your hips remain square and do not rotate as you move. 
 
 Following these steps will help you perform the Bodyweight Single Leg Deadlift with proper form, maximizing effectiveness while minimizing injury risk.
+
+<!-- howto -->
+
+### Stand on One Leg
+Stand tall with feet hip-width apart and shift your weight onto one leg. Engage your core and keep a slight bend in the standing knee.
+
+### Hinge at the Hips
+Lean forward at the hips, pushing them back while simultaneously extending the free leg straight behind you. Keep your back flat and chest up throughout.
+
+### Lower to Parallel
+Descend until your torso is roughly parallel to the ground, or as low as your flexibility allows. Keep the extended leg in line with your body and hips square.
+
+### Drive Back to Standing
+Reverse the movement by driving through the standing heel and engaging the glutes and hamstrings to return upright. Exhale as you rise and focus on a fixed point for balance.

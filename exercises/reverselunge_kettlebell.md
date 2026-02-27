@@ -1,5 +1,6 @@
 ---
 video: "y2jz7ot6r2I"
+description: "Develop quadriceps, glutes, and hamstrings with the Kettlebell Reverse Lunge, stepping backward while maintaining balance and upright posture."
 ---
 
 ## Setup
@@ -27,3 +28,17 @@ video: "y2jz7ot6r2I"
 - Not maintaining an upright torso
 
 By following these guidelines, you can effectively perform the Kettlebell Reverse Lunge with proper form.
+
+<!-- howto -->
+
+### Set Up
+Stand with feet shoulder-width apart, holding a kettlebell in one hand using a neutral grip or rack position for stability.
+
+### Step Back
+Take a step backward with one leg while keeping your torso upright and gaze forward to maintain balance.
+
+### Lower Into the Lunge
+Bend both knees to lower your body, keeping the front knee aligned over your ankle. Lower the back knee close to the floor without touching it. Keep your core tight throughout.
+
+### Drive Back Up
+Push through the heel of your front foot to return to standing. Switch the kettlebell to the opposite hand or alternate legs as prescribed.

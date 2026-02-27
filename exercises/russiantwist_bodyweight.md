@@ -1,5 +1,6 @@
 ---
 video: "LcZOnlec34E"
+description: "Strengthen your obliques and core with the Bodyweight Russian Twist, rotating your torso side to side while balancing on your sit bones."
 ---
 
 ## Starting Position
@@ -28,3 +29,17 @@ video: "LcZOnlec34E"
 ## Modifications
 - For a beginner, keep your feet on the ground.
 - Increase difficulty by holding a weight or pausing at each side.
+
+<!-- howto -->
+
+### Set Up the Starting Position
+Sit on the floor with knees bent and feet flat. Lean back slightly to engage your core while keeping your back straight. For added difficulty, elevate your feet and balance on your sit bones.
+
+### Clasp Your Hands
+Bring your hands together in front of your chest to form a balanced counterweight for the twist.
+
+### Rotate Side to Side
+Engage your core and rotate your torso to the right, bringing your hands beside your hip. Return to center, then rotate left. Keep your hips stable throughout and focus on controlled movement rather than speed.
+
+### Maintain Form
+Keep your core engaged and shoulders relaxed away from your ears during every repetition to protect your lower back.

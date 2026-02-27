@@ -1,5 +1,6 @@
 ---
 video: "M1HeORCwv8A"
+description: "Strengthen and isolate the abdominals with the Cable Crunch, using overhead cable resistance from a kneeling position for direct core training."
 ---
 
 **Equipment Needed:** Cable machine with a rope attachment
@@ -29,3 +30,17 @@ video: "M1HeORCwv8A"
 - Rounding the back; maintain a flat back.
 - Using arms to pull instead of engaging the core.
 - Overextending or straining the neck; keep it aligned with the spine.
+
+<!-- howto -->
+
+### Set Up and Kneel
+Set the cable pulley to the highest position and attach the rope handle. Kneel facing the machine with knees shoulder-width apart, grabbing the rope with both hands.
+
+### Position Elbows
+Pull the rope down so your elbows are beside your ears. This is your starting position before crunching.
+
+### Crunch Downward
+Lean forward from the hips and contract your abs to bring the rope toward your chest. Squeeze your abdominals at the lowest point and exhale during the downward phase.
+
+### Return with Tension
+Slowly extend your torso back to the starting position while controlling the cable. Do not let the weight stack touch to maintain tension throughout the set.

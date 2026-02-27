@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { Page } from "../../components/page";
+import { IJsonLd, Page } from "../../components/page";
 import { AllExercisesContent } from "./allExercisesContent";
 
 interface IProps {
@@ -12,6 +12,16 @@ export function AllExercisesHtml(props: IProps): JSX.Element {
   const title = `All exercises | Liftosaur`;
   const url = `https://www.liftosaur.com/exercises`;
 
+  const jsonLd: IJsonLd[] = [
+    {
+      type: "BreadcrumbList",
+      items: [
+        { name: "Home", url: "https://www.liftosaur.com" },
+        { name: "Exercises" },
+      ],
+    },
+  ];
+
   return (
     <Page
       css={["allexercises"]}
@@ -22,6 +32,7 @@ export function AllExercisesHtml(props: IProps): JSX.Element {
       isLoggedIn={!!isLoggedIn}
       description="List of all available exercises, with their type, target and synergist muscle groups."
       ogUrl={url}
+      jsonLd={jsonLd}
       data={data}
       client={client}
       url="/exercises"

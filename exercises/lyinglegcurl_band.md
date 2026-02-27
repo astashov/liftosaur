@@ -1,5 +1,6 @@
 ---
 video: "vl5nUdE9mWM"
+description: "Target your hamstrings with the Band Lying Leg Curl, lying face down and curling your heels toward your glutes against band resistance."
 ---
 
 ### Setup
@@ -25,3 +26,17 @@ video: "vl5nUdE9mWM"
 - Allowing the band to go slack during the exercise. 
 
 By following these steps, you can perform the Band Lying Leg Curl effectively and safely.
+
+<!-- howto -->
+
+### Set Up the Band
+Secure one end of the resistance band to a stable object anchored low to the ground. Lie face down on a mat with the band attached around your ankles.
+
+### Set Starting Position
+Keep your legs extended straight behind you with knees aligned and hips pressed into the mat. Engage your core.
+
+### Curl Your Heels Up
+Flex your knees to bring your heels toward your glutes, keeping your hips pressed down throughout the movement. Hold briefly at the top.
+
+### Extend With Control
+Slowly extend your legs back to the starting position, maintaining tension in the band and avoiding any jerky movements.

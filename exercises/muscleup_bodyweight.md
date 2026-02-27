@@ -1,5 +1,6 @@
 ---
 video: "lbEl3yg4YWA"
+description: "Master the Bodyweight Muscle-Up, transitioning from a pull-up into a dip above the bar to build explosive upper-body pulling and pushing strength."
 ---
 
 ## Setup
@@ -33,3 +34,20 @@ video: "lbEl3yg4YWA"
 - **Progress Gradually**: Use assisted variations if needed before attempting the full movement. 
 
 Always prioritize form to prevent injury.
+
+<!-- howto -->
+
+### Hang from the Bar
+Grip the bar with an overhand grip slightly wider than shoulder-width and hang with arms fully extended. Engage your shoulders.
+
+### Pull Your Chest to the Bar
+Initiate the pull-up by driving your elbows down and back, pulling your chest toward the bar with focus on using your back muscles.
+
+### Transition Over the Bar
+As your chin passes the bar, lean your torso forward and shift your wrists over the bar to transition from a pull to a push position.
+
+### Push to Full Extension
+Press down with your arms as in a dip, keeping your elbows close to your body, until your arms are fully locked out above the bar.
+
+### Lower Under Control
+Hold the top position briefly, then lower yourself back down with control to the starting hang position.

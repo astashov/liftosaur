@@ -1,5 +1,6 @@
 ---
 video: "9HyWjAk7fhY"
+description: "Master the Barbell Clean and Jerk by pulling the bar to your shoulders then driving it overhead, developing full-body power, explosiveness, and coordination."
 ---
 
 ## Setup
@@ -29,3 +30,17 @@ video: "9HyWjAk7fhY"
 - Engage your core for stability.
 
 Follow these steps to perform the barbell clean and jerk safely and effectively.
+
+<!-- howto -->
+
+### Set Up for the Clean
+Stand with feet shoulder-width apart, toes slightly out. Grip the bar just outside your knees with an overhand grip, hips lower than shoulders, and back straight.
+
+### Execute the Clean
+Push through your heels and extend hips and knees. As the bar passes your knees, explosively shrug and pull it up, then drop under and catch it on your shoulders.
+
+### Prepare for the Jerk
+Stand from the squat with the bar resting on your front deltoids. Take a short dip by bending your knees slightly while keeping your torso upright.
+
+### Drive and Lock Out Overhead
+Explosively extend your legs to drive the bar upward, then press and lock your arms out overhead. Stabilize your stance and carefully lower the bar back to shoulders, then to the floor.

@@ -1,5 +1,6 @@
 ---
 video: "MlqHEfydPpE"
+description: "Perform the Barbell Shrug to build upper trapezius strength and thickness by elevating the shoulders against heavy resistance."
 ---
 
 ### Starting Position
@@ -17,3 +18,17 @@ video: "MlqHEfydPpE"
 - Keep your neck neutral; avoid leaning your head forward or backward.
 - Maintain a straight back throughout the movement.
 - Focus on using your trapezius muscles rather than using momentum.
+
+<!-- howto -->
+
+### Set Your Grip
+Stand upright with feet shoulder-width apart and hold the barbell with an overhand grip slightly wider than shoulder-width. Let the bar rest against your thighs with arms fully extended.
+
+### Engage and Lift
+Keep your core tight and raise your shoulders straight up toward your ears as high as possible. Avoid rolling your shoulders forward or backward.
+
+### Pause at the Top
+Hold the peak position briefly, maintaining tension in your trapezius muscles throughout the contraction.
+
+### Lower with Control
+Slowly lower your shoulders back to the starting position, fully extending your arms. Maintain a straight back and neutral neck throughout the descent.

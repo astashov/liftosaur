@@ -1,5 +1,6 @@
 ---
 video: "_gsUck-7M74"
+description: "Target the triceps with the Dumbbell Triceps Extension, holding a single dumbbell overhead and lowering it behind your head to work the long head."
 ---
 
 ### Starting Position
@@ -25,3 +26,17 @@ video: "_gsUck-7M74"
 
 ### Conclusion
 Focus on proper form to maximize the effectiveness of the Dumbbell Triceps Extension and prevent injury.
+
+<!-- howto -->
+
+### Set Up and Grip
+Stand or sit with back support. Hold a single dumbbell with both hands, thumbs wrapped around the handle with fingers gripping the body.
+
+### Raise to Starting Position
+Extend your arms overhead with elbows close to your ears. This is your starting position.
+
+### Lower Behind the Head
+Slowly bend your elbows to lower the dumbbell behind your head, keeping elbows stationary and pointed forward throughout.
+
+### Extend and Repeat
+Engage your triceps to straighten your arms back to the starting position. Exhale as you lift and keep movements slow and controlled.

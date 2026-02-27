@@ -1,5 +1,6 @@
 ---
 video: "EfuMmkeeoFU"
+description: "Target the upper pectoral clavicular with the Cable Incline Bench Press, pressing cable handles from an inclined bench for constant tension chest training."
 ---
 
 ### Setup
@@ -32,3 +33,17 @@ video: "EfuMmkeeoFU"
 ### Safety
 - Use a weight that allows for proper form.
 - Avoid rapid movements to reduce risk of injury.
+
+<!-- howto -->
+
+### Set Up
+Set the incline bench to 30-45 degrees and position cable pulleys at the lowest setting on each side. Sit on the bench and grip the cable handles.
+
+### Position on the Bench
+Lean back so your head, shoulders, and hips are in contact with the bench. Draw the handles to chest level with elbows at about a 45-degree angle.
+
+### Press the Cables
+Push the handles upward in a controlled arc, extending your arms without locking the elbows. Squeeze your chest at the top.
+
+### Return with Control
+Slowly lower the handles back to the starting position, maintaining cable tension throughout the descent.

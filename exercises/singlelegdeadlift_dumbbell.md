@@ -1,5 +1,6 @@
 ---
 video: "84hrdsHgDuQ"
+description: "Build single-leg glute and hamstring strength with the Dumbbell Single Leg Deadlift, hinging forward on one leg while holding a dumbbell to challenge balance."
 ---
 
 ### Setup
@@ -27,3 +28,17 @@ video: "84hrdsHgDuQ"
 ### Tips
 - Start with light weights to master the form.
 - Use a mirror or record yourself to check form and alignment.
+
+<!-- howto -->
+
+### Set Up with the Dumbbell
+Stand with feet hip-width apart. Hold a dumbbell in one hand (opposite to the leg you will raise) and let it hang at your side.
+
+### Hinge and Extend
+Shift your weight to the standing leg and hinge at the hips, extending the opposite leg straight back. Lower the dumbbell toward the ground while maintaining a flat back and slightly bent standing knee.
+
+### Reach the Bottom Position
+Lower until your torso is approximately parallel to the floor with the dumbbell close to your body. Keep your hips square and avoid rotating them during the movement.
+
+### Return to Standing
+Engage the glutes and hamstrings to drive back to the starting position, bringing the raised leg down. Inhale while lowering and exhale while rising.

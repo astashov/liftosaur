@@ -1,5 +1,6 @@
 ---
 video: "UxvC0x7lmYM"
+description: "Target the posterior deltoids with the Cable Standing Rear Delt Row with Rope, using a rope attachment to isolate the rear shoulders."
 ---
 
 ## Setup
@@ -25,3 +26,17 @@ video: "UxvC0x7lmYM"
 - Ignoring the range of motion; avoid short, jerky movements.
 
 By following these guidelines, you’ll maximize the effectiveness of the Cable Standing Row Rear Delt with Rope while minimizing the risk of injury.
+
+<!-- howto -->
+
+### Set Up and Position
+Attach a rope to the low pulley of a cable machine. Stand facing the machine with feet shoulder-width apart, knees slightly bent, and core engaged.
+
+### Grip the Rope
+Grasp the rope with both hands, palms facing each other, with arms fully extended toward the cable.
+
+### Pull Toward Face
+Pull the rope toward your face with elbows high and flared outward. Thumbs should point toward your ears at the peak of the movement.
+
+### Squeeze and Return
+Hold the contraction briefly while squeezing shoulder blades together, then slowly extend your arms back to the starting position with control.

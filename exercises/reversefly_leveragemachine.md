@@ -1,5 +1,6 @@
 ---
 video: "vJYkqD7a0gM"
+description: "Target your rear deltoids and upper back with the Leverage Machine Reverse Fly, pulling handles outward with controlled shoulder blade engagement."
 ---
 
 ### Setup
@@ -28,3 +29,17 @@ video: "vJYkqD7a0gM"
 ### Safety Tips
 - Avoid overextending your arms.
 - Ensure your movements are smooth to prevent any strain.
+
+<!-- howto -->
+
+### Adjust the Machine
+Set the seat height so your arms are parallel to the ground when grasping the handles. Sit with your back flat against the backrest and feet flat on the floor.
+
+### Grip and Position
+Hold the handles with an overhand grip, arms extended in front with a slight elbow bend to reduce joint strain.
+
+### Pull Back
+Engage your core and slowly pull the handles outward and back in a controlled motion, focusing on squeezing your shoulder blades together. Keep elbows at shoulder height.
+
+### Return to Start
+Control the weight back to the starting position smoothly, avoiding any sudden movements or momentum. Exhale during the pull, inhale on the return.

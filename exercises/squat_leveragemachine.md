@@ -1,5 +1,6 @@
 ---
 video: "G_wrc8Suow0"
+description: "Strengthen quads, glutes, and hamstrings with the Leverage Machine Squat, using a guided machine to safely perform the squat pattern with controlled resistance."
 ---
 
 ## Setup
@@ -26,3 +27,17 @@ video: "G_wrc8Suow0"
 - **Spotter**: If necessary, have a spotter to assist during heavy lifts.
 
 By following these guidelines, you can safely and effectively perform the Leverage Machine Squat for optimal results.
+
+<!-- howto -->
+
+### Adjust the Machine
+Set the seat height so your knees align with the machine's pivot point when seated. Place your feet shoulder-width apart on the platform, adjusting position for your target muscle emphasis.
+
+### Assume the Starting Position
+Sit with your back firmly against the pad and shoulders under the shoulder pads. Engage your core before beginning the movement.
+
+### Lower the Body
+Slowly bend your knees and lower your body, keeping your back straight and chest up. Descend until your thighs are parallel to the floor or slightly below while keeping knees tracking over toes.
+
+### Press Back Up
+Drive through your heels to return to the starting position. Inhale on the way down and exhale while pushing up. Maintain back contact with the pad throughout the movement.

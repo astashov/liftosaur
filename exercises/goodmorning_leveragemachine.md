@@ -1,5 +1,6 @@
 ---
 video: "c_vjqExoTRU"
+description: "Target hamstrings and lower back with the Leverage Machine Good Morning, using machine-guided resistance to practice the hip hinge safely and effectively."
 ---
 
 ## Setup
@@ -8,7 +9,7 @@ video: "c_vjqExoTRU"
 
 ## Execution
 1. **Engage Core:** Tighten your abdominal muscles to stabilize your spine.
-2. **Start Position:** Grasp the handles or the machine’s frame to maintain balance. Keep your back straight and chest up.
+2. **Start Position:** Grasp the handles or the machine's frame to maintain balance. Keep your back straight and chest up.
 3. **Hip Hinge:** Slowly lower your torso forward by hinging at the hips. Maintain a neutral spine; do not round your back.
 4. **Lowering Phase:** Go down until your upper body is nearly parallel to the ground or you feel a comfortable stretch in your hamstrings.
 5. **Returning to Start:** Push through your hips to return to the starting position while keeping your back straight.
@@ -20,3 +21,17 @@ video: "c_vjqExoTRU"
 
 ## Caution
 - Only perform if you have a good foundation in hip hinging. Consult a trainer if unsure about your form.
+
+<!-- howto -->
+
+### Set Up the Machine
+Adjust the leverage machine to your body size, then sit with your back against the pad and feet flat on the footplate, knees slightly bent.
+
+### Brace and Start
+Engage your core and grasp the handles. Keep your back straight and chest up before initiating the movement.
+
+### Hinge Forward
+Hinge at the hips and lower your torso forward with a neutral spine until nearly parallel to the ground or until you feel a comfortable hamstring stretch.
+
+### Return with Control
+Drive through your hips to return to the starting position. Avoid using momentum or jerking through the movement.

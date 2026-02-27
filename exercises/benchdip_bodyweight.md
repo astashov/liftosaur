@@ -1,5 +1,6 @@
 ---
 video: "S8vL5DK04fU"
+description: "Strengthen the triceps and chest with the Bodyweight Bench Dip, using a stable bench to perform controlled dips that build pushing strength."
 ---
 
 ### Setup
@@ -29,3 +30,17 @@ video: "S8vL5DK04fU"
 - Not using full range of motion.
 
 By following these guidelines, you can effectively perform bodyweight bench dips with proper form to target your triceps and chest.
+
+<!-- howto -->
+
+### Set Up on the Bench
+Sit on the edge of a stable bench and place your hands shoulder-width apart with fingers facing forward. Extend your legs in front of you with heels on the floor.
+
+### Lower Your Body
+Bend your elbows to lower your body toward the ground. Keep elbows close to your sides at about a 45-degree angle and your back near the bench.
+
+### Reach Full Depth
+Lower until your upper arms are parallel to the ground or slightly below. Keep your shoulders down and back throughout.
+
+### Press Back Up
+Push through your palms to straighten your arms and return to the starting position. Focus on engaging the triceps and exhale as you rise.

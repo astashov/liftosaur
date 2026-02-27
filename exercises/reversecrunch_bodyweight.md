@@ -1,5 +1,6 @@
 ---
 video: "YDvaOlhaA1U"
+description: "Strengthen your lower abs with the Bodyweight Reverse Crunch, curling the pelvis upward while lying on your back."
 ---
 
 **Starting Position:**
@@ -24,3 +25,17 @@ video: "YDvaOlhaA1U"
 - Lifting your feet too high instead of keeping them close to the body.
 - Letting the lower back arch off the ground.
 - Using momentum instead of controlled movements.
+
+<!-- howto -->
+
+### Set Starting Position
+Lie on your back with arms at your sides or under your hips for support. Lift your legs so thighs are perpendicular to the floor and knees bent at 90 degrees.
+
+### Engage Your Core
+Pull your navel toward your spine to activate your lower abdominals before initiating the movement.
+
+### Curl Your Hips Up
+Exhale and use your lower abs to lift your hips off the ground, curling your pelvis toward your belly button. Keep your knees close to your chest.
+
+### Lower with Control
+Inhale and slowly lower your hips back to the starting position without letting your feet touch the ground. Maintain a smooth, controlled motion throughout.

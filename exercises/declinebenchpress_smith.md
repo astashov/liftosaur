@@ -1,5 +1,6 @@
 ---
 video: "39qwRmE6ffc"
+description: "Target the lower pectoral muscles with the Smith Machine Decline Bench Press by lowering the bar to the lower chest and pressing back up on a decline bench."
 ---
 
 ### Setup
@@ -28,3 +29,17 @@ video: "39qwRmE6ffc"
 ### Common Mistakes
 - **Excessive Arching**: Avoid excessive arch in your lower back; maintain a neutral spine.
 - **Too Wide Grip**: A grip that's too wide can strain your shoulders; keep it shoulder-width or slightly wider.
+
+<!-- howto -->
+
+### Set Up the Machine and Bench
+Adjust the decline bench to 15-30 degrees inside the Smith machine with your head at the lower end. Secure your feet and load an appropriate weight onto the bar.
+
+### Grip and Unrack
+Use a slightly wider than shoulder-width grip with palms facing away. Unrack by rotating the bar forward and hold it at chest level with arms extended.
+
+### Lower to the Lower Chest
+Control the descent of the bar toward your lower chest, keeping elbows at about 45 degrees from your torso. Pause just above your chest without bouncing.
+
+### Press Back Up
+Exhale and push the bar back to the starting position by fully extending your arms. Keep your wrists straight and movements smooth throughout each rep.

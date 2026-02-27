@@ -1,5 +1,6 @@
 ---
 video: "tugyPvy5zVk"
+description: "Target your deltoids with the Leverage Machine Lateral Raise, raising padded handles outward to shoulder height with smooth, controlled movement."
 ---
 
 ### Setup
@@ -29,3 +30,17 @@ video: "tugyPvy5zVk"
 - **Regularly Check Form**: Ensure alignment of elbows and shoulders throughout the exercise to prevent injury.
 
 By following these steps, you can effectively and safely perform the Leverage Machine Lateral Raise to target your shoulder muscles.
+
+<!-- howto -->
+
+### Adjust the Machine and Sit
+Position the seat so your elbows align with the machine's pivot point. Sit upright with your back against the backrest and feet on the ground.
+
+### Grip the Handles
+Grab the machine's handles with a neutral grip, elbows slightly bent and at shoulder height.
+
+### Raise the Handles
+Exhale and slowly raise the handles outward and upward, following a natural arc until your elbows are parallel to the ground. Focus on contracting your deltoids.
+
+### Lower Slowly
+Inhale and lower the handles back to the starting position with control. Avoid using momentum or jerking the weight.

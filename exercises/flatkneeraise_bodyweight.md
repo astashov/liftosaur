@@ -1,5 +1,6 @@
 ---
 video: "vVBNqN5rojE"
+description: "Target the hip flexors and lower abs with the Flat Knee Raise by drawing your knees toward your chest from a lying position with a controlled, steady tempo."
 ---
 
 ### Starting Position
@@ -27,3 +28,17 @@ video: "vVBNqN5rojE"
 - Rapid movements: Focus on a slow and controlled pace.
 
 By following these steps, you can perform the Bodyweight Flat Knee Raise effectively while minimizing the risk of injury.
+
+<!-- howto -->
+
+### Lie Flat and Prepare
+Lie on your back on a mat with legs extended and arms at your sides or under your head for support. Tighten your abdominals before beginning.
+
+### Bring Your Knees to Your Chest
+Draw your knees toward your chest with feet together, and slightly lift your hips off the ground for added engagement. Hold briefly at the top.
+
+### Lower Slowly
+Gradually lower your hips and legs back to the starting position while maintaining control. Keep your lower back pressed into the mat throughout.
+
+### Breathe and Repeat
+Exhale as you lift your knees and inhale as you lower your legs. Move at a steady, controlled pace without swinging or using momentum.

@@ -1,5 +1,6 @@
 ---
 video: "Kmv0GvrR8MM"
+description: "Strengthen your calves with the Leverage Machine Standing Calf Raise, targeting the gastrocnemius through a full range of motion."
 ---
 
 ### Setup:
@@ -18,3 +19,20 @@ video: "Kmv0GvrR8MM"
 - Keep your core engaged for stability.
 - Avoid using momentum; focus on the muscle working.
 - Ensure your knees remain straight throughout the exercise.
+
+<!-- howto -->
+
+### Position Yourself
+Stand on the platform with your shoulders under the padded bar and the balls of your feet on the edge, heels hanging off.
+
+### Set Starting Position
+Begin with heels at platform level and legs straight but not locked. Keep your core engaged for stability.
+
+### Raise Your Heels
+Push through the balls of your feet to lift your heels as high as possible, focusing on calf muscle contraction.
+
+### Hold and Lower
+Briefly hold the peak contraction, then slowly lower your heels below the platform level to stretch the calves fully.
+
+### Maintain Control
+Continue for the desired reps, avoiding momentum and keeping movements smooth and deliberate throughout.

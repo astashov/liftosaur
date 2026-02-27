@@ -1,5 +1,6 @@
 ---
 video: "iCguvlm_33E"
+description: "Target hamstrings and glutes with the Band Straight Leg Deadlift, standing on the band and hinging forward until the torso is parallel to the floor."
 ---
 
 ## Equipment Needed
@@ -30,3 +31,17 @@ video: "iCguvlm_33E"
 - Using too much momentum rather than controlled movement.
 
 By following these steps, you'll effectively target your hamstrings and glutes while maintaining proper form during the Band Straight Leg Deadlift.
+
+<!-- howto -->
+
+### Set Up the Band
+Stand on the center of the band with feet shoulder-width apart. Hold both ends with arms fully extended down in front of you.
+
+### Hinge at the Hips
+Push your hips back while keeping your back straight and chest up. Keep the band taut as you lower your torso.
+
+### Lower Until Parallel
+Bend at the hips until your torso is approximately parallel to the ground, maintaining constant tension on the band throughout.
+
+### Return to Standing
+Drive your hips forward and reverse the motion to return to the upright position, squeezing your glutes at the top.

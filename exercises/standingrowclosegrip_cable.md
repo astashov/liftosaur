@@ -1,5 +1,6 @@
 ---
 video: "ymphH79QO48"
+description: "Develop upper back thickness with the Cable Standing Row Close Grip, targeting the rhomboids and lats with elbows close to the body."
 ---
 
 ### Equipment Needed
@@ -32,3 +33,17 @@ video: "ymphH79QO48"
 
 ### Conclusion
 Follow these steps and tips to perform the Cable Standing Row Close Grip with proper form, enhancing your strength and muscle development effectively.
+
+<!-- howto -->
+
+### Set Up the Cable Machine
+Set the pulley to a lower position and attach the close grip handle. Choose an appropriate weight for your level.
+
+### Establish Starting Position
+Stand facing the machine, feet shoulder-width apart, knees slightly bent, hips hinged slightly, and back straight with chest up.
+
+### Pull Toward Torso
+Exhale and pull the handle toward your torso, keeping elbows close to your body and squeezing shoulder blades together at the peak.
+
+### Controlled Return
+Inhale and slowly extend your arms back to the starting position, maintaining a neutral spine and engaged core throughout.

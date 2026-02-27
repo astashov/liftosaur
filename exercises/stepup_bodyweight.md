@@ -1,5 +1,6 @@
 ---
 video: "T4brBsjS_KU"
+description: "Develop quad and glute strength with the Bodyweight Step Up, a fundamental unilateral lower-body movement using only your body weight."
 ---
 
 ## Starting Position
@@ -24,3 +25,17 @@ video: "T4brBsjS_KU"
 - Not engaging the core or using poor posture.
 
 By following these steps, you will perform the bodyweight step up safely and effectively.
+
+<!-- howto -->
+
+### Set Starting Position
+Stand facing a sturdy platform or bench with feet hip-width apart. Keep your back straight and core engaged.
+
+### Step Up
+Place one foot firmly on the platform, keeping your weight on that leg throughout the movement.
+
+### Drive Through the Heel
+Push through the heel of the elevated foot, straightening your leg to lift your body onto the platform while bringing the opposite knee up.
+
+### Lower Down
+Step down carefully with control, then alternate legs and continue the movement for the desired reps.

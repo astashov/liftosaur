@@ -1,5 +1,6 @@
 ---
 video: "ZPG8OsHKXLw"
+description: "Develop lats, biceps, and upper back with the Bodyweight Pull-Up, pulling your chin above the bar from a dead hang using back-led movement."
 ---
 
 ## Starting Position
@@ -21,3 +22,17 @@ video: "ZPG8OsHKXLw"
 - **Swinging the Body**: Keep your legs still to prevent momentum.
 - **Incomplete Range of Motion**: Ensure your chin clears the bar at the top and you fully extend your arms at the bottom.
 - **Shrugging Shoulders**: Keep shoulders relaxed to engage the back muscles effectively.
+
+<!-- howto -->
+
+### Grip and Hang
+Grip the bar with an overhand grip, hands slightly wider than shoulder-width apart. Hang with arms fully extended, shoulders relaxed.
+
+### Engage Your Core
+Tighten your abdominals to stabilize your body and prevent swinging throughout the movement.
+
+### Pull Up
+Drive your elbows down toward your sides, squeezing your shoulder blades together to bring your chin above the bar.
+
+### Lower With Control
+Slowly return to the dead hang position, fully extending your arms before beginning the next repetition.

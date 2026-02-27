@@ -1,5 +1,6 @@
 ---
 video: "NFzTWp2qpiE"
+description: "Build bicep strength with the Cable Bicep Curl, using constant cable tension to isolate the biceps through a smooth, controlled curling motion."
 ---
 
 ### Equipment Needed
@@ -33,3 +34,17 @@ video: "NFzTWp2qpiE"
 - Letting shoulders rise during the curl.
 
 Following these guidelines will help ensure you perform the Cable Bicep Curl with proper form, maximizing effectiveness and reducing the risk of injury.
+
+<!-- howto -->
+
+### Set Up the Cable
+Attach a straight bar or rope to the low pulley. Stand facing the machine with feet shoulder-width apart and grip the attachment with an underhand grip (palms up).
+
+### Position and Brace
+Keep your elbows close to your torso, stand tall with a slight knee bend, and engage your core before curling.
+
+### Curl to Shoulder Height
+Pull the bar or rope toward your shoulders, keeping your elbows stationary. Curl until the biceps are fully contracted and squeeze at the peak.
+
+### Lower with Full Extension
+Slowly lower the attachment back to the starting position with control. Allow your arms to fully extend without locking the elbows.

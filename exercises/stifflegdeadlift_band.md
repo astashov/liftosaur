@@ -1,5 +1,6 @@
 ---
 video: "CN_7cz3P-1U"
+description: "Target hamstrings and glutes with the Band Stiff Leg Deadlift, hinging at the hips with straight legs against resistance band tension."
 ---
 
 ### Setup
@@ -17,3 +18,17 @@ video: "CN_7cz3P-1U"
 - Keep the band taut—avoid slack.
 - Maintain a neutral spine throughout the movement.
 - Control the movement; avoid jerking or using momentum.
+
+<!-- howto -->
+
+### Set Up the Band
+Step on the band with both feet under the mid-foot and hold the ends in each hand with arms fully extended.
+
+### Hinge at Hips
+Stand tall, then push your hips back while maintaining a slight bend in the knees and keeping your back straight and core engaged.
+
+### Lower the Band
+Allow the band to lower toward the ground, keeping it close to your body until you feel a full stretch in the hamstrings.
+
+### Return to Standing
+Drive through your heels, engaging glutes and hamstrings to push your hips forward and return to the starting position.

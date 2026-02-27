@@ -1,5 +1,6 @@
 ---
 video: "P42ulzWRveI"
+description: "Strengthen and develop the soleus with the Barbell Seated Calf Raise, performing ankle extensions under load while seated on a bench."
 ---
 
 ## Setup
@@ -23,3 +24,17 @@ video: "P42ulzWRveI"
 - Exhale while lifting your heels and inhale as you lower them. 
 
 Ensure to focus on controlled movements for maximum effectiveness and safety.
+
+<!-- howto -->
+
+### Set Up Position
+Sit on a bench with feet flat on the ground and shoulder-width apart. Rest the barbell across your thighs just above your knees, allowing your heels to hang off the edge.
+
+### Raise Your Heels
+Push through the balls of your feet to raise your heels as high as possible. Fully extend your ankles at the top of the movement.
+
+### Lower with Control
+Gradually lower your heels back toward the starting position, feeling the stretch in your calves. Avoid bouncing at the bottom.
+
+### Breathe Steadily
+Exhale as you raise your heels and inhale as you lower them throughout each repetition.

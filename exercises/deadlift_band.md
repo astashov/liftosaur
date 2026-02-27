@@ -1,5 +1,6 @@
 ---
 video: "obM6SBVa-MU"
+description: "Build posterior chain strength with the Band Deadlift by standing on a resistance band and driving through your heels to full hip and knee extension."
 ---
 
 ## Setup
@@ -38,3 +39,17 @@ video: "obM6SBVa-MU"
 ## Conclusion
 
 The band deadlift is an excellent exercise for building strength in the posterior chain. Focus on maintaining proper form for maximum effectiveness and injury prevention.
+
+<!-- howto -->
+
+### Set Up Your Position
+Stand on the resistance band with feet shoulder-width apart, the band running under the arches of your feet. Bend down and grasp the band at shoulder-width with both hands.
+
+### Establish the Starting Position
+Hinge at the hips with a slight knee bend, keeping your back straight and chest lifted. Shoulders should be directly above or slightly in front of the band.
+
+### Drive to Standing
+Engage your core and push through your heels, straightening your hips and knees simultaneously. Keep the band close to your body throughout the lift and stand tall at the top.
+
+### Lower with Control
+Reverse the movement by hinging at the hips first, then bending your knees to return to the starting position. Maintain a neutral spine throughout the descent.

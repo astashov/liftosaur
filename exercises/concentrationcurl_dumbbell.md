@@ -1,5 +1,6 @@
 ---
 video: "Jvj2wV0vOYU"
+description: "Isolate the biceps with the Dumbbell Concentration Curl by resting your elbow on your inner thigh and curling the weight up with a peak contraction at the top."
 ---
 
 ### Starting Position
@@ -21,3 +22,17 @@ video: "Jvj2wV0vOYU"
 - Maintain a neutral wrist throughout the movement.
 - Avoid swinging or using momentum; focus on isolating the bicep.
 - Remember to switch arms after completing your repetitions.
+
+<!-- howto -->
+
+### Set Up Your Seat
+Sit on a bench with your feet flat on the ground, shoulder-width apart. Hold a dumbbell in one hand and rest that elbow on the inside of your thigh.
+
+### Curl the Dumbbell
+With a controlled motion, curl the dumbbell upward while keeping your upper arm fixed. Focus on contracting your bicep and squeeze briefly at the top.
+
+### Lower with Control
+Slowly lower the dumbbell back to the starting position, maintaining control throughout. Keep your wrist neutral and avoid swinging.
+
+### Switch Sides
+Complete all reps on one arm before switching to the other. Inhale as you lower and exhale during each upward curl.

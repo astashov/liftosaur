@@ -1,5 +1,6 @@
 ---
 video: "3zWKiW9BBpo"
+description: "Isolate and strengthen your quadriceps with the Leverage Machine Leg Extension, extending your legs upward against resistance with controlled movement."
 ---
 
 ### Setup
@@ -24,3 +25,17 @@ video: "3zWKiW9BBpo"
 
 ### Warning
 - If you feel any sharp pain, discontinue the exercise immediately and reassess your form.
+
+<!-- howto -->
+
+### Adjust and Sit
+Position the seat so your back is supported and knees align with the machine's pivot point. Set the pad to rest on your lower shins, just above your feet.
+
+### Set Starting Position
+Sit with your back pressed against the support and feet under the pad, knees bent at 90 degrees.
+
+### Extend Your Legs
+Lift the weight by straightening your knees, focusing on your quadriceps. Pause briefly at the top without locking out your knees.
+
+### Lower Slowly
+Return the weight to the starting position in a controlled manner, keeping your back pressed against the backrest throughout.

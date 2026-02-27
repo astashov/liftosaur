@@ -1,5 +1,6 @@
 ---
 video: "3VLTzIrnb5g"
+description: "Develop wrist flexor strength with the Dumbbell Wrist Curl, resting your forearm on a surface and curling the dumbbell using only wrist movement."
 ---
 
 ## Starting Position
@@ -23,3 +24,17 @@ video: "3VLTzIrnb5g"
 - Lifting with the arms instead of the wrists.
 - Using too much weight, leading to poor form.
 - Bouncing the dumbbell instead of using a smooth motion.
+
+<!-- howto -->
+
+### Set Up and Position
+Sit on a bench and hold a dumbbell in one hand with your palm facing up. Rest your forearm on your thigh with your wrist hanging off the edge.
+
+### Curl Upward
+Slowly flex your wrist to curl the dumbbell upward, squeezing briefly at the top of the movement.
+
+### Lower with Control
+Gradually lower the dumbbell back to the starting position, keeping your forearm stationary throughout.
+
+### Switch Sides
+Complete all reps on one side before alternating to the other arm.

@@ -1,6 +1,7 @@
 import { h, JSX } from "preact";
-import { Page } from "../../components/page";
-import { Exercise_get, Exercise_reverseName } from "../../models/exercise";
+import { IJsonLd, Page } from "../../components/page";
+import { Exercise_get, Exercise_reverseName, Exercise_toKey } from "../../models/exercise";
+import { exerciseDescriptions } from "../../models/exerciseDescriptions";
 import { ExerciseImageUtils_ogImageUrl } from "../../models/exerciseImage";
 import { IExerciseType } from "../../types";
 import { ExerciseContent } from "./exerciseContent";
@@ -20,6 +21,31 @@ export function ExerciseHtml(props: IProps): JSX.Element {
   const title = `${name} | Liftosaur`;
   const url = `https://www.liftosaur.com/exercises/${id}`;
 
+  const key = Exercise_toKey(data.exerciseType).toLowerCase();
+  const entry = exerciseDescriptions[key];
+  const description =
+    entry?.description ||
+    "Description of the exercise, how to perform it with proper form, muscles worked, and with what exercises you can substitute it.";
+
+  const jsonLd: IJsonLd[] = [
+    {
+      type: "BreadcrumbList",
+      items: [
+        { name: "Home", url: "https://www.liftosaur.com" },
+        { name: "Exercises", url: "https://www.liftosaur.com/exercises" },
+        { name },
+      ],
+    },
+  ];
+
+  if (entry?.howto && entry.howto.length > 0) {
+    jsonLd.push({
+      type: "HowTo",
+      name: `How to do ${name}`,
+      step: entry.howto,
+    });
+  }
+
   return (
     <Page
       css={["exercise"]}
@@ -29,9 +55,10 @@ export function ExerciseHtml(props: IProps): JSX.Element {
       title={title}
       canonical={url}
       isLoggedIn={!!isLoggedIn}
-      description="Description of the exercise, how to perform it with proper form, muscles worked, and with what exercises you can substitute it."
+      description={description}
       ogUrl={url}
       ogImage={`https://www.liftosaur.com${ExerciseImageUtils_ogImageUrl(data.exerciseType)}`}
+      jsonLd={jsonLd}
       data={data}
       client={client}
     >

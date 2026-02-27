@@ -1,5 +1,6 @@
 ---
 video: "fgXSA2-o0NM"
+description: "Isolate your pectoral muscles with the Leverage Machine Pec Deck, squeezing the handles together in a controlled arc to maximize chest contraction."
 ---
 
 ## Setup
@@ -27,3 +28,17 @@ video: "fgXSA2-o0NM"
 - Not using full range of motion.
 
 Following these guidelines will help you effectively perform the Leverage Machine Pec Deck with proper form and reduce the risk of injury.
+
+<!-- howto -->
+
+### Adjust the Seat
+Set the seat height so the handles align with your chest level. Sit back against the padded support with your back flat and feet on the floor.
+
+### Grip the Handles
+Grasp the handles with palms facing forward or inward depending on the machine design. Keep your elbows slightly bent.
+
+### Squeeze the Handles Together
+Push the handles together in a controlled arc, squeezing your chest muscles throughout the movement. Stop just before your elbows lock out.
+
+### Return to Starting Position
+Gradually release the handles back to the starting position with controlled movement, feeling the stretch in your chest at the end of the range.
