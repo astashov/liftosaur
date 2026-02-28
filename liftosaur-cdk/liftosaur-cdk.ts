@@ -720,6 +720,8 @@ export class LiftosaurCdkStack extends cdk.Stack {
       headerBehavior: cloudfront.CacheHeaderBehavior.allowList("X-Auth-State"),
       cookieBehavior: cloudfront.CacheCookieBehavior.none(),
       queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
+      enableAcceptEncodingGzip: true,
+      enableAcceptEncodingBrotli: true,
     });
 
     const cachedPageWithDeviceCachePolicy = new cloudfront.CachePolicy(
@@ -733,6 +735,8 @@ export class LiftosaurCdkStack extends cdk.Stack {
         headerBehavior: cloudfront.CacheHeaderBehavior.allowList("X-Auth-State", "X-Device-Type"),
         cookieBehavior: cloudfront.CacheCookieBehavior.none(),
         queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
+        enableAcceptEncodingGzip: true,
+        enableAcceptEncodingBrotli: true,
       }
     );
 
