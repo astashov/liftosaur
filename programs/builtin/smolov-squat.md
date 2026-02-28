@@ -136,7 +136,7 @@ Set your [{Squat}] 1RM in the app before starting. The program calculates all wo
 
 ## Common Modifications
 
-- **Smolov Jr.**: A popular 3-week abbreviated version that runs only the base mesocycle with slightly different set schemes (6x6, 7x5, 8x4, 10x3). Often used for [{Bench Press}] as well as [{Squat}]. Good option if you can't commit to 13 weeks.
+- **[Smolov Jr](/programs/smolov-jr)**: A popular 3-week abbreviated version that runs only the base mesocycle with slightly different set schemes (6x6, 7x5, 8x4, 10x3). Often used for [{Bench Press}] as well as [{Squat}]. Good option if you can't commit to 13 weeks.
 - **Knee protection**: Add 5-10 minutes of foam rolling quads and IT bands before each session. Knee sleeves are strongly recommended. Some lifters use light [{Leg Extension}] (1-2 sets of 20) as a warmup to flush blood into the knees.
 - **Switching phase alternatives**: Replace speed squats with [{Box Squat}], paused squats, or squat jumps. Some lifters add light upper body work during this phase since it's the only recovery window.
 - **Metric increments**: The original Russian program likely used +10 kg (Week 4) and +5 kg (Week 5) instead of +20/+10 lbs. If training in kg, use these values.
@@ -176,9 +176,9 @@ Eat in a significant caloric surplus — at minimum +500 calories per day, with 
 ## Day 1
 // **Intro Microcycle.** Ramping sets to prepare for the base mesocycle.
 Squat / 3x8 65%, 1x5 70%, 2x2 75%, 1x1 80% / 180s / progress: custom() {~
-  if (week == 3) {
+  if (week == 3 && dayInWeek == 4) {
     weights += 20lb
-  } else if (week == 4) {
+  } else if (week == 4 && dayInWeek == 4) {
     weights += 10lb
   } else if (week == 6 || (week == 13 && dayInWeek == 2)) {
     rm1 = completedWeights[ns]
