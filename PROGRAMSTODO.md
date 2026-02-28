@@ -13,7 +13,6 @@ Creeping Death 2
 Candito 6-Week Strength
 Coolcicada PPL
 PHAT
-Candito Linear Program
 TSA 9-Week Intermediate
 Westside for Skinny Bastards
 5/3/1 Triumvirate
