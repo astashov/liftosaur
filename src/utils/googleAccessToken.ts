@@ -48,6 +48,9 @@ export function getGoogleAccessToken(): Promise<string | undefined> {
       if (typeof data !== "string") {
         return;
       }
+      if (!data.startsWith("http://") && !data.startsWith("https://")) {
+        return;
+      }
       const callbackUrl = UrlUtils_build(data);
       const params = callbackUrl.hash.slice(1);
       const exUrl = UrlUtils_build("https://www.example.com");
