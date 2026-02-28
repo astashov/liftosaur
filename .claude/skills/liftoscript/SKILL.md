@@ -66,9 +66,13 @@ t1 / 3x3 / 85%
 
 **Critical**: Empty `## Day` headers are REQUIRED in later weeks for repeated exercises to show up. Without them, those days won't exist.
 
-### Forced ordering is usually unnecessary
+### Week range syntax `[from-to]`
 
-Use `Exercise[1-6]` not `Exercise[1,1-6]` unless you have multiple exercises starting on different days/weeks that need explicit ordering. The first number is a forced display order — only add it when the order would be ambiguous.
+`Exercise[1-6]` means the exercise repeats from week 1 through week 6. `Exercise[5-6]` means it starts from week 5 and runs through week 6 — useful for exercises that replace others partway through a program.
+
+**CRITICAL: `[1,3,5]` is NOT week selection.** Comma-separated numbers in brackets are parsed as forced display ordering, not "only on these weeks." `[1,3,5]` means "forced order position 1, weeks 3-5." If you need an exercise on non-contiguous weeks (e.g., weeks 1, 3, and 5 only), you must define it explicitly in each of those week headers — there is no shorthand for non-contiguous weeks.
+
+Forced ordering (`Exercise[1,1-6]`) is usually unnecessary. Use `Exercise[1-6]` unless you have multiple exercises starting on different days/weeks that need explicit ordering. The first number is a forced display order — only add it when the order would be ambiguous.
 
 ### Supersets
 
@@ -187,6 +191,7 @@ Fix errors and re-validate until it passes.
 2. Missing empty `## Day` headers in later weeks (exercises won't appear)
 3. Using `weights +=` in percentage-based programs (use `rm1 +=` instead)
 4. Using rep ranges with `dp()`: `3x8-12 / dp(...)` is WRONG
-5. Adding forced order numbers when not needed: `[1,1-6]` vs `[1-6]`
-6. Forgetting `warmup: none` on bodyweight exercises
-7. Defining exercises in every week instead of using `[1-N]` and template redefinitions
+5. Using `[1,3,5]` thinking it selects weeks 1, 3, and 5 — it's actually forced ordering, not week selection. For non-contiguous weeks, define the exercise explicitly in each week header.
+6. Adding forced order numbers when not needed: `[1,1-6]` vs `[1-6]`
+7. Forgetting `warmup: none` on bodyweight exercises
+8. Defining exercises in every week instead of using `[1-N]` and template redefinitions
