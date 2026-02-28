@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { DateUtils_formatYYYYMMDDHHMM } from "./date";
-import { lg } from "./posthog";
+import { lg, lgDebug } from "./posthog";
 
 export interface IAsyncQueueOptions {
   timeoutMs?: number;
@@ -28,6 +28,7 @@ export class AsyncQueue {
   public readonly defaultTimeoutMs = 120000;
   public currentItem: IQueueItem | null = null;
   public readonly logs: [string, string, Record<string, string | number>][] = [];
+  private _processingGeneration = 0;
 
   public enqueue<T, V>(
     operation: (deps: V, signal: AbortSignal) => Promise<T>,
@@ -60,6 +61,10 @@ export class AsyncQueue {
       };
 
       this.queue.push(item);
+      lgDebug("dbg-queue-enqueue", "lkqtuayqpa", {
+        queueLength: this.queue.length,
+        isProcessing: this.isProcessing ? 1 : 0,
+      });
       this.processQueue();
     });
   }
@@ -69,7 +74,9 @@ export class AsyncQueue {
       return;
     }
 
+    lgDebug("dbg-queue-process", "lkqtuayqpa", { queueLength: this.queue.length });
     this.isProcessing = true;
+    const generation = ++this._processingGeneration;
     try {
       const item = this.queue.shift();
       this.addLog("processing item", { queueLength: this.queue.length });
@@ -106,6 +113,14 @@ export class AsyncQueue {
     } catch (error) {
       throw error;
     } finally {
+      if (generation !== this._processingGeneration) {
+        lgDebug("dbg-queue-stale-finally", "lkqtuayqpa", {
+          staleGen: generation,
+          currentGen: this._processingGeneration,
+          queueLength: this.queue.length,
+        });
+        return;
+      }
       this.currentItem = null;
       this.isProcessing = false;
       this.processQueue();
@@ -143,6 +158,7 @@ export class AsyncQueue {
   public clearStaleOperations(): void {
     const now = Date.now();
     this.addLog("clear-stale-operations", { queueLength: this.queue.length });
+    let clearedCurrent = false;
 
     if (this.currentItem && this.currentItem.timeoutMs) {
       const elapsed = now - this.currentItem.enqueuedAt;
@@ -157,6 +173,7 @@ export class AsyncQueue {
         this.currentItem.controller.abort();
         this.currentItem = null;
         this.isProcessing = false;
+        clearedCurrent = true;
       }
     }
 
@@ -183,6 +200,12 @@ export class AsyncQueue {
       this.queue.splice(staleIndices[i], 1);
     }
 
+    lgDebug("dbg-queue-after-clear-stale", "lkqtuayqpa", {
+      clearedQueued: staleIndices.length,
+      clearedCurrent: clearedCurrent ? 1 : 0,
+      remainingQueue: this.queue.length,
+      isProcessing: this.isProcessing ? 1 : 0,
+    });
     if (!this.isProcessing && this.queue.length > 0) {
       this.processQueue();
     }

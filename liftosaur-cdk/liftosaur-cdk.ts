@@ -618,9 +618,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
         originOverride: false,
       },
       customHeadersBehavior: {
-        customHeaders: [
-          { header: "Cache-Control", value: "no-cache", override: true },
-        ],
+        customHeaders: [{ header: "Cache-Control", value: "no-cache", override: true }],
       },
     });
 

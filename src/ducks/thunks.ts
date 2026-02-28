@@ -64,7 +64,7 @@ import {
 import { IImportLinkData, ImportFromLink_importFromLink } from "../utils/importFromLink";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils_log } from "../utils/log";
-import { lg } from "../utils/posthog";
+import { lg, lgDebug } from "../utils/posthog";
 import { RollbarUtils_config } from "../utils/rollbar";
 import { UrlUtils_build } from "../utils/url";
 import { ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords } from "../utils/importFromLiftosaur";
@@ -360,15 +360,24 @@ async function _sync2(
     const storageUpdate = Sync_getStorageUpdate2(state.storage, state.lastSyncedStorage, state.deviceId);
     if (args?.force || storageUpdate.storage) {
       const lastSyncedStorage = state.storage;
+      const t0 = Date.now();
       const result = await env.service.postSync({
         tempUserId: state.storage.tempUserId,
         storageUpdate: storageUpdate,
         signal,
         deviceId: state.deviceId,
       });
+      const fetchMs = Date.now() - t0;
       if (signal?.aborted) {
+        lgDebug("dbg-sync2-aborted", "lkqtuayqpa", { fetchMs });
         return;
       }
+      lgDebug("dbg-sync2-response", "lkqtuayqpa", {
+        fetchMs,
+        type: result.type,
+        force: args?.force ? 1 : 0,
+        hasStorageUpdate: storageUpdate.storage ? 1 : 0,
+      });
       handleResponse(result, { lastSyncedStorage });
     }
   }
@@ -454,6 +463,11 @@ export function Thunk_sync2(args?: { force?: boolean; cb?: () => void; log?: boo
         })
       );
     }
+    lgDebug("dbg-sync2-dispatch", "lkqtuayqpa", {
+      force: args?.force ? 1 : 0,
+      queueLength: env.queue.length(),
+      isProcessing: env.queue.getIsProcessing() ? 1 : 0,
+    });
     try {
       const state = getState();
       if (state.errors.corruptedstorage == null && !state.nosync && (state.user != null || args?.force)) {
