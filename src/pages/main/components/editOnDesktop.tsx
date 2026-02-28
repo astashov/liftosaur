@@ -40,6 +40,7 @@ export function EditOnDesktop(): JSX.Element {
               <img
                 src="/images/webeditor2.png"
                 alt="Web editor screenshot"
+                loading="lazy"
                 className="absolute"
                 style={{
                   top: "19px",
@@ -54,6 +55,7 @@ export function EditOnDesktop(): JSX.Element {
             <img
               src="/images/webeditor2.png"
               alt="Web editor screenshot"
+              loading="lazy"
               className="absolute"
               style={{
                 top: "84px",

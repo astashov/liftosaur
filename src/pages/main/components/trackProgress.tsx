@@ -148,7 +148,7 @@ export function TrackProgress(): JSX.Element {
                 {items.map((item, i) => (
                   <img
                     src={item.image}
-                    loading="eager"
+                    loading="lazy"
                     className="w-full rounded-2xl"
                     style={{
                       width: "248px",

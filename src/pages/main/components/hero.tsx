@@ -47,6 +47,7 @@ export function Hero(props: { deviceType?: "ios" | "android" | "desktop"; testim
                 autoPlay
                 muted
                 loop
+                poster="/images/mainvideo-poster.jpg"
                 src="/images/mainvideo.mp4"
               />
             </div>
