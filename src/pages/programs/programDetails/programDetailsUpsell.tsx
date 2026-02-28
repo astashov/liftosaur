@@ -37,6 +37,7 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
               <img
                 src="/images/store-qr-code.png"
                 alt="QR code for app stores"
+                loading="lazy"
                 style={{ width: "90px", height: "90px" }}
               />
             </div>
@@ -52,6 +53,7 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
                   <img
                     src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1673481600"
                     alt="Download on the App Store"
+                    loading="lazy"
                     style={{ width: "120px", height: "40px" }}
                     className="rounded-xl"
                   />
@@ -68,6 +70,7 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
                   <img
                     alt="Get it on Google Play"
                     src="/images/googleplay.png"
+                    loading="lazy"
                     style={{
                       width: "120px",
                       height: "35px",
