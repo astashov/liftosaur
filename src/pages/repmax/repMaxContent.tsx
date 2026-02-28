@@ -258,23 +258,31 @@ function RepMaxInfo(props: { reps: number | undefined }): JSX.Element {
   return (
     <div className="max-w-2xl mx-auto text-left px-4">
       <div className="mb-6">
-        <h2 className="text-lg font-bold mb-2">What is a {reps}RM ({repsLabel}Rep Max)?</h2>
+        <h2 className="text-lg font-bold mb-2">
+          What is a {reps}RM ({repsLabel}Rep Max)?
+        </h2>
         <p className="text-sm text-text-secondary">
-          Your {reps}RM is the maximum weight you can lift for exactly {reps} rep{reps > 1 ? "s" : ""} with proper form.
-          {" "}It's a key number in strength training. Many percentage-based programs like{" "}
-          <a href="/programs/the-rippler" className="text-link-color underline">The Rippler</a>,{" "}
-          <a href="/programs/the-5-3-1-program" className="text-link-color underline">5/3/1</a>,{" "}
-          and others use your {reps === 1 ? "1RM" : "1RM (derived from your " + reps + "RM)"} to calculate working weights.
+          Your {reps}RM is the maximum weight you can lift for exactly {reps} rep{reps > 1 ? "s" : ""} with proper form.{" "}
+          It's a key number in strength training. Many percentage-based programs like{" "}
+          <a href="/programs/the-rippler" className="text-link-color underline">
+            The Rippler
+          </a>
+          ,{" "}
+          <a href="/programs/the-5-3-1-program" className="text-link-color underline">
+            5/3/1
+          </a>
+          , and others use your {reps === 1 ? "1RM" : "1RM (derived from your " + reps + "RM)"} to calculate working
+          weights.
         </p>
       </div>
 
       <div className="mb-6">
         <h2 className="text-lg font-bold mb-2">How This Calculator Works</h2>
         <p className="text-sm text-text-secondary">
-          Enter a weight you've lifted and how many reps you did with it. The calculator uses RPE (Rate of Perceived Exertion)
-          tables to estimate your {reps}RM. Unlike simple formula-based calculators (Epley, Brzycki), RPE tables account
-          for effort level and are calibrated from trained strength athletes' data, making them more accurate,
-          especially for higher rep ranges where simple formulas tend to diverge.
+          Enter a weight you've lifted and how many reps you did with it. The calculator uses RPE (Rate of Perceived
+          Exertion) tables to estimate your {reps}RM. Unlike simple formula-based calculators (Epley, Brzycki), RPE
+          tables account for effort level and are calibrated from trained strength athletes' data, making them more
+          accurate, especially for higher rep ranges where simple formulas tend to diverge.
         </p>
       </div>
 
@@ -283,32 +291,32 @@ function RepMaxInfo(props: { reps: number | undefined }): JSX.Element {
         <div className="mb-4">
           <h3 className="text-sm font-bold mb-1">How accurate are rep max calculators?</h3>
           <p className="text-sm text-text-secondary">
-            Calculators give a good estimate, but accuracy decreases as the rep difference grows. Estimating
-            your 1RM from a 3-rep set is more reliable than from a 12-rep set. RPE-based calculations (used here)
-            tend to be more accurate than simple formulas because they account for effort level.
+            Calculators give a good estimate, but accuracy decreases as the rep difference grows. Estimating your 1RM
+            from a 3-rep set is more reliable than from a 12-rep set. RPE-based calculations (used here) tend to be more
+            accurate than simple formulas because they account for effort level.
           </p>
         </div>
         <div className="mb-4">
           <h3 className="text-sm font-bold mb-1">What is RPE?</h3>
           <p className="text-sm text-text-secondary">
-            RPE stands for Rate of Perceived Exertion. It's a scale from 1-10 that measures how hard a set felt.
-            RPE 10 means you couldn't do another rep. RPE 8 means you had about 2 reps left in the tank.
-            If you're unsure of your RPE, leave it at 10.
+            RPE stands for Rate of Perceived Exertion. It's a scale from 1-10 that measures how hard a set felt. RPE 10
+            means you couldn't do another rep. RPE 8 means you had about 2 reps left in the tank. If you're unsure of
+            your RPE, leave it at 10.
           </p>
         </div>
         <div className="mb-4">
           <h3 className="text-sm font-bold mb-1">Should I test my 1RM directly?</h3>
           <p className="text-sm text-text-secondary">
-            Testing a true 1RM is taxing on your body and carries injury risk, especially for beginners.
-            Using a calculator to estimate from a lighter set (e.g. 3-5 reps) is safer and usually accurate enough
-            for programming purposes.
+            Testing a true 1RM is taxing on your body and carries injury risk, especially for beginners. Using a
+            calculator to estimate from a lighter set (e.g. 3-5 reps) is safer and usually accurate enough for
+            programming purposes.
           </p>
         </div>
         <div className="mb-4">
           <h3 className="text-sm font-bold mb-1">What is a Training Max (TM)?</h3>
           <p className="text-sm text-text-secondary">
-            A Training Max is a percentage of your 1RM (typically 85-90%) used as the basis for calculating
-            working weights in programs like 5/3/1. It builds in a buffer so you're not always training at your absolute max.
+            A Training Max is a percentage of your 1RM (typically 85-90%) used as the basis for calculating working
+            weights in programs like 5/3/1. It builds in a buffer so you're not always training at your absolute max.
             Use the TM converter above to translate TM percentages into 1RM percentages.
           </p>
         </div>
