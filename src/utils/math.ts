@@ -23,7 +23,10 @@ export function MathUtils_roundTo000005(value: number): number {
 }
 
 export function MathUtils_roundFloat(value: number, precision: number): number {
-  return +value.toFixed(precision);
+    if (typeof value !== "number" || isNaN(value)) {
+      return 0;
+    }
+    return +value.toFixed(precision);
 }
 
 export function MathUtils_applyOp(a: number, b: number, opr: "+=" | "-=" | "*=" | "/=" | "="): number {
