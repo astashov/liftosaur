@@ -744,6 +744,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     const cachedPageWithDeviceBehavior: cloudfront.BehaviorOptions = {
       origin: apiOrigin,
+      compress: true,
       cachePolicy: cachedPageWithDeviceCachePolicy,
       originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
@@ -758,6 +759,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     const cachedPageBehavior: cloudfront.BehaviorOptions = {
       origin: apiOrigin,
+      compress: true,
       cachePolicy: programsCachePolicy,
       originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
@@ -775,6 +777,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       domainNames: [mainDomain],
       defaultBehavior: {
         origin: apiOrigin,
+        compress: true,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
         originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
@@ -789,6 +792,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       additionalBehaviors: {
         "/programs": {
           origin: apiOrigin,
+          compress: true,
           cachePolicy: programsCachePolicy,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
@@ -802,6 +806,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
         },
         "/programs/*": {
           origin: apiOrigin,
+          compress: true,
           cachePolicy: programsCachePolicy,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
